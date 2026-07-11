@@ -113,6 +113,31 @@ export function parseJsonObject(value: string | undefined) {
   }
 }
 
+function renderSafeValue(value: any): any {
+  if (typeof value === 'bigint') return value.toString();
+  if (Array.isArray(value)) return value.map(renderSafeValue);
+  if (value && typeof value === 'object') {
+    if (
+      ArrayBuffer.isView(value) ||
+      value instanceof ArrayBuffer ||
+      value instanceof Date ||
+      value instanceof RegExp ||
+      value instanceof Map ||
+      value instanceof Set ||
+      value instanceof WeakMap ||
+      value instanceof WeakSet
+    ) {
+      return value;
+    }
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([key, entryValue]) => key !== '$typeName' && typeof entryValue !== 'undefined')
+        .map(([key, entryValue]) => [key, renderSafeValue(entryValue)]),
+    );
+  }
+  return value;
+}
+
 export function resourceMetadata(name: string, namespace: string) {
   return {
     name,
@@ -195,13 +220,13 @@ export function scheduleFromResource(resource: ResourceEnvelope): ExplorerSchedu
 }
 
 export function scheduleDocumentFromResource(resource: ResourceEnvelope): ScheduleDocument {
-  return {
+  return renderSafeValue({
     name: resource.metadata?.name,
     ns: resource.metadata?.namespace,
     labels: resource.metadata?.labels,
     spec: resourceSpec(resource, 'schedule'),
     status: resourceStatus(resource, 'schedule'),
-  };
+  });
 }
 
 export function knowledgeFromResource(resource: ResourceEnvelope): ExplorerKnowledge {
