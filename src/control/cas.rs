@@ -6,6 +6,7 @@ use crate::gateway::rpc::data_proto;
 use anyhow::{anyhow, Result};
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use sha2::{Digest, Sha256};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io::{Cursor, Read, Write};
 use std::sync::Arc;
@@ -29,6 +30,9 @@ pub const CONTENT_ENCODING_ZSTD: &str = "zstd";
 
 const MIN_COMPRESSION_SAVINGS_PERCENT: usize = 10;
 const MAX_LOGICAL_OBJECT_BYTES: u64 = 50 * 1024 * 1024;
+const MAX_TOOL_RESULT_LOGICAL_BYTES: usize = 8 * 1024 * 1024;
+const TOOL_RESULT_TRUNCATION_MARKER: &[u8] =
+    b"\n\n...[CONTENT TRUNCATED DUE TO TOOL RESULT SIZE LIMIT]";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SessionCasScope {
@@ -106,10 +110,16 @@ impl CasStore {
         tool_name: &str,
         uncompressed_bytes: &[u8],
     ) -> Result<data_proto::ObjectRef> {
+        if uncompressed_bytes.len() > MAX_LOGICAL_OBJECT_BYTES as usize {
+            return Err(anyhow!(
+                "tool result exceeds the maximum supported logical size"
+            ));
+        }
         let scope = SessionCasScope::new(ns, agent, session_id);
         let identity = SessionObjectIdentity::new(message_id, part_id);
-        let (stored_bytes, content_encoding) = compressed_object_bytes(uncompressed_bytes)?;
-        let metadata = tool_result_metadata(&scope, tool_call_id, tool_name, uncompressed_bytes);
+        let logical_bytes = tool_result_logical_bytes(uncompressed_bytes);
+        let (stored_bytes, content_encoding) = compressed_object_bytes(&logical_bytes)?;
+        let metadata = tool_result_metadata(&scope, tool_call_id, tool_name, &logical_bytes);
 
         self.objects
             .put(
@@ -433,6 +443,25 @@ fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static
     }
 }
 
+fn tool_result_logical_bytes(raw_bytes: &[u8]) -> Cow<'_, [u8]> {
+    if raw_bytes.len() <= MAX_TOOL_RESULT_LOGICAL_BYTES {
+        return Cow::Borrowed(raw_bytes);
+    }
+
+    let marker_len = TOOL_RESULT_TRUNCATION_MARKER.len();
+    let mut prefix_len = MAX_TOOL_RESULT_LOGICAL_BYTES.saturating_sub(marker_len);
+    if let Ok(text) = std::str::from_utf8(raw_bytes) {
+        while prefix_len > 0 && !text.is_char_boundary(prefix_len) {
+            prefix_len -= 1;
+        }
+    }
+
+    let mut out = Vec::with_capacity(prefix_len + marker_len);
+    out.extend_from_slice(&raw_bytes[..prefix_len]);
+    out.extend_from_slice(TOOL_RESULT_TRUNCATION_MARKER);
+    Cow::Owned(out)
+}
+
 fn compression_saves_meaningfully(raw_len: usize, compressed_len: usize) -> bool {
     (compressed_len as u64) * 100
         < (raw_len as u64) * (100 - MIN_COMPRESSION_SAVINGS_PERCENT) as u64
@@ -504,7 +533,9 @@ fn sha256_hex(bytes: &[u8]) -> String {
 mod tests {
     use super::{
         parse_session_object_key, CasStore, SessionCasScope, SessionObjectIdentity,
-        CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD, METADATA_AGENT, METADATA_CONTENT_ENCODING,
+        CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD, MAX_LOGICAL_OBJECT_BYTES,
+        MAX_TOOL_RESULT_LOGICAL_BYTES, METADATA_AGENT, METADATA_CONTENT_ENCODING,
+        METADATA_UNCOMPRESSED_SIZE_BYTES, TOOL_RESULT_TRUNCATION_MARKER,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use flate2::{write::GzEncoder, Compression};
@@ -686,6 +717,64 @@ mod tests {
         assert_eq!(stored.bytes, raw);
         assert!(stored.metadata.content_encoding.is_empty());
         assert!(!object.metadata.contains_key(METADATA_CONTENT_ENCODING));
+    }
+
+    #[tokio::test]
+    async fn truncates_tool_result_to_logical_storage_limit() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects);
+        let raw = "x".repeat(MAX_TOOL_RESULT_LOGICAL_BYTES + 1024);
+
+        let object = store
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                raw.as_bytes(),
+            )
+            .await
+            .unwrap();
+        let stored = store
+            .get_session_object_decoded(
+                &SessionCasScope::new("acme", "agent", "session-1"),
+                &object.key,
+            )
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(stored.bytes.len(), MAX_TOOL_RESULT_LOGICAL_BYTES);
+        assert!(stored.bytes.ends_with(TOOL_RESULT_TRUNCATION_MARKER));
+        assert_eq!(
+            object.metadata[METADATA_UNCOMPRESSED_SIZE_BYTES],
+            MAX_TOOL_RESULT_LOGICAL_BYTES.to_string()
+        );
+    }
+
+    #[tokio::test]
+    async fn rejects_tool_result_above_logical_object_limit() {
+        let store = CasStore::new(Arc::new(InMemoryObjectStore::default()));
+        let raw = vec![b'x'; MAX_LOGICAL_OBJECT_BYTES as usize + 1];
+
+        let err = store
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                &raw,
+            )
+            .await
+            .unwrap_err();
+
+        assert!(err.to_string().contains("maximum supported logical size"));
     }
 
     #[tokio::test]
