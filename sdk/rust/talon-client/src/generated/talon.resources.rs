@@ -740,6 +740,146 @@ pub struct DeploymentReplicaStatus {
     pub owned_json_pointers: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct File {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<FileSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<FileStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileSpec {
+    #[prost(string, tag = "1")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(enumeration = "FilePurpose", tag = "3")]
+    pub purpose: i32,
+    #[prost(enumeration = "FileIndexPolicy", tag = "4")]
+    pub index_policy: i32,
+    #[prost(enumeration = "FileRetention", tag = "5")]
+    pub retention: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileStatus {
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(message, optional, tag = "4")]
+    pub object_ref: ::core::option::Option<FileObjectRef>,
+    #[prost(int64, tag = "5")]
+    pub updated_at: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileObjectRef {
+    #[prost(string, tag = "1")]
+    pub key: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub size_bytes: u64,
+    #[prost(string, tag = "4")]
+    pub sha256: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub filename: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "6")]
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum FilePurpose {
+    Unspecified = 0,
+    Memory = 1,
+    Artifact = 2,
+}
+impl FilePurpose {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "FILE_PURPOSE_UNSPECIFIED",
+            Self::Memory => "FILE_PURPOSE_MEMORY",
+            Self::Artifact => "FILE_PURPOSE_ARTIFACT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "FILE_PURPOSE_UNSPECIFIED" => Some(Self::Unspecified),
+            "FILE_PURPOSE_MEMORY" => Some(Self::Memory),
+            "FILE_PURPOSE_ARTIFACT" => Some(Self::Artifact),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum FileIndexPolicy {
+    Unspecified = 0,
+    None = 1,
+    Search = 2,
+    Retrieval = 3,
+}
+impl FileIndexPolicy {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "FILE_INDEX_POLICY_UNSPECIFIED",
+            Self::None => "FILE_INDEX_POLICY_NONE",
+            Self::Search => "FILE_INDEX_POLICY_SEARCH",
+            Self::Retrieval => "FILE_INDEX_POLICY_RETRIEVAL",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "FILE_INDEX_POLICY_UNSPECIFIED" => Some(Self::Unspecified),
+            "FILE_INDEX_POLICY_NONE" => Some(Self::None),
+            "FILE_INDEX_POLICY_SEARCH" => Some(Self::Search),
+            "FILE_INDEX_POLICY_RETRIEVAL" => Some(Self::Retrieval),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum FileRetention {
+    Unspecified = 0,
+    Retained = 1,
+}
+impl FileRetention {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "FILE_RETENTION_UNSPECIFIED",
+            Self::Retained => "FILE_RETENTION_RETAINED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "FILE_RETENTION_UNSPECIFIED" => Some(Self::Unspecified),
+            "FILE_RETENTION_RETAINED" => Some(Self::Retained),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SandboxClassSpec {
     #[prost(string, tag = "1")]
     pub provider: ::prost::alloc::string::String,
@@ -946,6 +1086,168 @@ pub struct Skill {
     pub spec: ::core::option::Option<SkillSpec>,
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<CommonResourceStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Task {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<TaskSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<TaskStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskSpec {
+    #[prost(string, tag = "1")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(enumeration = "TaskType", tag = "3")]
+    pub r#type: i32,
+    #[prost(message, optional, tag = "4")]
+    pub requester: ::core::option::Option<TaskParticipant>,
+    #[prost(message, optional, tag = "5")]
+    pub assignee: ::core::option::Option<TaskParticipant>,
+    #[prost(message, optional, tag = "6")]
+    pub execution_ref: ::core::option::Option<TaskExecutionRef>,
+    #[prost(string, tag = "7")]
+    pub parent_task_name: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "8")]
+    pub retention: ::core::option::Option<TaskRetention>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskParticipant {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub session_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskExecutionRef {
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub run_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskRetention {
+    #[prost(string, tag = "1")]
+    pub task_record: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub events: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub artifacts: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskStatus {
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(enumeration = "TaskPhase", tag = "2")]
+    pub phase: i32,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(string, tag = "4")]
+    pub progress_summary: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "5")]
+    pub result_artifacts: ::prost::alloc::vec::Vec<FileObjectRef>,
+    #[prost(int64, tag = "6")]
+    pub created_at: i64,
+    #[prost(int64, tag = "7")]
+    pub updated_at: i64,
+    #[prost(int64, tag = "8")]
+    pub completed_at: i64,
+    #[prost(int64, tag = "9")]
+    pub expires_at: i64,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TaskType {
+    Unspecified = 0,
+    Copywriting = 1,
+    Research = 2,
+    Analysis = 3,
+    Operations = 4,
+}
+impl TaskType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "TASK_TYPE_UNSPECIFIED",
+            Self::Copywriting => "TASK_TYPE_COPYWRITING",
+            Self::Research => "TASK_TYPE_RESEARCH",
+            Self::Analysis => "TASK_TYPE_ANALYSIS",
+            Self::Operations => "TASK_TYPE_OPERATIONS",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "TASK_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "TASK_TYPE_COPYWRITING" => Some(Self::Copywriting),
+            "TASK_TYPE_RESEARCH" => Some(Self::Research),
+            "TASK_TYPE_ANALYSIS" => Some(Self::Analysis),
+            "TASK_TYPE_OPERATIONS" => Some(Self::Operations),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TaskPhase {
+    Unspecified = 0,
+    Queued = 1,
+    Running = 2,
+    Blocked = 3,
+    NeedsReview = 4,
+    Succeeded = 5,
+    Failed = 6,
+    Canceled = 7,
+    Expired = 8,
+}
+impl TaskPhase {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "TASK_PHASE_UNSPECIFIED",
+            Self::Queued => "TASK_PHASE_QUEUED",
+            Self::Running => "TASK_PHASE_RUNNING",
+            Self::Blocked => "TASK_PHASE_BLOCKED",
+            Self::NeedsReview => "TASK_PHASE_NEEDS_REVIEW",
+            Self::Succeeded => "TASK_PHASE_SUCCEEDED",
+            Self::Failed => "TASK_PHASE_FAILED",
+            Self::Canceled => "TASK_PHASE_CANCELED",
+            Self::Expired => "TASK_PHASE_EXPIRED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "TASK_PHASE_UNSPECIFIED" => Some(Self::Unspecified),
+            "TASK_PHASE_QUEUED" => Some(Self::Queued),
+            "TASK_PHASE_RUNNING" => Some(Self::Running),
+            "TASK_PHASE_BLOCKED" => Some(Self::Blocked),
+            "TASK_PHASE_NEEDS_REVIEW" => Some(Self::NeedsReview),
+            "TASK_PHASE_SUCCEEDED" => Some(Self::Succeeded),
+            "TASK_PHASE_FAILED" => Some(Self::Failed),
+            "TASK_PHASE_CANCELED" => Some(Self::Canceled),
+            "TASK_PHASE_EXPIRED" => Some(Self::Expired),
+            _ => None,
+        }
+    }
 }
 /// Selects the traffic within a namespace that a UsagePolicy limit applies to.
 /// Empty fields are wildcards.
@@ -1284,7 +1586,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 80, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1332,6 +1634,10 @@ pub mod resource_spec {
         Worker(super::WorkerSpec),
         #[prost(message, tag = "60")]
         UsagePolicy(super::UsagePolicySpec),
+        #[prost(message, tag = "70")]
+        File(super::FileSpec),
+        #[prost(message, tag = "80")]
+        Task(super::TaskSpec),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceSpec),
     }
@@ -1340,7 +1646,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 80, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1388,6 +1694,10 @@ pub mod resource_status {
         Worker(super::WorkerStatus),
         #[prost(message, tag = "60")]
         UsagePolicy(super::UsagePolicyStatus),
+        #[prost(message, tag = "70")]
+        File(super::FileStatus),
+        #[prost(message, tag = "80")]
+        Task(super::TaskStatus),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceStatus),
     }

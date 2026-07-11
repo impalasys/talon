@@ -125,6 +125,68 @@ proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartTy
 ]);
 
 /**
+ * @generated from enum talon.data.GoalPhase
+ */
+export enum GoalPhase {
+  /**
+   * @generated from enum value: GOAL_PHASE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: GOAL_PHASE_RUNNING = 1;
+   */
+  RUNNING = 1,
+
+  /**
+   * @generated from enum value: GOAL_PHASE_PAUSED = 2;
+   */
+  PAUSED = 2,
+
+  /**
+   * @generated from enum value: GOAL_PHASE_NEEDS_REVIEW = 3;
+   */
+  NEEDS_REVIEW = 3,
+
+  /**
+   * @generated from enum value: GOAL_PHASE_SUCCEEDED = 4;
+   */
+  SUCCEEDED = 4,
+
+  /**
+   * @generated from enum value: GOAL_PHASE_FAILED = 5;
+   */
+  FAILED = 5,
+
+  /**
+   * @generated from enum value: GOAL_PHASE_BLOCKED = 6;
+   */
+  BLOCKED = 6,
+
+  /**
+   * @generated from enum value: GOAL_PHASE_CANCELED = 7;
+   */
+  CANCELED = 7,
+
+  /**
+   * @generated from enum value: GOAL_PHASE_EXPIRED = 8;
+   */
+  EXPIRED = 8,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GoalPhase)
+proto3.util.setEnumType(GoalPhase, "talon.data.GoalPhase", [
+  { no: 0, name: "GOAL_PHASE_UNSPECIFIED" },
+  { no: 1, name: "GOAL_PHASE_RUNNING" },
+  { no: 2, name: "GOAL_PHASE_PAUSED" },
+  { no: 3, name: "GOAL_PHASE_NEEDS_REVIEW" },
+  { no: 4, name: "GOAL_PHASE_SUCCEEDED" },
+  { no: 5, name: "GOAL_PHASE_FAILED" },
+  { no: 6, name: "GOAL_PHASE_BLOCKED" },
+  { no: 7, name: "GOAL_PHASE_CANCELED" },
+  { no: 8, name: "GOAL_PHASE_EXPIRED" },
+]);
+
+/**
  * @generated from message talon.data.ObjectRef
  */
 export class ObjectRef extends Message<ObjectRef> {
@@ -194,6 +256,479 @@ export class ObjectRef extends Message<ObjectRef> {
 
   static equals(a: ObjectRef | PlainMessage<ObjectRef> | undefined, b: ObjectRef | PlainMessage<ObjectRef> | undefined): boolean {
     return proto3.util.equals(ObjectRef, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.data.Artifact
+ */
+export class Artifact extends Message<Artifact> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string session_id = 2;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string title = 3;
+   */
+  title = "";
+
+  /**
+   * @generated from field: string path = 4;
+   */
+  path = "";
+
+  /**
+   * @generated from field: string media_type = 5;
+   */
+  mediaType = "";
+
+  /**
+   * @generated from field: talon.data.ObjectRef object_ref = 6;
+   */
+  objectRef?: ObjectRef;
+
+  /**
+   * @generated from field: string created_by_agent = 7;
+   */
+  createdByAgent = "";
+
+  /**
+   * @generated from field: int64 created_at = 8;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * @generated from field: map<string, string> labels = 9;
+   */
+  labels: { [key: string]: string } = {};
+
+  /**
+   * @generated from field: map<string, string> metadata = 10;
+   */
+  metadata: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<Artifact>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.Artifact";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "object_ref", kind: "message", T: ObjectRef },
+    { no: 7, name: "created_by_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 9, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 10, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Artifact {
+    return new Artifact().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Artifact {
+    return new Artifact().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Artifact {
+    return new Artifact().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Artifact | PlainMessage<Artifact> | undefined, b: Artifact | PlainMessage<Artifact> | undefined): boolean {
+    return proto3.util.equals(Artifact, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.data.GoalEvidenceRef
+ */
+export class GoalEvidenceRef extends Message<GoalEvidenceRef> {
+  /**
+   * @generated from field: string kind = 1;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string name = 3;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string agent = 4;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string session_id = 5;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string handle = 6;
+   */
+  handle = "";
+
+  /**
+   * @generated from field: string object_key = 7;
+   */
+  objectKey = "";
+
+  /**
+   * @generated from field: string summary = 8;
+   */
+  summary = "";
+
+  constructor(data?: PartialMessage<GoalEvidenceRef>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.GoalEvidenceRef";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "object_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GoalEvidenceRef {
+    return new GoalEvidenceRef().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GoalEvidenceRef {
+    return new GoalEvidenceRef().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GoalEvidenceRef {
+    return new GoalEvidenceRef().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GoalEvidenceRef | PlainMessage<GoalEvidenceRef> | undefined, b: GoalEvidenceRef | PlainMessage<GoalEvidenceRef> | undefined): boolean {
+    return proto3.util.equals(GoalEvidenceRef, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.data.Goal
+ */
+export class Goal extends Message<Goal> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string agent = 3;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string session_id = 4;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string objective = 5;
+   */
+  objective = "";
+
+  /**
+   * @generated from field: repeated string success_criteria = 6;
+   */
+  successCriteria: string[] = [];
+
+  /**
+   * @generated from field: talon.data.GoalPhase phase = 7;
+   */
+  phase = GoalPhase.UNSPECIFIED;
+
+  /**
+   * @generated from field: string progress_summary = 8;
+   */
+  progressSummary = "";
+
+  /**
+   * @generated from field: int32 iteration = 9;
+   */
+  iteration = 0;
+
+  /**
+   * @generated from field: int32 max_iterations = 10;
+   */
+  maxIterations = 0;
+
+  /**
+   * @generated from field: repeated talon.data.GoalEvidenceRef evidence_refs = 11;
+   */
+  evidenceRefs: GoalEvidenceRef[] = [];
+
+  /**
+   * @generated from field: int64 created_at = 12;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 updated_at = 13;
+   */
+  updatedAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 completed_at = 14;
+   */
+  completedAt = protoInt64.zero;
+
+  /**
+   * @generated from field: string blocked_reason = 15;
+   */
+  blockedReason = "";
+
+  /**
+   * @generated from field: map<string, string> labels = 16;
+   */
+  labels: { [key: string]: string } = {};
+
+  /**
+   * @generated from field: map<string, string> metadata = 17;
+   */
+  metadata: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<Goal>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.Goal";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "objective", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "success_criteria", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "phase", kind: "enum", T: proto3.getEnumType(GoalPhase) },
+    { no: 8, name: "progress_summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "iteration", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 10, name: "max_iterations", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 11, name: "evidence_refs", kind: "message", T: GoalEvidenceRef, repeated: true },
+    { no: 12, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 13, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 14, name: "completed_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 15, name: "blocked_reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 17, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Goal {
+    return new Goal().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Goal {
+    return new Goal().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Goal {
+    return new Goal().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Goal | PlainMessage<Goal> | undefined, b: Goal | PlainMessage<Goal> | undefined): boolean {
+    return proto3.util.equals(Goal, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.data.GoalIndexEntry
+ */
+export class GoalIndexEntry extends Message<GoalIndexEntry> {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string session_id = 3;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string goal_id = 4;
+   */
+  goalId = "";
+
+  /**
+   * @generated from field: talon.data.GoalPhase phase = 5;
+   */
+  phase = GoalPhase.UNSPECIFIED;
+
+  /**
+   * @generated from field: string status_group = 6;
+   */
+  statusGroup = "";
+
+  /**
+   * @generated from field: int64 updated_at = 7;
+   */
+  updatedAt = protoInt64.zero;
+
+  constructor(data?: PartialMessage<GoalIndexEntry>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.GoalIndexEntry";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "goal_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "phase", kind: "enum", T: proto3.getEnumType(GoalPhase) },
+    { no: 6, name: "status_group", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GoalIndexEntry {
+    return new GoalIndexEntry().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GoalIndexEntry {
+    return new GoalIndexEntry().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GoalIndexEntry {
+    return new GoalIndexEntry().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GoalIndexEntry | PlainMessage<GoalIndexEntry> | undefined, b: GoalIndexEntry | PlainMessage<GoalIndexEntry> | undefined): boolean {
+    return proto3.util.equals(GoalIndexEntry, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.data.HandleGrant
+ */
+export class HandleGrant extends Message<HandleGrant> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string kind = 3;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string target_id = 4;
+   */
+  targetId = "";
+
+  /**
+   * @generated from field: string agent = 5;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string session_id = 6;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: repeated string operations = 7;
+   */
+  operations: string[] = [];
+
+  /**
+   * @generated from field: string audience_agent = 8;
+   */
+  audienceAgent = "";
+
+  /**
+   * @generated from field: string audience_session_id = 9;
+   */
+  audienceSessionId = "";
+
+  /**
+   * @generated from field: int64 expires_at = 10;
+   */
+  expiresAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 created_at = 11;
+   */
+  createdAt = protoInt64.zero;
+
+  constructor(data?: PartialMessage<HandleGrant>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.HandleGrant";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "target_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "operations", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 8, name: "audience_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "audience_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 11, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): HandleGrant {
+    return new HandleGrant().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): HandleGrant {
+    return new HandleGrant().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): HandleGrant {
+    return new HandleGrant().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: HandleGrant | PlainMessage<HandleGrant> | undefined, b: HandleGrant | PlainMessage<HandleGrant> | undefined): boolean {
+    return proto3.util.equals(HandleGrant, a, b);
   }
 }
 

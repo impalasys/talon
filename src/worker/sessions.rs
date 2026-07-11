@@ -24,6 +24,8 @@ use tracing::Instrument;
 
 const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
 const SESSION_RELEASE_CAS_BACKOFF_MS: u64 = 10;
+const MAX_ASYNC_A2A_WAKEUP_RETRIES: usize = 1;
+const ASYNC_A2A_WAKEUP_RETRY_MS: u64 = 50;
 const DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS: u64 = 100;
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 const LABEL_CONNECTOR_REGISTRATION: &str = "talon.impalasys.com/connector-registration";
@@ -1045,6 +1047,22 @@ impl WorkerEventHandler {
             );
             return;
         };
+        match self
+            .dispatch_next_pending_async_a2a_wakeup(ns, agent_id, session_id)
+            .await
+        {
+            Ok(true) => return,
+            Ok(false) => {}
+            Err(err) => {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent_id,
+                    session = %session_id,
+                    error = %err,
+                    "failed to dispatch pending async A2A wake-up"
+                );
+            }
+        }
         if let Err(err) =
             crate::worker::workflows::dispatch_workflow_from_session_labels(&self.cp, &session)
                 .await
@@ -1056,6 +1074,293 @@ impl WorkerEventHandler {
                 error = %err,
                 "failed to dispatch workflow from completed child session"
             );
+        }
+        if let Err(err) = self
+            .dispatch_async_a2a_parent_wakeup(ns, agent_id, session_id, &session)
+            .await
+        {
+            tracing::warn!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                error = %err,
+                "failed to dispatch async A2A parent wake-up"
+            );
+        }
+    }
+
+    async fn dispatch_async_a2a_parent_wakeup(
+        &self,
+        child_ns: &str,
+        child_agent: &str,
+        child_session_id: &str,
+        child_session: &data_proto::Session,
+    ) -> Result<()> {
+        if child_session
+            .labels
+            .get("talon.a2a.async")
+            .map(String::as_str)
+            != Some("true")
+        {
+            return Ok(());
+        }
+        let Some(parent_ns) = child_session.labels.get("talon.a2a.parent_namespace") else {
+            return Ok(());
+        };
+        let Some(parent_agent) = child_session.labels.get("talon.a2a.parent_agent") else {
+            return Ok(());
+        };
+        let Some(parent_session_id) = child_session.labels.get("talon.a2a.parent_session_id")
+        else {
+            return Ok(());
+        };
+        let connection = child_session
+            .labels
+            .get("talon.a2a.connection")
+            .map(String::as_str)
+            .unwrap_or("");
+        let message = format!(
+            "ASYNC_DELEGATION_COMPLETED\nconnection: {connection}\nchild_namespace: \
+             {child_ns}\nchild_agent: {child_agent}\nchild_session_id: \
+             {child_session_id}"
+        );
+        let labels = std::collections::HashMap::from([
+            ("talon.a2a.async_wakeup".to_string(), "true".to_string()),
+            (
+                "talon.a2a.child_namespace".to_string(),
+                child_ns.to_string(),
+            ),
+            ("talon.a2a.child_agent".to_string(), child_agent.to_string()),
+            (
+                "talon.a2a.child_session_id".to_string(),
+                child_session_id.to_string(),
+            ),
+            ("talon.a2a.connection".to_string(), connection.to_string()),
+        ]);
+
+        let mut last_error = None;
+        for attempt in 0..=MAX_ASYNC_A2A_WAKEUP_RETRIES {
+            let now = chrono::Utc::now();
+            match crate::control::scheduling::send_message(
+                self.cp.kv.as_ref(),
+                self.cp.pubsub.as_ref(),
+                parent_ns,
+                parent_agent,
+                parent_session_id,
+                &message,
+                labels.clone(),
+                now,
+            )
+            .await
+            {
+                Ok(_) => return Ok(()),
+                Err(err)
+                    if err
+                        .downcast_ref::<crate::control::scheduling::SessionCurrentlyProcessingError>(
+                        )
+                        .is_some()
+                        && attempt < MAX_ASYNC_A2A_WAKEUP_RETRIES =>
+                {
+                    tracing::debug!(
+                        namespace = %parent_ns,
+                        agent = %parent_agent,
+                        session = %parent_session_id,
+                        child_namespace = %child_ns,
+                        child_agent = %child_agent,
+                        child_session = %child_session_id,
+                        attempt,
+                        "parent session busy; retrying async A2A wake-up"
+                    );
+                    tokio::time::sleep(std::time::Duration::from_millis(
+                        ASYNC_A2A_WAKEUP_RETRY_MS,
+                    ))
+                    .await;
+                    continue;
+                }
+                Err(err) => {
+                    last_error = Some(err);
+                    break;
+                }
+            }
+        }
+
+        if last_error.as_ref().is_some_and(|err| {
+            err.downcast_ref::<crate::control::scheduling::SessionCurrentlyProcessingError>()
+                .is_some()
+        }) {
+            let event = crate::control::scheduling::enqueue_message_without_dispatch(
+                self.cp.kv.as_ref(),
+                self.cp.pubsub.as_ref(),
+                parent_ns,
+                parent_agent,
+                parent_session_id,
+                &message,
+                labels,
+                chrono::Utc::now(),
+            )
+            .await?;
+            let wakeup_id = event.submission_id.clone();
+            self.cp
+                .kv
+                .set_msg(
+                    &crate::control::keys::async_a2a_wakeup(
+                        parent_ns,
+                        parent_agent,
+                        parent_session_id,
+                        &wakeup_id,
+                    ),
+                    &event,
+                )
+                .await?;
+            tracing::info!(
+                namespace = %parent_ns,
+                agent = %parent_agent,
+                session = %parent_session_id,
+                wakeup = %wakeup_id,
+                child_namespace = %child_ns,
+                child_agent = %child_agent,
+                child_session = %child_session_id,
+                "queued durable async A2A parent wake-up"
+            );
+            return Ok(());
+        }
+
+        Err(last_error.unwrap_or_else(|| {
+            anyhow!(
+                "parent session remained busy after {} async wake-up retries",
+                MAX_ASYNC_A2A_WAKEUP_RETRIES
+            )
+        }))
+    }
+
+    async fn dispatch_next_pending_async_a2a_wakeup(
+        &self,
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+    ) -> Result<bool> {
+        let mut entries = self
+            .cp
+            .kv
+            .list_entries(&crate::control::keys::async_a2a_wakeup_prefix(
+                ns, agent_id, session_id,
+            ))
+            .await?;
+        entries.sort_by(|left, right| left.0.name.cmp(&right.0.name));
+
+        for (key, bytes) in entries {
+            let mut event = match SessionMessageEvent::decode(bytes.as_slice()) {
+                Ok(event) => event,
+                Err(error) => {
+                    tracing::warn!(
+                        error = %error,
+                        key = %key,
+                        "dropping invalid async A2A wake-up record"
+                    );
+                    self.cp.kv.delete(&key).await?;
+                    continue;
+                }
+            };
+            let now_micros = chrono::Utc::now().timestamp_micros();
+            if !self
+                .try_acquire_session_lock_for_pending_wakeup(ns, agent_id, session_id, now_micros)
+                .await?
+            {
+                return Ok(false);
+            }
+            event.timestamp = now_micros;
+            if let Err(error) = self
+                .cp
+                .pubsub
+                .publish(
+                    crate::control::topics::SESSION_DISPATCH_TOPIC,
+                    &event.encode_to_vec(),
+                )
+                .await
+            {
+                self.release_pending_wakeup_session_lock(ns, agent_id, session_id, now_micros)
+                    .await;
+                return Err(error);
+            }
+            self.cp.kv.delete(&key).await?;
+            tracing::info!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                submission = %event.submission_id,
+                "dispatched pending async A2A wake-up"
+            );
+            return Ok(true);
+        }
+        Ok(false)
+    }
+
+    async fn try_acquire_session_lock_for_pending_wakeup(
+        &self,
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+        now_micros: i64,
+    ) -> Result<bool> {
+        let key = crate::control::keys::session(ns, agent_id, session_id);
+        let timeout_micros = crate::control::scheduling::session_processing_timeout_micros();
+        for _ in 0..MAX_SESSION_RELEASE_CAS_RETRIES {
+            let Some(current) = self.cp.kv.get(&key).await? else {
+                return Ok(false);
+            };
+            let mut session = data_proto::Session::decode(current.as_slice())?;
+            if session.status == "PROCESSING"
+                && now_micros.saturating_sub(session.last_active) <= timeout_micros
+            {
+                return Ok(false);
+            }
+            session.status = "PROCESSING".to_string();
+            session.last_active = now_micros;
+            let updated = session.encode_to_vec();
+            if self
+                .cp
+                .kv
+                .compare_and_swap(&key, Some(current.as_slice()), &updated)
+                .await?
+            {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    async fn release_pending_wakeup_session_lock(
+        &self,
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+        expected_last_active: i64,
+    ) {
+        let key = crate::control::keys::session(ns, agent_id, session_id);
+        for _ in 0..MAX_SESSION_RELEASE_CAS_RETRIES {
+            let current = match self.cp.kv.get(&key).await {
+                Ok(Some(current)) => current,
+                _ => return,
+            };
+            let mut session = match data_proto::Session::decode(current.as_slice()) {
+                Ok(session) => session,
+                Err(_) => return,
+            };
+            if session.status != "PROCESSING" || session.last_active != expected_last_active {
+                return;
+            }
+            session.status = "IDLE".to_string();
+            let updated = session.encode_to_vec();
+            match self
+                .cp
+                .kv
+                .compare_and_swap(&key, Some(current.as_slice()), &updated)
+                .await
+            {
+                Ok(true) => return,
+                Ok(false) => continue,
+                Err(_) => return,
+            }
         }
     }
 }

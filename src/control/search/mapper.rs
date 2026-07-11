@@ -10,17 +10,21 @@ use crate::control::resources::ResourceStore;
 use crate::control::{keys, ControlPlane};
 use crate::gateway::rpc::{data_proto, resources_proto};
 use anyhow::{anyhow, Result};
+use async_trait::async_trait;
 use prost::Message;
 use serde_json::json;
 use std::{collections::HashMap, sync::Arc};
+
+const MAX_INDEXED_FILE_BYTES: u64 = 2 * 1024 * 1024;
 
 #[derive(Clone)]
 pub struct DocumentMapper {
     cp: Arc<ControlPlane>,
 }
 
+#[async_trait]
 trait MappableSource: Send + Sync {
-    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>>;
+    async fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>>;
 }
 
 struct SessionMessageSource {
@@ -29,6 +33,7 @@ struct SessionMessageSource {
 }
 
 struct ControlPlaneResourceSource {
+    cp: Arc<ControlPlane>,
     key: keys::ResourceKey,
     resource: resources_proto::Resource,
 }
@@ -48,7 +53,7 @@ impl DocumentMapper {
         let Some(source) = self.load_source(key).await? else {
             return Ok(Vec::new());
         };
-        source.map(generation, indexed_at)
+        source.map(generation, indexed_at).await
     }
 
     async fn load_source(
@@ -75,6 +80,7 @@ impl DocumentMapper {
                 message: data_proto::SessionMessage::decode(bytes)?,
             })),
             _ => Ok(Box::new(ControlPlaneResourceSource {
+                cp: self.cp.clone(),
                 key: key.clone(),
                 resource: ResourceStore::decode_stored_resource(&key.kind, bytes)?,
             })),
@@ -82,8 +88,9 @@ impl DocumentMapper {
     }
 }
 
+#[async_trait]
 impl MappableSource for SessionMessageSource {
-    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
+    async fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
         let agent = parent_segment(&self.key, "Agent").unwrap_or_default();
         let session_id = parent_segment(&self.key, "Session").unwrap_or_default();
         let role = data_proto::MessageRole::try_from(self.message.role)
@@ -153,8 +160,9 @@ impl MappableSource for SessionMessageSource {
     }
 }
 
+#[async_trait]
 impl MappableSource for ControlPlaneResourceSource {
-    fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
+    async fn map(self: Box<Self>, generation: u64, indexed_at: i64) -> Result<Vec<Document>> {
         let current_generation = self
             .resource
             .metadata
@@ -202,6 +210,28 @@ impl MappableSource for ControlPlaneResourceSource {
                     spec,
                     indexed_at,
                 )?);
+            }
+        }
+
+        if let Some(resources_proto::resource_spec::Kind::File(spec)) = self
+            .resource
+            .spec
+            .as_ref()
+            .and_then(|spec| spec.kind.as_ref())
+        {
+            if should_index_file(spec) {
+                if let Some(document) = file_content_document(
+                    self.cp.as_ref(),
+                    &self.key,
+                    &self.resource,
+                    &source,
+                    spec,
+                    indexed_at,
+                )
+                .await?
+                {
+                    documents.push(document);
+                }
             }
         }
 
@@ -292,6 +322,145 @@ fn knowledge_content_document(
         }),
         text: spec.content.clone(),
     })
+}
+
+fn should_index_file(spec: &resources_proto::FileSpec) -> bool {
+    matches!(
+        resources_proto::FileIndexPolicy::try_from(spec.index_policy).ok(),
+        Some(resources_proto::FileIndexPolicy::Search)
+            | Some(resources_proto::FileIndexPolicy::Retrieval)
+    )
+}
+
+fn is_text_media_type(media_type: &str) -> bool {
+    let media_type = media_type
+        .split_once(';')
+        .map(|(value, _)| value)
+        .unwrap_or(media_type)
+        .trim()
+        .to_ascii_lowercase();
+    media_type.starts_with("text/")
+        || media_type.ends_with("+json")
+        || media_type.ends_with("+xml")
+        || matches!(
+            media_type.as_str(),
+            "application/json"
+                | "application/javascript"
+                | "application/typescript"
+                | "application/xml"
+                | "application/toml"
+                | "application/yaml"
+                | "application/x-yaml"
+                | "application/markdown"
+                | "application/x-httpd-php"
+                | "application/x-python"
+                | "application/x-ruby"
+                | "application/x-sh"
+                | "application/x-shellscript"
+        )
+}
+
+fn file_purpose_name(value: i32) -> &'static str {
+    match resources_proto::FilePurpose::try_from(value).ok() {
+        Some(resources_proto::FilePurpose::Memory) => "MEMORY",
+        Some(resources_proto::FilePurpose::Artifact) => "ARTIFACT",
+        _ => "UNSPECIFIED",
+    }
+}
+
+fn file_index_policy_name(value: i32) -> &'static str {
+    match resources_proto::FileIndexPolicy::try_from(value).ok() {
+        Some(resources_proto::FileIndexPolicy::None) => "NONE",
+        Some(resources_proto::FileIndexPolicy::Search) => "SEARCH",
+        Some(resources_proto::FileIndexPolicy::Retrieval) => "RETRIEVAL",
+        _ => "UNSPECIFIED",
+    }
+}
+
+async fn file_content_document(
+    cp: &ControlPlane,
+    key: &keys::ResourceKey,
+    resource: &resources_proto::Resource,
+    source: &DocumentSource,
+    spec: &resources_proto::FileSpec,
+    indexed_at: i64,
+) -> Result<Option<Document>> {
+    if !is_text_media_type(&spec.media_type) {
+        return Ok(None);
+    }
+    let meta = resource
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("resource metadata is required"))?;
+    let Some(object_ref) = resource
+        .status
+        .as_ref()
+        .and_then(|status| status.kind.as_ref())
+        .and_then(|kind| match kind {
+            resources_proto::resource_status::Kind::File(status) => status.object_ref.as_ref(),
+            _ => None,
+        })
+    else {
+        return Ok(None);
+    };
+    if object_ref.size_bytes > MAX_INDEXED_FILE_BYTES {
+        tracing::warn!(
+            resource = %key.canonical(),
+            object_key = %object_ref.key,
+            file = %meta.name,
+            size_bytes = object_ref.size_bytes,
+            max_bytes = MAX_INDEXED_FILE_BYTES,
+            "file object is too large for content indexing; skipping content document"
+        );
+        return Ok(None);
+    }
+    let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+    let Some(object) = (match cas.get_object_decoded(&object_ref.key).await {
+        Ok(object) => object,
+        Err(error) => {
+            tracing::warn!(
+                error = %error,
+                resource = %key.canonical(),
+                object_key = %object_ref.key,
+                "failed to fetch file object for indexing; skipping content document"
+            );
+            return Ok(None);
+        }
+    }) else {
+        return Ok(None);
+    };
+    let text = String::from_utf8_lossy(&object.bytes).into_owned();
+    if text.trim().is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(Document {
+        r#ref: Some(data_proto::DocumentRef {
+            title: spec.path.clone(),
+            labels: meta.labels.clone(),
+            metadata_json: json!({
+                "documentKind": DOCUMENT_KIND_CONTENT,
+                "path": spec.path,
+                "name": meta.name,
+                "uid": meta.uid,
+                "resourceVersion": meta.resource_version,
+                "purpose": file_purpose_name(spec.purpose),
+                "indexPolicy": file_index_policy_name(spec.index_policy),
+                "objectKey": object_ref.key,
+                "sha256": object_ref.sha256,
+            })
+            .to_string(),
+            acl_scope_json: acl_scope_json(key, resource),
+            indexed_at,
+            generation: meta.generation,
+            ..document_ref(
+                document_id(&source.key, DOCUMENT_KIND_CONTENT, ""),
+                source.clone(),
+                DOCUMENT_KIND_CONTENT.to_string(),
+                String::new(),
+            )
+        }),
+        text,
+    }))
 }
 
 // Common helpers.
@@ -436,6 +605,17 @@ fn status_phase(resource: &resources_proto::Resource) -> String {
         resources_proto::resource_status::Kind::Connector(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::McpServer(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Knowledge(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::File(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Task(status) => {
+            resources_proto::TaskPhase::try_from(status.phase)
+                .map(|phase| {
+                    phase
+                        .as_str_name()
+                        .trim_start_matches("TASK_PHASE_")
+                        .to_string()
+                })
+                .unwrap_or_default()
+        }
         resources_proto::resource_status::Kind::Namespace(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Session(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Skill(status) => status.phase.clone(),
@@ -544,10 +724,11 @@ fn parent_segment(key: &keys::ResourceKey, kind: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::object_store::ObjectMetadata;
     use crate::control::search::KIND_KNOWLEDGE;
 
-    #[test]
-    fn generic_resource_emits_metadata_document() {
+    #[tokio::test]
+    async fn generic_resource_emits_metadata_document() {
         let key = keys::ResourceKey::new("acme", &[], "Agent", "support");
         let resource = resources_proto::Resource {
             api_version: "talon.impalasys.com/v1".to_string(),
@@ -579,10 +760,12 @@ mod tests {
         };
 
         let documents = Box::new(ControlPlaneResourceSource {
+            cp: Arc::new(ControlPlane::noop()),
             key: key.clone(),
             resource,
         })
         .map(0, 10)
+        .await
         .unwrap();
         assert_eq!(documents.len(), 1);
         let document_ref = documents[0].r#ref.as_ref().expect("document ref");
@@ -594,8 +777,8 @@ mod tests {
         assert!(documents[0].text.contains("Ready"));
     }
 
-    #[test]
-    fn knowledge_resource_emits_metadata_and_content_documents() {
+    #[tokio::test]
+    async fn knowledge_resource_emits_metadata_and_content_documents() {
         let key = keys::ResourceKey::new("acme", &[], KIND_KNOWLEDGE, "refunds");
         let resource = resources_proto::Resource {
             api_version: "talon.impalasys.com/v1".to_string(),
@@ -618,10 +801,12 @@ mod tests {
         };
 
         let documents = Box::new(ControlPlaneResourceSource {
+            cp: Arc::new(ControlPlane::noop()),
             key: key.clone(),
             resource,
         })
         .map(0, 10)
+        .await
         .unwrap();
         assert_eq!(documents.len(), 2);
         assert_eq!(
@@ -643,8 +828,80 @@ mod tests {
         assert_eq!(documents[1].text, "Refund policy details");
     }
 
-    #[test]
-    fn raw_resource_emits_safe_metadata_only() {
+    #[tokio::test]
+    async fn file_resource_with_retrieval_policy_indexes_object_content() {
+        let cp = Arc::new(ControlPlane::noop());
+        cp.objects
+            .put(
+                "cas/acme/files/file-uid/sha",
+                b"Memory file content",
+                ObjectMetadata {
+                    media_type: "text/markdown".to_string(),
+                    filename: "guide.md".to_string(),
+                    sha256: "sha".to_string(),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+        let key = keys::ResourceKey::new("acme", &[], "File", "guide-md");
+        let resource = resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "File".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "guide-md".to_string(),
+                namespace: "acme".to_string(),
+                generation: 4,
+                uid: "file-uid".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::File(
+                    resources_proto::FileSpec {
+                        path: "/memory/guide.md".to_string(),
+                        media_type: "text/markdown".to_string(),
+                        purpose: resources_proto::FilePurpose::Memory as i32,
+                        index_policy: resources_proto::FileIndexPolicy::Retrieval as i32,
+                        retention: resources_proto::FileRetention::Retained as i32,
+                    },
+                )),
+            }),
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resources_proto::resource_status::Kind::File(
+                    resources_proto::FileStatus {
+                        object_ref: Some(resources_proto::FileObjectRef {
+                            key: "cas/acme/files/file-uid/sha".to_string(),
+                            media_type: "text/markdown".to_string(),
+                            size_bytes: 19,
+                            sha256: "sha".to_string(),
+                            filename: "guide.md".to_string(),
+                            metadata: HashMap::new(),
+                        }),
+                        ..Default::default()
+                    },
+                )),
+            }),
+        };
+
+        let documents = Box::new(ControlPlaneResourceSource { cp, key, resource })
+            .map(0, 10)
+            .await
+            .unwrap();
+
+        assert_eq!(documents.len(), 2);
+        assert_eq!(documents[1].text, "Memory file content");
+        assert_eq!(
+            documents[1]
+                .r#ref
+                .as_ref()
+                .expect("document ref")
+                .document_kind,
+            DOCUMENT_KIND_CONTENT
+        );
+    }
+
+    #[tokio::test]
+    async fn raw_resource_emits_safe_metadata_only() {
         let key = keys::ResourceKey::new("acme", &[], "Custom", "raw-one");
         let resource = resources_proto::Resource {
             api_version: "talon.impalasys.com/v1".to_string(),
@@ -668,10 +925,12 @@ mod tests {
         };
 
         let documents = Box::new(ControlPlaneResourceSource {
+            cp: Arc::new(ControlPlane::noop()),
             key: key.clone(),
             resource,
         })
         .map(0, 10)
+        .await
         .unwrap();
         assert_eq!(documents.len(), 1);
         assert_eq!(
@@ -686,8 +945,8 @@ mod tests {
         assert!(!documents[0].text.contains("do-not-index"));
     }
 
-    #[test]
-    fn session_message_emits_one_text_part_document_per_text_part() {
+    #[tokio::test]
+    async fn session_message_emits_one_text_part_document_per_text_part() {
         let key = keys::session_message("acme", "support", "s1", "m1");
         let documents = Box::new(SessionMessageSource {
             key: key.clone(),
@@ -714,6 +973,7 @@ mod tests {
             },
         })
         .map(4, 200)
+        .await
         .unwrap();
         assert_eq!(documents.len(), 1);
         let document_ref = documents[0].r#ref.as_ref().expect("document ref");

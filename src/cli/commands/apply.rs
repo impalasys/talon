@@ -86,6 +86,8 @@ fn is_generic_resource_kind(kind: &str) -> bool {
             | "McpServer"
             | "MCPServer"
             | "Knowledge"
+            | "File"
+            | "Task"
             | "Channel"
             | "ChannelSubscription"
             | "Schedule"
@@ -144,6 +146,34 @@ fn resource_manifest_from_manifest(
                 spec: Some(resources_proto::ResourceSpec {
                     kind: Some(SpecKind::Knowledge(
                         knowledge.spec.clone().context("Knowledge missing spec")?,
+                    )),
+                }),
+            }
+        }
+        "File" => {
+            let file: resources_proto::File =
+                serde_yaml::from_str(content).context("Failed to parse File manifest")?;
+            resources_proto::ResourceManifest {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "File".to_string(),
+                metadata: file.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::File(
+                        file.spec.clone().context("File missing spec")?,
+                    )),
+                }),
+            }
+        }
+        "Task" => {
+            let task: resources_proto::Task =
+                serde_yaml::from_str(content).context("Failed to parse Task manifest")?;
+            resources_proto::ResourceManifest {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "Task".to_string(),
+                metadata: task.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::Task(
+                        task.spec.clone().context("Task missing spec")?,
                     )),
                 }),
             }

@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+import "proto/resources/files.proto";
+
+message Task {
+  ResourceMeta metadata = 1;
+  TaskSpec spec = 2;
+  TaskStatus status = 3;
+}
+
+message TaskSpec {
+  string title = 1;
+  string description = 2;
+  TaskType type = 3;
+  TaskParticipant requester = 4;
+  TaskParticipant assignee = 5;
+  TaskExecutionRef execution_ref = 6;
+  string parent_task_name = 7;
+  TaskRetention retention = 8;
+}
+
+message TaskParticipant {
+  string namespace = 1;
+  string agent = 2;
+  string session_id = 3;
+}
+
+message TaskExecutionRef {
+  string kind = 1;
+  string namespace = 2;
+  string agent = 3;
+  string session_id = 4;
+  string run_id = 5;
+}
+
+message TaskRetention {
+  string task_record = 1;
+  string events = 2;
+  string artifacts = 3;
+}
+
+enum TaskType {
+  TASK_TYPE_UNSPECIFIED = 0;
+  TASK_TYPE_COPYWRITING = 1;
+  TASK_TYPE_RESEARCH = 2;
+  TASK_TYPE_ANALYSIS = 3;
+  TASK_TYPE_OPERATIONS = 4;
+}
+
+enum TaskPhase {
+  TASK_PHASE_UNSPECIFIED = 0;
+  TASK_PHASE_QUEUED = 1;
+  TASK_PHASE_RUNNING = 2;
+  TASK_PHASE_BLOCKED = 3;
+  TASK_PHASE_NEEDS_REVIEW = 4;
+  TASK_PHASE_SUCCEEDED = 5;
+  TASK_PHASE_FAILED = 6;
+  TASK_PHASE_CANCELED = 7;
+  TASK_PHASE_EXPIRED = 8;
+}
+
+message TaskStatus {
+  uint64 observed_generation = 1;
+  TaskPhase phase = 2;
+  repeated ResourceCondition conditions = 3;
+  string progress_summary = 4;
+  repeated FileObjectRef result_artifacts = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+  int64 completed_at = 8;
+  int64 expires_at = 9;
+}

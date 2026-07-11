@@ -4,7 +4,6 @@
 use crate::control::config::Config;
 use crate::control::ControlPlane;
 use crate::harness::executor::compaction::compact_history_for_llm;
-use crate::harness::knowledge::KnowledgeBook;
 use crate::harness::llm::resolver::resolve_model_profile;
 use crate::harness::llm::{
     chat_content_part, chat_stream_event, text_part, ChatContentPart, ChatMessage, ChatRequest,
@@ -378,7 +377,6 @@ pub struct AgentExecutor {
     pub assembler: ContextAssembler,
     pub registry: Arc<tokio::sync::RwLock<ToolRegistry>>,
     pub config: Arc<Config>,
-    pub knowledge: Arc<dyn KnowledgeBook>,
     pub namespace: String,
     pub agent_id: String,
     pub session_id: String,
@@ -407,7 +405,6 @@ impl AgentExecutor {
         assembler: ContextAssembler,
         registry: Arc<tokio::sync::RwLock<ToolRegistry>>,
         config: Arc<Config>,
-        knowledge: Arc<dyn KnowledgeBook>,
         namespace: String,
         agent_id: String,
         control_plane: ControlPlane,
@@ -421,7 +418,6 @@ impl AgentExecutor {
             assembler,
             registry,
             config,
-            knowledge,
             namespace,
             agent_id,
             String::new(),
@@ -438,7 +434,6 @@ impl AgentExecutor {
         assembler: ContextAssembler,
         registry: Arc<tokio::sync::RwLock<ToolRegistry>>,
         config: Arc<Config>,
-        knowledge: Arc<dyn KnowledgeBook>,
         namespace: String,
         agent_id: String,
         session_id: String,
@@ -453,7 +448,6 @@ impl AgentExecutor {
             assembler,
             registry,
             config,
-            knowledge,
             namespace,
             agent_id,
             session_id,
@@ -787,14 +781,6 @@ impl AgentExecutor {
     async fn tool_type(&self, name: &str) -> &'static str {
         if self.mcp_tools.contains_key(name) {
             "mcp"
-        } else if matches!(
-            name,
-            crate::harness::knowledge::KNOWLEDGE_WRITE_TOOL
-                | crate::harness::knowledge::KNOWLEDGE_SEARCH_TOOL
-                | crate::harness::knowledge::KNOWLEDGE_GET_TOOL
-                | crate::harness::knowledge::KNOWLEDGE_LIST_TOOL
-        ) {
-            "retrieval"
         } else if self.registry.read().await.get_tool(name).is_some() {
             "native"
         } else {
@@ -838,18 +824,7 @@ impl AgentExecutor {
         {
             return Ok(result);
         }
-        if let Some(result) = crate::harness::knowledge::execute_tool(
-            self.knowledge.as_ref(),
-            &self.namespace,
-            name,
-            &args,
-        )
-        .await?
-        {
-            Ok(result)
-        } else {
-            Ok(format!("Tool '{}' not found.", name))
-        }
+        Ok(format!("Tool '{}' not found.", name))
     }
 }
 
@@ -871,9 +846,6 @@ mod tests {
         manifests,
         protobuf_value::{value::Kind as ProtoValueKind, ListValue, Value as ProtoValue},
     };
-    use crate::harness::knowledge::{
-        KnowledgeBook, KnowledgeEntry, KnowledgeListEntry, KnowledgeResult,
-    };
     use crate::harness::llm::provider::{
         image_data_part, text_delta_event, tool_call_delta_event, ChatMessage, ChatMessageExt,
         ChatRequest, ChatResponse, ChatStream, LlmProvider,
@@ -887,101 +859,6 @@ mod tests {
     use std::sync::{Arc, Mutex};
     use tempfile::tempdir;
     use tokio_util::sync::CancellationToken;
-
-    #[derive(Default)]
-    struct EmptyKnowledgeBook;
-
-    #[async_trait]
-    impl KnowledgeBook for EmptyKnowledgeBook {
-        async fn get(&self, _ns: &str, _path: &str) -> Result<Option<KnowledgeEntry>> {
-            Ok(None)
-        }
-
-        async fn write(&self, _ns: &str, _path: &str, _content: &str) -> Result<()> {
-            Ok(())
-        }
-
-        async fn search(
-            &self,
-            _ns: &str,
-            _query: &str,
-            _limit: usize,
-        ) -> Result<Vec<KnowledgeResult>> {
-            Ok(Vec::new())
-        }
-
-        async fn list(
-            &self,
-            _ns: &str,
-            _path_prefix: &str,
-            _local_only: bool,
-            _recursive: bool,
-            _limit: usize,
-        ) -> Result<Vec<KnowledgeListEntry>> {
-            Ok(Vec::new())
-        }
-    }
-
-    #[derive(Default)]
-    struct RecordingKnowledgeBook {
-        writes: Mutex<Vec<(String, String, String)>>,
-    }
-
-    #[async_trait]
-    impl KnowledgeBook for RecordingKnowledgeBook {
-        async fn get(&self, ns: &str, path: &str) -> Result<Option<KnowledgeEntry>> {
-            Ok((path == "notes/plan.md").then(|| KnowledgeEntry {
-                namespace: ns.to_string(),
-                name: "plan".to_string(),
-                path: path.to_string(),
-                content: "remember the plan".to_string(),
-                updated_at: 42,
-            }))
-        }
-
-        async fn write(&self, ns: &str, path: &str, content: &str) -> Result<()> {
-            self.writes.lock().unwrap().push((
-                ns.to_string(),
-                path.to_string(),
-                content.to_string(),
-            ));
-            Ok(())
-        }
-
-        async fn search(
-            &self,
-            ns: &str,
-            query: &str,
-            _limit: usize,
-        ) -> Result<Vec<KnowledgeResult>> {
-            if query == "plan" {
-                Ok(vec![KnowledgeResult {
-                    namespace: ns.to_string(),
-                    path: "notes/plan.md".to_string(),
-                    excerpt: "remember the plan".to_string(),
-                    updated_at: 42,
-                }])
-            } else {
-                Ok(Vec::new())
-            }
-        }
-
-        async fn list(
-            &self,
-            ns: &str,
-            path_prefix: &str,
-            _local_only: bool,
-            _recursive: bool,
-            _limit: usize,
-        ) -> Result<Vec<KnowledgeListEntry>> {
-            Ok(vec![KnowledgeListEntry {
-                namespace: ns.to_string(),
-                path: format!("{}/plan.md", path_prefix.trim_matches('/')),
-                updated_at: 42,
-                inherited: false,
-            }])
-        }
-    }
 
     #[derive(Default)]
     struct RecordingLlmProvider {
@@ -1143,7 +1020,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1240,7 +1116,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1281,7 +1156,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1321,7 +1195,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1356,7 +1229,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1393,7 +1265,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1440,7 +1311,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1476,7 +1346,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1524,7 +1393,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1578,7 +1446,6 @@ mod tests {
             ContextAssembler::new("."),
             registry.clone(),
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1668,7 +1535,6 @@ mod tests {
             ContextAssembler::new("."),
             registry,
             Arc::new(Config::default()),
-            Arc::new(EmptyKnowledgeBook),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1752,8 +1618,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn executor_execute_tool_covers_knowledge_and_unknown_paths() {
-        let knowledge = Arc::new(RecordingKnowledgeBook::default());
+    async fn executor_execute_tool_does_not_fallback_to_legacy_knowledge() {
         let executor = AgentExecutor::new(
             Arc::new(RecordingLlmProvider::default()),
             "test-provider".to_string(),
@@ -1761,7 +1626,6 @@ mod tests {
             ContextAssembler::new("."),
             Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
             Arc::new(Config::default()),
-            knowledge.clone(),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             ControlPlane::noop(),
@@ -1769,55 +1633,19 @@ mod tests {
             HashMap::new(),
         );
 
-        let write = executor
-            .execute_tool(
-                crate::harness::knowledge::KNOWLEDGE_WRITE_TOOL,
-                r#"{"path":"notes/plan.md","content":"remember the plan"}"#,
-            )
-            .await
-            .expect("knowledge write");
-        assert!(write.contains("wrote artifact"));
-
-        let get = executor
-            .execute_tool(
-                crate::harness::knowledge::KNOWLEDGE_GET_TOOL,
-                r#"{"path":"notes/plan.md"}"#,
-            )
-            .await
-            .expect("knowledge get");
-        assert!(get.contains("[conic:wks:13:notes/plan.md]"));
-
-        let search = executor
+        let legacy = executor
             .execute_tool(
                 crate::harness::knowledge::KNOWLEDGE_SEARCH_TOOL,
                 r#"{"query":"plan"}"#,
             )
             .await
-            .expect("knowledge search");
-        assert!(search.contains("remember the plan"));
-
-        let list = executor
-            .execute_tool(
-                crate::harness::knowledge::KNOWLEDGE_LIST_TOOL,
-                r#"{"path":"notes"}"#,
-            )
-            .await
-            .expect("knowledge list");
-        assert!(list.contains("\"path\": \"notes/plan.md\""));
+            .expect("legacy knowledge tool should not error");
+        assert_eq!(legacy, "Tool 'knowledge_search' not found.");
 
         let unknown = executor
             .execute_tool("missing_tool", "not-json")
             .await
             .expect("unknown tool should not error");
         assert_eq!(unknown, "Tool 'missing_tool' not found.");
-
-        assert_eq!(
-            knowledge.writes.lock().unwrap().as_slice(),
-            &[(
-                "conic:wks:13".to_string(),
-                "notes/plan.md".to_string(),
-                "remember the plan".to_string(),
-            )]
-        );
     }
 }

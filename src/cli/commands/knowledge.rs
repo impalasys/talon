@@ -302,11 +302,7 @@ async fn knowledge_list(cli: &Cli, namespace: &str) -> Result<Vec<Knowledge>> {
         .collect())
 }
 
-async fn sync_knowledge_dir(
-    cli: &Cli,
-    namespace: &str,
-    dir: &str,
-) -> Result<(usize, Vec<String>)> {
+async fn sync_knowledge_dir(cli: &Cli, namespace: &str, dir: &str) -> Result<(usize, Vec<String>)> {
     let root = Path::new(dir);
     let files = collect_markdown_files(root)?;
     let existing: Vec<Knowledge> = knowledge_list(cli, namespace).await?;

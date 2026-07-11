@@ -36,9 +36,6 @@ pub(super) async fn run(cli: &Cli, command: &DeleteCommand) -> Result<RunOutcome
         .await
         .with_context(|| format!("Failed to delete {} '{}/{}'", kind, ns, name))?;
 
-    println!(
-        "✓ {} '{}/{}' deleted successfully.",
-        kind, ns, name
-    );
+    println!("✓ {} '{}/{}' deleted successfully.", kind, ns, name);
     Ok(RunOutcome { exit_code: None })
 }

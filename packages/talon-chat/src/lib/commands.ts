@@ -1,4 +1,4 @@
-export type TalonBuiltInCommandName = "clear";
+export type TalonBuiltInCommandName = "clear" | "goal";
 
 export type TalonChatCommandContext<TTarget, TMessage> = {
   name: string;

@@ -2214,6 +2214,634 @@ pub mod knowledge_service_client {
         }
     }
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileRef {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub handle: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateFileRequest {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(enumeration = "super::resources::FilePurpose", tag = "4")]
+    pub purpose: i32,
+    #[prost(enumeration = "super::resources::FileIndexPolicy", tag = "5")]
+    pub index_policy: i32,
+    #[prost(enumeration = "super::resources::FileRetention", tag = "6")]
+    pub retention: i32,
+    #[prost(bytes = "vec", tag = "7")]
+    pub content: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadFileRequest {
+    #[prost(message, optional, tag = "1")]
+    pub file: ::core::option::Option<FileRef>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadFileResponse {
+    #[prost(message, optional, tag = "1")]
+    pub file: ::core::option::Option<super::resources::File>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub content: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
+    pub signed_url: ::prost::alloc::string::String,
+    #[prost(int64, tag = "4")]
+    pub signed_url_expires_at_unix_seconds: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateFileRequest {
+    #[prost(message, optional, tag = "1")]
+    pub file: ::core::option::Option<FileRef>,
+    #[prost(string, tag = "2")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", tag = "3")]
+    pub content: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetFileMetadataRequest {
+    #[prost(message, optional, tag = "1")]
+    pub file: ::core::option::Option<FileRef>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListFilesRequest {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub prefix: ::prost::alloc::string::String,
+    #[prost(enumeration = "super::resources::FilePurpose", tag = "3")]
+    pub purpose: i32,
+    #[prost(enumeration = "super::resources::FileIndexPolicy", tag = "4")]
+    pub index_policy: i32,
+    #[prost(uint32, tag = "5")]
+    pub limit: u32,
+    #[prost(string, tag = "6")]
+    pub page_token: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListFilesResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub files: ::prost::alloc::vec::Vec<super::resources::File>,
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteFileRequest {
+    #[prost(message, optional, tag = "1")]
+    pub file: ::core::option::Option<FileRef>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DeleteFileResponse {
+    #[prost(bool, tag = "1")]
+    pub success: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PromoteArtifactRequest {
+    #[prost(string, tag = "1")]
+    pub artifact_handle: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub target_path: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(enumeration = "super::resources::FilePurpose", tag = "4")]
+    pub purpose: i32,
+    #[prost(enumeration = "super::resources::FileIndexPolicy", tag = "5")]
+    pub index_policy: i32,
+    #[prost(enumeration = "super::resources::FileRetention", tag = "6")]
+    pub retention: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileResponse {
+    #[prost(message, optional, tag = "1")]
+    pub file: ::core::option::Option<super::resources::File>,
+    #[prost(string, tag = "2")]
+    pub file_handle: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadArtifactRequest {
+    #[prost(string, tag = "1")]
+    pub artifact_handle: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadArtifactResponse {
+    #[prost(message, optional, tag = "1")]
+    pub artifact: ::core::option::Option<super::data::Artifact>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub content: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
+    pub signed_url: ::prost::alloc::string::String,
+    #[prost(int64, tag = "4")]
+    pub signed_url_expires_at_unix_seconds: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetArtifactMetadataRequest {
+    #[prost(string, tag = "1")]
+    pub artifact_handle: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListArtifactsRequest {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub prefix: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "5")]
+    pub limit: u32,
+    #[prost(string, tag = "6")]
+    pub page_token: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListArtifactsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub artifacts: ::prost::alloc::vec::Vec<super::data::Artifact>,
+    #[prost(string, tag = "2")]
+    pub next_page_token: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GrantArtifactRequest {
+    #[prost(string, tag = "1")]
+    pub artifact_handle: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub target_agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub target_session_id: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "4")]
+    pub operations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(int64, tag = "5")]
+    pub ttl_seconds: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ArtifactResponse {
+    #[prost(message, optional, tag = "1")]
+    pub artifact: ::core::option::Option<super::data::Artifact>,
+    #[prost(string, tag = "2")]
+    pub artifact_handle: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ArtifactHandleResponse {
+    #[prost(string, tag = "1")]
+    pub artifact_handle: ::prost::alloc::string::String,
+}
+/// Generated client implementations.
+pub mod file_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    #[derive(Debug, Clone)]
+    pub struct FileServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl FileServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> FileServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> FileServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            FileServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Read RPCs return signed URLs when the configured object store supports
+        /// them. Inline content is a small-object fallback and is capped by the
+        /// gateway.
+        pub async fn create_file(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateFileRequest>,
+        ) -> std::result::Result<tonic::Response<super::FileResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/CreateFile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "CreateFile"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn read_file(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadFileRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadFileResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/ReadFile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "ReadFile"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn update_file(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateFileRequest>,
+        ) -> std::result::Result<tonic::Response<super::FileResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/UpdateFile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "UpdateFile"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_file_metadata(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetFileMetadataRequest>,
+        ) -> std::result::Result<tonic::Response<super::FileResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/GetFileMetadata",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "GetFileMetadata"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// V1 returns a flat catalog page filtered by File metadata. Directory-style
+        /// listing and path indexes are intentionally deferred.
+        pub async fn list_files(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListFilesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListFilesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/ListFiles",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "ListFiles"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn delete_file(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteFileRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DeleteFileResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/DeleteFile",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "DeleteFile"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn promote_artifact(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PromoteArtifactRequest>,
+        ) -> std::result::Result<tonic::Response<super::FileResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/PromoteArtifact",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "PromoteArtifact"));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated client implementations.
+pub mod artifact_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    #[derive(Debug, Clone)]
+    pub struct ArtifactServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl ArtifactServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> ArtifactServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> ArtifactServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            ArtifactServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// Artifact creation is handled by the runtime/tooling for an active session.
+        /// This service only exposes handle-based artifact reads, metadata, listing,
+        /// and grant operations.
+        pub async fn read_artifact(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadArtifactRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadArtifactResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.ArtifactService/ReadArtifact",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.ArtifactService", "ReadArtifact"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_artifact_metadata(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetArtifactMetadataRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ArtifactResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.ArtifactService/GetArtifactMetadata",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.v1.ArtifactService", "GetArtifactMetadata"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn list_artifacts(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListArtifactsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListArtifactsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.ArtifactService/ListArtifacts",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.ArtifactService", "ListArtifacts"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn grant_artifact(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GrantArtifactRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ArtifactHandleResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.ArtifactService/GrantArtifact",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.ArtifactService", "GrantArtifact"));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GetSsoConfigRequest {}
 #[derive(Clone, PartialEq, ::prost::Message)]

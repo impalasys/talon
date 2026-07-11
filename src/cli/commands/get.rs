@@ -11,7 +11,7 @@ use talon_client::v1::{GetResourceRequest, ListNamespacesRequest, ListResourcesR
 
 #[derive(clap::Args)]
 pub(crate) struct GetCommand {
-    /// Type of resource to get: agent, template, mcp-server, worker, knowledge, schedule, channel, channel-subscription
+    /// Type of resource to get: agent, template, mcp-server, worker, knowledge, file, task, schedule, channel, channel-subscription
     #[arg(value_name = "KIND")]
     pub(crate) kind: String,
     /// Name of the resource. Omit to list resources of this kind.
@@ -42,8 +42,7 @@ pub(super) async fn run(cli: &Cli, command: &GetCommand) -> Result<()> {
             }
             GetOutput::Json => {
                 let value =
-                    list_resources_json(cli, &command.kind, command.namespace.as_ref())
-                        .await?;
+                    list_resources_json(cli, &command.kind, command.namespace.as_ref()).await?;
                 serde_json::to_string_pretty(&value)?
             }
             GetOutput::Yaml => anyhow::bail!("list output format 'yaml' is not supported"),
@@ -53,16 +52,12 @@ pub(super) async fn run(cli: &Cli, command: &GetCommand) -> Result<()> {
     };
 
     let output = match command.output.unwrap_or(GetOutput::Yaml) {
-        GetOutput::Yaml => {
-            get_yaml(cli, &command.kind, name, command.namespace.as_ref()).await?
-        }
+        GetOutput::Yaml => get_yaml(cli, &command.kind, name, command.namespace.as_ref()).await?,
         GetOutput::Json => {
             let value = get_json(cli, &command.kind, name, command.namespace.as_ref()).await?;
             serde_json::to_string_pretty(&value)?
         }
-        GetOutput::Table => {
-            get_table(cli, &command.kind, name, command.namespace.as_ref()).await?
-        }
+        GetOutput::Table => get_table(cli, &command.kind, name, command.namespace.as_ref()).await?,
     };
     println!("{}", output);
     Ok(())
@@ -114,6 +109,14 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
                 kind: Some("Knowledge".to_string()),
             })
         }
+        "file" | "files" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("File".to_string()),
+        }),
+        "task" | "tasks" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Task".to_string()),
+        }),
         "schedule" | "schedules" => Ok(ResourceListTarget::Resources {
             ns: ns_or_default(),
             kind: Some("Schedule".to_string()),
@@ -180,21 +183,12 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
     }
 }
 
-fn get_target(
-    kind: &str,
-    name: &str,
-    namespace: Option<&String>,
-) -> Result<ResourceTarget> {
+fn get_target(kind: &str, name: &str, namespace: Option<&String>) -> Result<ResourceTarget> {
     let (ns, kind, name) = resource_lookup_target(kind, name, namespace)?;
     Ok(ResourceTarget { ns, kind, name })
 }
 
-async fn get_yaml(
-    cli: &Cli,
-    kind: &str,
-    name: &str,
-    namespace: Option<&String>,
-) -> Result<String> {
+async fn get_yaml(cli: &Cli, kind: &str, name: &str, namespace: Option<&String>) -> Result<String> {
     let mut client = connect_gateway(cli).await?;
 
     let target = get_target(kind, name, namespace)?;
@@ -273,11 +267,7 @@ async fn get_table(
     Ok(render_deployment_list_table(&[resource]))
 }
 
-async fn list_resources_table(
-    cli: &Cli,
-    kind: &str,
-    namespace: Option<&String>,
-) -> Result<String> {
+async fn list_resources_table(cli: &Cli, kind: &str, namespace: Option<&String>) -> Result<String> {
     let mut client = connect_gateway(cli).await?;
 
     match resource_list_target(kind, namespace)? {
@@ -504,6 +494,15 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         | StatusKind::Template(status)
         | StatusKind::SandboxClass(status)
         | StatusKind::SandboxPolicy(status) => Some(status.phase.clone()),
+        StatusKind::File(status) => Some(status.phase.clone()),
+        StatusKind::Task(status) => resources_proto::TaskPhase::try_from(status.phase)
+            .ok()
+            .map(|phase| {
+                phase
+                    .as_str_name()
+                    .trim_start_matches("TASK_PHASE_")
+                    .to_string()
+            }),
         StatusKind::ConnectorClass(status) => Some(status.phase.clone()),
         StatusKind::Connector(status) => Some(status.phase.clone()),
         StatusKind::Worker(status) => Some(status.phase.clone()),
