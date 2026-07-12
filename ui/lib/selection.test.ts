@@ -116,6 +116,19 @@ describe('selection helpers', () => {
     ).toBe('connected=true&historyPageSize=25&ns=demo&type=channel&channel=alerts&name=alerts');
   });
 
+  it('keeps connection root separate from explorer selection namespace', () => {
+    const params = new URLSearchParams({ root: 'Tenant:conic', ns: 'Tenant:other', type: 'namespace' });
+
+    expect(selectionFromSearchParams(params)).toEqual({
+      type: 'namespace',
+      ns: 'Tenant:other',
+      fullPath: 'Tenant:other',
+    });
+    expect(buildSearchParams(true, selectionFromSearchParams(params), params).toString()).toBe(
+      'connected=true&root=Tenant%3Aconic&ns=Tenant%3Aother&type=namespace',
+    );
+  });
+
   it('describes selections for headings', () => {
     expect(namespaceResolutionAncestry('a:b:c')).toEqual(['a:b:c', 'a:b', 'a']);
     expect(namespaceResolutionAncestry('')).toEqual([]);
