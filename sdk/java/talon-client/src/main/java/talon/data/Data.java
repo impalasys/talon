@@ -29145,7 +29145,7 @@ java.lang.String defaultValue) {
       "\n\010filename\030\005 \001(\t\0225\n\010metadata\030\006 \003(\0132#.tal" +
       "on.data.ObjectRef.MetadataEntry\022\030\n\020conte" +
       "nt_encoding\030\007 \001(\t\032/\n\rMetadataEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\364\002\n\010Artifact\022" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\356\002\n\010Artifact\022" +
       "\n\n\002id\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(\t\022\r\n\005title" +
       "\030\003 \001(\t\022\022\n\nmedia_type\030\005 \001(\t\022)\n\nobject_ref" +
       "\030\006 \001(\0132\025.talon.data.ObjectRef\022\030\n\020created" +
@@ -29154,119 +29154,119 @@ java.lang.String defaultValue) {
       "Entry\0224\n\010metadata\030\n \003(\0132\".talon.data.Art" +
       "ifact.MetadataEntry\032-\n\013LabelsEntry\022\013\n\003ke" +
       "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEn" +
-      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\004\020" +
-      "\005\"\230\001\n\017GoalEvidenceRef\022\014\n\004kind\030\001 \001(\t\022\021\n\tn" +
-      "amespace\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\r\n\005agent\030\004 " +
-      "\001(\t\022\022\n\nsession_id\030\005 \001(\t\022\016\n\006handle\030\006 \001(\t\022" +
-      "\022\n\nobject_key\030\007 \001(\t\022\017\n\007summary\030\010 \001(\t\"\252\004\n" +
-      "\004Goal\022\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005" +
-      "agent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022\021\n\tobjec" +
-      "tive\030\005 \001(\t\022\030\n\020success_criteria\030\006 \003(\t\022$\n\005" +
-      "phase\030\007 \001(\0162\025.talon.data.GoalPhase\022\030\n\020pr" +
-      "ogress_summary\030\010 \001(\t\022\021\n\titeration\030\t \001(\005\022" +
-      "\026\n\016max_iterations\030\n \001(\005\0222\n\revidence_refs" +
-      "\030\013 \003(\0132\033.talon.data.GoalEvidenceRef\022\022\n\nc" +
-      "reated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\024\n\014c" +
-      "ompleted_at\030\016 \001(\003\022\026\n\016blocked_reason\030\017 \001(" +
-      "\t\022,\n\006labels\030\020 \003(\0132\034.talon.data.Goal.Labe" +
-      "lsEntry\0220\n\010metadata\030\021 \003(\0132\036.talon.data.G" +
-      "oal.MetadataEntry\032-\n\013LabelsEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\247\001\n\016Go" +
-      "alIndexEntry\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent" +
-      "\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\017\n\007goal_id\030\004 " +
-      "\001(\t\022$\n\005phase\030\005 \001(\0162\025.talon.data.GoalPhas" +
-      "e\022\024\n\014status_group\030\006 \001(\t\022\022\n\nupdated_at\030\007 " +
-      "\001(\003\"\266\001\n\016ArtifactAccess\022\024\n\014target_agent\030\001" +
-      " \001(\t\022\031\n\021target_session_id\030\002 \001(\t\022\022\n\nopera" +
-      "tions\030\003 \003(\t\022\022\n\nexpires_at\030\004 \001(\003\022\030\n\020grant" +
-      "ed_by_agent\030\005 \001(\t\022\035\n\025granted_by_session_" +
-      "id\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\"\275\001\n\tPrincip" +
-      "al\022\023\n\013external_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t" +
-      "\022\024\n\014display_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010" +
-      "metadata\030\005 \003(\0132#.talon.data.Principal.Me" +
-      "tadataEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessageP" +
-      "art\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".tal" +
-      "on.data.SessionMessagePartType\022\017\n\007conten" +
-      "t\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 " +
-      "\001(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132" +
-      "\025.talon.data.ObjectRef\"\363\001\n\016SessionMessag" +
-      "e\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data" +
-      ".MessageRole\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006labe" +
-      "ls\030\005 \003(\0132&.talon.data.SessionMessage.Lab" +
-      "elsEntry\022-\n\005parts\030\006 \003(\0132\036.talon.data.Ses" +
-      "sionMessagePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 " +
-      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002\n\007Session" +
-      "\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022" +
-      "\016\n\006status\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013l" +
-      "ast_active\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.tal" +
-      "on.data.Session.MetadataEntry\022/\n\006labels\030" +
-      "\010 \003(\0132\037.talon.data.Session.LabelsEntry\032/" +
-      "\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
-      "\001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
-      "alue\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMessage\022\n\n\002id\030" +
-      "\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013au" +
-      "thor_kind\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007conte" +
-      "nt\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_a" +
-      "gent\030\010 \001(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n" +
-      "\006labels\030\n \003(\0132&.talon.data.ChannelMessag" +
-      "e.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004pat" +
-      "h\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003" +
-      " \001(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n" +
-      "\025KnowledgeSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007" +
-      "snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestam" +
-      "p\030\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowR" +
-      "un\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003" +
-      " \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t" +
-      "\022\022\n\nstate_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(" +
-      "\t\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(" +
-      "\003\0223\n\006labels\030\n \003(\0132#.talon.data.WorkflowR" +
-      "un.LabelsEntry\022\035\n\020claim_expires_at\030\013 \001(\003" +
-      "H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022" +
-      "\031\n\021workflow_revision\030\016 \001(\004\022\023\n\013claim_owne" +
-      "r\030\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_d" +
-      "ispatch_reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003k" +
-      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_ex" +
-      "pires_at\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t" +
-      "\022\017\n\007step_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006st" +
-      "atus\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output" +
-      "_json\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_sess" +
-      "ion_id\030\010 \001(\t\022\035\n\025child_workflow_run_id\030\t " +
-      "\001(\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014suspend_json" +
-      "\030\013 \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at" +
-      "\030\r \001(\003\022\032\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\nti" +
-      "meout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handl" +
-      "e\030\020 \001(\t\022\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_" +
-      "next_retry_atB\r\n\013_timeout_atB\020\n\016_wait_un" +
-      "til_at\"\245\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022" +
-      "\n\n\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030" +
-      "\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007" +
-      "message\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\tt" +
-      "imestamp\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UN" +
-      "SPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSIS" +
-      "TANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026SessionMessa" +
-      "gePartType\022)\n%SESSION_MESSAGE_PART_TYPE_" +
-      "UNSPECIFIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TY" +
-      "PE_TEXT\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_R" +
-      "EASONING\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_" +
-      "TOOL_CALL\020\003\022)\n%SESSION_MESSAGE_PART_TYPE" +
-      "_TOOL_RESULT\020\004\022#\n\037SESSION_MESSAGE_PART_T" +
-      "YPE_USAGE\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE" +
-      "_ERROR\020\006\022#\n\037SESSION_MESSAGE_PART_TYPE_IM" +
-      "AGE\020\007\022#\n\037SESSION_MESSAGE_PART_TYPE_AUDIO" +
-      "\020\010\022#\n\037SESSION_MESSAGE_PART_TYPE_VIDEO\020\t\022" +
-      "\"\n\036SESSION_MESSAGE_PART_TYPE_FILE\020\n\0220\n,S" +
-      "ESSION_MESSAGE_PART_TYPE_REQUEST_PERMISS" +
-      "ION\020\013\022/\n+SESSION_MESSAGE_PART_TYPE_PERMI" +
-      "SSION_RESULT\020\014*\355\001\n\tGoalPhase\022\032\n\026GOAL_PHA" +
-      "SE_UNSPECIFIED\020\000\022\026\n\022GOAL_PHASE_RUNNING\020\001" +
-      "\022\025\n\021GOAL_PHASE_PAUSED\020\002\022\033\n\027GOAL_PHASE_NE" +
-      "EDS_REVIEW\020\003\022\030\n\024GOAL_PHASE_SUCCEEDED\020\004\022\025" +
-      "\n\021GOAL_PHASE_FAILED\020\005\022\026\n\022GOAL_PHASE_BLOC" +
-      "KED\020\006\022\027\n\023GOAL_PHASE_CANCELED\020\007\022\026\n\022GOAL_P" +
-      "HASE_EXPIRED\020\010b\006proto3"
+      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\230\001\n\017" +
+      "GoalEvidenceRef\022\014\n\004kind\030\001 \001(\t\022\021\n\tnamespa" +
+      "ce\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\r\n\005agent\030\004 \001(\t\022\022\n" +
+      "\nsession_id\030\005 \001(\t\022\016\n\006handle\030\006 \001(\t\022\022\n\nobj" +
+      "ect_key\030\007 \001(\t\022\017\n\007summary\030\010 \001(\t\"\252\004\n\004Goal\022" +
+      "\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005agent\030" +
+      "\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022\021\n\tobjective\030\005" +
+      " \001(\t\022\030\n\020success_criteria\030\006 \003(\t\022$\n\005phase\030" +
+      "\007 \001(\0162\025.talon.data.GoalPhase\022\030\n\020progress" +
+      "_summary\030\010 \001(\t\022\021\n\titeration\030\t \001(\005\022\026\n\016max" +
+      "_iterations\030\n \001(\005\0222\n\revidence_refs\030\013 \003(\013" +
+      "2\033.talon.data.GoalEvidenceRef\022\022\n\ncreated" +
+      "_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\024\n\014complet" +
+      "ed_at\030\016 \001(\003\022\026\n\016blocked_reason\030\017 \001(\t\022,\n\006l" +
+      "abels\030\020 \003(\0132\034.talon.data.Goal.LabelsEntr" +
+      "y\0220\n\010metadata\030\021 \003(\0132\036.talon.data.Goal.Me" +
+      "tadataEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEntry\022\013\n\003k" +
+      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\247\001\n\016GoalInde" +
+      "xEntry\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t" +
+      "\022\022\n\nsession_id\030\003 \001(\t\022\017\n\007goal_id\030\004 \001(\t\022$\n" +
+      "\005phase\030\005 \001(\0162\025.talon.data.GoalPhase\022\024\n\014s" +
+      "tatus_group\030\006 \001(\t\022\022\n\nupdated_at\030\007 \001(\003\"\266\001" +
+      "\n\016ArtifactAccess\022\024\n\014target_agent\030\001 \001(\t\022\031" +
+      "\n\021target_session_id\030\002 \001(\t\022\022\n\noperations\030" +
+      "\003 \003(\t\022\022\n\nexpires_at\030\004 \001(\003\022\030\n\020granted_by_" +
+      "agent\030\005 \001(\t\022\035\n\025granted_by_session_id\030\006 \001" +
+      "(\t\022\022\n\ncreated_at\030\007 \001(\003\"\275\001\n\tPrincipal\022\023\n\013" +
+      "external_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022\024\n\014di" +
+      "splay_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010metada" +
+      "ta\030\005 \003(\0132#.talon.data.Principal.Metadata" +
+      "Entry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessagePart\022\n\n" +
+      "\002id\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".talon.dat" +
+      "a.SessionMessagePartType\022\017\n\007content\030\003 \001(" +
+      "\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 \001(\t\022\022\n" +
+      "\ncreated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025.talo" +
+      "n.data.ObjectRef\"\363\001\n\016SessionMessage\022\n\n\002i" +
+      "d\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data.Messa" +
+      "geRole\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006labels\030\005 \003" +
+      "(\0132&.talon.data.SessionMessage.LabelsEnt" +
+      "ry\022-\n\005parts\030\006 \003(\0132\036.talon.data.SessionMe" +
+      "ssagePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n" +
+      "\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002\n\007Session\022\n\n\002id" +
+      "\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006sta" +
+      "tus\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013last_ac" +
+      "tive\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.talon.dat" +
+      "a.Session.MetadataEntry\022/\n\006labels\030\010 \003(\0132" +
+      "\037.talon.data.Session.LabelsEntry\032/\n\rMeta" +
+      "dataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
+      "\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
+      " \001(\t:\0028\001\"\233\002\n\016ChannelMessage\022\n\n\002id\030\001 \001(\t\022" +
+      "\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013author_k" +
+      "ind\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007content\030\006 \001" +
+      "(\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_agent\030\010" +
+      " \001(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n\006label" +
+      "s\030\n \003(\0132&.talon.data.ChannelMessage.Labe" +
+      "lsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(" +
+      "\t\022\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021" +
+      "\n\tnamespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025Knowl" +
+      "edgeSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007snippe" +
+      "t\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(" +
+      "\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002" +
+      "id\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016" +
+      "\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nst" +
+      "ate_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(\t\022\022\n\nc" +
+      "reated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006l" +
+      "abels\030\n \003(\0132#.talon.data.WorkflowRun.Lab" +
+      "elsEntry\022\035\n\020claim_expires_at\030\013 \001(\003H\000\210\001\001\022" +
+      "\r\n\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022\031\n\021wor" +
+      "kflow_revision\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(" +
+      "\t\022\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_dispatc" +
+      "h_reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001" +
+      "(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_expires_" +
+      "at\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007st" +
+      "ep_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006status\030\004" +
+      " \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output_json\030" +
+      "\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_session_id" +
+      "\030\010 \001(\t\022\035\n\025child_workflow_run_id\030\t \001(\t\022\023\n" +
+      "\013resume_json\030\n \001(\t\022\024\n\014suspend_json\030\013 \001(\t" +
+      "\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003" +
+      "\022\032\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_" +
+      "at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handle\030\020 \001(" +
+      "\t\022\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_r" +
+      "etry_atB\r\n\013_timeout_atB\020\n\016_wait_until_at" +
+      "\"\245\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030" +
+      "\002 \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022" +
+      "\014\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007messag" +
+      "e\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\ttimesta" +
+      "mp\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UNSPECIF" +
+      "IED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002" +
+      "\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026SessionMessagePart" +
+      "Type\022)\n%SESSION_MESSAGE_PART_TYPE_UNSPEC" +
+      "IFIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TYPE_TEX" +
+      "T\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_REASONI" +
+      "NG\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_TOOL_C" +
+      "ALL\020\003\022)\n%SESSION_MESSAGE_PART_TYPE_TOOL_" +
+      "RESULT\020\004\022#\n\037SESSION_MESSAGE_PART_TYPE_US" +
+      "AGE\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE_ERROR" +
+      "\020\006\022#\n\037SESSION_MESSAGE_PART_TYPE_IMAGE\020\007\022" +
+      "#\n\037SESSION_MESSAGE_PART_TYPE_AUDIO\020\010\022#\n\037" +
+      "SESSION_MESSAGE_PART_TYPE_VIDEO\020\t\022\"\n\036SES" +
+      "SION_MESSAGE_PART_TYPE_FILE\020\n\0220\n,SESSION" +
+      "_MESSAGE_PART_TYPE_REQUEST_PERMISSION\020\013\022" +
+      "/\n+SESSION_MESSAGE_PART_TYPE_PERMISSION_" +
+      "RESULT\020\014*\355\001\n\tGoalPhase\022\032\n\026GOAL_PHASE_UNS" +
+      "PECIFIED\020\000\022\026\n\022GOAL_PHASE_RUNNING\020\001\022\025\n\021GO" +
+      "AL_PHASE_PAUSED\020\002\022\033\n\027GOAL_PHASE_NEEDS_RE" +
+      "VIEW\020\003\022\030\n\024GOAL_PHASE_SUCCEEDED\020\004\022\025\n\021GOAL" +
+      "_PHASE_FAILED\020\005\022\026\n\022GOAL_PHASE_BLOCKED\020\006\022" +
+      "\027\n\023GOAL_PHASE_CANCELED\020\007\022\026\n\022GOAL_PHASE_E" +
+      "XPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
