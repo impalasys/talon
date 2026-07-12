@@ -1,44 +1,19 @@
 'use client';
 
 import { Suspense, useMemo, useState, useRef, useEffect, useCallback } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { 
-  Terminal, 
-  Activity, 
-  Box,
-  Database, 
-  Settings2, 
-  Wifi, 
-  WifiOff,
-  User,
-  Cpu,
-  MessageSquare,
-  Search,
-  FileText,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Folder,
-  Plug,
-  Clock3,
-  Square,
-  Hash,
-  Radio,
-  Layers3,
-  Package,
-  ShieldCheck,
-  Container,
-  ChevronDown,
-  KeyRound,
-} from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, Plug } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
 import { data } from '@impalasys/talon-client';
-import { NamespaceExplorer } from '../components/Namespaces/NamespaceExplorer';
-import { WorkspaceCommandPalette } from '../components/Search/WorkspaceCommandPalette';
+import { Explorer } from '../components/Explorer/Explorer';
+import { ConnectionConfigScreen } from '../screens/ConnectionConfigScreen';
+import { MainHeader } from '../components/MainPanel/MainHeader';
+import { MainPanel } from '../components/MainPanel/MainPanel';
+import { ResourceInspector } from '../components/MainPanel/ResourceInspector';
+import { YamlEditor } from '../components/MainPanel/YamlEditor';
 import {
   getDefaultGatewayUrl,
   getGatewayClient,
@@ -51,8 +26,6 @@ import {
 import {
   areSelectionsEqual,
   buildSearchParams,
-  getSelectionSubtitle,
-  getSelectionTitle,
   selectionFromSearchParams,
   SYSTEM_NAMESPACE,
   type Selection,
@@ -63,10 +36,12 @@ import {
 } from '../lib/talon/resourceMappers';
 import { useResourceDocument } from '../hooks/useResourceDocument';
 
-const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
 const CONNECT_TIMEOUT_MS = 8000;
 const RUNTIME_AUTH_TOKEN_STORAGE_KEY = 'talon_auth_token';
-const MANUAL_JWT_STORAGE_KEY = 'talon_manual_jwt';
+const DEPRECATED_ADVANCED_STORAGE_KEYS = ['talon_manual_jwt', 'talon_connection_namespace'];
+const CONNECTION_ROOT_QUERY_PARAM = 'root';
+const talonObjectApiBaseUrl = (process.env.NEXT_PUBLIC_TALON_OBJECT_API_URL || '').trim().replace(/\/+$/, '');
+const imageUploadsEnabled = Boolean(talonObjectApiBaseUrl);
 const SIGHTLINE_AUTH_COOKIE_NAME = 'sightline_talon_auth';
 const SIGHTLINE_AUTH_COOKIE_DOMAIN = '.impala.systems';
 const LABEL_MESSAGE_SOURCE = 'talon.impalasys.com/message-source';
@@ -133,34 +108,17 @@ function positiveIntParam(searchParams: URLSearchParams, name: string) {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
-function selectionIcon(selection: Selection | null) {
-  if (!selection) return <FileText className="w-4 h-4 text-muted-foreground" />;
-  if (selection.type === 'namespace') return <Folder className="w-4 h-4 text-muted-foreground" />;
-  if (selection.type === 'agent') return <Cpu className="w-4 h-4 text-emerald-500" />;
-  if (selection.type === 'session') return <MessageSquare className="w-4 h-4 text-blue-500" />;
-  if (selection.type === 'channel') return <Hash className="w-4 h-4 text-cyan-400" />;
-  if (selection.type === 'channel-subscription') return <Radio className="w-4 h-4 text-cyan-300" />;
-  if (selection.type === 'workflow') return <Activity className="w-4 h-4 text-purple-400" />;
-  if (selection.type === 'schedule') return <Clock3 className="w-4 h-4 text-amber-500" />;
-  if (selection.type === 'mcp-server') return <Plug className="w-4 h-4 text-blue-500" />;
-  if (selection.type === 'knowledge') return <FileText className="w-4 h-4 text-violet-400" />;
-  if (selection.type === 'template') return <FileText className="w-4 h-4 text-emerald-500" />;
-  if (selection.type === 'deployment') return <Layers3 className="w-4 h-4 text-indigo-400" />;
-  if (selection.type === 'deployment-replica') return <Package className="w-4 h-4 text-indigo-300" />;
-  if (selection.type === 'sandbox-class') return <ShieldCheck className="w-4 h-4 text-fuchsia-400" />;
-  if (selection.type === 'sandbox-policy') return <Box className="w-4 h-4 text-fuchsia-300" />;
-  if (selection.type === 'sandbox') return <Container className="w-4 h-4 text-orange-400" />;
-  return <Plug className="w-4 h-4 text-blue-500" />;
-}
-
 async function uploadTalonImage({ file, namespace, agent, sessionId, signal }: TalonImageUploadContext) {
+  if (!talonObjectApiBaseUrl) {
+    throw new Error('Image upload requires VITE_TALON_OBJECT_API_URL.');
+  }
   const form = new FormData();
   form.set('file', file);
   form.set('namespace', namespace);
   form.set('agent', agent);
   form.set('sessionId', sessionId);
 
-  const response = await fetch('/api/talon/objects', {
+  const response = await fetch(`${talonObjectApiBaseUrl}/api/talon/objects`, {
     method: 'POST',
     body: form,
     signal,
@@ -174,7 +132,9 @@ async function uploadTalonImage({ file, namespace, agent, sessionId, signal }: T
 }
 
 function talonObjectUrl(object: TalonChatObjectRef) {
-  return object.key ? `/api/talon/objects?key=${encodeURIComponent(object.key)}` : undefined;
+  return object.key && talonObjectApiBaseUrl
+    ? `${talonObjectApiBaseUrl}/api/talon/objects?key=${encodeURIComponent(object.key)}`
+    : undefined;
 }
 
 function readCookie(name: string) {
@@ -359,13 +319,21 @@ function withConnectionTimeout<T>(promise: Promise<T>, timeoutMs: number, onTime
   });
 }
 
+type TalonJwtPayload = {
+  exp?: number;
+  'talon:ns'?: string;
+  ns?: string;
+  grants?: Array<{ namespace?: string; ns?: string }>;
+  'talon:grants'?: Array<{ namespace?: string; ns?: string }>;
+};
+
 function decodeJwtPayload(token: string) {
   const [, payload] = token.split('.');
   if (!payload) return null;
   try {
     const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
     const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
-    return JSON.parse(window.atob(padded)) as { exp?: number };
+    return JSON.parse(window.atob(padded)) as TalonJwtPayload;
   } catch {
     return null;
   }
@@ -380,167 +348,74 @@ function tokenExpiryError(token: string) {
   return `Authorization token expired at ${new Date(expiresAt).toLocaleString()}.`;
 }
 
-function AuthScreen({
-  gatewayUrl,
-  jwtToken,
-  apiKey,
-  isConnecting,
-  googleSsoEnabled,
-  googleSsoError,
-  connectionError,
-  onGatewayUrlChange,
-  onJwtTokenChange,
-  onApiKeyChange,
-  onGoogleSignIn,
-  onConnect,
-}: {
-  gatewayUrl: string;
-  jwtToken: string;
-  apiKey: string;
-  isConnecting: boolean;
-  googleSsoEnabled: boolean;
-  googleSsoError: string | null;
-  connectionError: string | null;
-  onGatewayUrlChange: (value: string) => void;
-  onJwtTokenChange: (value: string) => void;
-  onApiKeyChange: (value: string) => void;
-  onGoogleSignIn: () => void;
-  onConnect: (values: { gatewayUrl: string; apiKey: string; jwtToken: string }) => void;
-}) {
-  const formRef = useRef<HTMLFormElement>(null);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const submitConnection = () => {
-    const form = formRef.current;
-    if (!form) return;
-    const formData = new FormData(form);
-    onConnect({
-      gatewayUrl: String(formData.get('gatewayUrl') || ''),
-      apiKey: String(formData.get('apiKey') || ''),
-      jwtToken: String(formData.get('jwtToken') || ''),
-    });
+function namespaceFromJwtToken(token: string) {
+  const payload = decodeJwtPayload(token);
+  const directNamespace = payload?.['talon:ns'] || payload?.ns;
+  if (directNamespace?.trim()) return directNamespace.trim();
+
+  const grants = payload?.grants || payload?.['talon:grants'] || [];
+  const namespaces = Array.from(new Set(
+    grants
+      .map((grant) => grant.namespace || grant.ns || '')
+      .map((namespace) => namespace.trim())
+      .filter(Boolean),
+  ));
+  return namespaces.length === 1 ? namespaces[0] : '';
+}
+
+function namespaceSelection(namespace: string): Selection {
+  return {
+    type: 'namespace',
+    ns: namespace,
+    fullPath: namespace,
   };
+}
 
-  return (
-    <main className="grid min-h-screen min-w-0 grid-cols-1 overflow-hidden bg-background text-foreground lg:grid-cols-2">
-        <section className="hidden min-h-0 flex-col border-r border-border/70 bg-muted/20 px-12 py-12 lg:flex">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl"
-          >
-            <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-lg border border-border/70 bg-background">
-              <Activity className="h-6 w-6 text-foreground stroke-[1.5]" />
-            </div>
-            <h1 className="max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Connect to Talon Engine
-            </h1>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-              Choose the gateway endpoint for this Sightline workspace.
-            </p>
-          </motion.div>
-        </section>
+function browserLocationSnapshot() {
+  if (typeof window === 'undefined') {
+    return { pathname: '/', search: '' };
+  }
+  return {
+    pathname: window.location.pathname || '/',
+    search: window.location.search || '',
+  };
+}
 
-        <section className="flex min-h-screen items-center px-5 py-8 sm:px-8 lg:min-h-0 lg:px-12">
-          <motion.form
-            ref={formRef}
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            noValidate
-            onSubmit={(event) => {
-              event.preventDefault();
-              submitConnection();
-            }}
-            className="w-full max-w-[460px] space-y-6"
-          >
-            <div>
-              <h2 className="text-base font-semibold text-foreground">Connection</h2>
-              <p className="mt-1 text-[13px] text-muted-foreground">Enter the endpoint and credentials for this session.</p>
-            </div>
+function useBrowserNavigation() {
+  const [location, setLocation] = useState(browserLocationSnapshot);
 
-            <div className="space-y-2">
-              <label htmlFor="gateway-url-input" className="text-[12px] font-medium text-foreground">Gateway URL</label>
-              <input
-                id="gateway-url-input"
-                name="gatewayUrl"
-                type="text"
-                inputMode="url"
-                required
-                defaultValue={gatewayUrl}
-                onChange={(event) => onGatewayUrlChange(event.target.value)}
-                className="w-full rounded-lg border border-border/70 bg-background px-3 py-2.5 font-mono text-sm text-foreground transition-shadow focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-                placeholder="https://talon.impala.systems"
-                disabled={isConnecting}
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="api-key-input" className="text-[12px] font-medium text-foreground">API Key (Optional)</label>
-              <input
-                id="api-key-input"
-                name="apiKey"
-                type="password"
-                value={apiKey}
-                onChange={(event) => onApiKeyChange(event.target.value)}
-                className="w-full rounded-lg border border-border/70 bg-background px-3 py-2.5 font-mono text-sm text-foreground transition-shadow focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-                placeholder="talon_sk_..."
-                disabled={isConnecting}
-              />
-            </div>
-            <div className="rounded-lg border border-border/70 bg-muted/15">
-              <button
-                type="button"
-                onClick={() => setAdvancedOpen((open) => !open)}
-                className="flex w-full items-center justify-between px-3 py-2.5 text-[12px] font-medium text-foreground"
-                aria-expanded={advancedOpen}
-                aria-controls="advanced-auth-options"
-              >
-                Advanced options
-                <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", advancedOpen && "rotate-180")} />
-              </button>
-              {advancedOpen ? (
-                <div id="advanced-auth-options" className="space-y-2 border-t border-border/70 px-3 py-3">
-                  <label htmlFor="jwt-token-input" className="text-[12px] font-medium text-foreground">JWT Token (Optional)</label>
-                  <input
-                    id="jwt-token-input"
-                    name="jwtToken"
-                    type="password"
-                    value={jwtToken}
-                    onChange={(event) => onJwtTokenChange(event.target.value)}
-                    className="w-full rounded-lg border border-border/70 bg-background px-3 py-2.5 font-mono text-sm text-foreground transition-shadow focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="Enter bearer token"
-                    disabled={isConnecting}
-                  />
-                </div>
-              ) : null}
-            </div>
-            {googleSsoEnabled ? (
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={onGoogleSignIn}
-                  disabled={isConnecting}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-border/70 bg-background py-2.5 text-[13px] font-medium text-foreground transition-all hover:bg-muted/45"
-                >
-                  <ShieldCheck className="h-4 w-4 stroke-[2]" />
-                  Sign in with Google
-                </button>
-                {googleSsoError ? <p className="text-[12px] text-red-400">{googleSsoError}</p> : null}
-              </div>
-            ) : null}
-            {connectionError ? <p className="text-[12px] leading-5 text-red-400">{connectionError}</p> : null}
-            <button
-              type="button"
-              onClick={submitConnection}
-              disabled={isConnecting}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-[13px] font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
-            >
-              {apiKey.trim() ? <KeyRound className="h-4 w-4 stroke-[2]" /> : <Settings2 className="h-4 w-4 stroke-[2]" />}
-              {isConnecting ? 'Connecting...' : 'Initialize Connection'}
-            </button>
-          </motion.form>
-        </section>
-    </main>
+  useEffect(() => {
+    const handlePopState = () => setLocation(browserLocationSnapshot());
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigate = useCallback((url: string, mode: 'push' | 'replace') => {
+    const nextUrl = new URL(url || '/', window.location.href);
+    const nextPath = `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`;
+    if (mode === 'push') {
+      window.history.pushState(null, '', nextPath);
+    } else {
+      window.history.replaceState(null, '', nextPath);
+    }
+    setLocation(browserLocationSnapshot());
+  }, []);
+
+  const router = useMemo(
+    () => ({
+      push: (url: string, _options?: { scroll?: boolean }) => navigate(url, 'push'),
+      replace: (url: string, _options?: { scroll?: boolean }) => navigate(url, 'replace'),
+    }),
+    [navigate],
   );
+
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+
+  return {
+    pathname: location.pathname,
+    router,
+    searchParams,
+  };
 }
 
 function ScheduleInspector({
@@ -611,9 +486,7 @@ function ScheduleInspector({
       </div>
 
       {tab === 'raw' ? (
-        <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-4 text-[13px] leading-relaxed text-foreground [overflow-wrap:anywhere]">
-          <code>{resourceYaml}</code>
-        </pre>
+        <YamlEditor value={resourceYaml} className="min-h-0 flex-1" />
       ) : (
         <div className="grid min-h-0 flex-1 gap-4 overflow-auto p-4 md:grid-cols-2">
           <div className="rounded-xl border border-border bg-background/70 p-4">
@@ -787,9 +660,7 @@ function ChannelInspector({
       </div>
 
       {tab === 'raw' ? (
-        <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-4 text-[13px] leading-relaxed text-foreground [overflow-wrap:anywhere]">
-          <code>{resourceYaml}</code>
-        </pre>
+        <YamlEditor value={resourceYaml} className="min-h-0 flex-1" />
       ) : tab === 'subscriptions' ? (
         <div className="min-h-0 flex-1 overflow-auto p-4">
           {isLoading && <div className="mb-3 text-xs text-muted-foreground">Loading subscriptions…</div>}
@@ -872,112 +743,8 @@ function extractStreamEvents(data: unknown): StreamEventItem[] {
   });
 }
 
-function KnowledgeExplorer({ isConnected, selection }: { isConnected: boolean, selection: Selection | null }) {
-  const [activeTab, setActiveTab] = useState<'context'|'search'>('context');
-  const [contextData, setContextData] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const targetNamespace = selection?.ns || 'default';
-  const targetAgent = selection?.agent || 'default';
-
-  useEffect(() => {
-    if (isConnected && activeTab === 'context') {
-      setIsLoading(true);
-      getGatewayClient().knowledge.get({ ns: targetNamespace, agent: targetAgent })
-        .then(data => {
-          setContextData(data.modules?.map((m: any) => `[${m.path}]\n${m.content}`).join('\n\n') || '');
-          setIsLoading(false);
-        })
-        .catch(() => setIsLoading(false));
-    }
-  }, [isConnected, activeTab, targetAgent, targetNamespace]);
-
-  useEffect(() => {
-    if (isConnected && activeTab === 'search' && searchQuery.trim().length > 2) {
-      const timer = setTimeout(() => {
-        setIsLoading(true);
-        getGatewayClient().knowledge.search({ ns: targetNamespace, agent: targetAgent, query: searchQuery })
-          .then(data => {
-            setSearchResults(data.results?.map((r: any) => `[${r.path}]\n${r.snippet}`) || []);
-            setIsLoading(false);
-          })
-          .catch(() => setIsLoading(false));
-      }, 500);
-      return () => clearTimeout(timer);
-    } else {
-      setSearchResults([]);
-    }
-  }, [isConnected, activeTab, searchQuery, targetAgent, targetNamespace]);
-
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-3">
-        <Database className="w-3.5 h-3.5 text-muted-foreground stroke-[1.5]" />
-        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Semantic Knowledge</h3>
-      </div>
-      
-      <div className="flex bg-muted rounded-md p-1 mb-4 h-8 flex-shrink-0">
-        <button 
-          onClick={() => setActiveTab('context')}
-          className={cn("flex-1 text-[12px] font-medium rounded-sm flex items-center justify-center gap-1.5 transition-colors", activeTab === 'context' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
-        >
-          <FileText className="w-3.5 h-3.5" /> Context
-        </button>
-        <button 
-          onClick={() => setActiveTab('search')}
-          className={cn("flex-1 text-[12px] font-medium rounded-sm flex items-center justify-center gap-1.5 transition-colors", activeTab === 'search' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
-        >
-          <Search className="w-3.5 h-3.5" /> Search
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto min-h-0 bg-background border border-border rounded-md p-3 relative">
-        {isLoading && (
-          <div className="absolute top-2 right-2 flex gap-1">
-             <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
-             <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
-             <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" />
-          </div>
-        )}
-
-        {activeTab === 'context' ? (
-          <div className="text-[12px] text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">
-            {contextData || "No long-term knowledge context established."}
-          </div>
-        ) : (
-          <div className="flex flex-col h-full gap-3">
-            <div className="relative flex-shrink-0">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={`Search ${targetNamespace} knowledge...`}
-                className="w-full bg-muted border border-border rounded-md pl-8 pr-3 py-1.5 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-ring text-foreground"
-              />
-            </div>
-            <div className="flex-1 overflow-y-auto space-y-2">
-              {searchResults.length === 0 && searchQuery.trim().length > 2 && !isLoading && (
-                <div className="text-center text-[11px] text-muted-foreground py-4">No semantic matches found.</div>
-              )}
-              {searchResults.map((result, idx) => (
-                <div key={idx} className="p-2.5 rounded-md border border-border bg-muted/30 text-[12px] text-foreground leading-relaxed">
-                  {result}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function DebuggerPageContent() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { router, pathname, searchParams } = useBrowserNavigation();
   const queryClient = useQueryClient();
   const nextHistoryModeRef = useRef<'push' | 'replace'>('replace');
   const explicitConnectRef = useRef(false);
@@ -994,12 +761,13 @@ function DebuggerPageContent() {
   const [authScreenOpen, setAuthScreenOpen] = useState(false);
   const [isHoveringConnection, setIsHoveringConnection] = useState(false);
   const [selectedNamespace, setSelectedNamespace] = useState<Selection | null>(null);
+  const [activeNamespace, setActiveNamespace] = useState('');
+  const [connectionNamespace, setConnectionNamespace] = useState('');
   const [sessionComposerRole, setSessionComposerRole] = useState<'user' | 'assistant'>('user');
   const [sessionConnectorMetadata, setSessionConnectorMetadata] = useState<SessionConnectorMetadata | null>(null);
   const [isSidebarPinned, setIsSidebarPinned] = useState(true);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
-  const [isRightSidebarHovered, setIsRightSidebarHovered] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [storageHydrated, setStorageHydrated] = useState(false);
   const lastSyncedQueryRef = useRef<string | null>(null);
   const queryScope = useMemo(
@@ -1029,6 +797,15 @@ function DebuggerPageContent() {
       setSelectedNamespace(selection);
     },
     []
+  );
+  const handleMobileExplorerSelect = useCallback(
+    (selection: Selection) => {
+      handleSelectionChange(selection);
+      if (selection.type !== 'namespace') {
+        setIsMobileSidebarOpen(false);
+      }
+    },
+    [handleSelectionChange],
   );
 
   useEffect(() => {
@@ -1076,15 +853,26 @@ function DebuggerPageContent() {
       localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, savedToken);
     }
     if (cookieToken) {
-      localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
       setManualJwtToken('');
     }
-    const savedManualJwt = localStorage.getItem(MANUAL_JWT_STORAGE_KEY);
-    if (!cookieToken && savedManualJwt) {
-      setManualJwtToken(savedManualJwt);
-    }
+    DEPRECATED_ADVANCED_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
     setStorageHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!storageHydrated) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const nextGatewayUrl = gatewayUrl.trim();
+      if (nextGatewayUrl) {
+        localStorage.setItem('talon_gateway_url', normalizeGatewayUrl(nextGatewayUrl));
+      } else {
+        localStorage.removeItem('talon_gateway_url');
+      }
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [gatewayUrl, storageHydrated]);
 
   useEffect(() => {
     if (!storageHydrated) return;
@@ -1122,8 +910,18 @@ function DebuggerPageContent() {
     const currentQuery = currentParams.toString();
     lastSyncedQueryRef.current = currentQuery;
 
+    const connectionRoot = currentParams.get(CONNECTION_ROOT_QUERY_PARAM)?.trim();
+    if (connectionRoot) {
+      setConnectionNamespace(connectionRoot);
+    }
+
+    // `ns` belongs to explorer selection. It must not hydrate the connection
+    // namespace field; use `root` when a link needs to prefill that field.
     const nextSelection = selectionFromSearchParams(currentParams);
     setSelectedNamespace(prev => areSelectionsEqual(prev, nextSelection) ? prev : nextSelection);
+    if (nextSelection?.ns) {
+      setActiveNamespace((prev) => prev || nextSelection.ns);
+    }
 
     const wantsConnected = searchParams.get('connected') === 'true';
     if (wantsConnected) {
@@ -1248,7 +1046,6 @@ function DebuggerPageContent() {
             setManualJwtToken('');
             setApiKey('');
             localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, payload.accessToken);
-            localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
             if (gatewayUrl.trim()) {
               if (isBlockedMixedContentGatewayUrl(gatewayUrl)) {
                 setConnectionError('Sightline is running over HTTPS, so the gateway URL must also use HTTPS or the same origin.');
@@ -1304,17 +1101,21 @@ function DebuggerPageContent() {
     gatewayUrl: submittedGatewayUrlValue,
     apiKey: submittedApiKeyValue,
     jwtToken: submittedJwtTokenValue,
+    namespace: submittedNamespaceValue,
   }: {
     gatewayUrl: string;
     apiKey: string;
     jwtToken: string;
+    namespace: string;
   }) => {
     const submittedGatewayUrl = (submittedGatewayUrlValue || gatewayUrl).trim();
     const submittedApiKey = submittedApiKeyValue.trim();
     const submittedJwtToken = (submittedJwtTokenValue || manualJwtToken).trim();
+    const submittedNamespace = submittedNamespaceValue.trim();
     setGatewayUrl(submittedGatewayUrl);
     setApiKey(submittedApiKey);
     setManualJwtToken(submittedJwtToken);
+    setConnectionNamespace(submittedNamespace);
 
     if (submittedGatewayUrl) {
       if (isBlockedMixedContentGatewayUrl(submittedGatewayUrl)) {
@@ -1326,7 +1127,6 @@ function DebuggerPageContent() {
       const normalizedGatewayUrl = normalizeGatewayUrl(submittedGatewayUrl);
       const previousGatewayUrl = localStorage.getItem('talon_gateway_url');
       const previousAuthToken = localStorage.getItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
-      const previousManualJwt = localStorage.getItem(MANUAL_JWT_STORAGE_KEY);
       const expiredTokenMessage = !submittedApiKey && submittedJwtToken ? tokenExpiryError(submittedJwtToken) : null;
       if (expiredTokenMessage) {
         setConnectionError(expiredTokenMessage);
@@ -1347,26 +1147,46 @@ function DebuggerPageContent() {
           localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
         }
         if (submittedApiKey) {
-          const exchanged = await getGatewayClient().auth.exchangeApiKey({
-            apiKey: submittedApiKey,
-          });
+          const exchangeApiKey = async () => {
+            try {
+              return await getGatewayClient().auth.exchangeApiKey({
+                apiKey: submittedApiKey,
+              });
+            } catch (error) {
+              if (!submittedNamespace) throw error;
+              const candidate = error as { message?: string; rawMessage?: string };
+              const message = `${candidate.rawMessage || candidate.message || ''}`.toLowerCase();
+              if (!message.includes('grant is required')) throw error;
+              try {
+                return await getGatewayClient().auth.exchangeApiKey({
+                  apiKey: submittedApiKey,
+                  grant: { kind: 'readwrite', namespace: submittedNamespace },
+                });
+              } catch {
+                return await getGatewayClient().auth.exchangeApiKey({
+                  apiKey: submittedApiKey,
+                  grant: { kind: 'read', namespace: submittedNamespace },
+                });
+              }
+            }
+          };
+          const exchanged = await exchangeApiKey();
           nextAuthToken = exchanged.accessToken;
           setManualJwtToken('');
-          localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
-        } else if (submittedJwtToken) {
-          localStorage.setItem(MANUAL_JWT_STORAGE_KEY, submittedJwtToken);
-        } else {
-          localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
         }
         if (nextAuthToken) {
           localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, nextAuthToken);
         } else {
           localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
         }
+        const scopedNamespace = submittedNamespace || (nextAuthToken ? namespaceFromJwtToken(nextAuthToken) : '');
         const probeTimeout = timeoutSignal(CONNECT_TIMEOUT_MS);
         try {
+          const probe: Promise<unknown> = scopedNamespace
+            ? getGatewayClient().namespaces.get({ name: scopedNamespace }, { signal: probeTimeout.signal })
+            : getGatewayClient().namespaces.list({ parent: undefined }, { signal: probeTimeout.signal });
           await withConnectionTimeout(
-            getGatewayClient().namespaces.list({ parent: undefined }, { signal: probeTimeout.signal }),
+            probe,
             CONNECT_TIMEOUT_MS,
             () => probeTimeout.abort(),
           );
@@ -1379,7 +1199,12 @@ function DebuggerPageContent() {
         setApiKey('');
         setConnectionError(null);
         explicitConnectRef.current = true;
-        const connectedQuery = buildSearchParams(true, selectedNamespace, searchParams).toString();
+        const nextSelection = scopedNamespace ? namespaceSelection(scopedNamespace) : selectedNamespace;
+        if (scopedNamespace) {
+          setSelectedNamespace(nextSelection);
+          setActiveNamespace(scopedNamespace);
+        }
+        const connectedQuery = buildSearchParams(true, nextSelection, searchParams).toString();
         lastSyncedQueryRef.current = connectedQuery;
         router.replace(connectedQuery ? `${pathname}?${connectedQuery}` : pathname, { scroll: false });
         queryClient.removeQueries({ queryKey: ['talon'] });
@@ -1398,11 +1223,6 @@ function DebuggerPageContent() {
         } else {
           localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
         }
-        if (previousManualJwt) {
-          localStorage.setItem(MANUAL_JWT_STORAGE_KEY, previousManualJwt);
-        } else {
-          localStorage.removeItem(MANUAL_JWT_STORAGE_KEY);
-        }
         if (isExpiredSignatureAuthError(error)) {
           setAuthToken('');
           localStorage.removeItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
@@ -1419,15 +1239,16 @@ function DebuggerPageContent() {
   };
 
   if (!storageHydrated) {
-    return <div className="h-screen bg-background" />;
+    return <div className="sightline-app-viewport bg-background" />;
   }
 
   if (authScreenOpen || !isConnected) {
     return (
-      <AuthScreen
+      <ConnectionConfigScreen
         gatewayUrl={gatewayUrl}
         jwtToken={manualJwtToken}
         apiKey={apiKey}
+        namespace={connectionNamespace}
         isConnecting={isConnecting}
         googleSsoEnabled={googleSsoEnabled}
         googleSsoError={googleSsoError}
@@ -1438,6 +1259,10 @@ function DebuggerPageContent() {
         }}
         onJwtTokenChange={setManualJwtToken}
         onApiKeyChange={setApiKey}
+        onNamespaceChange={(value) => {
+          setConnectionNamespace(value);
+          setConnectionError(null);
+        }}
         onGoogleSignIn={handleGoogleSignIn}
         onConnect={handleConnect}
       />
@@ -1445,7 +1270,7 @@ function DebuggerPageContent() {
   }
 
   return (
-    <div className="flex h-screen min-w-0 flex-row overflow-x-hidden overflow-y-hidden bg-background text-foreground">
+    <div className="sightline-app-viewport flex min-w-0 flex-row overflow-x-hidden overflow-y-hidden bg-background text-foreground">
       {/* Invisible Hover Zone at Left Edge */}
       {!isSidebarPinned && !isSidebarHovered && (
         <div 
@@ -1453,6 +1278,33 @@ function DebuggerPageContent() {
           onMouseEnter={() => setIsSidebarHovered(true)}
         />
       )}
+
+      {isMobileSidebarOpen ? (
+        <div className="fixed inset-0 z-[70] md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-950/28"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            aria-label="Close explorer"
+          />
+          <motion.div
+            initial={{ x: -320 }}
+            animate={{ x: 0 }}
+            exit={{ x: -320 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 34 }}
+            className="relative h-full min-h-0 w-[min(21rem,88vw)] overflow-hidden border-r border-slate-200/80 bg-slate-50/95 shadow-2xl dark:border-border/70 dark:bg-background"
+          >
+            <Explorer
+              isConnected={isConnected}
+              selectedNode={selectedNamespace}
+              activeNamespace={activeNamespace}
+              onActiveNamespaceChange={setActiveNamespace}
+              onSelect={handleMobileExplorerSelect}
+              queryScope={queryScope}
+            />
+          </motion.div>
+        </div>
+      ) : null}
 
       {/* Left Sidebar (Namespaces) - Full Height */}
       <motion.div 
@@ -1464,14 +1316,14 @@ function DebuggerPageContent() {
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className={cn(
-          "border-r border-border/70 bg-background/78 backdrop-blur-xl hidden md:flex flex-col flex-shrink-0 z-50 h-full group/sidebar overflow-hidden shadow-[0_18px_48px_rgba(0,0,0,0.24)]",
+          "border-r border-slate-200/80 bg-slate-50/95 backdrop-blur-xl hidden md:flex flex-col flex-shrink-0 z-50 h-full group/sidebar overflow-hidden shadow-[0_18px_48px_rgba(0,0,0,0.24)] dark:border-border/70 dark:bg-background/78",
           isSidebarPinned ? "relative shadow-none" : "absolute shadow-2xl"
         )}
         onMouseLeave={() => {
           if (!isSidebarPinned) setIsSidebarHovered(false);
         }}
       >
-        <div className="absolute top-3 right-3 z-50 opacity-0 group-hover/sidebar:opacity-100 transition-opacity">
+        <div className="absolute top-3 right-3 z-50 opacity-0 transition-opacity group-hover/sidebar:opacity-100 [@media(pointer:coarse)]:opacity-100">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -1485,76 +1337,39 @@ function DebuggerPageContent() {
             {isSidebarPinned ? <ChevronsLeft className="w-4 h-4" /> : <ChevronsRight className="w-4 h-4" />}
           </button>
         </div>
-        <div className="w-64 lg:w-72 h-full flex flex-col flex-shrink-0">
-          <NamespaceExplorer 
+        <div className="w-64 lg:w-72 h-full min-h-0 flex flex-col flex-shrink-0">
+          <Explorer
             isConnected={isConnected} 
             selectedNode={selectedNamespace} 
-            onSelect={setSelectedNamespace} 
+            activeNamespace={activeNamespace}
+            onActiveNamespaceChange={setActiveNamespace}
+            onSelect={handleSelectionChange}
             queryScope={queryScope}
           />
         </div>
       </motion.div>
 
-      <div className="flex-1 flex flex-col min-w-0 bg-transparent">
-        {/* Top Navigation */}
-        <header className="h-14 w-full border-b border-border/70 flex flex-shrink-0 items-center justify-between px-4 lg:px-6 bg-background/72 backdrop-blur-xl z-10">
-          <div className="flex items-center gap-3">
-            <Terminal className="w-5 h-5 text-foreground stroke-[1.5]" />
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold tracking-tight">Talon Sightline</h1>
-              {selectedNamespace?.agent && (
-                <>
-                  <div className="h-3 w-px bg-border/60 mx-1" />
-                  <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                    <Cpu className="w-3 h-3" />
-                    {selectedNamespace.agent}
-                  </span>
-                </>
-              )}
-            </div>
-            <div className="h-4 w-px bg-border mx-2" />
-            <span className="text-xs text-muted-foreground font-mono bg-white/[0.045] px-2 py-0.5 rounded-md border border-border/60">
-              v1.0.0-alpha
-            </span>
-          </div>
+      <div className="flex-1 flex min-h-0 flex-col min-w-0 bg-transparent">
+        <MainHeader
+          isConnected={isConnected}
+          selectedNode={selectedNamespace}
+          isHoveringConnection={isHoveringConnection}
+          onConnectionHoverChange={setIsHoveringConnection}
+          onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+          onDisconnect={() => {
+            explicitConnectRef.current = false;
+            queryClient.removeQueries({ queryKey: ['talon'] });
+            setIsConnected(false);
+            setAuthScreenOpen(true);
+            setConnectionError(null);
+          }}
+          onSelect={handleSelectionChange}
+        />
 
-          <div className="flex items-center gap-4">
-            <WorkspaceCommandPalette
-              isConnected={isConnected}
-              selectedNamespace={selectedNamespace}
-              onSelect={setSelectedNamespace}
-            />
-            {isConnected ? (
-              <div 
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[13px] font-medium transition-all bg-emerald-500/9 text-emerald-300 border border-emerald-500/16 cursor-pointer hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/16"
-                onClick={() => {
-                  explicitConnectRef.current = false;
-                  queryClient.removeQueries({ queryKey: ['talon'] });
-                  setIsConnected(false);
-                  setAuthScreenOpen(true);
-                  setConnectionError(null);
-                }}
-                onMouseEnter={() => setIsHoveringConnection(true)}
-                onMouseLeave={() => setIsHoveringConnection(false)}
-              >
-                {isHoveringConnection ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
-                {isHoveringConnection ? 'Disconnect' : 'Connected'}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[13px] font-medium bg-white/[0.045] text-muted-foreground border border-border/70">
-                <WifiOff className="w-3.5 h-3.5" />
-                Offline
-              </div>
-            )}
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex min-w-0 flex-1 overflow-x-hidden overflow-y-hidden bg-transparent">
-          {/* Center Pane */}
-          <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-transparent">
-          {selectedNamespace?.type === 'session' ? (
-            <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
+        <MainPanel
+          isSessionSelected={selectedNamespace?.type === 'session'}
+          sessionContent={
+            <div className={cn("flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
               {sessionConnectorMetadata ? (
                 <div className="mx-auto mt-3 flex w-[calc(100%-2rem)] max-w-4xl flex-wrap items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/8 px-3 py-2 text-xs text-emerald-200">
                   <Plug className="h-3.5 w-3.5" />
@@ -1574,8 +1389,8 @@ function DebuggerPageContent() {
                   gatewayClient={getGatewayClient()}
                   historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
                   enabledBuiltInCommands={['clear']}
-                  onImageUpload={sessionComposerRole === 'assistant' || isStaticExport ? undefined : uploadTalonImage}
-                  objectUrlForRef={isStaticExport ? undefined : talonObjectUrl}
+                  onImageUpload={sessionComposerRole === 'assistant' || !imageUploadsEnabled ? undefined : uploadTalonImage}
+                  objectUrlForRef={imageUploadsEnabled ? talonObjectUrl : undefined}
                   disabled={!isConnected}
                   allowMessageEditing
                   enableDebugMessageEditing={Boolean(sessionConnectorMetadata)}
@@ -1640,35 +1455,16 @@ function DebuggerPageContent() {
                 />
               </div>
             </div>
-          ) : (
-            <div className={cn("flex-1 overflow-y-auto overflow-x-hidden transition-opacity duration-300 elegant-scrollbar", !isConnected && "opacity-20 pointer-events-none")}>
-              <div className="mx-auto flex h-full w-full max-w-5xl flex-col p-4 md:p-8">
-                <div className="mb-6 flex items-center gap-3 border-b border-border pb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/40">
-                    {selectionIcon(selectedNamespace)}
-                  </div>
-                  <div>
-                    <div className="text-lg font-semibold text-foreground">{getSelectionTitle(selectedNamespace)}</div>
-                    <div className="text-sm text-muted-foreground">{getSelectionSubtitle(selectedNamespace)}</div>
-                  </div>
-                </div>
-
-                {!selectedNamespace ? (
-                  <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20">
-                    <div className="text-center">
-                          <div className="text-sm font-medium text-foreground">No resource selected</div>
-                          <div className="mt-1 text-sm text-muted-foreground">Choose something from the explorer to inspect its YAML.</div>
-                    </div>
-                  </div>
-                ) : resourceLoading ? (
-                  <div className="flex flex-1 items-center justify-center rounded-2xl border border-border bg-muted/20">
-                    <div className="text-sm text-muted-foreground">Loading resource…</div>
-                  </div>
-                ) : resourceError ? (
-                  <div className="rounded-2xl border border-red-200/60 bg-red-50/60 p-4 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-400">
-                    {resourceError}
-                  </div>
-                ) : selectedNamespace.type === 'schedule' && resourceDocument ? (
+          }
+          resourceContent={
+            <ResourceInspector
+              isConnected={isConnected}
+              selectedNode={selectedNamespace}
+              isLoading={resourceLoading}
+              error={resourceError}
+              yaml={resourceYaml}
+              dedicatedInspector={
+                selectedNamespace?.type === 'schedule' && resourceDocument ? (
                   <ScheduleInspector
                     schedule={resourceDocument as ScheduleDocument}
                     resourceYaml={resourceYaml}
@@ -1690,7 +1486,7 @@ function DebuggerPageContent() {
                       });
                     }}
                   />
-                ) : selectedNamespace.type === 'channel' && resourceDocument ? (
+                ) : selectedNamespace?.type === 'channel' && resourceDocument ? (
                   <ChannelInspector
                     channel={resourceDocument as ChannelDocument}
                     resourceYaml={resourceYaml}
@@ -1704,101 +1500,19 @@ function DebuggerPageContent() {
                       });
                     }}
                   />
-                ) : (
-                  <div className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl border border-border bg-muted/20">
-                    <div className="border-b border-border px-4 py-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-                      YAML
-                    </div>
-                    <pre className="h-full overflow-auto whitespace-pre-wrap break-words p-4 text-[13px] leading-relaxed text-foreground [overflow-wrap:anywhere]">
-                      <code>{resourceYaml}</code>
-                    </pre>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
-
-      {/* Telemetry Sidebar (Right Pane) */}
-      {selectedNamespace?.type === 'session' && !isRightSidebarPinned && !isRightSidebarHovered && (
-        <div 
-          className="fixed right-0 top-0 bottom-0 w-4 z-50 cursor-w-resize hidden md:block"
-          onMouseEnter={() => setIsRightSidebarHovered(true)}
+                ) : undefined
+              }
+            />
+          }
         />
-      )}
-
-      {selectedNamespace?.type === 'session' && <motion.div 
-        initial={false}
-        animate={{ 
-          width: (isRightSidebarPinned || isRightSidebarHovered) ? 320 : 0,
-          opacity: (isRightSidebarPinned || isRightSidebarHovered) ? 1 : 0,
-          x: (isRightSidebarPinned || isRightSidebarHovered) ? 0 : 20
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className={cn(
-          "border-l border-border/70 bg-background/78 backdrop-blur-xl hidden md:flex flex-col gap-6 flex-shrink-0 z-50 h-full group/right-sidebar overflow-hidden",
-          isRightSidebarPinned ? "relative shadow-none" : "absolute right-0 shadow-2xl"
-        )}
-        onMouseLeave={() => {
-          if (!isRightSidebarPinned) setIsRightSidebarHovered(false);
-        }}
-      >
-        <div className="absolute top-3 left-3 z-50 opacity-0 group-hover/right-sidebar:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsRightSidebarPinned(!isRightSidebarPinned);
-              setIsRightSidebarHovered(false);
-            }}
-            className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground transition-colors"
-          >
-            {isRightSidebarPinned ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
-          </button>
-        </div>
-        <div className="w-80 h-full flex flex-col gap-6 p-4 flex-shrink-0">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-3.5 h-3.5 text-muted-foreground stroke-[1.5]" />
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Infrastructure</h3>
-            </div>
-            <div className="space-y-[1px]">
-              {[
-                { name: 'Talon Engine', status: 'online', type: 'Rust Node' },
-                { name: 'Gateway Proxy', status: 'online', type: 'WebSocket' },
-                { name: 'Mobile Client', status: 'offline', type: 'iOS Sandbox' },
-              ].map((node) => (
-                <div key={node.name} className="flex items-center justify-between p-2.5 rounded-md hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      node.status === 'online' ? "bg-emerald-500" : "bg-muted-foreground/30"
-                    )} />
-                    <div>
-                      <p className="text-[13px] font-medium text-foreground">{node.name}</p>
-                    </div>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-mono">{node.type}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="h-px w-full bg-border flex-shrink-0" />
-
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <KnowledgeExplorer isConnected={isConnected} selection={selectedNamespace} />
-          </div>
-        </div>
-      </motion.div>}
+      </div>
     </div>
   );
 }
 
 export default function DebuggerPage() {
   return (
-    <Suspense fallback={<div className="h-screen bg-background" />}>
+    <Suspense fallback={<div className="sightline-app-viewport bg-background" />}>
       <DebuggerPageContent />
     </Suspense>
   );

@@ -1,9 +1,3 @@
-const nextJest = require('next/jest');
-
-const createJestConfig = nextJest({
-  dir: './',
-});
-
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
@@ -12,9 +6,14 @@ const customJestConfig = {
     '/node_modules/',
   ],
   moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
     '^@impalasys/talon-chat$': '<rootDir>/../packages/talon-chat/src/index.ts',
-    '^@impalasys/talon-client$': '<rootDir>/../sdk/js/talon-client/dist/index.js',
+    '^@impalasys/talon-client$': '<rootDir>/test/talonClientMock.js',
     '^streamdown$': '<rootDir>/test/streamdownMock.js',
+    '\\.(css|less|scss|sass)$': '<rootDir>/test/styleMock.js',
+  },
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
   },
   collectCoverage: true,
   collectCoverageFrom: [
@@ -39,4 +38,4 @@ const customJestConfig = {
   },
 };
 
-module.exports = createJestConfig(customJestConfig);
+module.exports = customJestConfig;

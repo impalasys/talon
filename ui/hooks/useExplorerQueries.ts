@@ -73,16 +73,24 @@ export function useExplorerQueries({
   isConnected,
   scope,
   expanded,
+  namespaceExpanded,
+  resourceExpanded,
+  activeNamespace,
   selectedNode,
 }: {
   isConnected: boolean;
   scope: TalonQueryScope;
   expanded: Set<string>;
+  namespaceExpanded?: Set<string>;
+  resourceExpanded?: Set<string>;
+  activeNamespace?: string;
   selectedNode: Selection | null;
 }) {
+  const namespaceExpansion = namespaceExpanded || expanded;
+  const resourceExpansion = resourceExpanded || expanded;
   const namespaceParents = useMemo(
-    () => namespaceQueryParents(expanded, selectedNode),
-    [expanded, selectedNode],
+    () => namespaceQueryParents(namespaceExpansion, selectedNode),
+    [namespaceExpansion, selectedNode],
   );
 
   const namespaceQueries = useQueries({
@@ -101,14 +109,15 @@ export function useExplorerQueries({
   const resourceNamespaceIds = useMemo(() => {
     const discovered = new Set(namespaceIds);
     const namespaces = new Set<string>();
+    if (activeNamespace) namespaces.add(activeNamespace);
     if (selectedNode?.ns) namespaces.add(selectedNode.ns);
-    for (const id of expanded) {
+    for (const id of namespaceExpansion) {
       if (id && discovered.has(id)) {
         namespaces.add(id);
       }
     }
     return Array.from(namespaces).sort();
-  }, [expanded, namespaceIds, selectedNode]);
+  }, [activeNamespace, namespaceExpansion, namespaceIds, selectedNode]);
 
   const resourceTargets = useMemo(
     () =>
@@ -144,13 +153,13 @@ export function useExplorerQueries({
       for (const resource of byKind.Agent || []) {
         const agent = resource.metadata?.name || '';
         if (!agent) continue;
-        if (expanded.has(`${ns}:${agent}`) || selectedNode?.agent === agent && selectedNode.ns === ns) {
+        if (resourceExpansion.has(`${ns}:${agent}`) || selectedNode?.agent === agent && selectedNode.ns === ns) {
           targets.push({ ns, agent });
         }
       }
     }
     return targets;
-  }, [expanded, resourcesByNamespaceKind, selectedNode]);
+  }, [resourceExpansion, resourcesByNamespaceKind, selectedNode]);
 
   const sessionQueries = useQueries({
     queries: agentSessionTargets.map(({ ns, agent }) => ({
@@ -174,13 +183,13 @@ export function useExplorerQueries({
       for (const resource of byKind.Channel || []) {
         const channel = resource.metadata?.name || '';
         if (!channel) continue;
-        if (expanded.has(`${ns}:channel:${channel}`) || selectedNode?.channel === channel && selectedNode.ns === ns) {
+        if (resourceExpansion.has(`${ns}:channel:${channel}`) || selectedNode?.channel === channel && selectedNode.ns === ns) {
           targets.push({ ns, channel });
         }
       }
     }
     return targets;
-  }, [expanded, resourcesByNamespaceKind, selectedNode]);
+  }, [resourceExpansion, resourcesByNamespaceKind, selectedNode]);
 
   const channelSubscriptionNamespaces = useMemo(
     () => unique(channelSubscriptionTargets.map((target) => target.ns)),

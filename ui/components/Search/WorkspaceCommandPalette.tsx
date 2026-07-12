@@ -55,6 +55,7 @@ type WorkspaceCommandPaletteProps = {
   isConnected: boolean;
   selectedNamespace: Selection | null;
   onSelect: (selection: Selection) => void;
+  triggerVariant?: 'button' | 'menu-item';
 };
 
 function parseMetadataJson(value?: string) {
@@ -156,6 +157,7 @@ export function WorkspaceCommandPalette({
   isConnected,
   selectedNamespace,
   onSelect,
+  triggerVariant = 'button',
 }: WorkspaceCommandPaletteProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -237,19 +239,30 @@ export function WorkspaceCommandPalette({
   return (
     <>
       <Dialog isOpen={open} onOpenChange={setOpen}>
-        <DialogTrigger
-          isDisabled={!isConnected}
-          className="flex h-8 min-w-40 items-center justify-between gap-3 rounded-md border border-border/70 bg-white/[0.045] px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-          aria-label="Search workspace"
-        >
-          <span className="flex min-w-0 items-center gap-2">
+        {triggerVariant === 'menu-item' ? (
+          <DialogTrigger
+            isDisabled={!isConnected}
+            className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Search workspace"
+          >
             <Search className="h-4 w-4" />
-            <span className="truncate">Search workspace</span>
-          </span>
-          <kbd className="hidden rounded border border-border/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground lg:inline">
-            Cmd K
-          </kbd>
-        </DialogTrigger>
+            <span>Search workspace</span>
+          </DialogTrigger>
+        ) : (
+          <DialogTrigger
+            isDisabled={!isConnected}
+            className="flex h-8 min-w-40 items-center justify-between gap-3 rounded-md border border-border/70 bg-white/[0.045] px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Search workspace"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <Search className="h-4 w-4" />
+              <span className="truncate">Search workspace</span>
+            </span>
+            <kbd className="hidden rounded border border-border/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground lg:inline">
+              Cmd K
+            </kbd>
+          </DialogTrigger>
+        )}
 
         <DialogOverlay
           className="z-[80] flex items-start justify-center px-4 pt-[12vh]"
