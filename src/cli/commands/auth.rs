@@ -158,14 +158,13 @@ pub(super) async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> 
             origins,
         } => {
             let ttl_seconds = resolve_token_ttl_seconds(ttl, *ttl_seconds)?;
-            let private_key_pem = std::fs::read_to_string(private_key_pem_file).with_context(
-                || {
+            let private_key_pem =
+                std::fs::read_to_string(private_key_pem_file).with_context(|| {
                     format!(
                         "Failed to read private key PEM file {}",
                         private_key_pem_file.display()
                     )
-                },
-            )?;
+                })?;
             let parsed_grants = grants
                 .iter()
                 .map(|grant| parse_api_key_grant(grant))

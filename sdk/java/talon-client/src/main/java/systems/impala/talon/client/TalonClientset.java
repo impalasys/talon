@@ -7,6 +7,8 @@ import talon.v1.AuthServiceGrpc;
 import talon.v1.CasServiceGrpc;
 import talon.v1.ChannelServiceGrpc;
 import talon.v1.ConnectorServiceGrpc;
+import talon.v1.FileServiceGrpc;
+import talon.v1.ArtifactServiceGrpc;
 import talon.v1.KnowledgeServiceGrpc;
 import talon.v1.NamespaceServiceGrpc;
 import talon.v1.ResourceServiceGrpc;
@@ -28,6 +30,12 @@ public final class TalonClientset {
     private final ConnectorServiceGrpc.ConnectorServiceBlockingStub connectors;
     private final ConnectorServiceGrpc.ConnectorServiceStub connectorsAsync;
     private final ConnectorServiceGrpc.ConnectorServiceFutureStub connectorsFuture;
+    private final FileServiceGrpc.FileServiceBlockingStub files;
+    private final FileServiceGrpc.FileServiceStub filesAsync;
+    private final FileServiceGrpc.FileServiceFutureStub filesFuture;
+    private final ArtifactServiceGrpc.ArtifactServiceBlockingStub artifacts;
+    private final ArtifactServiceGrpc.ArtifactServiceStub artifactsAsync;
+    private final ArtifactServiceGrpc.ArtifactServiceFutureStub artifactsFuture;
     private final KnowledgeServiceGrpc.KnowledgeServiceBlockingStub knowledge;
     private final KnowledgeServiceGrpc.KnowledgeServiceStub knowledgeAsync;
     private final KnowledgeServiceGrpc.KnowledgeServiceFutureStub knowledgeFuture;
@@ -65,6 +73,12 @@ public final class TalonClientset {
         this.connectors = ConnectorServiceGrpc.newBlockingStub(channel);
         this.connectorsAsync = ConnectorServiceGrpc.newStub(channel);
         this.connectorsFuture = ConnectorServiceGrpc.newFutureStub(channel);
+        this.files = FileServiceGrpc.newBlockingStub(channel);
+        this.filesAsync = FileServiceGrpc.newStub(channel);
+        this.filesFuture = FileServiceGrpc.newFutureStub(channel);
+        this.artifacts = ArtifactServiceGrpc.newBlockingStub(channel);
+        this.artifactsAsync = ArtifactServiceGrpc.newStub(channel);
+        this.artifactsFuture = ArtifactServiceGrpc.newFutureStub(channel);
         this.knowledge = KnowledgeServiceGrpc.newBlockingStub(channel);
         this.knowledgeAsync = KnowledgeServiceGrpc.newStub(channel);
         this.knowledgeFuture = KnowledgeServiceGrpc.newFutureStub(channel);
@@ -135,6 +149,30 @@ public final class TalonClientset {
 
     public ConnectorServiceGrpc.ConnectorServiceFutureStub connectorsFuture() {
         return connectorsFuture;
+    }
+
+    public FileServiceGrpc.FileServiceBlockingStub files() {
+        return files;
+    }
+
+    public FileServiceGrpc.FileServiceStub filesAsync() {
+        return filesAsync;
+    }
+
+    public FileServiceGrpc.FileServiceFutureStub filesFuture() {
+        return filesFuture;
+    }
+
+    public ArtifactServiceGrpc.ArtifactServiceBlockingStub artifacts() {
+        return artifacts;
+    }
+
+    public ArtifactServiceGrpc.ArtifactServiceStub artifactsAsync() {
+        return artifactsAsync;
+    }
+
+    public ArtifactServiceGrpc.ArtifactServiceFutureStub artifactsFuture() {
+        return artifactsFuture;
     }
 
     public KnowledgeServiceGrpc.KnowledgeServiceBlockingStub knowledge() {

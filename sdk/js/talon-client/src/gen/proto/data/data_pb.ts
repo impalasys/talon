@@ -198,6 +198,194 @@ export class ObjectRef extends Message<ObjectRef> {
 }
 
 /**
+ * @generated from message talon.data.Artifact
+ */
+export class Artifact extends Message<Artifact> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string session_id = 2;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string title = 3;
+   */
+  title = "";
+
+  /**
+   * @generated from field: string path = 4;
+   */
+  path = "";
+
+  /**
+   * @generated from field: string media_type = 5;
+   */
+  mediaType = "";
+
+  /**
+   * @generated from field: talon.data.ObjectRef object_ref = 6;
+   */
+  objectRef?: ObjectRef;
+
+  /**
+   * @generated from field: string created_by_agent = 7;
+   */
+  createdByAgent = "";
+
+  /**
+   * @generated from field: int64 created_at = 8;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * @generated from field: map<string, string> labels = 9;
+   */
+  labels: { [key: string]: string } = {};
+
+  /**
+   * @generated from field: map<string, string> metadata = 10;
+   */
+  metadata: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<Artifact>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.Artifact";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "object_ref", kind: "message", T: ObjectRef },
+    { no: 7, name: "created_by_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 9, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 10, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Artifact {
+    return new Artifact().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Artifact {
+    return new Artifact().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Artifact {
+    return new Artifact().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Artifact | PlainMessage<Artifact> | undefined, b: Artifact | PlainMessage<Artifact> | undefined): boolean {
+    return proto3.util.equals(Artifact, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.data.HandleGrant
+ */
+export class HandleGrant extends Message<HandleGrant> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string kind = 3;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string target_id = 4;
+   */
+  targetId = "";
+
+  /**
+   * @generated from field: string agent = 5;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string session_id = 6;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: repeated string operations = 7;
+   */
+  operations: string[] = [];
+
+  /**
+   * @generated from field: string audience_agent = 8;
+   */
+  audienceAgent = "";
+
+  /**
+   * @generated from field: string audience_session_id = 9;
+   */
+  audienceSessionId = "";
+
+  /**
+   * @generated from field: int64 expires_at = 10;
+   */
+  expiresAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 created_at = 11;
+   */
+  createdAt = protoInt64.zero;
+
+  constructor(data?: PartialMessage<HandleGrant>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.HandleGrant";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "target_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "operations", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 8, name: "audience_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "audience_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 11, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): HandleGrant {
+    return new HandleGrant().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): HandleGrant {
+    return new HandleGrant().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): HandleGrant {
+    return new HandleGrant().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: HandleGrant | PlainMessage<HandleGrant> | undefined, b: HandleGrant | PlainMessage<HandleGrant> | undefined): boolean {
+    return proto3.util.equals(HandleGrant, a, b);
+  }
+}
+
+/**
  * @generated from message talon.data.Principal
  */
 export class Principal extends Message<Principal> {
