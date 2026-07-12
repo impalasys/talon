@@ -260,55 +260,82 @@ export class ObjectRef extends Message<ObjectRef> {
 }
 
 /**
+ * Session-scoped immutable output produced by an agent.
+ *
+ * Artifacts are not namespace-level File resources. They live under the
+ * owning session/run, are exchanged through HandleGrant records, and are not
+ * indexed directly. Promoting an Artifact to a durable File copies its bytes
+ * into File-owned CAS storage and creates or updates a File resource.
+ *
  * @generated from message talon.data.Artifact
  */
 export class Artifact extends Message<Artifact> {
   /**
+   * Stable artifact id unique within the namespace/session artifact store.
+   *
    * @generated from field: string id = 1;
    */
   id = "";
 
   /**
+   * Session that owns the artifact lifecycle and cleanup policy.
+   *
    * @generated from field: string session_id = 2;
    */
   sessionId = "";
 
   /**
+   * Human-readable label suitable for UI display.
+   *
    * @generated from field: string title = 3;
    */
   title = "";
 
   /**
+   * Session-local logical path, such as /outputs/final-draft.md.
+   *
    * @generated from field: string path = 4;
    */
   path = "";
 
   /**
+   * Media type of the artifact content, for example text/markdown.
+   *
    * @generated from field: string media_type = 5;
    */
   mediaType = "";
 
   /**
+   * Authoritative CAS/object reference for immutable artifact bytes.
+   *
    * @generated from field: talon.data.ObjectRef object_ref = 6;
    */
   objectRef?: ObjectRef;
 
   /**
+   * Agent name that created the artifact.
+   *
    * @generated from field: string created_by_agent = 7;
    */
   createdByAgent = "";
 
   /**
+   * Unix timestamp in microseconds when the artifact record was created.
+   *
    * @generated from field: int64 created_at = 8;
    */
   createdAt = protoInt64.zero;
 
   /**
+   * Query/display labels copied from the creating tool or runtime.
+   *
    * @generated from field: map<string, string> labels = 9;
    */
   labels: { [key: string]: string } = {};
 
   /**
+   * Non-indexed, caller-defined metadata about the artifact.
+   *
    * @generated from field: map<string, string> metadata = 10;
    */
   metadata: { [key: string]: string } = {};
@@ -636,60 +663,88 @@ export class GoalIndexEntry extends Message<GoalIndexEntry> {
 }
 
 /**
+ * Opaque access grant for a File or Artifact handle.
+ *
+ * Handle strings resolve to these KV-backed grant records. Callers must present
+ * a valid handle and match the recorded audience before FileService or
+ * ArtifactService allows the requested operation.
+ *
  * @generated from message talon.data.HandleGrant
  */
 export class HandleGrant extends Message<HandleGrant> {
   /**
+   * Opaque grant id encoded into the external handle string.
+   *
    * @generated from field: string id = 1;
    */
   id = "";
 
   /**
+   * Namespace containing the target resource or session child record.
+   *
    * @generated from field: string namespace = 2;
    */
   namespace = "";
 
   /**
+   * Target kind, currently ARTIFACT or FILE.
+   *
    * @generated from field: string kind = 3;
    */
   kind = "";
 
   /**
+   * Target id, such as an artifact id or File resource name.
+   *
    * @generated from field: string target_id = 4;
    */
   targetId = "";
 
   /**
+   * Agent that minted the grant.
+   *
    * @generated from field: string agent = 5;
    */
   agent = "";
 
   /**
+   * Session that minted the grant, when the grant is session scoped.
+   *
    * @generated from field: string session_id = 6;
    */
   sessionId = "";
 
   /**
+   * Allowed operations, such as read, metadata, promote, or write.
+   *
    * @generated from field: repeated string operations = 7;
    */
   operations: string[] = [];
 
   /**
+   * Optional agent audience. Empty means any authorized agent may use it.
+   *
    * @generated from field: string audience_agent = 8;
    */
   audienceAgent = "";
 
   /**
+   * Optional session audience. Empty means any authorized session may use it.
+   *
    * @generated from field: string audience_session_id = 9;
    */
   audienceSessionId = "";
 
   /**
+   * Unix timestamp in microseconds when the grant expires. Zero means unset.
+   *
    * @generated from field: int64 expires_at = 10;
    */
   expiresAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds when the grant was created.
+   *
    * @generated from field: int64 created_at = 11;
    */
   createdAt = protoInt64.zero;

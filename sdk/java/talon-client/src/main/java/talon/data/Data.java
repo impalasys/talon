@@ -2055,11 +2055,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Stable artifact id unique within the namespace/session artifact store.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The id.
      */
     java.lang.String getId();
     /**
+     * <pre>
+     * Stable artifact id unique within the namespace/session artifact store.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The bytes for id.
      */
@@ -2067,11 +2075,19 @@ java.lang.String defaultValue) {
         getIdBytes();
 
     /**
+     * <pre>
+     * Session that owns the artifact lifecycle and cleanup policy.
+     * </pre>
+     *
      * <code>string session_id = 2;</code>
      * @return The sessionId.
      */
     java.lang.String getSessionId();
     /**
+     * <pre>
+     * Session that owns the artifact lifecycle and cleanup policy.
+     * </pre>
+     *
      * <code>string session_id = 2;</code>
      * @return The bytes for sessionId.
      */
@@ -2079,11 +2095,19 @@ java.lang.String defaultValue) {
         getSessionIdBytes();
 
     /**
+     * <pre>
+     * Human-readable label suitable for UI display.
+     * </pre>
+     *
      * <code>string title = 3;</code>
      * @return The title.
      */
     java.lang.String getTitle();
     /**
+     * <pre>
+     * Human-readable label suitable for UI display.
+     * </pre>
+     *
      * <code>string title = 3;</code>
      * @return The bytes for title.
      */
@@ -2091,11 +2115,19 @@ java.lang.String defaultValue) {
         getTitleBytes();
 
     /**
+     * <pre>
+     * Session-local logical path, such as /outputs/final-draft.md.
+     * </pre>
+     *
      * <code>string path = 4;</code>
      * @return The path.
      */
     java.lang.String getPath();
     /**
+     * <pre>
+     * Session-local logical path, such as /outputs/final-draft.md.
+     * </pre>
+     *
      * <code>string path = 4;</code>
      * @return The bytes for path.
      */
@@ -2103,11 +2135,19 @@ java.lang.String defaultValue) {
         getPathBytes();
 
     /**
+     * <pre>
+     * Media type of the artifact content, for example text/markdown.
+     * </pre>
+     *
      * <code>string media_type = 5;</code>
      * @return The mediaType.
      */
     java.lang.String getMediaType();
     /**
+     * <pre>
+     * Media type of the artifact content, for example text/markdown.
+     * </pre>
+     *
      * <code>string media_type = 5;</code>
      * @return The bytes for mediaType.
      */
@@ -2115,26 +2155,46 @@ java.lang.String defaultValue) {
         getMediaTypeBytes();
 
     /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
      * <code>.talon.data.ObjectRef object_ref = 6;</code>
      * @return Whether the objectRef field is set.
      */
     boolean hasObjectRef();
     /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
      * <code>.talon.data.ObjectRef object_ref = 6;</code>
      * @return The objectRef.
      */
     talon.data.Data.ObjectRef getObjectRef();
     /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
      * <code>.talon.data.ObjectRef object_ref = 6;</code>
      */
     talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder();
 
     /**
+     * <pre>
+     * Agent name that created the artifact.
+     * </pre>
+     *
      * <code>string created_by_agent = 7;</code>
      * @return The createdByAgent.
      */
     java.lang.String getCreatedByAgent();
     /**
+     * <pre>
+     * Agent name that created the artifact.
+     * </pre>
+     *
      * <code>string created_by_agent = 7;</code>
      * @return The bytes for createdByAgent.
      */
@@ -2142,16 +2202,28 @@ java.lang.String defaultValue) {
         getCreatedByAgentBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the artifact record was created.
+     * </pre>
+     *
      * <code>int64 created_at = 8;</code>
      * @return The createdAt.
      */
     long getCreatedAt();
 
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     int getLabelsCount();
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     boolean containsLabels(
@@ -2163,11 +2235,19 @@ java.lang.String defaultValue) {
     java.util.Map<java.lang.String, java.lang.String>
     getLabels();
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getLabelsMap();
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     /* nullable */
@@ -2176,16 +2256,28 @@ java.lang.String getLabelsOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     java.lang.String getLabelsOrThrow(
         java.lang.String key);
 
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     int getMetadataCount();
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     boolean containsMetadata(
@@ -2197,11 +2289,19 @@ java.lang.String defaultValue);
     java.util.Map<java.lang.String, java.lang.String>
     getMetadata();
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getMetadataMap();
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     /* nullable */
@@ -2210,12 +2310,25 @@ java.lang.String getMetadataOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     java.lang.String getMetadataOrThrow(
         java.lang.String key);
   }
   /**
+   * <pre>
+   * Session-scoped immutable output produced by an agent.
+   *
+   * Artifacts are not namespace-level File resources. They live under the
+   * owning session/run, are exchanged through HandleGrant records, and are not
+   * indexed directly. Promoting an Artifact to a durable File copies its bytes
+   * into File-owned CAS storage and creates or updates a File resource.
+   * </pre>
+   *
    * Protobuf type {@code talon.data.Artifact}
    */
   public static final class Artifact extends
@@ -2282,6 +2395,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object id_ = "";
     /**
+     * <pre>
+     * Stable artifact id unique within the namespace/session artifact store.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The id.
      */
@@ -2299,6 +2416,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Stable artifact id unique within the namespace/session artifact store.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The bytes for id.
      */
@@ -2321,6 +2442,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object sessionId_ = "";
     /**
+     * <pre>
+     * Session that owns the artifact lifecycle and cleanup policy.
+     * </pre>
+     *
      * <code>string session_id = 2;</code>
      * @return The sessionId.
      */
@@ -2338,6 +2463,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Session that owns the artifact lifecycle and cleanup policy.
+     * </pre>
+     *
      * <code>string session_id = 2;</code>
      * @return The bytes for sessionId.
      */
@@ -2360,6 +2489,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object title_ = "";
     /**
+     * <pre>
+     * Human-readable label suitable for UI display.
+     * </pre>
+     *
      * <code>string title = 3;</code>
      * @return The title.
      */
@@ -2377,6 +2510,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Human-readable label suitable for UI display.
+     * </pre>
+     *
      * <code>string title = 3;</code>
      * @return The bytes for title.
      */
@@ -2399,6 +2536,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object path_ = "";
     /**
+     * <pre>
+     * Session-local logical path, such as /outputs/final-draft.md.
+     * </pre>
+     *
      * <code>string path = 4;</code>
      * @return The path.
      */
@@ -2416,6 +2557,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Session-local logical path, such as /outputs/final-draft.md.
+     * </pre>
+     *
      * <code>string path = 4;</code>
      * @return The bytes for path.
      */
@@ -2438,6 +2583,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object mediaType_ = "";
     /**
+     * <pre>
+     * Media type of the artifact content, for example text/markdown.
+     * </pre>
+     *
      * <code>string media_type = 5;</code>
      * @return The mediaType.
      */
@@ -2455,6 +2604,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Media type of the artifact content, for example text/markdown.
+     * </pre>
+     *
      * <code>string media_type = 5;</code>
      * @return The bytes for mediaType.
      */
@@ -2476,6 +2629,10 @@ java.lang.String defaultValue);
     public static final int OBJECT_REF_FIELD_NUMBER = 6;
     private talon.data.Data.ObjectRef objectRef_;
     /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
      * <code>.talon.data.ObjectRef object_ref = 6;</code>
      * @return Whether the objectRef field is set.
      */
@@ -2484,6 +2641,10 @@ java.lang.String defaultValue);
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
      * <code>.talon.data.ObjectRef object_ref = 6;</code>
      * @return The objectRef.
      */
@@ -2492,6 +2653,10 @@ java.lang.String defaultValue);
       return objectRef_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : objectRef_;
     }
     /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
      * <code>.talon.data.ObjectRef object_ref = 6;</code>
      */
     @java.lang.Override
@@ -2503,6 +2668,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object createdByAgent_ = "";
     /**
+     * <pre>
+     * Agent name that created the artifact.
+     * </pre>
+     *
      * <code>string created_by_agent = 7;</code>
      * @return The createdByAgent.
      */
@@ -2520,6 +2689,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Agent name that created the artifact.
+     * </pre>
+     *
      * <code>string created_by_agent = 7;</code>
      * @return The bytes for createdByAgent.
      */
@@ -2541,6 +2714,10 @@ java.lang.String defaultValue);
     public static final int CREATED_AT_FIELD_NUMBER = 8;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the artifact record was created.
+     * </pre>
+     *
      * <code>int64 created_at = 8;</code>
      * @return The createdAt.
      */
@@ -2576,6 +2753,10 @@ java.lang.String defaultValue);
       return internalGetLabels().getMap().size();
     }
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     @java.lang.Override
@@ -2593,6 +2774,10 @@ java.lang.String defaultValue);
       return getLabelsMap();
     }
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     @java.lang.Override
@@ -2600,6 +2785,10 @@ java.lang.String defaultValue);
       return internalGetLabels().getMap();
     }
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     @java.lang.Override
@@ -2614,6 +2803,10 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 9;</code>
      */
     @java.lang.Override
@@ -2655,6 +2848,10 @@ java.lang.String defaultValue) {
       return internalGetMetadata().getMap().size();
     }
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     @java.lang.Override
@@ -2672,6 +2869,10 @@ java.lang.String defaultValue) {
       return getMetadataMap();
     }
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     @java.lang.Override
@@ -2679,6 +2880,10 @@ java.lang.String defaultValue) {
       return internalGetMetadata().getMap();
     }
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     @java.lang.Override
@@ -2693,6 +2898,10 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 10;</code>
      */
     @java.lang.Override
@@ -2986,6 +3195,15 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
+     * <pre>
+     * Session-scoped immutable output produced by an agent.
+     *
+     * Artifacts are not namespace-level File resources. They live under the
+     * owning session/run, are exchanged through HandleGrant records, and are not
+     * indexed directly. Promoting an Artifact to a durable File copies its bytes
+     * into File-owned CAS storage and creates or updates a File resource.
+     * </pre>
+     *
      * Protobuf type {@code talon.data.Artifact}
      */
     public static final class Builder extends
@@ -3296,6 +3514,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object id_ = "";
       /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return The id.
        */
@@ -3312,6 +3534,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return The bytes for id.
        */
@@ -3329,6 +3555,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @param value The id to set.
        * @return This builder for chaining.
@@ -3342,6 +3572,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return This builder for chaining.
        */
@@ -3352,6 +3586,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @param value The bytes for id to set.
        * @return This builder for chaining.
@@ -3368,6 +3606,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object sessionId_ = "";
       /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
        * <code>string session_id = 2;</code>
        * @return The sessionId.
        */
@@ -3384,6 +3626,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
        * <code>string session_id = 2;</code>
        * @return The bytes for sessionId.
        */
@@ -3401,6 +3647,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
        * <code>string session_id = 2;</code>
        * @param value The sessionId to set.
        * @return This builder for chaining.
@@ -3414,6 +3664,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
        * <code>string session_id = 2;</code>
        * @return This builder for chaining.
        */
@@ -3424,6 +3678,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
        * <code>string session_id = 2;</code>
        * @param value The bytes for sessionId to set.
        * @return This builder for chaining.
@@ -3440,6 +3698,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object title_ = "";
       /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
        * <code>string title = 3;</code>
        * @return The title.
        */
@@ -3456,6 +3718,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
        * <code>string title = 3;</code>
        * @return The bytes for title.
        */
@@ -3473,6 +3739,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
        * <code>string title = 3;</code>
        * @param value The title to set.
        * @return This builder for chaining.
@@ -3486,6 +3756,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
        * <code>string title = 3;</code>
        * @return This builder for chaining.
        */
@@ -3496,6 +3770,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
        * <code>string title = 3;</code>
        * @param value The bytes for title to set.
        * @return This builder for chaining.
@@ -3512,6 +3790,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object path_ = "";
       /**
+       * <pre>
+       * Session-local logical path, such as /outputs/final-draft.md.
+       * </pre>
+       *
        * <code>string path = 4;</code>
        * @return The path.
        */
@@ -3528,6 +3810,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session-local logical path, such as /outputs/final-draft.md.
+       * </pre>
+       *
        * <code>string path = 4;</code>
        * @return The bytes for path.
        */
@@ -3545,6 +3831,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session-local logical path, such as /outputs/final-draft.md.
+       * </pre>
+       *
        * <code>string path = 4;</code>
        * @param value The path to set.
        * @return This builder for chaining.
@@ -3558,6 +3848,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session-local logical path, such as /outputs/final-draft.md.
+       * </pre>
+       *
        * <code>string path = 4;</code>
        * @return This builder for chaining.
        */
@@ -3568,6 +3862,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session-local logical path, such as /outputs/final-draft.md.
+       * </pre>
+       *
        * <code>string path = 4;</code>
        * @param value The bytes for path to set.
        * @return This builder for chaining.
@@ -3584,6 +3882,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object mediaType_ = "";
       /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
        * <code>string media_type = 5;</code>
        * @return The mediaType.
        */
@@ -3600,6 +3902,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
        * <code>string media_type = 5;</code>
        * @return The bytes for mediaType.
        */
@@ -3617,6 +3923,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
        * <code>string media_type = 5;</code>
        * @param value The mediaType to set.
        * @return This builder for chaining.
@@ -3630,6 +3940,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
        * <code>string media_type = 5;</code>
        * @return This builder for chaining.
        */
@@ -3640,6 +3954,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
        * <code>string media_type = 5;</code>
        * @param value The bytes for mediaType to set.
        * @return This builder for chaining.
@@ -3658,6 +3976,10 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> objectRefBuilder_;
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        * @return Whether the objectRef field is set.
        */
@@ -3665,6 +3987,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000020) != 0);
       }
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        * @return The objectRef.
        */
@@ -3676,6 +4002,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       public Builder setObjectRef(talon.data.Data.ObjectRef value) {
@@ -3692,6 +4022,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       public Builder setObjectRef(
@@ -3706,6 +4040,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       public Builder mergeObjectRef(talon.data.Data.ObjectRef value) {
@@ -3727,6 +4065,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       public Builder clearObjectRef() {
@@ -3740,6 +4082,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       public talon.data.Data.ObjectRef.Builder getObjectRefBuilder() {
@@ -3748,6 +4094,10 @@ java.lang.String defaultValue) {
         return internalGetObjectRefFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       public talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder() {
@@ -3759,6 +4109,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
@@ -3777,6 +4131,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object createdByAgent_ = "";
       /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
        * <code>string created_by_agent = 7;</code>
        * @return The createdByAgent.
        */
@@ -3793,6 +4151,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
        * <code>string created_by_agent = 7;</code>
        * @return The bytes for createdByAgent.
        */
@@ -3810,6 +4172,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
        * <code>string created_by_agent = 7;</code>
        * @param value The createdByAgent to set.
        * @return This builder for chaining.
@@ -3823,6 +4189,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
        * <code>string created_by_agent = 7;</code>
        * @return This builder for chaining.
        */
@@ -3833,6 +4203,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
        * <code>string created_by_agent = 7;</code>
        * @param value The bytes for createdByAgent to set.
        * @return This builder for chaining.
@@ -3849,6 +4223,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the artifact record was created.
+       * </pre>
+       *
        * <code>int64 created_at = 8;</code>
        * @return The createdAt.
        */
@@ -3857,6 +4235,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the artifact record was created.
+       * </pre>
+       *
        * <code>int64 created_at = 8;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -3869,6 +4251,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the artifact record was created.
+       * </pre>
+       *
        * <code>int64 created_at = 8;</code>
        * @return This builder for chaining.
        */
@@ -3906,6 +4292,10 @@ java.lang.String defaultValue) {
         return internalGetLabels().getMap().size();
       }
       /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 9;</code>
        */
       @java.lang.Override
@@ -3923,6 +4313,10 @@ java.lang.String defaultValue) {
         return getLabelsMap();
       }
       /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 9;</code>
        */
       @java.lang.Override
@@ -3930,6 +4324,10 @@ java.lang.String defaultValue) {
         return internalGetLabels().getMap();
       }
       /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 9;</code>
        */
       @java.lang.Override
@@ -3944,6 +4342,10 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 9;</code>
        */
       @java.lang.Override
@@ -3964,6 +4366,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 9;</code>
        */
       public Builder removeLabels(
@@ -3983,6 +4389,10 @@ java.lang.String defaultValue) {
         return internalGetMutableLabels().getMutableMap();
       }
       /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 9;</code>
        */
       public Builder putLabels(
@@ -3996,6 +4406,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 9;</code>
        */
       public Builder putAllLabels(
@@ -4033,6 +4447,10 @@ java.lang.String defaultValue) {
         return internalGetMetadata().getMap().size();
       }
       /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 10;</code>
        */
       @java.lang.Override
@@ -4050,6 +4468,10 @@ java.lang.String defaultValue) {
         return getMetadataMap();
       }
       /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 10;</code>
        */
       @java.lang.Override
@@ -4057,6 +4479,10 @@ java.lang.String defaultValue) {
         return internalGetMetadata().getMap();
       }
       /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 10;</code>
        */
       @java.lang.Override
@@ -4071,6 +4497,10 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 10;</code>
        */
       @java.lang.Override
@@ -4091,6 +4521,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 10;</code>
        */
       public Builder removeMetadata(
@@ -4110,6 +4544,10 @@ java.lang.String defaultValue) {
         return internalGetMutableMetadata().getMutableMap();
       }
       /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 10;</code>
        */
       public Builder putMetadata(
@@ -4123,6 +4561,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 10;</code>
        */
       public Builder putAllMetadata(
@@ -10088,11 +10530,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Opaque grant id encoded into the external handle string.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The id.
      */
     java.lang.String getId();
     /**
+     * <pre>
+     * Opaque grant id encoded into the external handle string.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The bytes for id.
      */
@@ -10100,11 +10550,19 @@ java.lang.String defaultValue) {
         getIdBytes();
 
     /**
+     * <pre>
+     * Namespace containing the target resource or session child record.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The namespace.
      */
     java.lang.String getNamespace();
     /**
+     * <pre>
+     * Namespace containing the target resource or session child record.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The bytes for namespace.
      */
@@ -10112,11 +10570,19 @@ java.lang.String defaultValue) {
         getNamespaceBytes();
 
     /**
+     * <pre>
+     * Target kind, currently ARTIFACT or FILE.
+     * </pre>
+     *
      * <code>string kind = 3;</code>
      * @return The kind.
      */
     java.lang.String getKind();
     /**
+     * <pre>
+     * Target kind, currently ARTIFACT or FILE.
+     * </pre>
+     *
      * <code>string kind = 3;</code>
      * @return The bytes for kind.
      */
@@ -10124,11 +10590,19 @@ java.lang.String defaultValue) {
         getKindBytes();
 
     /**
+     * <pre>
+     * Target id, such as an artifact id or File resource name.
+     * </pre>
+     *
      * <code>string target_id = 4;</code>
      * @return The targetId.
      */
     java.lang.String getTargetId();
     /**
+     * <pre>
+     * Target id, such as an artifact id or File resource name.
+     * </pre>
+     *
      * <code>string target_id = 4;</code>
      * @return The bytes for targetId.
      */
@@ -10136,11 +10610,19 @@ java.lang.String defaultValue) {
         getTargetIdBytes();
 
     /**
+     * <pre>
+     * Agent that minted the grant.
+     * </pre>
+     *
      * <code>string agent = 5;</code>
      * @return The agent.
      */
     java.lang.String getAgent();
     /**
+     * <pre>
+     * Agent that minted the grant.
+     * </pre>
+     *
      * <code>string agent = 5;</code>
      * @return The bytes for agent.
      */
@@ -10148,11 +10630,19 @@ java.lang.String defaultValue) {
         getAgentBytes();
 
     /**
+     * <pre>
+     * Session that minted the grant, when the grant is session scoped.
+     * </pre>
+     *
      * <code>string session_id = 6;</code>
      * @return The sessionId.
      */
     java.lang.String getSessionId();
     /**
+     * <pre>
+     * Session that minted the grant, when the grant is session scoped.
+     * </pre>
+     *
      * <code>string session_id = 6;</code>
      * @return The bytes for sessionId.
      */
@@ -10160,23 +10650,39 @@ java.lang.String defaultValue) {
         getSessionIdBytes();
 
     /**
+     * <pre>
+     * Allowed operations, such as read, metadata, promote, or write.
+     * </pre>
+     *
      * <code>repeated string operations = 7;</code>
      * @return A list containing the operations.
      */
     java.util.List<java.lang.String>
         getOperationsList();
     /**
+     * <pre>
+     * Allowed operations, such as read, metadata, promote, or write.
+     * </pre>
+     *
      * <code>repeated string operations = 7;</code>
      * @return The count of operations.
      */
     int getOperationsCount();
     /**
+     * <pre>
+     * Allowed operations, such as read, metadata, promote, or write.
+     * </pre>
+     *
      * <code>repeated string operations = 7;</code>
      * @param index The index of the element to return.
      * @return The operations at the given index.
      */
     java.lang.String getOperations(int index);
     /**
+     * <pre>
+     * Allowed operations, such as read, metadata, promote, or write.
+     * </pre>
+     *
      * <code>repeated string operations = 7;</code>
      * @param index The index of the value to return.
      * @return The bytes of the operations at the given index.
@@ -10185,11 +10691,19 @@ java.lang.String defaultValue) {
         getOperationsBytes(int index);
 
     /**
+     * <pre>
+     * Optional agent audience. Empty means any authorized agent may use it.
+     * </pre>
+     *
      * <code>string audience_agent = 8;</code>
      * @return The audienceAgent.
      */
     java.lang.String getAudienceAgent();
     /**
+     * <pre>
+     * Optional agent audience. Empty means any authorized agent may use it.
+     * </pre>
+     *
      * <code>string audience_agent = 8;</code>
      * @return The bytes for audienceAgent.
      */
@@ -10197,11 +10711,19 @@ java.lang.String defaultValue) {
         getAudienceAgentBytes();
 
     /**
+     * <pre>
+     * Optional session audience. Empty means any authorized session may use it.
+     * </pre>
+     *
      * <code>string audience_session_id = 9;</code>
      * @return The audienceSessionId.
      */
     java.lang.String getAudienceSessionId();
     /**
+     * <pre>
+     * Optional session audience. Empty means any authorized session may use it.
+     * </pre>
+     *
      * <code>string audience_session_id = 9;</code>
      * @return The bytes for audienceSessionId.
      */
@@ -10209,18 +10731,34 @@ java.lang.String defaultValue) {
         getAudienceSessionIdBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the grant expires. Zero means unset.
+     * </pre>
+     *
      * <code>int64 expires_at = 10;</code>
      * @return The expiresAt.
      */
     long getExpiresAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the grant was created.
+     * </pre>
+     *
      * <code>int64 created_at = 11;</code>
      * @return The createdAt.
      */
     long getCreatedAt();
   }
   /**
+   * <pre>
+   * Opaque access grant for a File or Artifact handle.
+   *
+   * Handle strings resolve to these KV-backed grant records. Callers must present
+   * a valid handle and match the recorded audience before FileService or
+   * ArtifactService allows the requested operation.
+   * </pre>
+   *
    * Protobuf type {@code talon.data.HandleGrant}
    */
   public static final class HandleGrant extends
@@ -10276,6 +10814,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object id_ = "";
     /**
+     * <pre>
+     * Opaque grant id encoded into the external handle string.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The id.
      */
@@ -10293,6 +10835,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Opaque grant id encoded into the external handle string.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The bytes for id.
      */
@@ -10315,6 +10861,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object namespace_ = "";
     /**
+     * <pre>
+     * Namespace containing the target resource or session child record.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The namespace.
      */
@@ -10332,6 +10882,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Namespace containing the target resource or session child record.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The bytes for namespace.
      */
@@ -10354,6 +10908,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object kind_ = "";
     /**
+     * <pre>
+     * Target kind, currently ARTIFACT or FILE.
+     * </pre>
+     *
      * <code>string kind = 3;</code>
      * @return The kind.
      */
@@ -10371,6 +10929,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Target kind, currently ARTIFACT or FILE.
+     * </pre>
+     *
      * <code>string kind = 3;</code>
      * @return The bytes for kind.
      */
@@ -10393,6 +10955,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object targetId_ = "";
     /**
+     * <pre>
+     * Target id, such as an artifact id or File resource name.
+     * </pre>
+     *
      * <code>string target_id = 4;</code>
      * @return The targetId.
      */
@@ -10410,6 +10976,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Target id, such as an artifact id or File resource name.
+     * </pre>
+     *
      * <code>string target_id = 4;</code>
      * @return The bytes for targetId.
      */
@@ -10432,6 +11002,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object agent_ = "";
     /**
+     * <pre>
+     * Agent that minted the grant.
+     * </pre>
+     *
      * <code>string agent = 5;</code>
      * @return The agent.
      */
@@ -10449,6 +11023,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Agent that minted the grant.
+     * </pre>
+     *
      * <code>string agent = 5;</code>
      * @return The bytes for agent.
      */
@@ -10471,6 +11049,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object sessionId_ = "";
     /**
+     * <pre>
+     * Session that minted the grant, when the grant is session scoped.
+     * </pre>
+     *
      * <code>string session_id = 6;</code>
      * @return The sessionId.
      */
@@ -10488,6 +11070,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Session that minted the grant, when the grant is session scoped.
+     * </pre>
+     *
      * <code>string session_id = 6;</code>
      * @return The bytes for sessionId.
      */
@@ -10511,6 +11097,10 @@ java.lang.String defaultValue) {
     private com.google.protobuf.LazyStringArrayList operations_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
     /**
+     * <pre>
+     * Allowed operations, such as read, metadata, promote, or write.
+     * </pre>
+     *
      * <code>repeated string operations = 7;</code>
      * @return A list containing the operations.
      */
@@ -10519,6 +11109,10 @@ java.lang.String defaultValue) {
       return operations_;
     }
     /**
+     * <pre>
+     * Allowed operations, such as read, metadata, promote, or write.
+     * </pre>
+     *
      * <code>repeated string operations = 7;</code>
      * @return The count of operations.
      */
@@ -10526,6 +11120,10 @@ java.lang.String defaultValue) {
       return operations_.size();
     }
     /**
+     * <pre>
+     * Allowed operations, such as read, metadata, promote, or write.
+     * </pre>
+     *
      * <code>repeated string operations = 7;</code>
      * @param index The index of the element to return.
      * @return The operations at the given index.
@@ -10534,6 +11132,10 @@ java.lang.String defaultValue) {
       return operations_.get(index);
     }
     /**
+     * <pre>
+     * Allowed operations, such as read, metadata, promote, or write.
+     * </pre>
+     *
      * <code>repeated string operations = 7;</code>
      * @param index The index of the value to return.
      * @return The bytes of the operations at the given index.
@@ -10547,6 +11149,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object audienceAgent_ = "";
     /**
+     * <pre>
+     * Optional agent audience. Empty means any authorized agent may use it.
+     * </pre>
+     *
      * <code>string audience_agent = 8;</code>
      * @return The audienceAgent.
      */
@@ -10564,6 +11170,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Optional agent audience. Empty means any authorized agent may use it.
+     * </pre>
+     *
      * <code>string audience_agent = 8;</code>
      * @return The bytes for audienceAgent.
      */
@@ -10586,6 +11196,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object audienceSessionId_ = "";
     /**
+     * <pre>
+     * Optional session audience. Empty means any authorized session may use it.
+     * </pre>
+     *
      * <code>string audience_session_id = 9;</code>
      * @return The audienceSessionId.
      */
@@ -10603,6 +11217,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Optional session audience. Empty means any authorized session may use it.
+     * </pre>
+     *
      * <code>string audience_session_id = 9;</code>
      * @return The bytes for audienceSessionId.
      */
@@ -10624,6 +11242,10 @@ java.lang.String defaultValue) {
     public static final int EXPIRES_AT_FIELD_NUMBER = 10;
     private long expiresAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the grant expires. Zero means unset.
+     * </pre>
+     *
      * <code>int64 expires_at = 10;</code>
      * @return The expiresAt.
      */
@@ -10635,6 +11257,10 @@ java.lang.String defaultValue) {
     public static final int CREATED_AT_FIELD_NUMBER = 11;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the grant was created.
+     * </pre>
+     *
      * <code>int64 created_at = 11;</code>
      * @return The createdAt.
      */
@@ -10911,6 +11537,14 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
+     * <pre>
+     * Opaque access grant for a File or Artifact handle.
+     *
+     * Handle strings resolve to these KV-backed grant records. Callers must present
+     * a valid handle and match the recorded audience before FileService or
+     * ArtifactService allows the requested operation.
+     * </pre>
+     *
      * Protobuf type {@code talon.data.HandleGrant}
      */
     public static final class Builder extends
@@ -11193,6 +11827,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object id_ = "";
       /**
+       * <pre>
+       * Opaque grant id encoded into the external handle string.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return The id.
        */
@@ -11209,6 +11847,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Opaque grant id encoded into the external handle string.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return The bytes for id.
        */
@@ -11226,6 +11868,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Opaque grant id encoded into the external handle string.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @param value The id to set.
        * @return This builder for chaining.
@@ -11239,6 +11885,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Opaque grant id encoded into the external handle string.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return This builder for chaining.
        */
@@ -11249,6 +11899,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Opaque grant id encoded into the external handle string.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @param value The bytes for id to set.
        * @return This builder for chaining.
@@ -11265,6 +11919,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object namespace_ = "";
       /**
+       * <pre>
+       * Namespace containing the target resource or session child record.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return The namespace.
        */
@@ -11281,6 +11939,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace containing the target resource or session child record.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return The bytes for namespace.
        */
@@ -11298,6 +11960,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace containing the target resource or session child record.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @param value The namespace to set.
        * @return This builder for chaining.
@@ -11311,6 +11977,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace containing the target resource or session child record.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return This builder for chaining.
        */
@@ -11321,6 +11991,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace containing the target resource or session child record.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @param value The bytes for namespace to set.
        * @return This builder for chaining.
@@ -11337,6 +12011,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object kind_ = "";
       /**
+       * <pre>
+       * Target kind, currently ARTIFACT or FILE.
+       * </pre>
+       *
        * <code>string kind = 3;</code>
        * @return The kind.
        */
@@ -11353,6 +12031,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Target kind, currently ARTIFACT or FILE.
+       * </pre>
+       *
        * <code>string kind = 3;</code>
        * @return The bytes for kind.
        */
@@ -11370,6 +12052,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Target kind, currently ARTIFACT or FILE.
+       * </pre>
+       *
        * <code>string kind = 3;</code>
        * @param value The kind to set.
        * @return This builder for chaining.
@@ -11383,6 +12069,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Target kind, currently ARTIFACT or FILE.
+       * </pre>
+       *
        * <code>string kind = 3;</code>
        * @return This builder for chaining.
        */
@@ -11393,6 +12083,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Target kind, currently ARTIFACT or FILE.
+       * </pre>
+       *
        * <code>string kind = 3;</code>
        * @param value The bytes for kind to set.
        * @return This builder for chaining.
@@ -11409,6 +12103,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object targetId_ = "";
       /**
+       * <pre>
+       * Target id, such as an artifact id or File resource name.
+       * </pre>
+       *
        * <code>string target_id = 4;</code>
        * @return The targetId.
        */
@@ -11425,6 +12123,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Target id, such as an artifact id or File resource name.
+       * </pre>
+       *
        * <code>string target_id = 4;</code>
        * @return The bytes for targetId.
        */
@@ -11442,6 +12144,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Target id, such as an artifact id or File resource name.
+       * </pre>
+       *
        * <code>string target_id = 4;</code>
        * @param value The targetId to set.
        * @return This builder for chaining.
@@ -11455,6 +12161,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Target id, such as an artifact id or File resource name.
+       * </pre>
+       *
        * <code>string target_id = 4;</code>
        * @return This builder for chaining.
        */
@@ -11465,6 +12175,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Target id, such as an artifact id or File resource name.
+       * </pre>
+       *
        * <code>string target_id = 4;</code>
        * @param value The bytes for targetId to set.
        * @return This builder for chaining.
@@ -11481,6 +12195,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object agent_ = "";
       /**
+       * <pre>
+       * Agent that minted the grant.
+       * </pre>
+       *
        * <code>string agent = 5;</code>
        * @return The agent.
        */
@@ -11497,6 +12215,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent that minted the grant.
+       * </pre>
+       *
        * <code>string agent = 5;</code>
        * @return The bytes for agent.
        */
@@ -11514,6 +12236,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent that minted the grant.
+       * </pre>
+       *
        * <code>string agent = 5;</code>
        * @param value The agent to set.
        * @return This builder for chaining.
@@ -11527,6 +12253,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent that minted the grant.
+       * </pre>
+       *
        * <code>string agent = 5;</code>
        * @return This builder for chaining.
        */
@@ -11537,6 +12267,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent that minted the grant.
+       * </pre>
+       *
        * <code>string agent = 5;</code>
        * @param value The bytes for agent to set.
        * @return This builder for chaining.
@@ -11553,6 +12287,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object sessionId_ = "";
       /**
+       * <pre>
+       * Session that minted the grant, when the grant is session scoped.
+       * </pre>
+       *
        * <code>string session_id = 6;</code>
        * @return The sessionId.
        */
@@ -11569,6 +12307,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that minted the grant, when the grant is session scoped.
+       * </pre>
+       *
        * <code>string session_id = 6;</code>
        * @return The bytes for sessionId.
        */
@@ -11586,6 +12328,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that minted the grant, when the grant is session scoped.
+       * </pre>
+       *
        * <code>string session_id = 6;</code>
        * @param value The sessionId to set.
        * @return This builder for chaining.
@@ -11599,6 +12345,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that minted the grant, when the grant is session scoped.
+       * </pre>
+       *
        * <code>string session_id = 6;</code>
        * @return This builder for chaining.
        */
@@ -11609,6 +12359,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that minted the grant, when the grant is session scoped.
+       * </pre>
+       *
        * <code>string session_id = 6;</code>
        * @param value The bytes for sessionId to set.
        * @return This builder for chaining.
@@ -11632,6 +12386,10 @@ java.lang.String defaultValue) {
         bitField0_ |= 0x00000040;
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @return A list containing the operations.
        */
@@ -11641,6 +12399,10 @@ java.lang.String defaultValue) {
         return operations_;
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @return The count of operations.
        */
@@ -11648,6 +12410,10 @@ java.lang.String defaultValue) {
         return operations_.size();
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @param index The index of the element to return.
        * @return The operations at the given index.
@@ -11656,6 +12422,10 @@ java.lang.String defaultValue) {
         return operations_.get(index);
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @param index The index of the value to return.
        * @return The bytes of the operations at the given index.
@@ -11665,6 +12435,10 @@ java.lang.String defaultValue) {
         return operations_.getByteString(index);
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @param index The index to set the value at.
        * @param value The operations to set.
@@ -11680,6 +12454,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @param value The operations to add.
        * @return This builder for chaining.
@@ -11694,6 +12472,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @param values The operations to add.
        * @return This builder for chaining.
@@ -11708,6 +12490,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @return This builder for chaining.
        */
@@ -11719,6 +12505,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Allowed operations, such as read, metadata, promote, or write.
+       * </pre>
+       *
        * <code>repeated string operations = 7;</code>
        * @param value The bytes of the operations to add.
        * @return This builder for chaining.
@@ -11736,6 +12526,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object audienceAgent_ = "";
       /**
+       * <pre>
+       * Optional agent audience. Empty means any authorized agent may use it.
+       * </pre>
+       *
        * <code>string audience_agent = 8;</code>
        * @return The audienceAgent.
        */
@@ -11752,6 +12546,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Optional agent audience. Empty means any authorized agent may use it.
+       * </pre>
+       *
        * <code>string audience_agent = 8;</code>
        * @return The bytes for audienceAgent.
        */
@@ -11769,6 +12567,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Optional agent audience. Empty means any authorized agent may use it.
+       * </pre>
+       *
        * <code>string audience_agent = 8;</code>
        * @param value The audienceAgent to set.
        * @return This builder for chaining.
@@ -11782,6 +12584,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Optional agent audience. Empty means any authorized agent may use it.
+       * </pre>
+       *
        * <code>string audience_agent = 8;</code>
        * @return This builder for chaining.
        */
@@ -11792,6 +12598,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Optional agent audience. Empty means any authorized agent may use it.
+       * </pre>
+       *
        * <code>string audience_agent = 8;</code>
        * @param value The bytes for audienceAgent to set.
        * @return This builder for chaining.
@@ -11808,6 +12618,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object audienceSessionId_ = "";
       /**
+       * <pre>
+       * Optional session audience. Empty means any authorized session may use it.
+       * </pre>
+       *
        * <code>string audience_session_id = 9;</code>
        * @return The audienceSessionId.
        */
@@ -11824,6 +12638,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Optional session audience. Empty means any authorized session may use it.
+       * </pre>
+       *
        * <code>string audience_session_id = 9;</code>
        * @return The bytes for audienceSessionId.
        */
@@ -11841,6 +12659,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Optional session audience. Empty means any authorized session may use it.
+       * </pre>
+       *
        * <code>string audience_session_id = 9;</code>
        * @param value The audienceSessionId to set.
        * @return This builder for chaining.
@@ -11854,6 +12676,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Optional session audience. Empty means any authorized session may use it.
+       * </pre>
+       *
        * <code>string audience_session_id = 9;</code>
        * @return This builder for chaining.
        */
@@ -11864,6 +12690,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Optional session audience. Empty means any authorized session may use it.
+       * </pre>
+       *
        * <code>string audience_session_id = 9;</code>
        * @param value The bytes for audienceSessionId to set.
        * @return This builder for chaining.
@@ -11880,6 +12710,10 @@ java.lang.String defaultValue) {
 
       private long expiresAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the grant expires. Zero means unset.
+       * </pre>
+       *
        * <code>int64 expires_at = 10;</code>
        * @return The expiresAt.
        */
@@ -11888,6 +12722,10 @@ java.lang.String defaultValue) {
         return expiresAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the grant expires. Zero means unset.
+       * </pre>
+       *
        * <code>int64 expires_at = 10;</code>
        * @param value The expiresAt to set.
        * @return This builder for chaining.
@@ -11900,6 +12738,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the grant expires. Zero means unset.
+       * </pre>
+       *
        * <code>int64 expires_at = 10;</code>
        * @return This builder for chaining.
        */
@@ -11912,6 +12754,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the grant was created.
+       * </pre>
+       *
        * <code>int64 created_at = 11;</code>
        * @return The createdAt.
        */
@@ -11920,6 +12766,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the grant was created.
+       * </pre>
+       *
        * <code>int64 created_at = 11;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -11932,6 +12782,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the grant was created.
+       * </pre>
+       *
        * <code>int64 created_at = 11;</code>
        * @return This builder for chaining.
        */
