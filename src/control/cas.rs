@@ -616,6 +616,10 @@ fn tool_result_metadata(
 }
 
 fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static str>)> {
+    let zstd = zstd(raw_bytes)?;
+    if compression_saves_meaningfully(raw_bytes.len(), zstd.len()) {
+        return Ok((zstd, Some(CONTENT_ENCODING_ZSTD)));
+    }
     let gzipped = gzip(raw_bytes)?;
     if compression_saves_meaningfully(raw_bytes.len(), gzipped.len()) {
         return Ok((gzipped, Some(CONTENT_ENCODING_GZIP)));
@@ -645,6 +649,10 @@ fn tool_result_logical_bytes(raw_bytes: &[u8]) -> Cow<'_, [u8]> {
 fn compression_saves_meaningfully(raw_len: usize, compressed_len: usize) -> bool {
     (compressed_len as u64) * 100
         < (raw_len as u64) * (100 - MIN_COMPRESSION_SAVINGS_PERCENT) as u64
+}
+
+fn zstd(raw_bytes: &[u8]) -> Result<Vec<u8>> {
+    Ok(zstd::stream::encode_all(Cursor::new(raw_bytes), 0)?)
 }
 
 fn gzip(raw_bytes: &[u8]) -> Result<Vec<u8>> {
@@ -909,7 +917,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn compresses_tool_result_with_gzip_when_it_saves_meaningfully() {
+    async fn compresses_tool_result_with_zstd_when_it_saves_meaningfully() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
         let raw = "x".repeat(3 * 1024);
@@ -929,7 +937,7 @@ mod tests {
             .unwrap();
 
         assert!(object.size_bytes < raw.len() as u64);
-        assert_eq!(object.content_encoding, CONTENT_ENCODING_GZIP);
+        assert_eq!(object.content_encoding, CONTENT_ENCODING_ZSTD);
         assert_eq!(object.metadata[METADATA_AGENT], "agent");
         for key_derived_field in ["namespace", "session_id", "message_id", "part_id"] {
             assert!(!object.metadata.contains_key(key_derived_field));
