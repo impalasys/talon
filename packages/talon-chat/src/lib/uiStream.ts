@@ -27,6 +27,16 @@ const UI_STREAM_TOOL_RESULT_CODE = "a";
 const UI_STREAM_USAGE_CODE = "h";
 const UI_STREAM_ERROR_CODE = "3";
 
+const SESSION_MESSAGE_PART_TYPE = {
+  TEXT: data.SessionMessagePartType?.TEXT ?? "SESSION_MESSAGE_PART_TYPE_TEXT",
+  REASONING: data.SessionMessagePartType?.REASONING ?? "SESSION_MESSAGE_PART_TYPE_REASONING",
+  TOOL_CALL: data.SessionMessagePartType?.TOOL_CALL ?? "SESSION_MESSAGE_PART_TYPE_TOOL_CALL",
+  TOOL_RESULT: data.SessionMessagePartType?.TOOL_RESULT ?? "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT",
+  USAGE: data.SessionMessagePartType?.USAGE ?? "SESSION_MESSAGE_PART_TYPE_USAGE",
+  ERROR: data.SessionMessagePartType?.ERROR ?? "SESSION_MESSAGE_PART_TYPE_ERROR",
+  IMAGE: data.SessionMessagePartType?.IMAGE ?? "SESSION_MESSAGE_PART_TYPE_IMAGE",
+};
+
 function createLocalMessageId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return `local-${crypto.randomUUID()}`;
@@ -309,29 +319,29 @@ export async function streamSessionPartEvents(options: {
     const payload = parsePayload(part.payloadJson ?? part.payload_json);
     const messageId = ensureLiveAssistant(event?.messageId ?? event?.message_id);
 
-    if (partType === data.SessionMessagePartType.TEXT || partType === "SESSION_MESSAGE_PART_TYPE_TEXT") {
+    if (partType === SESSION_MESSAGE_PART_TYPE.TEXT || partType === "SESSION_MESSAGE_PART_TYPE_TEXT") {
       assistantText += content;
       setMessages((prev) => appendAssistantText(prev, messageId, content));
-    } else if (partType === data.SessionMessagePartType.REASONING || partType === "SESSION_MESSAGE_PART_TYPE_REASONING") {
+    } else if (partType === SESSION_MESSAGE_PART_TYPE.REASONING || partType === "SESSION_MESSAGE_PART_TYPE_REASONING") {
       setStreamEvents((prev) => [...prev, { type: "reasoning", content }]);
       setMessages((prev) => appendAssistantReasoning(prev, messageId, content));
-    } else if (partType === data.SessionMessagePartType.TOOL_CALL || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_CALL") {
+    } else if (partType === SESSION_MESSAGE_PART_TYPE.TOOL_CALL || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_CALL") {
       const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
       const toolName = typeof part.name === "string" && part.name ? part.name : "tool";
       setStreamEvents((prev) => [...prev, { type: "tool_call", content: toolName, name: toolName, payload }]);
       setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, toolName, payload?.input, undefined, messageId));
-    } else if (partType === data.SessionMessagePartType.TOOL_RESULT || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT") {
+    } else if (partType === SESSION_MESSAGE_PART_TYPE.TOOL_RESULT || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT") {
       const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
       setStreamEvents((prev) => [...prev, { type: "tool_result", content: toolCallId, payload }]);
       setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, "", undefined, payload?.output ?? content, messageId));
-    } else if (partType === data.SessionMessagePartType.USAGE || partType === "SESSION_MESSAGE_PART_TYPE_USAGE") {
+    } else if (partType === SESSION_MESSAGE_PART_TYPE.USAGE || partType === "SESSION_MESSAGE_PART_TYPE_USAGE") {
       const usage = payload && typeof payload === "object" ? payload as UsageSummary : {};
       setStreamEvents((prev) => [...prev, { type: "usage", content: formatUsageSummary(usage), payload: usage }]);
       setMessages((prev) => applyUsageToMessages(prev, messageId, usage));
-    } else if (partType === data.SessionMessagePartType.ERROR || partType === "SESSION_MESSAGE_PART_TYPE_ERROR") {
+    } else if (partType === SESSION_MESSAGE_PART_TYPE.ERROR || partType === "SESSION_MESSAGE_PART_TYPE_ERROR") {
       const error = new Error(content || "Session stream error");
       throw error;
-    } else if (partType === data.SessionMessagePartType.IMAGE || partType === "SESSION_MESSAGE_PART_TYPE_IMAGE") {
+    } else if (partType === SESSION_MESSAGE_PART_TYPE.IMAGE || partType === "SESSION_MESSAGE_PART_TYPE_IMAGE") {
       setMessages((prev) => appendAssistantPart(prev, messageId, part));
     }
   }

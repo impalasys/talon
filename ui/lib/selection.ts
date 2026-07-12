@@ -200,9 +200,18 @@ export function selectionFromSearchParams(searchParams: URLSearchParams): Select
 export function buildSearchParams(isConnected: boolean, selection: Selection | null, currentSearchParams?: URLSearchParams) {
   const params = new URLSearchParams();
   const historyPageSize = currentSearchParams?.get('historyPageSize');
+  const root = currentSearchParams?.get('root');
 
   if (isConnected) {
     params.set('connected', 'true');
+  }
+
+  // URL ownership:
+  // - root: connection-form namespace prefill for scoped auth/API-key exchange.
+  // - ns/type/agent/...: explorer resource selection only.
+  // Do not collapse root into ns or hydrate connection settings from ns.
+  if (root?.trim()) {
+    params.set('root', root.trim());
   }
 
   if (historyPageSize && /^\d+$/.test(historyPageSize) && Number(historyPageSize) > 0) {
