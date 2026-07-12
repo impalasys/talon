@@ -10,6 +10,9 @@ service FileService {
   // them. Inline content is a small-object fallback and is capped by the
   // gateway.
   rpc CreateFile(CreateFileRequest) returns (FileResponse);
+  rpc PrepareFileUpload(PrepareFileUploadRequest)
+      returns (PrepareFileUploadResponse);
+  rpc CompleteFileUpload(CompleteFileUploadRequest) returns (FileResponse);
   rpc ReadFile(ReadFileRequest) returns (ReadFileResponse);
   rpc UpdateFile(UpdateFileRequest) returns (FileResponse);
   rpc GetFileMetadata(GetFileMetadataRequest) returns (FileResponse);
@@ -45,6 +48,32 @@ message CreateFileRequest {
   talon.resources.FileIndexPolicy index_policy = 5;
   talon.resources.FileRetention retention = 6;
   bytes content = 7;
+}
+
+message PrepareFileUploadRequest {
+  string namespace = 1;
+  string path = 2;
+  string media_type = 3;
+  talon.resources.FilePurpose purpose = 4;
+  talon.resources.FileIndexPolicy index_policy = 5;
+  talon.resources.FileRetention retention = 6;
+  FileRef file = 7;
+  uint64 expected_size_bytes = 8;
+  string expected_sha256 = 9;
+}
+
+message PrepareFileUploadResponse {
+  talon.resources.File file = 1;
+  string upload_token = 2;
+  string signed_upload_url = 3;
+  string method = 4;
+  map<string, string> required_headers = 5;
+  int64 signed_url_expires_at_unix_seconds = 6;
+  string object_key = 7;
+}
+
+message CompleteFileUploadRequest {
+  string upload_token = 1;
 }
 
 message ReadFileRequest {

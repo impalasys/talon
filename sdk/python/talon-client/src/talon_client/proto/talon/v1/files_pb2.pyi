@@ -38,6 +38,59 @@ class CreateFileRequest(_message.Message):
     content: bytes
     def __init__(self, namespace: _Optional[str] = ..., path: _Optional[str] = ..., media_type: _Optional[str] = ..., purpose: _Optional[_Union[_files_pb2.FilePurpose, str]] = ..., index_policy: _Optional[_Union[_files_pb2.FileIndexPolicy, str]] = ..., retention: _Optional[_Union[_files_pb2.FileRetention, str]] = ..., content: _Optional[bytes] = ...) -> None: ...
 
+class PrepareFileUploadRequest(_message.Message):
+    __slots__ = ("namespace", "path", "media_type", "purpose", "index_policy", "retention", "file", "expected_size_bytes", "expected_sha256")
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    MEDIA_TYPE_FIELD_NUMBER: _ClassVar[int]
+    PURPOSE_FIELD_NUMBER: _ClassVar[int]
+    INDEX_POLICY_FIELD_NUMBER: _ClassVar[int]
+    RETENTION_FIELD_NUMBER: _ClassVar[int]
+    FILE_FIELD_NUMBER: _ClassVar[int]
+    EXPECTED_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    EXPECTED_SHA256_FIELD_NUMBER: _ClassVar[int]
+    namespace: str
+    path: str
+    media_type: str
+    purpose: _files_pb2.FilePurpose
+    index_policy: _files_pb2.FileIndexPolicy
+    retention: _files_pb2.FileRetention
+    file: FileRef
+    expected_size_bytes: int
+    expected_sha256: str
+    def __init__(self, namespace: _Optional[str] = ..., path: _Optional[str] = ..., media_type: _Optional[str] = ..., purpose: _Optional[_Union[_files_pb2.FilePurpose, str]] = ..., index_policy: _Optional[_Union[_files_pb2.FileIndexPolicy, str]] = ..., retention: _Optional[_Union[_files_pb2.FileRetention, str]] = ..., file: _Optional[_Union[FileRef, _Mapping]] = ..., expected_size_bytes: _Optional[int] = ..., expected_sha256: _Optional[str] = ...) -> None: ...
+
+class PrepareFileUploadResponse(_message.Message):
+    __slots__ = ("file", "upload_token", "signed_upload_url", "method", "required_headers", "signed_url_expires_at_unix_seconds", "object_key")
+    class RequiredHeadersEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    FILE_FIELD_NUMBER: _ClassVar[int]
+    UPLOAD_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    SIGNED_UPLOAD_URL_FIELD_NUMBER: _ClassVar[int]
+    METHOD_FIELD_NUMBER: _ClassVar[int]
+    REQUIRED_HEADERS_FIELD_NUMBER: _ClassVar[int]
+    SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_KEY_FIELD_NUMBER: _ClassVar[int]
+    file: _files_pb2.File
+    upload_token: str
+    signed_upload_url: str
+    method: str
+    required_headers: _containers.ScalarMap[str, str]
+    signed_url_expires_at_unix_seconds: int
+    object_key: str
+    def __init__(self, file: _Optional[_Union[_files_pb2.File, _Mapping]] = ..., upload_token: _Optional[str] = ..., signed_upload_url: _Optional[str] = ..., method: _Optional[str] = ..., required_headers: _Optional[_Mapping[str, str]] = ..., signed_url_expires_at_unix_seconds: _Optional[int] = ..., object_key: _Optional[str] = ...) -> None: ...
+
+class CompleteFileUploadRequest(_message.Message):
+    __slots__ = ("upload_token",)
+    UPLOAD_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    upload_token: str
+    def __init__(self, upload_token: _Optional[str] = ...) -> None: ...
+
 class ReadFileRequest(_message.Message):
     __slots__ = ("file",)
     FILE_FIELD_NUMBER: _ClassVar[int]
