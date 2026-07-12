@@ -128,7 +128,7 @@ impl CasStore {
             .await
     }
 
-    pub fn file_upload_metadata(
+    pub fn signed_file_object_metadata(
         namespace: &str,
         file_uid: &str,
         path: &str,
@@ -164,8 +164,9 @@ impl CasStore {
         expires_in: Duration,
     ) -> Result<Option<crate::control::object_store::SignedObjectUrl>> {
         let key = file_object_key(namespace, file_uid, object_key_suffix);
-        let metadata =
-            Self::file_upload_metadata(namespace, file_uid, path, media_type, sha, size_bytes);
+        let metadata = Self::signed_file_object_metadata(
+            namespace, file_uid, path, media_type, sha, size_bytes,
+        );
         self.objects
             .signed_put_url(&key, metadata, expires_in)
             .await

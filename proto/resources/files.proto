@@ -55,6 +55,7 @@ message FileStatus {
   repeated ResourceCondition conditions = 3;
   FileObjectRef object_ref = 4;
   int64 updated_at = 5;
+  PendingFileUpload pending_upload = 6;
 }
 
 message FileObjectRef {
@@ -64,4 +65,16 @@ message FileObjectRef {
   string sha256 = 4;
   string filename = 5;
   map<string, string> metadata = 6;
+}
+
+message PendingFileUpload {
+  string id = 1;
+  string object_key = 2;
+  uint64 expected_size_bytes = 3;
+  string expected_sha256 = 4;
+  map<string, string> required_headers = 5;
+  string created_by_agent = 6;
+  string created_by_session_id = 7;
+  int64 expires_at = 8;
+  int64 created_at = 9;
 }
