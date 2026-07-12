@@ -311,20 +311,36 @@ func (x *ObjectRef) GetContentEncoding() string {
 	return ""
 }
 
+// Session-scoped immutable output produced by an agent.
+//
+// Artifacts are not namespace-level File resources. They live under the
+// owning session/run, are exchanged through HandleGrant records, and are not
+// indexed directly. Promoting an Artifact to a durable File copies its bytes
+// into File-owned CAS storage and creates or updates a File resource.
 type Artifact struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	SessionId      string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Title          string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Path           string                 `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
-	MediaType      string                 `protobuf:"bytes,5,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
-	ObjectRef      *ObjectRef             `protobuf:"bytes,6,opt,name=object_ref,json=objectRef,proto3" json:"object_ref,omitempty"`
-	CreatedByAgent string                 `protobuf:"bytes,7,opt,name=created_by_agent,json=createdByAgent,proto3" json:"created_by_agent,omitempty"`
-	CreatedAt      int64                  `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Labels         map[string]string      `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Metadata       map[string]string      `protobuf:"bytes,10,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable artifact id unique within the namespace/session artifact store.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Session that owns the artifact lifecycle and cleanup policy.
+	SessionId string `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// Human-readable label suitable for UI display.
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// Session-local logical path, such as /outputs/final-draft.md.
+	Path string `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
+	// Media type of the artifact content, for example text/markdown.
+	MediaType string `protobuf:"bytes,5,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	// Authoritative CAS/object reference for immutable artifact bytes.
+	ObjectRef *ObjectRef `protobuf:"bytes,6,opt,name=object_ref,json=objectRef,proto3" json:"object_ref,omitempty"`
+	// Agent name that created the artifact.
+	CreatedByAgent string `protobuf:"bytes,7,opt,name=created_by_agent,json=createdByAgent,proto3" json:"created_by_agent,omitempty"`
+	// Unix timestamp in microseconds when the artifact record was created.
+	CreatedAt int64 `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Query/display labels copied from the creating tool or runtime.
+	Labels map[string]string `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Non-indexed, caller-defined metadata about the artifact.
+	Metadata      map[string]string `protobuf:"bytes,10,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Artifact) Reset() {
@@ -791,21 +807,37 @@ func (x *GoalIndexEntry) GetUpdatedAt() int64 {
 	return 0
 }
 
+// Opaque access grant for a File or Artifact handle.
+//
+// Handle strings resolve to these KV-backed grant records. Callers must present
+// a valid handle and match the recorded audience before FileService or
+// ArtifactService allows the requested operation.
 type HandleGrant struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Namespace         string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Kind              string                 `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
-	TargetId          string                 `protobuf:"bytes,4,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
-	Agent             string                 `protobuf:"bytes,5,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId         string                 `protobuf:"bytes,6,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Operations        []string               `protobuf:"bytes,7,rep,name=operations,proto3" json:"operations,omitempty"`
-	AudienceAgent     string                 `protobuf:"bytes,8,opt,name=audience_agent,json=audienceAgent,proto3" json:"audience_agent,omitempty"`
-	AudienceSessionId string                 `protobuf:"bytes,9,opt,name=audience_session_id,json=audienceSessionId,proto3" json:"audience_session_id,omitempty"`
-	ExpiresAt         int64                  `protobuf:"varint,10,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	CreatedAt         int64                  `protobuf:"varint,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Opaque grant id encoded into the external handle string.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Namespace containing the target resource or session child record.
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Target kind, currently ARTIFACT or FILE.
+	Kind string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Target id, such as an artifact id or File resource name.
+	TargetId string `protobuf:"bytes,4,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
+	// Agent that minted the grant.
+	Agent string `protobuf:"bytes,5,opt,name=agent,proto3" json:"agent,omitempty"`
+	// Session that minted the grant, when the grant is session scoped.
+	SessionId string `protobuf:"bytes,6,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// Allowed operations, such as read, metadata, promote, or write.
+	Operations []string `protobuf:"bytes,7,rep,name=operations,proto3" json:"operations,omitempty"`
+	// Optional agent audience. Empty means any authorized agent may use it.
+	AudienceAgent string `protobuf:"bytes,8,opt,name=audience_agent,json=audienceAgent,proto3" json:"audience_agent,omitempty"`
+	// Optional session audience. Empty means any authorized session may use it.
+	AudienceSessionId string `protobuf:"bytes,9,opt,name=audience_session_id,json=audienceSessionId,proto3" json:"audience_session_id,omitempty"`
+	// Unix timestamp in microseconds when the grant expires. Zero means unset.
+	ExpiresAt int64 `protobuf:"varint,10,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// Unix timestamp in microseconds when the grant was created.
+	CreatedAt     int64 `protobuf:"varint,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *HandleGrant) Reset() {
