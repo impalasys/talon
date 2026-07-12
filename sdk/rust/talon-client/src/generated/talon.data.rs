@@ -281,52 +281,6 @@ pub struct GoalIndexEntry {
     #[prost(int64, tag = "7")]
     pub updated_at: i64,
 }
-/// Pending direct-to-object-storage upload for a namespace File.
-///
-/// The target File is not committed to this object until CompleteFileUpload
-/// validates the uploaded object metadata and patches File.status.objectRef.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FileUpload {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub namespace: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub file_name: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub file_uid: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub path: ::prost::alloc::string::String,
-    #[prost(string, tag = "6")]
-    pub media_type: ::prost::alloc::string::String,
-    #[prost(int32, tag = "7")]
-    pub purpose: i32,
-    #[prost(int32, tag = "8")]
-    pub index_policy: i32,
-    #[prost(int32, tag = "9")]
-    pub retention: i32,
-    #[prost(string, tag = "10")]
-    pub object_key: ::prost::alloc::string::String,
-    #[prost(uint64, tag = "11")]
-    pub expected_size_bytes: u64,
-    #[prost(string, tag = "12")]
-    pub expected_sha256: ::prost::alloc::string::String,
-    #[prost(map = "string, string", tag = "13")]
-    pub required_headers: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    #[prost(string, tag = "14")]
-    pub created_by_agent: ::prost::alloc::string::String,
-    #[prost(string, tag = "15")]
-    pub created_by_session_id: ::prost::alloc::string::String,
-    #[prost(int64, tag = "16")]
-    pub expires_at: i64,
-    #[prost(int64, tag = "17")]
-    pub created_at: i64,
-    #[prost(bool, tag = "18")]
-    pub consumed: bool,
-}
 /// Opaque access grant for a File or Artifact handle.
 ///
 /// Handle strings resolve to these KV-backed grant records. Callers must present

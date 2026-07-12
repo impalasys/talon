@@ -190,6 +190,7 @@ impl GrpcGatewayHandler {
             conditions: Vec::new(),
             object_ref: Some(file_object_ref(object_ref)),
             updated_at,
+            pending_upload: None,
         };
         resource.status = Some(resources_proto::ResourceStatus {
             kind: Some(resources_proto::resource_status::Kind::File(status)),
@@ -368,12 +369,46 @@ impl GrpcGatewayHandler {
             conditions: Vec::new(),
             object_ref: Some(file_object_ref(object_ref)),
             updated_at: chrono::Utc::now().timestamp_micros(),
+            pending_upload: None,
         };
         let resource = store
             .patch_status(
                 namespace,
                 "File",
                 file_name,
+                None,
+                resources_proto::ResourceStatus {
+                    kind: Some(resources_proto::resource_status::Kind::File(status)),
+                },
+            )
+            .await?;
+        file_from_resource(resource)
+    }
+
+    async fn patch_file_pending_upload(
+        &self,
+        mut file: resources_proto::File,
+        pending_upload: resources_proto::PendingFileUpload,
+    ) -> Result<resources_proto::File> {
+        let namespace = file.namespace().to_string();
+        let file_name = file.name().to_string();
+        let generation = file
+            .metadata
+            .as_ref()
+            .map(|meta| meta.generation)
+            .unwrap_or_default();
+        let mut status = file.status.take().unwrap_or_default();
+        status.observed_generation = generation;
+        status.phase = "PendingUpload".to_string();
+        status.conditions.clear();
+        status.pending_upload = Some(pending_upload);
+        status.updated_at = chrono::Utc::now().timestamp_micros();
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let resource = store
+            .patch_status(
+                &namespace,
+                "File",
+                &file_name,
                 None,
                 resources_proto::ResourceStatus {
                     kind: Some(resources_proto::resource_status::Kind::File(status)),
@@ -487,16 +522,8 @@ impl GrpcGatewayHandler {
         let id = crate::control::uuid::unique_name("upl");
         let now = chrono::Utc::now().timestamp_micros();
         let object_key = crate::control::cas::file_object_key(&namespace, &file_uid, &expected_sha);
-        let upload = data_proto::FileUpload {
+        let pending_upload = resources_proto::PendingFileUpload {
             id: id.clone(),
-            namespace: namespace.clone(),
-            file_name: file_name.clone(),
-            file_uid,
-            path: spec.path.clone(),
-            media_type,
-            purpose: spec.purpose,
-            index_policy: spec.index_policy,
-            retention: spec.retention,
             object_key: object_key.clone(),
             expected_size_bytes: req.expected_size_bytes,
             expected_sha256: expected_sha,
@@ -505,15 +532,11 @@ impl GrpcGatewayHandler {
             created_by_session_id: caller.session_id,
             expires_at: now + FILE_UPLOAD_SIGNED_URL_TTL.as_micros() as i64,
             created_at: now,
-            consumed: false,
         };
-        self.gateway
-            .kv
-            .set_msg(&keys::file_upload(&namespace, &id), &upload)
-            .await?;
+        let file = self.patch_file_pending_upload(file, pending_upload).await?;
         Ok(proto::PrepareFileUploadResponse {
             file: Some(file),
-            upload_token: upload_token(&namespace, &id),
+            upload_token: upload_token(&namespace, &file_name, &id),
             signed_upload_url: signed.url,
             method: "PUT".to_string(),
             required_headers: signed.required_headers,
@@ -526,29 +549,45 @@ impl GrpcGatewayHandler {
         &self,
         upload_token: &str,
     ) -> Result<(resources_proto::File, String)> {
-        let (namespace, upload_id) = upload_token_namespace_and_id(upload_token)?;
-        let key = keys::file_upload(&namespace, &upload_id);
-        let mut upload = self
-            .gateway
-            .kv
-            .get_msg::<data_proto::FileUpload>(&key)
-            .await?
-            .ok_or_else(|| not_found(format!("File upload '{}' not found", upload_token)))?;
-        if upload.consumed {
-            return Err(permission_denied("File upload has already been completed"));
+        let (namespace, file_name, upload_id) = upload_token_namespace_file_and_id(upload_token)?;
+        let file = self.get_file_by_name(&namespace, &file_name).await?;
+        let spec = file
+            .spec
+            .as_ref()
+            .ok_or_else(|| invalid_argument("File spec missing"))?;
+        let file_uid = file
+            .metadata
+            .as_ref()
+            .map(|meta| meta.uid.as_str())
+            .filter(|uid| !uid.is_empty())
+            .ok_or_else(|| anyhow!("File resource uid missing"))?;
+        let pending_upload = file
+            .status
+            .as_ref()
+            .and_then(|status| status.pending_upload.as_ref())
+            .ok_or_else(|| permission_denied("File upload is not pending"))?;
+        if pending_upload.id != upload_id {
+            return Err(permission_denied(
+                "File upload token does not match pending upload",
+            ));
         }
-        if upload.expires_at > 0 && upload.expires_at < chrono::Utc::now().timestamp_micros() {
+        if pending_upload.expires_at > 0
+            && pending_upload.expires_at < chrono::Utc::now().timestamp_micros()
+        {
             return Err(permission_denied("File upload is expired"));
         }
+        let upload_object_key = pending_upload.object_key.clone();
+        let file_path = spec.path.clone();
+        let file_media_type = spec.media_type.clone();
         let metadata = self
             .gateway
             .objects
-            .head(&upload.object_key)
+            .head(&upload_object_key)
             .await?
             .ok_or_else(|| not_found("uploaded File object not found"))?;
-        validate_uploaded_file_metadata(&upload, &metadata)?;
+        validate_uploaded_file_metadata(&namespace, file_uid, spec, pending_upload, &metadata)?;
         let object_ref = data_proto::ObjectRef {
-            key: upload.object_key.clone(),
+            key: upload_object_key.clone(),
             media_type: metadata.media_type.clone(),
             size_bytes: metadata.size_bytes,
             sha256: metadata.sha256.clone(),
@@ -557,39 +596,32 @@ impl GrpcGatewayHandler {
             content_encoding: metadata.content_encoding.clone(),
         };
         let file = self
-            .patch_file_object_ref(&namespace, &upload.file_name, object_ref)
+            .patch_file_object_ref(&namespace, &file_name, object_ref)
             .await?;
         if let Some(object) = CasStore::new(self.gateway.objects.clone())
-            .get_object_decoded(&upload.object_key)
+            .get_object_decoded(&upload_object_key)
             .await?
         {
             if let Err(error) = self
-                .write_latest_file_object(
-                    &namespace,
-                    &upload.path,
-                    &upload.media_type,
-                    &object.bytes,
-                )
+                .write_latest_file_object(&namespace, &file_path, &file_media_type, &object.bytes)
                 .await
             {
                 tracing::warn!(
                     error = %error,
                     namespace = %namespace,
-                    file = %upload.file_name,
-                    path = %upload.path,
+                    file = %file_name,
+                    path = %file_path,
                     "failed to materialize latest File object after signed upload"
                 );
             }
         } else {
             tracing::info!(
                 namespace = %namespace,
-                file = %upload.file_name,
-                object_key = %upload.object_key,
+                file = %file_name,
+                object_key = %upload_object_key,
                 "signed upload object cannot be read back; latest File view was not materialized"
             );
         }
-        upload.consumed = true;
-        self.gateway.kv.set_msg(&key, &upload).await?;
         let handle = self.mint_file_handle(&file).await?;
         Ok((file, handle))
     }
@@ -789,8 +821,8 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
         &self,
         req: Request<proto::CompleteFileUploadRequest>,
     ) -> std::result::Result<Response<proto::FileResponse>, Status> {
-        let (namespace, _) =
-            upload_token_namespace_and_id(&req.get_ref().upload_token).map_err(to_status)?;
+        let (namespace, _, _) =
+            upload_token_namespace_file_and_id(&req.get_ref().upload_token).map_err(to_status)?;
         if let Some(auth_config) = &self.gateway.auth_config {
             crate::gateway::auth::check_auth_for_operation(
                 req.metadata(),
@@ -1402,29 +1434,41 @@ impl FileRefRequest for proto::DeleteFileRequest {
     }
 }
 
-fn upload_token(namespace: &str, upload_id: &str) -> String {
-    format!("talon-upload:{}/{}", encoded_ns(namespace), upload_id)
+fn upload_token(namespace: &str, file_name: &str, upload_id: &str) -> String {
+    format!(
+        "talon-upload:{}/{}/{}",
+        encoded_ns(namespace),
+        urlencoding::encode(file_name),
+        upload_id
+    )
 }
 
-fn upload_token_namespace_and_id(token: &str) -> Result<(String, String)> {
+fn upload_token_namespace_file_and_id(token: &str) -> Result<(String, String, String)> {
     let token = token.trim();
     let Some(rest) = token.strip_prefix("talon-upload:") else {
         return Err(invalid_argument(
             "upload token must start with 'talon-upload:'",
         ));
     };
-    let Some((namespace, id)) = rest.split_once('/') else {
+    let mut parts = rest.splitn(3, '/');
+    let namespace = parts.next().unwrap_or_default();
+    let file_name = parts.next().unwrap_or_default();
+    let id = parts.next().unwrap_or_default();
+    if namespace.is_empty() || file_name.is_empty() || id.is_empty() {
         return Err(invalid_argument(
-            "upload token must be 'talon-upload:<namespace>/<id>'",
+            "upload token must be 'talon-upload:<namespace>/<file>/<id>'",
         ));
     };
     let namespace = urlencoding::decode(namespace)
         .map(|value| value.into_owned())
         .context("failed to decode upload token namespace")?;
+    let file_name = urlencoding::decode(file_name)
+        .map(|value| value.into_owned())
+        .context("failed to decode upload token file")?;
     if id.trim().is_empty() {
         return Err(invalid_argument("upload token id is required"));
     }
-    Ok((namespace, id.to_string()))
+    Ok((namespace, file_name, id.to_string()))
 }
 
 fn validate_artifact_operations(operations: &[&str]) -> Result<()> {
@@ -1607,13 +1651,18 @@ fn normalize_sha256(value: &str) -> Result<String> {
 }
 
 fn validate_uploaded_file_metadata(
-    upload: &data_proto::FileUpload,
+    namespace: &str,
+    file_uid: &str,
+    spec: &resources_proto::FileSpec,
+    pending_upload: &resources_proto::PendingFileUpload,
     metadata: &crate::control::object_store::ObjectMetadata,
 ) -> Result<()> {
-    if upload.expected_size_bytes > 0 && metadata.size_bytes != upload.expected_size_bytes {
+    if pending_upload.expected_size_bytes > 0
+        && metadata.size_bytes != pending_upload.expected_size_bytes
+    {
         return Err(invalid_argument(format!(
             "uploaded File size {} does not match expected size {}",
-            metadata.size_bytes, upload.expected_size_bytes
+            metadata.size_bytes, pending_upload.expected_size_bytes
         )));
     }
     if metadata.sha256.trim().is_empty() {
@@ -1621,30 +1670,30 @@ fn validate_uploaded_file_metadata(
             Status::failed_precondition("uploaded File object is missing sha256 metadata").into(),
         );
     }
-    if metadata.sha256 != upload.expected_sha256 {
+    if metadata.sha256 != pending_upload.expected_sha256 {
         return Err(invalid_argument(
             "uploaded File sha256 does not match expectedSha256",
         ));
     }
-    if metadata.media_type != upload.media_type {
+    if metadata.media_type != spec.media_type {
         return Err(invalid_argument(
             "uploaded File media type does not match upload",
         ));
     }
     let object_namespace = metadata.metadata.get("namespace").map(String::as_str);
-    if object_namespace != Some(upload.namespace.as_str()) {
+    if object_namespace != Some(namespace) {
         return Err(invalid_argument(
             "uploaded File namespace metadata does not match",
         ));
     }
     let object_file_uid = metadata.metadata.get("file_uid").map(String::as_str);
-    if object_file_uid != Some(upload.file_uid.as_str()) {
+    if object_file_uid != Some(file_uid) {
         return Err(invalid_argument(
             "uploaded File uid metadata does not match",
         ));
     }
     let object_path = metadata.metadata.get("path").map(String::as_str);
-    if object_path != Some(upload.path.as_str()) {
+    if object_path != Some(spec.path.as_str()) {
         return Err(invalid_argument(
             "uploaded File path metadata does not match",
         ));
@@ -1924,7 +1973,7 @@ mod tests {
             .put(
                 &response.object_key,
                 bytes,
-                CasStore::file_upload_metadata(
+                CasStore::signed_file_object_metadata(
                     file.namespace(),
                     &metadata.uid,
                     &spec.path,
@@ -2080,6 +2129,18 @@ mod tests {
             prepared.required_headers.get("x-amz-meta-talon-sha256"),
             Some(&sha)
         );
+        let pending = prepared
+            .file
+            .as_ref()
+            .unwrap()
+            .status
+            .as_ref()
+            .unwrap()
+            .pending_upload
+            .as_ref()
+            .unwrap();
+        assert_eq!(pending.expected_sha256, sha);
+        assert_eq!(pending.object_key, prepared.object_key);
         simulate_signed_file_upload(&objects, &prepared, content).await;
 
         let completed = handler
@@ -2087,7 +2148,9 @@ mod tests {
             .await
             .unwrap();
         let file = completed.0;
-        let object_ref = file.status.unwrap().object_ref.unwrap();
+        let status = file.status.unwrap();
+        assert!(status.pending_upload.is_none());
+        let object_ref = status.object_ref.unwrap();
         assert_eq!(object_ref.key, prepared.object_key);
         assert_eq!(object_ref.sha256, sha);
         assert_eq!(file.spec.unwrap().path, "/memory/brand-guidelines.md");
@@ -2197,7 +2260,9 @@ mod tests {
             .get_file_by_name(file.namespace(), file.name())
             .await
             .unwrap();
-        assert!(stored.status.unwrap().object_ref.is_none());
+        let status = stored.status.unwrap();
+        assert!(status.object_ref.is_none());
+        assert!(status.pending_upload.is_some());
     }
 
     #[tokio::test]

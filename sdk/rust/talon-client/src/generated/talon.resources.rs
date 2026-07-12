@@ -773,6 +773,8 @@ pub struct FileStatus {
     pub object_ref: ::core::option::Option<FileObjectRef>,
     #[prost(int64, tag = "5")]
     pub updated_at: i64,
+    #[prost(message, optional, tag = "6")]
+    pub pending_upload: ::core::option::Option<PendingFileUpload>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileObjectRef {
@@ -791,6 +793,30 @@ pub struct FileObjectRef {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PendingFileUpload {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub object_key: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub expected_size_bytes: u64,
+    #[prost(string, tag = "4")]
+    pub expected_sha256: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "5")]
+    pub required_headers: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(string, tag = "6")]
+    pub created_by_agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub created_by_session_id: ::prost::alloc::string::String,
+    #[prost(int64, tag = "8")]
+    pub expires_at: i64,
+    #[prost(int64, tag = "9")]
+    pub created_at: i64,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]

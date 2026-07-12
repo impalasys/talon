@@ -439,14 +439,6 @@ pub fn handle_grant_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("HandleGrant"))
 }
 
-pub fn file_upload(namespace: &str, upload_id: &str) -> ResourceKey {
-    resource_key(namespace, &[], "FileUpload", upload_id)
-}
-
-pub fn file_upload_prefix(namespace: &str) -> ResourceList {
-    direct_child_prefix(namespace, &[], Some("FileUpload"))
-}
-
 pub fn session_submission(
     namespace: &str,
     agent: &str,

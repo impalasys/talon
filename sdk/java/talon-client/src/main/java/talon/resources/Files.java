@@ -2500,6 +2500,21 @@ public final class Files extends com.google.protobuf.GeneratedFile {
      * @return The updatedAt.
      */
     long getUpdatedAt();
+
+    /**
+     * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+     * @return Whether the pendingUpload field is set.
+     */
+    boolean hasPendingUpload();
+    /**
+     * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+     * @return The pendingUpload.
+     */
+    talon.resources.Files.PendingFileUpload getPendingUpload();
+    /**
+     * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+     */
+    talon.resources.Files.PendingFileUploadOrBuilder getPendingUploadOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.FileStatus}
@@ -2674,6 +2689,32 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       return updatedAt_;
     }
 
+    public static final int PENDING_UPLOAD_FIELD_NUMBER = 6;
+    private talon.resources.Files.PendingFileUpload pendingUpload_;
+    /**
+     * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+     * @return Whether the pendingUpload field is set.
+     */
+    @java.lang.Override
+    public boolean hasPendingUpload() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+     * @return The pendingUpload.
+     */
+    @java.lang.Override
+    public talon.resources.Files.PendingFileUpload getPendingUpload() {
+      return pendingUpload_ == null ? talon.resources.Files.PendingFileUpload.getDefaultInstance() : pendingUpload_;
+    }
+    /**
+     * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Files.PendingFileUploadOrBuilder getPendingUploadOrBuilder() {
+      return pendingUpload_ == null ? talon.resources.Files.PendingFileUpload.getDefaultInstance() : pendingUpload_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2702,6 +2743,9 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       }
       if (updatedAt_ != 0L) {
         output.writeInt64(5, updatedAt_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(6, getPendingUpload());
       }
       getUnknownFields().writeTo(output);
     }
@@ -2736,6 +2780,10 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(5, updatedAt_);
       }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, getPendingUpload());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -2764,6 +2812,11 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       }
       if (getUpdatedAt()
           != other.getUpdatedAt()) return false;
+      if (hasPendingUpload() != other.hasPendingUpload()) return false;
+      if (hasPendingUpload()) {
+        if (!getPendingUpload()
+            .equals(other.getPendingUpload())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2791,6 +2844,10 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getUpdatedAt());
+      if (hasPendingUpload()) {
+        hash = (37 * hash) + PENDING_UPLOAD_FIELD_NUMBER;
+        hash = (53 * hash) + getPendingUpload().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2923,6 +2980,7 @@ public final class Files extends com.google.protobuf.GeneratedFile {
                 .alwaysUseFieldBuilders) {
           internalGetConditionsFieldBuilder();
           internalGetObjectRefFieldBuilder();
+          internalGetPendingUploadFieldBuilder();
         }
       }
       @java.lang.Override
@@ -2944,6 +3002,11 @@ public final class Files extends com.google.protobuf.GeneratedFile {
           objectRefBuilder_ = null;
         }
         updatedAt_ = 0L;
+        pendingUpload_ = null;
+        if (pendingUploadBuilder_ != null) {
+          pendingUploadBuilder_.dispose();
+          pendingUploadBuilder_ = null;
+        }
         return this;
       }
 
@@ -3006,6 +3069,12 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000010) != 0)) {
           result.updatedAt_ = updatedAt_;
         }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.pendingUpload_ = pendingUploadBuilder_ == null
+              ? pendingUpload_
+              : pendingUploadBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -3060,6 +3129,9 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         }
         if (other.getUpdatedAt() != 0L) {
           setUpdatedAt(other.getUpdatedAt());
+        }
+        if (other.hasPendingUpload()) {
+          mergePendingUpload(other.getPendingUpload());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -3122,6 +3194,13 @@ public final class Files extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 40
+              case 50: {
+                input.readMessage(
+                    internalGetPendingUploadFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3634,6 +3713,127 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         updatedAt_ = 0L;
         onChanged();
         return this;
+      }
+
+      private talon.resources.Files.PendingFileUpload pendingUpload_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Files.PendingFileUpload, talon.resources.Files.PendingFileUpload.Builder, talon.resources.Files.PendingFileUploadOrBuilder> pendingUploadBuilder_;
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       * @return Whether the pendingUpload field is set.
+       */
+      public boolean hasPendingUpload() {
+        return ((bitField0_ & 0x00000020) != 0);
+      }
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       * @return The pendingUpload.
+       */
+      public talon.resources.Files.PendingFileUpload getPendingUpload() {
+        if (pendingUploadBuilder_ == null) {
+          return pendingUpload_ == null ? talon.resources.Files.PendingFileUpload.getDefaultInstance() : pendingUpload_;
+        } else {
+          return pendingUploadBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       */
+      public Builder setPendingUpload(talon.resources.Files.PendingFileUpload value) {
+        if (pendingUploadBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          pendingUpload_ = value;
+        } else {
+          pendingUploadBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       */
+      public Builder setPendingUpload(
+          talon.resources.Files.PendingFileUpload.Builder builderForValue) {
+        if (pendingUploadBuilder_ == null) {
+          pendingUpload_ = builderForValue.build();
+        } else {
+          pendingUploadBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       */
+      public Builder mergePendingUpload(talon.resources.Files.PendingFileUpload value) {
+        if (pendingUploadBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) != 0) &&
+            pendingUpload_ != null &&
+            pendingUpload_ != talon.resources.Files.PendingFileUpload.getDefaultInstance()) {
+            getPendingUploadBuilder().mergeFrom(value);
+          } else {
+            pendingUpload_ = value;
+          }
+        } else {
+          pendingUploadBuilder_.mergeFrom(value);
+        }
+        if (pendingUpload_ != null) {
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       */
+      public Builder clearPendingUpload() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        pendingUpload_ = null;
+        if (pendingUploadBuilder_ != null) {
+          pendingUploadBuilder_.dispose();
+          pendingUploadBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       */
+      public talon.resources.Files.PendingFileUpload.Builder getPendingUploadBuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return internalGetPendingUploadFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       */
+      public talon.resources.Files.PendingFileUploadOrBuilder getPendingUploadOrBuilder() {
+        if (pendingUploadBuilder_ != null) {
+          return pendingUploadBuilder_.getMessageOrBuilder();
+        } else {
+          return pendingUpload_ == null ?
+              talon.resources.Files.PendingFileUpload.getDefaultInstance() : pendingUpload_;
+        }
+      }
+      /**
+       * <code>.talon.resources.PendingFileUpload pending_upload = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Files.PendingFileUpload, talon.resources.Files.PendingFileUpload.Builder, talon.resources.Files.PendingFileUploadOrBuilder>
+          internalGetPendingUploadFieldBuilder() {
+        if (pendingUploadBuilder_ == null) {
+          pendingUploadBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Files.PendingFileUpload, talon.resources.Files.PendingFileUpload.Builder, talon.resources.Files.PendingFileUploadOrBuilder>(
+                  getPendingUpload(),
+                  getParentForChildren(),
+                  isClean());
+          pendingUpload_ = null;
+        }
+        return pendingUploadBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.FileStatus)
@@ -5032,6 +5232,1645 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface PendingFileUploadOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.PendingFileUpload)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>string object_key = 2;</code>
+     * @return The objectKey.
+     */
+    java.lang.String getObjectKey();
+    /**
+     * <code>string object_key = 2;</code>
+     * @return The bytes for objectKey.
+     */
+    com.google.protobuf.ByteString
+        getObjectKeyBytes();
+
+    /**
+     * <code>uint64 expected_size_bytes = 3;</code>
+     * @return The expectedSizeBytes.
+     */
+    long getExpectedSizeBytes();
+
+    /**
+     * <code>string expected_sha256 = 4;</code>
+     * @return The expectedSha256.
+     */
+    java.lang.String getExpectedSha256();
+    /**
+     * <code>string expected_sha256 = 4;</code>
+     * @return The bytes for expectedSha256.
+     */
+    com.google.protobuf.ByteString
+        getExpectedSha256Bytes();
+
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    int getRequiredHeadersCount();
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    boolean containsRequiredHeaders(
+        java.lang.String key);
+    /**
+     * Use {@link #getRequiredHeadersMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getRequiredHeaders();
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getRequiredHeadersMap();
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    /* nullable */
+java.lang.String getRequiredHeadersOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    java.lang.String getRequiredHeadersOrThrow(
+        java.lang.String key);
+
+    /**
+     * <code>string created_by_agent = 6;</code>
+     * @return The createdByAgent.
+     */
+    java.lang.String getCreatedByAgent();
+    /**
+     * <code>string created_by_agent = 6;</code>
+     * @return The bytes for createdByAgent.
+     */
+    com.google.protobuf.ByteString
+        getCreatedByAgentBytes();
+
+    /**
+     * <code>string created_by_session_id = 7;</code>
+     * @return The createdBySessionId.
+     */
+    java.lang.String getCreatedBySessionId();
+    /**
+     * <code>string created_by_session_id = 7;</code>
+     * @return The bytes for createdBySessionId.
+     */
+    com.google.protobuf.ByteString
+        getCreatedBySessionIdBytes();
+
+    /**
+     * <code>int64 expires_at = 8;</code>
+     * @return The expiresAt.
+     */
+    long getExpiresAt();
+
+    /**
+     * <code>int64 created_at = 9;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+  }
+  /**
+   * Protobuf type {@code talon.resources.PendingFileUpload}
+   */
+  public static final class PendingFileUpload extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.PendingFileUpload)
+      PendingFileUploadOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "PendingFileUpload");
+    }
+    // Use PendingFileUpload.newBuilder() to construct.
+    private PendingFileUpload(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private PendingFileUpload() {
+      id_ = "";
+      objectKey_ = "";
+      expectedSha256_ = "";
+      createdByAgent_ = "";
+      createdBySessionId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Files.internal_static_talon_resources_PendingFileUpload_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Files.internal_static_talon_resources_PendingFileUpload_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 5:
+          return internalGetRequiredHeaders();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Files.internal_static_talon_resources_PendingFileUpload_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Files.PendingFileUpload.class, talon.resources.Files.PendingFileUpload.Builder.class);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OBJECT_KEY_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object objectKey_ = "";
+    /**
+     * <code>string object_key = 2;</code>
+     * @return The objectKey.
+     */
+    @java.lang.Override
+    public java.lang.String getObjectKey() {
+      java.lang.Object ref = objectKey_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        objectKey_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string object_key = 2;</code>
+     * @return The bytes for objectKey.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getObjectKeyBytes() {
+      java.lang.Object ref = objectKey_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        objectKey_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int EXPECTED_SIZE_BYTES_FIELD_NUMBER = 3;
+    private long expectedSizeBytes_ = 0L;
+    /**
+     * <code>uint64 expected_size_bytes = 3;</code>
+     * @return The expectedSizeBytes.
+     */
+    @java.lang.Override
+    public long getExpectedSizeBytes() {
+      return expectedSizeBytes_;
+    }
+
+    public static final int EXPECTED_SHA256_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object expectedSha256_ = "";
+    /**
+     * <code>string expected_sha256 = 4;</code>
+     * @return The expectedSha256.
+     */
+    @java.lang.Override
+    public java.lang.String getExpectedSha256() {
+      java.lang.Object ref = expectedSha256_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        expectedSha256_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string expected_sha256 = 4;</code>
+     * @return The bytes for expectedSha256.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getExpectedSha256Bytes() {
+      java.lang.Object ref = expectedSha256_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        expectedSha256_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REQUIRED_HEADERS_FIELD_NUMBER = 5;
+    private static final class RequiredHeadersDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.resources.Files.internal_static_talon_resources_PendingFileUpload_RequiredHeadersEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> requiredHeaders_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetRequiredHeaders() {
+      if (requiredHeaders_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            RequiredHeadersDefaultEntryHolder.defaultEntry);
+      }
+      return requiredHeaders_;
+    }
+    public int getRequiredHeadersCount() {
+      return internalGetRequiredHeaders().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    @java.lang.Override
+    public boolean containsRequiredHeaders(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetRequiredHeaders().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getRequiredHeadersMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getRequiredHeaders() {
+      return getRequiredHeadersMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getRequiredHeadersMap() {
+      return internalGetRequiredHeaders().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getRequiredHeadersOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetRequiredHeaders().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getRequiredHeadersOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetRequiredHeaders().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int CREATED_BY_AGENT_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object createdByAgent_ = "";
+    /**
+     * <code>string created_by_agent = 6;</code>
+     * @return The createdByAgent.
+     */
+    @java.lang.Override
+    public java.lang.String getCreatedByAgent() {
+      java.lang.Object ref = createdByAgent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        createdByAgent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string created_by_agent = 6;</code>
+     * @return The bytes for createdByAgent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getCreatedByAgentBytes() {
+      java.lang.Object ref = createdByAgent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        createdByAgent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CREATED_BY_SESSION_ID_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object createdBySessionId_ = "";
+    /**
+     * <code>string created_by_session_id = 7;</code>
+     * @return The createdBySessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getCreatedBySessionId() {
+      java.lang.Object ref = createdBySessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        createdBySessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string created_by_session_id = 7;</code>
+     * @return The bytes for createdBySessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getCreatedBySessionIdBytes() {
+      java.lang.Object ref = createdBySessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        createdBySessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int EXPIRES_AT_FIELD_NUMBER = 8;
+    private long expiresAt_ = 0L;
+    /**
+     * <code>int64 expires_at = 8;</code>
+     * @return The expiresAt.
+     */
+    @java.lang.Override
+    public long getExpiresAt() {
+      return expiresAt_;
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 9;
+    private long createdAt_ = 0L;
+    /**
+     * <code>int64 created_at = 9;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objectKey_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, objectKey_);
+      }
+      if (expectedSizeBytes_ != 0L) {
+        output.writeUInt64(3, expectedSizeBytes_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(expectedSha256_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, expectedSha256_);
+      }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetRequiredHeaders(),
+          RequiredHeadersDefaultEntryHolder.defaultEntry,
+          5);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(createdByAgent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, createdByAgent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(createdBySessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, createdBySessionId_);
+      }
+      if (expiresAt_ != 0L) {
+        output.writeInt64(8, expiresAt_);
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(9, createdAt_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objectKey_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, objectKey_);
+      }
+      if (expectedSizeBytes_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, expectedSizeBytes_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(expectedSha256_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, expectedSha256_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetRequiredHeaders().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        requiredHeaders__ = RequiredHeadersDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(5, requiredHeaders__);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(createdByAgent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, createdByAgent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(createdBySessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, createdBySessionId_);
+      }
+      if (expiresAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(8, expiresAt_);
+      }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(9, createdAt_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Files.PendingFileUpload)) {
+        return super.equals(obj);
+      }
+      talon.resources.Files.PendingFileUpload other = (talon.resources.Files.PendingFileUpload) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getObjectKey()
+          .equals(other.getObjectKey())) return false;
+      if (getExpectedSizeBytes()
+          != other.getExpectedSizeBytes()) return false;
+      if (!getExpectedSha256()
+          .equals(other.getExpectedSha256())) return false;
+      if (!internalGetRequiredHeaders().equals(
+          other.internalGetRequiredHeaders())) return false;
+      if (!getCreatedByAgent()
+          .equals(other.getCreatedByAgent())) return false;
+      if (!getCreatedBySessionId()
+          .equals(other.getCreatedBySessionId())) return false;
+      if (getExpiresAt()
+          != other.getExpiresAt()) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + OBJECT_KEY_FIELD_NUMBER;
+      hash = (53 * hash) + getObjectKey().hashCode();
+      hash = (37 * hash) + EXPECTED_SIZE_BYTES_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExpectedSizeBytes());
+      hash = (37 * hash) + EXPECTED_SHA256_FIELD_NUMBER;
+      hash = (53 * hash) + getExpectedSha256().hashCode();
+      if (!internalGetRequiredHeaders().getMap().isEmpty()) {
+        hash = (37 * hash) + REQUIRED_HEADERS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetRequiredHeaders().hashCode();
+      }
+      hash = (37 * hash) + CREATED_BY_AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getCreatedByAgent().hashCode();
+      hash = (37 * hash) + CREATED_BY_SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getCreatedBySessionId().hashCode();
+      hash = (37 * hash) + EXPIRES_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExpiresAt());
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Files.PendingFileUpload parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Files.PendingFileUpload parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Files.PendingFileUpload parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Files.PendingFileUpload parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Files.PendingFileUpload prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.PendingFileUpload}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.PendingFileUpload)
+        talon.resources.Files.PendingFileUploadOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Files.internal_static_talon_resources_PendingFileUpload_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetRequiredHeaders();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetMutableRequiredHeaders();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Files.internal_static_talon_resources_PendingFileUpload_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Files.PendingFileUpload.class, talon.resources.Files.PendingFileUpload.Builder.class);
+      }
+
+      // Construct using talon.resources.Files.PendingFileUpload.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        objectKey_ = "";
+        expectedSizeBytes_ = 0L;
+        expectedSha256_ = "";
+        internalGetMutableRequiredHeaders().clear();
+        createdByAgent_ = "";
+        createdBySessionId_ = "";
+        expiresAt_ = 0L;
+        createdAt_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Files.internal_static_talon_resources_PendingFileUpload_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Files.PendingFileUpload getDefaultInstanceForType() {
+        return talon.resources.Files.PendingFileUpload.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Files.PendingFileUpload build() {
+        talon.resources.Files.PendingFileUpload result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Files.PendingFileUpload buildPartial() {
+        talon.resources.Files.PendingFileUpload result = new talon.resources.Files.PendingFileUpload(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Files.PendingFileUpload result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.objectKey_ = objectKey_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.expectedSizeBytes_ = expectedSizeBytes_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.expectedSha256_ = expectedSha256_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.requiredHeaders_ = internalGetRequiredHeaders();
+          result.requiredHeaders_.makeImmutable();
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.createdByAgent_ = createdByAgent_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.createdBySessionId_ = createdBySessionId_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.expiresAt_ = expiresAt_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Files.PendingFileUpload) {
+          return mergeFrom((talon.resources.Files.PendingFileUpload)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Files.PendingFileUpload other) {
+        if (other == talon.resources.Files.PendingFileUpload.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getObjectKey().isEmpty()) {
+          objectKey_ = other.objectKey_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (other.getExpectedSizeBytes() != 0L) {
+          setExpectedSizeBytes(other.getExpectedSizeBytes());
+        }
+        if (!other.getExpectedSha256().isEmpty()) {
+          expectedSha256_ = other.expectedSha256_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        internalGetMutableRequiredHeaders().mergeFrom(
+            other.internalGetRequiredHeaders());
+        bitField0_ |= 0x00000010;
+        if (!other.getCreatedByAgent().isEmpty()) {
+          createdByAgent_ = other.createdByAgent_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (!other.getCreatedBySessionId().isEmpty()) {
+          createdBySessionId_ = other.createdBySessionId_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        if (other.getExpiresAt() != 0L) {
+          setExpiresAt(other.getExpiresAt());
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                objectKey_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 24: {
+                expectedSizeBytes_ = input.readUInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 34: {
+                expectedSha256_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                requiredHeaders__ = input.readMessage(
+                    RequiredHeadersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableRequiredHeaders().getMutableMap().put(
+                    requiredHeaders__.getKey(), requiredHeaders__.getValue());
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                createdByAgent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 58: {
+                createdBySessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              case 64: {
+                expiresAt_ = input.readInt64();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 64
+              case 72: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 72
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object objectKey_ = "";
+      /**
+       * <code>string object_key = 2;</code>
+       * @return The objectKey.
+       */
+      public java.lang.String getObjectKey() {
+        java.lang.Object ref = objectKey_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          objectKey_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string object_key = 2;</code>
+       * @return The bytes for objectKey.
+       */
+      public com.google.protobuf.ByteString
+          getObjectKeyBytes() {
+        java.lang.Object ref = objectKey_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          objectKey_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string object_key = 2;</code>
+       * @param value The objectKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjectKey(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        objectKey_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string object_key = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearObjectKey() {
+        objectKey_ = getDefaultInstance().getObjectKey();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string object_key = 2;</code>
+       * @param value The bytes for objectKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjectKeyBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        objectKey_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private long expectedSizeBytes_ ;
+      /**
+       * <code>uint64 expected_size_bytes = 3;</code>
+       * @return The expectedSizeBytes.
+       */
+      @java.lang.Override
+      public long getExpectedSizeBytes() {
+        return expectedSizeBytes_;
+      }
+      /**
+       * <code>uint64 expected_size_bytes = 3;</code>
+       * @param value The expectedSizeBytes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpectedSizeBytes(long value) {
+
+        expectedSizeBytes_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 expected_size_bytes = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpectedSizeBytes() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        expectedSizeBytes_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object expectedSha256_ = "";
+      /**
+       * <code>string expected_sha256 = 4;</code>
+       * @return The expectedSha256.
+       */
+      public java.lang.String getExpectedSha256() {
+        java.lang.Object ref = expectedSha256_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          expectedSha256_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string expected_sha256 = 4;</code>
+       * @return The bytes for expectedSha256.
+       */
+      public com.google.protobuf.ByteString
+          getExpectedSha256Bytes() {
+        java.lang.Object ref = expectedSha256_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          expectedSha256_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string expected_sha256 = 4;</code>
+       * @param value The expectedSha256 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpectedSha256(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        expectedSha256_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string expected_sha256 = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpectedSha256() {
+        expectedSha256_ = getDefaultInstance().getExpectedSha256();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string expected_sha256 = 4;</code>
+       * @param value The bytes for expectedSha256 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpectedSha256Bytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        expectedSha256_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> requiredHeaders_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetRequiredHeaders() {
+        if (requiredHeaders_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              RequiredHeadersDefaultEntryHolder.defaultEntry);
+        }
+        return requiredHeaders_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableRequiredHeaders() {
+        if (requiredHeaders_ == null) {
+          requiredHeaders_ = com.google.protobuf.MapField.newMapField(
+              RequiredHeadersDefaultEntryHolder.defaultEntry);
+        }
+        if (!requiredHeaders_.isMutable()) {
+          requiredHeaders_ = requiredHeaders_.copy();
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return requiredHeaders_;
+      }
+      public int getRequiredHeadersCount() {
+        return internalGetRequiredHeaders().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      @java.lang.Override
+      public boolean containsRequiredHeaders(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetRequiredHeaders().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getRequiredHeadersMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getRequiredHeaders() {
+        return getRequiredHeadersMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getRequiredHeadersMap() {
+        return internalGetRequiredHeaders().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getRequiredHeadersOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetRequiredHeaders().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getRequiredHeadersOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetRequiredHeaders().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearRequiredHeaders() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        internalGetMutableRequiredHeaders().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      public Builder removeRequiredHeaders(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableRequiredHeaders().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableRequiredHeaders() {
+        bitField0_ |= 0x00000010;
+        return internalGetMutableRequiredHeaders().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      public Builder putRequiredHeaders(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableRequiredHeaders().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      public Builder putAllRequiredHeaders(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableRequiredHeaders().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+
+      private java.lang.Object createdByAgent_ = "";
+      /**
+       * <code>string created_by_agent = 6;</code>
+       * @return The createdByAgent.
+       */
+      public java.lang.String getCreatedByAgent() {
+        java.lang.Object ref = createdByAgent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          createdByAgent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string created_by_agent = 6;</code>
+       * @return The bytes for createdByAgent.
+       */
+      public com.google.protobuf.ByteString
+          getCreatedByAgentBytes() {
+        java.lang.Object ref = createdByAgent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          createdByAgent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string created_by_agent = 6;</code>
+       * @param value The createdByAgent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedByAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        createdByAgent_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string created_by_agent = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedByAgent() {
+        createdByAgent_ = getDefaultInstance().getCreatedByAgent();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string created_by_agent = 6;</code>
+       * @param value The bytes for createdByAgent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedByAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        createdByAgent_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object createdBySessionId_ = "";
+      /**
+       * <code>string created_by_session_id = 7;</code>
+       * @return The createdBySessionId.
+       */
+      public java.lang.String getCreatedBySessionId() {
+        java.lang.Object ref = createdBySessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          createdBySessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string created_by_session_id = 7;</code>
+       * @return The bytes for createdBySessionId.
+       */
+      public com.google.protobuf.ByteString
+          getCreatedBySessionIdBytes() {
+        java.lang.Object ref = createdBySessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          createdBySessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string created_by_session_id = 7;</code>
+       * @param value The createdBySessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedBySessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        createdBySessionId_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string created_by_session_id = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedBySessionId() {
+        createdBySessionId_ = getDefaultInstance().getCreatedBySessionId();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string created_by_session_id = 7;</code>
+       * @param value The bytes for createdBySessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedBySessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        createdBySessionId_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      private long expiresAt_ ;
+      /**
+       * <code>int64 expires_at = 8;</code>
+       * @return The expiresAt.
+       */
+      @java.lang.Override
+      public long getExpiresAt() {
+        return expiresAt_;
+      }
+      /**
+       * <code>int64 expires_at = 8;</code>
+       * @param value The expiresAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpiresAt(long value) {
+
+        expiresAt_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 expires_at = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpiresAt() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        expiresAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <code>int64 created_at = 9;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <code>int64 created_at = 9;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 created_at = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.PendingFileUpload)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.PendingFileUpload)
+    private static final talon.resources.Files.PendingFileUpload DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Files.PendingFileUpload();
+    }
+
+    public static talon.resources.Files.PendingFileUpload getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<PendingFileUpload>
+        PARSER = new com.google.protobuf.AbstractParser<PendingFileUpload>() {
+      @java.lang.Override
+      public PendingFileUpload parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<PendingFileUpload> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PendingFileUpload> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Files.PendingFileUpload getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_File_descriptor;
   private static final
@@ -5057,6 +6896,16 @@ java.lang.String defaultValue) {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_FileObjectRef_MetadataEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_PendingFileUpload_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_PendingFileUpload_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_PendingFileUpload_RequiredHeadersEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_PendingFileUpload_RequiredHeadersEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -5076,25 +6925,35 @@ java.lang.String defaultValue) {
       " \001(\0162\034.talon.resources.FilePurpose\0226\n\014in" +
       "dex_policy\030\004 \001(\0162 .talon.resources.FileI" +
       "ndexPolicy\0221\n\tretention\030\005 \001(\0162\036.talon.re" +
-      "sources.FileRetention\"\270\001\n\nFileStatus\022\033\n\023" +
+      "sources.FileRetention\"\364\001\n\nFileStatus\022\033\n\023" +
       "observed_generation\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t" +
       "\0226\n\nconditions\030\003 \003(\0132\".talon.resources.R" +
       "esourceCondition\0222\n\nobject_ref\030\004 \001(\0132\036.t" +
       "alon.resources.FileObjectRef\022\022\n\nupdated_" +
-      "at\030\005 \001(\003\"\327\001\n\rFileObjectRef\022\013\n\003key\030\001 \001(\t\022" +
-      "\022\n\nmedia_type\030\002 \001(\t\022\022\n\nsize_bytes\030\003 \001(\004\022" +
-      "\016\n\006sha256\030\004 \001(\t\022\020\n\010filename\030\005 \001(\t\022>\n\010met" +
-      "adata\030\006 \003(\0132,.talon.resources.FileObject" +
-      "Ref.MetadataEntry\032/\n\rMetadataEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001*_\n\013FilePurpos" +
-      "e\022\034\n\030FILE_PURPOSE_UNSPECIFIED\020\000\022\027\n\023FILE_" +
-      "PURPOSE_MEMORY\020\001\022\031\n\025FILE_PURPOSE_ARTIFAC" +
-      "T\020\002*\217\001\n\017FileIndexPolicy\022!\n\035FILE_INDEX_PO" +
-      "LICY_UNSPECIFIED\020\000\022\032\n\026FILE_INDEX_POLICY_" +
-      "NONE\020\001\022\034\n\030FILE_INDEX_POLICY_SEARCH\020\002\022\037\n\033" +
-      "FILE_INDEX_POLICY_RETRIEVAL\020\003*L\n\rFileRet" +
-      "ention\022\036\n\032FILE_RETENTION_UNSPECIFIED\020\000\022\033" +
-      "\n\027FILE_RETENTION_RETAINED\020\001b\006proto3"
+      "at\030\005 \001(\003\022:\n\016pending_upload\030\006 \001(\0132\".talon" +
+      ".resources.PendingFileUpload\"\327\001\n\rFileObj" +
+      "ectRef\022\013\n\003key\030\001 \001(\t\022\022\n\nmedia_type\030\002 \001(\t\022" +
+      "\022\n\nsize_bytes\030\003 \001(\004\022\016\n\006sha256\030\004 \001(\t\022\020\n\010f" +
+      "ilename\030\005 \001(\t\022>\n\010metadata\030\006 \003(\0132,.talon." +
+      "resources.FileObjectRef.MetadataEntry\032/\n" +
+      "\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
+      "(\t:\0028\001\"\325\002\n\021PendingFileUpload\022\n\n\002id\030\001 \001(\t" +
+      "\022\022\n\nobject_key\030\002 \001(\t\022\033\n\023expected_size_by" +
+      "tes\030\003 \001(\004\022\027\n\017expected_sha256\030\004 \001(\t\022Q\n\020re" +
+      "quired_headers\030\005 \003(\01327.talon.resources.P" +
+      "endingFileUpload.RequiredHeadersEntry\022\030\n" +
+      "\020created_by_agent\030\006 \001(\t\022\035\n\025created_by_se" +
+      "ssion_id\030\007 \001(\t\022\022\n\nexpires_at\030\010 \001(\003\022\022\n\ncr" +
+      "eated_at\030\t \001(\003\0326\n\024RequiredHeadersEntry\022\013" +
+      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001*_\n\013FilePu" +
+      "rpose\022\034\n\030FILE_PURPOSE_UNSPECIFIED\020\000\022\027\n\023F" +
+      "ILE_PURPOSE_MEMORY\020\001\022\031\n\025FILE_PURPOSE_ART" +
+      "IFACT\020\002*\217\001\n\017FileIndexPolicy\022!\n\035FILE_INDE" +
+      "X_POLICY_UNSPECIFIED\020\000\022\032\n\026FILE_INDEX_POL" +
+      "ICY_NONE\020\001\022\034\n\030FILE_INDEX_POLICY_SEARCH\020\002" +
+      "\022\037\n\033FILE_INDEX_POLICY_RETRIEVAL\020\003*L\n\rFil" +
+      "eRetention\022\036\n\032FILE_RETENTION_UNSPECIFIED" +
+      "\020\000\022\033\n\027FILE_RETENTION_RETAINED\020\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5118,7 +6977,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_FileStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_FileStatus_descriptor,
-        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "ObjectRef", "UpdatedAt", });
+        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "ObjectRef", "UpdatedAt", "PendingUpload", });
     internal_static_talon_resources_FileObjectRef_descriptor =
       getDescriptor().getMessageType(3);
     internal_static_talon_resources_FileObjectRef_fieldAccessorTable = new
@@ -5130,6 +6989,18 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_FileObjectRef_MetadataEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_FileObjectRef_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_resources_PendingFileUpload_descriptor =
+      getDescriptor().getMessageType(4);
+    internal_static_talon_resources_PendingFileUpload_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_PendingFileUpload_descriptor,
+        new java.lang.String[] { "Id", "ObjectKey", "ExpectedSizeBytes", "ExpectedSha256", "RequiredHeaders", "CreatedByAgent", "CreatedBySessionId", "ExpiresAt", "CreatedAt", });
+    internal_static_talon_resources_PendingFileUpload_RequiredHeadersEntry_descriptor =
+      internal_static_talon_resources_PendingFileUpload_descriptor.getNestedType(0);
+    internal_static_talon_resources_PendingFileUpload_RequiredHeadersEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_PendingFileUpload_RequiredHeadersEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Common.getDescriptor();
