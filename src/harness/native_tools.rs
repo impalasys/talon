@@ -53,12 +53,10 @@ pub const LIST_MEMORY_TOOL: &str = "list_memory";
 pub const CREATE_MEMORY_TOOL: &str = "create_memory";
 pub const UPDATE_MEMORY_TOOL: &str = "update_memory";
 
-const HANDLE_KIND_FILE: &str = "FILE";
-const HANDLE_KIND_ARTIFACT: &str = "ARTIFACT";
 const OP_READ: &str = "read";
 const OP_METADATA: &str = "metadata";
 const OP_PROMOTE: &str = "promote";
-const MAX_HANDLE_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
+const MAX_ACCESS_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
 
 pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
     let names = namespace::effective_skill_names(skills);
@@ -407,7 +405,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         );
         registry.register_builtin(
             ATTACH_GOAL_EVIDENCE_TOOL,
-            "Attach evidence such as a Task, Artifact handle, File, Session, or CAS key to a Goal.",
+            "Attach evidence such as a Task, Artifact URI, File URI, Session, or CAS key to a Goal.",
             goal_evidence_schema(),
         );
         registry.register_builtin(
@@ -513,7 +511,7 @@ fn register_a2a_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
 fn register_artifact_tools(registry: &mut ToolRegistry) {
     registry.register_builtin(
         CREATE_ARTIFACT_TOOL,
-        "Create a session-scoped artifact and return an opaque handle that can be read or granted to another agent.",
+        "Create a session-scoped artifact and return an artifact:// URI that can be read or granted to another agent.",
         json!({
             "type": "object",
             "properties": {
@@ -530,33 +528,33 @@ fn register_artifact_tools(registry: &mut ToolRegistry) {
     );
     registry.register_builtin(
         READ_ARTIFACT_TOOL,
-        "Read an artifact by opaque handle.",
+        "Read an artifact by artifact:// URI.",
         json!({
             "type": "object",
             "properties": {
-                "artifact_handle": { "type": "string" }
+                "artifact_uri": { "type": "string" }
             },
-            "required": ["artifact_handle"]
+            "required": ["artifact_uri"]
         }),
     );
     registry.register_builtin(
         GET_ARTIFACT_METADATA_TOOL,
-        "Return artifact metadata for an opaque artifact handle without reading bytes.",
+        "Return artifact metadata for an artifact:// URI without reading bytes.",
         json!({
             "type": "object",
             "properties": {
-                "artifact_handle": { "type": "string" }
+                "artifact_uri": { "type": "string" }
             },
-            "required": ["artifact_handle"]
+            "required": ["artifact_uri"]
         }),
     );
     registry.register_builtin(
         GRANT_ARTIFACT_TOOL,
-        "Grant another agent or session access to an artifact handle.",
+        "Grant another agent or session access to an artifact:// URI.",
         json!({
             "type": "object",
             "properties": {
-                "artifact_handle": { "type": "string" },
+                "artifact_uri": { "type": "string" },
                 "target_agent": { "type": "string" },
                 "target_session_id": { "type": "string" },
                 "operations": {
@@ -565,7 +563,7 @@ fn register_artifact_tools(registry: &mut ToolRegistry) {
                 },
                 "ttl_seconds": { "type": "integer" }
             },
-            "required": ["artifact_handle"]
+            "required": ["artifact_uri"]
         }),
     );
 }
@@ -642,9 +640,9 @@ fn goal_evidence_schema() -> Value {
             "agent": { "type": "string", "description": "Owning agent. Defaults to current agent." },
             "session_id": { "type": "string", "description": "Owning session id. Defaults to current session." },
             "goal_id": { "type": "string", "description": "Goal id." },
-            "kind": { "type": "string", "description": "Evidence kind: TASK, ARTIFACT, FILE, SESSION, HANDLE, CAS, or URL." },
+            "kind": { "type": "string", "description": "Evidence kind: TASK, ARTIFACT, FILE, SESSION, REFERENCE, CAS, or URL." },
             "name": { "type": "string", "description": "Optional resource name." },
-            "handle": { "type": "string", "description": "Optional opaque Artifact/File handle." },
+            "handle": { "type": "string", "description": "Optional URI or external reference." },
             "object_key": { "type": "string", "description": "Optional CAS object key." },
             "evidence_agent": { "type": "string", "description": "Optional agent associated with the evidence." },
             "evidence_session_id": { "type": "string", "description": "Optional session associated with the evidence." },
@@ -1822,46 +1820,29 @@ async fn create_artifact(
             &artifact,
         )
         .await?;
-    let handle = mint_handle(
-        cp,
-        current_namespace,
-        HANDLE_KIND_ARTIFACT,
-        &artifact_id,
-        current_agent,
-        current_session,
-        &[OP_READ, OP_METADATA, OP_PROMOTE],
-        "",
-        "",
-        default_handle_expiry(),
-    )
-    .await?;
+    let artifact_uri = ArtifactUri {
+        namespace: current_namespace.to_string(),
+        agent: current_agent.to_string(),
+        session_id: current_session.to_string(),
+        artifact_id: artifact_id.clone(),
+    }
+    .encode();
     Ok(serde_json::to_string_pretty(&json!({
         "artifact": artifact_json(&artifact),
-        "artifactHandle": handle
+        "artifactUri": artifact_uri
     }))?)
 }
 
 async fn read_artifact(
     cp: &ControlPlane,
-    current_namespace: &str,
+    _current_namespace: &str,
     current_agent: &str,
     current_session: &str,
     args: &Value,
 ) -> Result<String> {
-    let handle = req_str(args, "artifact_handle")?;
-    let grant = resolve_handle(
-        cp,
-        current_namespace,
-        current_agent,
-        current_session,
-        handle,
-        OP_READ,
-    )
-    .await?;
-    if grant.kind != HANDLE_KIND_ARTIFACT {
-        return Err(anyhow!("handle is not an artifact handle"));
-    }
-    let artifact = load_artifact(cp, &grant).await?;
+    let artifact_uri = req_str(args, "artifact_uri")?;
+    let (_, artifact) =
+        resolve_artifact_uri(cp, current_agent, current_session, artifact_uri, OP_READ).await?;
     let object_ref = artifact
         .object_ref
         .as_ref()
@@ -1885,25 +1866,20 @@ async fn read_artifact(
 
 async fn get_artifact_metadata(
     cp: &ControlPlane,
-    current_namespace: &str,
+    _current_namespace: &str,
     current_agent: &str,
     current_session: &str,
     args: &Value,
 ) -> Result<String> {
-    let handle = req_str(args, "artifact_handle")?;
-    let grant = resolve_handle(
+    let artifact_uri = req_str(args, "artifact_uri")?;
+    let (_, artifact) = resolve_artifact_uri(
         cp,
-        current_namespace,
         current_agent,
         current_session,
-        handle,
+        artifact_uri,
         OP_METADATA,
     )
     .await?;
-    if grant.kind != HANDLE_KIND_ARTIFACT {
-        return Err(anyhow!("handle is not an artifact handle"));
-    }
-    let artifact = load_artifact(cp, &grant).await?;
     Ok(serde_json::to_string_pretty(&json!({
         "artifact": artifact_json(&artifact)
     }))?)
@@ -1911,24 +1887,14 @@ async fn get_artifact_metadata(
 
 async fn grant_artifact(
     cp: &ControlPlane,
-    current_namespace: &str,
+    _current_namespace: &str,
     current_agent: &str,
     current_session: &str,
     args: &Value,
 ) -> Result<String> {
-    let handle = req_str(args, "artifact_handle")?;
-    let grant = resolve_handle(
-        cp,
-        current_namespace,
-        current_agent,
-        current_session,
-        handle,
-        OP_READ,
-    )
-    .await?;
-    if grant.kind != HANDLE_KIND_ARTIFACT {
-        return Err(anyhow!("handle is not an artifact handle"));
-    }
+    let artifact_uri = req_str(args, "artifact_uri")?;
+    let (uri, _) =
+        resolve_artifact_uri(cp, current_agent, current_session, artifact_uri, OP_READ).await?;
     let operations = args
         .get("operations")
         .and_then(Value::as_array)
@@ -1945,31 +1911,38 @@ async fn grant_artifact(
         if !matches!(operation.as_str(), OP_READ | OP_METADATA | OP_PROMOTE) {
             return Err(anyhow!("unsupported artifact operation '{}'", operation));
         }
-        if !grant.operations.iter().any(|allowed| allowed == operation) {
-            return Err(anyhow!("source handle does not allow '{}'", operation));
-        }
     }
     let ttl = args
         .get("ttl_seconds")
         .and_then(Value::as_i64)
-        .map(handle_expiry_from_ttl_seconds)
-        .unwrap_or_else(default_handle_expiry);
-    let operation_refs = operations.iter().map(String::as_str).collect::<Vec<_>>();
-    let new_handle = mint_handle(
-        cp,
-        &grant.namespace,
-        HANDLE_KIND_ARTIFACT,
-        &grant.target_id,
-        &grant.agent,
-        &grant.session_id,
-        &operation_refs,
-        opt_str(args, "target_agent").unwrap_or(""),
-        opt_str(args, "target_session_id").unwrap_or(""),
-        ttl,
-    )
-    .await?;
+        .map(access_expiry_from_ttl_seconds)
+        .unwrap_or_else(default_access_expiry);
+    let target_agent = opt_str(args, "target_agent").unwrap_or("");
+    let target_session_id = opt_str(args, "target_session_id").unwrap_or("");
+    let access = crate::gateway::rpc::data_proto::ArtifactAccess {
+        target_agent: target_agent.to_string(),
+        target_session_id: target_session_id.to_string(),
+        operations,
+        expires_at: ttl,
+        granted_by_agent: current_agent.to_string(),
+        granted_by_session_id: current_session.to_string(),
+        created_at: chrono::Utc::now().timestamp_micros(),
+    };
+    cp.kv
+        .set_msg(
+            &keys::artifact_access(
+                &uri.namespace,
+                &uri.agent,
+                &uri.session_id,
+                &uri.artifact_id,
+                target_agent,
+                target_session_id,
+            ),
+            &access,
+        )
+        .await?;
     Ok(serde_json::to_string_pretty(&json!({
-        "artifactHandle": new_handle
+        "artifactUri": uri.encode()
     }))?)
 }
 
@@ -3092,168 +3065,50 @@ fn artifact_content_bytes(args: &Value) -> Result<Vec<u8>> {
 }
 
 #[derive(Debug, Clone)]
-enum HandleLocator {
-    File {
-        namespace: String,
-        file_name: String,
-    },
-    Artifact {
-        namespace: String,
-        agent: String,
-        session_id: String,
-        artifact_id: String,
-    },
+struct ArtifactUri {
+    namespace: String,
+    agent: String,
+    session_id: String,
+    artifact_id: String,
 }
 
-impl HandleLocator {
-    fn grant_key(&self, handle_id: &str) -> keys::ResourceKey {
-        match self {
-            Self::File {
-                namespace,
-                file_name,
-            } => keys::file_handle_grant(namespace, file_name, handle_id),
-            Self::Artifact {
-                namespace,
-                agent,
-                session_id,
-                artifact_id,
-            } => keys::artifact_handle_grant(namespace, agent, session_id, artifact_id, handle_id),
-        }
-    }
-
-    fn matches_grant(&self, grant: &crate::gateway::rpc::data_proto::HandleGrant) -> bool {
-        match self {
-            Self::File {
-                namespace,
-                file_name,
-            } => {
-                grant.kind == HANDLE_KIND_FILE
-                    && grant.namespace == *namespace
-                    && grant.target_id == *file_name
-            }
-            Self::Artifact {
-                namespace,
-                agent,
-                session_id,
-                artifact_id,
-            } => {
-                grant.kind == HANDLE_KIND_ARTIFACT
-                    && grant.namespace == *namespace
-                    && grant.agent == *agent
-                    && grant.session_id == *session_id
-                    && grant.target_id == *artifact_id
-            }
-        }
-    }
-
+impl ArtifactUri {
     fn encode(&self) -> String {
-        let raw = match self {
-            Self::File {
-                namespace,
-                file_name,
-            } => format!(
-                "file/{}/{}",
-                urlencoding::encode(namespace),
-                urlencoding::encode(file_name)
-            ),
-            Self::Artifact {
-                namespace,
-                agent,
-                session_id,
-                artifact_id,
-            } => format!(
-                "artifact/{}/{}/{}/{}",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent),
-                urlencoding::encode(session_id),
-                urlencoding::encode(artifact_id)
-            ),
-        };
-        urlencoding::encode(&raw).into_owned()
+        format!(
+            "artifact://{}/{}/{}/{}",
+            self.namespace, self.agent, self.session_id, self.artifact_id
+        )
     }
 }
 
-async fn mint_handle(
+async fn resolve_artifact_uri(
     cp: &ControlPlane,
-    namespace: &str,
-    kind: &str,
-    target_id: &str,
-    agent: &str,
-    session_id: &str,
-    operations: &[&str],
-    audience_agent: &str,
-    audience_session_id: &str,
-    expires_at: i64,
-) -> Result<String> {
-    let id = crate::control::uuid::unique_name("hnd");
-    let locator = handle_locator_for_grant(namespace, kind, target_id, agent, session_id)?;
-    let grant = crate::gateway::rpc::data_proto::HandleGrant {
-        id: id.clone(),
-        namespace: namespace.to_string(),
-        kind: kind.to_string(),
-        target_id: target_id.to_string(),
-        agent: agent.to_string(),
-        session_id: session_id.to_string(),
-        operations: operations.iter().map(|op| op.to_string()).collect(),
-        audience_agent: audience_agent.to_string(),
-        audience_session_id: audience_session_id.to_string(),
-        expires_at,
-        created_at: chrono::Utc::now().timestamp_micros(),
-    };
-    cp.kv.set_msg(&locator.grant_key(&id), &grant).await?;
-    Ok(format!("talon-handle:{}/{}", locator.encode(), id))
-}
-
-async fn resolve_handle(
-    cp: &ControlPlane,
-    _current_namespace: &str,
     current_agent: &str,
     current_session: &str,
-    handle: &str,
+    artifact_uri: &str,
     operation: &str,
-) -> Result<crate::gateway::rpc::data_proto::HandleGrant> {
-    let (locator, id) = handle_locator_and_id(handle)?;
-    let grant = cp
+) -> Result<(ArtifactUri, crate::gateway::rpc::data_proto::Artifact)> {
+    let uri = parse_artifact_uri(artifact_uri)?;
+    let artifact = cp
         .kv
-        .get_msg::<crate::gateway::rpc::data_proto::HandleGrant>(&locator.grant_key(&id))
-        .await?
-        .ok_or_else(|| anyhow!("handle '{}' not found", handle))?;
-    if !locator.matches_grant(&grant) {
-        return Err(anyhow!("handle grant does not match locator"));
-    }
-    if grant.expires_at > 0 && grant.expires_at < chrono::Utc::now().timestamp_micros() {
-        return Err(anyhow!("handle '{}' is expired", handle));
-    }
-    if !grant.operations.iter().any(|op| op == operation) {
-        return Err(anyhow!(
-            "handle '{}' does not allow '{}'",
-            handle,
-            operation
-        ));
-    }
-    if !grant.audience_agent.trim().is_empty() && grant.audience_agent != current_agent {
-        return Err(anyhow!("handle audience agent does not match caller"));
-    }
-    if !grant.audience_session_id.trim().is_empty() && grant.audience_session_id != current_session
-    {
-        return Err(anyhow!("handle audience session does not match caller"));
-    }
-    Ok(grant)
-}
-
-async fn load_artifact(
-    cp: &ControlPlane,
-    grant: &crate::gateway::rpc::data_proto::HandleGrant,
-) -> Result<crate::gateway::rpc::data_proto::Artifact> {
-    cp.kv
         .get_msg::<crate::gateway::rpc::data_proto::Artifact>(&keys::artifact(
-            &grant.namespace,
-            &grant.agent,
-            &grant.session_id,
-            &grant.target_id,
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
         ))
         .await?
-        .ok_or_else(|| anyhow!("Artifact '{}' not found", grant.target_id))
+        .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
+    authorize_artifact_access(
+        cp,
+        &uri,
+        current_agent,
+        current_session,
+        operation,
+        artifact_uri,
+    )
+    .await?;
+    Ok((uri, artifact))
 }
 
 fn artifact_json(artifact: &crate::gateway::rpc::data_proto::Artifact) -> Value {
@@ -3516,15 +3371,15 @@ fn normalize_search_result_url(href: &str) -> Option<String> {
         .map(|value| value.into_owned())
 }
 
-fn default_handle_expiry() -> i64 {
-    handle_expiry_from_ttl_seconds(24 * 60 * 60)
+fn default_access_expiry() -> i64 {
+    access_expiry_from_ttl_seconds(24 * 60 * 60)
 }
 
-fn handle_expiry_from_ttl_seconds(ttl_seconds: i64) -> i64 {
+fn access_expiry_from_ttl_seconds(ttl_seconds: i64) -> i64 {
     if ttl_seconds <= 0 {
-        return default_handle_expiry();
+        return default_access_expiry();
     }
-    let ttl_micros = ttl_seconds.min(MAX_HANDLE_TTL_SECONDS) * 1_000_000;
+    let ttl_micros = ttl_seconds.min(MAX_ACCESS_TTL_SECONDS) * 1_000_000;
     chrono::Utc::now()
         .timestamp_micros()
         .saturating_add(ttl_micros)
@@ -3552,75 +3407,73 @@ fn filename_for_path(path: &str) -> &str {
         .unwrap_or("artifact")
 }
 
-fn handle_locator_for_grant(
-    namespace: &str,
-    kind: &str,
-    target_id: &str,
-    agent: &str,
-    session_id: &str,
-) -> Result<HandleLocator> {
-    match kind {
-        HANDLE_KIND_FILE => Ok(HandleLocator::File {
-            namespace: namespace.to_string(),
-            file_name: target_id.to_string(),
-        }),
-        HANDLE_KIND_ARTIFACT => {
-            if agent.trim().is_empty() || session_id.trim().is_empty() {
-                return Err(anyhow!("artifact handles require source agent and session"));
-            }
-            Ok(HandleLocator::Artifact {
-                namespace: namespace.to_string(),
-                agent: agent.to_string(),
-                session_id: session_id.to_string(),
-                artifact_id: target_id.to_string(),
-            })
-        }
-        _ => Err(anyhow!("unsupported handle kind")),
-    }
-}
-
-fn handle_locator_and_id(handle: &str) -> Result<(HandleLocator, String)> {
-    let handle = handle.trim();
-    let rest = handle
-        .strip_prefix("talon-handle:")
-        .ok_or_else(|| anyhow!("invalid handle prefix"))?;
-    let (locator, id) = rest
-        .rsplit_once('/')
-        .ok_or_else(|| anyhow!("invalid handle format"))?;
-    let locator = urlencoding::decode(locator)
-        .map_err(|err| anyhow!("invalid handle locator: {err}"))?
-        .into_owned();
-    if id.trim().is_empty() {
-        return Err(anyhow!("invalid handle id"));
-    }
-    Ok((parse_handle_locator(&locator)?, id.to_string()))
-}
-
-fn parse_handle_locator(locator: &str) -> Result<HandleLocator> {
-    let parts = locator.split('/').collect::<Vec<_>>();
+fn parse_artifact_uri(uri: &str) -> Result<ArtifactUri> {
+    let rest = uri
+        .trim()
+        .strip_prefix("artifact://")
+        .ok_or_else(|| anyhow!("artifact uri must start with 'artifact://'"))?;
+    let parts = rest.split('/').collect::<Vec<_>>();
     match parts.as_slice() {
-        ["file", namespace, file_name] => Ok(HandleLocator::File {
-            namespace: decode_handle_locator_part(namespace)?,
-            file_name: decode_handle_locator_part(file_name)?,
+        [namespace, agent, session_id, artifact_id] => Ok(ArtifactUri {
+            namespace: validate_uri_segment(namespace, "artifact namespace")?,
+            agent: validate_uri_segment(agent, "artifact agent")?,
+            session_id: validate_uri_segment(session_id, "artifact session")?,
+            artifact_id: validate_uri_segment(artifact_id, "artifact id")?,
         }),
-        ["artifact", namespace, agent, session_id, artifact_id] => Ok(HandleLocator::Artifact {
-            namespace: decode_handle_locator_part(namespace)?,
-            agent: decode_handle_locator_part(agent)?,
-            session_id: decode_handle_locator_part(session_id)?,
-            artifact_id: decode_handle_locator_part(artifact_id)?,
-        }),
-        _ => Err(anyhow!("handle locator is invalid")),
+        _ => Err(anyhow!(
+            "artifact uri must be artifact://<namespace>/<agent>/<session>/<artifact>"
+        )),
     }
 }
 
-fn decode_handle_locator_part(part: &str) -> Result<String> {
-    let decoded = urlencoding::decode(part)
-        .map_err(|err| anyhow!("invalid handle locator component: {err}"))?
-        .into_owned();
-    if decoded.trim().is_empty() {
-        return Err(anyhow!("handle locator component is empty"));
+fn validate_uri_segment(segment: &str, name: &str) -> Result<String> {
+    if segment.trim().is_empty()
+        || segment.contains('/')
+        || segment.contains('\0')
+        || segment.chars().any(char::is_control)
+    {
+        return Err(anyhow!("{name} segment is invalid"));
     }
-    Ok(decoded)
+    Ok(segment.to_string())
+}
+
+async fn authorize_artifact_access(
+    cp: &ControlPlane,
+    uri: &ArtifactUri,
+    current_agent: &str,
+    current_session: &str,
+    operation: &str,
+    artifact_uri: &str,
+) -> Result<()> {
+    if current_agent == uri.agent && current_session == uri.session_id {
+        return Ok(());
+    }
+    if current_agent.trim().is_empty() || current_session.trim().is_empty() {
+        return Err(anyhow!(
+            "artifact uri requires caller agent and session identity"
+        ));
+    }
+    let access = cp
+        .kv
+        .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
+            current_agent,
+            current_session,
+        ))
+        .await?
+        .ok_or_else(|| anyhow!("artifact access denied for '{artifact_uri}'"))?;
+    if access.expires_at > 0 && access.expires_at < chrono::Utc::now().timestamp_micros() {
+        return Err(anyhow!("artifact access for '{artifact_uri}' is expired"));
+    }
+    if !access.operations.iter().any(|op| op == operation) {
+        return Err(anyhow!(
+            "artifact access for '{artifact_uri}' does not allow '{operation}'"
+        ));
+    }
+    Ok(())
 }
 
 fn require_capability(spec: &manifests::AgentSpec, capability: &str, action: &str) -> Result<()> {
@@ -3835,53 +3688,23 @@ mod tests {
     }
 
     #[test]
-    fn handle_locator_and_id_parses_artifact_handles() {
-        let locator = HandleLocator::Artifact {
-            namespace: "Tenant:acme".to_string(),
-            agent: "copywriter".to_string(),
-            session_id: "session-1".to_string(),
-            artifact_id: "artifact-1".to_string(),
-        };
-        let (parsed, id) =
-            handle_locator_and_id(&format!("talon-handle:{}/hnd-123", locator.encode())).unwrap();
-        assert_eq!(id, "hnd-123");
-        assert!(matches!(
-            parsed,
-            HandleLocator::Artifact {
-                namespace,
-                agent,
-                session_id,
-                artifact_id
-            } if namespace == "Tenant:acme"
-                && agent == "copywriter"
-                && session_id == "session-1"
-                && artifact_id == "artifact-1"
-        ));
+    fn parse_artifact_uri_accepts_literal_namespace_segments() {
+        let parsed = parse_artifact_uri(
+            "artifact://Tenant:acme:Workspace:main/copywriter/session-1/artifact-1",
+        )
+        .unwrap();
+
+        assert_eq!(parsed.namespace, "Tenant:acme:Workspace:main");
+        assert_eq!(parsed.agent, "copywriter");
+        assert_eq!(parsed.session_id, "session-1");
+        assert_eq!(parsed.artifact_id, "artifact-1");
     }
 
     #[test]
-    fn handle_locator_and_id_parses_file_handles() {
-        let locator = HandleLocator::File {
-            namespace: "Tenant:acme".to_string(),
-            file_name: "brand-guidelines-md-7f3a".to_string(),
-        };
-        let (parsed, id) =
-            handle_locator_and_id(&format!("talon-handle:{}/hnd-123", locator.encode())).unwrap();
-        assert_eq!(id, "hnd-123");
-        assert!(matches!(
-            parsed,
-            HandleLocator::File {
-                namespace,
-                file_name
-            } if namespace == "Tenant:acme" && file_name == "brand-guidelines-md-7f3a"
-        ));
-    }
-
-    #[test]
-    fn handle_expiry_clamps_requested_ttl() {
+    fn access_expiry_clamps_requested_ttl() {
         let now = chrono::Utc::now().timestamp_micros();
-        let expires_at = handle_expiry_from_ttl_seconds(i64::MAX);
-        let max_delta = (MAX_HANDLE_TTL_SECONDS * 1_000_000) + 1_000_000;
+        let expires_at = access_expiry_from_ttl_seconds(i64::MAX);
+        let max_delta = (MAX_ACCESS_TTL_SECONDS * 1_000_000) + 1_000_000;
 
         assert!(expires_at >= now);
         assert!(expires_at - now <= max_delta);
@@ -4003,7 +3826,7 @@ mod tests {
         .unwrap();
         let value: Value = serde_json::from_str(&output).unwrap();
         let artifact_id = value["artifact"]["id"].as_str().unwrap();
-        let artifact_handle = value["artifactHandle"].as_str().unwrap();
+        let artifact_uri = value["artifactUri"].as_str().unwrap();
         let object_key = value["artifact"]["objectRef"]["key"].as_str().unwrap();
 
         assert!(object_key.starts_with("cas/Tenant%3Aacme%3AWorkspace%3Amain/artifacts/"));
@@ -4027,32 +3850,61 @@ mod tests {
         assert_eq!(stored.metadata.metadata["session_id"], "session-1");
         assert_eq!(stored.metadata.metadata["source"], "tool");
 
-        let (locator, grant_id) = handle_locator_and_id(artifact_handle).unwrap();
-        assert!(matches!(
-            locator,
-            HandleLocator::Artifact {
-                namespace,
-                agent,
-                session_id,
-                artifact_id: parsed_artifact_id
-            } if namespace == "Tenant:acme:Workspace:main"
-                && agent == "writer"
-                && session_id == "session-1"
-                && parsed_artifact_id == artifact_id
-        ));
-        let stored_grant = kv
-            .get_msg::<crate::gateway::rpc::data_proto::HandleGrant>(&keys::artifact_handle_grant(
+        let parsed_uri = parse_artifact_uri(artifact_uri).unwrap();
+        assert_eq!(parsed_uri.namespace, "Tenant:acme:Workspace:main");
+        assert_eq!(parsed_uri.agent, "writer");
+        assert_eq!(parsed_uri.session_id, "session-1");
+        assert_eq!(parsed_uri.artifact_id, artifact_id);
+
+        let read_output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let read_value: Value = serde_json::from_str(&read_output).unwrap();
+        assert_eq!(read_value["content"], "draft body");
+
+        execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            GRANT_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "target_agent": "critic",
+                "target_session_id": "session-2",
+                "operations": ["read", "metadata"],
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let stored_access = kv
+            .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
                 "Tenant:acme:Workspace:main",
                 "writer",
                 "session-1",
                 artifact_id,
-                &grant_id,
+                "critic",
+                "session-2",
             ))
             .await
             .unwrap()
             .unwrap();
-        assert_eq!(stored_grant.kind, HANDLE_KIND_ARTIFACT);
-        assert_eq!(stored_grant.target_id, artifact_id);
+        assert_eq!(stored_access.target_agent, "critic");
+        assert_eq!(stored_access.target_session_id, "session-2");
+        assert_eq!(stored_access.operations, vec!["read", "metadata"]);
     }
 
     #[tokio::test]

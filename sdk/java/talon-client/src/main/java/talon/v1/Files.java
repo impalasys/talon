@@ -67,16 +67,16 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         getPathBytes();
 
     /**
-     * <code>string handle = 4;</code>
-     * @return The handle.
+     * <code>string uri = 4;</code>
+     * @return The uri.
      */
-    java.lang.String getHandle();
+    java.lang.String getUri();
     /**
-     * <code>string handle = 4;</code>
-     * @return The bytes for handle.
+     * <code>string uri = 4;</code>
+     * @return The bytes for uri.
      */
     com.google.protobuf.ByteString
-        getHandleBytes();
+        getUriBytes();
   }
   /**
    * Protobuf type {@code talon.v1.FileRef}
@@ -103,7 +103,7 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       namespace_ = "";
       name_ = "";
       path_ = "";
-      handle_ = "";
+      uri_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -241,39 +241,39 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int HANDLE_FIELD_NUMBER = 4;
+    public static final int URI_FIELD_NUMBER = 4;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object handle_ = "";
+    private volatile java.lang.Object uri_ = "";
     /**
-     * <code>string handle = 4;</code>
-     * @return The handle.
+     * <code>string uri = 4;</code>
+     * @return The uri.
      */
     @java.lang.Override
-    public java.lang.String getHandle() {
-      java.lang.Object ref = handle_;
+    public java.lang.String getUri() {
+      java.lang.Object ref = uri_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        handle_ = s;
+        uri_ = s;
         return s;
       }
     }
     /**
-     * <code>string handle = 4;</code>
-     * @return The bytes for handle.
+     * <code>string uri = 4;</code>
+     * @return The bytes for uri.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getHandleBytes() {
-      java.lang.Object ref = handle_;
+        getUriBytes() {
+      java.lang.Object ref = uri_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        handle_ = b;
+        uri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -303,8 +303,8 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, path_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(handle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, handle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(uri_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, uri_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -324,8 +324,8 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(3, path_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(handle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, handle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(uri_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, uri_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -348,8 +348,8 @@ public final class Files extends com.google.protobuf.GeneratedFile {
           .equals(other.getName())) return false;
       if (!getPath()
           .equals(other.getPath())) return false;
-      if (!getHandle()
-          .equals(other.getHandle())) return false;
+      if (!getUri()
+          .equals(other.getUri())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -367,8 +367,8 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       hash = (53 * hash) + getName().hashCode();
       hash = (37 * hash) + PATH_FIELD_NUMBER;
       hash = (53 * hash) + getPath().hashCode();
-      hash = (37 * hash) + HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getHandle().hashCode();
+      hash = (37 * hash) + URI_FIELD_NUMBER;
+      hash = (53 * hash) + getUri().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -503,7 +503,7 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         namespace_ = "";
         name_ = "";
         path_ = "";
-        handle_ = "";
+        uri_ = "";
         return this;
       }
 
@@ -547,7 +547,7 @@ public final class Files extends com.google.protobuf.GeneratedFile {
           result.path_ = path_;
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.handle_ = handle_;
+          result.uri_ = uri_;
         }
       }
 
@@ -578,8 +578,8 @@ public final class Files extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000004;
           onChanged();
         }
-        if (!other.getHandle().isEmpty()) {
-          handle_ = other.handle_;
+        if (!other.getUri().isEmpty()) {
+          uri_ = other.uri_;
           bitField0_ |= 0x00000008;
           onChanged();
         }
@@ -625,7 +625,7 @@ public final class Files extends com.google.protobuf.GeneratedFile {
                 break;
               } // case 26
               case 34: {
-                handle_ = input.readStringRequireUtf8();
+                uri_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
@@ -862,73 +862,73 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private java.lang.Object handle_ = "";
+      private java.lang.Object uri_ = "";
       /**
-       * <code>string handle = 4;</code>
-       * @return The handle.
+       * <code>string uri = 4;</code>
+       * @return The uri.
        */
-      public java.lang.String getHandle() {
-        java.lang.Object ref = handle_;
+      public java.lang.String getUri() {
+        java.lang.Object ref = uri_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          handle_ = s;
+          uri_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string handle = 4;</code>
-       * @return The bytes for handle.
+       * <code>string uri = 4;</code>
+       * @return The bytes for uri.
        */
       public com.google.protobuf.ByteString
-          getHandleBytes() {
-        java.lang.Object ref = handle_;
+          getUriBytes() {
+        java.lang.Object ref = uri_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          handle_ = b;
+          uri_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string handle = 4;</code>
-       * @param value The handle to set.
+       * <code>string uri = 4;</code>
+       * @param value The uri to set.
        * @return This builder for chaining.
        */
-      public Builder setHandle(
+      public Builder setUri(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        handle_ = value;
+        uri_ = value;
         bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
       /**
-       * <code>string handle = 4;</code>
+       * <code>string uri = 4;</code>
        * @return This builder for chaining.
        */
-      public Builder clearHandle() {
-        handle_ = getDefaultInstance().getHandle();
+      public Builder clearUri() {
+        uri_ = getDefaultInstance().getUri();
         bitField0_ = (bitField0_ & ~0x00000008);
         onChanged();
         return this;
       }
       /**
-       * <code>string handle = 4;</code>
-       * @param value The bytes for handle to set.
+       * <code>string uri = 4;</code>
+       * @param value The bytes for uri to set.
        * @return This builder for chaining.
        */
-      public Builder setHandleBytes(
+      public Builder setUriBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        handle_ = value;
+        uri_ = value;
         bitField0_ |= 0x00000008;
         onChanged();
         return this;
@@ -11625,16 +11625,16 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
-    java.lang.String getArtifactHandle();
+    java.lang.String getArtifactUri();
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     com.google.protobuf.ByteString
-        getArtifactHandleBytes();
+        getArtifactUriBytes();
 
     /**
      * <code>string target_path = 2;</code>
@@ -11715,7 +11715,7 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private PromoteArtifactRequest() {
-      artifactHandle_ = "";
+      artifactUri_ = "";
       targetPath_ = "";
       mediaType_ = "";
       purpose_ = 0;
@@ -11741,39 +11741,39 @@ java.lang.String defaultValue) {
               talon.v1.Files.PromoteArtifactRequest.class, talon.v1.Files.PromoteArtifactRequest.Builder.class);
     }
 
-    public static final int ARTIFACT_HANDLE_FIELD_NUMBER = 1;
+    public static final int ARTIFACT_URI_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object artifactHandle_ = "";
+    private volatile java.lang.Object artifactUri_ = "";
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
     @java.lang.Override
-    public java.lang.String getArtifactHandle() {
-      java.lang.Object ref = artifactHandle_;
+    public java.lang.String getArtifactUri() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        artifactHandle_ = s;
+        artifactUri_ = s;
         return s;
       }
     }
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getArtifactHandleBytes() {
-      java.lang.Object ref = artifactHandle_;
+        getArtifactUriBytes() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        artifactHandle_ = b;
+        artifactUri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -11926,8 +11926,8 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactUri_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(targetPath_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, targetPath_);
@@ -11953,8 +11953,8 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactUri_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(targetPath_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, targetPath_);
@@ -11989,8 +11989,8 @@ java.lang.String defaultValue) {
       }
       talon.v1.Files.PromoteArtifactRequest other = (talon.v1.Files.PromoteArtifactRequest) obj;
 
-      if (!getArtifactHandle()
-          .equals(other.getArtifactHandle())) return false;
+      if (!getArtifactUri()
+          .equals(other.getArtifactUri())) return false;
       if (!getTargetPath()
           .equals(other.getTargetPath())) return false;
       if (!getMediaType()
@@ -12009,8 +12009,8 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + ARTIFACT_HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getArtifactHandle().hashCode();
+      hash = (37 * hash) + ARTIFACT_URI_FIELD_NUMBER;
+      hash = (53 * hash) + getArtifactUri().hashCode();
       hash = (37 * hash) + TARGET_PATH_FIELD_NUMBER;
       hash = (53 * hash) + getTargetPath().hashCode();
       hash = (37 * hash) + MEDIA_TYPE_FIELD_NUMBER;
@@ -12152,7 +12152,7 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        artifactHandle_ = "";
+        artifactUri_ = "";
         targetPath_ = "";
         mediaType_ = "";
         purpose_ = 0;
@@ -12192,7 +12192,7 @@ java.lang.String defaultValue) {
       private void buildPartial0(talon.v1.Files.PromoteArtifactRequest result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.artifactHandle_ = artifactHandle_;
+          result.artifactUri_ = artifactUri_;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
           result.targetPath_ = targetPath_;
@@ -12223,8 +12223,8 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.v1.Files.PromoteArtifactRequest other) {
         if (other == talon.v1.Files.PromoteArtifactRequest.getDefaultInstance()) return this;
-        if (!other.getArtifactHandle().isEmpty()) {
-          artifactHandle_ = other.artifactHandle_;
+        if (!other.getArtifactUri().isEmpty()) {
+          artifactUri_ = other.artifactUri_;
           bitField0_ |= 0x00000001;
           onChanged();
         }
@@ -12274,7 +12274,7 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                artifactHandle_ = input.readStringRequireUtf8();
+                artifactUri_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
@@ -12320,73 +12320,73 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.lang.Object artifactHandle_ = "";
+      private java.lang.Object artifactUri_ = "";
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The artifactUri.
        */
-      public java.lang.String getArtifactHandle() {
-        java.lang.Object ref = artifactHandle_;
+      public java.lang.String getArtifactUri() {
+        java.lang.Object ref = artifactUri_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          artifactHandle_ = s;
+          artifactUri_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The bytes for artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The bytes for artifactUri.
        */
       public com.google.protobuf.ByteString
-          getArtifactHandleBytes() {
-        java.lang.Object ref = artifactHandle_;
+          getArtifactUriBytes() {
+        java.lang.Object ref = artifactUri_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          artifactHandle_ = b;
+          artifactUri_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandle(
+      public Builder setArtifactUri(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
+       * <code>string artifact_uri = 1;</code>
        * @return This builder for chaining.
        */
-      public Builder clearArtifactHandle() {
-        artifactHandle_ = getDefaultInstance().getArtifactHandle();
+      public Builder clearArtifactUri() {
+        artifactUri_ = getDefaultInstance().getArtifactUri();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The bytes for artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The bytes for artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandleBytes(
+      public Builder setArtifactUriBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
@@ -12763,16 +12763,16 @@ java.lang.String defaultValue) {
     talon.resources.Files.FileOrBuilder getFileOrBuilder();
 
     /**
-     * <code>string file_handle = 2;</code>
-     * @return The fileHandle.
+     * <code>string file_uri = 2;</code>
+     * @return The fileUri.
      */
-    java.lang.String getFileHandle();
+    java.lang.String getFileUri();
     /**
-     * <code>string file_handle = 2;</code>
-     * @return The bytes for fileHandle.
+     * <code>string file_uri = 2;</code>
+     * @return The bytes for fileUri.
      */
     com.google.protobuf.ByteString
-        getFileHandleBytes();
+        getFileUriBytes();
   }
   /**
    * Protobuf type {@code talon.v1.FileResponse}
@@ -12796,7 +12796,7 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private FileResponse() {
-      fileHandle_ = "";
+      fileUri_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -12844,39 +12844,39 @@ java.lang.String defaultValue) {
       return file_ == null ? talon.resources.Files.File.getDefaultInstance() : file_;
     }
 
-    public static final int FILE_HANDLE_FIELD_NUMBER = 2;
+    public static final int FILE_URI_FIELD_NUMBER = 2;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object fileHandle_ = "";
+    private volatile java.lang.Object fileUri_ = "";
     /**
-     * <code>string file_handle = 2;</code>
-     * @return The fileHandle.
+     * <code>string file_uri = 2;</code>
+     * @return The fileUri.
      */
     @java.lang.Override
-    public java.lang.String getFileHandle() {
-      java.lang.Object ref = fileHandle_;
+    public java.lang.String getFileUri() {
+      java.lang.Object ref = fileUri_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        fileHandle_ = s;
+        fileUri_ = s;
         return s;
       }
     }
     /**
-     * <code>string file_handle = 2;</code>
-     * @return The bytes for fileHandle.
+     * <code>string file_uri = 2;</code>
+     * @return The bytes for fileUri.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getFileHandleBytes() {
-      java.lang.Object ref = fileHandle_;
+        getFileUriBytes() {
+      java.lang.Object ref = fileUri_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        fileHandle_ = b;
+        fileUri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -12900,8 +12900,8 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(1, getFile());
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(fileHandle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, fileHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(fileUri_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, fileUri_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -12916,8 +12916,8 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getFile());
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(fileHandle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, fileHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(fileUri_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, fileUri_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -12939,8 +12939,8 @@ java.lang.String defaultValue) {
         if (!getFile()
             .equals(other.getFile())) return false;
       }
-      if (!getFileHandle()
-          .equals(other.getFileHandle())) return false;
+      if (!getFileUri()
+          .equals(other.getFileUri())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -12956,8 +12956,8 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + FILE_FIELD_NUMBER;
         hash = (53 * hash) + getFile().hashCode();
       }
-      hash = (37 * hash) + FILE_HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getFileHandle().hashCode();
+      hash = (37 * hash) + FILE_URI_FIELD_NUMBER;
+      hash = (53 * hash) + getFileUri().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -13100,7 +13100,7 @@ java.lang.String defaultValue) {
           fileBuilder_.dispose();
           fileBuilder_ = null;
         }
-        fileHandle_ = "";
+        fileUri_ = "";
         return this;
       }
 
@@ -13142,7 +13142,7 @@ java.lang.String defaultValue) {
           to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.fileHandle_ = fileHandle_;
+          result.fileUri_ = fileUri_;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -13162,8 +13162,8 @@ java.lang.String defaultValue) {
         if (other.hasFile()) {
           mergeFile(other.getFile());
         }
-        if (!other.getFileHandle().isEmpty()) {
-          fileHandle_ = other.fileHandle_;
+        if (!other.getFileUri().isEmpty()) {
+          fileUri_ = other.fileUri_;
           bitField0_ |= 0x00000002;
           onChanged();
         }
@@ -13201,7 +13201,7 @@ java.lang.String defaultValue) {
                 break;
               } // case 10
               case 18: {
-                fileHandle_ = input.readStringRequireUtf8();
+                fileUri_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
@@ -13343,73 +13343,73 @@ java.lang.String defaultValue) {
         return fileBuilder_;
       }
 
-      private java.lang.Object fileHandle_ = "";
+      private java.lang.Object fileUri_ = "";
       /**
-       * <code>string file_handle = 2;</code>
-       * @return The fileHandle.
+       * <code>string file_uri = 2;</code>
+       * @return The fileUri.
        */
-      public java.lang.String getFileHandle() {
-        java.lang.Object ref = fileHandle_;
+      public java.lang.String getFileUri() {
+        java.lang.Object ref = fileUri_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          fileHandle_ = s;
+          fileUri_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string file_handle = 2;</code>
-       * @return The bytes for fileHandle.
+       * <code>string file_uri = 2;</code>
+       * @return The bytes for fileUri.
        */
       public com.google.protobuf.ByteString
-          getFileHandleBytes() {
-        java.lang.Object ref = fileHandle_;
+          getFileUriBytes() {
+        java.lang.Object ref = fileUri_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          fileHandle_ = b;
+          fileUri_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string file_handle = 2;</code>
-       * @param value The fileHandle to set.
+       * <code>string file_uri = 2;</code>
+       * @param value The fileUri to set.
        * @return This builder for chaining.
        */
-      public Builder setFileHandle(
+      public Builder setFileUri(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        fileHandle_ = value;
+        fileUri_ = value;
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>string file_handle = 2;</code>
+       * <code>string file_uri = 2;</code>
        * @return This builder for chaining.
        */
-      public Builder clearFileHandle() {
-        fileHandle_ = getDefaultInstance().getFileHandle();
+      public Builder clearFileUri() {
+        fileUri_ = getDefaultInstance().getFileUri();
         bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
       /**
-       * <code>string file_handle = 2;</code>
-       * @param value The bytes for fileHandle to set.
+       * <code>string file_uri = 2;</code>
+       * @param value The bytes for fileUri to set.
        * @return This builder for chaining.
        */
-      public Builder setFileHandleBytes(
+      public Builder setFileUriBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        fileHandle_ = value;
+        fileUri_ = value;
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
@@ -13471,16 +13471,16 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
-    java.lang.String getArtifactHandle();
+    java.lang.String getArtifactUri();
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     com.google.protobuf.ByteString
-        getArtifactHandleBytes();
+        getArtifactUriBytes();
   }
   /**
    * Protobuf type {@code talon.v1.ReadArtifactRequest}
@@ -13504,7 +13504,7 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private ReadArtifactRequest() {
-      artifactHandle_ = "";
+      artifactUri_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -13525,39 +13525,39 @@ java.lang.String defaultValue) {
               talon.v1.Files.ReadArtifactRequest.class, talon.v1.Files.ReadArtifactRequest.Builder.class);
     }
 
-    public static final int ARTIFACT_HANDLE_FIELD_NUMBER = 1;
+    public static final int ARTIFACT_URI_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object artifactHandle_ = "";
+    private volatile java.lang.Object artifactUri_ = "";
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
     @java.lang.Override
-    public java.lang.String getArtifactHandle() {
-      java.lang.Object ref = artifactHandle_;
+    public java.lang.String getArtifactUri() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        artifactHandle_ = s;
+        artifactUri_ = s;
         return s;
       }
     }
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getArtifactHandleBytes() {
-      java.lang.Object ref = artifactHandle_;
+        getArtifactUriBytes() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        artifactHandle_ = b;
+        artifactUri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -13578,8 +13578,8 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactUri_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -13590,8 +13590,8 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactUri_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -13608,8 +13608,8 @@ java.lang.String defaultValue) {
       }
       talon.v1.Files.ReadArtifactRequest other = (talon.v1.Files.ReadArtifactRequest) obj;
 
-      if (!getArtifactHandle()
-          .equals(other.getArtifactHandle())) return false;
+      if (!getArtifactUri()
+          .equals(other.getArtifactUri())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -13621,8 +13621,8 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + ARTIFACT_HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getArtifactHandle().hashCode();
+      hash = (37 * hash) + ARTIFACT_URI_FIELD_NUMBER;
+      hash = (53 * hash) + getArtifactUri().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -13754,7 +13754,7 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        artifactHandle_ = "";
+        artifactUri_ = "";
         return this;
       }
 
@@ -13789,7 +13789,7 @@ java.lang.String defaultValue) {
       private void buildPartial0(talon.v1.Files.ReadArtifactRequest result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.artifactHandle_ = artifactHandle_;
+          result.artifactUri_ = artifactUri_;
         }
       }
 
@@ -13805,8 +13805,8 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.v1.Files.ReadArtifactRequest other) {
         if (other == talon.v1.Files.ReadArtifactRequest.getDefaultInstance()) return this;
-        if (!other.getArtifactHandle().isEmpty()) {
-          artifactHandle_ = other.artifactHandle_;
+        if (!other.getArtifactUri().isEmpty()) {
+          artifactUri_ = other.artifactUri_;
           bitField0_ |= 0x00000001;
           onChanged();
         }
@@ -13837,7 +13837,7 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                artifactHandle_ = input.readStringRequireUtf8();
+                artifactUri_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
@@ -13858,73 +13858,73 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.lang.Object artifactHandle_ = "";
+      private java.lang.Object artifactUri_ = "";
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The artifactUri.
        */
-      public java.lang.String getArtifactHandle() {
-        java.lang.Object ref = artifactHandle_;
+      public java.lang.String getArtifactUri() {
+        java.lang.Object ref = artifactUri_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          artifactHandle_ = s;
+          artifactUri_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The bytes for artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The bytes for artifactUri.
        */
       public com.google.protobuf.ByteString
-          getArtifactHandleBytes() {
-        java.lang.Object ref = artifactHandle_;
+          getArtifactUriBytes() {
+        java.lang.Object ref = artifactUri_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          artifactHandle_ = b;
+          artifactUri_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandle(
+      public Builder setArtifactUri(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
+       * <code>string artifact_uri = 1;</code>
        * @return This builder for chaining.
        */
-      public Builder clearArtifactHandle() {
-        artifactHandle_ = getDefaultInstance().getArtifactHandle();
+      public Builder clearArtifactUri() {
+        artifactUri_ = getDefaultInstance().getArtifactUri();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The bytes for artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The bytes for artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandleBytes(
+      public Builder setArtifactUriBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
@@ -14855,16 +14855,16 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
-    java.lang.String getArtifactHandle();
+    java.lang.String getArtifactUri();
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     com.google.protobuf.ByteString
-        getArtifactHandleBytes();
+        getArtifactUriBytes();
   }
   /**
    * Protobuf type {@code talon.v1.GetArtifactMetadataRequest}
@@ -14888,7 +14888,7 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private GetArtifactMetadataRequest() {
-      artifactHandle_ = "";
+      artifactUri_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -14909,39 +14909,39 @@ java.lang.String defaultValue) {
               talon.v1.Files.GetArtifactMetadataRequest.class, talon.v1.Files.GetArtifactMetadataRequest.Builder.class);
     }
 
-    public static final int ARTIFACT_HANDLE_FIELD_NUMBER = 1;
+    public static final int ARTIFACT_URI_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object artifactHandle_ = "";
+    private volatile java.lang.Object artifactUri_ = "";
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
     @java.lang.Override
-    public java.lang.String getArtifactHandle() {
-      java.lang.Object ref = artifactHandle_;
+    public java.lang.String getArtifactUri() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        artifactHandle_ = s;
+        artifactUri_ = s;
         return s;
       }
     }
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getArtifactHandleBytes() {
-      java.lang.Object ref = artifactHandle_;
+        getArtifactUriBytes() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        artifactHandle_ = b;
+        artifactUri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -14962,8 +14962,8 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactUri_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -14974,8 +14974,8 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactUri_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -14992,8 +14992,8 @@ java.lang.String defaultValue) {
       }
       talon.v1.Files.GetArtifactMetadataRequest other = (talon.v1.Files.GetArtifactMetadataRequest) obj;
 
-      if (!getArtifactHandle()
-          .equals(other.getArtifactHandle())) return false;
+      if (!getArtifactUri()
+          .equals(other.getArtifactUri())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -15005,8 +15005,8 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + ARTIFACT_HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getArtifactHandle().hashCode();
+      hash = (37 * hash) + ARTIFACT_URI_FIELD_NUMBER;
+      hash = (53 * hash) + getArtifactUri().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -15138,7 +15138,7 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        artifactHandle_ = "";
+        artifactUri_ = "";
         return this;
       }
 
@@ -15173,7 +15173,7 @@ java.lang.String defaultValue) {
       private void buildPartial0(talon.v1.Files.GetArtifactMetadataRequest result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.artifactHandle_ = artifactHandle_;
+          result.artifactUri_ = artifactUri_;
         }
       }
 
@@ -15189,8 +15189,8 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.v1.Files.GetArtifactMetadataRequest other) {
         if (other == talon.v1.Files.GetArtifactMetadataRequest.getDefaultInstance()) return this;
-        if (!other.getArtifactHandle().isEmpty()) {
-          artifactHandle_ = other.artifactHandle_;
+        if (!other.getArtifactUri().isEmpty()) {
+          artifactUri_ = other.artifactUri_;
           bitField0_ |= 0x00000001;
           onChanged();
         }
@@ -15221,7 +15221,7 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                artifactHandle_ = input.readStringRequireUtf8();
+                artifactUri_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
@@ -15242,73 +15242,73 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.lang.Object artifactHandle_ = "";
+      private java.lang.Object artifactUri_ = "";
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The artifactUri.
        */
-      public java.lang.String getArtifactHandle() {
-        java.lang.Object ref = artifactHandle_;
+      public java.lang.String getArtifactUri() {
+        java.lang.Object ref = artifactUri_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          artifactHandle_ = s;
+          artifactUri_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The bytes for artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The bytes for artifactUri.
        */
       public com.google.protobuf.ByteString
-          getArtifactHandleBytes() {
-        java.lang.Object ref = artifactHandle_;
+          getArtifactUriBytes() {
+        java.lang.Object ref = artifactUri_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          artifactHandle_ = b;
+          artifactUri_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandle(
+      public Builder setArtifactUri(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
+       * <code>string artifact_uri = 1;</code>
        * @return This builder for chaining.
        */
-      public Builder clearArtifactHandle() {
-        artifactHandle_ = getDefaultInstance().getArtifactHandle();
+      public Builder clearArtifactUri() {
+        artifactUri_ = getDefaultInstance().getArtifactUri();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The bytes for artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The bytes for artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandleBytes(
+      public Builder setArtifactUriBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
@@ -17447,16 +17447,16 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
-    java.lang.String getArtifactHandle();
+    java.lang.String getArtifactUri();
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     com.google.protobuf.ByteString
-        getArtifactHandleBytes();
+        getArtifactUriBytes();
 
     /**
      * <code>string target_agent = 2;</code>
@@ -17535,7 +17535,7 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private GrantArtifactRequest() {
-      artifactHandle_ = "";
+      artifactUri_ = "";
       targetAgent_ = "";
       targetSessionId_ = "";
       operations_ =
@@ -17560,39 +17560,39 @@ java.lang.String defaultValue) {
               talon.v1.Files.GrantArtifactRequest.class, talon.v1.Files.GrantArtifactRequest.Builder.class);
     }
 
-    public static final int ARTIFACT_HANDLE_FIELD_NUMBER = 1;
+    public static final int ARTIFACT_URI_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object artifactHandle_ = "";
+    private volatile java.lang.Object artifactUri_ = "";
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
     @java.lang.Override
-    public java.lang.String getArtifactHandle() {
-      java.lang.Object ref = artifactHandle_;
+    public java.lang.String getArtifactUri() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        artifactHandle_ = s;
+        artifactUri_ = s;
         return s;
       }
     }
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getArtifactHandleBytes() {
-      java.lang.Object ref = artifactHandle_;
+        getArtifactUriBytes() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        artifactHandle_ = b;
+        artifactUri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -17739,8 +17739,8 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactUri_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(targetAgent_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, targetAgent_);
@@ -17763,8 +17763,8 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactUri_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(targetAgent_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, targetAgent_);
@@ -17799,8 +17799,8 @@ java.lang.String defaultValue) {
       }
       talon.v1.Files.GrantArtifactRequest other = (talon.v1.Files.GrantArtifactRequest) obj;
 
-      if (!getArtifactHandle()
-          .equals(other.getArtifactHandle())) return false;
+      if (!getArtifactUri()
+          .equals(other.getArtifactUri())) return false;
       if (!getTargetAgent()
           .equals(other.getTargetAgent())) return false;
       if (!getTargetSessionId()
@@ -17820,8 +17820,8 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + ARTIFACT_HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getArtifactHandle().hashCode();
+      hash = (37 * hash) + ARTIFACT_URI_FIELD_NUMBER;
+      hash = (53 * hash) + getArtifactUri().hashCode();
       hash = (37 * hash) + TARGET_AGENT_FIELD_NUMBER;
       hash = (53 * hash) + getTargetAgent().hashCode();
       hash = (37 * hash) + TARGET_SESSION_ID_FIELD_NUMBER;
@@ -17964,7 +17964,7 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        artifactHandle_ = "";
+        artifactUri_ = "";
         targetAgent_ = "";
         targetSessionId_ = "";
         operations_ =
@@ -18004,7 +18004,7 @@ java.lang.String defaultValue) {
       private void buildPartial0(talon.v1.Files.GrantArtifactRequest result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.artifactHandle_ = artifactHandle_;
+          result.artifactUri_ = artifactUri_;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
           result.targetAgent_ = targetAgent_;
@@ -18033,8 +18033,8 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.v1.Files.GrantArtifactRequest other) {
         if (other == talon.v1.Files.GrantArtifactRequest.getDefaultInstance()) return this;
-        if (!other.getArtifactHandle().isEmpty()) {
-          artifactHandle_ = other.artifactHandle_;
+        if (!other.getArtifactUri().isEmpty()) {
+          artifactUri_ = other.artifactUri_;
           bitField0_ |= 0x00000001;
           onChanged();
         }
@@ -18088,7 +18088,7 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                artifactHandle_ = input.readStringRequireUtf8();
+                artifactUri_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
@@ -18129,73 +18129,73 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.lang.Object artifactHandle_ = "";
+      private java.lang.Object artifactUri_ = "";
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The artifactUri.
        */
-      public java.lang.String getArtifactHandle() {
-        java.lang.Object ref = artifactHandle_;
+      public java.lang.String getArtifactUri() {
+        java.lang.Object ref = artifactUri_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          artifactHandle_ = s;
+          artifactUri_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The bytes for artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The bytes for artifactUri.
        */
       public com.google.protobuf.ByteString
-          getArtifactHandleBytes() {
-        java.lang.Object ref = artifactHandle_;
+          getArtifactUriBytes() {
+        java.lang.Object ref = artifactUri_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          artifactHandle_ = b;
+          artifactUri_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandle(
+      public Builder setArtifactUri(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
+       * <code>string artifact_uri = 1;</code>
        * @return This builder for chaining.
        */
-      public Builder clearArtifactHandle() {
-        artifactHandle_ = getDefaultInstance().getArtifactHandle();
+      public Builder clearArtifactUri() {
+        artifactUri_ = getDefaultInstance().getArtifactUri();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The bytes for artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The bytes for artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandleBytes(
+      public Builder setArtifactUriBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
@@ -18559,16 +18559,16 @@ java.lang.String defaultValue) {
     talon.data.Data.ArtifactOrBuilder getArtifactOrBuilder();
 
     /**
-     * <code>string artifact_handle = 2;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 2;</code>
+     * @return The artifactUri.
      */
-    java.lang.String getArtifactHandle();
+    java.lang.String getArtifactUri();
     /**
-     * <code>string artifact_handle = 2;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 2;</code>
+     * @return The bytes for artifactUri.
      */
     com.google.protobuf.ByteString
-        getArtifactHandleBytes();
+        getArtifactUriBytes();
   }
   /**
    * Protobuf type {@code talon.v1.ArtifactResponse}
@@ -18592,7 +18592,7 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private ArtifactResponse() {
-      artifactHandle_ = "";
+      artifactUri_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -18640,39 +18640,39 @@ java.lang.String defaultValue) {
       return artifact_ == null ? talon.data.Data.Artifact.getDefaultInstance() : artifact_;
     }
 
-    public static final int ARTIFACT_HANDLE_FIELD_NUMBER = 2;
+    public static final int ARTIFACT_URI_FIELD_NUMBER = 2;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object artifactHandle_ = "";
+    private volatile java.lang.Object artifactUri_ = "";
     /**
-     * <code>string artifact_handle = 2;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 2;</code>
+     * @return The artifactUri.
      */
     @java.lang.Override
-    public java.lang.String getArtifactHandle() {
-      java.lang.Object ref = artifactHandle_;
+    public java.lang.String getArtifactUri() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        artifactHandle_ = s;
+        artifactUri_ = s;
         return s;
       }
     }
     /**
-     * <code>string artifact_handle = 2;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 2;</code>
+     * @return The bytes for artifactUri.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getArtifactHandleBytes() {
-      java.lang.Object ref = artifactHandle_;
+        getArtifactUriBytes() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        artifactHandle_ = b;
+        artifactUri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -18696,8 +18696,8 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(1, getArtifact());
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, artifactUri_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -18712,8 +18712,8 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getArtifact());
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, artifactUri_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -18735,8 +18735,8 @@ java.lang.String defaultValue) {
         if (!getArtifact()
             .equals(other.getArtifact())) return false;
       }
-      if (!getArtifactHandle()
-          .equals(other.getArtifactHandle())) return false;
+      if (!getArtifactUri()
+          .equals(other.getArtifactUri())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -18752,8 +18752,8 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + ARTIFACT_FIELD_NUMBER;
         hash = (53 * hash) + getArtifact().hashCode();
       }
-      hash = (37 * hash) + ARTIFACT_HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getArtifactHandle().hashCode();
+      hash = (37 * hash) + ARTIFACT_URI_FIELD_NUMBER;
+      hash = (53 * hash) + getArtifactUri().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -18896,7 +18896,7 @@ java.lang.String defaultValue) {
           artifactBuilder_.dispose();
           artifactBuilder_ = null;
         }
-        artifactHandle_ = "";
+        artifactUri_ = "";
         return this;
       }
 
@@ -18938,7 +18938,7 @@ java.lang.String defaultValue) {
           to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.artifactHandle_ = artifactHandle_;
+          result.artifactUri_ = artifactUri_;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -18958,8 +18958,8 @@ java.lang.String defaultValue) {
         if (other.hasArtifact()) {
           mergeArtifact(other.getArtifact());
         }
-        if (!other.getArtifactHandle().isEmpty()) {
-          artifactHandle_ = other.artifactHandle_;
+        if (!other.getArtifactUri().isEmpty()) {
+          artifactUri_ = other.artifactUri_;
           bitField0_ |= 0x00000002;
           onChanged();
         }
@@ -18997,7 +18997,7 @@ java.lang.String defaultValue) {
                 break;
               } // case 10
               case 18: {
-                artifactHandle_ = input.readStringRequireUtf8();
+                artifactUri_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
@@ -19139,73 +19139,73 @@ java.lang.String defaultValue) {
         return artifactBuilder_;
       }
 
-      private java.lang.Object artifactHandle_ = "";
+      private java.lang.Object artifactUri_ = "";
       /**
-       * <code>string artifact_handle = 2;</code>
-       * @return The artifactHandle.
+       * <code>string artifact_uri = 2;</code>
+       * @return The artifactUri.
        */
-      public java.lang.String getArtifactHandle() {
-        java.lang.Object ref = artifactHandle_;
+      public java.lang.String getArtifactUri() {
+        java.lang.Object ref = artifactUri_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          artifactHandle_ = s;
+          artifactUri_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 2;</code>
-       * @return The bytes for artifactHandle.
+       * <code>string artifact_uri = 2;</code>
+       * @return The bytes for artifactUri.
        */
       public com.google.protobuf.ByteString
-          getArtifactHandleBytes() {
-        java.lang.Object ref = artifactHandle_;
+          getArtifactUriBytes() {
+        java.lang.Object ref = artifactUri_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          artifactHandle_ = b;
+          artifactUri_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 2;</code>
-       * @param value The artifactHandle to set.
+       * <code>string artifact_uri = 2;</code>
+       * @param value The artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandle(
+      public Builder setArtifactUri(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 2;</code>
+       * <code>string artifact_uri = 2;</code>
        * @return This builder for chaining.
        */
-      public Builder clearArtifactHandle() {
-        artifactHandle_ = getDefaultInstance().getArtifactHandle();
+      public Builder clearArtifactUri() {
+        artifactUri_ = getDefaultInstance().getArtifactUri();
         bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 2;</code>
-       * @param value The bytes for artifactHandle to set.
+       * <code>string artifact_uri = 2;</code>
+       * @param value The bytes for artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandleBytes(
+      public Builder setArtifactUriBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
@@ -19262,29 +19262,29 @@ java.lang.String defaultValue) {
 
   }
 
-  public interface ArtifactHandleResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.v1.ArtifactHandleResponse)
+  public interface ArtifactUriResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.ArtifactUriResponse)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
-    java.lang.String getArtifactHandle();
+    java.lang.String getArtifactUri();
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     com.google.protobuf.ByteString
-        getArtifactHandleBytes();
+        getArtifactUriBytes();
   }
   /**
-   * Protobuf type {@code talon.v1.ArtifactHandleResponse}
+   * Protobuf type {@code talon.v1.ArtifactUriResponse}
    */
-  public static final class ArtifactHandleResponse extends
+  public static final class ArtifactUriResponse extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.v1.ArtifactHandleResponse)
-      ArtifactHandleResponseOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.v1.ArtifactUriResponse)
+      ArtifactUriResponseOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -19293,67 +19293,67 @@ java.lang.String defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "ArtifactHandleResponse");
+        "ArtifactUriResponse");
     }
-    // Use ArtifactHandleResponse.newBuilder() to construct.
-    private ArtifactHandleResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use ArtifactUriResponse.newBuilder() to construct.
+    private ArtifactUriResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private ArtifactHandleResponse() {
-      artifactHandle_ = "";
+    private ArtifactUriResponse() {
+      artifactUri_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.v1.Files.internal_static_talon_v1_ArtifactHandleResponse_descriptor;
+      return talon.v1.Files.internal_static_talon_v1_ArtifactUriResponse_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.v1.Files.internal_static_talon_v1_ArtifactHandleResponse_descriptor;
+      return talon.v1.Files.internal_static_talon_v1_ArtifactUriResponse_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.v1.Files.internal_static_talon_v1_ArtifactHandleResponse_fieldAccessorTable
+      return talon.v1.Files.internal_static_talon_v1_ArtifactUriResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.v1.Files.ArtifactHandleResponse.class, talon.v1.Files.ArtifactHandleResponse.Builder.class);
+              talon.v1.Files.ArtifactUriResponse.class, talon.v1.Files.ArtifactUriResponse.Builder.class);
     }
 
-    public static final int ARTIFACT_HANDLE_FIELD_NUMBER = 1;
+    public static final int ARTIFACT_URI_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object artifactHandle_ = "";
+    private volatile java.lang.Object artifactUri_ = "";
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The artifactUri.
      */
     @java.lang.Override
-    public java.lang.String getArtifactHandle() {
-      java.lang.Object ref = artifactHandle_;
+    public java.lang.String getArtifactUri() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        artifactHandle_ = s;
+        artifactUri_ = s;
         return s;
       }
     }
     /**
-     * <code>string artifact_handle = 1;</code>
-     * @return The bytes for artifactHandle.
+     * <code>string artifact_uri = 1;</code>
+     * @return The bytes for artifactUri.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getArtifactHandleBytes() {
-      java.lang.Object ref = artifactHandle_;
+        getArtifactUriBytes() {
+      java.lang.Object ref = artifactUri_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        artifactHandle_ = b;
+        artifactUri_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -19374,8 +19374,8 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, artifactUri_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -19386,8 +19386,8 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactHandle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactHandle_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(artifactUri_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, artifactUri_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -19399,13 +19399,13 @@ java.lang.String defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.v1.Files.ArtifactHandleResponse)) {
+      if (!(obj instanceof talon.v1.Files.ArtifactUriResponse)) {
         return super.equals(obj);
       }
-      talon.v1.Files.ArtifactHandleResponse other = (talon.v1.Files.ArtifactHandleResponse) obj;
+      talon.v1.Files.ArtifactUriResponse other = (talon.v1.Files.ArtifactUriResponse) obj;
 
-      if (!getArtifactHandle()
-          .equals(other.getArtifactHandle())) return false;
+      if (!getArtifactUri()
+          .equals(other.getArtifactUri())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -19417,51 +19417,51 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + ARTIFACT_HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getArtifactHandle().hashCode();
+      hash = (37 * hash) + ARTIFACT_URI_FIELD_NUMBER;
+      hash = (53 * hash) + getArtifactUri().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
     }
 
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(byte[] data)
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(java.io.InputStream input)
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -19469,26 +19469,26 @@ java.lang.String defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.v1.Files.ArtifactHandleResponse parseDelimitedFrom(java.io.InputStream input)
+    public static talon.v1.Files.ArtifactUriResponse parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.v1.Files.ArtifactHandleResponse parseDelimitedFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.v1.Files.ArtifactHandleResponse parseFrom(
+    public static talon.v1.Files.ArtifactUriResponse parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -19501,7 +19501,7 @@ java.lang.String defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.v1.Files.ArtifactHandleResponse prototype) {
+    public static Builder newBuilder(talon.v1.Files.ArtifactUriResponse prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -19517,26 +19517,26 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.v1.ArtifactHandleResponse}
+     * Protobuf type {@code talon.v1.ArtifactUriResponse}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.v1.ArtifactHandleResponse)
-        talon.v1.Files.ArtifactHandleResponseOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.v1.ArtifactUriResponse)
+        talon.v1.Files.ArtifactUriResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.v1.Files.internal_static_talon_v1_ArtifactHandleResponse_descriptor;
+        return talon.v1.Files.internal_static_talon_v1_ArtifactUriResponse_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.v1.Files.internal_static_talon_v1_ArtifactHandleResponse_fieldAccessorTable
+        return talon.v1.Files.internal_static_talon_v1_ArtifactUriResponse_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.v1.Files.ArtifactHandleResponse.class, talon.v1.Files.ArtifactHandleResponse.Builder.class);
+                talon.v1.Files.ArtifactUriResponse.class, talon.v1.Files.ArtifactUriResponse.Builder.class);
       }
 
-      // Construct using talon.v1.Files.ArtifactHandleResponse.newBuilder()
+      // Construct using talon.v1.Files.ArtifactUriResponse.newBuilder()
       private Builder() {
 
       }
@@ -19550,24 +19550,24 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        artifactHandle_ = "";
+        artifactUri_ = "";
         return this;
       }
 
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.v1.Files.internal_static_talon_v1_ArtifactHandleResponse_descriptor;
+        return talon.v1.Files.internal_static_talon_v1_ArtifactUriResponse_descriptor;
       }
 
       @java.lang.Override
-      public talon.v1.Files.ArtifactHandleResponse getDefaultInstanceForType() {
-        return talon.v1.Files.ArtifactHandleResponse.getDefaultInstance();
+      public talon.v1.Files.ArtifactUriResponse getDefaultInstanceForType() {
+        return talon.v1.Files.ArtifactUriResponse.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.v1.Files.ArtifactHandleResponse build() {
-        talon.v1.Files.ArtifactHandleResponse result = buildPartial();
+      public talon.v1.Files.ArtifactUriResponse build() {
+        talon.v1.Files.ArtifactUriResponse result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -19575,34 +19575,34 @@ java.lang.String defaultValue) {
       }
 
       @java.lang.Override
-      public talon.v1.Files.ArtifactHandleResponse buildPartial() {
-        talon.v1.Files.ArtifactHandleResponse result = new talon.v1.Files.ArtifactHandleResponse(this);
+      public talon.v1.Files.ArtifactUriResponse buildPartial() {
+        talon.v1.Files.ArtifactUriResponse result = new talon.v1.Files.ArtifactUriResponse(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.v1.Files.ArtifactHandleResponse result) {
+      private void buildPartial0(talon.v1.Files.ArtifactUriResponse result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.artifactHandle_ = artifactHandle_;
+          result.artifactUri_ = artifactUri_;
         }
       }
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.v1.Files.ArtifactHandleResponse) {
-          return mergeFrom((talon.v1.Files.ArtifactHandleResponse)other);
+        if (other instanceof talon.v1.Files.ArtifactUriResponse) {
+          return mergeFrom((talon.v1.Files.ArtifactUriResponse)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.v1.Files.ArtifactHandleResponse other) {
-        if (other == talon.v1.Files.ArtifactHandleResponse.getDefaultInstance()) return this;
-        if (!other.getArtifactHandle().isEmpty()) {
-          artifactHandle_ = other.artifactHandle_;
+      public Builder mergeFrom(talon.v1.Files.ArtifactUriResponse other) {
+        if (other == talon.v1.Files.ArtifactUriResponse.getDefaultInstance()) return this;
+        if (!other.getArtifactUri().isEmpty()) {
+          artifactUri_ = other.artifactUri_;
           bitField0_ |= 0x00000001;
           onChanged();
         }
@@ -19633,7 +19633,7 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                artifactHandle_ = input.readStringRequireUtf8();
+                artifactUri_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
@@ -19654,95 +19654,95 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.lang.Object artifactHandle_ = "";
+      private java.lang.Object artifactUri_ = "";
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The artifactUri.
        */
-      public java.lang.String getArtifactHandle() {
-        java.lang.Object ref = artifactHandle_;
+      public java.lang.String getArtifactUri() {
+        java.lang.Object ref = artifactUri_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          artifactHandle_ = s;
+          artifactUri_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @return The bytes for artifactHandle.
+       * <code>string artifact_uri = 1;</code>
+       * @return The bytes for artifactUri.
        */
       public com.google.protobuf.ByteString
-          getArtifactHandleBytes() {
-        java.lang.Object ref = artifactHandle_;
+          getArtifactUriBytes() {
+        java.lang.Object ref = artifactUri_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          artifactHandle_ = b;
+          artifactUri_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandle(
+      public Builder setArtifactUri(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
+       * <code>string artifact_uri = 1;</code>
        * @return This builder for chaining.
        */
-      public Builder clearArtifactHandle() {
-        artifactHandle_ = getDefaultInstance().getArtifactHandle();
+      public Builder clearArtifactUri() {
+        artifactUri_ = getDefaultInstance().getArtifactUri();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
-       * <code>string artifact_handle = 1;</code>
-       * @param value The bytes for artifactHandle to set.
+       * <code>string artifact_uri = 1;</code>
+       * @param value The bytes for artifactUri to set.
        * @return This builder for chaining.
        */
-      public Builder setArtifactHandleBytes(
+      public Builder setArtifactUriBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        artifactHandle_ = value;
+        artifactUri_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.v1.ArtifactHandleResponse)
+      // @@protoc_insertion_point(builder_scope:talon.v1.ArtifactUriResponse)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.v1.ArtifactHandleResponse)
-    private static final talon.v1.Files.ArtifactHandleResponse DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.v1.ArtifactUriResponse)
+    private static final talon.v1.Files.ArtifactUriResponse DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.v1.Files.ArtifactHandleResponse();
+      DEFAULT_INSTANCE = new talon.v1.Files.ArtifactUriResponse();
     }
 
-    public static talon.v1.Files.ArtifactHandleResponse getDefaultInstance() {
+    public static talon.v1.Files.ArtifactUriResponse getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<ArtifactHandleResponse>
-        PARSER = new com.google.protobuf.AbstractParser<ArtifactHandleResponse>() {
+    private static final com.google.protobuf.Parser<ArtifactUriResponse>
+        PARSER = new com.google.protobuf.AbstractParser<ArtifactUriResponse>() {
       @java.lang.Override
-      public ArtifactHandleResponse parsePartialFrom(
+      public ArtifactUriResponse parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -19761,17 +19761,17 @@ java.lang.String defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<ArtifactHandleResponse> parser() {
+    public static com.google.protobuf.Parser<ArtifactUriResponse> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<ArtifactHandleResponse> getParserForType() {
+    public com.google.protobuf.Parser<ArtifactUriResponse> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.v1.Files.ArtifactHandleResponse getDefaultInstanceForType() {
+    public talon.v1.Files.ArtifactUriResponse getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -19893,10 +19893,10 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_v1_ArtifactResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_v1_ArtifactHandleResponse_descriptor;
+    internal_static_talon_v1_ArtifactUriResponse_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_v1_ArtifactHandleResponse_fieldAccessorTable;
+      internal_static_talon_v1_ArtifactUriResponse_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -19908,103 +19908,102 @@ java.lang.String defaultValue) {
     java.lang.String[] descriptorData = {
       "\n\032proto/talon/v1/files.proto\022\010talon.v1\032\025" +
       "proto/data/data.proto\032\033proto/resources/f" +
-      "iles.proto\"H\n\007FileRef\022\021\n\tnamespace\030\001 \001(\t" +
-      "\022\014\n\004name\030\002 \001(\t\022\014\n\004path\030\003 \001(\t\022\016\n\006handle\030\004" +
-      " \001(\t\"\363\001\n\021CreateFileRequest\022\021\n\tnamespace\030" +
-      "\001 \001(\t\022\014\n\004path\030\002 \001(\t\022\022\n\nmedia_type\030\003 \001(\t\022" +
+      "iles.proto\"E\n\007FileRef\022\021\n\tnamespace\030\001 \001(\t" +
+      "\022\014\n\004name\030\002 \001(\t\022\014\n\004path\030\003 \001(\t\022\013\n\003uri\030\004 \001(" +
+      "\t\"\363\001\n\021CreateFileRequest\022\021\n\tnamespace\030\001 \001" +
+      "(\t\022\014\n\004path\030\002 \001(\t\022\022\n\nmedia_type\030\003 \001(\t\022-\n\007" +
+      "purpose\030\004 \001(\0162\034.talon.resources.FilePurp" +
+      "ose\0226\n\014index_policy\030\005 \001(\0162 .talon.resour" +
+      "ces.FileIndexPolicy\0221\n\tretention\030\006 \001(\0162\036" +
+      ".talon.resources.FileRetention\022\017\n\007conten" +
+      "t\030\007 \001(\014\"\300\002\n\030PrepareFileUploadRequest\022\021\n\t" +
+      "namespace\030\001 \001(\t\022\014\n\004path\030\002 \001(\t\022\022\n\nmedia_t" +
+      "ype\030\003 \001(\t\022-\n\007purpose\030\004 \001(\0162\034.talon.resou" +
+      "rces.FilePurpose\0226\n\014index_policy\030\005 \001(\0162 " +
+      ".talon.resources.FileIndexPolicy\0221\n\trete" +
+      "ntion\030\006 \001(\0162\036.talon.resources.FileRetent" +
+      "ion\022\037\n\004file\030\007 \001(\0132\021.talon.v1.FileRef\022\033\n\023" +
+      "expected_size_bytes\030\010 \001(\004\022\027\n\017expected_sh" +
+      "a256\030\t \001(\t\"\315\002\n\031PrepareFileUploadResponse" +
+      "\022#\n\004file\030\001 \001(\0132\025.talon.resources.File\022\024\n" +
+      "\014upload_token\030\002 \001(\t\022\031\n\021signed_upload_url" +
+      "\030\003 \001(\t\022\016\n\006method\030\004 \001(\t\022R\n\020required_heade" +
+      "rs\030\005 \003(\01328.talon.v1.PrepareFileUploadRes" +
+      "ponse.RequiredHeadersEntry\022*\n\"signed_url" +
+      "_expires_at_unix_seconds\030\006 \001(\003\022\022\n\nobject" +
+      "_key\030\007 \001(\t\0326\n\024RequiredHeadersEntry\022\013\n\003ke" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"1\n\031CompleteFi" +
+      "leUploadRequest\022\024\n\014upload_token\030\001 \001(\t\"2\n" +
+      "\017ReadFileRequest\022\037\n\004file\030\001 \001(\0132\021.talon.v" +
+      "1.FileRef\"\210\001\n\020ReadFileResponse\022#\n\004file\030\001" +
+      " \001(\0132\025.talon.resources.File\022\017\n\007content\030\002" +
+      " \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n\"signed_url_e" +
+      "xpires_at_unix_seconds\030\004 \001(\003\"Y\n\021UpdateFi" +
+      "leRequest\022\037\n\004file\030\001 \001(\0132\021.talon.v1.FileR" +
+      "ef\022\022\n\nmedia_type\030\002 \001(\t\022\017\n\007content\030\003 \001(\014\"" +
+      "9\n\026GetFileMetadataRequest\022\037\n\004file\030\001 \001(\0132" +
+      "\021.talon.v1.FileRef\"\277\001\n\020ListFilesRequest\022" +
+      "\021\n\tnamespace\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022-\n\007pu" +
+      "rpose\030\003 \001(\0162\034.talon.resources.FilePurpos" +
+      "e\0226\n\014index_policy\030\004 \001(\0162 .talon.resource" +
+      "s.FileIndexPolicy\022\r\n\005limit\030\005 \001(\r\022\022\n\npage" +
+      "_token\030\006 \001(\t\"R\n\021ListFilesResponse\022$\n\005fil" +
+      "es\030\001 \003(\0132\025.talon.resources.File\022\027\n\017next_" +
+      "page_token\030\002 \001(\t\"4\n\021DeleteFileRequest\022\037\n" +
+      "\004file\030\001 \001(\0132\021.talon.v1.FileRef\"%\n\022Delete" +
+      "FileResponse\022\017\n\007success\030\001 \001(\010\"\361\001\n\026Promot" +
+      "eArtifactRequest\022\024\n\014artifact_uri\030\001 \001(\t\022\023" +
+      "\n\013target_path\030\002 \001(\t\022\022\n\nmedia_type\030\003 \001(\t\022" +
       "-\n\007purpose\030\004 \001(\0162\034.talon.resources.FileP" +
       "urpose\0226\n\014index_policy\030\005 \001(\0162 .talon.res" +
       "ources.FileIndexPolicy\0221\n\tretention\030\006 \001(" +
-      "\0162\036.talon.resources.FileRetention\022\017\n\007con" +
-      "tent\030\007 \001(\014\"\300\002\n\030PrepareFileUploadRequest\022" +
-      "\021\n\tnamespace\030\001 \001(\t\022\014\n\004path\030\002 \001(\t\022\022\n\nmedi" +
-      "a_type\030\003 \001(\t\022-\n\007purpose\030\004 \001(\0162\034.talon.re" +
-      "sources.FilePurpose\0226\n\014index_policy\030\005 \001(" +
-      "\0162 .talon.resources.FileIndexPolicy\0221\n\tr" +
-      "etention\030\006 \001(\0162\036.talon.resources.FileRet" +
-      "ention\022\037\n\004file\030\007 \001(\0132\021.talon.v1.FileRef\022" +
-      "\033\n\023expected_size_bytes\030\010 \001(\004\022\027\n\017expected" +
-      "_sha256\030\t \001(\t\"\315\002\n\031PrepareFileUploadRespo" +
-      "nse\022#\n\004file\030\001 \001(\0132\025.talon.resources.File" +
-      "\022\024\n\014upload_token\030\002 \001(\t\022\031\n\021signed_upload_" +
-      "url\030\003 \001(\t\022\016\n\006method\030\004 \001(\t\022R\n\020required_he" +
-      "aders\030\005 \003(\01328.talon.v1.PrepareFileUpload" +
-      "Response.RequiredHeadersEntry\022*\n\"signed_" +
-      "url_expires_at_unix_seconds\030\006 \001(\003\022\022\n\nobj" +
-      "ect_key\030\007 \001(\t\0326\n\024RequiredHeadersEntry\022\013\n" +
-      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"1\n\031Complet" +
-      "eFileUploadRequest\022\024\n\014upload_token\030\001 \001(\t" +
-      "\"2\n\017ReadFileRequest\022\037\n\004file\030\001 \001(\0132\021.talo" +
-      "n.v1.FileRef\"\210\001\n\020ReadFileResponse\022#\n\004fil" +
-      "e\030\001 \001(\0132\025.talon.resources.File\022\017\n\007conten" +
-      "t\030\002 \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n\"signed_ur" +
-      "l_expires_at_unix_seconds\030\004 \001(\003\"Y\n\021Updat" +
-      "eFileRequest\022\037\n\004file\030\001 \001(\0132\021.talon.v1.Fi" +
-      "leRef\022\022\n\nmedia_type\030\002 \001(\t\022\017\n\007content\030\003 \001" +
-      "(\014\"9\n\026GetFileMetadataRequest\022\037\n\004file\030\001 \001" +
-      "(\0132\021.talon.v1.FileRef\"\277\001\n\020ListFilesReque" +
-      "st\022\021\n\tnamespace\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022-\n" +
-      "\007purpose\030\003 \001(\0162\034.talon.resources.FilePur" +
-      "pose\0226\n\014index_policy\030\004 \001(\0162 .talon.resou" +
-      "rces.FileIndexPolicy\022\r\n\005limit\030\005 \001(\r\022\022\n\np" +
-      "age_token\030\006 \001(\t\"R\n\021ListFilesResponse\022$\n\005" +
-      "files\030\001 \003(\0132\025.talon.resources.File\022\027\n\017ne" +
-      "xt_page_token\030\002 \001(\t\"4\n\021DeleteFileRequest" +
-      "\022\037\n\004file\030\001 \001(\0132\021.talon.v1.FileRef\"%\n\022Del" +
-      "eteFileResponse\022\017\n\007success\030\001 \001(\010\"\364\001\n\026Pro" +
-      "moteArtifactRequest\022\027\n\017artifact_handle\030\001" +
-      " \001(\t\022\023\n\013target_path\030\002 \001(\t\022\022\n\nmedia_type\030" +
-      "\003 \001(\t\022-\n\007purpose\030\004 \001(\0162\034.talon.resources" +
-      ".FilePurpose\0226\n\014index_policy\030\005 \001(\0162 .tal" +
-      "on.resources.FileIndexPolicy\0221\n\tretentio" +
-      "n\030\006 \001(\0162\036.talon.resources.FileRetention\"" +
-      "H\n\014FileResponse\022#\n\004file\030\001 \001(\0132\025.talon.re" +
-      "sources.File\022\023\n\013file_handle\030\002 \001(\t\".\n\023Rea" +
-      "dArtifactRequest\022\027\n\017artifact_handle\030\001 \001(" +
-      "\t\"\217\001\n\024ReadArtifactResponse\022&\n\010artifact\030\001" +
-      " \001(\0132\024.talon.data.Artifact\022\017\n\007content\030\002 " +
-      "\001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n\"signed_url_ex" +
-      "pires_at_unix_seconds\030\004 \001(\003\"5\n\032GetArtifa" +
-      "ctMetadataRequest\022\027\n\017artifact_handle\030\001 \001" +
-      "(\t\"\177\n\024ListArtifactsRequest\022\021\n\tnamespace\030" +
-      "\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t" +
-      "\022\016\n\006prefix\030\004 \001(\t\022\r\n\005limit\030\005 \001(\r\022\022\n\npage_" +
-      "token\030\006 \001(\t\"Y\n\025ListArtifactsResponse\022\'\n\t" +
-      "artifacts\030\001 \003(\0132\024.talon.data.Artifact\022\027\n" +
-      "\017next_page_token\030\002 \001(\t\"\211\001\n\024GrantArtifact" +
-      "Request\022\027\n\017artifact_handle\030\001 \001(\t\022\024\n\014targ" +
-      "et_agent\030\002 \001(\t\022\031\n\021target_session_id\030\003 \001(" +
-      "\t\022\022\n\noperations\030\004 \003(\t\022\023\n\013ttl_seconds\030\005 \001" +
-      "(\003\"S\n\020ArtifactResponse\022&\n\010artifact\030\001 \001(\013" +
-      "2\024.talon.data.Artifact\022\027\n\017artifact_handl" +
-      "e\030\002 \001(\t\"1\n\026ArtifactHandleResponse\022\027\n\017art" +
-      "ifact_handle\030\001 \001(\t2\260\005\n\013FileService\022A\n\nCr" +
-      "eateFile\022\033.talon.v1.CreateFileRequest\032\026." +
-      "talon.v1.FileResponse\022\\\n\021PrepareFileUplo" +
-      "ad\022\".talon.v1.PrepareFileUploadRequest\032#" +
-      ".talon.v1.PrepareFileUploadResponse\022Q\n\022C" +
-      "ompleteFileUpload\022#.talon.v1.CompleteFil" +
-      "eUploadRequest\032\026.talon.v1.FileResponse\022A" +
-      "\n\010ReadFile\022\031.talon.v1.ReadFileRequest\032\032." +
-      "talon.v1.ReadFileResponse\022A\n\nUpdateFile\022" +
-      "\033.talon.v1.UpdateFileRequest\032\026.talon.v1." +
-      "FileResponse\022K\n\017GetFileMetadata\022 .talon." +
-      "v1.GetFileMetadataRequest\032\026.talon.v1.Fil" +
-      "eResponse\022D\n\tListFiles\022\032.talon.v1.ListFi" +
-      "lesRequest\032\033.talon.v1.ListFilesResponse\022" +
-      "G\n\nDeleteFile\022\033.talon.v1.DeleteFileReque" +
-      "st\032\034.talon.v1.DeleteFileResponse\022K\n\017Prom" +
-      "oteArtifact\022 .talon.v1.PromoteArtifactRe" +
-      "quest\032\026.talon.v1.FileResponse2\336\002\n\017Artifa" +
-      "ctService\022M\n\014ReadArtifact\022\035.talon.v1.Rea" +
-      "dArtifactRequest\032\036.talon.v1.ReadArtifact" +
-      "Response\022W\n\023GetArtifactMetadata\022$.talon." +
-      "v1.GetArtifactMetadataRequest\032\032.talon.v1" +
-      ".ArtifactResponse\022P\n\rListArtifacts\022\036.tal" +
-      "on.v1.ListArtifactsRequest\032\037.talon.v1.Li" +
-      "stArtifactsResponse\022Q\n\rGrantArtifact\022\036.t" +
-      "alon.v1.GrantArtifactRequest\032 .talon.v1." +
-      "ArtifactHandleResponseb\006proto3"
+      "\0162\036.talon.resources.FileRetention\"E\n\014Fil" +
+      "eResponse\022#\n\004file\030\001 \001(\0132\025.talon.resource" +
+      "s.File\022\020\n\010file_uri\030\002 \001(\t\"+\n\023ReadArtifact" +
+      "Request\022\024\n\014artifact_uri\030\001 \001(\t\"\217\001\n\024ReadAr" +
+      "tifactResponse\022&\n\010artifact\030\001 \001(\0132\024.talon" +
+      ".data.Artifact\022\017\n\007content\030\002 \001(\014\022\022\n\nsigne" +
+      "d_url\030\003 \001(\t\022*\n\"signed_url_expires_at_uni" +
+      "x_seconds\030\004 \001(\003\"2\n\032GetArtifactMetadataRe" +
+      "quest\022\024\n\014artifact_uri\030\001 \001(\t\"\177\n\024ListArtif" +
+      "actsRequest\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030" +
+      "\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\016\n\006prefix\030\004 \001(" +
+      "\t\022\r\n\005limit\030\005 \001(\r\022\022\n\npage_token\030\006 \001(\t\"Y\n\025" +
+      "ListArtifactsResponse\022\'\n\tartifacts\030\001 \003(\013" +
+      "2\024.talon.data.Artifact\022\027\n\017next_page_toke" +
+      "n\030\002 \001(\t\"\206\001\n\024GrantArtifactRequest\022\024\n\014arti" +
+      "fact_uri\030\001 \001(\t\022\024\n\014target_agent\030\002 \001(\t\022\031\n\021" +
+      "target_session_id\030\003 \001(\t\022\022\n\noperations\030\004 " +
+      "\003(\t\022\023\n\013ttl_seconds\030\005 \001(\003\"P\n\020ArtifactResp" +
+      "onse\022&\n\010artifact\030\001 \001(\0132\024.talon.data.Arti" +
+      "fact\022\024\n\014artifact_uri\030\002 \001(\t\"+\n\023ArtifactUr" +
+      "iResponse\022\024\n\014artifact_uri\030\001 \001(\t2\260\005\n\013File" +
+      "Service\022A\n\nCreateFile\022\033.talon.v1.CreateF" +
+      "ileRequest\032\026.talon.v1.FileResponse\022\\\n\021Pr" +
+      "epareFileUpload\022\".talon.v1.PrepareFileUp" +
+      "loadRequest\032#.talon.v1.PrepareFileUpload" +
+      "Response\022Q\n\022CompleteFileUpload\022#.talon.v" +
+      "1.CompleteFileUploadRequest\032\026.talon.v1.F" +
+      "ileResponse\022A\n\010ReadFile\022\031.talon.v1.ReadF" +
+      "ileRequest\032\032.talon.v1.ReadFileResponse\022A" +
+      "\n\nUpdateFile\022\033.talon.v1.UpdateFileReques" +
+      "t\032\026.talon.v1.FileResponse\022K\n\017GetFileMeta" +
+      "data\022 .talon.v1.GetFileMetadataRequest\032\026" +
+      ".talon.v1.FileResponse\022D\n\tListFiles\022\032.ta" +
+      "lon.v1.ListFilesRequest\032\033.talon.v1.ListF" +
+      "ilesResponse\022G\n\nDeleteFile\022\033.talon.v1.De" +
+      "leteFileRequest\032\034.talon.v1.DeleteFileRes" +
+      "ponse\022K\n\017PromoteArtifact\022 .talon.v1.Prom" +
+      "oteArtifactRequest\032\026.talon.v1.FileRespon" +
+      "se2\333\002\n\017ArtifactService\022M\n\014ReadArtifact\022\035" +
+      ".talon.v1.ReadArtifactRequest\032\036.talon.v1" +
+      ".ReadArtifactResponse\022W\n\023GetArtifactMeta" +
+      "data\022$.talon.v1.GetArtifactMetadataReque" +
+      "st\032\032.talon.v1.ArtifactResponse\022P\n\rListAr" +
+      "tifacts\022\036.talon.v1.ListArtifactsRequest\032" +
+      "\037.talon.v1.ListArtifactsResponse\022N\n\rGran" +
+      "tArtifact\022\036.talon.v1.GrantArtifactReques" +
+      "t\032\035.talon.v1.ArtifactUriResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -20017,7 +20016,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_FileRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_FileRef_descriptor,
-        new java.lang.String[] { "Namespace", "Name", "Path", "Handle", });
+        new java.lang.String[] { "Namespace", "Name", "Path", "Uri", });
     internal_static_talon_v1_CreateFileRequest_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_talon_v1_CreateFileRequest_fieldAccessorTable = new
@@ -20101,19 +20100,19 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_PromoteArtifactRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_PromoteArtifactRequest_descriptor,
-        new java.lang.String[] { "ArtifactHandle", "TargetPath", "MediaType", "Purpose", "IndexPolicy", "Retention", });
+        new java.lang.String[] { "ArtifactUri", "TargetPath", "MediaType", "Purpose", "IndexPolicy", "Retention", });
     internal_static_talon_v1_FileResponse_descriptor =
       getDescriptor().getMessageType(14);
     internal_static_talon_v1_FileResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_FileResponse_descriptor,
-        new java.lang.String[] { "File", "FileHandle", });
+        new java.lang.String[] { "File", "FileUri", });
     internal_static_talon_v1_ReadArtifactRequest_descriptor =
       getDescriptor().getMessageType(15);
     internal_static_talon_v1_ReadArtifactRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ReadArtifactRequest_descriptor,
-        new java.lang.String[] { "ArtifactHandle", });
+        new java.lang.String[] { "ArtifactUri", });
     internal_static_talon_v1_ReadArtifactResponse_descriptor =
       getDescriptor().getMessageType(16);
     internal_static_talon_v1_ReadArtifactResponse_fieldAccessorTable = new
@@ -20125,7 +20124,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_GetArtifactMetadataRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetArtifactMetadataRequest_descriptor,
-        new java.lang.String[] { "ArtifactHandle", });
+        new java.lang.String[] { "ArtifactUri", });
     internal_static_talon_v1_ListArtifactsRequest_descriptor =
       getDescriptor().getMessageType(18);
     internal_static_talon_v1_ListArtifactsRequest_fieldAccessorTable = new
@@ -20143,19 +20142,19 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_GrantArtifactRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GrantArtifactRequest_descriptor,
-        new java.lang.String[] { "ArtifactHandle", "TargetAgent", "TargetSessionId", "Operations", "TtlSeconds", });
+        new java.lang.String[] { "ArtifactUri", "TargetAgent", "TargetSessionId", "Operations", "TtlSeconds", });
     internal_static_talon_v1_ArtifactResponse_descriptor =
       getDescriptor().getMessageType(21);
     internal_static_talon_v1_ArtifactResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ArtifactResponse_descriptor,
-        new java.lang.String[] { "Artifact", "ArtifactHandle", });
-    internal_static_talon_v1_ArtifactHandleResponse_descriptor =
+        new java.lang.String[] { "Artifact", "ArtifactUri", });
+    internal_static_talon_v1_ArtifactUriResponse_descriptor =
       getDescriptor().getMessageType(22);
-    internal_static_talon_v1_ArtifactHandleResponse_fieldAccessorTable = new
+    internal_static_talon_v1_ArtifactUriResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_v1_ArtifactHandleResponse_descriptor,
-        new java.lang.String[] { "ArtifactHandle", });
+        internal_static_talon_v1_ArtifactUriResponse_descriptor,
+        new java.lang.String[] { "ArtifactUri", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
     talon.resources.Files.getDescriptor();

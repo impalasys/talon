@@ -314,9 +314,9 @@ func (x *ObjectRef) GetContentEncoding() string {
 // Session-scoped immutable output produced by an agent.
 //
 // Artifacts are not namespace-level File resources. They live under the
-// owning session/run, are exchanged through HandleGrant records, and are not
-// indexed directly. Promoting an Artifact to a durable File copies its bytes
-// into File-owned CAS storage and creates or updates a File resource.
+// owning session/run, are referenced by artifact:// URIs, and are not indexed
+// directly. Promoting an Artifact to a durable File copies its bytes into
+// File-owned CAS storage and creates or updates a File resource.
 type Artifact struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Stable artifact id unique within the namespace/session artifact store.
@@ -807,53 +807,46 @@ func (x *GoalIndexEntry) GetUpdatedAt() int64 {
 	return 0
 }
 
-// Opaque access grant for a File or Artifact handle.
+// Target-local access record for an artifact URI.
 //
-// Handle strings resolve to these KV-backed grant records. Callers must present
-// a valid handle and match the recorded audience before FileService or
-// ArtifactService allows the requested operation.
-type HandleGrant struct {
+// Artifact URIs are references, not bearer secrets. A caller can use an
+// artifact:// URI only when it is the owning session or when an ArtifactAccess
+// child record under that artifact grants the caller session the requested
+// operation.
+type ArtifactAccess struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Opaque grant id encoded into the external handle string.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Namespace containing the target resource or session child record.
-	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	// Target kind, currently ARTIFACT or FILE.
-	Kind string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
-	// Target id, such as an artifact id or File resource name.
-	TargetId string `protobuf:"bytes,4,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
-	// Agent that minted the grant.
-	Agent string `protobuf:"bytes,5,opt,name=agent,proto3" json:"agent,omitempty"`
-	// Session that minted the grant, when the grant is session scoped.
-	SessionId string `protobuf:"bytes,6,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	// Allowed operations, such as read, metadata, promote, or write.
-	Operations []string `protobuf:"bytes,7,rep,name=operations,proto3" json:"operations,omitempty"`
-	// Optional agent audience. Empty means any authorized agent may use it.
-	AudienceAgent string `protobuf:"bytes,8,opt,name=audience_agent,json=audienceAgent,proto3" json:"audience_agent,omitempty"`
-	// Optional session audience. Empty means any authorized session may use it.
-	AudienceSessionId string `protobuf:"bytes,9,opt,name=audience_session_id,json=audienceSessionId,proto3" json:"audience_session_id,omitempty"`
-	// Unix timestamp in microseconds when the grant expires. Zero means unset.
-	ExpiresAt int64 `protobuf:"varint,10,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	// Unix timestamp in microseconds when the grant was created.
-	CreatedAt     int64 `protobuf:"varint,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Agent that may access the artifact.
+	TargetAgent string `protobuf:"bytes,1,opt,name=target_agent,json=targetAgent,proto3" json:"target_agent,omitempty"`
+	// Session that may access the artifact.
+	TargetSessionId string `protobuf:"bytes,2,opt,name=target_session_id,json=targetSessionId,proto3" json:"target_session_id,omitempty"`
+	// Allowed operations, such as read, metadata, or promote.
+	Operations []string `protobuf:"bytes,3,rep,name=operations,proto3" json:"operations,omitempty"`
+	// Unix timestamp in microseconds when access expires. Zero means unset.
+	ExpiresAt int64 `protobuf:"varint,4,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// Agent that granted access.
+	GrantedByAgent string `protobuf:"bytes,5,opt,name=granted_by_agent,json=grantedByAgent,proto3" json:"granted_by_agent,omitempty"`
+	// Session that granted access.
+	GrantedBySessionId string `protobuf:"bytes,6,opt,name=granted_by_session_id,json=grantedBySessionId,proto3" json:"granted_by_session_id,omitempty"`
+	// Unix timestamp in microseconds when the access record was created.
+	CreatedAt     int64 `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HandleGrant) Reset() {
-	*x = HandleGrant{}
+func (x *ArtifactAccess) Reset() {
+	*x = ArtifactAccess{}
 	mi := &file_proto_data_data_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HandleGrant) String() string {
+func (x *ArtifactAccess) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HandleGrant) ProtoMessage() {}
+func (*ArtifactAccess) ProtoMessage() {}
 
-func (x *HandleGrant) ProtoReflect() protoreflect.Message {
+func (x *ArtifactAccess) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_data_data_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -865,82 +858,54 @@ func (x *HandleGrant) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HandleGrant.ProtoReflect.Descriptor instead.
-func (*HandleGrant) Descriptor() ([]byte, []int) {
+// Deprecated: Use ArtifactAccess.ProtoReflect.Descriptor instead.
+func (*ArtifactAccess) Descriptor() ([]byte, []int) {
 	return file_proto_data_data_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *HandleGrant) GetId() string {
+func (x *ArtifactAccess) GetTargetAgent() string {
 	if x != nil {
-		return x.Id
+		return x.TargetAgent
 	}
 	return ""
 }
 
-func (x *HandleGrant) GetNamespace() string {
+func (x *ArtifactAccess) GetTargetSessionId() string {
 	if x != nil {
-		return x.Namespace
+		return x.TargetSessionId
 	}
 	return ""
 }
 
-func (x *HandleGrant) GetKind() string {
-	if x != nil {
-		return x.Kind
-	}
-	return ""
-}
-
-func (x *HandleGrant) GetTargetId() string {
-	if x != nil {
-		return x.TargetId
-	}
-	return ""
-}
-
-func (x *HandleGrant) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *HandleGrant) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *HandleGrant) GetOperations() []string {
+func (x *ArtifactAccess) GetOperations() []string {
 	if x != nil {
 		return x.Operations
 	}
 	return nil
 }
 
-func (x *HandleGrant) GetAudienceAgent() string {
-	if x != nil {
-		return x.AudienceAgent
-	}
-	return ""
-}
-
-func (x *HandleGrant) GetAudienceSessionId() string {
-	if x != nil {
-		return x.AudienceSessionId
-	}
-	return ""
-}
-
-func (x *HandleGrant) GetExpiresAt() int64 {
+func (x *ArtifactAccess) GetExpiresAt() int64 {
 	if x != nil {
 		return x.ExpiresAt
 	}
 	return 0
 }
 
-func (x *HandleGrant) GetCreatedAt() int64 {
+func (x *ArtifactAccess) GetGrantedByAgent() string {
+	if x != nil {
+		return x.GrantedByAgent
+	}
+	return ""
+}
+
+func (x *ArtifactAccess) GetGrantedBySessionId() string {
+	if x != nil {
+		return x.GrantedBySessionId
+	}
+	return ""
+}
+
+func (x *ArtifactAccess) GetCreatedAt() int64 {
 	if x != nil {
 		return x.CreatedAt
 	}
@@ -2123,25 +2088,19 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x05phase\x18\x05 \x01(\x0e2\x15.talon.data.GoalPhaseR\x05phase\x12!\n" +
 	"\fstatus_group\x18\x06 \x01(\tR\vstatusGroup\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\xd6\x02\n" +
-	"\vHandleGrant\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1c\n" +
-	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
-	"\x04kind\x18\x03 \x01(\tR\x04kind\x12\x1b\n" +
-	"\ttarget_id\x18\x04 \x01(\tR\btargetId\x12\x14\n" +
-	"\x05agent\x18\x05 \x01(\tR\x05agent\x12\x1d\n" +
+	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\x9a\x02\n" +
+	"\x0eArtifactAccess\x12!\n" +
+	"\ftarget_agent\x18\x01 \x01(\tR\vtargetAgent\x12*\n" +
+	"\x11target_session_id\x18\x02 \x01(\tR\x0ftargetSessionId\x12\x1e\n" +
 	"\n" +
-	"session_id\x18\x06 \x01(\tR\tsessionId\x12\x1e\n" +
+	"operations\x18\x03 \x03(\tR\n" +
+	"operations\x12\x1d\n" +
 	"\n" +
-	"operations\x18\a \x03(\tR\n" +
-	"operations\x12%\n" +
-	"\x0eaudience_agent\x18\b \x01(\tR\raudienceAgent\x12.\n" +
-	"\x13audience_session_id\x18\t \x01(\tR\x11audienceSessionId\x12\x1d\n" +
+	"expires_at\x18\x04 \x01(\x03R\texpiresAt\x12(\n" +
+	"\x10granted_by_agent\x18\x05 \x01(\tR\x0egrantedByAgent\x121\n" +
+	"\x15granted_by_session_id\x18\x06 \x01(\tR\x12grantedBySessionId\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\n" +
-	" \x01(\x03R\texpiresAt\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\v \x01(\x03R\tcreatedAt\"\xfb\x01\n" +
+	"created_at\x18\a \x01(\x03R\tcreatedAt\"\xfb\x01\n" +
 	"\tPrincipal\x12\x1f\n" +
 	"\vexternal_id\x18\x01 \x01(\tR\n" +
 	"externalId\x12\x18\n" +
@@ -2339,7 +2298,7 @@ var file_proto_data_data_proto_goTypes = []any{
 	(*GoalEvidenceRef)(nil),       // 5: talon.data.GoalEvidenceRef
 	(*Goal)(nil),                  // 6: talon.data.Goal
 	(*GoalIndexEntry)(nil),        // 7: talon.data.GoalIndexEntry
-	(*HandleGrant)(nil),           // 8: talon.data.HandleGrant
+	(*ArtifactAccess)(nil),        // 8: talon.data.ArtifactAccess
 	(*Principal)(nil),             // 9: talon.data.Principal
 	(*SessionMessagePart)(nil),    // 10: talon.data.SessionMessagePart
 	(*SessionMessage)(nil),        // 11: talon.data.SessionMessage

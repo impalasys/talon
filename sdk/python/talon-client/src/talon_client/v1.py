@@ -3,7 +3,7 @@
 from talon_client.proto.talon.v1.auth_pb2 import GetSsoConfigRequest, GetSsoConfigResponse, ExchangeOidcTokenRequest, ExchangeOidcTokenResponse, MintAccessTokenRequest, MintAccessTokenResponse, ApiKeyInfo, CreateApiKeyRequest, CreateApiKeyResponse, ListApiKeysRequest, ListApiKeysResponse, RevokeApiKeyRequest, RevokeApiKeyResponse, ExchangeApiKeyRequest, ExchangeApiKeyResponse
 from talon_client.proto.talon.v1.cas_pb2 import GetCasObjectRequest, GetCasObjectResponse
 from talon_client.proto.talon.v1.channels_pb2 import PostChannelMessageRequest, RoutedChannelSession, PostChannelMessageResponse, GetChannelMessageRequest, ChannelMessageResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, StreamChannelEventsRequest
-from talon_client.proto.talon.v1.files_pb2 import FileRef, CreateFileRequest, PrepareFileUploadRequest, PrepareFileUploadResponse, CompleteFileUploadRequest, ReadFileRequest, ReadFileResponse, UpdateFileRequest, GetFileMetadataRequest, ListFilesRequest, ListFilesResponse, DeleteFileRequest, DeleteFileResponse, PromoteArtifactRequest, FileResponse, ReadArtifactRequest, ReadArtifactResponse, GetArtifactMetadataRequest, ListArtifactsRequest, ListArtifactsResponse, GrantArtifactRequest, ArtifactResponse, ArtifactHandleResponse
+from talon_client.proto.talon.v1.files_pb2 import FileRef, CreateFileRequest, PrepareFileUploadRequest, PrepareFileUploadResponse, CompleteFileUploadRequest, ReadFileRequest, ReadFileResponse, UpdateFileRequest, GetFileMetadataRequest, ListFilesRequest, ListFilesResponse, DeleteFileRequest, DeleteFileResponse, PromoteArtifactRequest, FileResponse, ReadArtifactRequest, ReadArtifactResponse, GetArtifactMetadataRequest, ListArtifactsRequest, ListArtifactsResponse, GrantArtifactRequest, ArtifactResponse, ArtifactUriResponse
 from talon_client.proto.talon.v1.knowledge_pb2 import GetKnowledgeRequest, KnowledgeResponse, SearchKnowledgeRequest, SearchKnowledgeResponse
 from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest, GetNamespaceRequest, DeleteNamespaceRequest, ListNamespacesRequest, NamespaceResponse, ListNamespacesResponse
 from talon_client.proto.talon.v1.resources_pb2 import CreateResourceRequest, GetResourceRequest, ListResourcesRequest, DeleteResourceRequest, ResourceResponse, ListResourcesResponse, DeleteResourceResponse
@@ -59,7 +59,7 @@ __all__ = [
     "ListArtifactsResponse",
     "GrantArtifactRequest",
     "ArtifactResponse",
-    "ArtifactHandleResponse",
+    "ArtifactUriResponse",
     "GetKnowledgeRequest",
     "KnowledgeResponse",
     "SearchKnowledgeRequest",

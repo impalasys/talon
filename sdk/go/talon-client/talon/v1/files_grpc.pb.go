@@ -446,12 +446,12 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ArtifactServiceClient interface {
 	// Artifact creation is handled by the runtime/tooling for an active session.
-	// This service only exposes handle-based artifact reads, metadata, listing,
-	// and grant operations.
+	// This service only exposes URI-based artifact reads, metadata, listing,
+	// and access grant operations.
 	ReadArtifact(ctx context.Context, in *ReadArtifactRequest, opts ...grpc.CallOption) (*ReadArtifactResponse, error)
 	GetArtifactMetadata(ctx context.Context, in *GetArtifactMetadataRequest, opts ...grpc.CallOption) (*ArtifactResponse, error)
 	ListArtifacts(ctx context.Context, in *ListArtifactsRequest, opts ...grpc.CallOption) (*ListArtifactsResponse, error)
-	GrantArtifact(ctx context.Context, in *GrantArtifactRequest, opts ...grpc.CallOption) (*ArtifactHandleResponse, error)
+	GrantArtifact(ctx context.Context, in *GrantArtifactRequest, opts ...grpc.CallOption) (*ArtifactUriResponse, error)
 }
 
 type artifactServiceClient struct {
@@ -492,9 +492,9 @@ func (c *artifactServiceClient) ListArtifacts(ctx context.Context, in *ListArtif
 	return out, nil
 }
 
-func (c *artifactServiceClient) GrantArtifact(ctx context.Context, in *GrantArtifactRequest, opts ...grpc.CallOption) (*ArtifactHandleResponse, error) {
+func (c *artifactServiceClient) GrantArtifact(ctx context.Context, in *GrantArtifactRequest, opts ...grpc.CallOption) (*ArtifactUriResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ArtifactHandleResponse)
+	out := new(ArtifactUriResponse)
 	err := c.cc.Invoke(ctx, ArtifactService_GrantArtifact_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -507,12 +507,12 @@ func (c *artifactServiceClient) GrantArtifact(ctx context.Context, in *GrantArti
 // for forward compatibility.
 type ArtifactServiceServer interface {
 	// Artifact creation is handled by the runtime/tooling for an active session.
-	// This service only exposes handle-based artifact reads, metadata, listing,
-	// and grant operations.
+	// This service only exposes URI-based artifact reads, metadata, listing,
+	// and access grant operations.
 	ReadArtifact(context.Context, *ReadArtifactRequest) (*ReadArtifactResponse, error)
 	GetArtifactMetadata(context.Context, *GetArtifactMetadataRequest) (*ArtifactResponse, error)
 	ListArtifacts(context.Context, *ListArtifactsRequest) (*ListArtifactsResponse, error)
-	GrantArtifact(context.Context, *GrantArtifactRequest) (*ArtifactHandleResponse, error)
+	GrantArtifact(context.Context, *GrantArtifactRequest) (*ArtifactUriResponse, error)
 	mustEmbedUnimplementedArtifactServiceServer()
 }
 
@@ -532,7 +532,7 @@ func (UnimplementedArtifactServiceServer) GetArtifactMetadata(context.Context, *
 func (UnimplementedArtifactServiceServer) ListArtifacts(context.Context, *ListArtifactsRequest) (*ListArtifactsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListArtifacts not implemented")
 }
-func (UnimplementedArtifactServiceServer) GrantArtifact(context.Context, *GrantArtifactRequest) (*ArtifactHandleResponse, error) {
+func (UnimplementedArtifactServiceServer) GrantArtifact(context.Context, *GrantArtifactRequest) (*ArtifactUriResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GrantArtifact not implemented")
 }
 func (UnimplementedArtifactServiceServer) mustEmbedUnimplementedArtifactServiceServer() {}

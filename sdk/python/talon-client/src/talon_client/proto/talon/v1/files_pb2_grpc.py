@@ -473,7 +473,7 @@ class ArtifactServiceStub(object):
         self.GrantArtifact = channel.unary_unary(
                 '/talon.v1.ArtifactService/GrantArtifact',
                 request_serializer=proto_dot_talon_dot_v1_dot_files__pb2.GrantArtifactRequest.SerializeToString,
-                response_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.ArtifactHandleResponse.FromString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.ArtifactUriResponse.FromString,
                 _registered_method=True)
 
 
@@ -482,8 +482,8 @@ class ArtifactServiceServicer(object):
 
     def ReadArtifact(self, request, context):
         """Artifact creation is handled by the runtime/tooling for an active session.
-        This service only exposes handle-based artifact reads, metadata, listing,
-        and grant operations.
+        This service only exposes URI-based artifact reads, metadata, listing,
+        and access grant operations.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -528,7 +528,7 @@ def add_ArtifactServiceServicer_to_server(servicer, server):
             'GrantArtifact': grpc.unary_unary_rpc_method_handler(
                     servicer.GrantArtifact,
                     request_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.GrantArtifactRequest.FromString,
-                    response_serializer=proto_dot_talon_dot_v1_dot_files__pb2.ArtifactHandleResponse.SerializeToString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_files__pb2.ArtifactUriResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -638,7 +638,7 @@ class ArtifactService(object):
             target,
             '/talon.v1.ArtifactService/GrantArtifact',
             proto_dot_talon_dot_v1_dot_files__pb2.GrantArtifactRequest.SerializeToString,
-            proto_dot_talon_dot_v1_dot_files__pb2.ArtifactHandleResponse.FromString,
+            proto_dot_talon_dot_v1_dot_files__pb2.ArtifactUriResponse.FromString,
             options,
             channel_credentials,
             insecure,
