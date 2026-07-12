@@ -76,6 +76,30 @@ export const RESOURCE_DESCRIPTORS: ResourceDescriptor[] = [
     },
   },
   {
+    kind: 'ConnectorClass',
+    selectionType: 'connector-class',
+    sortPrefix: 'connector-class',
+    sortWeight: 6,
+    icon: 'plug',
+    appearsInTree: true,
+    badge: (resource) => {
+      const spec = resourceSpec(resource, 'connectorClass');
+      return resourcePhase(resource, 'connectorClass') || spec.platform || spec.runtime?.kind || 'connector';
+    },
+  },
+  {
+    kind: 'Connector',
+    selectionType: 'connector',
+    sortPrefix: 'connector',
+    sortWeight: 6,
+    icon: 'radio',
+    appearsInTree: true,
+    badge: (resource) => {
+      const spec = resourceSpec(resource, 'connector');
+      return spec.enabled === false ? 'disabled' : spec.classRef?.name || resourcePhase(resource, 'connector') || 'connector';
+    },
+  },
+  {
     kind: 'SandboxClass',
     selectionType: 'sandbox-class',
     sortPrefix: 'sandbox-class',
