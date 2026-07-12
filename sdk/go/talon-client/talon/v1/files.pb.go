@@ -183,6 +183,250 @@ func (x *CreateFileRequest) GetContent() []byte {
 	return nil
 }
 
+type PrepareFileUploadRequest struct {
+	state             protoimpl.MessageState    `protogen:"open.v1"`
+	Namespace         string                    `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Path              string                    `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	MediaType         string                    `protobuf:"bytes,3,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	Purpose           resources.FilePurpose     `protobuf:"varint,4,opt,name=purpose,proto3,enum=talon.resources.FilePurpose" json:"purpose,omitempty"`
+	IndexPolicy       resources.FileIndexPolicy `protobuf:"varint,5,opt,name=index_policy,json=indexPolicy,proto3,enum=talon.resources.FileIndexPolicy" json:"index_policy,omitempty"`
+	Retention         resources.FileRetention   `protobuf:"varint,6,opt,name=retention,proto3,enum=talon.resources.FileRetention" json:"retention,omitempty"`
+	File              *FileRef                  `protobuf:"bytes,7,opt,name=file,proto3" json:"file,omitempty"`
+	ExpectedSizeBytes uint64                    `protobuf:"varint,8,opt,name=expected_size_bytes,json=expectedSizeBytes,proto3" json:"expected_size_bytes,omitempty"`
+	ExpectedSha256    string                    `protobuf:"bytes,9,opt,name=expected_sha256,json=expectedSha256,proto3" json:"expected_sha256,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *PrepareFileUploadRequest) Reset() {
+	*x = PrepareFileUploadRequest{}
+	mi := &file_proto_talon_v1_files_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PrepareFileUploadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrepareFileUploadRequest) ProtoMessage() {}
+
+func (x *PrepareFileUploadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_files_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrepareFileUploadRequest.ProtoReflect.Descriptor instead.
+func (*PrepareFileUploadRequest) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *PrepareFileUploadRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *PrepareFileUploadRequest) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *PrepareFileUploadRequest) GetMediaType() string {
+	if x != nil {
+		return x.MediaType
+	}
+	return ""
+}
+
+func (x *PrepareFileUploadRequest) GetPurpose() resources.FilePurpose {
+	if x != nil {
+		return x.Purpose
+	}
+	return resources.FilePurpose(0)
+}
+
+func (x *PrepareFileUploadRequest) GetIndexPolicy() resources.FileIndexPolicy {
+	if x != nil {
+		return x.IndexPolicy
+	}
+	return resources.FileIndexPolicy(0)
+}
+
+func (x *PrepareFileUploadRequest) GetRetention() resources.FileRetention {
+	if x != nil {
+		return x.Retention
+	}
+	return resources.FileRetention(0)
+}
+
+func (x *PrepareFileUploadRequest) GetFile() *FileRef {
+	if x != nil {
+		return x.File
+	}
+	return nil
+}
+
+func (x *PrepareFileUploadRequest) GetExpectedSizeBytes() uint64 {
+	if x != nil {
+		return x.ExpectedSizeBytes
+	}
+	return 0
+}
+
+func (x *PrepareFileUploadRequest) GetExpectedSha256() string {
+	if x != nil {
+		return x.ExpectedSha256
+	}
+	return ""
+}
+
+type PrepareFileUploadResponse struct {
+	state                         protoimpl.MessageState `protogen:"open.v1"`
+	File                          *resources.File        `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
+	UploadToken                   string                 `protobuf:"bytes,2,opt,name=upload_token,json=uploadToken,proto3" json:"upload_token,omitempty"`
+	SignedUploadUrl               string                 `protobuf:"bytes,3,opt,name=signed_upload_url,json=signedUploadUrl,proto3" json:"signed_upload_url,omitempty"`
+	Method                        string                 `protobuf:"bytes,4,opt,name=method,proto3" json:"method,omitempty"`
+	RequiredHeaders               map[string]string      `protobuf:"bytes,5,rep,name=required_headers,json=requiredHeaders,proto3" json:"required_headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	SignedUrlExpiresAtUnixSeconds int64                  `protobuf:"varint,6,opt,name=signed_url_expires_at_unix_seconds,json=signedUrlExpiresAtUnixSeconds,proto3" json:"signed_url_expires_at_unix_seconds,omitempty"`
+	ObjectKey                     string                 `protobuf:"bytes,7,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
+}
+
+func (x *PrepareFileUploadResponse) Reset() {
+	*x = PrepareFileUploadResponse{}
+	mi := &file_proto_talon_v1_files_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PrepareFileUploadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrepareFileUploadResponse) ProtoMessage() {}
+
+func (x *PrepareFileUploadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_files_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrepareFileUploadResponse.ProtoReflect.Descriptor instead.
+func (*PrepareFileUploadResponse) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *PrepareFileUploadResponse) GetFile() *resources.File {
+	if x != nil {
+		return x.File
+	}
+	return nil
+}
+
+func (x *PrepareFileUploadResponse) GetUploadToken() string {
+	if x != nil {
+		return x.UploadToken
+	}
+	return ""
+}
+
+func (x *PrepareFileUploadResponse) GetSignedUploadUrl() string {
+	if x != nil {
+		return x.SignedUploadUrl
+	}
+	return ""
+}
+
+func (x *PrepareFileUploadResponse) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *PrepareFileUploadResponse) GetRequiredHeaders() map[string]string {
+	if x != nil {
+		return x.RequiredHeaders
+	}
+	return nil
+}
+
+func (x *PrepareFileUploadResponse) GetSignedUrlExpiresAtUnixSeconds() int64 {
+	if x != nil {
+		return x.SignedUrlExpiresAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *PrepareFileUploadResponse) GetObjectKey() string {
+	if x != nil {
+		return x.ObjectKey
+	}
+	return ""
+}
+
+type CompleteFileUploadRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UploadToken   string                 `protobuf:"bytes,1,opt,name=upload_token,json=uploadToken,proto3" json:"upload_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteFileUploadRequest) Reset() {
+	*x = CompleteFileUploadRequest{}
+	mi := &file_proto_talon_v1_files_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteFileUploadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteFileUploadRequest) ProtoMessage() {}
+
+func (x *CompleteFileUploadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_files_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteFileUploadRequest.ProtoReflect.Descriptor instead.
+func (*CompleteFileUploadRequest) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CompleteFileUploadRequest) GetUploadToken() string {
+	if x != nil {
+		return x.UploadToken
+	}
+	return ""
+}
+
 type ReadFileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	File          *FileRef               `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
@@ -192,7 +436,7 @@ type ReadFileRequest struct {
 
 func (x *ReadFileRequest) Reset() {
 	*x = ReadFileRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[2]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -204,7 +448,7 @@ func (x *ReadFileRequest) String() string {
 func (*ReadFileRequest) ProtoMessage() {}
 
 func (x *ReadFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[2]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -217,7 +461,7 @@ func (x *ReadFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadFileRequest.ProtoReflect.Descriptor instead.
 func (*ReadFileRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{2}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ReadFileRequest) GetFile() *FileRef {
@@ -239,7 +483,7 @@ type ReadFileResponse struct {
 
 func (x *ReadFileResponse) Reset() {
 	*x = ReadFileResponse{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[3]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -251,7 +495,7 @@ func (x *ReadFileResponse) String() string {
 func (*ReadFileResponse) ProtoMessage() {}
 
 func (x *ReadFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[3]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -264,7 +508,7 @@ func (x *ReadFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadFileResponse.ProtoReflect.Descriptor instead.
 func (*ReadFileResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{3}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ReadFileResponse) GetFile() *resources.File {
@@ -306,7 +550,7 @@ type UpdateFileRequest struct {
 
 func (x *UpdateFileRequest) Reset() {
 	*x = UpdateFileRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -318,7 +562,7 @@ func (x *UpdateFileRequest) String() string {
 func (*UpdateFileRequest) ProtoMessage() {}
 
 func (x *UpdateFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -331,7 +575,7 @@ func (x *UpdateFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateFileRequest.ProtoReflect.Descriptor instead.
 func (*UpdateFileRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{4}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateFileRequest) GetFile() *FileRef {
@@ -364,7 +608,7 @@ type GetFileMetadataRequest struct {
 
 func (x *GetFileMetadataRequest) Reset() {
 	*x = GetFileMetadataRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -376,7 +620,7 @@ func (x *GetFileMetadataRequest) String() string {
 func (*GetFileMetadataRequest) ProtoMessage() {}
 
 func (x *GetFileMetadataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -389,7 +633,7 @@ func (x *GetFileMetadataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFileMetadataRequest.ProtoReflect.Descriptor instead.
 func (*GetFileMetadataRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{5}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetFileMetadataRequest) GetFile() *FileRef {
@@ -413,7 +657,7 @@ type ListFilesRequest struct {
 
 func (x *ListFilesRequest) Reset() {
 	*x = ListFilesRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[6]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -425,7 +669,7 @@ func (x *ListFilesRequest) String() string {
 func (*ListFilesRequest) ProtoMessage() {}
 
 func (x *ListFilesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[6]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -438,7 +682,7 @@ func (x *ListFilesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFilesRequest.ProtoReflect.Descriptor instead.
 func (*ListFilesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{6}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListFilesRequest) GetNamespace() string {
@@ -493,7 +737,7 @@ type ListFilesResponse struct {
 
 func (x *ListFilesResponse) Reset() {
 	*x = ListFilesResponse{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[7]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -505,7 +749,7 @@ func (x *ListFilesResponse) String() string {
 func (*ListFilesResponse) ProtoMessage() {}
 
 func (x *ListFilesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[7]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -518,7 +762,7 @@ func (x *ListFilesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFilesResponse.ProtoReflect.Descriptor instead.
 func (*ListFilesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{7}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListFilesResponse) GetFiles() []*resources.File {
@@ -544,7 +788,7 @@ type DeleteFileRequest struct {
 
 func (x *DeleteFileRequest) Reset() {
 	*x = DeleteFileRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[8]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -556,7 +800,7 @@ func (x *DeleteFileRequest) String() string {
 func (*DeleteFileRequest) ProtoMessage() {}
 
 func (x *DeleteFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[8]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -569,7 +813,7 @@ func (x *DeleteFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFileRequest.ProtoReflect.Descriptor instead.
 func (*DeleteFileRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{8}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteFileRequest) GetFile() *FileRef {
@@ -588,7 +832,7 @@ type DeleteFileResponse struct {
 
 func (x *DeleteFileResponse) Reset() {
 	*x = DeleteFileResponse{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[9]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -600,7 +844,7 @@ func (x *DeleteFileResponse) String() string {
 func (*DeleteFileResponse) ProtoMessage() {}
 
 func (x *DeleteFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[9]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -613,7 +857,7 @@ func (x *DeleteFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFileResponse.ProtoReflect.Descriptor instead.
 func (*DeleteFileResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{9}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *DeleteFileResponse) GetSuccess() bool {
@@ -637,7 +881,7 @@ type PromoteArtifactRequest struct {
 
 func (x *PromoteArtifactRequest) Reset() {
 	*x = PromoteArtifactRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[10]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -649,7 +893,7 @@ func (x *PromoteArtifactRequest) String() string {
 func (*PromoteArtifactRequest) ProtoMessage() {}
 
 func (x *PromoteArtifactRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[10]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -662,7 +906,7 @@ func (x *PromoteArtifactRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PromoteArtifactRequest.ProtoReflect.Descriptor instead.
 func (*PromoteArtifactRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{10}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PromoteArtifactRequest) GetArtifactHandle() string {
@@ -717,7 +961,7 @@ type FileResponse struct {
 
 func (x *FileResponse) Reset() {
 	*x = FileResponse{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[11]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -729,7 +973,7 @@ func (x *FileResponse) String() string {
 func (*FileResponse) ProtoMessage() {}
 
 func (x *FileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[11]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -742,7 +986,7 @@ func (x *FileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileResponse.ProtoReflect.Descriptor instead.
 func (*FileResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{11}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *FileResponse) GetFile() *resources.File {
@@ -768,7 +1012,7 @@ type ReadArtifactRequest struct {
 
 func (x *ReadArtifactRequest) Reset() {
 	*x = ReadArtifactRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[12]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -780,7 +1024,7 @@ func (x *ReadArtifactRequest) String() string {
 func (*ReadArtifactRequest) ProtoMessage() {}
 
 func (x *ReadArtifactRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[12]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -793,7 +1037,7 @@ func (x *ReadArtifactRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadArtifactRequest.ProtoReflect.Descriptor instead.
 func (*ReadArtifactRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{12}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ReadArtifactRequest) GetArtifactHandle() string {
@@ -815,7 +1059,7 @@ type ReadArtifactResponse struct {
 
 func (x *ReadArtifactResponse) Reset() {
 	*x = ReadArtifactResponse{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[13]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -827,7 +1071,7 @@ func (x *ReadArtifactResponse) String() string {
 func (*ReadArtifactResponse) ProtoMessage() {}
 
 func (x *ReadArtifactResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[13]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -840,7 +1084,7 @@ func (x *ReadArtifactResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadArtifactResponse.ProtoReflect.Descriptor instead.
 func (*ReadArtifactResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{13}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ReadArtifactResponse) GetArtifact() *data.Artifact {
@@ -880,7 +1124,7 @@ type GetArtifactMetadataRequest struct {
 
 func (x *GetArtifactMetadataRequest) Reset() {
 	*x = GetArtifactMetadataRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[14]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -892,7 +1136,7 @@ func (x *GetArtifactMetadataRequest) String() string {
 func (*GetArtifactMetadataRequest) ProtoMessage() {}
 
 func (x *GetArtifactMetadataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[14]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -905,7 +1149,7 @@ func (x *GetArtifactMetadataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetArtifactMetadataRequest.ProtoReflect.Descriptor instead.
 func (*GetArtifactMetadataRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{14}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetArtifactMetadataRequest) GetArtifactHandle() string {
@@ -929,7 +1173,7 @@ type ListArtifactsRequest struct {
 
 func (x *ListArtifactsRequest) Reset() {
 	*x = ListArtifactsRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[15]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -941,7 +1185,7 @@ func (x *ListArtifactsRequest) String() string {
 func (*ListArtifactsRequest) ProtoMessage() {}
 
 func (x *ListArtifactsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[15]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -954,7 +1198,7 @@ func (x *ListArtifactsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListArtifactsRequest.ProtoReflect.Descriptor instead.
 func (*ListArtifactsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{15}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListArtifactsRequest) GetNamespace() string {
@@ -1009,7 +1253,7 @@ type ListArtifactsResponse struct {
 
 func (x *ListArtifactsResponse) Reset() {
 	*x = ListArtifactsResponse{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[16]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1021,7 +1265,7 @@ func (x *ListArtifactsResponse) String() string {
 func (*ListArtifactsResponse) ProtoMessage() {}
 
 func (x *ListArtifactsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[16]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1034,7 +1278,7 @@ func (x *ListArtifactsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListArtifactsResponse.ProtoReflect.Descriptor instead.
 func (*ListArtifactsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{16}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListArtifactsResponse) GetArtifacts() []*data.Artifact {
@@ -1064,7 +1308,7 @@ type GrantArtifactRequest struct {
 
 func (x *GrantArtifactRequest) Reset() {
 	*x = GrantArtifactRequest{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[17]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1076,7 +1320,7 @@ func (x *GrantArtifactRequest) String() string {
 func (*GrantArtifactRequest) ProtoMessage() {}
 
 func (x *GrantArtifactRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[17]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1089,7 +1333,7 @@ func (x *GrantArtifactRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantArtifactRequest.ProtoReflect.Descriptor instead.
 func (*GrantArtifactRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{17}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GrantArtifactRequest) GetArtifactHandle() string {
@@ -1137,7 +1381,7 @@ type ArtifactResponse struct {
 
 func (x *ArtifactResponse) Reset() {
 	*x = ArtifactResponse{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[18]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1149,7 +1393,7 @@ func (x *ArtifactResponse) String() string {
 func (*ArtifactResponse) ProtoMessage() {}
 
 func (x *ArtifactResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[18]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1162,7 +1406,7 @@ func (x *ArtifactResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArtifactResponse.ProtoReflect.Descriptor instead.
 func (*ArtifactResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{18}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ArtifactResponse) GetArtifact() *data.Artifact {
@@ -1188,7 +1432,7 @@ type ArtifactHandleResponse struct {
 
 func (x *ArtifactHandleResponse) Reset() {
 	*x = ArtifactHandleResponse{}
-	mi := &file_proto_talon_v1_files_proto_msgTypes[19]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1200,7 +1444,7 @@ func (x *ArtifactHandleResponse) String() string {
 func (*ArtifactHandleResponse) ProtoMessage() {}
 
 func (x *ArtifactHandleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_files_proto_msgTypes[19]
+	mi := &file_proto_talon_v1_files_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1213,7 +1457,7 @@ func (x *ArtifactHandleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArtifactHandleResponse.ProtoReflect.Descriptor instead.
 func (*ArtifactHandleResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{19}
+	return file_proto_talon_v1_files_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ArtifactHandleResponse) GetArtifactHandle() string {
@@ -1241,7 +1485,32 @@ const file_proto_talon_v1_files_proto_rawDesc = "" +
 	"\apurpose\x18\x04 \x01(\x0e2\x1c.talon.resources.FilePurposeR\apurpose\x12C\n" +
 	"\findex_policy\x18\x05 \x01(\x0e2 .talon.resources.FileIndexPolicyR\vindexPolicy\x12<\n" +
 	"\tretention\x18\x06 \x01(\x0e2\x1e.talon.resources.FileRetentionR\tretention\x12\x18\n" +
-	"\acontent\x18\a \x01(\fR\acontent\"8\n" +
+	"\acontent\x18\a \x01(\fR\acontent\"\xa6\x03\n" +
+	"\x18PrepareFileUploadRequest\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\x12\x1d\n" +
+	"\n" +
+	"media_type\x18\x03 \x01(\tR\tmediaType\x126\n" +
+	"\apurpose\x18\x04 \x01(\x0e2\x1c.talon.resources.FilePurposeR\apurpose\x12C\n" +
+	"\findex_policy\x18\x05 \x01(\x0e2 .talon.resources.FileIndexPolicyR\vindexPolicy\x12<\n" +
+	"\tretention\x18\x06 \x01(\x0e2\x1e.talon.resources.FileRetentionR\tretention\x12%\n" +
+	"\x04file\x18\a \x01(\v2\x11.talon.v1.FileRefR\x04file\x12.\n" +
+	"\x13expected_size_bytes\x18\b \x01(\x04R\x11expectedSizeBytes\x12'\n" +
+	"\x0fexpected_sha256\x18\t \x01(\tR\x0eexpectedSha256\"\xc0\x03\n" +
+	"\x19PrepareFileUploadResponse\x12)\n" +
+	"\x04file\x18\x01 \x01(\v2\x15.talon.resources.FileR\x04file\x12!\n" +
+	"\fupload_token\x18\x02 \x01(\tR\vuploadToken\x12*\n" +
+	"\x11signed_upload_url\x18\x03 \x01(\tR\x0fsignedUploadUrl\x12\x16\n" +
+	"\x06method\x18\x04 \x01(\tR\x06method\x12c\n" +
+	"\x10required_headers\x18\x05 \x03(\v28.talon.v1.PrepareFileUploadResponse.RequiredHeadersEntryR\x0frequiredHeaders\x12I\n" +
+	"\"signed_url_expires_at_unix_seconds\x18\x06 \x01(\x03R\x1dsignedUrlExpiresAtUnixSeconds\x12\x1d\n" +
+	"\n" +
+	"object_key\x18\a \x01(\tR\tobjectKey\x1aB\n" +
+	"\x14RequiredHeadersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\">\n" +
+	"\x19CompleteFileUploadRequest\x12!\n" +
+	"\fupload_token\x18\x01 \x01(\tR\vuploadToken\"8\n" +
 	"\x0fReadFileRequest\x12%\n" +
 	"\x04file\x18\x01 \x01(\v2\x11.talon.v1.FileRefR\x04file\"\xc1\x01\n" +
 	"\x10ReadFileResponse\x12)\n" +
@@ -1320,10 +1589,12 @@ const file_proto_talon_v1_files_proto_rawDesc = "" +
 	"\bartifact\x18\x01 \x01(\v2\x14.talon.data.ArtifactR\bartifact\x12'\n" +
 	"\x0fartifact_handle\x18\x02 \x01(\tR\x0eartifactHandle\"A\n" +
 	"\x16ArtifactHandleResponse\x12'\n" +
-	"\x0fartifact_handle\x18\x01 \x01(\tR\x0eartifactHandle2\xff\x03\n" +
+	"\x0fartifact_handle\x18\x01 \x01(\tR\x0eartifactHandle2\xb0\x05\n" +
 	"\vFileService\x12A\n" +
 	"\n" +
-	"CreateFile\x12\x1b.talon.v1.CreateFileRequest\x1a\x16.talon.v1.FileResponse\x12A\n" +
+	"CreateFile\x12\x1b.talon.v1.CreateFileRequest\x1a\x16.talon.v1.FileResponse\x12\\\n" +
+	"\x11PrepareFileUpload\x12\".talon.v1.PrepareFileUploadRequest\x1a#.talon.v1.PrepareFileUploadResponse\x12Q\n" +
+	"\x12CompleteFileUpload\x12#.talon.v1.CompleteFileUploadRequest\x1a\x16.talon.v1.FileResponse\x12A\n" +
 	"\bReadFile\x12\x19.talon.v1.ReadFileRequest\x1a\x1a.talon.v1.ReadFileResponse\x12A\n" +
 	"\n" +
 	"UpdateFile\x12\x1b.talon.v1.UpdateFileRequest\x1a\x16.talon.v1.FileResponse\x12K\n" +
@@ -1350,80 +1621,94 @@ func file_proto_talon_v1_files_proto_rawDescGZIP() []byte {
 	return file_proto_talon_v1_files_proto_rawDescData
 }
 
-var file_proto_talon_v1_files_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_proto_talon_v1_files_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_proto_talon_v1_files_proto_goTypes = []any{
 	(*FileRef)(nil),                    // 0: talon.v1.FileRef
 	(*CreateFileRequest)(nil),          // 1: talon.v1.CreateFileRequest
-	(*ReadFileRequest)(nil),            // 2: talon.v1.ReadFileRequest
-	(*ReadFileResponse)(nil),           // 3: talon.v1.ReadFileResponse
-	(*UpdateFileRequest)(nil),          // 4: talon.v1.UpdateFileRequest
-	(*GetFileMetadataRequest)(nil),     // 5: talon.v1.GetFileMetadataRequest
-	(*ListFilesRequest)(nil),           // 6: talon.v1.ListFilesRequest
-	(*ListFilesResponse)(nil),          // 7: talon.v1.ListFilesResponse
-	(*DeleteFileRequest)(nil),          // 8: talon.v1.DeleteFileRequest
-	(*DeleteFileResponse)(nil),         // 9: talon.v1.DeleteFileResponse
-	(*PromoteArtifactRequest)(nil),     // 10: talon.v1.PromoteArtifactRequest
-	(*FileResponse)(nil),               // 11: talon.v1.FileResponse
-	(*ReadArtifactRequest)(nil),        // 12: talon.v1.ReadArtifactRequest
-	(*ReadArtifactResponse)(nil),       // 13: talon.v1.ReadArtifactResponse
-	(*GetArtifactMetadataRequest)(nil), // 14: talon.v1.GetArtifactMetadataRequest
-	(*ListArtifactsRequest)(nil),       // 15: talon.v1.ListArtifactsRequest
-	(*ListArtifactsResponse)(nil),      // 16: talon.v1.ListArtifactsResponse
-	(*GrantArtifactRequest)(nil),       // 17: talon.v1.GrantArtifactRequest
-	(*ArtifactResponse)(nil),           // 18: talon.v1.ArtifactResponse
-	(*ArtifactHandleResponse)(nil),     // 19: talon.v1.ArtifactHandleResponse
-	(resources.FilePurpose)(0),         // 20: talon.resources.FilePurpose
-	(resources.FileIndexPolicy)(0),     // 21: talon.resources.FileIndexPolicy
-	(resources.FileRetention)(0),       // 22: talon.resources.FileRetention
-	(*resources.File)(nil),             // 23: talon.resources.File
-	(*data.Artifact)(nil),              // 24: talon.data.Artifact
+	(*PrepareFileUploadRequest)(nil),   // 2: talon.v1.PrepareFileUploadRequest
+	(*PrepareFileUploadResponse)(nil),  // 3: talon.v1.PrepareFileUploadResponse
+	(*CompleteFileUploadRequest)(nil),  // 4: talon.v1.CompleteFileUploadRequest
+	(*ReadFileRequest)(nil),            // 5: talon.v1.ReadFileRequest
+	(*ReadFileResponse)(nil),           // 6: talon.v1.ReadFileResponse
+	(*UpdateFileRequest)(nil),          // 7: talon.v1.UpdateFileRequest
+	(*GetFileMetadataRequest)(nil),     // 8: talon.v1.GetFileMetadataRequest
+	(*ListFilesRequest)(nil),           // 9: talon.v1.ListFilesRequest
+	(*ListFilesResponse)(nil),          // 10: talon.v1.ListFilesResponse
+	(*DeleteFileRequest)(nil),          // 11: talon.v1.DeleteFileRequest
+	(*DeleteFileResponse)(nil),         // 12: talon.v1.DeleteFileResponse
+	(*PromoteArtifactRequest)(nil),     // 13: talon.v1.PromoteArtifactRequest
+	(*FileResponse)(nil),               // 14: talon.v1.FileResponse
+	(*ReadArtifactRequest)(nil),        // 15: talon.v1.ReadArtifactRequest
+	(*ReadArtifactResponse)(nil),       // 16: talon.v1.ReadArtifactResponse
+	(*GetArtifactMetadataRequest)(nil), // 17: talon.v1.GetArtifactMetadataRequest
+	(*ListArtifactsRequest)(nil),       // 18: talon.v1.ListArtifactsRequest
+	(*ListArtifactsResponse)(nil),      // 19: talon.v1.ListArtifactsResponse
+	(*GrantArtifactRequest)(nil),       // 20: talon.v1.GrantArtifactRequest
+	(*ArtifactResponse)(nil),           // 21: talon.v1.ArtifactResponse
+	(*ArtifactHandleResponse)(nil),     // 22: talon.v1.ArtifactHandleResponse
+	nil,                                // 23: talon.v1.PrepareFileUploadResponse.RequiredHeadersEntry
+	(resources.FilePurpose)(0),         // 24: talon.resources.FilePurpose
+	(resources.FileIndexPolicy)(0),     // 25: talon.resources.FileIndexPolicy
+	(resources.FileRetention)(0),       // 26: talon.resources.FileRetention
+	(*resources.File)(nil),             // 27: talon.resources.File
+	(*data.Artifact)(nil),              // 28: talon.data.Artifact
 }
 var file_proto_talon_v1_files_proto_depIdxs = []int32{
-	20, // 0: talon.v1.CreateFileRequest.purpose:type_name -> talon.resources.FilePurpose
-	21, // 1: talon.v1.CreateFileRequest.index_policy:type_name -> talon.resources.FileIndexPolicy
-	22, // 2: talon.v1.CreateFileRequest.retention:type_name -> talon.resources.FileRetention
-	0,  // 3: talon.v1.ReadFileRequest.file:type_name -> talon.v1.FileRef
-	23, // 4: talon.v1.ReadFileResponse.file:type_name -> talon.resources.File
-	0,  // 5: talon.v1.UpdateFileRequest.file:type_name -> talon.v1.FileRef
-	0,  // 6: talon.v1.GetFileMetadataRequest.file:type_name -> talon.v1.FileRef
-	20, // 7: talon.v1.ListFilesRequest.purpose:type_name -> talon.resources.FilePurpose
-	21, // 8: talon.v1.ListFilesRequest.index_policy:type_name -> talon.resources.FileIndexPolicy
-	23, // 9: talon.v1.ListFilesResponse.files:type_name -> talon.resources.File
-	0,  // 10: talon.v1.DeleteFileRequest.file:type_name -> talon.v1.FileRef
-	20, // 11: talon.v1.PromoteArtifactRequest.purpose:type_name -> talon.resources.FilePurpose
-	21, // 12: talon.v1.PromoteArtifactRequest.index_policy:type_name -> talon.resources.FileIndexPolicy
-	22, // 13: talon.v1.PromoteArtifactRequest.retention:type_name -> talon.resources.FileRetention
-	23, // 14: talon.v1.FileResponse.file:type_name -> talon.resources.File
-	24, // 15: talon.v1.ReadArtifactResponse.artifact:type_name -> talon.data.Artifact
-	24, // 16: talon.v1.ListArtifactsResponse.artifacts:type_name -> talon.data.Artifact
-	24, // 17: talon.v1.ArtifactResponse.artifact:type_name -> talon.data.Artifact
-	1,  // 18: talon.v1.FileService.CreateFile:input_type -> talon.v1.CreateFileRequest
-	2,  // 19: talon.v1.FileService.ReadFile:input_type -> talon.v1.ReadFileRequest
-	4,  // 20: talon.v1.FileService.UpdateFile:input_type -> talon.v1.UpdateFileRequest
-	5,  // 21: talon.v1.FileService.GetFileMetadata:input_type -> talon.v1.GetFileMetadataRequest
-	6,  // 22: talon.v1.FileService.ListFiles:input_type -> talon.v1.ListFilesRequest
-	8,  // 23: talon.v1.FileService.DeleteFile:input_type -> talon.v1.DeleteFileRequest
-	10, // 24: talon.v1.FileService.PromoteArtifact:input_type -> talon.v1.PromoteArtifactRequest
-	12, // 25: talon.v1.ArtifactService.ReadArtifact:input_type -> talon.v1.ReadArtifactRequest
-	14, // 26: talon.v1.ArtifactService.GetArtifactMetadata:input_type -> talon.v1.GetArtifactMetadataRequest
-	15, // 27: talon.v1.ArtifactService.ListArtifacts:input_type -> talon.v1.ListArtifactsRequest
-	17, // 28: talon.v1.ArtifactService.GrantArtifact:input_type -> talon.v1.GrantArtifactRequest
-	11, // 29: talon.v1.FileService.CreateFile:output_type -> talon.v1.FileResponse
-	3,  // 30: talon.v1.FileService.ReadFile:output_type -> talon.v1.ReadFileResponse
-	11, // 31: talon.v1.FileService.UpdateFile:output_type -> talon.v1.FileResponse
-	11, // 32: talon.v1.FileService.GetFileMetadata:output_type -> talon.v1.FileResponse
-	7,  // 33: talon.v1.FileService.ListFiles:output_type -> talon.v1.ListFilesResponse
-	9,  // 34: talon.v1.FileService.DeleteFile:output_type -> talon.v1.DeleteFileResponse
-	11, // 35: talon.v1.FileService.PromoteArtifact:output_type -> talon.v1.FileResponse
-	13, // 36: talon.v1.ArtifactService.ReadArtifact:output_type -> talon.v1.ReadArtifactResponse
-	18, // 37: talon.v1.ArtifactService.GetArtifactMetadata:output_type -> talon.v1.ArtifactResponse
-	16, // 38: talon.v1.ArtifactService.ListArtifacts:output_type -> talon.v1.ListArtifactsResponse
-	19, // 39: talon.v1.ArtifactService.GrantArtifact:output_type -> talon.v1.ArtifactHandleResponse
-	29, // [29:40] is the sub-list for method output_type
-	18, // [18:29] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	24, // 0: talon.v1.CreateFileRequest.purpose:type_name -> talon.resources.FilePurpose
+	25, // 1: talon.v1.CreateFileRequest.index_policy:type_name -> talon.resources.FileIndexPolicy
+	26, // 2: talon.v1.CreateFileRequest.retention:type_name -> talon.resources.FileRetention
+	24, // 3: talon.v1.PrepareFileUploadRequest.purpose:type_name -> talon.resources.FilePurpose
+	25, // 4: talon.v1.PrepareFileUploadRequest.index_policy:type_name -> talon.resources.FileIndexPolicy
+	26, // 5: talon.v1.PrepareFileUploadRequest.retention:type_name -> talon.resources.FileRetention
+	0,  // 6: talon.v1.PrepareFileUploadRequest.file:type_name -> talon.v1.FileRef
+	27, // 7: talon.v1.PrepareFileUploadResponse.file:type_name -> talon.resources.File
+	23, // 8: talon.v1.PrepareFileUploadResponse.required_headers:type_name -> talon.v1.PrepareFileUploadResponse.RequiredHeadersEntry
+	0,  // 9: talon.v1.ReadFileRequest.file:type_name -> talon.v1.FileRef
+	27, // 10: talon.v1.ReadFileResponse.file:type_name -> talon.resources.File
+	0,  // 11: talon.v1.UpdateFileRequest.file:type_name -> talon.v1.FileRef
+	0,  // 12: talon.v1.GetFileMetadataRequest.file:type_name -> talon.v1.FileRef
+	24, // 13: talon.v1.ListFilesRequest.purpose:type_name -> talon.resources.FilePurpose
+	25, // 14: talon.v1.ListFilesRequest.index_policy:type_name -> talon.resources.FileIndexPolicy
+	27, // 15: talon.v1.ListFilesResponse.files:type_name -> talon.resources.File
+	0,  // 16: talon.v1.DeleteFileRequest.file:type_name -> talon.v1.FileRef
+	24, // 17: talon.v1.PromoteArtifactRequest.purpose:type_name -> talon.resources.FilePurpose
+	25, // 18: talon.v1.PromoteArtifactRequest.index_policy:type_name -> talon.resources.FileIndexPolicy
+	26, // 19: talon.v1.PromoteArtifactRequest.retention:type_name -> talon.resources.FileRetention
+	27, // 20: talon.v1.FileResponse.file:type_name -> talon.resources.File
+	28, // 21: talon.v1.ReadArtifactResponse.artifact:type_name -> talon.data.Artifact
+	28, // 22: talon.v1.ListArtifactsResponse.artifacts:type_name -> talon.data.Artifact
+	28, // 23: talon.v1.ArtifactResponse.artifact:type_name -> talon.data.Artifact
+	1,  // 24: talon.v1.FileService.CreateFile:input_type -> talon.v1.CreateFileRequest
+	2,  // 25: talon.v1.FileService.PrepareFileUpload:input_type -> talon.v1.PrepareFileUploadRequest
+	4,  // 26: talon.v1.FileService.CompleteFileUpload:input_type -> talon.v1.CompleteFileUploadRequest
+	5,  // 27: talon.v1.FileService.ReadFile:input_type -> talon.v1.ReadFileRequest
+	7,  // 28: talon.v1.FileService.UpdateFile:input_type -> talon.v1.UpdateFileRequest
+	8,  // 29: talon.v1.FileService.GetFileMetadata:input_type -> talon.v1.GetFileMetadataRequest
+	9,  // 30: talon.v1.FileService.ListFiles:input_type -> talon.v1.ListFilesRequest
+	11, // 31: talon.v1.FileService.DeleteFile:input_type -> talon.v1.DeleteFileRequest
+	13, // 32: talon.v1.FileService.PromoteArtifact:input_type -> talon.v1.PromoteArtifactRequest
+	15, // 33: talon.v1.ArtifactService.ReadArtifact:input_type -> talon.v1.ReadArtifactRequest
+	17, // 34: talon.v1.ArtifactService.GetArtifactMetadata:input_type -> talon.v1.GetArtifactMetadataRequest
+	18, // 35: talon.v1.ArtifactService.ListArtifacts:input_type -> talon.v1.ListArtifactsRequest
+	20, // 36: talon.v1.ArtifactService.GrantArtifact:input_type -> talon.v1.GrantArtifactRequest
+	14, // 37: talon.v1.FileService.CreateFile:output_type -> talon.v1.FileResponse
+	3,  // 38: talon.v1.FileService.PrepareFileUpload:output_type -> talon.v1.PrepareFileUploadResponse
+	14, // 39: talon.v1.FileService.CompleteFileUpload:output_type -> talon.v1.FileResponse
+	6,  // 40: talon.v1.FileService.ReadFile:output_type -> talon.v1.ReadFileResponse
+	14, // 41: talon.v1.FileService.UpdateFile:output_type -> talon.v1.FileResponse
+	14, // 42: talon.v1.FileService.GetFileMetadata:output_type -> talon.v1.FileResponse
+	10, // 43: talon.v1.FileService.ListFiles:output_type -> talon.v1.ListFilesResponse
+	12, // 44: talon.v1.FileService.DeleteFile:output_type -> talon.v1.DeleteFileResponse
+	14, // 45: talon.v1.FileService.PromoteArtifact:output_type -> talon.v1.FileResponse
+	16, // 46: talon.v1.ArtifactService.ReadArtifact:output_type -> talon.v1.ReadArtifactResponse
+	21, // 47: talon.v1.ArtifactService.GetArtifactMetadata:output_type -> talon.v1.ArtifactResponse
+	19, // 48: talon.v1.ArtifactService.ListArtifacts:output_type -> talon.v1.ListArtifactsResponse
+	22, // 49: talon.v1.ArtifactService.GrantArtifact:output_type -> talon.v1.ArtifactHandleResponse
+	37, // [37:50] is the sub-list for method output_type
+	24, // [24:37] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_files_proto_init() }
@@ -1437,7 +1722,7 @@ func file_proto_talon_v1_files_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_talon_v1_files_proto_rawDesc), len(file_proto_talon_v1_files_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

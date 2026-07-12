@@ -2243,6 +2243,52 @@ pub struct CreateFileRequest {
     pub content: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PrepareFileUploadRequest {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(enumeration = "super::resources::FilePurpose", tag = "4")]
+    pub purpose: i32,
+    #[prost(enumeration = "super::resources::FileIndexPolicy", tag = "5")]
+    pub index_policy: i32,
+    #[prost(enumeration = "super::resources::FileRetention", tag = "6")]
+    pub retention: i32,
+    #[prost(message, optional, tag = "7")]
+    pub file: ::core::option::Option<FileRef>,
+    #[prost(uint64, tag = "8")]
+    pub expected_size_bytes: u64,
+    #[prost(string, tag = "9")]
+    pub expected_sha256: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PrepareFileUploadResponse {
+    #[prost(message, optional, tag = "1")]
+    pub file: ::core::option::Option<super::resources::File>,
+    #[prost(string, tag = "2")]
+    pub upload_token: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub signed_upload_url: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub method: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "5")]
+    pub required_headers: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(int64, tag = "6")]
+    pub signed_url_expires_at_unix_seconds: i64,
+    #[prost(string, tag = "7")]
+    pub object_key: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CompleteFileUploadRequest {
+    #[prost(string, tag = "1")]
+    pub upload_token: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadFileRequest {
     #[prost(message, optional, tag = "1")]
     pub file: ::core::option::Option<FileRef>,
@@ -2507,6 +2553,51 @@ pub mod file_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.v1.FileService", "CreateFile"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn prepare_file_upload(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PrepareFileUploadRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PrepareFileUploadResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/PrepareFileUpload",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "PrepareFileUpload"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn complete_file_upload(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CompleteFileUploadRequest>,
+        ) -> std::result::Result<tonic::Response<super::FileResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.FileService/CompleteFileUpload",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.FileService", "CompleteFileUpload"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn read_file(

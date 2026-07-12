@@ -2181,6 +2181,3626 @@ public final class Files extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface PrepareFileUploadRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.PrepareFileUploadRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>string path = 2;</code>
+     * @return The path.
+     */
+    java.lang.String getPath();
+    /**
+     * <code>string path = 2;</code>
+     * @return The bytes for path.
+     */
+    com.google.protobuf.ByteString
+        getPathBytes();
+
+    /**
+     * <code>string media_type = 3;</code>
+     * @return The mediaType.
+     */
+    java.lang.String getMediaType();
+    /**
+     * <code>string media_type = 3;</code>
+     * @return The bytes for mediaType.
+     */
+    com.google.protobuf.ByteString
+        getMediaTypeBytes();
+
+    /**
+     * <code>.talon.resources.FilePurpose purpose = 4;</code>
+     * @return The enum numeric value on the wire for purpose.
+     */
+    int getPurposeValue();
+    /**
+     * <code>.talon.resources.FilePurpose purpose = 4;</code>
+     * @return The purpose.
+     */
+    talon.resources.Files.FilePurpose getPurpose();
+
+    /**
+     * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+     * @return The enum numeric value on the wire for indexPolicy.
+     */
+    int getIndexPolicyValue();
+    /**
+     * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+     * @return The indexPolicy.
+     */
+    talon.resources.Files.FileIndexPolicy getIndexPolicy();
+
+    /**
+     * <code>.talon.resources.FileRetention retention = 6;</code>
+     * @return The enum numeric value on the wire for retention.
+     */
+    int getRetentionValue();
+    /**
+     * <code>.talon.resources.FileRetention retention = 6;</code>
+     * @return The retention.
+     */
+    talon.resources.Files.FileRetention getRetention();
+
+    /**
+     * <code>.talon.v1.FileRef file = 7;</code>
+     * @return Whether the file field is set.
+     */
+    boolean hasFile();
+    /**
+     * <code>.talon.v1.FileRef file = 7;</code>
+     * @return The file.
+     */
+    talon.v1.Files.FileRef getFile();
+    /**
+     * <code>.talon.v1.FileRef file = 7;</code>
+     */
+    talon.v1.Files.FileRefOrBuilder getFileOrBuilder();
+
+    /**
+     * <code>uint64 expected_size_bytes = 8;</code>
+     * @return The expectedSizeBytes.
+     */
+    long getExpectedSizeBytes();
+
+    /**
+     * <code>string expected_sha256 = 9;</code>
+     * @return The expectedSha256.
+     */
+    java.lang.String getExpectedSha256();
+    /**
+     * <code>string expected_sha256 = 9;</code>
+     * @return The bytes for expectedSha256.
+     */
+    com.google.protobuf.ByteString
+        getExpectedSha256Bytes();
+  }
+  /**
+   * Protobuf type {@code talon.v1.PrepareFileUploadRequest}
+   */
+  public static final class PrepareFileUploadRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.PrepareFileUploadRequest)
+      PrepareFileUploadRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "PrepareFileUploadRequest");
+    }
+    // Use PrepareFileUploadRequest.newBuilder() to construct.
+    private PrepareFileUploadRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private PrepareFileUploadRequest() {
+      namespace_ = "";
+      path_ = "";
+      mediaType_ = "";
+      purpose_ = 0;
+      indexPolicy_ = 0;
+      retention_ = 0;
+      expectedSha256_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Files.PrepareFileUploadRequest.class, talon.v1.Files.PrepareFileUploadRequest.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PATH_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object path_ = "";
+    /**
+     * <code>string path = 2;</code>
+     * @return The path.
+     */
+    @java.lang.Override
+    public java.lang.String getPath() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        path_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string path = 2;</code>
+     * @return The bytes for path.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPathBytes() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        path_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MEDIA_TYPE_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object mediaType_ = "";
+    /**
+     * <code>string media_type = 3;</code>
+     * @return The mediaType.
+     */
+    @java.lang.Override
+    public java.lang.String getMediaType() {
+      java.lang.Object ref = mediaType_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        mediaType_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string media_type = 3;</code>
+     * @return The bytes for mediaType.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMediaTypeBytes() {
+      java.lang.Object ref = mediaType_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        mediaType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PURPOSE_FIELD_NUMBER = 4;
+    private int purpose_ = 0;
+    /**
+     * <code>.talon.resources.FilePurpose purpose = 4;</code>
+     * @return The enum numeric value on the wire for purpose.
+     */
+    @java.lang.Override public int getPurposeValue() {
+      return purpose_;
+    }
+    /**
+     * <code>.talon.resources.FilePurpose purpose = 4;</code>
+     * @return The purpose.
+     */
+    @java.lang.Override public talon.resources.Files.FilePurpose getPurpose() {
+      talon.resources.Files.FilePurpose result = talon.resources.Files.FilePurpose.forNumber(purpose_);
+      return result == null ? talon.resources.Files.FilePurpose.UNRECOGNIZED : result;
+    }
+
+    public static final int INDEX_POLICY_FIELD_NUMBER = 5;
+    private int indexPolicy_ = 0;
+    /**
+     * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+     * @return The enum numeric value on the wire for indexPolicy.
+     */
+    @java.lang.Override public int getIndexPolicyValue() {
+      return indexPolicy_;
+    }
+    /**
+     * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+     * @return The indexPolicy.
+     */
+    @java.lang.Override public talon.resources.Files.FileIndexPolicy getIndexPolicy() {
+      talon.resources.Files.FileIndexPolicy result = talon.resources.Files.FileIndexPolicy.forNumber(indexPolicy_);
+      return result == null ? talon.resources.Files.FileIndexPolicy.UNRECOGNIZED : result;
+    }
+
+    public static final int RETENTION_FIELD_NUMBER = 6;
+    private int retention_ = 0;
+    /**
+     * <code>.talon.resources.FileRetention retention = 6;</code>
+     * @return The enum numeric value on the wire for retention.
+     */
+    @java.lang.Override public int getRetentionValue() {
+      return retention_;
+    }
+    /**
+     * <code>.talon.resources.FileRetention retention = 6;</code>
+     * @return The retention.
+     */
+    @java.lang.Override public talon.resources.Files.FileRetention getRetention() {
+      talon.resources.Files.FileRetention result = talon.resources.Files.FileRetention.forNumber(retention_);
+      return result == null ? talon.resources.Files.FileRetention.UNRECOGNIZED : result;
+    }
+
+    public static final int FILE_FIELD_NUMBER = 7;
+    private talon.v1.Files.FileRef file_;
+    /**
+     * <code>.talon.v1.FileRef file = 7;</code>
+     * @return Whether the file field is set.
+     */
+    @java.lang.Override
+    public boolean hasFile() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.v1.FileRef file = 7;</code>
+     * @return The file.
+     */
+    @java.lang.Override
+    public talon.v1.Files.FileRef getFile() {
+      return file_ == null ? talon.v1.Files.FileRef.getDefaultInstance() : file_;
+    }
+    /**
+     * <code>.talon.v1.FileRef file = 7;</code>
+     */
+    @java.lang.Override
+    public talon.v1.Files.FileRefOrBuilder getFileOrBuilder() {
+      return file_ == null ? talon.v1.Files.FileRef.getDefaultInstance() : file_;
+    }
+
+    public static final int EXPECTED_SIZE_BYTES_FIELD_NUMBER = 8;
+    private long expectedSizeBytes_ = 0L;
+    /**
+     * <code>uint64 expected_size_bytes = 8;</code>
+     * @return The expectedSizeBytes.
+     */
+    @java.lang.Override
+    public long getExpectedSizeBytes() {
+      return expectedSizeBytes_;
+    }
+
+    public static final int EXPECTED_SHA256_FIELD_NUMBER = 9;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object expectedSha256_ = "";
+    /**
+     * <code>string expected_sha256 = 9;</code>
+     * @return The expectedSha256.
+     */
+    @java.lang.Override
+    public java.lang.String getExpectedSha256() {
+      java.lang.Object ref = expectedSha256_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        expectedSha256_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string expected_sha256 = 9;</code>
+     * @return The bytes for expectedSha256.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getExpectedSha256Bytes() {
+      java.lang.Object ref = expectedSha256_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        expectedSha256_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, path_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, mediaType_);
+      }
+      if (purpose_ != talon.resources.Files.FilePurpose.FILE_PURPOSE_UNSPECIFIED.getNumber()) {
+        output.writeEnum(4, purpose_);
+      }
+      if (indexPolicy_ != talon.resources.Files.FileIndexPolicy.FILE_INDEX_POLICY_UNSPECIFIED.getNumber()) {
+        output.writeEnum(5, indexPolicy_);
+      }
+      if (retention_ != talon.resources.Files.FileRetention.FILE_RETENTION_UNSPECIFIED.getNumber()) {
+        output.writeEnum(6, retention_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(7, getFile());
+      }
+      if (expectedSizeBytes_ != 0L) {
+        output.writeUInt64(8, expectedSizeBytes_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(expectedSha256_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 9, expectedSha256_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, path_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, mediaType_);
+      }
+      if (purpose_ != talon.resources.Files.FilePurpose.FILE_PURPOSE_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(4, purpose_);
+      }
+      if (indexPolicy_ != talon.resources.Files.FileIndexPolicy.FILE_INDEX_POLICY_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(5, indexPolicy_);
+      }
+      if (retention_ != talon.resources.Files.FileRetention.FILE_RETENTION_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(6, retention_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, getFile());
+      }
+      if (expectedSizeBytes_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(8, expectedSizeBytes_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(expectedSha256_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, expectedSha256_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Files.PrepareFileUploadRequest)) {
+        return super.equals(obj);
+      }
+      talon.v1.Files.PrepareFileUploadRequest other = (talon.v1.Files.PrepareFileUploadRequest) obj;
+
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getPath()
+          .equals(other.getPath())) return false;
+      if (!getMediaType()
+          .equals(other.getMediaType())) return false;
+      if (purpose_ != other.purpose_) return false;
+      if (indexPolicy_ != other.indexPolicy_) return false;
+      if (retention_ != other.retention_) return false;
+      if (hasFile() != other.hasFile()) return false;
+      if (hasFile()) {
+        if (!getFile()
+            .equals(other.getFile())) return false;
+      }
+      if (getExpectedSizeBytes()
+          != other.getExpectedSizeBytes()) return false;
+      if (!getExpectedSha256()
+          .equals(other.getExpectedSha256())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + PATH_FIELD_NUMBER;
+      hash = (53 * hash) + getPath().hashCode();
+      hash = (37 * hash) + MEDIA_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getMediaType().hashCode();
+      hash = (37 * hash) + PURPOSE_FIELD_NUMBER;
+      hash = (53 * hash) + purpose_;
+      hash = (37 * hash) + INDEX_POLICY_FIELD_NUMBER;
+      hash = (53 * hash) + indexPolicy_;
+      hash = (37 * hash) + RETENTION_FIELD_NUMBER;
+      hash = (53 * hash) + retention_;
+      if (hasFile()) {
+        hash = (37 * hash) + FILE_FIELD_NUMBER;
+        hash = (53 * hash) + getFile().hashCode();
+      }
+      hash = (37 * hash) + EXPECTED_SIZE_BYTES_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExpectedSizeBytes());
+      hash = (37 * hash) + EXPECTED_SHA256_FIELD_NUMBER;
+      hash = (53 * hash) + getExpectedSha256().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Files.PrepareFileUploadRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Files.PrepareFileUploadRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Files.PrepareFileUploadRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Files.PrepareFileUploadRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.PrepareFileUploadRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.PrepareFileUploadRequest)
+        talon.v1.Files.PrepareFileUploadRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Files.PrepareFileUploadRequest.class, talon.v1.Files.PrepareFileUploadRequest.Builder.class);
+      }
+
+      // Construct using talon.v1.Files.PrepareFileUploadRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetFileFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        namespace_ = "";
+        path_ = "";
+        mediaType_ = "";
+        purpose_ = 0;
+        indexPolicy_ = 0;
+        retention_ = 0;
+        file_ = null;
+        if (fileBuilder_ != null) {
+          fileBuilder_.dispose();
+          fileBuilder_ = null;
+        }
+        expectedSizeBytes_ = 0L;
+        expectedSha256_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.PrepareFileUploadRequest getDefaultInstanceForType() {
+        return talon.v1.Files.PrepareFileUploadRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.PrepareFileUploadRequest build() {
+        talon.v1.Files.PrepareFileUploadRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.PrepareFileUploadRequest buildPartial() {
+        talon.v1.Files.PrepareFileUploadRequest result = new talon.v1.Files.PrepareFileUploadRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Files.PrepareFileUploadRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.path_ = path_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.mediaType_ = mediaType_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.purpose_ = purpose_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.indexPolicy_ = indexPolicy_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.retention_ = retention_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.file_ = fileBuilder_ == null
+              ? file_
+              : fileBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.expectedSizeBytes_ = expectedSizeBytes_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.expectedSha256_ = expectedSha256_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Files.PrepareFileUploadRequest) {
+          return mergeFrom((talon.v1.Files.PrepareFileUploadRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Files.PrepareFileUploadRequest other) {
+        if (other == talon.v1.Files.PrepareFileUploadRequest.getDefaultInstance()) return this;
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getPath().isEmpty()) {
+          path_ = other.path_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getMediaType().isEmpty()) {
+          mediaType_ = other.mediaType_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (other.purpose_ != 0) {
+          setPurposeValue(other.getPurposeValue());
+        }
+        if (other.indexPolicy_ != 0) {
+          setIndexPolicyValue(other.getIndexPolicyValue());
+        }
+        if (other.retention_ != 0) {
+          setRetentionValue(other.getRetentionValue());
+        }
+        if (other.hasFile()) {
+          mergeFile(other.getFile());
+        }
+        if (other.getExpectedSizeBytes() != 0L) {
+          setExpectedSizeBytes(other.getExpectedSizeBytes());
+        }
+        if (!other.getExpectedSha256().isEmpty()) {
+          expectedSha256_ = other.expectedSha256_;
+          bitField0_ |= 0x00000100;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                path_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                mediaType_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 32: {
+                purpose_ = input.readEnum();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 40: {
+                indexPolicy_ = input.readEnum();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              case 48: {
+                retention_ = input.readEnum();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
+              case 58: {
+                input.readMessage(
+                    internalGetFileFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              case 64: {
+                expectedSizeBytes_ = input.readUInt64();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 64
+              case 74: {
+                expectedSha256_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object path_ = "";
+      /**
+       * <code>string path = 2;</code>
+       * @return The path.
+       */
+      public java.lang.String getPath() {
+        java.lang.Object ref = path_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          path_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string path = 2;</code>
+       * @return The bytes for path.
+       */
+      public com.google.protobuf.ByteString
+          getPathBytes() {
+        java.lang.Object ref = path_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          path_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string path = 2;</code>
+       * @param value The path to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPath(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        path_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string path = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPath() {
+        path_ = getDefaultInstance().getPath();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string path = 2;</code>
+       * @param value The bytes for path to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        path_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object mediaType_ = "";
+      /**
+       * <code>string media_type = 3;</code>
+       * @return The mediaType.
+       */
+      public java.lang.String getMediaType() {
+        java.lang.Object ref = mediaType_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          mediaType_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string media_type = 3;</code>
+       * @return The bytes for mediaType.
+       */
+      public com.google.protobuf.ByteString
+          getMediaTypeBytes() {
+        java.lang.Object ref = mediaType_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          mediaType_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string media_type = 3;</code>
+       * @param value The mediaType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMediaType(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        mediaType_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string media_type = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMediaType() {
+        mediaType_ = getDefaultInstance().getMediaType();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string media_type = 3;</code>
+       * @param value The bytes for mediaType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMediaTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        mediaType_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private int purpose_ = 0;
+      /**
+       * <code>.talon.resources.FilePurpose purpose = 4;</code>
+       * @return The enum numeric value on the wire for purpose.
+       */
+      @java.lang.Override public int getPurposeValue() {
+        return purpose_;
+      }
+      /**
+       * <code>.talon.resources.FilePurpose purpose = 4;</code>
+       * @param value The enum numeric value on the wire for purpose to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setPurposeValue(int value) {
+        purpose_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FilePurpose purpose = 4;</code>
+       * @return The purpose.
+       */
+      @java.lang.Override
+      public talon.resources.Files.FilePurpose getPurpose() {
+        talon.resources.Files.FilePurpose result = talon.resources.Files.FilePurpose.forNumber(purpose_);
+        return result == null ? talon.resources.Files.FilePurpose.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.resources.FilePurpose purpose = 4;</code>
+       * @param value The purpose to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPurpose(talon.resources.Files.FilePurpose value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000008;
+        purpose_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FilePurpose purpose = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPurpose() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        purpose_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int indexPolicy_ = 0;
+      /**
+       * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+       * @return The enum numeric value on the wire for indexPolicy.
+       */
+      @java.lang.Override public int getIndexPolicyValue() {
+        return indexPolicy_;
+      }
+      /**
+       * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+       * @param value The enum numeric value on the wire for indexPolicy to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setIndexPolicyValue(int value) {
+        indexPolicy_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+       * @return The indexPolicy.
+       */
+      @java.lang.Override
+      public talon.resources.Files.FileIndexPolicy getIndexPolicy() {
+        talon.resources.Files.FileIndexPolicy result = talon.resources.Files.FileIndexPolicy.forNumber(indexPolicy_);
+        return result == null ? talon.resources.Files.FileIndexPolicy.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+       * @param value The indexPolicy to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIndexPolicy(talon.resources.Files.FileIndexPolicy value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000010;
+        indexPolicy_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileIndexPolicy index_policy = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearIndexPolicy() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        indexPolicy_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int retention_ = 0;
+      /**
+       * <code>.talon.resources.FileRetention retention = 6;</code>
+       * @return The enum numeric value on the wire for retention.
+       */
+      @java.lang.Override public int getRetentionValue() {
+        return retention_;
+      }
+      /**
+       * <code>.talon.resources.FileRetention retention = 6;</code>
+       * @param value The enum numeric value on the wire for retention to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setRetentionValue(int value) {
+        retention_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileRetention retention = 6;</code>
+       * @return The retention.
+       */
+      @java.lang.Override
+      public talon.resources.Files.FileRetention getRetention() {
+        talon.resources.Files.FileRetention result = talon.resources.Files.FileRetention.forNumber(retention_);
+        return result == null ? talon.resources.Files.FileRetention.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.resources.FileRetention retention = 6;</code>
+       * @param value The retention to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRetention(talon.resources.Files.FileRetention value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000020;
+        retention_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileRetention retention = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRetention() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        retention_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private talon.v1.Files.FileRef file_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.v1.Files.FileRef, talon.v1.Files.FileRef.Builder, talon.v1.Files.FileRefOrBuilder> fileBuilder_;
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       * @return Whether the file field is set.
+       */
+      public boolean hasFile() {
+        return ((bitField0_ & 0x00000040) != 0);
+      }
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       * @return The file.
+       */
+      public talon.v1.Files.FileRef getFile() {
+        if (fileBuilder_ == null) {
+          return file_ == null ? talon.v1.Files.FileRef.getDefaultInstance() : file_;
+        } else {
+          return fileBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       */
+      public Builder setFile(talon.v1.Files.FileRef value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          file_ = value;
+        } else {
+          fileBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       */
+      public Builder setFile(
+          talon.v1.Files.FileRef.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          file_ = builderForValue.build();
+        } else {
+          fileBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       */
+      public Builder mergeFile(talon.v1.Files.FileRef value) {
+        if (fileBuilder_ == null) {
+          if (((bitField0_ & 0x00000040) != 0) &&
+            file_ != null &&
+            file_ != talon.v1.Files.FileRef.getDefaultInstance()) {
+            getFileBuilder().mergeFrom(value);
+          } else {
+            file_ = value;
+          }
+        } else {
+          fileBuilder_.mergeFrom(value);
+        }
+        if (file_ != null) {
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       */
+      public Builder clearFile() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        file_ = null;
+        if (fileBuilder_ != null) {
+          fileBuilder_.dispose();
+          fileBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       */
+      public talon.v1.Files.FileRef.Builder getFileBuilder() {
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return internalGetFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       */
+      public talon.v1.Files.FileRefOrBuilder getFileOrBuilder() {
+        if (fileBuilder_ != null) {
+          return fileBuilder_.getMessageOrBuilder();
+        } else {
+          return file_ == null ?
+              talon.v1.Files.FileRef.getDefaultInstance() : file_;
+        }
+      }
+      /**
+       * <code>.talon.v1.FileRef file = 7;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.v1.Files.FileRef, talon.v1.Files.FileRef.Builder, talon.v1.Files.FileRefOrBuilder>
+          internalGetFileFieldBuilder() {
+        if (fileBuilder_ == null) {
+          fileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.v1.Files.FileRef, talon.v1.Files.FileRef.Builder, talon.v1.Files.FileRefOrBuilder>(
+                  getFile(),
+                  getParentForChildren(),
+                  isClean());
+          file_ = null;
+        }
+        return fileBuilder_;
+      }
+
+      private long expectedSizeBytes_ ;
+      /**
+       * <code>uint64 expected_size_bytes = 8;</code>
+       * @return The expectedSizeBytes.
+       */
+      @java.lang.Override
+      public long getExpectedSizeBytes() {
+        return expectedSizeBytes_;
+      }
+      /**
+       * <code>uint64 expected_size_bytes = 8;</code>
+       * @param value The expectedSizeBytes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpectedSizeBytes(long value) {
+
+        expectedSizeBytes_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 expected_size_bytes = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpectedSizeBytes() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        expectedSizeBytes_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object expectedSha256_ = "";
+      /**
+       * <code>string expected_sha256 = 9;</code>
+       * @return The expectedSha256.
+       */
+      public java.lang.String getExpectedSha256() {
+        java.lang.Object ref = expectedSha256_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          expectedSha256_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string expected_sha256 = 9;</code>
+       * @return The bytes for expectedSha256.
+       */
+      public com.google.protobuf.ByteString
+          getExpectedSha256Bytes() {
+        java.lang.Object ref = expectedSha256_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          expectedSha256_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string expected_sha256 = 9;</code>
+       * @param value The expectedSha256 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpectedSha256(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        expectedSha256_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string expected_sha256 = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpectedSha256() {
+        expectedSha256_ = getDefaultInstance().getExpectedSha256();
+        bitField0_ = (bitField0_ & ~0x00000100);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string expected_sha256 = 9;</code>
+       * @param value The bytes for expectedSha256 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpectedSha256Bytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        expectedSha256_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.PrepareFileUploadRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.PrepareFileUploadRequest)
+    private static final talon.v1.Files.PrepareFileUploadRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Files.PrepareFileUploadRequest();
+    }
+
+    public static talon.v1.Files.PrepareFileUploadRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<PrepareFileUploadRequest>
+        PARSER = new com.google.protobuf.AbstractParser<PrepareFileUploadRequest>() {
+      @java.lang.Override
+      public PrepareFileUploadRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<PrepareFileUploadRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PrepareFileUploadRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Files.PrepareFileUploadRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface PrepareFileUploadResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.PrepareFileUploadResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.resources.File file = 1;</code>
+     * @return Whether the file field is set.
+     */
+    boolean hasFile();
+    /**
+     * <code>.talon.resources.File file = 1;</code>
+     * @return The file.
+     */
+    talon.resources.Files.File getFile();
+    /**
+     * <code>.talon.resources.File file = 1;</code>
+     */
+    talon.resources.Files.FileOrBuilder getFileOrBuilder();
+
+    /**
+     * <code>string upload_token = 2;</code>
+     * @return The uploadToken.
+     */
+    java.lang.String getUploadToken();
+    /**
+     * <code>string upload_token = 2;</code>
+     * @return The bytes for uploadToken.
+     */
+    com.google.protobuf.ByteString
+        getUploadTokenBytes();
+
+    /**
+     * <code>string signed_upload_url = 3;</code>
+     * @return The signedUploadUrl.
+     */
+    java.lang.String getSignedUploadUrl();
+    /**
+     * <code>string signed_upload_url = 3;</code>
+     * @return The bytes for signedUploadUrl.
+     */
+    com.google.protobuf.ByteString
+        getSignedUploadUrlBytes();
+
+    /**
+     * <code>string method = 4;</code>
+     * @return The method.
+     */
+    java.lang.String getMethod();
+    /**
+     * <code>string method = 4;</code>
+     * @return The bytes for method.
+     */
+    com.google.protobuf.ByteString
+        getMethodBytes();
+
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    int getRequiredHeadersCount();
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    boolean containsRequiredHeaders(
+        java.lang.String key);
+    /**
+     * Use {@link #getRequiredHeadersMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getRequiredHeaders();
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getRequiredHeadersMap();
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    /* nullable */
+java.lang.String getRequiredHeadersOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    java.lang.String getRequiredHeadersOrThrow(
+        java.lang.String key);
+
+    /**
+     * <code>int64 signed_url_expires_at_unix_seconds = 6;</code>
+     * @return The signedUrlExpiresAtUnixSeconds.
+     */
+    long getSignedUrlExpiresAtUnixSeconds();
+
+    /**
+     * <code>string object_key = 7;</code>
+     * @return The objectKey.
+     */
+    java.lang.String getObjectKey();
+    /**
+     * <code>string object_key = 7;</code>
+     * @return The bytes for objectKey.
+     */
+    com.google.protobuf.ByteString
+        getObjectKeyBytes();
+  }
+  /**
+   * Protobuf type {@code talon.v1.PrepareFileUploadResponse}
+   */
+  public static final class PrepareFileUploadResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.PrepareFileUploadResponse)
+      PrepareFileUploadResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "PrepareFileUploadResponse");
+    }
+    // Use PrepareFileUploadResponse.newBuilder() to construct.
+    private PrepareFileUploadResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private PrepareFileUploadResponse() {
+      uploadToken_ = "";
+      signedUploadUrl_ = "";
+      method_ = "";
+      objectKey_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadResponse_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadResponse_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 5:
+          return internalGetRequiredHeaders();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Files.PrepareFileUploadResponse.class, talon.v1.Files.PrepareFileUploadResponse.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int FILE_FIELD_NUMBER = 1;
+    private talon.resources.Files.File file_;
+    /**
+     * <code>.talon.resources.File file = 1;</code>
+     * @return Whether the file field is set.
+     */
+    @java.lang.Override
+    public boolean hasFile() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.File file = 1;</code>
+     * @return The file.
+     */
+    @java.lang.Override
+    public talon.resources.Files.File getFile() {
+      return file_ == null ? talon.resources.Files.File.getDefaultInstance() : file_;
+    }
+    /**
+     * <code>.talon.resources.File file = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Files.FileOrBuilder getFileOrBuilder() {
+      return file_ == null ? talon.resources.Files.File.getDefaultInstance() : file_;
+    }
+
+    public static final int UPLOAD_TOKEN_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object uploadToken_ = "";
+    /**
+     * <code>string upload_token = 2;</code>
+     * @return The uploadToken.
+     */
+    @java.lang.Override
+    public java.lang.String getUploadToken() {
+      java.lang.Object ref = uploadToken_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        uploadToken_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string upload_token = 2;</code>
+     * @return The bytes for uploadToken.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getUploadTokenBytes() {
+      java.lang.Object ref = uploadToken_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        uploadToken_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SIGNED_UPLOAD_URL_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object signedUploadUrl_ = "";
+    /**
+     * <code>string signed_upload_url = 3;</code>
+     * @return The signedUploadUrl.
+     */
+    @java.lang.Override
+    public java.lang.String getSignedUploadUrl() {
+      java.lang.Object ref = signedUploadUrl_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        signedUploadUrl_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string signed_upload_url = 3;</code>
+     * @return The bytes for signedUploadUrl.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSignedUploadUrlBytes() {
+      java.lang.Object ref = signedUploadUrl_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        signedUploadUrl_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int METHOD_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object method_ = "";
+    /**
+     * <code>string method = 4;</code>
+     * @return The method.
+     */
+    @java.lang.Override
+    public java.lang.String getMethod() {
+      java.lang.Object ref = method_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        method_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string method = 4;</code>
+     * @return The bytes for method.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMethodBytes() {
+      java.lang.Object ref = method_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        method_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REQUIRED_HEADERS_FIELD_NUMBER = 5;
+    private static final class RequiredHeadersDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.v1.Files.internal_static_talon_v1_PrepareFileUploadResponse_RequiredHeadersEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> requiredHeaders_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetRequiredHeaders() {
+      if (requiredHeaders_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            RequiredHeadersDefaultEntryHolder.defaultEntry);
+      }
+      return requiredHeaders_;
+    }
+    public int getRequiredHeadersCount() {
+      return internalGetRequiredHeaders().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    @java.lang.Override
+    public boolean containsRequiredHeaders(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetRequiredHeaders().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getRequiredHeadersMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getRequiredHeaders() {
+      return getRequiredHeadersMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getRequiredHeadersMap() {
+      return internalGetRequiredHeaders().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getRequiredHeadersOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetRequiredHeaders().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; required_headers = 5;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getRequiredHeadersOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetRequiredHeaders().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER = 6;
+    private long signedUrlExpiresAtUnixSeconds_ = 0L;
+    /**
+     * <code>int64 signed_url_expires_at_unix_seconds = 6;</code>
+     * @return The signedUrlExpiresAtUnixSeconds.
+     */
+    @java.lang.Override
+    public long getSignedUrlExpiresAtUnixSeconds() {
+      return signedUrlExpiresAtUnixSeconds_;
+    }
+
+    public static final int OBJECT_KEY_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object objectKey_ = "";
+    /**
+     * <code>string object_key = 7;</code>
+     * @return The objectKey.
+     */
+    @java.lang.Override
+    public java.lang.String getObjectKey() {
+      java.lang.Object ref = objectKey_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        objectKey_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string object_key = 7;</code>
+     * @return The bytes for objectKey.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getObjectKeyBytes() {
+      java.lang.Object ref = objectKey_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        objectKey_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getFile());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(uploadToken_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, uploadToken_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(signedUploadUrl_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, signedUploadUrl_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(method_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, method_);
+      }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetRequiredHeaders(),
+          RequiredHeadersDefaultEntryHolder.defaultEntry,
+          5);
+      if (signedUrlExpiresAtUnixSeconds_ != 0L) {
+        output.writeInt64(6, signedUrlExpiresAtUnixSeconds_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objectKey_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, objectKey_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getFile());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(uploadToken_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, uploadToken_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(signedUploadUrl_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, signedUploadUrl_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(method_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, method_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetRequiredHeaders().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        requiredHeaders__ = RequiredHeadersDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(5, requiredHeaders__);
+      }
+      if (signedUrlExpiresAtUnixSeconds_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(6, signedUrlExpiresAtUnixSeconds_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objectKey_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, objectKey_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Files.PrepareFileUploadResponse)) {
+        return super.equals(obj);
+      }
+      talon.v1.Files.PrepareFileUploadResponse other = (talon.v1.Files.PrepareFileUploadResponse) obj;
+
+      if (hasFile() != other.hasFile()) return false;
+      if (hasFile()) {
+        if (!getFile()
+            .equals(other.getFile())) return false;
+      }
+      if (!getUploadToken()
+          .equals(other.getUploadToken())) return false;
+      if (!getSignedUploadUrl()
+          .equals(other.getSignedUploadUrl())) return false;
+      if (!getMethod()
+          .equals(other.getMethod())) return false;
+      if (!internalGetRequiredHeaders().equals(
+          other.internalGetRequiredHeaders())) return false;
+      if (getSignedUrlExpiresAtUnixSeconds()
+          != other.getSignedUrlExpiresAtUnixSeconds()) return false;
+      if (!getObjectKey()
+          .equals(other.getObjectKey())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasFile()) {
+        hash = (37 * hash) + FILE_FIELD_NUMBER;
+        hash = (53 * hash) + getFile().hashCode();
+      }
+      hash = (37 * hash) + UPLOAD_TOKEN_FIELD_NUMBER;
+      hash = (53 * hash) + getUploadToken().hashCode();
+      hash = (37 * hash) + SIGNED_UPLOAD_URL_FIELD_NUMBER;
+      hash = (53 * hash) + getSignedUploadUrl().hashCode();
+      hash = (37 * hash) + METHOD_FIELD_NUMBER;
+      hash = (53 * hash) + getMethod().hashCode();
+      if (!internalGetRequiredHeaders().getMap().isEmpty()) {
+        hash = (37 * hash) + REQUIRED_HEADERS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetRequiredHeaders().hashCode();
+      }
+      hash = (37 * hash) + SIGNED_URL_EXPIRES_AT_UNIX_SECONDS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getSignedUrlExpiresAtUnixSeconds());
+      hash = (37 * hash) + OBJECT_KEY_FIELD_NUMBER;
+      hash = (53 * hash) + getObjectKey().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Files.PrepareFileUploadResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Files.PrepareFileUploadResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Files.PrepareFileUploadResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Files.PrepareFileUploadResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.PrepareFileUploadResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.PrepareFileUploadResponse)
+        talon.v1.Files.PrepareFileUploadResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadResponse_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetRequiredHeaders();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 5:
+            return internalGetMutableRequiredHeaders();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Files.PrepareFileUploadResponse.class, talon.v1.Files.PrepareFileUploadResponse.Builder.class);
+      }
+
+      // Construct using talon.v1.Files.PrepareFileUploadResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetFileFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        file_ = null;
+        if (fileBuilder_ != null) {
+          fileBuilder_.dispose();
+          fileBuilder_ = null;
+        }
+        uploadToken_ = "";
+        signedUploadUrl_ = "";
+        method_ = "";
+        internalGetMutableRequiredHeaders().clear();
+        signedUrlExpiresAtUnixSeconds_ = 0L;
+        objectKey_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Files.internal_static_talon_v1_PrepareFileUploadResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.PrepareFileUploadResponse getDefaultInstanceForType() {
+        return talon.v1.Files.PrepareFileUploadResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.PrepareFileUploadResponse build() {
+        talon.v1.Files.PrepareFileUploadResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.PrepareFileUploadResponse buildPartial() {
+        talon.v1.Files.PrepareFileUploadResponse result = new talon.v1.Files.PrepareFileUploadResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Files.PrepareFileUploadResponse result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.file_ = fileBuilder_ == null
+              ? file_
+              : fileBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.uploadToken_ = uploadToken_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.signedUploadUrl_ = signedUploadUrl_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.method_ = method_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.requiredHeaders_ = internalGetRequiredHeaders();
+          result.requiredHeaders_.makeImmutable();
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.signedUrlExpiresAtUnixSeconds_ = signedUrlExpiresAtUnixSeconds_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.objectKey_ = objectKey_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Files.PrepareFileUploadResponse) {
+          return mergeFrom((talon.v1.Files.PrepareFileUploadResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Files.PrepareFileUploadResponse other) {
+        if (other == talon.v1.Files.PrepareFileUploadResponse.getDefaultInstance()) return this;
+        if (other.hasFile()) {
+          mergeFile(other.getFile());
+        }
+        if (!other.getUploadToken().isEmpty()) {
+          uploadToken_ = other.uploadToken_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getSignedUploadUrl().isEmpty()) {
+          signedUploadUrl_ = other.signedUploadUrl_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getMethod().isEmpty()) {
+          method_ = other.method_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        internalGetMutableRequiredHeaders().mergeFrom(
+            other.internalGetRequiredHeaders());
+        bitField0_ |= 0x00000010;
+        if (other.getSignedUrlExpiresAtUnixSeconds() != 0L) {
+          setSignedUrlExpiresAtUnixSeconds(other.getSignedUrlExpiresAtUnixSeconds());
+        }
+        if (!other.getObjectKey().isEmpty()) {
+          objectKey_ = other.objectKey_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetFileFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                uploadToken_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                signedUploadUrl_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                method_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                requiredHeaders__ = input.readMessage(
+                    RequiredHeadersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableRequiredHeaders().getMutableMap().put(
+                    requiredHeaders__.getKey(), requiredHeaders__.getValue());
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 48: {
+                signedUrlExpiresAtUnixSeconds_ = input.readInt64();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
+              case 58: {
+                objectKey_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.resources.Files.File file_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Files.File, talon.resources.Files.File.Builder, talon.resources.Files.FileOrBuilder> fileBuilder_;
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       * @return Whether the file field is set.
+       */
+      public boolean hasFile() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       * @return The file.
+       */
+      public talon.resources.Files.File getFile() {
+        if (fileBuilder_ == null) {
+          return file_ == null ? talon.resources.Files.File.getDefaultInstance() : file_;
+        } else {
+          return fileBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       */
+      public Builder setFile(talon.resources.Files.File value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          file_ = value;
+        } else {
+          fileBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       */
+      public Builder setFile(
+          talon.resources.Files.File.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          file_ = builderForValue.build();
+        } else {
+          fileBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       */
+      public Builder mergeFile(talon.resources.Files.File value) {
+        if (fileBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            file_ != null &&
+            file_ != talon.resources.Files.File.getDefaultInstance()) {
+            getFileBuilder().mergeFrom(value);
+          } else {
+            file_ = value;
+          }
+        } else {
+          fileBuilder_.mergeFrom(value);
+        }
+        if (file_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       */
+      public Builder clearFile() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        file_ = null;
+        if (fileBuilder_ != null) {
+          fileBuilder_.dispose();
+          fileBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       */
+      public talon.resources.Files.File.Builder getFileBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       */
+      public talon.resources.Files.FileOrBuilder getFileOrBuilder() {
+        if (fileBuilder_ != null) {
+          return fileBuilder_.getMessageOrBuilder();
+        } else {
+          return file_ == null ?
+              talon.resources.Files.File.getDefaultInstance() : file_;
+        }
+      }
+      /**
+       * <code>.talon.resources.File file = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Files.File, talon.resources.Files.File.Builder, talon.resources.Files.FileOrBuilder>
+          internalGetFileFieldBuilder() {
+        if (fileBuilder_ == null) {
+          fileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Files.File, talon.resources.Files.File.Builder, talon.resources.Files.FileOrBuilder>(
+                  getFile(),
+                  getParentForChildren(),
+                  isClean());
+          file_ = null;
+        }
+        return fileBuilder_;
+      }
+
+      private java.lang.Object uploadToken_ = "";
+      /**
+       * <code>string upload_token = 2;</code>
+       * @return The uploadToken.
+       */
+      public java.lang.String getUploadToken() {
+        java.lang.Object ref = uploadToken_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          uploadToken_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string upload_token = 2;</code>
+       * @return The bytes for uploadToken.
+       */
+      public com.google.protobuf.ByteString
+          getUploadTokenBytes() {
+        java.lang.Object ref = uploadToken_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          uploadToken_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string upload_token = 2;</code>
+       * @param value The uploadToken to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUploadToken(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        uploadToken_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string upload_token = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUploadToken() {
+        uploadToken_ = getDefaultInstance().getUploadToken();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string upload_token = 2;</code>
+       * @param value The bytes for uploadToken to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUploadTokenBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        uploadToken_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object signedUploadUrl_ = "";
+      /**
+       * <code>string signed_upload_url = 3;</code>
+       * @return The signedUploadUrl.
+       */
+      public java.lang.String getSignedUploadUrl() {
+        java.lang.Object ref = signedUploadUrl_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          signedUploadUrl_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string signed_upload_url = 3;</code>
+       * @return The bytes for signedUploadUrl.
+       */
+      public com.google.protobuf.ByteString
+          getSignedUploadUrlBytes() {
+        java.lang.Object ref = signedUploadUrl_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          signedUploadUrl_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string signed_upload_url = 3;</code>
+       * @param value The signedUploadUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSignedUploadUrl(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        signedUploadUrl_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string signed_upload_url = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSignedUploadUrl() {
+        signedUploadUrl_ = getDefaultInstance().getSignedUploadUrl();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string signed_upload_url = 3;</code>
+       * @param value The bytes for signedUploadUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSignedUploadUrlBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        signedUploadUrl_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object method_ = "";
+      /**
+       * <code>string method = 4;</code>
+       * @return The method.
+       */
+      public java.lang.String getMethod() {
+        java.lang.Object ref = method_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          method_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string method = 4;</code>
+       * @return The bytes for method.
+       */
+      public com.google.protobuf.ByteString
+          getMethodBytes() {
+        java.lang.Object ref = method_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          method_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string method = 4;</code>
+       * @param value The method to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMethod(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        method_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string method = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMethod() {
+        method_ = getDefaultInstance().getMethod();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string method = 4;</code>
+       * @param value The bytes for method to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMethodBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        method_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> requiredHeaders_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetRequiredHeaders() {
+        if (requiredHeaders_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              RequiredHeadersDefaultEntryHolder.defaultEntry);
+        }
+        return requiredHeaders_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableRequiredHeaders() {
+        if (requiredHeaders_ == null) {
+          requiredHeaders_ = com.google.protobuf.MapField.newMapField(
+              RequiredHeadersDefaultEntryHolder.defaultEntry);
+        }
+        if (!requiredHeaders_.isMutable()) {
+          requiredHeaders_ = requiredHeaders_.copy();
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return requiredHeaders_;
+      }
+      public int getRequiredHeadersCount() {
+        return internalGetRequiredHeaders().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      @java.lang.Override
+      public boolean containsRequiredHeaders(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetRequiredHeaders().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getRequiredHeadersMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getRequiredHeaders() {
+        return getRequiredHeadersMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getRequiredHeadersMap() {
+        return internalGetRequiredHeaders().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getRequiredHeadersOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetRequiredHeaders().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getRequiredHeadersOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetRequiredHeaders().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearRequiredHeaders() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        internalGetMutableRequiredHeaders().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      public Builder removeRequiredHeaders(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableRequiredHeaders().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableRequiredHeaders() {
+        bitField0_ |= 0x00000010;
+        return internalGetMutableRequiredHeaders().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      public Builder putRequiredHeaders(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableRequiredHeaders().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; required_headers = 5;</code>
+       */
+      public Builder putAllRequiredHeaders(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableRequiredHeaders().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+
+      private long signedUrlExpiresAtUnixSeconds_ ;
+      /**
+       * <code>int64 signed_url_expires_at_unix_seconds = 6;</code>
+       * @return The signedUrlExpiresAtUnixSeconds.
+       */
+      @java.lang.Override
+      public long getSignedUrlExpiresAtUnixSeconds() {
+        return signedUrlExpiresAtUnixSeconds_;
+      }
+      /**
+       * <code>int64 signed_url_expires_at_unix_seconds = 6;</code>
+       * @param value The signedUrlExpiresAtUnixSeconds to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSignedUrlExpiresAtUnixSeconds(long value) {
+
+        signedUrlExpiresAtUnixSeconds_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 signed_url_expires_at_unix_seconds = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSignedUrlExpiresAtUnixSeconds() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        signedUrlExpiresAtUnixSeconds_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object objectKey_ = "";
+      /**
+       * <code>string object_key = 7;</code>
+       * @return The objectKey.
+       */
+      public java.lang.String getObjectKey() {
+        java.lang.Object ref = objectKey_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          objectKey_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string object_key = 7;</code>
+       * @return The bytes for objectKey.
+       */
+      public com.google.protobuf.ByteString
+          getObjectKeyBytes() {
+        java.lang.Object ref = objectKey_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          objectKey_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string object_key = 7;</code>
+       * @param value The objectKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjectKey(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        objectKey_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string object_key = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearObjectKey() {
+        objectKey_ = getDefaultInstance().getObjectKey();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string object_key = 7;</code>
+       * @param value The bytes for objectKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjectKeyBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        objectKey_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.PrepareFileUploadResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.PrepareFileUploadResponse)
+    private static final talon.v1.Files.PrepareFileUploadResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Files.PrepareFileUploadResponse();
+    }
+
+    public static talon.v1.Files.PrepareFileUploadResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<PrepareFileUploadResponse>
+        PARSER = new com.google.protobuf.AbstractParser<PrepareFileUploadResponse>() {
+      @java.lang.Override
+      public PrepareFileUploadResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<PrepareFileUploadResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PrepareFileUploadResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Files.PrepareFileUploadResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface CompleteFileUploadRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.CompleteFileUploadRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string upload_token = 1;</code>
+     * @return The uploadToken.
+     */
+    java.lang.String getUploadToken();
+    /**
+     * <code>string upload_token = 1;</code>
+     * @return The bytes for uploadToken.
+     */
+    com.google.protobuf.ByteString
+        getUploadTokenBytes();
+  }
+  /**
+   * Protobuf type {@code talon.v1.CompleteFileUploadRequest}
+   */
+  public static final class CompleteFileUploadRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.CompleteFileUploadRequest)
+      CompleteFileUploadRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "CompleteFileUploadRequest");
+    }
+    // Use CompleteFileUploadRequest.newBuilder() to construct.
+    private CompleteFileUploadRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private CompleteFileUploadRequest() {
+      uploadToken_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Files.internal_static_talon_v1_CompleteFileUploadRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Files.internal_static_talon_v1_CompleteFileUploadRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Files.internal_static_talon_v1_CompleteFileUploadRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Files.CompleteFileUploadRequest.class, talon.v1.Files.CompleteFileUploadRequest.Builder.class);
+    }
+
+    public static final int UPLOAD_TOKEN_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object uploadToken_ = "";
+    /**
+     * <code>string upload_token = 1;</code>
+     * @return The uploadToken.
+     */
+    @java.lang.Override
+    public java.lang.String getUploadToken() {
+      java.lang.Object ref = uploadToken_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        uploadToken_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string upload_token = 1;</code>
+     * @return The bytes for uploadToken.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getUploadTokenBytes() {
+      java.lang.Object ref = uploadToken_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        uploadToken_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(uploadToken_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, uploadToken_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(uploadToken_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, uploadToken_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Files.CompleteFileUploadRequest)) {
+        return super.equals(obj);
+      }
+      talon.v1.Files.CompleteFileUploadRequest other = (talon.v1.Files.CompleteFileUploadRequest) obj;
+
+      if (!getUploadToken()
+          .equals(other.getUploadToken())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + UPLOAD_TOKEN_FIELD_NUMBER;
+      hash = (53 * hash) + getUploadToken().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Files.CompleteFileUploadRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Files.CompleteFileUploadRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Files.CompleteFileUploadRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Files.CompleteFileUploadRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.CompleteFileUploadRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.CompleteFileUploadRequest)
+        talon.v1.Files.CompleteFileUploadRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Files.internal_static_talon_v1_CompleteFileUploadRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Files.internal_static_talon_v1_CompleteFileUploadRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Files.CompleteFileUploadRequest.class, talon.v1.Files.CompleteFileUploadRequest.Builder.class);
+      }
+
+      // Construct using talon.v1.Files.CompleteFileUploadRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        uploadToken_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Files.internal_static_talon_v1_CompleteFileUploadRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.CompleteFileUploadRequest getDefaultInstanceForType() {
+        return talon.v1.Files.CompleteFileUploadRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.CompleteFileUploadRequest build() {
+        talon.v1.Files.CompleteFileUploadRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Files.CompleteFileUploadRequest buildPartial() {
+        talon.v1.Files.CompleteFileUploadRequest result = new talon.v1.Files.CompleteFileUploadRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Files.CompleteFileUploadRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.uploadToken_ = uploadToken_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Files.CompleteFileUploadRequest) {
+          return mergeFrom((talon.v1.Files.CompleteFileUploadRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Files.CompleteFileUploadRequest other) {
+        if (other == talon.v1.Files.CompleteFileUploadRequest.getDefaultInstance()) return this;
+        if (!other.getUploadToken().isEmpty()) {
+          uploadToken_ = other.uploadToken_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                uploadToken_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object uploadToken_ = "";
+      /**
+       * <code>string upload_token = 1;</code>
+       * @return The uploadToken.
+       */
+      public java.lang.String getUploadToken() {
+        java.lang.Object ref = uploadToken_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          uploadToken_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string upload_token = 1;</code>
+       * @return The bytes for uploadToken.
+       */
+      public com.google.protobuf.ByteString
+          getUploadTokenBytes() {
+        java.lang.Object ref = uploadToken_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          uploadToken_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string upload_token = 1;</code>
+       * @param value The uploadToken to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUploadToken(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        uploadToken_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string upload_token = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUploadToken() {
+        uploadToken_ = getDefaultInstance().getUploadToken();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string upload_token = 1;</code>
+       * @param value The bytes for uploadToken to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUploadTokenBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        uploadToken_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.CompleteFileUploadRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.CompleteFileUploadRequest)
+    private static final talon.v1.Files.CompleteFileUploadRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Files.CompleteFileUploadRequest();
+    }
+
+    public static talon.v1.Files.CompleteFileUploadRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<CompleteFileUploadRequest>
+        PARSER = new com.google.protobuf.AbstractParser<CompleteFileUploadRequest>() {
+      @java.lang.Override
+      public CompleteFileUploadRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<CompleteFileUploadRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompleteFileUploadRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Files.CompleteFileUploadRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface ReadFileRequestOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.v1.ReadFileRequest)
       com.google.protobuf.MessageOrBuilder {
@@ -16168,6 +19788,26 @@ public final class Files extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_v1_CreateFileRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_PrepareFileUploadRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_PrepareFileUploadRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_PrepareFileUploadResponse_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_PrepareFileUploadResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_PrepareFileUploadResponse_RequiredHeadersEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_PrepareFileUploadResponse_RequiredHeadersEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_CompleteFileUploadRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_CompleteFileUploadRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_v1_ReadFileRequest_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -16276,73 +19916,95 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       "urpose\0226\n\014index_policy\030\005 \001(\0162 .talon.res" +
       "ources.FileIndexPolicy\0221\n\tretention\030\006 \001(" +
       "\0162\036.talon.resources.FileRetention\022\017\n\007con" +
-      "tent\030\007 \001(\014\"2\n\017ReadFileRequest\022\037\n\004file\030\001 " +
-      "\001(\0132\021.talon.v1.FileRef\"\210\001\n\020ReadFileRespo" +
+      "tent\030\007 \001(\014\"\300\002\n\030PrepareFileUploadRequest\022" +
+      "\021\n\tnamespace\030\001 \001(\t\022\014\n\004path\030\002 \001(\t\022\022\n\nmedi" +
+      "a_type\030\003 \001(\t\022-\n\007purpose\030\004 \001(\0162\034.talon.re" +
+      "sources.FilePurpose\0226\n\014index_policy\030\005 \001(" +
+      "\0162 .talon.resources.FileIndexPolicy\0221\n\tr" +
+      "etention\030\006 \001(\0162\036.talon.resources.FileRet" +
+      "ention\022\037\n\004file\030\007 \001(\0132\021.talon.v1.FileRef\022" +
+      "\033\n\023expected_size_bytes\030\010 \001(\004\022\027\n\017expected" +
+      "_sha256\030\t \001(\t\"\315\002\n\031PrepareFileUploadRespo" +
       "nse\022#\n\004file\030\001 \001(\0132\025.talon.resources.File" +
-      "\022\017\n\007content\030\002 \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n" +
-      "\"signed_url_expires_at_unix_seconds\030\004 \001(" +
-      "\003\"Y\n\021UpdateFileRequest\022\037\n\004file\030\001 \001(\0132\021.t" +
-      "alon.v1.FileRef\022\022\n\nmedia_type\030\002 \001(\t\022\017\n\007c" +
-      "ontent\030\003 \001(\014\"9\n\026GetFileMetadataRequest\022\037" +
-      "\n\004file\030\001 \001(\0132\021.talon.v1.FileRef\"\277\001\n\020List" +
-      "FilesRequest\022\021\n\tnamespace\030\001 \001(\t\022\016\n\006prefi" +
-      "x\030\002 \001(\t\022-\n\007purpose\030\003 \001(\0162\034.talon.resourc" +
-      "es.FilePurpose\0226\n\014index_policy\030\004 \001(\0162 .t" +
-      "alon.resources.FileIndexPolicy\022\r\n\005limit\030" +
-      "\005 \001(\r\022\022\n\npage_token\030\006 \001(\t\"R\n\021ListFilesRe" +
-      "sponse\022$\n\005files\030\001 \003(\0132\025.talon.resources." +
-      "File\022\027\n\017next_page_token\030\002 \001(\t\"4\n\021DeleteF" +
-      "ileRequest\022\037\n\004file\030\001 \001(\0132\021.talon.v1.File" +
-      "Ref\"%\n\022DeleteFileResponse\022\017\n\007success\030\001 \001" +
-      "(\010\"\364\001\n\026PromoteArtifactRequest\022\027\n\017artifac" +
-      "t_handle\030\001 \001(\t\022\023\n\013target_path\030\002 \001(\t\022\022\n\nm" +
-      "edia_type\030\003 \001(\t\022-\n\007purpose\030\004 \001(\0162\034.talon" +
-      ".resources.FilePurpose\0226\n\014index_policy\030\005" +
-      " \001(\0162 .talon.resources.FileIndexPolicy\0221" +
-      "\n\tretention\030\006 \001(\0162\036.talon.resources.File" +
-      "Retention\"H\n\014FileResponse\022#\n\004file\030\001 \001(\0132" +
-      "\025.talon.resources.File\022\023\n\013file_handle\030\002 " +
-      "\001(\t\".\n\023ReadArtifactRequest\022\027\n\017artifact_h" +
-      "andle\030\001 \001(\t\"\217\001\n\024ReadArtifactResponse\022&\n\010" +
-      "artifact\030\001 \001(\0132\024.talon.data.Artifact\022\017\n\007" +
-      "content\030\002 \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n\"sig" +
-      "ned_url_expires_at_unix_seconds\030\004 \001(\003\"5\n" +
-      "\032GetArtifactMetadataRequest\022\027\n\017artifact_" +
-      "handle\030\001 \001(\t\"\177\n\024ListArtifactsRequest\022\021\n\t" +
-      "namespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nsessio" +
-      "n_id\030\003 \001(\t\022\016\n\006prefix\030\004 \001(\t\022\r\n\005limit\030\005 \001(" +
-      "\r\022\022\n\npage_token\030\006 \001(\t\"Y\n\025ListArtifactsRe" +
-      "sponse\022\'\n\tartifacts\030\001 \003(\0132\024.talon.data.A" +
-      "rtifact\022\027\n\017next_page_token\030\002 \001(\t\"\211\001\n\024Gra" +
-      "ntArtifactRequest\022\027\n\017artifact_handle\030\001 \001" +
-      "(\t\022\024\n\014target_agent\030\002 \001(\t\022\031\n\021target_sessi" +
-      "on_id\030\003 \001(\t\022\022\n\noperations\030\004 \003(\t\022\023\n\013ttl_s" +
-      "econds\030\005 \001(\003\"S\n\020ArtifactResponse\022&\n\010arti" +
-      "fact\030\001 \001(\0132\024.talon.data.Artifact\022\027\n\017arti" +
-      "fact_handle\030\002 \001(\t\"1\n\026ArtifactHandleRespo" +
-      "nse\022\027\n\017artifact_handle\030\001 \001(\t2\377\003\n\013FileSer" +
-      "vice\022A\n\nCreateFile\022\033.talon.v1.CreateFile" +
-      "Request\032\026.talon.v1.FileResponse\022A\n\010ReadF" +
-      "ile\022\031.talon.v1.ReadFileRequest\032\032.talon.v" +
-      "1.ReadFileResponse\022A\n\nUpdateFile\022\033.talon" +
-      ".v1.UpdateFileRequest\032\026.talon.v1.FileRes" +
-      "ponse\022K\n\017GetFileMetadata\022 .talon.v1.GetF" +
-      "ileMetadataRequest\032\026.talon.v1.FileRespon" +
-      "se\022D\n\tListFiles\022\032.talon.v1.ListFilesRequ" +
-      "est\032\033.talon.v1.ListFilesResponse\022G\n\nDele" +
-      "teFile\022\033.talon.v1.DeleteFileRequest\032\034.ta" +
-      "lon.v1.DeleteFileResponse\022K\n\017PromoteArti" +
-      "fact\022 .talon.v1.PromoteArtifactRequest\032\026" +
-      ".talon.v1.FileResponse2\336\002\n\017ArtifactServi" +
-      "ce\022M\n\014ReadArtifact\022\035.talon.v1.ReadArtifa" +
-      "ctRequest\032\036.talon.v1.ReadArtifactRespons" +
-      "e\022W\n\023GetArtifactMetadata\022$.talon.v1.GetA" +
-      "rtifactMetadataRequest\032\032.talon.v1.Artifa" +
-      "ctResponse\022P\n\rListArtifacts\022\036.talon.v1.L" +
-      "istArtifactsRequest\032\037.talon.v1.ListArtif" +
-      "actsResponse\022Q\n\rGrantArtifact\022\036.talon.v1" +
-      ".GrantArtifactRequest\032 .talon.v1.Artifac" +
-      "tHandleResponseb\006proto3"
+      "\022\024\n\014upload_token\030\002 \001(\t\022\031\n\021signed_upload_" +
+      "url\030\003 \001(\t\022\016\n\006method\030\004 \001(\t\022R\n\020required_he" +
+      "aders\030\005 \003(\01328.talon.v1.PrepareFileUpload" +
+      "Response.RequiredHeadersEntry\022*\n\"signed_" +
+      "url_expires_at_unix_seconds\030\006 \001(\003\022\022\n\nobj" +
+      "ect_key\030\007 \001(\t\0326\n\024RequiredHeadersEntry\022\013\n" +
+      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"1\n\031Complet" +
+      "eFileUploadRequest\022\024\n\014upload_token\030\001 \001(\t" +
+      "\"2\n\017ReadFileRequest\022\037\n\004file\030\001 \001(\0132\021.talo" +
+      "n.v1.FileRef\"\210\001\n\020ReadFileResponse\022#\n\004fil" +
+      "e\030\001 \001(\0132\025.talon.resources.File\022\017\n\007conten" +
+      "t\030\002 \001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n\"signed_ur" +
+      "l_expires_at_unix_seconds\030\004 \001(\003\"Y\n\021Updat" +
+      "eFileRequest\022\037\n\004file\030\001 \001(\0132\021.talon.v1.Fi" +
+      "leRef\022\022\n\nmedia_type\030\002 \001(\t\022\017\n\007content\030\003 \001" +
+      "(\014\"9\n\026GetFileMetadataRequest\022\037\n\004file\030\001 \001" +
+      "(\0132\021.talon.v1.FileRef\"\277\001\n\020ListFilesReque" +
+      "st\022\021\n\tnamespace\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022-\n" +
+      "\007purpose\030\003 \001(\0162\034.talon.resources.FilePur" +
+      "pose\0226\n\014index_policy\030\004 \001(\0162 .talon.resou" +
+      "rces.FileIndexPolicy\022\r\n\005limit\030\005 \001(\r\022\022\n\np" +
+      "age_token\030\006 \001(\t\"R\n\021ListFilesResponse\022$\n\005" +
+      "files\030\001 \003(\0132\025.talon.resources.File\022\027\n\017ne" +
+      "xt_page_token\030\002 \001(\t\"4\n\021DeleteFileRequest" +
+      "\022\037\n\004file\030\001 \001(\0132\021.talon.v1.FileRef\"%\n\022Del" +
+      "eteFileResponse\022\017\n\007success\030\001 \001(\010\"\364\001\n\026Pro" +
+      "moteArtifactRequest\022\027\n\017artifact_handle\030\001" +
+      " \001(\t\022\023\n\013target_path\030\002 \001(\t\022\022\n\nmedia_type\030" +
+      "\003 \001(\t\022-\n\007purpose\030\004 \001(\0162\034.talon.resources" +
+      ".FilePurpose\0226\n\014index_policy\030\005 \001(\0162 .tal" +
+      "on.resources.FileIndexPolicy\0221\n\tretentio" +
+      "n\030\006 \001(\0162\036.talon.resources.FileRetention\"" +
+      "H\n\014FileResponse\022#\n\004file\030\001 \001(\0132\025.talon.re" +
+      "sources.File\022\023\n\013file_handle\030\002 \001(\t\".\n\023Rea" +
+      "dArtifactRequest\022\027\n\017artifact_handle\030\001 \001(" +
+      "\t\"\217\001\n\024ReadArtifactResponse\022&\n\010artifact\030\001" +
+      " \001(\0132\024.talon.data.Artifact\022\017\n\007content\030\002 " +
+      "\001(\014\022\022\n\nsigned_url\030\003 \001(\t\022*\n\"signed_url_ex" +
+      "pires_at_unix_seconds\030\004 \001(\003\"5\n\032GetArtifa" +
+      "ctMetadataRequest\022\027\n\017artifact_handle\030\001 \001" +
+      "(\t\"\177\n\024ListArtifactsRequest\022\021\n\tnamespace\030" +
+      "\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t" +
+      "\022\016\n\006prefix\030\004 \001(\t\022\r\n\005limit\030\005 \001(\r\022\022\n\npage_" +
+      "token\030\006 \001(\t\"Y\n\025ListArtifactsResponse\022\'\n\t" +
+      "artifacts\030\001 \003(\0132\024.talon.data.Artifact\022\027\n" +
+      "\017next_page_token\030\002 \001(\t\"\211\001\n\024GrantArtifact" +
+      "Request\022\027\n\017artifact_handle\030\001 \001(\t\022\024\n\014targ" +
+      "et_agent\030\002 \001(\t\022\031\n\021target_session_id\030\003 \001(" +
+      "\t\022\022\n\noperations\030\004 \003(\t\022\023\n\013ttl_seconds\030\005 \001" +
+      "(\003\"S\n\020ArtifactResponse\022&\n\010artifact\030\001 \001(\013" +
+      "2\024.talon.data.Artifact\022\027\n\017artifact_handl" +
+      "e\030\002 \001(\t\"1\n\026ArtifactHandleResponse\022\027\n\017art" +
+      "ifact_handle\030\001 \001(\t2\260\005\n\013FileService\022A\n\nCr" +
+      "eateFile\022\033.talon.v1.CreateFileRequest\032\026." +
+      "talon.v1.FileResponse\022\\\n\021PrepareFileUplo" +
+      "ad\022\".talon.v1.PrepareFileUploadRequest\032#" +
+      ".talon.v1.PrepareFileUploadResponse\022Q\n\022C" +
+      "ompleteFileUpload\022#.talon.v1.CompleteFil" +
+      "eUploadRequest\032\026.talon.v1.FileResponse\022A" +
+      "\n\010ReadFile\022\031.talon.v1.ReadFileRequest\032\032." +
+      "talon.v1.ReadFileResponse\022A\n\nUpdateFile\022" +
+      "\033.talon.v1.UpdateFileRequest\032\026.talon.v1." +
+      "FileResponse\022K\n\017GetFileMetadata\022 .talon." +
+      "v1.GetFileMetadataRequest\032\026.talon.v1.Fil" +
+      "eResponse\022D\n\tListFiles\022\032.talon.v1.ListFi" +
+      "lesRequest\032\033.talon.v1.ListFilesResponse\022" +
+      "G\n\nDeleteFile\022\033.talon.v1.DeleteFileReque" +
+      "st\032\034.talon.v1.DeleteFileResponse\022K\n\017Prom" +
+      "oteArtifact\022 .talon.v1.PromoteArtifactRe" +
+      "quest\032\026.talon.v1.FileResponse2\336\002\n\017Artifa" +
+      "ctService\022M\n\014ReadArtifact\022\035.talon.v1.Rea" +
+      "dArtifactRequest\032\036.talon.v1.ReadArtifact" +
+      "Response\022W\n\023GetArtifactMetadata\022$.talon." +
+      "v1.GetArtifactMetadataRequest\032\032.talon.v1" +
+      ".ArtifactResponse\022P\n\rListArtifacts\022\036.tal" +
+      "on.v1.ListArtifactsRequest\032\037.talon.v1.Li" +
+      "stArtifactsResponse\022Q\n\rGrantArtifact\022\036.t" +
+      "alon.v1.GrantArtifactRequest\032 .talon.v1." +
+      "ArtifactHandleResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -16362,110 +20024,134 @@ public final class Files extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_CreateFileRequest_descriptor,
         new java.lang.String[] { "Namespace", "Path", "MediaType", "Purpose", "IndexPolicy", "Retention", "Content", });
-    internal_static_talon_v1_ReadFileRequest_descriptor =
+    internal_static_talon_v1_PrepareFileUploadRequest_descriptor =
       getDescriptor().getMessageType(2);
+    internal_static_talon_v1_PrepareFileUploadRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_PrepareFileUploadRequest_descriptor,
+        new java.lang.String[] { "Namespace", "Path", "MediaType", "Purpose", "IndexPolicy", "Retention", "File", "ExpectedSizeBytes", "ExpectedSha256", });
+    internal_static_talon_v1_PrepareFileUploadResponse_descriptor =
+      getDescriptor().getMessageType(3);
+    internal_static_talon_v1_PrepareFileUploadResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_PrepareFileUploadResponse_descriptor,
+        new java.lang.String[] { "File", "UploadToken", "SignedUploadUrl", "Method", "RequiredHeaders", "SignedUrlExpiresAtUnixSeconds", "ObjectKey", });
+    internal_static_talon_v1_PrepareFileUploadResponse_RequiredHeadersEntry_descriptor =
+      internal_static_talon_v1_PrepareFileUploadResponse_descriptor.getNestedType(0);
+    internal_static_talon_v1_PrepareFileUploadResponse_RequiredHeadersEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_PrepareFileUploadResponse_RequiredHeadersEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_v1_CompleteFileUploadRequest_descriptor =
+      getDescriptor().getMessageType(4);
+    internal_static_talon_v1_CompleteFileUploadRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_CompleteFileUploadRequest_descriptor,
+        new java.lang.String[] { "UploadToken", });
+    internal_static_talon_v1_ReadFileRequest_descriptor =
+      getDescriptor().getMessageType(5);
     internal_static_talon_v1_ReadFileRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ReadFileRequest_descriptor,
         new java.lang.String[] { "File", });
     internal_static_talon_v1_ReadFileResponse_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(6);
     internal_static_talon_v1_ReadFileResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ReadFileResponse_descriptor,
         new java.lang.String[] { "File", "Content", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", });
     internal_static_talon_v1_UpdateFileRequest_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(7);
     internal_static_talon_v1_UpdateFileRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_UpdateFileRequest_descriptor,
         new java.lang.String[] { "File", "MediaType", "Content", });
     internal_static_talon_v1_GetFileMetadataRequest_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(8);
     internal_static_talon_v1_GetFileMetadataRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetFileMetadataRequest_descriptor,
         new java.lang.String[] { "File", });
     internal_static_talon_v1_ListFilesRequest_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(9);
     internal_static_talon_v1_ListFilesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListFilesRequest_descriptor,
         new java.lang.String[] { "Namespace", "Prefix", "Purpose", "IndexPolicy", "Limit", "PageToken", });
     internal_static_talon_v1_ListFilesResponse_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(10);
     internal_static_talon_v1_ListFilesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListFilesResponse_descriptor,
         new java.lang.String[] { "Files", "NextPageToken", });
     internal_static_talon_v1_DeleteFileRequest_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(11);
     internal_static_talon_v1_DeleteFileRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_DeleteFileRequest_descriptor,
         new java.lang.String[] { "File", });
     internal_static_talon_v1_DeleteFileResponse_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(12);
     internal_static_talon_v1_DeleteFileResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_DeleteFileResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_v1_PromoteArtifactRequest_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(13);
     internal_static_talon_v1_PromoteArtifactRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_PromoteArtifactRequest_descriptor,
         new java.lang.String[] { "ArtifactHandle", "TargetPath", "MediaType", "Purpose", "IndexPolicy", "Retention", });
     internal_static_talon_v1_FileResponse_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(14);
     internal_static_talon_v1_FileResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_FileResponse_descriptor,
         new java.lang.String[] { "File", "FileHandle", });
     internal_static_talon_v1_ReadArtifactRequest_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(15);
     internal_static_talon_v1_ReadArtifactRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ReadArtifactRequest_descriptor,
         new java.lang.String[] { "ArtifactHandle", });
     internal_static_talon_v1_ReadArtifactResponse_descriptor =
-      getDescriptor().getMessageType(13);
+      getDescriptor().getMessageType(16);
     internal_static_talon_v1_ReadArtifactResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ReadArtifactResponse_descriptor,
         new java.lang.String[] { "Artifact", "Content", "SignedUrl", "SignedUrlExpiresAtUnixSeconds", });
     internal_static_talon_v1_GetArtifactMetadataRequest_descriptor =
-      getDescriptor().getMessageType(14);
+      getDescriptor().getMessageType(17);
     internal_static_talon_v1_GetArtifactMetadataRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetArtifactMetadataRequest_descriptor,
         new java.lang.String[] { "ArtifactHandle", });
     internal_static_talon_v1_ListArtifactsRequest_descriptor =
-      getDescriptor().getMessageType(15);
+      getDescriptor().getMessageType(18);
     internal_static_talon_v1_ListArtifactsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListArtifactsRequest_descriptor,
         new java.lang.String[] { "Namespace", "Agent", "SessionId", "Prefix", "Limit", "PageToken", });
     internal_static_talon_v1_ListArtifactsResponse_descriptor =
-      getDescriptor().getMessageType(16);
+      getDescriptor().getMessageType(19);
     internal_static_talon_v1_ListArtifactsResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListArtifactsResponse_descriptor,
         new java.lang.String[] { "Artifacts", "NextPageToken", });
     internal_static_talon_v1_GrantArtifactRequest_descriptor =
-      getDescriptor().getMessageType(17);
+      getDescriptor().getMessageType(20);
     internal_static_talon_v1_GrantArtifactRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GrantArtifactRequest_descriptor,
         new java.lang.String[] { "ArtifactHandle", "TargetAgent", "TargetSessionId", "Operations", "TtlSeconds", });
     internal_static_talon_v1_ArtifactResponse_descriptor =
-      getDescriptor().getMessageType(18);
+      getDescriptor().getMessageType(21);
     internal_static_talon_v1_ArtifactResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ArtifactResponse_descriptor,
         new java.lang.String[] { "Artifact", "ArtifactHandle", });
     internal_static_talon_v1_ArtifactHandleResponse_descriptor =
-      getDescriptor().getMessageType(19);
+      getDescriptor().getMessageType(22);
     internal_static_talon_v1_ArtifactHandleResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ArtifactHandleResponse_descriptor,
