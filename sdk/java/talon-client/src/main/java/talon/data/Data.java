@@ -377,6 +377,186 @@ public final class Data extends com.google.protobuf.GeneratedFile {
     // @@protoc_insertion_point(enum_scope:talon.data.SessionMessagePartType)
   }
 
+  /**
+   * Protobuf enum {@code talon.data.GoalPhase}
+   */
+  public enum GoalPhase
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>GOAL_PHASE_UNSPECIFIED = 0;</code>
+     */
+    GOAL_PHASE_UNSPECIFIED(0),
+    /**
+     * <code>GOAL_PHASE_RUNNING = 1;</code>
+     */
+    GOAL_PHASE_RUNNING(1),
+    /**
+     * <code>GOAL_PHASE_PAUSED = 2;</code>
+     */
+    GOAL_PHASE_PAUSED(2),
+    /**
+     * <code>GOAL_PHASE_NEEDS_REVIEW = 3;</code>
+     */
+    GOAL_PHASE_NEEDS_REVIEW(3),
+    /**
+     * <code>GOAL_PHASE_SUCCEEDED = 4;</code>
+     */
+    GOAL_PHASE_SUCCEEDED(4),
+    /**
+     * <code>GOAL_PHASE_FAILED = 5;</code>
+     */
+    GOAL_PHASE_FAILED(5),
+    /**
+     * <code>GOAL_PHASE_BLOCKED = 6;</code>
+     */
+    GOAL_PHASE_BLOCKED(6),
+    /**
+     * <code>GOAL_PHASE_CANCELED = 7;</code>
+     */
+    GOAL_PHASE_CANCELED(7),
+    /**
+     * <code>GOAL_PHASE_EXPIRED = 8;</code>
+     */
+    GOAL_PHASE_EXPIRED(8),
+    UNRECOGNIZED(-1),
+    ;
+
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "GoalPhase");
+    }
+    /**
+     * <code>GOAL_PHASE_UNSPECIFIED = 0;</code>
+     */
+    public static final int GOAL_PHASE_UNSPECIFIED_VALUE = 0;
+    /**
+     * <code>GOAL_PHASE_RUNNING = 1;</code>
+     */
+    public static final int GOAL_PHASE_RUNNING_VALUE = 1;
+    /**
+     * <code>GOAL_PHASE_PAUSED = 2;</code>
+     */
+    public static final int GOAL_PHASE_PAUSED_VALUE = 2;
+    /**
+     * <code>GOAL_PHASE_NEEDS_REVIEW = 3;</code>
+     */
+    public static final int GOAL_PHASE_NEEDS_REVIEW_VALUE = 3;
+    /**
+     * <code>GOAL_PHASE_SUCCEEDED = 4;</code>
+     */
+    public static final int GOAL_PHASE_SUCCEEDED_VALUE = 4;
+    /**
+     * <code>GOAL_PHASE_FAILED = 5;</code>
+     */
+    public static final int GOAL_PHASE_FAILED_VALUE = 5;
+    /**
+     * <code>GOAL_PHASE_BLOCKED = 6;</code>
+     */
+    public static final int GOAL_PHASE_BLOCKED_VALUE = 6;
+    /**
+     * <code>GOAL_PHASE_CANCELED = 7;</code>
+     */
+    public static final int GOAL_PHASE_CANCELED_VALUE = 7;
+    /**
+     * <code>GOAL_PHASE_EXPIRED = 8;</code>
+     */
+    public static final int GOAL_PHASE_EXPIRED_VALUE = 8;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static GoalPhase valueOf(int value) {
+      return forNumber(value);
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
+    public static GoalPhase forNumber(int value) {
+      switch (value) {
+        case 0: return GOAL_PHASE_UNSPECIFIED;
+        case 1: return GOAL_PHASE_RUNNING;
+        case 2: return GOAL_PHASE_PAUSED;
+        case 3: return GOAL_PHASE_NEEDS_REVIEW;
+        case 4: return GOAL_PHASE_SUCCEEDED;
+        case 5: return GOAL_PHASE_FAILED;
+        case 6: return GOAL_PHASE_BLOCKED;
+        case 7: return GOAL_PHASE_CANCELED;
+        case 8: return GOAL_PHASE_EXPIRED;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<GoalPhase>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        GoalPhase> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<GoalPhase>() {
+            public GoalPhase findValueByNumber(int number) {
+              return GoalPhase.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
+      return getDescriptor().getValue(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return talon.data.Data.getDescriptor().getEnumType(2);
+    }
+
+    private static final GoalPhase[] VALUES = values();
+
+    public static GoalPhase valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private GoalPhase(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:talon.data.GoalPhase)
+  }
+
   public interface ObjectRefOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.ObjectRef)
       com.google.protobuf.MessageOrBuilder {
@@ -3999,6 +4179,5905 @@ java.lang.String defaultValue) {
 
     @java.lang.Override
     public talon.data.Data.Artifact getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GoalEvidenceRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.GoalEvidenceRef)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string kind = 1;</code>
+     * @return The kind.
+     */
+    java.lang.String getKind();
+    /**
+     * <code>string kind = 1;</code>
+     * @return The bytes for kind.
+     */
+    com.google.protobuf.ByteString
+        getKindBytes();
+
+    /**
+     * <code>string namespace = 2;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 2;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>string name = 3;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <code>string name = 3;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>string agent = 4;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 4;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string session_id = 5;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 5;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string handle = 6;</code>
+     * @return The handle.
+     */
+    java.lang.String getHandle();
+    /**
+     * <code>string handle = 6;</code>
+     * @return The bytes for handle.
+     */
+    com.google.protobuf.ByteString
+        getHandleBytes();
+
+    /**
+     * <code>string object_key = 7;</code>
+     * @return The objectKey.
+     */
+    java.lang.String getObjectKey();
+    /**
+     * <code>string object_key = 7;</code>
+     * @return The bytes for objectKey.
+     */
+    com.google.protobuf.ByteString
+        getObjectKeyBytes();
+
+    /**
+     * <code>string summary = 8;</code>
+     * @return The summary.
+     */
+    java.lang.String getSummary();
+    /**
+     * <code>string summary = 8;</code>
+     * @return The bytes for summary.
+     */
+    com.google.protobuf.ByteString
+        getSummaryBytes();
+  }
+  /**
+   * Protobuf type {@code talon.data.GoalEvidenceRef}
+   */
+  public static final class GoalEvidenceRef extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.GoalEvidenceRef)
+      GoalEvidenceRefOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "GoalEvidenceRef");
+    }
+    // Use GoalEvidenceRef.newBuilder() to construct.
+    private GoalEvidenceRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private GoalEvidenceRef() {
+      kind_ = "";
+      namespace_ = "";
+      name_ = "";
+      agent_ = "";
+      sessionId_ = "";
+      handle_ = "";
+      objectKey_ = "";
+      summary_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Data.GoalEvidenceRef.class, talon.data.Data.GoalEvidenceRef.Builder.class);
+    }
+
+    public static final int KIND_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object kind_ = "";
+    /**
+     * <code>string kind = 1;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public java.lang.String getKind() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        kind_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string kind = 1;</code>
+     * @return The bytes for kind.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getKindBytes() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        kind_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 2;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 2;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAME_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <code>string name = 3;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string name = 3;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 4;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 4;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 5;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 5;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int HANDLE_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object handle_ = "";
+    /**
+     * <code>string handle = 6;</code>
+     * @return The handle.
+     */
+    @java.lang.Override
+    public java.lang.String getHandle() {
+      java.lang.Object ref = handle_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        handle_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string handle = 6;</code>
+     * @return The bytes for handle.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getHandleBytes() {
+      java.lang.Object ref = handle_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        handle_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OBJECT_KEY_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object objectKey_ = "";
+    /**
+     * <code>string object_key = 7;</code>
+     * @return The objectKey.
+     */
+    @java.lang.Override
+    public java.lang.String getObjectKey() {
+      java.lang.Object ref = objectKey_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        objectKey_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string object_key = 7;</code>
+     * @return The bytes for objectKey.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getObjectKeyBytes() {
+      java.lang.Object ref = objectKey_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        objectKey_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SUMMARY_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object summary_ = "";
+    /**
+     * <code>string summary = 8;</code>
+     * @return The summary.
+     */
+    @java.lang.Override
+    public java.lang.String getSummary() {
+      java.lang.Object ref = summary_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        summary_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string summary = 8;</code>
+     * @return The bytes for summary.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSummaryBytes() {
+      java.lang.Object ref = summary_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        summary_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, kind_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(handle_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, handle_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objectKey_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, objectKey_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, summary_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, kind_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(handle_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, handle_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objectKey_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, objectKey_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, summary_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Data.GoalEvidenceRef)) {
+        return super.equals(obj);
+      }
+      talon.data.Data.GoalEvidenceRef other = (talon.data.Data.GoalEvidenceRef) obj;
+
+      if (!getKind()
+          .equals(other.getKind())) return false;
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getName()
+          .equals(other.getName())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getHandle()
+          .equals(other.getHandle())) return false;
+      if (!getObjectKey()
+          .equals(other.getObjectKey())) return false;
+      if (!getSummary()
+          .equals(other.getSummary())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + KIND_FIELD_NUMBER;
+      hash = (53 * hash) + getKind().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + HANDLE_FIELD_NUMBER;
+      hash = (53 * hash) + getHandle().hashCode();
+      hash = (37 * hash) + OBJECT_KEY_FIELD_NUMBER;
+      hash = (53 * hash) + getObjectKey().hashCode();
+      hash = (37 * hash) + SUMMARY_FIELD_NUMBER;
+      hash = (53 * hash) + getSummary().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Data.GoalEvidenceRef parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Data.GoalEvidenceRef parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Data.GoalEvidenceRef parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.GoalEvidenceRef parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Data.GoalEvidenceRef prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.GoalEvidenceRef}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.GoalEvidenceRef)
+        talon.data.Data.GoalEvidenceRefOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Data.GoalEvidenceRef.class, talon.data.Data.GoalEvidenceRef.Builder.class);
+      }
+
+      // Construct using talon.data.Data.GoalEvidenceRef.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        kind_ = "";
+        namespace_ = "";
+        name_ = "";
+        agent_ = "";
+        sessionId_ = "";
+        handle_ = "";
+        objectKey_ = "";
+        summary_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.GoalEvidenceRef getDefaultInstanceForType() {
+        return talon.data.Data.GoalEvidenceRef.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Data.GoalEvidenceRef build() {
+        talon.data.Data.GoalEvidenceRef result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.GoalEvidenceRef buildPartial() {
+        talon.data.Data.GoalEvidenceRef result = new talon.data.Data.GoalEvidenceRef(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Data.GoalEvidenceRef result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.kind_ = kind_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.name_ = name_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.handle_ = handle_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.objectKey_ = objectKey_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.summary_ = summary_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Data.GoalEvidenceRef) {
+          return mergeFrom((talon.data.Data.GoalEvidenceRef)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Data.GoalEvidenceRef other) {
+        if (other == talon.data.Data.GoalEvidenceRef.getDefaultInstance()) return this;
+        if (!other.getKind().isEmpty()) {
+          kind_ = other.kind_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.getHandle().isEmpty()) {
+          handle_ = other.handle_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (!other.getObjectKey().isEmpty()) {
+          objectKey_ = other.objectKey_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        if (!other.getSummary().isEmpty()) {
+          summary_ = other.summary_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                kind_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                handle_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 58: {
+                objectKey_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              case 66: {
+                summary_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object kind_ = "";
+      /**
+       * <code>string kind = 1;</code>
+       * @return The kind.
+       */
+      public java.lang.String getKind() {
+        java.lang.Object ref = kind_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          kind_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string kind = 1;</code>
+       * @return The bytes for kind.
+       */
+      public com.google.protobuf.ByteString
+          getKindBytes() {
+        java.lang.Object ref = kind_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          kind_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string kind = 1;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        kind_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        kind_ = getDefaultInstance().getKind();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 1;</code>
+       * @param value The bytes for kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKindBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        kind_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 2;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 2;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 2;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 2;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>string name = 3;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 4;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 4;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 4;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 4;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 5;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 5;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 5;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 5;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object handle_ = "";
+      /**
+       * <code>string handle = 6;</code>
+       * @return The handle.
+       */
+      public java.lang.String getHandle() {
+        java.lang.Object ref = handle_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          handle_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string handle = 6;</code>
+       * @return The bytes for handle.
+       */
+      public com.google.protobuf.ByteString
+          getHandleBytes() {
+        java.lang.Object ref = handle_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          handle_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string handle = 6;</code>
+       * @param value The handle to set.
+       * @return This builder for chaining.
+       */
+      public Builder setHandle(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        handle_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string handle = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearHandle() {
+        handle_ = getDefaultInstance().getHandle();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string handle = 6;</code>
+       * @param value The bytes for handle to set.
+       * @return This builder for chaining.
+       */
+      public Builder setHandleBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        handle_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object objectKey_ = "";
+      /**
+       * <code>string object_key = 7;</code>
+       * @return The objectKey.
+       */
+      public java.lang.String getObjectKey() {
+        java.lang.Object ref = objectKey_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          objectKey_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string object_key = 7;</code>
+       * @return The bytes for objectKey.
+       */
+      public com.google.protobuf.ByteString
+          getObjectKeyBytes() {
+        java.lang.Object ref = objectKey_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          objectKey_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string object_key = 7;</code>
+       * @param value The objectKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjectKey(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        objectKey_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string object_key = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearObjectKey() {
+        objectKey_ = getDefaultInstance().getObjectKey();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string object_key = 7;</code>
+       * @param value The bytes for objectKey to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjectKeyBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        objectKey_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object summary_ = "";
+      /**
+       * <code>string summary = 8;</code>
+       * @return The summary.
+       */
+      public java.lang.String getSummary() {
+        java.lang.Object ref = summary_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          summary_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string summary = 8;</code>
+       * @return The bytes for summary.
+       */
+      public com.google.protobuf.ByteString
+          getSummaryBytes() {
+        java.lang.Object ref = summary_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          summary_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string summary = 8;</code>
+       * @param value The summary to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSummary(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        summary_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string summary = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSummary() {
+        summary_ = getDefaultInstance().getSummary();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string summary = 8;</code>
+       * @param value The bytes for summary to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSummaryBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        summary_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.GoalEvidenceRef)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.GoalEvidenceRef)
+    private static final talon.data.Data.GoalEvidenceRef DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Data.GoalEvidenceRef();
+    }
+
+    public static talon.data.Data.GoalEvidenceRef getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<GoalEvidenceRef>
+        PARSER = new com.google.protobuf.AbstractParser<GoalEvidenceRef>() {
+      @java.lang.Override
+      public GoalEvidenceRef parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<GoalEvidenceRef> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GoalEvidenceRef> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Data.GoalEvidenceRef getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GoalOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.Goal)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>string namespace = 2;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 2;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>string agent = 3;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 3;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string session_id = 4;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 4;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string objective = 5;</code>
+     * @return The objective.
+     */
+    java.lang.String getObjective();
+    /**
+     * <code>string objective = 5;</code>
+     * @return The bytes for objective.
+     */
+    com.google.protobuf.ByteString
+        getObjectiveBytes();
+
+    /**
+     * <code>repeated string success_criteria = 6;</code>
+     * @return A list containing the successCriteria.
+     */
+    java.util.List<java.lang.String>
+        getSuccessCriteriaList();
+    /**
+     * <code>repeated string success_criteria = 6;</code>
+     * @return The count of successCriteria.
+     */
+    int getSuccessCriteriaCount();
+    /**
+     * <code>repeated string success_criteria = 6;</code>
+     * @param index The index of the element to return.
+     * @return The successCriteria at the given index.
+     */
+    java.lang.String getSuccessCriteria(int index);
+    /**
+     * <code>repeated string success_criteria = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the successCriteria at the given index.
+     */
+    com.google.protobuf.ByteString
+        getSuccessCriteriaBytes(int index);
+
+    /**
+     * <code>.talon.data.GoalPhase phase = 7;</code>
+     * @return The enum numeric value on the wire for phase.
+     */
+    int getPhaseValue();
+    /**
+     * <code>.talon.data.GoalPhase phase = 7;</code>
+     * @return The phase.
+     */
+    talon.data.Data.GoalPhase getPhase();
+
+    /**
+     * <code>string progress_summary = 8;</code>
+     * @return The progressSummary.
+     */
+    java.lang.String getProgressSummary();
+    /**
+     * <code>string progress_summary = 8;</code>
+     * @return The bytes for progressSummary.
+     */
+    com.google.protobuf.ByteString
+        getProgressSummaryBytes();
+
+    /**
+     * <code>int32 iteration = 9;</code>
+     * @return The iteration.
+     */
+    int getIteration();
+
+    /**
+     * <code>int32 max_iterations = 10;</code>
+     * @return The maxIterations.
+     */
+    int getMaxIterations();
+
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    java.util.List<talon.data.Data.GoalEvidenceRef>
+        getEvidenceRefsList();
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    talon.data.Data.GoalEvidenceRef getEvidenceRefs(int index);
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    int getEvidenceRefsCount();
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    java.util.List<? extends talon.data.Data.GoalEvidenceRefOrBuilder>
+        getEvidenceRefsOrBuilderList();
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    talon.data.Data.GoalEvidenceRefOrBuilder getEvidenceRefsOrBuilder(
+        int index);
+
+    /**
+     * <code>int64 created_at = 12;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+
+    /**
+     * <code>int64 updated_at = 13;</code>
+     * @return The updatedAt.
+     */
+    long getUpdatedAt();
+
+    /**
+     * <code>int64 completed_at = 14;</code>
+     * @return The completedAt.
+     */
+    long getCompletedAt();
+
+    /**
+     * <code>string blocked_reason = 15;</code>
+     * @return The blockedReason.
+     */
+    java.lang.String getBlockedReason();
+    /**
+     * <code>string blocked_reason = 15;</code>
+     * @return The bytes for blockedReason.
+     */
+    com.google.protobuf.ByteString
+        getBlockedReasonBytes();
+
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    int getLabelsCount();
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    boolean containsLabels(
+        java.lang.String key);
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabels();
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabelsMap();
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    java.lang.String getLabelsOrThrow(
+        java.lang.String key);
+
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    int getMetadataCount();
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    boolean containsMetadata(
+        java.lang.String key);
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadata();
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadataMap();
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    java.lang.String getMetadataOrThrow(
+        java.lang.String key);
+  }
+  /**
+   * Protobuf type {@code talon.data.Goal}
+   */
+  public static final class Goal extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.Goal)
+      GoalOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Goal");
+    }
+    // Use Goal.newBuilder() to construct.
+    private Goal(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Goal() {
+      id_ = "";
+      namespace_ = "";
+      agent_ = "";
+      sessionId_ = "";
+      objective_ = "";
+      successCriteria_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      phase_ = 0;
+      progressSummary_ = "";
+      evidenceRefs_ = java.util.Collections.emptyList();
+      blockedReason_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Data.internal_static_talon_data_Goal_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Data.internal_static_talon_data_Goal_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 16:
+          return internalGetLabels();
+        case 17:
+          return internalGetMetadata();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Data.internal_static_talon_data_Goal_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Data.Goal.class, talon.data.Data.Goal.Builder.class);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 2;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 2;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 3;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 3;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 4;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 4;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OBJECTIVE_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object objective_ = "";
+    /**
+     * <code>string objective = 5;</code>
+     * @return The objective.
+     */
+    @java.lang.Override
+    public java.lang.String getObjective() {
+      java.lang.Object ref = objective_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        objective_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string objective = 5;</code>
+     * @return The bytes for objective.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getObjectiveBytes() {
+      java.lang.Object ref = objective_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        objective_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SUCCESS_CRITERIA_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList successCriteria_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string success_criteria = 6;</code>
+     * @return A list containing the successCriteria.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getSuccessCriteriaList() {
+      return successCriteria_;
+    }
+    /**
+     * <code>repeated string success_criteria = 6;</code>
+     * @return The count of successCriteria.
+     */
+    public int getSuccessCriteriaCount() {
+      return successCriteria_.size();
+    }
+    /**
+     * <code>repeated string success_criteria = 6;</code>
+     * @param index The index of the element to return.
+     * @return The successCriteria at the given index.
+     */
+    public java.lang.String getSuccessCriteria(int index) {
+      return successCriteria_.get(index);
+    }
+    /**
+     * <code>repeated string success_criteria = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the successCriteria at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getSuccessCriteriaBytes(int index) {
+      return successCriteria_.getByteString(index);
+    }
+
+    public static final int PHASE_FIELD_NUMBER = 7;
+    private int phase_ = 0;
+    /**
+     * <code>.talon.data.GoalPhase phase = 7;</code>
+     * @return The enum numeric value on the wire for phase.
+     */
+    @java.lang.Override public int getPhaseValue() {
+      return phase_;
+    }
+    /**
+     * <code>.talon.data.GoalPhase phase = 7;</code>
+     * @return The phase.
+     */
+    @java.lang.Override public talon.data.Data.GoalPhase getPhase() {
+      talon.data.Data.GoalPhase result = talon.data.Data.GoalPhase.forNumber(phase_);
+      return result == null ? talon.data.Data.GoalPhase.UNRECOGNIZED : result;
+    }
+
+    public static final int PROGRESS_SUMMARY_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object progressSummary_ = "";
+    /**
+     * <code>string progress_summary = 8;</code>
+     * @return The progressSummary.
+     */
+    @java.lang.Override
+    public java.lang.String getProgressSummary() {
+      java.lang.Object ref = progressSummary_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        progressSummary_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string progress_summary = 8;</code>
+     * @return The bytes for progressSummary.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getProgressSummaryBytes() {
+      java.lang.Object ref = progressSummary_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        progressSummary_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ITERATION_FIELD_NUMBER = 9;
+    private int iteration_ = 0;
+    /**
+     * <code>int32 iteration = 9;</code>
+     * @return The iteration.
+     */
+    @java.lang.Override
+    public int getIteration() {
+      return iteration_;
+    }
+
+    public static final int MAX_ITERATIONS_FIELD_NUMBER = 10;
+    private int maxIterations_ = 0;
+    /**
+     * <code>int32 max_iterations = 10;</code>
+     * @return The maxIterations.
+     */
+    @java.lang.Override
+    public int getMaxIterations() {
+      return maxIterations_;
+    }
+
+    public static final int EVIDENCE_REFS_FIELD_NUMBER = 11;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.data.Data.GoalEvidenceRef> evidenceRefs_;
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.data.Data.GoalEvidenceRef> getEvidenceRefsList() {
+      return evidenceRefs_;
+    }
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.data.Data.GoalEvidenceRefOrBuilder>
+        getEvidenceRefsOrBuilderList() {
+      return evidenceRefs_;
+    }
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    @java.lang.Override
+    public int getEvidenceRefsCount() {
+      return evidenceRefs_.size();
+    }
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    @java.lang.Override
+    public talon.data.Data.GoalEvidenceRef getEvidenceRefs(int index) {
+      return evidenceRefs_.get(index);
+    }
+    /**
+     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+     */
+    @java.lang.Override
+    public talon.data.Data.GoalEvidenceRefOrBuilder getEvidenceRefsOrBuilder(
+        int index) {
+      return evidenceRefs_.get(index);
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 12;
+    private long createdAt_ = 0L;
+    /**
+     * <code>int64 created_at = 12;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    public static final int UPDATED_AT_FIELD_NUMBER = 13;
+    private long updatedAt_ = 0L;
+    /**
+     * <code>int64 updated_at = 13;</code>
+     * @return The updatedAt.
+     */
+    @java.lang.Override
+    public long getUpdatedAt() {
+      return updatedAt_;
+    }
+
+    public static final int COMPLETED_AT_FIELD_NUMBER = 14;
+    private long completedAt_ = 0L;
+    /**
+     * <code>int64 completed_at = 14;</code>
+     * @return The completedAt.
+     */
+    @java.lang.Override
+    public long getCompletedAt() {
+      return completedAt_;
+    }
+
+    public static final int BLOCKED_REASON_FIELD_NUMBER = 15;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object blockedReason_ = "";
+    /**
+     * <code>string blocked_reason = 15;</code>
+     * @return The blockedReason.
+     */
+    @java.lang.Override
+    public java.lang.String getBlockedReason() {
+      java.lang.Object ref = blockedReason_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        blockedReason_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string blocked_reason = 15;</code>
+     * @return The bytes for blockedReason.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getBlockedReasonBytes() {
+      java.lang.Object ref = blockedReason_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        blockedReason_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int LABELS_FIELD_NUMBER = 16;
+    private static final class LabelsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.data.Data.internal_static_talon_data_Goal_LabelsEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> labels_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetLabels() {
+      if (labels_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            LabelsDefaultEntryHolder.defaultEntry);
+      }
+      return labels_;
+    }
+    public int getLabelsCount() {
+      return internalGetLabels().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    @java.lang.Override
+    public boolean containsLabels(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetLabels().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+      return getLabelsMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+      return internalGetLabels().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getLabelsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int METADATA_FIELD_NUMBER = 17;
+    private static final class MetadataDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.data.Data.internal_static_talon_data_Goal_MetadataEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> metadata_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetMetadata() {
+      if (metadata_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            MetadataDefaultEntryHolder.defaultEntry);
+      }
+      return metadata_;
+    }
+    public int getMetadataCount() {
+      return internalGetMetadata().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    @java.lang.Override
+    public boolean containsMetadata(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetMetadata().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+      return getMetadataMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+      return internalGetMetadata().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getMetadataOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objective_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, objective_);
+      }
+      for (int i = 0; i < successCriteria_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, successCriteria_.getRaw(i));
+      }
+      if (phase_ != talon.data.Data.GoalPhase.GOAL_PHASE_UNSPECIFIED.getNumber()) {
+        output.writeEnum(7, phase_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(progressSummary_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, progressSummary_);
+      }
+      if (iteration_ != 0) {
+        output.writeInt32(9, iteration_);
+      }
+      if (maxIterations_ != 0) {
+        output.writeInt32(10, maxIterations_);
+      }
+      for (int i = 0; i < evidenceRefs_.size(); i++) {
+        output.writeMessage(11, evidenceRefs_.get(i));
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(12, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        output.writeInt64(13, updatedAt_);
+      }
+      if (completedAt_ != 0L) {
+        output.writeInt64(14, completedAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(blockedReason_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 15, blockedReason_);
+      }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetLabels(),
+          LabelsDefaultEntryHolder.defaultEntry,
+          16);
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetMetadata(),
+          MetadataDefaultEntryHolder.defaultEntry,
+          17);
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objective_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, objective_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < successCriteria_.size(); i++) {
+          dataSize += computeStringSizeNoTag(successCriteria_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getSuccessCriteriaList().size();
+      }
+      if (phase_ != talon.data.Data.GoalPhase.GOAL_PHASE_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(7, phase_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(progressSummary_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, progressSummary_);
+      }
+      if (iteration_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(9, iteration_);
+      }
+      if (maxIterations_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(10, maxIterations_);
+      }
+
+          {
+            final int count = evidenceRefs_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(evidenceRefs_.get(i));
+            }
+            size += 1 * count;
+          }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(12, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(13, updatedAt_);
+      }
+      if (completedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(14, completedAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(blockedReason_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(15, blockedReason_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetLabels().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(16, labels__);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetMetadata().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        metadata__ = MetadataDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(17, metadata__);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Data.Goal)) {
+        return super.equals(obj);
+      }
+      talon.data.Data.Goal other = (talon.data.Data.Goal) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getObjective()
+          .equals(other.getObjective())) return false;
+      if (!getSuccessCriteriaList()
+          .equals(other.getSuccessCriteriaList())) return false;
+      if (phase_ != other.phase_) return false;
+      if (!getProgressSummary()
+          .equals(other.getProgressSummary())) return false;
+      if (getIteration()
+          != other.getIteration()) return false;
+      if (getMaxIterations()
+          != other.getMaxIterations()) return false;
+      if (!getEvidenceRefsList()
+          .equals(other.getEvidenceRefsList())) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (getUpdatedAt()
+          != other.getUpdatedAt()) return false;
+      if (getCompletedAt()
+          != other.getCompletedAt()) return false;
+      if (!getBlockedReason()
+          .equals(other.getBlockedReason())) return false;
+      if (!internalGetLabels().equals(
+          other.internalGetLabels())) return false;
+      if (!internalGetMetadata().equals(
+          other.internalGetMetadata())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + OBJECTIVE_FIELD_NUMBER;
+      hash = (53 * hash) + getObjective().hashCode();
+      if (getSuccessCriteriaCount() > 0) {
+        hash = (37 * hash) + SUCCESS_CRITERIA_FIELD_NUMBER;
+        hash = (53 * hash) + getSuccessCriteriaList().hashCode();
+      }
+      hash = (37 * hash) + PHASE_FIELD_NUMBER;
+      hash = (53 * hash) + phase_;
+      hash = (37 * hash) + PROGRESS_SUMMARY_FIELD_NUMBER;
+      hash = (53 * hash) + getProgressSummary().hashCode();
+      hash = (37 * hash) + ITERATION_FIELD_NUMBER;
+      hash = (53 * hash) + getIteration();
+      hash = (37 * hash) + MAX_ITERATIONS_FIELD_NUMBER;
+      hash = (53 * hash) + getMaxIterations();
+      if (getEvidenceRefsCount() > 0) {
+        hash = (37 * hash) + EVIDENCE_REFS_FIELD_NUMBER;
+        hash = (53 * hash) + getEvidenceRefsList().hashCode();
+      }
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getUpdatedAt());
+      hash = (37 * hash) + COMPLETED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCompletedAt());
+      hash = (37 * hash) + BLOCKED_REASON_FIELD_NUMBER;
+      hash = (53 * hash) + getBlockedReason().hashCode();
+      if (!internalGetLabels().getMap().isEmpty()) {
+        hash = (37 * hash) + LABELS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetLabels().hashCode();
+      }
+      if (!internalGetMetadata().getMap().isEmpty()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetMetadata().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Data.Goal parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Goal parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Goal parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Data.Goal parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Data.Goal parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Data.Goal prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.Goal}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.Goal)
+        talon.data.Data.GoalOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Data.internal_static_talon_data_Goal_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 16:
+            return internalGetLabels();
+          case 17:
+            return internalGetMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 16:
+            return internalGetMutableLabels();
+          case 17:
+            return internalGetMutableMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Data.internal_static_talon_data_Goal_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Data.Goal.class, talon.data.Data.Goal.Builder.class);
+      }
+
+      // Construct using talon.data.Data.Goal.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        namespace_ = "";
+        agent_ = "";
+        sessionId_ = "";
+        objective_ = "";
+        successCriteria_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        phase_ = 0;
+        progressSummary_ = "";
+        iteration_ = 0;
+        maxIterations_ = 0;
+        if (evidenceRefsBuilder_ == null) {
+          evidenceRefs_ = java.util.Collections.emptyList();
+        } else {
+          evidenceRefs_ = null;
+          evidenceRefsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000400);
+        createdAt_ = 0L;
+        updatedAt_ = 0L;
+        completedAt_ = 0L;
+        blockedReason_ = "";
+        internalGetMutableLabels().clear();
+        internalGetMutableMetadata().clear();
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Data.internal_static_talon_data_Goal_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Goal getDefaultInstanceForType() {
+        return talon.data.Data.Goal.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Goal build() {
+        talon.data.Data.Goal result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Goal buildPartial() {
+        talon.data.Data.Goal result = new talon.data.Data.Goal(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(talon.data.Data.Goal result) {
+        if (evidenceRefsBuilder_ == null) {
+          if (((bitField0_ & 0x00000400) != 0)) {
+            evidenceRefs_ = java.util.Collections.unmodifiableList(evidenceRefs_);
+            bitField0_ = (bitField0_ & ~0x00000400);
+          }
+          result.evidenceRefs_ = evidenceRefs_;
+        } else {
+          result.evidenceRefs_ = evidenceRefsBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(talon.data.Data.Goal result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.objective_ = objective_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          successCriteria_.makeImmutable();
+          result.successCriteria_ = successCriteria_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.phase_ = phase_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.progressSummary_ = progressSummary_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.iteration_ = iteration_;
+        }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.maxIterations_ = maxIterations_;
+        }
+        if (((from_bitField0_ & 0x00000800) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+        if (((from_bitField0_ & 0x00001000) != 0)) {
+          result.updatedAt_ = updatedAt_;
+        }
+        if (((from_bitField0_ & 0x00002000) != 0)) {
+          result.completedAt_ = completedAt_;
+        }
+        if (((from_bitField0_ & 0x00004000) != 0)) {
+          result.blockedReason_ = blockedReason_;
+        }
+        if (((from_bitField0_ & 0x00008000) != 0)) {
+          result.labels_ = internalGetLabels();
+          result.labels_.makeImmutable();
+        }
+        if (((from_bitField0_ & 0x00010000) != 0)) {
+          result.metadata_ = internalGetMetadata();
+          result.metadata_.makeImmutable();
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Data.Goal) {
+          return mergeFrom((talon.data.Data.Goal)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Data.Goal other) {
+        if (other == talon.data.Data.Goal.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getObjective().isEmpty()) {
+          objective_ = other.objective_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.successCriteria_.isEmpty()) {
+          if (successCriteria_.isEmpty()) {
+            successCriteria_ = other.successCriteria_;
+            bitField0_ |= 0x00000020;
+          } else {
+            ensureSuccessCriteriaIsMutable();
+            successCriteria_.addAll(other.successCriteria_);
+          }
+          onChanged();
+        }
+        if (other.phase_ != 0) {
+          setPhaseValue(other.getPhaseValue());
+        }
+        if (!other.getProgressSummary().isEmpty()) {
+          progressSummary_ = other.progressSummary_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        if (other.getIteration() != 0) {
+          setIteration(other.getIteration());
+        }
+        if (other.getMaxIterations() != 0) {
+          setMaxIterations(other.getMaxIterations());
+        }
+        if (evidenceRefsBuilder_ == null) {
+          if (!other.evidenceRefs_.isEmpty()) {
+            if (evidenceRefs_.isEmpty()) {
+              evidenceRefs_ = other.evidenceRefs_;
+              bitField0_ = (bitField0_ & ~0x00000400);
+            } else {
+              ensureEvidenceRefsIsMutable();
+              evidenceRefs_.addAll(other.evidenceRefs_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.evidenceRefs_.isEmpty()) {
+            if (evidenceRefsBuilder_.isEmpty()) {
+              evidenceRefsBuilder_.dispose();
+              evidenceRefsBuilder_ = null;
+              evidenceRefs_ = other.evidenceRefs_;
+              bitField0_ = (bitField0_ & ~0x00000400);
+              evidenceRefsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetEvidenceRefsFieldBuilder() : null;
+            } else {
+              evidenceRefsBuilder_.addAllMessages(other.evidenceRefs_);
+            }
+          }
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        if (other.getUpdatedAt() != 0L) {
+          setUpdatedAt(other.getUpdatedAt());
+        }
+        if (other.getCompletedAt() != 0L) {
+          setCompletedAt(other.getCompletedAt());
+        }
+        if (!other.getBlockedReason().isEmpty()) {
+          blockedReason_ = other.blockedReason_;
+          bitField0_ |= 0x00004000;
+          onChanged();
+        }
+        internalGetMutableLabels().mergeFrom(
+            other.internalGetLabels());
+        bitField0_ |= 0x00008000;
+        internalGetMutableMetadata().mergeFrom(
+            other.internalGetMetadata());
+        bitField0_ |= 0x00010000;
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                objective_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                ensureSuccessCriteriaIsMutable();
+                successCriteria_.add(input.readStringRequireUtf8());
+                break;
+              } // case 50
+              case 56: {
+                phase_ = input.readEnum();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              case 66: {
+                progressSummary_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              case 72: {
+                iteration_ = input.readInt32();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 72
+              case 80: {
+                maxIterations_ = input.readInt32();
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 80
+              case 90: {
+                talon.data.Data.GoalEvidenceRef m =
+                    input.readMessage(
+                        talon.data.Data.GoalEvidenceRef.parser(),
+                        extensionRegistry);
+                if (evidenceRefsBuilder_ == null) {
+                  ensureEvidenceRefsIsMutable();
+                  evidenceRefs_.add(m);
+                } else {
+                  evidenceRefsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 90
+              case 96: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000800;
+                break;
+              } // case 96
+              case 104: {
+                updatedAt_ = input.readInt64();
+                bitField0_ |= 0x00001000;
+                break;
+              } // case 104
+              case 112: {
+                completedAt_ = input.readInt64();
+                bitField0_ |= 0x00002000;
+                break;
+              } // case 112
+              case 122: {
+                blockedReason_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00004000;
+                break;
+              } // case 122
+              case 130: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                labels__ = input.readMessage(
+                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableLabels().getMutableMap().put(
+                    labels__.getKey(), labels__.getValue());
+                bitField0_ |= 0x00008000;
+                break;
+              } // case 130
+              case 138: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                metadata__ = input.readMessage(
+                    MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableMetadata().getMutableMap().put(
+                    metadata__.getKey(), metadata__.getValue());
+                bitField0_ |= 0x00010000;
+                break;
+              } // case 138
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 2;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 2;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 2;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 2;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 3;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 3;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 3;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 3;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 4;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 4;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 4;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 4;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object objective_ = "";
+      /**
+       * <code>string objective = 5;</code>
+       * @return The objective.
+       */
+      public java.lang.String getObjective() {
+        java.lang.Object ref = objective_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          objective_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string objective = 5;</code>
+       * @return The bytes for objective.
+       */
+      public com.google.protobuf.ByteString
+          getObjectiveBytes() {
+        java.lang.Object ref = objective_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          objective_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string objective = 5;</code>
+       * @param value The objective to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjective(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        objective_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string objective = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearObjective() {
+        objective_ = getDefaultInstance().getObjective();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string objective = 5;</code>
+       * @param value The bytes for objective to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjectiveBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        objective_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList successCriteria_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureSuccessCriteriaIsMutable() {
+        if (!successCriteria_.isModifiable()) {
+          successCriteria_ = new com.google.protobuf.LazyStringArrayList(successCriteria_);
+        }
+        bitField0_ |= 0x00000020;
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @return A list containing the successCriteria.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getSuccessCriteriaList() {
+        successCriteria_.makeImmutable();
+        return successCriteria_;
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @return The count of successCriteria.
+       */
+      public int getSuccessCriteriaCount() {
+        return successCriteria_.size();
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @param index The index of the element to return.
+       * @return The successCriteria at the given index.
+       */
+      public java.lang.String getSuccessCriteria(int index) {
+        return successCriteria_.get(index);
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the successCriteria at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getSuccessCriteriaBytes(int index) {
+        return successCriteria_.getByteString(index);
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @param index The index to set the value at.
+       * @param value The successCriteria to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSuccessCriteria(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureSuccessCriteriaIsMutable();
+        successCriteria_.set(index, value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @param value The successCriteria to add.
+       * @return This builder for chaining.
+       */
+      public Builder addSuccessCriteria(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureSuccessCriteriaIsMutable();
+        successCriteria_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @param values The successCriteria to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllSuccessCriteria(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureSuccessCriteriaIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, successCriteria_);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSuccessCriteria() {
+        successCriteria_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000020);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string success_criteria = 6;</code>
+       * @param value The bytes of the successCriteria to add.
+       * @return This builder for chaining.
+       */
+      public Builder addSuccessCriteriaBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureSuccessCriteriaIsMutable();
+        successCriteria_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private int phase_ = 0;
+      /**
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @return The enum numeric value on the wire for phase.
+       */
+      @java.lang.Override public int getPhaseValue() {
+        return phase_;
+      }
+      /**
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @param value The enum numeric value on the wire for phase to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setPhaseValue(int value) {
+        phase_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @return The phase.
+       */
+      @java.lang.Override
+      public talon.data.Data.GoalPhase getPhase() {
+        talon.data.Data.GoalPhase result = talon.data.Data.GoalPhase.forNumber(phase_);
+        return result == null ? talon.data.Data.GoalPhase.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @param value The phase to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPhase(talon.data.Data.GoalPhase value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000040;
+        phase_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPhase() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        phase_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object progressSummary_ = "";
+      /**
+       * <code>string progress_summary = 8;</code>
+       * @return The progressSummary.
+       */
+      public java.lang.String getProgressSummary() {
+        java.lang.Object ref = progressSummary_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          progressSummary_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string progress_summary = 8;</code>
+       * @return The bytes for progressSummary.
+       */
+      public com.google.protobuf.ByteString
+          getProgressSummaryBytes() {
+        java.lang.Object ref = progressSummary_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          progressSummary_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string progress_summary = 8;</code>
+       * @param value The progressSummary to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProgressSummary(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        progressSummary_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string progress_summary = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProgressSummary() {
+        progressSummary_ = getDefaultInstance().getProgressSummary();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string progress_summary = 8;</code>
+       * @param value The bytes for progressSummary to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProgressSummaryBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        progressSummary_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private int iteration_ ;
+      /**
+       * <code>int32 iteration = 9;</code>
+       * @return The iteration.
+       */
+      @java.lang.Override
+      public int getIteration() {
+        return iteration_;
+      }
+      /**
+       * <code>int32 iteration = 9;</code>
+       * @param value The iteration to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIteration(int value) {
+
+        iteration_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 iteration = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearIteration() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        iteration_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int maxIterations_ ;
+      /**
+       * <code>int32 max_iterations = 10;</code>
+       * @return The maxIterations.
+       */
+      @java.lang.Override
+      public int getMaxIterations() {
+        return maxIterations_;
+      }
+      /**
+       * <code>int32 max_iterations = 10;</code>
+       * @param value The maxIterations to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaxIterations(int value) {
+
+        maxIterations_ = value;
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 max_iterations = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaxIterations() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        maxIterations_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<talon.data.Data.GoalEvidenceRef> evidenceRefs_ =
+        java.util.Collections.emptyList();
+      private void ensureEvidenceRefsIsMutable() {
+        if (!((bitField0_ & 0x00000400) != 0)) {
+          evidenceRefs_ = new java.util.ArrayList<talon.data.Data.GoalEvidenceRef>(evidenceRefs_);
+          bitField0_ |= 0x00000400;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.data.Data.GoalEvidenceRef, talon.data.Data.GoalEvidenceRef.Builder, talon.data.Data.GoalEvidenceRefOrBuilder> evidenceRefsBuilder_;
+
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public java.util.List<talon.data.Data.GoalEvidenceRef> getEvidenceRefsList() {
+        if (evidenceRefsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(evidenceRefs_);
+        } else {
+          return evidenceRefsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public int getEvidenceRefsCount() {
+        if (evidenceRefsBuilder_ == null) {
+          return evidenceRefs_.size();
+        } else {
+          return evidenceRefsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public talon.data.Data.GoalEvidenceRef getEvidenceRefs(int index) {
+        if (evidenceRefsBuilder_ == null) {
+          return evidenceRefs_.get(index);
+        } else {
+          return evidenceRefsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder setEvidenceRefs(
+          int index, talon.data.Data.GoalEvidenceRef value) {
+        if (evidenceRefsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureEvidenceRefsIsMutable();
+          evidenceRefs_.set(index, value);
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder setEvidenceRefs(
+          int index, talon.data.Data.GoalEvidenceRef.Builder builderForValue) {
+        if (evidenceRefsBuilder_ == null) {
+          ensureEvidenceRefsIsMutable();
+          evidenceRefs_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder addEvidenceRefs(talon.data.Data.GoalEvidenceRef value) {
+        if (evidenceRefsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureEvidenceRefsIsMutable();
+          evidenceRefs_.add(value);
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder addEvidenceRefs(
+          int index, talon.data.Data.GoalEvidenceRef value) {
+        if (evidenceRefsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureEvidenceRefsIsMutable();
+          evidenceRefs_.add(index, value);
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder addEvidenceRefs(
+          talon.data.Data.GoalEvidenceRef.Builder builderForValue) {
+        if (evidenceRefsBuilder_ == null) {
+          ensureEvidenceRefsIsMutable();
+          evidenceRefs_.add(builderForValue.build());
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder addEvidenceRefs(
+          int index, talon.data.Data.GoalEvidenceRef.Builder builderForValue) {
+        if (evidenceRefsBuilder_ == null) {
+          ensureEvidenceRefsIsMutable();
+          evidenceRefs_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder addAllEvidenceRefs(
+          java.lang.Iterable<? extends talon.data.Data.GoalEvidenceRef> values) {
+        if (evidenceRefsBuilder_ == null) {
+          ensureEvidenceRefsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, evidenceRefs_);
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder clearEvidenceRefs() {
+        if (evidenceRefsBuilder_ == null) {
+          evidenceRefs_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000400);
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public Builder removeEvidenceRefs(int index) {
+        if (evidenceRefsBuilder_ == null) {
+          ensureEvidenceRefsIsMutable();
+          evidenceRefs_.remove(index);
+          onChanged();
+        } else {
+          evidenceRefsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public talon.data.Data.GoalEvidenceRef.Builder getEvidenceRefsBuilder(
+          int index) {
+        return internalGetEvidenceRefsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public talon.data.Data.GoalEvidenceRefOrBuilder getEvidenceRefsOrBuilder(
+          int index) {
+        if (evidenceRefsBuilder_ == null) {
+          return evidenceRefs_.get(index);  } else {
+          return evidenceRefsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public java.util.List<? extends talon.data.Data.GoalEvidenceRefOrBuilder>
+           getEvidenceRefsOrBuilderList() {
+        if (evidenceRefsBuilder_ != null) {
+          return evidenceRefsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(evidenceRefs_);
+        }
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public talon.data.Data.GoalEvidenceRef.Builder addEvidenceRefsBuilder() {
+        return internalGetEvidenceRefsFieldBuilder().addBuilder(
+            talon.data.Data.GoalEvidenceRef.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public talon.data.Data.GoalEvidenceRef.Builder addEvidenceRefsBuilder(
+          int index) {
+        return internalGetEvidenceRefsFieldBuilder().addBuilder(
+            index, talon.data.Data.GoalEvidenceRef.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
+       */
+      public java.util.List<talon.data.Data.GoalEvidenceRef.Builder>
+           getEvidenceRefsBuilderList() {
+        return internalGetEvidenceRefsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.data.Data.GoalEvidenceRef, talon.data.Data.GoalEvidenceRef.Builder, talon.data.Data.GoalEvidenceRefOrBuilder>
+          internalGetEvidenceRefsFieldBuilder() {
+        if (evidenceRefsBuilder_ == null) {
+          evidenceRefsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.data.Data.GoalEvidenceRef, talon.data.Data.GoalEvidenceRef.Builder, talon.data.Data.GoalEvidenceRefOrBuilder>(
+                  evidenceRefs_,
+                  ((bitField0_ & 0x00000400) != 0),
+                  getParentForChildren(),
+                  isClean());
+          evidenceRefs_ = null;
+        }
+        return evidenceRefsBuilder_;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <code>int64 created_at = 12;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <code>int64 created_at = 12;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 created_at = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long updatedAt_ ;
+      /**
+       * <code>int64 updated_at = 13;</code>
+       * @return The updatedAt.
+       */
+      @java.lang.Override
+      public long getUpdatedAt() {
+        return updatedAt_;
+      }
+      /**
+       * <code>int64 updated_at = 13;</code>
+       * @param value The updatedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdatedAt(long value) {
+
+        updatedAt_ = value;
+        bitField0_ |= 0x00001000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 updated_at = 13;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdatedAt() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        updatedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long completedAt_ ;
+      /**
+       * <code>int64 completed_at = 14;</code>
+       * @return The completedAt.
+       */
+      @java.lang.Override
+      public long getCompletedAt() {
+        return completedAt_;
+      }
+      /**
+       * <code>int64 completed_at = 14;</code>
+       * @param value The completedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCompletedAt(long value) {
+
+        completedAt_ = value;
+        bitField0_ |= 0x00002000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 completed_at = 14;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCompletedAt() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        completedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object blockedReason_ = "";
+      /**
+       * <code>string blocked_reason = 15;</code>
+       * @return The blockedReason.
+       */
+      public java.lang.String getBlockedReason() {
+        java.lang.Object ref = blockedReason_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          blockedReason_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string blocked_reason = 15;</code>
+       * @return The bytes for blockedReason.
+       */
+      public com.google.protobuf.ByteString
+          getBlockedReasonBytes() {
+        java.lang.Object ref = blockedReason_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          blockedReason_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string blocked_reason = 15;</code>
+       * @param value The blockedReason to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBlockedReason(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        blockedReason_ = value;
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string blocked_reason = 15;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBlockedReason() {
+        blockedReason_ = getDefaultInstance().getBlockedReason();
+        bitField0_ = (bitField0_ & ~0x00004000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string blocked_reason = 15;</code>
+       * @param value The bytes for blockedReason to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBlockedReasonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        blockedReason_ = value;
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> labels_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetLabels() {
+        if (labels_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        return labels_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableLabels() {
+        if (labels_ == null) {
+          labels_ = com.google.protobuf.MapField.newMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        if (!labels_.isMutable()) {
+          labels_ = labels_.copy();
+        }
+        bitField0_ |= 0x00008000;
+        onChanged();
+        return labels_;
+      }
+      public int getLabelsCount() {
+        return internalGetLabels().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      @java.lang.Override
+      public boolean containsLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetLabels().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getLabelsMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+        return getLabelsMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+        return internalGetLabels().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getLabelsOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getLabelsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearLabels() {
+        bitField0_ = (bitField0_ & ~0x00008000);
+        internalGetMutableLabels().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      public Builder removeLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableLabels().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableLabels() {
+        bitField0_ |= 0x00008000;
+        return internalGetMutableLabels().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      public Builder putLabels(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableLabels().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00008000;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      public Builder putAllLabels(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableLabels().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00008000;
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> metadata_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMetadata() {
+        if (metadata_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        return metadata_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableMetadata() {
+        if (metadata_ == null) {
+          metadata_ = com.google.protobuf.MapField.newMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        if (!metadata_.isMutable()) {
+          metadata_ = metadata_.copy();
+        }
+        bitField0_ |= 0x00010000;
+        onChanged();
+        return metadata_;
+      }
+      public int getMetadataCount() {
+        return internalGetMetadata().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      @java.lang.Override
+      public boolean containsMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetMetadata().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getMetadataMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+        return getMetadataMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+        return internalGetMetadata().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getMetadataOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getMetadataOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00010000);
+        internalGetMutableMetadata().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      public Builder removeMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableMetadata().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableMetadata() {
+        bitField0_ |= 0x00010000;
+        return internalGetMutableMetadata().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      public Builder putMetadata(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableMetadata().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00010000;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      public Builder putAllMetadata(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableMetadata().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00010000;
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.Goal)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.Goal)
+    private static final talon.data.Data.Goal DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Data.Goal();
+    }
+
+    public static talon.data.Data.Goal getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Goal>
+        PARSER = new com.google.protobuf.AbstractParser<Goal>() {
+      @java.lang.Override
+      public Goal parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Goal> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Goal> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Data.Goal getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GoalIndexEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.GoalIndexEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string goal_id = 4;</code>
+     * @return The goalId.
+     */
+    java.lang.String getGoalId();
+    /**
+     * <code>string goal_id = 4;</code>
+     * @return The bytes for goalId.
+     */
+    com.google.protobuf.ByteString
+        getGoalIdBytes();
+
+    /**
+     * <code>.talon.data.GoalPhase phase = 5;</code>
+     * @return The enum numeric value on the wire for phase.
+     */
+    int getPhaseValue();
+    /**
+     * <code>.talon.data.GoalPhase phase = 5;</code>
+     * @return The phase.
+     */
+    talon.data.Data.GoalPhase getPhase();
+
+    /**
+     * <code>string status_group = 6;</code>
+     * @return The statusGroup.
+     */
+    java.lang.String getStatusGroup();
+    /**
+     * <code>string status_group = 6;</code>
+     * @return The bytes for statusGroup.
+     */
+    com.google.protobuf.ByteString
+        getStatusGroupBytes();
+
+    /**
+     * <code>int64 updated_at = 7;</code>
+     * @return The updatedAt.
+     */
+    long getUpdatedAt();
+  }
+  /**
+   * Protobuf type {@code talon.data.GoalIndexEntry}
+   */
+  public static final class GoalIndexEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.GoalIndexEntry)
+      GoalIndexEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "GoalIndexEntry");
+    }
+    // Use GoalIndexEntry.newBuilder() to construct.
+    private GoalIndexEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private GoalIndexEntry() {
+      namespace_ = "";
+      agent_ = "";
+      sessionId_ = "";
+      goalId_ = "";
+      phase_ = 0;
+      statusGroup_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Data.internal_static_talon_data_GoalIndexEntry_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Data.internal_static_talon_data_GoalIndexEntry_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Data.internal_static_talon_data_GoalIndexEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Data.GoalIndexEntry.class, talon.data.Data.GoalIndexEntry.Builder.class);
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 3;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int GOAL_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object goalId_ = "";
+    /**
+     * <code>string goal_id = 4;</code>
+     * @return The goalId.
+     */
+    @java.lang.Override
+    public java.lang.String getGoalId() {
+      java.lang.Object ref = goalId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        goalId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string goal_id = 4;</code>
+     * @return The bytes for goalId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getGoalIdBytes() {
+      java.lang.Object ref = goalId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        goalId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PHASE_FIELD_NUMBER = 5;
+    private int phase_ = 0;
+    /**
+     * <code>.talon.data.GoalPhase phase = 5;</code>
+     * @return The enum numeric value on the wire for phase.
+     */
+    @java.lang.Override public int getPhaseValue() {
+      return phase_;
+    }
+    /**
+     * <code>.talon.data.GoalPhase phase = 5;</code>
+     * @return The phase.
+     */
+    @java.lang.Override public talon.data.Data.GoalPhase getPhase() {
+      talon.data.Data.GoalPhase result = talon.data.Data.GoalPhase.forNumber(phase_);
+      return result == null ? talon.data.Data.GoalPhase.UNRECOGNIZED : result;
+    }
+
+    public static final int STATUS_GROUP_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object statusGroup_ = "";
+    /**
+     * <code>string status_group = 6;</code>
+     * @return The statusGroup.
+     */
+    @java.lang.Override
+    public java.lang.String getStatusGroup() {
+      java.lang.Object ref = statusGroup_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        statusGroup_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string status_group = 6;</code>
+     * @return The bytes for statusGroup.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getStatusGroupBytes() {
+      java.lang.Object ref = statusGroup_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        statusGroup_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int UPDATED_AT_FIELD_NUMBER = 7;
+    private long updatedAt_ = 0L;
+    /**
+     * <code>int64 updated_at = 7;</code>
+     * @return The updatedAt.
+     */
+    @java.lang.Override
+    public long getUpdatedAt() {
+      return updatedAt_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(goalId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, goalId_);
+      }
+      if (phase_ != talon.data.Data.GoalPhase.GOAL_PHASE_UNSPECIFIED.getNumber()) {
+        output.writeEnum(5, phase_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(statusGroup_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, statusGroup_);
+      }
+      if (updatedAt_ != 0L) {
+        output.writeInt64(7, updatedAt_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(goalId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, goalId_);
+      }
+      if (phase_ != talon.data.Data.GoalPhase.GOAL_PHASE_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(5, phase_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(statusGroup_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, statusGroup_);
+      }
+      if (updatedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(7, updatedAt_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Data.GoalIndexEntry)) {
+        return super.equals(obj);
+      }
+      talon.data.Data.GoalIndexEntry other = (talon.data.Data.GoalIndexEntry) obj;
+
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getGoalId()
+          .equals(other.getGoalId())) return false;
+      if (phase_ != other.phase_) return false;
+      if (!getStatusGroup()
+          .equals(other.getStatusGroup())) return false;
+      if (getUpdatedAt()
+          != other.getUpdatedAt()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + GOAL_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getGoalId().hashCode();
+      hash = (37 * hash) + PHASE_FIELD_NUMBER;
+      hash = (53 * hash) + phase_;
+      hash = (37 * hash) + STATUS_GROUP_FIELD_NUMBER;
+      hash = (53 * hash) + getStatusGroup().hashCode();
+      hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getUpdatedAt());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Data.GoalIndexEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Data.GoalIndexEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Data.GoalIndexEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.GoalIndexEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Data.GoalIndexEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.GoalIndexEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.GoalIndexEntry)
+        talon.data.Data.GoalIndexEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Data.internal_static_talon_data_GoalIndexEntry_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Data.internal_static_talon_data_GoalIndexEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Data.GoalIndexEntry.class, talon.data.Data.GoalIndexEntry.Builder.class);
+      }
+
+      // Construct using talon.data.Data.GoalIndexEntry.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        namespace_ = "";
+        agent_ = "";
+        sessionId_ = "";
+        goalId_ = "";
+        phase_ = 0;
+        statusGroup_ = "";
+        updatedAt_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Data.internal_static_talon_data_GoalIndexEntry_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.GoalIndexEntry getDefaultInstanceForType() {
+        return talon.data.Data.GoalIndexEntry.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Data.GoalIndexEntry build() {
+        talon.data.Data.GoalIndexEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.GoalIndexEntry buildPartial() {
+        talon.data.Data.GoalIndexEntry result = new talon.data.Data.GoalIndexEntry(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Data.GoalIndexEntry result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.goalId_ = goalId_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.phase_ = phase_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.statusGroup_ = statusGroup_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.updatedAt_ = updatedAt_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Data.GoalIndexEntry) {
+          return mergeFrom((talon.data.Data.GoalIndexEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Data.GoalIndexEntry other) {
+        if (other == talon.data.Data.GoalIndexEntry.getDefaultInstance()) return this;
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getGoalId().isEmpty()) {
+          goalId_ = other.goalId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (other.phase_ != 0) {
+          setPhaseValue(other.getPhaseValue());
+        }
+        if (!other.getStatusGroup().isEmpty()) {
+          statusGroup_ = other.statusGroup_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (other.getUpdatedAt() != 0L) {
+          setUpdatedAt(other.getUpdatedAt());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                goalId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 40: {
+                phase_ = input.readEnum();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              case 50: {
+                statusGroup_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 56: {
+                updatedAt_ = input.readInt64();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 3;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 3;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object goalId_ = "";
+      /**
+       * <code>string goal_id = 4;</code>
+       * @return The goalId.
+       */
+      public java.lang.String getGoalId() {
+        java.lang.Object ref = goalId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          goalId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string goal_id = 4;</code>
+       * @return The bytes for goalId.
+       */
+      public com.google.protobuf.ByteString
+          getGoalIdBytes() {
+        java.lang.Object ref = goalId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          goalId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string goal_id = 4;</code>
+       * @param value The goalId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGoalId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        goalId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string goal_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearGoalId() {
+        goalId_ = getDefaultInstance().getGoalId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string goal_id = 4;</code>
+       * @param value The bytes for goalId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGoalIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        goalId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private int phase_ = 0;
+      /**
+       * <code>.talon.data.GoalPhase phase = 5;</code>
+       * @return The enum numeric value on the wire for phase.
+       */
+      @java.lang.Override public int getPhaseValue() {
+        return phase_;
+      }
+      /**
+       * <code>.talon.data.GoalPhase phase = 5;</code>
+       * @param value The enum numeric value on the wire for phase to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setPhaseValue(int value) {
+        phase_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.GoalPhase phase = 5;</code>
+       * @return The phase.
+       */
+      @java.lang.Override
+      public talon.data.Data.GoalPhase getPhase() {
+        talon.data.Data.GoalPhase result = talon.data.Data.GoalPhase.forNumber(phase_);
+        return result == null ? talon.data.Data.GoalPhase.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.data.GoalPhase phase = 5;</code>
+       * @param value The phase to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPhase(talon.data.Data.GoalPhase value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000010;
+        phase_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.GoalPhase phase = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPhase() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        phase_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object statusGroup_ = "";
+      /**
+       * <code>string status_group = 6;</code>
+       * @return The statusGroup.
+       */
+      public java.lang.String getStatusGroup() {
+        java.lang.Object ref = statusGroup_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          statusGroup_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string status_group = 6;</code>
+       * @return The bytes for statusGroup.
+       */
+      public com.google.protobuf.ByteString
+          getStatusGroupBytes() {
+        java.lang.Object ref = statusGroup_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          statusGroup_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string status_group = 6;</code>
+       * @param value The statusGroup to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStatusGroup(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        statusGroup_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string status_group = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStatusGroup() {
+        statusGroup_ = getDefaultInstance().getStatusGroup();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string status_group = 6;</code>
+       * @param value The bytes for statusGroup to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStatusGroupBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        statusGroup_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private long updatedAt_ ;
+      /**
+       * <code>int64 updated_at = 7;</code>
+       * @return The updatedAt.
+       */
+      @java.lang.Override
+      public long getUpdatedAt() {
+        return updatedAt_;
+      }
+      /**
+       * <code>int64 updated_at = 7;</code>
+       * @param value The updatedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdatedAt(long value) {
+
+        updatedAt_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 updated_at = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        updatedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.GoalIndexEntry)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.GoalIndexEntry)
+    private static final talon.data.Data.GoalIndexEntry DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Data.GoalIndexEntry();
+    }
+
+    public static talon.data.Data.GoalIndexEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<GoalIndexEntry>
+        PARSER = new com.google.protobuf.AbstractParser<GoalIndexEntry>() {
+      @java.lang.Override
+      public GoalIndexEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<GoalIndexEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GoalIndexEntry> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Data.GoalIndexEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -23006,6 +29085,31 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_Artifact_MetadataEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_GoalEvidenceRef_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_GoalEvidenceRef_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Goal_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Goal_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Goal_LabelsEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Goal_LabelsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Goal_MetadataEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Goal_MetadataEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_GoalIndexEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_GoalIndexEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_HandleGrant_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -23115,91 +29219,119 @@ java.lang.String defaultValue) {
       "talon.data.Artifact.MetadataEntry\032-\n\013Lab" +
       "elsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001" +
       "\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
-      "\002 \001(\t:\0028\001\"\341\001\n\013HandleGrant\022\n\n\002id\030\001 \001(\t\022\021\n" +
-      "\tnamespace\030\002 \001(\t\022\014\n\004kind\030\003 \001(\t\022\021\n\ttarget" +
-      "_id\030\004 \001(\t\022\r\n\005agent\030\005 \001(\t\022\022\n\nsession_id\030\006" +
-      " \001(\t\022\022\n\noperations\030\007 \003(\t\022\026\n\016audience_age" +
-      "nt\030\010 \001(\t\022\033\n\023audience_session_id\030\t \001(\t\022\022\n" +
-      "\nexpires_at\030\n \001(\003\022\022\n\ncreated_at\030\013 \001(\003\"\275\001" +
-      "\n\tPrincipal\022\023\n\013external_id\030\001 \001(\t\022\017\n\007addr" +
-      "ess\030\002 \001(\t\022\024\n\014display_name\030\003 \001(\t\022\014\n\004kind\030" +
-      "\004 \001(\t\0225\n\010metadata\030\005 \003(\0132#.talon.data.Pri" +
-      "ncipal.MetadataEntry\032/\n\rMetadataEntry\022\013\n" +
-      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022Sessio" +
-      "nMessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030\002 " +
-      "\001(\0162\".talon.data.SessionMessagePartType\022" +
-      "\017\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payloa" +
-      "d_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006obje" +
-      "ct\030\007 \001(\0132\025.talon.data.ObjectRef\"\363\001\n\016Sess" +
-      "ionMessage\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.t" +
-      "alon.data.MessageRole\022\022\n\ncreated_at\030\004 \001(" +
-      "\003\0226\n\006labels\030\005 \003(\0132&.talon.data.SessionMe" +
-      "ssage.LabelsEntry\022-\n\005parts\030\006 \003(\0132\036.talon" +
-      ".data.SessionMessagePart\032-\n\013LabelsEntry\022" +
-      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002" +
-      "\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
-      "ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncreated_at\030\005" +
-      " \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010metadata\030\007 " +
-      "\003(\0132!.talon.data.Session.MetadataEntry\022/" +
-      "\n\006labels\030\010 \003(\0132\037.talon.data.Session.Labe" +
-      "lsEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n" +
-      "\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001" +
-      " \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMessa" +
-      "ge\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 " +
-      "\001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006author\030\005 \001(\t" +
-      "\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n" +
-      "\014source_agent\030\010 \001(\t\022\031\n\021source_session_id" +
-      "\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talon.data.Chan" +
-      "nelMessage.LabelsEntry\032-\n\013LabelsEntry\022\013\n" +
-      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnowled" +
-      "ge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\nupd" +
-      "ated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004name" +
-      "\030\005 \001(\t\"k\n\025KnowledgeSearchResult\022\014\n\004path\030" +
-      "\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n" +
-      "\ttimestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013" +
-      "WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002 \001(" +
-      "\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_j" +
-      "son\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n\013output_" +
-      "json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupdate" +
-      "d_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.talon.data." +
-      "WorkflowRun.LabelsEntry\022\035\n\020claim_expires" +
-      "_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec_js" +
-      "on\030\r \001(\t\022\031\n\021workflow_revision\030\016 \001(\004\022\023\n\013c" +
-      "laim_owner\030\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001(\r\022" +
-      "\034\n\024last_dispatch_reason\030\021 \001(\t\032-\n\013LabelsE" +
-      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021" +
-      "_claim_expires_at\"\263\003\n\017WorkflowStepRun\022\n\n" +
-      "\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007attempt\030\003 " +
-      "\001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022" +
-      "\023\n\013output_json\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020c" +
-      "hild_session_id\030\010 \001(\t\022\035\n\025child_workflow_" +
-      "run_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014sus" +
-      "pend_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nu" +
-      "pdated_at\030\r \001(\003\022\032\n\rnext_retry_at\030\016 \001(\003H\000" +
-      "\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wak" +
-      "eup_handle\030\020 \001(\t\022\032\n\rwait_until_at\030\021 \001(\003H" +
-      "\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_timeout_atB\020\n" +
-      "\016_wait_until_at\"\245\001\n\020WorkflowRunEvent\022\n\n\002" +
-      "id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016" +
-      "\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_id\030" +
-      "\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payload_json\030\010" +
-      " \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013MessageRole\022\024" +
-      "\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016R" +
-      "OLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026Ses" +
-      "sionMessagePartType\022)\n%SESSION_MESSAGE_P" +
-      "ART_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSION_MESSAG" +
-      "E_PART_TYPE_TEXT\020\001\022\'\n#SESSION_MESSAGE_PA" +
-      "RT_TYPE_REASONING\020\002\022\'\n#SESSION_MESSAGE_P" +
-      "ART_TYPE_TOOL_CALL\020\003\022)\n%SESSION_MESSAGE_" +
-      "PART_TYPE_TOOL_RESULT\020\004\022#\n\037SESSION_MESSA" +
-      "GE_PART_TYPE_USAGE\020\005\022#\n\037SESSION_MESSAGE_" +
-      "PART_TYPE_ERROR\020\006\022#\n\037SESSION_MESSAGE_PAR" +
-      "T_TYPE_IMAGE\020\007\022#\n\037SESSION_MESSAGE_PART_T" +
-      "YPE_AUDIO\020\010\022#\n\037SESSION_MESSAGE_PART_TYPE" +
-      "_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_PART_TYPE_FI" +
-      "LE\020\n\0220\n,SESSION_MESSAGE_PART_TYPE_REQUES" +
-      "T_PERMISSION\020\013\022/\n+SESSION_MESSAGE_PART_T" +
-      "YPE_PERMISSION_RESULT\020\014b\006proto3"
+      "\002 \001(\t:\0028\001\"\230\001\n\017GoalEvidenceRef\022\014\n\004kind\030\001 " +
+      "\001(\t\022\021\n\tnamespace\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\r\n\005" +
+      "agent\030\004 \001(\t\022\022\n\nsession_id\030\005 \001(\t\022\016\n\006handl" +
+      "e\030\006 \001(\t\022\022\n\nobject_key\030\007 \001(\t\022\017\n\007summary\030\010" +
+      " \001(\t\"\252\004\n\004Goal\022\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002" +
+      " \001(\t\022\r\n\005agent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022" +
+      "\021\n\tobjective\030\005 \001(\t\022\030\n\020success_criteria\030\006" +
+      " \003(\t\022$\n\005phase\030\007 \001(\0162\025.talon.data.GoalPha" +
+      "se\022\030\n\020progress_summary\030\010 \001(\t\022\021\n\titeratio" +
+      "n\030\t \001(\005\022\026\n\016max_iterations\030\n \001(\005\0222\n\revide" +
+      "nce_refs\030\013 \003(\0132\033.talon.data.GoalEvidence" +
+      "Ref\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r " +
+      "\001(\003\022\024\n\014completed_at\030\016 \001(\003\022\026\n\016blocked_rea" +
+      "son\030\017 \001(\t\022,\n\006labels\030\020 \003(\0132\034.talon.data.G" +
+      "oal.LabelsEntry\0220\n\010metadata\030\021 \003(\0132\036.talo" +
+      "n.data.Goal.MetadataEntry\032-\n\013LabelsEntry" +
+      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMeta" +
+      "dataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
+      "\001\"\247\001\n\016GoalIndexEntry\022\021\n\tnamespace\030\001 \001(\t\022" +
+      "\r\n\005agent\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\017\n\007go" +
+      "al_id\030\004 \001(\t\022$\n\005phase\030\005 \001(\0162\025.talon.data." +
+      "GoalPhase\022\024\n\014status_group\030\006 \001(\t\022\022\n\nupdat" +
+      "ed_at\030\007 \001(\003\"\341\001\n\013HandleGrant\022\n\n\002id\030\001 \001(\t\022" +
+      "\021\n\tnamespace\030\002 \001(\t\022\014\n\004kind\030\003 \001(\t\022\021\n\ttarg" +
+      "et_id\030\004 \001(\t\022\r\n\005agent\030\005 \001(\t\022\022\n\nsession_id" +
+      "\030\006 \001(\t\022\022\n\noperations\030\007 \003(\t\022\026\n\016audience_a" +
+      "gent\030\010 \001(\t\022\033\n\023audience_session_id\030\t \001(\t\022" +
+      "\022\n\nexpires_at\030\n \001(\003\022\022\n\ncreated_at\030\013 \001(\003\"" +
+      "\275\001\n\tPrincipal\022\023\n\013external_id\030\001 \001(\t\022\017\n\007ad" +
+      "dress\030\002 \001(\t\022\024\n\014display_name\030\003 \001(\t\022\014\n\004kin" +
+      "d\030\004 \001(\t\0225\n\010metadata\030\005 \003(\0132#.talon.data.P" +
+      "rincipal.MetadataEntry\032/\n\rMetadataEntry\022" +
+      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022Sess" +
+      "ionMessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030" +
+      "\002 \001(\0162\".talon.data.SessionMessagePartTyp" +
+      "e\022\017\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payl" +
+      "oad_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006ob" +
+      "ject\030\007 \001(\0132\025.talon.data.ObjectRef\"\363\001\n\016Se" +
+      "ssionMessage\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027" +
+      ".talon.data.MessageRole\022\022\n\ncreated_at\030\004 " +
+      "\001(\003\0226\n\006labels\030\005 \003(\0132&.talon.data.Session" +
+      "Message.LabelsEntry\022-\n\005parts\030\006 \003(\0132\036.tal" +
+      "on.data.SessionMessagePart\032-\n\013LabelsEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"" +
+      "\257\002\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n" +
+      "\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncreated_at" +
+      "\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010metadata\030" +
+      "\007 \003(\0132!.talon.data.Session.MetadataEntry" +
+      "\022/\n\006labels\030\010 \003(\0132\037.talon.data.Session.La" +
+      "belsEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key" +
+      "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMes" +
+      "sage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030" +
+      "\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006author\030\005 \001" +
+      "(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\022" +
+      "\024\n\014source_agent\030\010 \001(\t\022\031\n\021source_session_" +
+      "id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talon.data.Ch" +
+      "annelMessage.LabelsEntry\032-\n\013LabelsEntry\022" +
+      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnowl" +
+      "edge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\nu" +
+      "pdated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004na" +
+      "me\030\005 \001(\t\"k\n\025KnowledgeSearchResult\022\014\n\004pat" +
+      "h\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022" +
+      "\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003" +
+      "\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002 " +
+      "\001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninput" +
+      "_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n\013outpu" +
+      "t_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupda" +
+      "ted_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.talon.dat" +
+      "a.WorkflowRun.LabelsEntry\022\035\n\020claim_expir" +
+      "es_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec_" +
+      "json\030\r \001(\t\022\031\n\021workflow_revision\030\016 \001(\004\022\023\n" +
+      "\013claim_owner\030\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001(" +
+      "\r\022\034\n\024last_dispatch_reason\030\021 \001(\t\032-\n\013Label" +
+      "sEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023" +
+      "\n\021_claim_expires_at\"\263\003\n\017WorkflowStepRun\022" +
+      "\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007attempt\030" +
+      "\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(" +
+      "\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n" +
+      "\020child_session_id\030\010 \001(\t\022\035\n\025child_workflo" +
+      "w_run_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014s" +
+      "uspend_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022\n" +
+      "\nupdated_at\030\r \001(\003\022\032\n\rnext_retry_at\030\016 \001(\003" +
+      "H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_w" +
+      "akeup_handle\030\020 \001(\t\022\032\n\rwait_until_at\030\021 \001(" +
+      "\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_timeout_atB" +
+      "\020\n\016_wait_until_at\"\245\001\n\020WorkflowRunEvent\022\n" +
+      "\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(\t" +
+      "\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_i" +
+      "d\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payload_json" +
+      "\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013MessageRole" +
+      "\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n" +
+      "\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026S" +
+      "essionMessagePartType\022)\n%SESSION_MESSAGE" +
+      "_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSION_MESS" +
+      "AGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION_MESSAGE_" +
+      "PART_TYPE_REASONING\020\002\022\'\n#SESSION_MESSAGE" +
+      "_PART_TYPE_TOOL_CALL\020\003\022)\n%SESSION_MESSAG" +
+      "E_PART_TYPE_TOOL_RESULT\020\004\022#\n\037SESSION_MES" +
+      "SAGE_PART_TYPE_USAGE\020\005\022#\n\037SESSION_MESSAG" +
+      "E_PART_TYPE_ERROR\020\006\022#\n\037SESSION_MESSAGE_P" +
+      "ART_TYPE_IMAGE\020\007\022#\n\037SESSION_MESSAGE_PART" +
+      "_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAGE_PART_TY" +
+      "PE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_PART_TYPE_" +
+      "FILE\020\n\0220\n,SESSION_MESSAGE_PART_TYPE_REQU" +
+      "EST_PERMISSION\020\013\022/\n+SESSION_MESSAGE_PART" +
+      "_TYPE_PERMISSION_RESULT\020\014*\355\001\n\tGoalPhase\022" +
+      "\032\n\026GOAL_PHASE_UNSPECIFIED\020\000\022\026\n\022GOAL_PHAS" +
+      "E_RUNNING\020\001\022\025\n\021GOAL_PHASE_PAUSED\020\002\022\033\n\027GO" +
+      "AL_PHASE_NEEDS_REVIEW\020\003\022\030\n\024GOAL_PHASE_SU" +
+      "CCEEDED\020\004\022\025\n\021GOAL_PHASE_FAILED\020\005\022\026\n\022GOAL" +
+      "_PHASE_BLOCKED\020\006\022\027\n\023GOAL_PHASE_CANCELED\020" +
+      "\007\022\026\n\022GOAL_PHASE_EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -23235,14 +29367,44 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Artifact_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_data_HandleGrant_descriptor =
+    internal_static_talon_data_GoalEvidenceRef_descriptor =
       getDescriptor().getMessageType(2);
+    internal_static_talon_data_GoalEvidenceRef_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_GoalEvidenceRef_descriptor,
+        new java.lang.String[] { "Kind", "Namespace", "Name", "Agent", "SessionId", "Handle", "ObjectKey", "Summary", });
+    internal_static_talon_data_Goal_descriptor =
+      getDescriptor().getMessageType(3);
+    internal_static_talon_data_Goal_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Goal_descriptor,
+        new java.lang.String[] { "Id", "Namespace", "Agent", "SessionId", "Objective", "SuccessCriteria", "Phase", "ProgressSummary", "Iteration", "MaxIterations", "EvidenceRefs", "CreatedAt", "UpdatedAt", "CompletedAt", "BlockedReason", "Labels", "Metadata", });
+    internal_static_talon_data_Goal_LabelsEntry_descriptor =
+      internal_static_talon_data_Goal_descriptor.getNestedType(0);
+    internal_static_talon_data_Goal_LabelsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Goal_LabelsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_data_Goal_MetadataEntry_descriptor =
+      internal_static_talon_data_Goal_descriptor.getNestedType(1);
+    internal_static_talon_data_Goal_MetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Goal_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_data_GoalIndexEntry_descriptor =
+      getDescriptor().getMessageType(4);
+    internal_static_talon_data_GoalIndexEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_GoalIndexEntry_descriptor,
+        new java.lang.String[] { "Namespace", "Agent", "SessionId", "GoalId", "Phase", "StatusGroup", "UpdatedAt", });
+    internal_static_talon_data_HandleGrant_descriptor =
+      getDescriptor().getMessageType(5);
     internal_static_talon_data_HandleGrant_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_HandleGrant_descriptor,
         new java.lang.String[] { "Id", "Namespace", "Kind", "TargetId", "Agent", "SessionId", "Operations", "AudienceAgent", "AudienceSessionId", "ExpiresAt", "CreatedAt", });
     internal_static_talon_data_Principal_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(6);
     internal_static_talon_data_Principal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Principal_descriptor,
@@ -23254,13 +29416,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Principal_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_SessionMessagePart_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(7);
     internal_static_talon_data_SessionMessagePart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessagePart_descriptor,
         new java.lang.String[] { "Id", "PartType", "Content", "Name", "PayloadJson", "CreatedAt", "Object", });
     internal_static_talon_data_SessionMessage_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(8);
     internal_static_talon_data_SessionMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessage_descriptor,
@@ -23272,7 +29434,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_SessionMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Session_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(9);
     internal_static_talon_data_Session_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Session_descriptor,
@@ -23290,7 +29452,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Session_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_ChannelMessage_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(10);
     internal_static_talon_data_ChannelMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ChannelMessage_descriptor,
@@ -23302,19 +29464,19 @@ java.lang.String defaultValue) {
         internal_static_talon_data_ChannelMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Knowledge_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(11);
     internal_static_talon_data_Knowledge_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Knowledge_descriptor,
         new java.lang.String[] { "Path", "Content", "UpdatedAt", "Namespace", "Name", });
     internal_static_talon_data_KnowledgeSearchResult_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(12);
     internal_static_talon_data_KnowledgeSearchResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_KnowledgeSearchResult_descriptor,
         new java.lang.String[] { "Path", "Snippet", "Score", "Timestamp", "Namespace", });
     internal_static_talon_data_WorkflowRun_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(13);
     internal_static_talon_data_WorkflowRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRun_descriptor,
@@ -23326,13 +29488,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_WorkflowRun_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_WorkflowStepRun_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(14);
     internal_static_talon_data_WorkflowStepRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowStepRun_descriptor,
         new java.lang.String[] { "Id", "StepId", "Attempt", "Status", "InputJson", "OutputJson", "Error", "ChildSessionId", "ChildWorkflowRunId", "ResumeJson", "SuspendJson", "CreatedAt", "UpdatedAt", "NextRetryAt", "TimeoutAt", "WaitWakeupHandle", "WaitUntilAt", });
     internal_static_talon_data_WorkflowRunEvent_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(15);
     internal_static_talon_data_WorkflowRunEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRunEvent_descriptor,

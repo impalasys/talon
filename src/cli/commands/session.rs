@@ -634,9 +634,7 @@ async fn session_delete(
     Ok(json!({ "success": response.success }))
 }
 
-fn session_response_json(
-    response: &talon_client::v1::SessionResponse,
-) -> serde_json::Value {
+fn session_response_json(response: &talon_client::v1::SessionResponse) -> serde_json::Value {
     json!({
         "sessionId": response.session_id,
         "agent": response.agent,
@@ -675,10 +673,7 @@ fn session_part_json(part: &data_proto::SessionMessagePart) -> serde_json::Value
     })
 }
 
-fn print_session_event(
-    event: &SessionMessagePartEvent,
-    json_output: bool,
-) -> Result<()> {
+fn print_session_event(event: &SessionMessagePartEvent, json_output: bool) -> Result<()> {
     if json_output {
         println!(
             "{}",
