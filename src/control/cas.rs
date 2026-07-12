@@ -208,7 +208,6 @@ impl CasStore {
         agent: &str,
         session_id: &str,
         artifact_uid: &str,
-        path: &str,
         bytes: &[u8],
         media_type: &str,
         mut metadata: HashMap<String, String>,
@@ -231,7 +230,7 @@ impl CasStore {
                     media_type: media_type.to_string(),
                     size_bytes: bytes.len() as u64,
                     sha256: sha,
-                    filename: filename_for_path(path),
+                    filename: String::new(),
                     content_encoding: String::new(),
                     metadata,
                 },
@@ -897,7 +896,6 @@ mod tests {
                 "writer",
                 "session-1",
                 "artifact-1",
-                "/outputs/final draft.md",
                 b"draft body",
                 "text/markdown",
                 std::collections::HashMap::from([("source".to_string(), "tool".to_string())]),
@@ -908,7 +906,7 @@ mod tests {
         assert!(object
             .key
             .starts_with("cas/Tenant%3Aacme%3AWorkspace%3Amain/artifacts/artifact-1/"));
-        assert_eq!(object.filename, "final_draft.md");
+        assert_eq!(object.filename, "");
         assert_eq!(object.metadata[METADATA_KIND], METADATA_KIND_ARTIFACT);
         assert_eq!(object.metadata[METADATA_AGENT], "writer");
         assert_eq!(object.metadata["namespace"], "Tenant:acme:Workspace:main");
