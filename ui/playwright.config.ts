@@ -52,7 +52,7 @@ export default defineConfig({
       stderr: 'pipe',
     },
     {
-      command: `NEXT_PUBLIC_GATEWAY_URL=http://127.0.0.1:${API_PORT} pnpm dev -p ${WEB_PORT}`,
+      command: `pnpm --filter @impalasys/talon-client build && VITE_GATEWAY_URL=http://127.0.0.1:${API_PORT} pnpm exec vite --host 0.0.0.0 --port ${WEB_PORT} --strictPort`,
       url: `http://127.0.0.1:${WEB_PORT}`,
       reuseExistingServer,
       timeout: 60000,
