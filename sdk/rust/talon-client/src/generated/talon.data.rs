@@ -158,6 +158,60 @@ pub struct ObjectRef {
     pub content_encoding: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Artifact {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "6")]
+    pub object_ref: ::core::option::Option<ObjectRef>,
+    #[prost(string, tag = "7")]
+    pub created_by_agent: ::prost::alloc::string::String,
+    #[prost(int64, tag = "8")]
+    pub created_at: i64,
+    #[prost(map = "string, string", tag = "9")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(map = "string, string", tag = "10")]
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct HandleGrant {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub target_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "7")]
+    pub operations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "8")]
+    pub audience_agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "9")]
+    pub audience_session_id: ::prost::alloc::string::String,
+    #[prost(int64, tag = "10")]
+    pub expires_at: i64,
+    #[prost(int64, tag = "11")]
+    pub created_at: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Principal {
     /// Stable provider-native principal identifier when available, such as a
     /// Slack user ID or iMessage handle GUID.

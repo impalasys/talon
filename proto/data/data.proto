@@ -35,6 +35,33 @@ message ObjectRef {
   string content_encoding = 7;
 }
 
+message Artifact {
+  string id = 1;
+  string session_id = 2;
+  string title = 3;
+  string path = 4;
+  string media_type = 5;
+  ObjectRef object_ref = 6;
+  string created_by_agent = 7;
+  int64 created_at = 8;
+  map<string, string> labels = 9;
+  map<string, string> metadata = 10;
+}
+
+message HandleGrant {
+  string id = 1;
+  string namespace = 2;
+  string kind = 3;
+  string target_id = 4;
+  string agent = 5;
+  string session_id = 6;
+  repeated string operations = 7;
+  string audience_agent = 8;
+  string audience_session_id = 9;
+  int64 expires_at = 10;
+  int64 created_at = 11;
+}
+
 message Principal {
   // Stable provider-native principal identifier when available, such as a
   // Slack user ID or iMessage handle GUID.

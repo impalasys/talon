@@ -111,6 +111,26 @@ pub fn schedule(
     }
 }
 
+pub fn file_resource(
+    namespace: impl Into<String>,
+    name: impl Into<String>,
+    spec: resources_proto::FileSpec,
+    status: resources_proto::FileStatus,
+    labels: HashMap<String, String>,
+) -> resources_proto::Resource {
+    resources_proto::Resource {
+        api_version: "talon.impalasys.com/v1".to_string(),
+        kind: "File".to_string(),
+        metadata: Some(metadata(name, namespace, labels)),
+        spec: Some(resources_proto::ResourceSpec {
+            kind: Some(resources_proto::resource_spec::Kind::File(spec)),
+        }),
+        status: Some(resources_proto::ResourceStatus {
+            kind: Some(resources_proto::resource_status::Kind::File(status)),
+        }),
+    }
+}
+
 pub fn workflow(
     namespace: impl Into<String>,
     name: impl Into<String>,

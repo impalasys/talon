@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -154,9 +155,13 @@ def generate_js(services: list[Service]) -> None:
         "",
         'import { createPromiseClient, type PromiseClient, type Transport } from "@connectrpc/connect";',
     ]
+    services_by_proto_stem: dict[str, list[str]] = defaultdict(list)
     for service in services:
+        services_by_proto_stem[service.proto_stem].append(service.name)
+    for proto_stem in sorted(services_by_proto_stem):
+        service_names = ", ".join(sorted(services_by_proto_stem[proto_stem]))
         lines.append(
-            f'import {{ {service.name} }} from "./gen/proto/talon/v1/{service.proto_stem}_connect.js";'
+            f'import {{ {service_names} }} from "./gen/proto/talon/v1/{proto_stem}_connect.js";'
         )
     lines.extend(["", "export type TalonClient = {"])
     for service in services:
@@ -175,10 +180,8 @@ def generate_python(services: list[Service]) -> None:
         "import grpc",
         "",
     ]
-    for service in services:
-        lines.append(
-            f"from talon_client.proto.talon.v1 import {service.proto_stem}_pb2_grpc"
-        )
+    for proto_stem in sorted({service.proto_stem for service in services}):
+        lines.append(f"from talon_client.proto.talon.v1 import {proto_stem}_pb2_grpc")
     lines.extend(
         [
             "",

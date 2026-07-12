@@ -6,6 +6,7 @@ use crate::control::{keys, topics, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::resources_proto;
 use anyhow::{anyhow, Context, Result};
 use prost::Message;
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 const API_VERSION: &str = "talon.impalasys.com/v1";
@@ -13,7 +14,7 @@ const API_VERSION: &str = "talon.impalasys.com/v1";
 /// Canonical control-plane resource facade.
 ///
 /// Resource storage normalizes typed resource protos such as `Agent`,
-/// `Workflow`, and `Knowledge` into the generic `Resource` envelope with a
+/// `Workflow`, and `File` into the generic `Resource` envelope with a
 /// `ResourceSpec`/`ResourceStatus` union. Callers that only need to read an
 /// already-known KV key may decode the stored bytes directly with
 /// `ResourceStore::decode_stored_resource` and avoid constructing this store.
@@ -90,6 +91,12 @@ impl ResourceStore {
                 bytes,
                 resources_proto::resource_spec::Kind::Knowledge,
                 resources_proto::resource_status::Kind::Knowledge,
+            ),
+            "File" => decode_typed_resource::<resources_proto::File, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::File,
+                resources_proto::resource_status::Kind::File,
             ),
             "Namespace" => decode_typed_resource::<resources_proto::Namespace, _, _, _, _>(
                 kind,
@@ -671,6 +678,11 @@ impl_stored_typed_resource!(
     resources_proto::CommonResourceStatus
 );
 impl_stored_typed_resource!(
+    resources_proto::File,
+    resources_proto::FileSpec,
+    resources_proto::FileStatus
+);
+impl_stored_typed_resource!(
     resources_proto::Namespace,
     resources_proto::NamespaceSpec,
     resources_proto::NamespaceStatus
@@ -907,6 +919,23 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
             },
             |kind| match kind {
                 resources_proto::resource_status::Kind::Knowledge(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "File" => encode_typed_resource::<
+            resources_proto::File,
+            resources_proto::FileSpec,
+            resources_proto::FileStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::File(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::File(status) => Some(status),
                 _ => None,
             },
         ),
@@ -1184,6 +1213,10 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::Connector(_) => "Connector",
         Kind::McpServer(_) => "McpServer",
         Kind::Knowledge(_) => "Knowledge",
+        Kind::File(spec) => {
+            validate_file_resource_name(resource, spec)?;
+            "File"
+        }
         Kind::Namespace(_) => "Namespace",
         Kind::Session(_) => "Session",
         Kind::Skill(_) => "Skill",
@@ -1210,6 +1243,53 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
     Ok(())
 }
 
+fn validate_file_resource_name(
+    resource: &resources_proto::Resource,
+    spec: &resources_proto::FileSpec,
+) -> Result<()> {
+    let Some(meta) = resource.metadata.as_ref() else {
+        return Ok(());
+    };
+    let expected = file_resource_name_for_path(&spec.path);
+    if meta.name != expected {
+        return Err(anyhow!(
+            "File metadata.name '{}' must match path-derived name '{}'",
+            meta.name,
+            expected
+        ));
+    }
+    Ok(())
+}
+
+pub fn file_resource_name_for_path(path: &str) -> String {
+    let slug = path
+        .trim_matches('/')
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() {
+                ch.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>()
+        .trim_matches('-')
+        .chars()
+        .take(48)
+        .collect::<String>();
+    let hash = sha256_hex(path.as_bytes());
+    format!(
+        "{}-{}",
+        if slug.is_empty() { "file" } else { &slug },
+        &hash[..12]
+    )
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    format!("{digest:x}")
+}
+
 fn default_status_for_resource(
     resource: &resources_proto::Resource,
 ) -> resources_proto::ResourceStatus {
@@ -1228,6 +1308,7 @@ fn default_status_for_resource(
         Some(SpecKind::Connector(_)) => StatusKind::Connector(Default::default()),
         Some(SpecKind::McpServer(_)) => StatusKind::McpServer(Default::default()),
         Some(SpecKind::Knowledge(_)) => StatusKind::Knowledge(Default::default()),
+        Some(SpecKind::File(_)) => StatusKind::File(Default::default()),
         Some(SpecKind::Namespace(_)) => StatusKind::Namespace(Default::default()),
         Some(SpecKind::Session(_)) => StatusKind::Session(Default::default()),
         Some(SpecKind::Skill(_)) => StatusKind::Skill(Default::default()),
@@ -1256,7 +1337,7 @@ fn resource_key(resource: &resources_proto::Resource) -> keys::ResourceKey {
 
 #[cfg(test)]
 mod tests {
-    use super::ResourceStore;
+    use super::{file_resource_name_for_path, ResourceStore};
     use crate::control::events;
     use crate::control::topics;
     use crate::control::KeyValueStore;
@@ -1326,6 +1407,47 @@ mod tests {
             event.change_type,
             events::ResourceChangeType::Created as i32
         );
+    }
+
+    #[tokio::test]
+    async fn file_resources_require_path_derived_names() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let store = ResourceStore::new(kv, pubsub);
+        let path = "/memory/brand-guidelines.md";
+        let mut resource = resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "File".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "custom-name".to_string(),
+                namespace: "customers".to_string(),
+                labels: Default::default(),
+                annotations: Default::default(),
+                owner_references: Vec::new(),
+                finalizers: Vec::new(),
+                generation: 0,
+                resource_version: String::new(),
+                uid: String::new(),
+                deletion_timestamp: None,
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::File(
+                    resources_proto::FileSpec {
+                        path: path.to_string(),
+                        media_type: "text/markdown".to_string(),
+                        purpose: resources_proto::FilePurpose::Memory as i32,
+                        index_policy: resources_proto::FileIndexPolicy::Retrieval as i32,
+                        retention: resources_proto::FileRetention::Retained as i32,
+                    },
+                )),
+            }),
+            status: None,
+        };
+
+        assert!(store.upsert("customers", resource.clone()).await.is_err());
+
+        resource.metadata.as_mut().unwrap().name = file_resource_name_for_path(path);
+        assert!(store.upsert("customers", resource).await.is_ok());
     }
 
     #[tokio::test]

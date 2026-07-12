@@ -389,6 +389,31 @@ pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) ->
     )
 }
 
+pub fn artifact(namespace: &str, agent: &str, session_id: &str, artifact_id: &str) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "Artifact",
+        artifact_id,
+    )
+}
+
+pub fn artifact_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        Some("Artifact"),
+    )
+}
+
+pub fn handle_grant(namespace: &str, handle_id: &str) -> ResourceKey {
+    resource_key(namespace, &[], "HandleGrant", handle_id)
+}
+
+pub fn handle_grant_prefix(namespace: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[], Some("HandleGrant"))
+}
+
 pub fn session_submission(
     namespace: &str,
     agent: &str,
@@ -408,6 +433,28 @@ pub fn session_submission_prefix(namespace: &str, agent: &str, session_id: &str)
         namespace,
         &[("Agent", agent), ("Session", session_id)],
         Some("SessionSubmission"),
+    )
+}
+
+pub fn async_a2a_wakeup(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    wakeup_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "AsyncA2AWakeup",
+        wakeup_id,
+    )
+}
+
+pub fn async_a2a_wakeup_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        Some("AsyncA2AWakeup"),
     )
 }
 
