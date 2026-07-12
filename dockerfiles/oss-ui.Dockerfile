@@ -27,6 +27,8 @@ COPY ui/components ./components
 COPY ui/hooks ./hooks
 COPY ui/lib ./lib
 COPY ui/proto ./proto
+COPY ui/screens ./screens
+COPY ui/src ./src
 COPY ui/utils ./utils
 COPY packages/talon-chat/src /repo/packages/talon-chat/src
 COPY packages/talon-chat/README.md /repo/packages/talon-chat/README.md
@@ -34,12 +36,13 @@ COPY packages/talon-chat/tsup.config.ts /repo/packages/talon-chat/tsup.config.ts
 COPY sdk/js/talon-client/src /repo/sdk/js/talon-client/src
 COPY sdk/js/talon-client/tsconfig.json /repo/sdk/js/talon-client/tsconfig.json
 COPY ui/global.d.ts ./global.d.ts
-COPY ui/next-env.d.ts ./next-env.d.ts
-COPY ui/next.config.mjs ./next.config.mjs
+COPY ui/index.html ./index.html
 COPY ui/postcss.config.mjs ./postcss.config.mjs
 COPY ui/tailgrids.config.json ./tailgrids.config.json
 COPY ui/tsconfig.json ./tsconfig.json
 COPY ui/types.d.ts ./types.d.ts
+COPY ui/vite-env.d.ts ./vite-env.d.ts
+COPY ui/vite.config.ts ./vite.config.ts
 RUN pnpm run build
 
 FROM node:22-slim AS runner
