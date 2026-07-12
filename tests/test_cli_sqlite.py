@@ -231,6 +231,122 @@ spec:
     assert "retention: RETAINED" in rendered
 
 
+def test_cli_file_commands_round_trip_sqlite_local_socket(
+    stack: E2EStack,
+    tmp_path: Path,
+) -> None:
+    cli = stack.cli()
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-file-roundtrip-{suffix}"
+    manifest = tmp_path / "namespace.yaml"
+    manifest.write_text(
+        f"""
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: {namespace}
+"""
+    )
+    cli.run("apply", "-f", str(manifest))
+
+    source = tmp_path / "source.md"
+    source.write_text("# Draft\n\nInitial guidance.\n")
+    path = "/memory/brand-guidelines.md"
+
+    put = cli.run(
+        "file",
+        "put",
+        "--namespace",
+        namespace,
+        "--path",
+        path,
+        "--file",
+        source,
+        "--media-type",
+        "text/markdown",
+        "--purpose",
+        "memory",
+        "--index-policy",
+        "retrieval",
+    )
+    assert "written" in put.stdout
+
+    downloaded = tmp_path / "downloaded.md"
+    cli.run(
+        "file",
+        "get",
+        "--namespace",
+        namespace,
+        "--path",
+        path,
+        "--output",
+        downloaded,
+    )
+    assert downloaded.read_text() == source.read_text()
+
+    listed = cli.run(
+        "file",
+        "list",
+        "--namespace",
+        namespace,
+        "--prefix",
+        "/memory",
+    ).stdout
+    assert path in listed
+    assert "text/markdown" in listed
+
+    updated = tmp_path / "updated.md"
+    updated.write_text("# Draft\n\nUpdated guidance.\n")
+    update = cli.run(
+        "file",
+        "update",
+        "--namespace",
+        namespace,
+        "--path",
+        path,
+        "--file",
+        updated,
+        "--media-type",
+        "text/markdown",
+    )
+    assert "updated" in update.stdout
+
+    after_update = tmp_path / "after-update.md"
+    cli.run(
+        "file",
+        "get",
+        "--namespace",
+        namespace,
+        "--path",
+        path,
+        "--output",
+        after_update,
+    )
+    assert after_update.read_text() == updated.read_text()
+
+    delete = cli.run(
+        "file",
+        "delete",
+        "--namespace",
+        namespace,
+        "--path",
+        path,
+    )
+    assert "Deleted: true" in delete.stdout
+
+    missing = cli.run(
+        "file",
+        "get",
+        "--namespace",
+        namespace,
+        "--path",
+        path,
+        check=False,
+    )
+    assert missing.returncode != 0
+    assert "not found" in (missing.stderr + missing.stdout).lower()
+
+
 def test_cli_apply_task_manifest_with_string_type_sqlite_local_socket(
     stack: E2EStack,
     tmp_path: Path,
