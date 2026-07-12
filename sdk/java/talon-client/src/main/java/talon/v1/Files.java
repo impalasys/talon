@@ -19817,45 +19817,45 @@ java.lang.String defaultValue) {
       ".data.Artifact\022\017\n\007content\030\002 \001(\014\022\022\n\nsigne" +
       "d_url\030\003 \001(\t\022*\n\"signed_url_expires_at_uni" +
       "x_seconds\030\004 \001(\003\"2\n\032GetArtifactMetadataRe" +
-      "quest\022\024\n\014artifact_uri\030\001 \001(\t\"u\n\024ListArtif" +
+      "quest\022\024\n\014artifact_uri\030\001 \001(\t\"o\n\024ListArtif" +
       "actsRequest\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030" +
       "\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\r\n\005limit\030\005 \001(\r" +
-      "\022\022\n\npage_token\030\006 \001(\tJ\004\010\004\020\005\"Y\n\025ListArtifa" +
-      "ctsResponse\022\'\n\tartifacts\030\001 \003(\0132\024.talon.d" +
-      "ata.Artifact\022\027\n\017next_page_token\030\002 \001(\t\"\206\001" +
-      "\n\024GrantArtifactRequest\022\024\n\014artifact_uri\030\001" +
-      " \001(\t\022\024\n\014target_agent\030\002 \001(\t\022\031\n\021target_ses" +
-      "sion_id\030\003 \001(\t\022\022\n\noperations\030\004 \003(\t\022\023\n\013ttl" +
-      "_seconds\030\005 \001(\003\"P\n\020ArtifactResponse\022&\n\010ar" +
-      "tifact\030\001 \001(\0132\024.talon.data.Artifact\022\024\n\014ar" +
-      "tifact_uri\030\002 \001(\t\"+\n\023ArtifactUriResponse\022" +
-      "\024\n\014artifact_uri\030\001 \001(\t2\260\005\n\013FileService\022A\n" +
-      "\nCreateFile\022\033.talon.v1.CreateFileRequest" +
-      "\032\026.talon.v1.FileResponse\022\\\n\021PrepareFileU" +
-      "pload\022\".talon.v1.PrepareFileUploadReques" +
-      "t\032#.talon.v1.PrepareFileUploadResponse\022Q" +
-      "\n\022CompleteFileUpload\022#.talon.v1.Complete" +
-      "FileUploadRequest\032\026.talon.v1.FileRespons" +
-      "e\022A\n\010ReadFile\022\031.talon.v1.ReadFileRequest" +
-      "\032\032.talon.v1.ReadFileResponse\022A\n\nUpdateFi" +
-      "le\022\033.talon.v1.UpdateFileRequest\032\026.talon." +
-      "v1.FileResponse\022K\n\017GetFileMetadata\022 .tal" +
-      "on.v1.GetFileMetadataRequest\032\026.talon.v1." +
-      "FileResponse\022D\n\tListFiles\022\032.talon.v1.Lis" +
-      "tFilesRequest\032\033.talon.v1.ListFilesRespon" +
-      "se\022G\n\nDeleteFile\022\033.talon.v1.DeleteFileRe" +
-      "quest\032\034.talon.v1.DeleteFileResponse\022K\n\017P" +
-      "romoteArtifact\022 .talon.v1.PromoteArtifac" +
-      "tRequest\032\026.talon.v1.FileResponse2\333\002\n\017Art" +
-      "ifactService\022M\n\014ReadArtifact\022\035.talon.v1." +
-      "ReadArtifactRequest\032\036.talon.v1.ReadArtif" +
-      "actResponse\022W\n\023GetArtifactMetadata\022$.tal" +
-      "on.v1.GetArtifactMetadataRequest\032\032.talon" +
-      ".v1.ArtifactResponse\022P\n\rListArtifacts\022\036." +
-      "talon.v1.ListArtifactsRequest\032\037.talon.v1" +
-      ".ListArtifactsResponse\022N\n\rGrantArtifact\022" +
-      "\036.talon.v1.GrantArtifactRequest\032\035.talon." +
-      "v1.ArtifactUriResponseb\006proto3"
+      "\022\022\n\npage_token\030\006 \001(\t\"Y\n\025ListArtifactsRes" +
+      "ponse\022\'\n\tartifacts\030\001 \003(\0132\024.talon.data.Ar" +
+      "tifact\022\027\n\017next_page_token\030\002 \001(\t\"\206\001\n\024Gran" +
+      "tArtifactRequest\022\024\n\014artifact_uri\030\001 \001(\t\022\024" +
+      "\n\014target_agent\030\002 \001(\t\022\031\n\021target_session_i" +
+      "d\030\003 \001(\t\022\022\n\noperations\030\004 \003(\t\022\023\n\013ttl_secon" +
+      "ds\030\005 \001(\003\"P\n\020ArtifactResponse\022&\n\010artifact" +
+      "\030\001 \001(\0132\024.talon.data.Artifact\022\024\n\014artifact" +
+      "_uri\030\002 \001(\t\"+\n\023ArtifactUriResponse\022\024\n\014art" +
+      "ifact_uri\030\001 \001(\t2\260\005\n\013FileService\022A\n\nCreat" +
+      "eFile\022\033.talon.v1.CreateFileRequest\032\026.tal" +
+      "on.v1.FileResponse\022\\\n\021PrepareFileUpload\022" +
+      "\".talon.v1.PrepareFileUploadRequest\032#.ta" +
+      "lon.v1.PrepareFileUploadResponse\022Q\n\022Comp" +
+      "leteFileUpload\022#.talon.v1.CompleteFileUp" +
+      "loadRequest\032\026.talon.v1.FileResponse\022A\n\010R" +
+      "eadFile\022\031.talon.v1.ReadFileRequest\032\032.tal" +
+      "on.v1.ReadFileResponse\022A\n\nUpdateFile\022\033.t" +
+      "alon.v1.UpdateFileRequest\032\026.talon.v1.Fil" +
+      "eResponse\022K\n\017GetFileMetadata\022 .talon.v1." +
+      "GetFileMetadataRequest\032\026.talon.v1.FileRe" +
+      "sponse\022D\n\tListFiles\022\032.talon.v1.ListFiles" +
+      "Request\032\033.talon.v1.ListFilesResponse\022G\n\n" +
+      "DeleteFile\022\033.talon.v1.DeleteFileRequest\032" +
+      "\034.talon.v1.DeleteFileResponse\022K\n\017Promote" +
+      "Artifact\022 .talon.v1.PromoteArtifactReque" +
+      "st\032\026.talon.v1.FileResponse2\333\002\n\017ArtifactS" +
+      "ervice\022M\n\014ReadArtifact\022\035.talon.v1.ReadAr" +
+      "tifactRequest\032\036.talon.v1.ReadArtifactRes" +
+      "ponse\022W\n\023GetArtifactMetadata\022$.talon.v1." +
+      "GetArtifactMetadataRequest\032\032.talon.v1.Ar" +
+      "tifactResponse\022P\n\rListArtifacts\022\036.talon." +
+      "v1.ListArtifactsRequest\032\037.talon.v1.ListA" +
+      "rtifactsResponse\022N\n\rGrantArtifact\022\036.talo" +
+      "n.v1.GrantArtifactRequest\032\035.talon.v1.Art" +
+      "ifactUriResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
