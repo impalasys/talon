@@ -2401,8 +2401,6 @@ pub struct ListArtifactsRequest {
     pub agent: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub session_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub prefix: ::prost::alloc::string::String,
     #[prost(uint32, tag = "5")]
     pub limit: u32,
     #[prost(string, tag = "6")]

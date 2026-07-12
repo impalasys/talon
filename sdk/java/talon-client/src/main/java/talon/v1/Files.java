@@ -15406,18 +15406,6 @@ java.lang.String defaultValue) {
         getSessionIdBytes();
 
     /**
-     * <code>string prefix = 4;</code>
-     * @return The prefix.
-     */
-    java.lang.String getPrefix();
-    /**
-     * <code>string prefix = 4;</code>
-     * @return The bytes for prefix.
-     */
-    com.google.protobuf.ByteString
-        getPrefixBytes();
-
-    /**
      * <code>uint32 limit = 5;</code>
      * @return The limit.
      */
@@ -15460,7 +15448,6 @@ java.lang.String defaultValue) {
       namespace_ = "";
       agent_ = "";
       sessionId_ = "";
-      prefix_ = "";
       pageToken_ = "";
     }
 
@@ -15599,45 +15586,6 @@ java.lang.String defaultValue) {
       }
     }
 
-    public static final int PREFIX_FIELD_NUMBER = 4;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object prefix_ = "";
-    /**
-     * <code>string prefix = 4;</code>
-     * @return The prefix.
-     */
-    @java.lang.Override
-    public java.lang.String getPrefix() {
-      java.lang.Object ref = prefix_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        prefix_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string prefix = 4;</code>
-     * @return The bytes for prefix.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getPrefixBytes() {
-      java.lang.Object ref = prefix_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        prefix_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
     public static final int LIMIT_FIELD_NUMBER = 5;
     private int limit_ = 0;
     /**
@@ -15711,9 +15659,6 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, sessionId_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(prefix_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, prefix_);
-      }
       if (limit_ != 0) {
         output.writeUInt32(5, limit_);
       }
@@ -15737,9 +15682,6 @@ java.lang.String defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(3, sessionId_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(prefix_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, prefix_);
       }
       if (limit_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -15769,8 +15711,6 @@ java.lang.String defaultValue) {
           .equals(other.getAgent())) return false;
       if (!getSessionId()
           .equals(other.getSessionId())) return false;
-      if (!getPrefix()
-          .equals(other.getPrefix())) return false;
       if (getLimit()
           != other.getLimit()) return false;
       if (!getPageToken()
@@ -15792,8 +15732,6 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getAgent().hashCode();
       hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
       hash = (53 * hash) + getSessionId().hashCode();
-      hash = (37 * hash) + PREFIX_FIELD_NUMBER;
-      hash = (53 * hash) + getPrefix().hashCode();
       hash = (37 * hash) + LIMIT_FIELD_NUMBER;
       hash = (53 * hash) + getLimit();
       hash = (37 * hash) + PAGE_TOKEN_FIELD_NUMBER;
@@ -15932,7 +15870,6 @@ java.lang.String defaultValue) {
         namespace_ = "";
         agent_ = "";
         sessionId_ = "";
-        prefix_ = "";
         limit_ = 0;
         pageToken_ = "";
         return this;
@@ -15978,12 +15915,9 @@ java.lang.String defaultValue) {
           result.sessionId_ = sessionId_;
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.prefix_ = prefix_;
-        }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
           result.limit_ = limit_;
         }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
           result.pageToken_ = pageToken_;
         }
       }
@@ -16015,17 +15949,12 @@ java.lang.String defaultValue) {
           bitField0_ |= 0x00000004;
           onChanged();
         }
-        if (!other.getPrefix().isEmpty()) {
-          prefix_ = other.prefix_;
-          bitField0_ |= 0x00000008;
-          onChanged();
-        }
         if (other.getLimit() != 0) {
           setLimit(other.getLimit());
         }
         if (!other.getPageToken().isEmpty()) {
           pageToken_ = other.pageToken_;
-          bitField0_ |= 0x00000020;
+          bitField0_ |= 0x00000010;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -16069,19 +15998,14 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
-              case 34: {
-                prefix_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
               case 40: {
                 limit_ = input.readUInt32();
-                bitField0_ |= 0x00000010;
+                bitField0_ |= 0x00000008;
                 break;
               } // case 40
               case 50: {
                 pageToken_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000020;
+                bitField0_ |= 0x00000010;
                 break;
               } // case 50
               default: {
@@ -16317,78 +16241,6 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private java.lang.Object prefix_ = "";
-      /**
-       * <code>string prefix = 4;</code>
-       * @return The prefix.
-       */
-      public java.lang.String getPrefix() {
-        java.lang.Object ref = prefix_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          prefix_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string prefix = 4;</code>
-       * @return The bytes for prefix.
-       */
-      public com.google.protobuf.ByteString
-          getPrefixBytes() {
-        java.lang.Object ref = prefix_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          prefix_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string prefix = 4;</code>
-       * @param value The prefix to set.
-       * @return This builder for chaining.
-       */
-      public Builder setPrefix(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        prefix_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string prefix = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearPrefix() {
-        prefix_ = getDefaultInstance().getPrefix();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string prefix = 4;</code>
-       * @param value The bytes for prefix to set.
-       * @return This builder for chaining.
-       */
-      public Builder setPrefixBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        prefix_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
       private int limit_ ;
       /**
        * <code>uint32 limit = 5;</code>
@@ -16406,7 +16258,7 @@ java.lang.String defaultValue) {
       public Builder setLimit(int value) {
 
         limit_ = value;
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
@@ -16415,7 +16267,7 @@ java.lang.String defaultValue) {
        * @return This builder for chaining.
        */
       public Builder clearLimit() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         limit_ = 0;
         onChanged();
         return this;
@@ -16464,7 +16316,7 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         pageToken_ = value;
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -16474,7 +16326,7 @@ java.lang.String defaultValue) {
        */
       public Builder clearPageToken() {
         pageToken_ = getDefaultInstance().getPageToken();
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
         onChanged();
         return this;
       }
@@ -16488,7 +16340,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         pageToken_ = value;
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -19965,45 +19817,45 @@ java.lang.String defaultValue) {
       ".data.Artifact\022\017\n\007content\030\002 \001(\014\022\022\n\nsigne" +
       "d_url\030\003 \001(\t\022*\n\"signed_url_expires_at_uni" +
       "x_seconds\030\004 \001(\003\"2\n\032GetArtifactMetadataRe" +
-      "quest\022\024\n\014artifact_uri\030\001 \001(\t\"\177\n\024ListArtif" +
+      "quest\022\024\n\014artifact_uri\030\001 \001(\t\"u\n\024ListArtif" +
       "actsRequest\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030" +
-      "\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\016\n\006prefix\030\004 \001(" +
-      "\t\022\r\n\005limit\030\005 \001(\r\022\022\n\npage_token\030\006 \001(\t\"Y\n\025" +
-      "ListArtifactsResponse\022\'\n\tartifacts\030\001 \003(\013" +
-      "2\024.talon.data.Artifact\022\027\n\017next_page_toke" +
-      "n\030\002 \001(\t\"\206\001\n\024GrantArtifactRequest\022\024\n\014arti" +
-      "fact_uri\030\001 \001(\t\022\024\n\014target_agent\030\002 \001(\t\022\031\n\021" +
-      "target_session_id\030\003 \001(\t\022\022\n\noperations\030\004 " +
-      "\003(\t\022\023\n\013ttl_seconds\030\005 \001(\003\"P\n\020ArtifactResp" +
-      "onse\022&\n\010artifact\030\001 \001(\0132\024.talon.data.Arti" +
-      "fact\022\024\n\014artifact_uri\030\002 \001(\t\"+\n\023ArtifactUr" +
-      "iResponse\022\024\n\014artifact_uri\030\001 \001(\t2\260\005\n\013File" +
-      "Service\022A\n\nCreateFile\022\033.talon.v1.CreateF" +
-      "ileRequest\032\026.talon.v1.FileResponse\022\\\n\021Pr" +
-      "epareFileUpload\022\".talon.v1.PrepareFileUp" +
-      "loadRequest\032#.talon.v1.PrepareFileUpload" +
-      "Response\022Q\n\022CompleteFileUpload\022#.talon.v" +
-      "1.CompleteFileUploadRequest\032\026.talon.v1.F" +
-      "ileResponse\022A\n\010ReadFile\022\031.talon.v1.ReadF" +
-      "ileRequest\032\032.talon.v1.ReadFileResponse\022A" +
-      "\n\nUpdateFile\022\033.talon.v1.UpdateFileReques" +
-      "t\032\026.talon.v1.FileResponse\022K\n\017GetFileMeta" +
-      "data\022 .talon.v1.GetFileMetadataRequest\032\026" +
-      ".talon.v1.FileResponse\022D\n\tListFiles\022\032.ta" +
-      "lon.v1.ListFilesRequest\032\033.talon.v1.ListF" +
-      "ilesResponse\022G\n\nDeleteFile\022\033.talon.v1.De" +
-      "leteFileRequest\032\034.talon.v1.DeleteFileRes" +
-      "ponse\022K\n\017PromoteArtifact\022 .talon.v1.Prom" +
-      "oteArtifactRequest\032\026.talon.v1.FileRespon" +
-      "se2\333\002\n\017ArtifactService\022M\n\014ReadArtifact\022\035" +
-      ".talon.v1.ReadArtifactRequest\032\036.talon.v1" +
-      ".ReadArtifactResponse\022W\n\023GetArtifactMeta" +
-      "data\022$.talon.v1.GetArtifactMetadataReque" +
-      "st\032\032.talon.v1.ArtifactResponse\022P\n\rListAr" +
-      "tifacts\022\036.talon.v1.ListArtifactsRequest\032" +
-      "\037.talon.v1.ListArtifactsResponse\022N\n\rGran" +
-      "tArtifact\022\036.talon.v1.GrantArtifactReques" +
-      "t\032\035.talon.v1.ArtifactUriResponseb\006proto3"
+      "\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\r\n\005limit\030\005 \001(\r" +
+      "\022\022\n\npage_token\030\006 \001(\tJ\004\010\004\020\005\"Y\n\025ListArtifa" +
+      "ctsResponse\022\'\n\tartifacts\030\001 \003(\0132\024.talon.d" +
+      "ata.Artifact\022\027\n\017next_page_token\030\002 \001(\t\"\206\001" +
+      "\n\024GrantArtifactRequest\022\024\n\014artifact_uri\030\001" +
+      " \001(\t\022\024\n\014target_agent\030\002 \001(\t\022\031\n\021target_ses" +
+      "sion_id\030\003 \001(\t\022\022\n\noperations\030\004 \003(\t\022\023\n\013ttl" +
+      "_seconds\030\005 \001(\003\"P\n\020ArtifactResponse\022&\n\010ar" +
+      "tifact\030\001 \001(\0132\024.talon.data.Artifact\022\024\n\014ar" +
+      "tifact_uri\030\002 \001(\t\"+\n\023ArtifactUriResponse\022" +
+      "\024\n\014artifact_uri\030\001 \001(\t2\260\005\n\013FileService\022A\n" +
+      "\nCreateFile\022\033.talon.v1.CreateFileRequest" +
+      "\032\026.talon.v1.FileResponse\022\\\n\021PrepareFileU" +
+      "pload\022\".talon.v1.PrepareFileUploadReques" +
+      "t\032#.talon.v1.PrepareFileUploadResponse\022Q" +
+      "\n\022CompleteFileUpload\022#.talon.v1.Complete" +
+      "FileUploadRequest\032\026.talon.v1.FileRespons" +
+      "e\022A\n\010ReadFile\022\031.talon.v1.ReadFileRequest" +
+      "\032\032.talon.v1.ReadFileResponse\022A\n\nUpdateFi" +
+      "le\022\033.talon.v1.UpdateFileRequest\032\026.talon." +
+      "v1.FileResponse\022K\n\017GetFileMetadata\022 .tal" +
+      "on.v1.GetFileMetadataRequest\032\026.talon.v1." +
+      "FileResponse\022D\n\tListFiles\022\032.talon.v1.Lis" +
+      "tFilesRequest\032\033.talon.v1.ListFilesRespon" +
+      "se\022G\n\nDeleteFile\022\033.talon.v1.DeleteFileRe" +
+      "quest\032\034.talon.v1.DeleteFileResponse\022K\n\017P" +
+      "romoteArtifact\022 .talon.v1.PromoteArtifac" +
+      "tRequest\032\026.talon.v1.FileResponse2\333\002\n\017Art" +
+      "ifactService\022M\n\014ReadArtifact\022\035.talon.v1." +
+      "ReadArtifactRequest\032\036.talon.v1.ReadArtif" +
+      "actResponse\022W\n\023GetArtifactMetadata\022$.tal" +
+      "on.v1.GetArtifactMetadataRequest\032\032.talon" +
+      ".v1.ArtifactResponse\022P\n\rListArtifacts\022\036." +
+      "talon.v1.ListArtifactsRequest\032\037.talon.v1" +
+      ".ListArtifactsResponse\022N\n\rGrantArtifact\022" +
+      "\036.talon.v1.GrantArtifactRequest\032\035.talon." +
+      "v1.ArtifactUriResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -20130,7 +19982,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_ListArtifactsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListArtifactsRequest_descriptor,
-        new java.lang.String[] { "Namespace", "Agent", "SessionId", "Prefix", "Limit", "PageToken", });
+        new java.lang.String[] { "Namespace", "Agent", "SessionId", "Limit", "PageToken", });
     internal_static_talon_v1_ListArtifactsResponse_descriptor =
       getDescriptor().getMessageType(19);
     internal_static_talon_v1_ListArtifactsResponse_fieldAccessorTable = new

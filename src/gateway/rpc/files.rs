@@ -1119,7 +1119,6 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
         let namespace = req.get_ref().namespace.clone();
         require_auth!(read, self, req, &namespace);
         let req = req.into_inner();
-        let prefix = normalize_prefix(&req.prefix).map_err(to_status)?;
         let limit = (req.limit as usize).clamp(1, 200);
         let mut before_name = normalize_resource_name_cursor(&req.page_token).map_err(to_status)?;
         let list = keys::artifact_prefix(&req.namespace, &req.agent, &req.session_id);
@@ -1150,9 +1149,6 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
                     );
                     continue;
                 };
-                if !path_matches_prefix(&artifact.path, &prefix) {
-                    continue;
-                }
                 artifacts.push(artifact);
                 if artifacts.len() == limit {
                     next_page_token = before_name.clone().unwrap_or_default();
@@ -2100,7 +2096,6 @@ mod tests {
                 "writer",
                 session_id,
                 artifact_id,
-                "/outputs/final.md",
                 b"final draft",
                 "text/markdown",
                 HashMap::new(),
@@ -2116,7 +2111,6 @@ mod tests {
                     id: artifact_id.to_string(),
                     session_id: session_id.to_string(),
                     title: "Final draft".to_string(),
-                    path: "/outputs/final.md".to_string(),
                     media_type: "text/markdown".to_string(),
                     object_ref: Some(object_ref),
                     created_by_agent: "writer".to_string(),
