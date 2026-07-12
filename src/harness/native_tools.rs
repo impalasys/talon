@@ -1441,6 +1441,7 @@ async fn upsert_memory_file(
         conditions: Vec::new(),
         object_ref: Some(object_ref),
         updated_at: chrono::Utc::now().timestamp_micros(),
+        pending_upload: None,
     };
     resource.status = Some(resources_proto::ResourceStatus {
         kind: Some(resources_proto::resource_status::Kind::File(status)),

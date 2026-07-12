@@ -807,190 +807,6 @@ func (x *GoalIndexEntry) GetUpdatedAt() int64 {
 	return 0
 }
 
-// Pending direct-to-object-storage upload for a namespace File.
-//
-// The target File is not committed to this object until CompleteFileUpload
-// validates the uploaded object metadata and patches File.status.objectRef.
-type FileUpload struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Namespace          string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	FileName           string                 `protobuf:"bytes,3,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
-	FileUid            string                 `protobuf:"bytes,4,opt,name=file_uid,json=fileUid,proto3" json:"file_uid,omitempty"`
-	Path               string                 `protobuf:"bytes,5,opt,name=path,proto3" json:"path,omitempty"`
-	MediaType          string                 `protobuf:"bytes,6,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
-	Purpose            int32                  `protobuf:"varint,7,opt,name=purpose,proto3" json:"purpose,omitempty"`
-	IndexPolicy        int32                  `protobuf:"varint,8,opt,name=index_policy,json=indexPolicy,proto3" json:"index_policy,omitempty"`
-	Retention          int32                  `protobuf:"varint,9,opt,name=retention,proto3" json:"retention,omitempty"`
-	ObjectKey          string                 `protobuf:"bytes,10,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
-	ExpectedSizeBytes  uint64                 `protobuf:"varint,11,opt,name=expected_size_bytes,json=expectedSizeBytes,proto3" json:"expected_size_bytes,omitempty"`
-	ExpectedSha256     string                 `protobuf:"bytes,12,opt,name=expected_sha256,json=expectedSha256,proto3" json:"expected_sha256,omitempty"`
-	RequiredHeaders    map[string]string      `protobuf:"bytes,13,rep,name=required_headers,json=requiredHeaders,proto3" json:"required_headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	CreatedByAgent     string                 `protobuf:"bytes,14,opt,name=created_by_agent,json=createdByAgent,proto3" json:"created_by_agent,omitempty"`
-	CreatedBySessionId string                 `protobuf:"bytes,15,opt,name=created_by_session_id,json=createdBySessionId,proto3" json:"created_by_session_id,omitempty"`
-	ExpiresAt          int64                  `protobuf:"varint,16,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	CreatedAt          int64                  `protobuf:"varint,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Consumed           bool                   `protobuf:"varint,18,opt,name=consumed,proto3" json:"consumed,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *FileUpload) Reset() {
-	*x = FileUpload{}
-	mi := &file_proto_data_data_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FileUpload) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FileUpload) ProtoMessage() {}
-
-func (x *FileUpload) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FileUpload.ProtoReflect.Descriptor instead.
-func (*FileUpload) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *FileUpload) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *FileUpload) GetNamespace() string {
-	if x != nil {
-		return x.Namespace
-	}
-	return ""
-}
-
-func (x *FileUpload) GetFileName() string {
-	if x != nil {
-		return x.FileName
-	}
-	return ""
-}
-
-func (x *FileUpload) GetFileUid() string {
-	if x != nil {
-		return x.FileUid
-	}
-	return ""
-}
-
-func (x *FileUpload) GetPath() string {
-	if x != nil {
-		return x.Path
-	}
-	return ""
-}
-
-func (x *FileUpload) GetMediaType() string {
-	if x != nil {
-		return x.MediaType
-	}
-	return ""
-}
-
-func (x *FileUpload) GetPurpose() int32 {
-	if x != nil {
-		return x.Purpose
-	}
-	return 0
-}
-
-func (x *FileUpload) GetIndexPolicy() int32 {
-	if x != nil {
-		return x.IndexPolicy
-	}
-	return 0
-}
-
-func (x *FileUpload) GetRetention() int32 {
-	if x != nil {
-		return x.Retention
-	}
-	return 0
-}
-
-func (x *FileUpload) GetObjectKey() string {
-	if x != nil {
-		return x.ObjectKey
-	}
-	return ""
-}
-
-func (x *FileUpload) GetExpectedSizeBytes() uint64 {
-	if x != nil {
-		return x.ExpectedSizeBytes
-	}
-	return 0
-}
-
-func (x *FileUpload) GetExpectedSha256() string {
-	if x != nil {
-		return x.ExpectedSha256
-	}
-	return ""
-}
-
-func (x *FileUpload) GetRequiredHeaders() map[string]string {
-	if x != nil {
-		return x.RequiredHeaders
-	}
-	return nil
-}
-
-func (x *FileUpload) GetCreatedByAgent() string {
-	if x != nil {
-		return x.CreatedByAgent
-	}
-	return ""
-}
-
-func (x *FileUpload) GetCreatedBySessionId() string {
-	if x != nil {
-		return x.CreatedBySessionId
-	}
-	return ""
-}
-
-func (x *FileUpload) GetExpiresAt() int64 {
-	if x != nil {
-		return x.ExpiresAt
-	}
-	return 0
-}
-
-func (x *FileUpload) GetCreatedAt() int64 {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return 0
-}
-
-func (x *FileUpload) GetConsumed() bool {
-	if x != nil {
-		return x.Consumed
-	}
-	return false
-}
-
 // Opaque access grant for a File or Artifact handle.
 //
 // Handle strings resolve to these KV-backed grant records. Callers must present
@@ -1026,7 +842,7 @@ type HandleGrant struct {
 
 func (x *HandleGrant) Reset() {
 	*x = HandleGrant{}
-	mi := &file_proto_data_data_proto_msgTypes[6]
+	mi := &file_proto_data_data_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1038,7 +854,7 @@ func (x *HandleGrant) String() string {
 func (*HandleGrant) ProtoMessage() {}
 
 func (x *HandleGrant) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[6]
+	mi := &file_proto_data_data_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1051,7 +867,7 @@ func (x *HandleGrant) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HandleGrant.ProtoReflect.Descriptor instead.
 func (*HandleGrant) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{6}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *HandleGrant) GetId() string {
@@ -1152,7 +968,7 @@ type Principal struct {
 
 func (x *Principal) Reset() {
 	*x = Principal{}
-	mi := &file_proto_data_data_proto_msgTypes[7]
+	mi := &file_proto_data_data_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1164,7 +980,7 @@ func (x *Principal) String() string {
 func (*Principal) ProtoMessage() {}
 
 func (x *Principal) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[7]
+	mi := &file_proto_data_data_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1177,7 +993,7 @@ func (x *Principal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Principal.ProtoReflect.Descriptor instead.
 func (*Principal) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{7}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Principal) GetExternalId() string {
@@ -1231,7 +1047,7 @@ type SessionMessagePart struct {
 
 func (x *SessionMessagePart) Reset() {
 	*x = SessionMessagePart{}
-	mi := &file_proto_data_data_proto_msgTypes[8]
+	mi := &file_proto_data_data_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1243,7 +1059,7 @@ func (x *SessionMessagePart) String() string {
 func (*SessionMessagePart) ProtoMessage() {}
 
 func (x *SessionMessagePart) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[8]
+	mi := &file_proto_data_data_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1256,7 +1072,7 @@ func (x *SessionMessagePart) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessagePart.ProtoReflect.Descriptor instead.
 func (*SessionMessagePart) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{8}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SessionMessagePart) GetId() string {
@@ -1322,7 +1138,7 @@ type SessionMessage struct {
 
 func (x *SessionMessage) Reset() {
 	*x = SessionMessage{}
-	mi := &file_proto_data_data_proto_msgTypes[9]
+	mi := &file_proto_data_data_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1334,7 +1150,7 @@ func (x *SessionMessage) String() string {
 func (*SessionMessage) ProtoMessage() {}
 
 func (x *SessionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[9]
+	mi := &file_proto_data_data_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1347,7 +1163,7 @@ func (x *SessionMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessage.ProtoReflect.Descriptor instead.
 func (*SessionMessage) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{9}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SessionMessage) GetId() string {
@@ -1403,7 +1219,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_data_data_proto_msgTypes[10]
+	mi := &file_proto_data_data_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1415,7 +1231,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[10]
+	mi := &file_proto_data_data_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1428,7 +1244,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{10}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Session) GetId() string {
@@ -1506,7 +1322,7 @@ type ChannelMessage struct {
 
 func (x *ChannelMessage) Reset() {
 	*x = ChannelMessage{}
-	mi := &file_proto_data_data_proto_msgTypes[11]
+	mi := &file_proto_data_data_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1518,7 +1334,7 @@ func (x *ChannelMessage) String() string {
 func (*ChannelMessage) ProtoMessage() {}
 
 func (x *ChannelMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[11]
+	mi := &file_proto_data_data_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1531,7 +1347,7 @@ func (x *ChannelMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelMessage.ProtoReflect.Descriptor instead.
 func (*ChannelMessage) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{11}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ChannelMessage) GetId() string {
@@ -1618,7 +1434,7 @@ type Knowledge struct {
 
 func (x *Knowledge) Reset() {
 	*x = Knowledge{}
-	mi := &file_proto_data_data_proto_msgTypes[12]
+	mi := &file_proto_data_data_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1630,7 +1446,7 @@ func (x *Knowledge) String() string {
 func (*Knowledge) ProtoMessage() {}
 
 func (x *Knowledge) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[12]
+	mi := &file_proto_data_data_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1643,7 +1459,7 @@ func (x *Knowledge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Knowledge.ProtoReflect.Descriptor instead.
 func (*Knowledge) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{12}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Knowledge) GetPath() string {
@@ -1695,7 +1511,7 @@ type KnowledgeSearchResult struct {
 
 func (x *KnowledgeSearchResult) Reset() {
 	*x = KnowledgeSearchResult{}
-	mi := &file_proto_data_data_proto_msgTypes[13]
+	mi := &file_proto_data_data_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1707,7 +1523,7 @@ func (x *KnowledgeSearchResult) String() string {
 func (*KnowledgeSearchResult) ProtoMessage() {}
 
 func (x *KnowledgeSearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[13]
+	mi := &file_proto_data_data_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1720,7 +1536,7 @@ func (x *KnowledgeSearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KnowledgeSearchResult.ProtoReflect.Descriptor instead.
 func (*KnowledgeSearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{13}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *KnowledgeSearchResult) GetPath() string {
@@ -1786,7 +1602,7 @@ type WorkflowRun struct {
 
 func (x *WorkflowRun) Reset() {
 	*x = WorkflowRun{}
-	mi := &file_proto_data_data_proto_msgTypes[14]
+	mi := &file_proto_data_data_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1798,7 +1614,7 @@ func (x *WorkflowRun) String() string {
 func (*WorkflowRun) ProtoMessage() {}
 
 func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[14]
+	mi := &file_proto_data_data_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1811,7 +1627,7 @@ func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRun.ProtoReflect.Descriptor instead.
 func (*WorkflowRun) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{14}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *WorkflowRun) GetId() string {
@@ -1963,7 +1779,7 @@ type WorkflowStepRun struct {
 
 func (x *WorkflowStepRun) Reset() {
 	*x = WorkflowStepRun{}
-	mi := &file_proto_data_data_proto_msgTypes[15]
+	mi := &file_proto_data_data_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1975,7 +1791,7 @@ func (x *WorkflowStepRun) String() string {
 func (*WorkflowStepRun) ProtoMessage() {}
 
 func (x *WorkflowStepRun) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[15]
+	mi := &file_proto_data_data_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1988,7 +1804,7 @@ func (x *WorkflowStepRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowStepRun.ProtoReflect.Descriptor instead.
 func (*WorkflowStepRun) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{15}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *WorkflowStepRun) GetId() string {
@@ -2127,7 +1943,7 @@ type WorkflowRunEvent struct {
 
 func (x *WorkflowRunEvent) Reset() {
 	*x = WorkflowRunEvent{}
-	mi := &file_proto_data_data_proto_msgTypes[16]
+	mi := &file_proto_data_data_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2139,7 +1955,7 @@ func (x *WorkflowRunEvent) String() string {
 func (*WorkflowRunEvent) ProtoMessage() {}
 
 func (x *WorkflowRunEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[16]
+	mi := &file_proto_data_data_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2152,7 +1968,7 @@ func (x *WorkflowRunEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRunEvent.ProtoReflect.Descriptor instead.
 func (*WorkflowRunEvent) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{16}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *WorkflowRunEvent) GetId() string {
@@ -2307,35 +2123,7 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x05phase\x18\x05 \x01(\x0e2\x15.talon.data.GoalPhaseR\x05phase\x12!\n" +
 	"\fstatus_group\x18\x06 \x01(\tR\vstatusGroup\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\xcb\x05\n" +
-	"\n" +
-	"FileUpload\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1c\n" +
-	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x1b\n" +
-	"\tfile_name\x18\x03 \x01(\tR\bfileName\x12\x19\n" +
-	"\bfile_uid\x18\x04 \x01(\tR\afileUid\x12\x12\n" +
-	"\x04path\x18\x05 \x01(\tR\x04path\x12\x1d\n" +
-	"\n" +
-	"media_type\x18\x06 \x01(\tR\tmediaType\x12\x18\n" +
-	"\apurpose\x18\a \x01(\x05R\apurpose\x12!\n" +
-	"\findex_policy\x18\b \x01(\x05R\vindexPolicy\x12\x1c\n" +
-	"\tretention\x18\t \x01(\x05R\tretention\x12\x1d\n" +
-	"\n" +
-	"object_key\x18\n" +
-	" \x01(\tR\tobjectKey\x12.\n" +
-	"\x13expected_size_bytes\x18\v \x01(\x04R\x11expectedSizeBytes\x12'\n" +
-	"\x0fexpected_sha256\x18\f \x01(\tR\x0eexpectedSha256\x12V\n" +
-	"\x10required_headers\x18\r \x03(\v2+.talon.data.FileUpload.RequiredHeadersEntryR\x0frequiredHeaders\x12(\n" +
-	"\x10created_by_agent\x18\x0e \x01(\tR\x0ecreatedByAgent\x121\n" +
-	"\x15created_by_session_id\x18\x0f \x01(\tR\x12createdBySessionId\x12\x1d\n" +
-	"\n" +
-	"expires_at\x18\x10 \x01(\x03R\texpiresAt\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\x11 \x01(\x03R\tcreatedAt\x12\x1a\n" +
-	"\bconsumed\x18\x12 \x01(\bR\bconsumed\x1aB\n" +
-	"\x14RequiredHeadersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xd6\x02\n" +
+	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\xd6\x02\n" +
 	"\vHandleGrant\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1c\n" +
 	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
@@ -2541,7 +2329,7 @@ func file_proto_data_data_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_data_data_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_proto_data_data_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_proto_data_data_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_proto_data_data_proto_goTypes = []any{
 	(MessageRole)(0),              // 0: talon.data.MessageRole
 	(SessionMessagePartType)(0),   // 1: talon.data.SessionMessagePartType
@@ -2551,57 +2339,54 @@ var file_proto_data_data_proto_goTypes = []any{
 	(*GoalEvidenceRef)(nil),       // 5: talon.data.GoalEvidenceRef
 	(*Goal)(nil),                  // 6: talon.data.Goal
 	(*GoalIndexEntry)(nil),        // 7: talon.data.GoalIndexEntry
-	(*FileUpload)(nil),            // 8: talon.data.FileUpload
-	(*HandleGrant)(nil),           // 9: talon.data.HandleGrant
-	(*Principal)(nil),             // 10: talon.data.Principal
-	(*SessionMessagePart)(nil),    // 11: talon.data.SessionMessagePart
-	(*SessionMessage)(nil),        // 12: talon.data.SessionMessage
-	(*Session)(nil),               // 13: talon.data.Session
-	(*ChannelMessage)(nil),        // 14: talon.data.ChannelMessage
-	(*Knowledge)(nil),             // 15: talon.data.Knowledge
-	(*KnowledgeSearchResult)(nil), // 16: talon.data.KnowledgeSearchResult
-	(*WorkflowRun)(nil),           // 17: talon.data.WorkflowRun
-	(*WorkflowStepRun)(nil),       // 18: talon.data.WorkflowStepRun
-	(*WorkflowRunEvent)(nil),      // 19: talon.data.WorkflowRunEvent
-	nil,                           // 20: talon.data.ObjectRef.MetadataEntry
-	nil,                           // 21: talon.data.Artifact.LabelsEntry
-	nil,                           // 22: talon.data.Artifact.MetadataEntry
-	nil,                           // 23: talon.data.Goal.LabelsEntry
-	nil,                           // 24: talon.data.Goal.MetadataEntry
-	nil,                           // 25: talon.data.FileUpload.RequiredHeadersEntry
-	nil,                           // 26: talon.data.Principal.MetadataEntry
-	nil,                           // 27: talon.data.SessionMessage.LabelsEntry
-	nil,                           // 28: talon.data.Session.MetadataEntry
-	nil,                           // 29: talon.data.Session.LabelsEntry
-	nil,                           // 30: talon.data.ChannelMessage.LabelsEntry
-	nil,                           // 31: talon.data.WorkflowRun.LabelsEntry
+	(*HandleGrant)(nil),           // 8: talon.data.HandleGrant
+	(*Principal)(nil),             // 9: talon.data.Principal
+	(*SessionMessagePart)(nil),    // 10: talon.data.SessionMessagePart
+	(*SessionMessage)(nil),        // 11: talon.data.SessionMessage
+	(*Session)(nil),               // 12: talon.data.Session
+	(*ChannelMessage)(nil),        // 13: talon.data.ChannelMessage
+	(*Knowledge)(nil),             // 14: talon.data.Knowledge
+	(*KnowledgeSearchResult)(nil), // 15: talon.data.KnowledgeSearchResult
+	(*WorkflowRun)(nil),           // 16: talon.data.WorkflowRun
+	(*WorkflowStepRun)(nil),       // 17: talon.data.WorkflowStepRun
+	(*WorkflowRunEvent)(nil),      // 18: talon.data.WorkflowRunEvent
+	nil,                           // 19: talon.data.ObjectRef.MetadataEntry
+	nil,                           // 20: talon.data.Artifact.LabelsEntry
+	nil,                           // 21: talon.data.Artifact.MetadataEntry
+	nil,                           // 22: talon.data.Goal.LabelsEntry
+	nil,                           // 23: talon.data.Goal.MetadataEntry
+	nil,                           // 24: talon.data.Principal.MetadataEntry
+	nil,                           // 25: talon.data.SessionMessage.LabelsEntry
+	nil,                           // 26: talon.data.Session.MetadataEntry
+	nil,                           // 27: talon.data.Session.LabelsEntry
+	nil,                           // 28: talon.data.ChannelMessage.LabelsEntry
+	nil,                           // 29: talon.data.WorkflowRun.LabelsEntry
 }
 var file_proto_data_data_proto_depIdxs = []int32{
-	20, // 0: talon.data.ObjectRef.metadata:type_name -> talon.data.ObjectRef.MetadataEntry
+	19, // 0: talon.data.ObjectRef.metadata:type_name -> talon.data.ObjectRef.MetadataEntry
 	3,  // 1: talon.data.Artifact.object_ref:type_name -> talon.data.ObjectRef
-	21, // 2: talon.data.Artifact.labels:type_name -> talon.data.Artifact.LabelsEntry
-	22, // 3: talon.data.Artifact.metadata:type_name -> talon.data.Artifact.MetadataEntry
+	20, // 2: talon.data.Artifact.labels:type_name -> talon.data.Artifact.LabelsEntry
+	21, // 3: talon.data.Artifact.metadata:type_name -> talon.data.Artifact.MetadataEntry
 	2,  // 4: talon.data.Goal.phase:type_name -> talon.data.GoalPhase
 	5,  // 5: talon.data.Goal.evidence_refs:type_name -> talon.data.GoalEvidenceRef
-	23, // 6: talon.data.Goal.labels:type_name -> talon.data.Goal.LabelsEntry
-	24, // 7: talon.data.Goal.metadata:type_name -> talon.data.Goal.MetadataEntry
+	22, // 6: talon.data.Goal.labels:type_name -> talon.data.Goal.LabelsEntry
+	23, // 7: talon.data.Goal.metadata:type_name -> talon.data.Goal.MetadataEntry
 	2,  // 8: talon.data.GoalIndexEntry.phase:type_name -> talon.data.GoalPhase
-	25, // 9: talon.data.FileUpload.required_headers:type_name -> talon.data.FileUpload.RequiredHeadersEntry
-	26, // 10: talon.data.Principal.metadata:type_name -> talon.data.Principal.MetadataEntry
-	1,  // 11: talon.data.SessionMessagePart.part_type:type_name -> talon.data.SessionMessagePartType
-	3,  // 12: talon.data.SessionMessagePart.object:type_name -> talon.data.ObjectRef
-	0,  // 13: talon.data.SessionMessage.role:type_name -> talon.data.MessageRole
-	27, // 14: talon.data.SessionMessage.labels:type_name -> talon.data.SessionMessage.LabelsEntry
-	11, // 15: talon.data.SessionMessage.parts:type_name -> talon.data.SessionMessagePart
-	28, // 16: talon.data.Session.metadata:type_name -> talon.data.Session.MetadataEntry
-	29, // 17: talon.data.Session.labels:type_name -> talon.data.Session.LabelsEntry
-	30, // 18: talon.data.ChannelMessage.labels:type_name -> talon.data.ChannelMessage.LabelsEntry
-	31, // 19: talon.data.WorkflowRun.labels:type_name -> talon.data.WorkflowRun.LabelsEntry
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	24, // 9: talon.data.Principal.metadata:type_name -> talon.data.Principal.MetadataEntry
+	1,  // 10: talon.data.SessionMessagePart.part_type:type_name -> talon.data.SessionMessagePartType
+	3,  // 11: talon.data.SessionMessagePart.object:type_name -> talon.data.ObjectRef
+	0,  // 12: talon.data.SessionMessage.role:type_name -> talon.data.MessageRole
+	25, // 13: talon.data.SessionMessage.labels:type_name -> talon.data.SessionMessage.LabelsEntry
+	10, // 14: talon.data.SessionMessage.parts:type_name -> talon.data.SessionMessagePart
+	26, // 15: talon.data.Session.metadata:type_name -> talon.data.Session.MetadataEntry
+	27, // 16: talon.data.Session.labels:type_name -> talon.data.Session.LabelsEntry
+	28, // 17: talon.data.ChannelMessage.labels:type_name -> talon.data.ChannelMessage.LabelsEntry
+	29, // 18: talon.data.WorkflowRun.labels:type_name -> talon.data.WorkflowRun.LabelsEntry
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_data_proto_init() }
@@ -2609,15 +2394,15 @@ func file_proto_data_data_proto_init() {
 	if File_proto_data_data_proto != nil {
 		return
 	}
+	file_proto_data_data_proto_msgTypes[13].OneofWrappers = []any{}
 	file_proto_data_data_proto_msgTypes[14].OneofWrappers = []any{}
-	file_proto_data_data_proto_msgTypes[15].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_data_data_proto_rawDesc), len(file_proto_data_data_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   29,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

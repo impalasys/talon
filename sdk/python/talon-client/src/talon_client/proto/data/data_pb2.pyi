@@ -221,53 +221,6 @@ class GoalIndexEntry(_message.Message):
     updated_at: int
     def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., goal_id: _Optional[str] = ..., phase: _Optional[_Union[GoalPhase, str]] = ..., status_group: _Optional[str] = ..., updated_at: _Optional[int] = ...) -> None: ...
 
-class FileUpload(_message.Message):
-    __slots__ = ("id", "namespace", "file_name", "file_uid", "path", "media_type", "purpose", "index_policy", "retention", "object_key", "expected_size_bytes", "expected_sha256", "required_headers", "created_by_agent", "created_by_session_id", "expires_at", "created_at", "consumed")
-    class RequiredHeadersEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
-    ID_FIELD_NUMBER: _ClassVar[int]
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    FILE_NAME_FIELD_NUMBER: _ClassVar[int]
-    FILE_UID_FIELD_NUMBER: _ClassVar[int]
-    PATH_FIELD_NUMBER: _ClassVar[int]
-    MEDIA_TYPE_FIELD_NUMBER: _ClassVar[int]
-    PURPOSE_FIELD_NUMBER: _ClassVar[int]
-    INDEX_POLICY_FIELD_NUMBER: _ClassVar[int]
-    RETENTION_FIELD_NUMBER: _ClassVar[int]
-    OBJECT_KEY_FIELD_NUMBER: _ClassVar[int]
-    EXPECTED_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
-    EXPECTED_SHA256_FIELD_NUMBER: _ClassVar[int]
-    REQUIRED_HEADERS_FIELD_NUMBER: _ClassVar[int]
-    CREATED_BY_AGENT_FIELD_NUMBER: _ClassVar[int]
-    CREATED_BY_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
-    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
-    CONSUMED_FIELD_NUMBER: _ClassVar[int]
-    id: str
-    namespace: str
-    file_name: str
-    file_uid: str
-    path: str
-    media_type: str
-    purpose: int
-    index_policy: int
-    retention: int
-    object_key: str
-    expected_size_bytes: int
-    expected_sha256: str
-    required_headers: _containers.ScalarMap[str, str]
-    created_by_agent: str
-    created_by_session_id: str
-    expires_at: int
-    created_at: int
-    consumed: bool
-    def __init__(self, id: _Optional[str] = ..., namespace: _Optional[str] = ..., file_name: _Optional[str] = ..., file_uid: _Optional[str] = ..., path: _Optional[str] = ..., media_type: _Optional[str] = ..., purpose: _Optional[int] = ..., index_policy: _Optional[int] = ..., retention: _Optional[int] = ..., object_key: _Optional[str] = ..., expected_size_bytes: _Optional[int] = ..., expected_sha256: _Optional[str] = ..., required_headers: _Optional[_Mapping[str, str]] = ..., created_by_agent: _Optional[str] = ..., created_by_session_id: _Optional[str] = ..., expires_at: _Optional[int] = ..., created_at: _Optional[int] = ..., consumed: bool = ...) -> None: ...
-
 class HandleGrant(_message.Message):
     __slots__ = ("id", "namespace", "kind", "target_id", "agent", "session_id", "operations", "audience_agent", "audience_session_id", "expires_at", "created_at")
     ID_FIELD_NUMBER: _ClassVar[int]
