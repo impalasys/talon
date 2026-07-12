@@ -28,9 +28,9 @@ export class FileRef extends Message<FileRef> {
   path = "";
 
   /**
-   * @generated from field: string handle = 4;
+   * @generated from field: string uri = 4;
    */
-  handle = "";
+  uri = "";
 
   constructor(data?: PartialMessage<FileRef>) {
     super();
@@ -43,7 +43,7 @@ export class FileRef extends Message<FileRef> {
     { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FileRef {
@@ -698,9 +698,9 @@ export class DeleteFileResponse extends Message<DeleteFileResponse> {
  */
 export class PromoteArtifactRequest extends Message<PromoteArtifactRequest> {
   /**
-   * @generated from field: string artifact_handle = 1;
+   * @generated from field: string artifact_uri = 1;
    */
-  artifactHandle = "";
+  artifactUri = "";
 
   /**
    * @generated from field: string target_path = 2;
@@ -735,7 +735,7 @@ export class PromoteArtifactRequest extends Message<PromoteArtifactRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.PromoteArtifactRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "artifact_handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "artifact_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "target_path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "purpose", kind: "enum", T: proto3.getEnumType(FilePurpose) },
@@ -770,9 +770,9 @@ export class FileResponse extends Message<FileResponse> {
   file?: File;
 
   /**
-   * @generated from field: string file_handle = 2;
+   * @generated from field: string file_uri = 2;
    */
-  fileHandle = "";
+  fileUri = "";
 
   constructor(data?: PartialMessage<FileResponse>) {
     super();
@@ -783,7 +783,7 @@ export class FileResponse extends Message<FileResponse> {
   static readonly typeName = "talon.v1.FileResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "file", kind: "message", T: File },
-    { no: 2, name: "file_handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "file_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FileResponse {
@@ -808,9 +808,9 @@ export class FileResponse extends Message<FileResponse> {
  */
 export class ReadArtifactRequest extends Message<ReadArtifactRequest> {
   /**
-   * @generated from field: string artifact_handle = 1;
+   * @generated from field: string artifact_uri = 1;
    */
-  artifactHandle = "";
+  artifactUri = "";
 
   constructor(data?: PartialMessage<ReadArtifactRequest>) {
     super();
@@ -820,7 +820,7 @@ export class ReadArtifactRequest extends Message<ReadArtifactRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.ReadArtifactRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "artifact_handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "artifact_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReadArtifactRequest {
@@ -900,9 +900,9 @@ export class ReadArtifactResponse extends Message<ReadArtifactResponse> {
  */
 export class GetArtifactMetadataRequest extends Message<GetArtifactMetadataRequest> {
   /**
-   * @generated from field: string artifact_handle = 1;
+   * @generated from field: string artifact_uri = 1;
    */
-  artifactHandle = "";
+  artifactUri = "";
 
   constructor(data?: PartialMessage<GetArtifactMetadataRequest>) {
     super();
@@ -912,7 +912,7 @@ export class GetArtifactMetadataRequest extends Message<GetArtifactMetadataReque
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.GetArtifactMetadataRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "artifact_handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "artifact_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetArtifactMetadataRequest {
@@ -1047,9 +1047,9 @@ export class ListArtifactsResponse extends Message<ListArtifactsResponse> {
  */
 export class GrantArtifactRequest extends Message<GrantArtifactRequest> {
   /**
-   * @generated from field: string artifact_handle = 1;
+   * @generated from field: string artifact_uri = 1;
    */
-  artifactHandle = "";
+  artifactUri = "";
 
   /**
    * @generated from field: string target_agent = 2;
@@ -1079,7 +1079,7 @@ export class GrantArtifactRequest extends Message<GrantArtifactRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.v1.GrantArtifactRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "artifact_handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "artifact_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "target_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "target_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "operations", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
@@ -1113,9 +1113,9 @@ export class ArtifactResponse extends Message<ArtifactResponse> {
   artifact?: Artifact;
 
   /**
-   * @generated from field: string artifact_handle = 2;
+   * @generated from field: string artifact_uri = 2;
    */
-  artifactHandle = "";
+  artifactUri = "";
 
   constructor(data?: PartialMessage<ArtifactResponse>) {
     super();
@@ -1126,7 +1126,7 @@ export class ArtifactResponse extends Message<ArtifactResponse> {
   static readonly typeName = "talon.v1.ArtifactResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "artifact", kind: "message", T: Artifact },
-    { no: 2, name: "artifact_handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "artifact_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ArtifactResponse {
@@ -1147,38 +1147,38 @@ export class ArtifactResponse extends Message<ArtifactResponse> {
 }
 
 /**
- * @generated from message talon.v1.ArtifactHandleResponse
+ * @generated from message talon.v1.ArtifactUriResponse
  */
-export class ArtifactHandleResponse extends Message<ArtifactHandleResponse> {
+export class ArtifactUriResponse extends Message<ArtifactUriResponse> {
   /**
-   * @generated from field: string artifact_handle = 1;
+   * @generated from field: string artifact_uri = 1;
    */
-  artifactHandle = "";
+  artifactUri = "";
 
-  constructor(data?: PartialMessage<ArtifactHandleResponse>) {
+  constructor(data?: PartialMessage<ArtifactUriResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.v1.ArtifactHandleResponse";
+  static readonly typeName = "talon.v1.ArtifactUriResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "artifact_handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "artifact_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ArtifactHandleResponse {
-    return new ArtifactHandleResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ArtifactUriResponse {
+    return new ArtifactUriResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ArtifactHandleResponse {
-    return new ArtifactHandleResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ArtifactUriResponse {
+    return new ArtifactUriResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ArtifactHandleResponse {
-    return new ArtifactHandleResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ArtifactUriResponse {
+    return new ArtifactUriResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ArtifactHandleResponse | PlainMessage<ArtifactHandleResponse> | undefined, b: ArtifactHandleResponse | PlainMessage<ArtifactHandleResponse> | undefined): boolean {
-    return proto3.util.equals(ArtifactHandleResponse, a, b);
+  static equals(a: ArtifactUriResponse | PlainMessage<ArtifactUriResponse> | undefined, b: ArtifactUriResponse | PlainMessage<ArtifactUriResponse> | undefined): boolean {
+    return proto3.util.equals(ArtifactUriResponse, a, b);
   }
 }

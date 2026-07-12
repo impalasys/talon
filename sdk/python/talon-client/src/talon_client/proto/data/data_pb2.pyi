@@ -221,31 +221,23 @@ class GoalIndexEntry(_message.Message):
     updated_at: int
     def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., goal_id: _Optional[str] = ..., phase: _Optional[_Union[GoalPhase, str]] = ..., status_group: _Optional[str] = ..., updated_at: _Optional[int] = ...) -> None: ...
 
-class HandleGrant(_message.Message):
-    __slots__ = ("id", "namespace", "kind", "target_id", "agent", "session_id", "operations", "audience_agent", "audience_session_id", "expires_at", "created_at")
-    ID_FIELD_NUMBER: _ClassVar[int]
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    KIND_FIELD_NUMBER: _ClassVar[int]
-    TARGET_ID_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+class ArtifactAccess(_message.Message):
+    __slots__ = ("target_agent", "target_session_id", "operations", "expires_at", "granted_by_agent", "granted_by_session_id", "created_at")
+    TARGET_AGENT_FIELD_NUMBER: _ClassVar[int]
+    TARGET_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     OPERATIONS_FIELD_NUMBER: _ClassVar[int]
-    AUDIENCE_AGENT_FIELD_NUMBER: _ClassVar[int]
-    AUDIENCE_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
+    GRANTED_BY_AGENT_FIELD_NUMBER: _ClassVar[int]
+    GRANTED_BY_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
-    id: str
-    namespace: str
-    kind: str
-    target_id: str
-    agent: str
-    session_id: str
+    target_agent: str
+    target_session_id: str
     operations: _containers.RepeatedScalarFieldContainer[str]
-    audience_agent: str
-    audience_session_id: str
     expires_at: int
+    granted_by_agent: str
+    granted_by_session_id: str
     created_at: int
-    def __init__(self, id: _Optional[str] = ..., namespace: _Optional[str] = ..., kind: _Optional[str] = ..., target_id: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., operations: _Optional[_Iterable[str]] = ..., audience_agent: _Optional[str] = ..., audience_session_id: _Optional[str] = ..., expires_at: _Optional[int] = ..., created_at: _Optional[int] = ...) -> None: ...
+    def __init__(self, target_agent: _Optional[str] = ..., target_session_id: _Optional[str] = ..., operations: _Optional[_Iterable[str]] = ..., expires_at: _Optional[int] = ..., granted_by_agent: _Optional[str] = ..., granted_by_session_id: _Optional[str] = ..., created_at: _Optional[int] = ...) -> None: ...
 
 class Principal(_message.Message):
     __slots__ = ("external_id", "address", "display_name", "kind", "metadata")

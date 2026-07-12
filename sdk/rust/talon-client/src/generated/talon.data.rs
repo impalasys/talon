@@ -160,9 +160,9 @@ pub struct ObjectRef {
 /// Session-scoped immutable output produced by an agent.
 ///
 /// Artifacts are not namespace-level File resources. They live under the
-/// owning session/run, are exchanged through HandleGrant records, and are not
-/// indexed directly. Promoting an Artifact to a durable File copies its bytes
-/// into File-owned CAS storage and creates or updates a File resource.
+/// owning session/run, are referenced by artifact:// URIs, and are not indexed
+/// directly. Promoting an Artifact to a durable File copies its bytes into
+/// File-owned CAS storage and creates or updates a File resource.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Artifact {
     /// Stable artifact id unique within the namespace/session artifact store.
@@ -281,45 +281,34 @@ pub struct GoalIndexEntry {
     #[prost(int64, tag = "7")]
     pub updated_at: i64,
 }
-/// Opaque access grant for a File or Artifact handle.
+/// Target-local access record for an artifact URI.
 ///
-/// Handle strings resolve to these KV-backed grant records. Callers must present
-/// a valid handle and match the recorded audience before FileService or
-/// ArtifactService allows the requested operation.
+/// Artifact URIs are references, not bearer secrets. A caller can use an
+/// artifact:// URI only when it is the owning session or when an ArtifactAccess
+/// child record under that artifact grants the caller session the requested
+/// operation.
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct HandleGrant {
-    /// Opaque grant id encoded into the external handle string.
+pub struct ArtifactAccess {
+    /// Agent that may access the artifact.
     #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    /// Namespace containing the target resource or session child record.
+    pub target_agent: ::prost::alloc::string::String,
+    /// Session that may access the artifact.
     #[prost(string, tag = "2")]
-    pub namespace: ::prost::alloc::string::String,
-    /// Target kind, currently ARTIFACT or FILE.
-    #[prost(string, tag = "3")]
-    pub kind: ::prost::alloc::string::String,
-    /// Target id, such as an artifact id or File resource name.
-    #[prost(string, tag = "4")]
-    pub target_id: ::prost::alloc::string::String,
-    /// Agent that minted the grant.
-    #[prost(string, tag = "5")]
-    pub agent: ::prost::alloc::string::String,
-    /// Session that minted the grant, when the grant is session scoped.
-    #[prost(string, tag = "6")]
-    pub session_id: ::prost::alloc::string::String,
-    /// Allowed operations, such as read, metadata, promote, or write.
-    #[prost(string, repeated, tag = "7")]
+    pub target_session_id: ::prost::alloc::string::String,
+    /// Allowed operations, such as read, metadata, or promote.
+    #[prost(string, repeated, tag = "3")]
     pub operations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    /// Optional agent audience. Empty means any authorized agent may use it.
-    #[prost(string, tag = "8")]
-    pub audience_agent: ::prost::alloc::string::String,
-    /// Optional session audience. Empty means any authorized session may use it.
-    #[prost(string, tag = "9")]
-    pub audience_session_id: ::prost::alloc::string::String,
-    /// Unix timestamp in microseconds when the grant expires. Zero means unset.
-    #[prost(int64, tag = "10")]
+    /// Unix timestamp in microseconds when access expires. Zero means unset.
+    #[prost(int64, tag = "4")]
     pub expires_at: i64,
-    /// Unix timestamp in microseconds when the grant was created.
-    #[prost(int64, tag = "11")]
+    /// Agent that granted access.
+    #[prost(string, tag = "5")]
+    pub granted_by_agent: ::prost::alloc::string::String,
+    /// Session that granted access.
+    #[prost(string, tag = "6")]
+    pub granted_by_session_id: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds when the access record was created.
+    #[prost(int64, tag = "7")]
     pub created_at: i64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

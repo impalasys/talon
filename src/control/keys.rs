@@ -431,20 +431,17 @@ pub fn goal_index_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("GoalIndex"))
 }
 
-pub fn file_handle_grant(namespace: &str, file_name: &str, handle_id: &str) -> ResourceKey {
-    resource_key(namespace, &[("File", file_name)], "HandleGrant", handle_id)
+pub fn artifact_access_name(target_agent: &str, target_session_id: &str) -> String {
+    format!("{target_agent}:{target_session_id}")
 }
 
-pub fn file_handle_grant_prefix(namespace: &str, file_name: &str) -> ResourceList {
-    direct_child_prefix(namespace, &[("File", file_name)], Some("HandleGrant"))
-}
-
-pub fn artifact_handle_grant(
+pub fn artifact_access(
     namespace: &str,
     agent: &str,
     session_id: &str,
     artifact_id: &str,
-    handle_id: &str,
+    target_agent: &str,
+    target_session_id: &str,
 ) -> ResourceKey {
     resource_key(
         namespace,
@@ -453,12 +450,12 @@ pub fn artifact_handle_grant(
             ("Session", session_id),
             ("Artifact", artifact_id),
         ],
-        "HandleGrant",
-        handle_id,
+        "ArtifactAccess",
+        &artifact_access_name(target_agent, target_session_id),
     )
 }
 
-pub fn artifact_handle_grant_prefix(
+pub fn artifact_access_prefix(
     namespace: &str,
     agent: &str,
     session_id: &str,
@@ -471,7 +468,7 @@ pub fn artifact_handle_grant_prefix(
             ("Session", session_id),
             ("Artifact", artifact_id),
         ],
-        Some("HandleGrant"),
+        Some("ArtifactAccess"),
     )
 }
 

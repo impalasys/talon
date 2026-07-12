@@ -42,7 +42,7 @@ enum FileCommands {
         #[arg(long, default_value = "none")]
         index_policy: String,
     },
-    /// Read a namespace File by name, path, or handle.
+    /// Read a namespace File by name, path, or URI.
     Get {
         #[arg(short, long)]
         namespace: Option<String>,
@@ -51,7 +51,7 @@ enum FileCommands {
         #[arg(long)]
         path: Option<String>,
         #[arg(long)]
-        handle: Option<String>,
+        uri: Option<String>,
         #[arg(short, long)]
         output: Option<String>,
     },
@@ -64,7 +64,7 @@ enum FileCommands {
         #[arg(long)]
         path: Option<String>,
         #[arg(long)]
-        handle: Option<String>,
+        uri: Option<String>,
         #[arg(long)]
         file: String,
         #[arg(long)]
@@ -83,7 +83,7 @@ enum FileCommands {
         #[arg(long, default_value_t = 100)]
         limit: u32,
     },
-    /// Delete a namespace File by name, path, or handle.
+    /// Delete a namespace File by name, path, or URI.
     Delete {
         #[arg(short, long)]
         namespace: Option<String>,
@@ -92,7 +92,7 @@ enum FileCommands {
         #[arg(long)]
         path: Option<String>,
         #[arg(long)]
-        handle: Option<String>,
+        uri: Option<String>,
     },
 }
 
@@ -140,26 +140,26 @@ pub(super) async fn run(cli: &Cli, command: &FileCommand) -> Result<RunOutcome> 
             };
             let file = response.file.context("FileService returned no file")?;
             println!(
-                "✓ File '{}/{}' written. handle={}",
+                "✓ File '{}/{}' written. uri={}",
                 namespace,
                 file.metadata
                     .as_ref()
                     .map(|meta| meta.name.as_str())
                     .unwrap_or_default(),
-                response.file_handle
+                response.file_uri
             );
         }
         FileCommands::Get {
             namespace,
             name,
             path,
-            handle,
+            uri,
             output,
         } => {
             let mut client = connect_gateway(cli).await?;
             let response = client
                 .read_file(ReadFileRequest {
-                    file: Some(file_ref(namespace, name, path, handle)?),
+                    file: Some(file_ref(namespace, name, path, uri)?),
                 })
                 .await?
                 .into_inner();
@@ -177,14 +177,14 @@ pub(super) async fn run(cli: &Cli, command: &FileCommand) -> Result<RunOutcome> 
             namespace,
             name,
             path,
-            handle,
+            uri,
             file,
             media_type,
         } => {
             let bytes = fs::read(file).with_context(|| format!("Failed to read '{}'", file))?;
             let media_type = media_type_for_update(file, media_type.as_deref());
             let mut client = connect_gateway(cli).await?;
-            let file_ref = file_ref(namespace, name, path, handle)?;
+            let file_ref = file_ref(namespace, name, path, uri)?;
             let response = if bytes.len() as u64 <= MAX_UNARY_FILE_UPLOAD_BYTES {
                 client
                     .update_file(UpdateFileRequest {
@@ -271,12 +271,12 @@ pub(super) async fn run(cli: &Cli, command: &FileCommand) -> Result<RunOutcome> 
             namespace,
             name,
             path,
-            handle,
+            uri,
         } => {
             let mut client = connect_gateway(cli).await?;
             let response = client
                 .delete_file(DeleteFileRequest {
-                    file: Some(file_ref(namespace, name, path, handle)?),
+                    file: Some(file_ref(namespace, name, path, uri)?),
                 })
                 .await?
                 .into_inner();
@@ -290,23 +290,23 @@ fn file_ref(
     namespace: &Option<String>,
     name: &Option<String>,
     path: &Option<String>,
-    handle: &Option<String>,
+    uri: &Option<String>,
 ) -> Result<FileRef> {
     let namespace = namespace.clone().unwrap_or_default();
     let name = name.clone().unwrap_or_default();
     let path = path.clone().unwrap_or_default();
-    let handle = handle.clone().unwrap_or_default();
-    if name.trim().is_empty() && path.trim().is_empty() && handle.trim().is_empty() {
-        anyhow::bail!("one of --name, --path, or --handle is required");
+    let uri = uri.clone().unwrap_or_default();
+    if name.trim().is_empty() && path.trim().is_empty() && uri.trim().is_empty() {
+        anyhow::bail!("one of --name, --path, or --uri is required");
     }
-    if handle.trim().is_empty() && namespace.trim().is_empty() {
-        anyhow::bail!("--namespace is required unless --handle is provided");
+    if uri.trim().is_empty() && namespace.trim().is_empty() {
+        anyhow::bail!("--namespace is required unless --uri is provided");
     }
     Ok(FileRef {
         namespace,
         name,
         path,
-        handle,
+        uri,
     })
 }
 

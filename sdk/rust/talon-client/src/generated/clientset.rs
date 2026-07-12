@@ -410,7 +410,7 @@ impl crate::TalonClient {
         artifacts,
         grant_artifact,
         crate::v1::GrantArtifactRequest,
-        crate::v1::ArtifactHandleResponse,
+        crate::v1::ArtifactUriResponse,
     );
     delegate_dynamic_unary_rpc!(
         search,

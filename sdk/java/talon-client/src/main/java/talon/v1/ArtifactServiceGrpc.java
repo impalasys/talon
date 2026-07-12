@@ -106,28 +106,28 @@ public final class ArtifactServiceGrpc {
   }
 
   private static volatile io.grpc.MethodDescriptor<talon.v1.Files.GrantArtifactRequest,
-      talon.v1.Files.ArtifactHandleResponse> getGrantArtifactMethod;
+      talon.v1.Files.ArtifactUriResponse> getGrantArtifactMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "GrantArtifact",
       requestType = talon.v1.Files.GrantArtifactRequest.class,
-      responseType = talon.v1.Files.ArtifactHandleResponse.class,
+      responseType = talon.v1.Files.ArtifactUriResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<talon.v1.Files.GrantArtifactRequest,
-      talon.v1.Files.ArtifactHandleResponse> getGrantArtifactMethod() {
-    io.grpc.MethodDescriptor<talon.v1.Files.GrantArtifactRequest, talon.v1.Files.ArtifactHandleResponse> getGrantArtifactMethod;
+      talon.v1.Files.ArtifactUriResponse> getGrantArtifactMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Files.GrantArtifactRequest, talon.v1.Files.ArtifactUriResponse> getGrantArtifactMethod;
     if ((getGrantArtifactMethod = ArtifactServiceGrpc.getGrantArtifactMethod) == null) {
       synchronized (ArtifactServiceGrpc.class) {
         if ((getGrantArtifactMethod = ArtifactServiceGrpc.getGrantArtifactMethod) == null) {
           ArtifactServiceGrpc.getGrantArtifactMethod = getGrantArtifactMethod =
-              io.grpc.MethodDescriptor.<talon.v1.Files.GrantArtifactRequest, talon.v1.Files.ArtifactHandleResponse>newBuilder()
+              io.grpc.MethodDescriptor.<talon.v1.Files.GrantArtifactRequest, talon.v1.Files.ArtifactUriResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GrantArtifact"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   talon.v1.Files.GrantArtifactRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  talon.v1.Files.ArtifactHandleResponse.getDefaultInstance()))
+                  talon.v1.Files.ArtifactUriResponse.getDefaultInstance()))
               .setSchemaDescriptor(new ArtifactServiceMethodDescriptorSupplier("GrantArtifact"))
               .build();
         }
@@ -202,8 +202,8 @@ public final class ArtifactServiceGrpc {
     /**
      * <pre>
      * Artifact creation is handled by the runtime/tooling for an active session.
-     * This service only exposes handle-based artifact reads, metadata, listing,
-     * and grant operations.
+     * This service only exposes URI-based artifact reads, metadata, listing,
+     * and access grant operations.
      * </pre>
      */
     default void readArtifact(talon.v1.Files.ReadArtifactRequest request,
@@ -228,7 +228,7 @@ public final class ArtifactServiceGrpc {
     /**
      */
     default void grantArtifact(talon.v1.Files.GrantArtifactRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Files.ArtifactHandleResponse> responseObserver) {
+        io.grpc.stub.StreamObserver<talon.v1.Files.ArtifactUriResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGrantArtifactMethod(), responseObserver);
     }
   }
@@ -263,8 +263,8 @@ public final class ArtifactServiceGrpc {
     /**
      * <pre>
      * Artifact creation is handled by the runtime/tooling for an active session.
-     * This service only exposes handle-based artifact reads, metadata, listing,
-     * and grant operations.
+     * This service only exposes URI-based artifact reads, metadata, listing,
+     * and access grant operations.
      * </pre>
      */
     public void readArtifact(talon.v1.Files.ReadArtifactRequest request,
@@ -292,7 +292,7 @@ public final class ArtifactServiceGrpc {
     /**
      */
     public void grantArtifact(talon.v1.Files.GrantArtifactRequest request,
-        io.grpc.stub.StreamObserver<talon.v1.Files.ArtifactHandleResponse> responseObserver) {
+        io.grpc.stub.StreamObserver<talon.v1.Files.ArtifactUriResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGrantArtifactMethod(), getCallOptions()), request, responseObserver);
     }
@@ -317,8 +317,8 @@ public final class ArtifactServiceGrpc {
     /**
      * <pre>
      * Artifact creation is handled by the runtime/tooling for an active session.
-     * This service only exposes handle-based artifact reads, metadata, listing,
-     * and grant operations.
+     * This service only exposes URI-based artifact reads, metadata, listing,
+     * and access grant operations.
      * </pre>
      */
     public talon.v1.Files.ReadArtifactResponse readArtifact(talon.v1.Files.ReadArtifactRequest request) throws io.grpc.StatusException {
@@ -342,7 +342,7 @@ public final class ArtifactServiceGrpc {
 
     /**
      */
-    public talon.v1.Files.ArtifactHandleResponse grantArtifact(talon.v1.Files.GrantArtifactRequest request) throws io.grpc.StatusException {
+    public talon.v1.Files.ArtifactUriResponse grantArtifact(talon.v1.Files.GrantArtifactRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getGrantArtifactMethod(), getCallOptions(), request);
     }
@@ -367,8 +367,8 @@ public final class ArtifactServiceGrpc {
     /**
      * <pre>
      * Artifact creation is handled by the runtime/tooling for an active session.
-     * This service only exposes handle-based artifact reads, metadata, listing,
-     * and grant operations.
+     * This service only exposes URI-based artifact reads, metadata, listing,
+     * and access grant operations.
      * </pre>
      */
     public talon.v1.Files.ReadArtifactResponse readArtifact(talon.v1.Files.ReadArtifactRequest request) {
@@ -392,7 +392,7 @@ public final class ArtifactServiceGrpc {
 
     /**
      */
-    public talon.v1.Files.ArtifactHandleResponse grantArtifact(talon.v1.Files.GrantArtifactRequest request) {
+    public talon.v1.Files.ArtifactUriResponse grantArtifact(talon.v1.Files.GrantArtifactRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGrantArtifactMethod(), getCallOptions(), request);
     }
@@ -417,8 +417,8 @@ public final class ArtifactServiceGrpc {
     /**
      * <pre>
      * Artifact creation is handled by the runtime/tooling for an active session.
-     * This service only exposes handle-based artifact reads, metadata, listing,
-     * and grant operations.
+     * This service only exposes URI-based artifact reads, metadata, listing,
+     * and access grant operations.
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Files.ReadArtifactResponse> readArtifact(
@@ -445,7 +445,7 @@ public final class ArtifactServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Files.ArtifactHandleResponse> grantArtifact(
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Files.ArtifactUriResponse> grantArtifact(
         talon.v1.Files.GrantArtifactRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGrantArtifactMethod(), getCallOptions()), request);
@@ -488,7 +488,7 @@ public final class ArtifactServiceGrpc {
           break;
         case METHODID_GRANT_ARTIFACT:
           serviceImpl.grantArtifact((talon.v1.Files.GrantArtifactRequest) request,
-              (io.grpc.stub.StreamObserver<talon.v1.Files.ArtifactHandleResponse>) responseObserver);
+              (io.grpc.stub.StreamObserver<talon.v1.Files.ArtifactUriResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -534,7 +534,7 @@ public final class ArtifactServiceGrpc {
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
               talon.v1.Files.GrantArtifactRequest,
-              talon.v1.Files.ArtifactHandleResponse>(
+              talon.v1.Files.ArtifactUriResponse>(
                 service, METHODID_GRANT_ARTIFACT)))
         .build();
   }
