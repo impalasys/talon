@@ -131,7 +131,7 @@ fn main() -> std::io::Result<()> {
         ".talon.data.Document",
         ".talon.data.DocumentRef",
         ".talon.data.DocumentSource",
-        ".talon.data.HandleGrant",
+        ".talon.data.ArtifactAccess",
         ".talon.data.Knowledge",
         ".talon.data.KnowledgeSearchResult",
         ".talon.data.MessageConsumer",

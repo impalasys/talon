@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ArtifactHandleResponse, ArtifactResponse, CompleteFileUploadRequest, CreateFileRequest, DeleteFileRequest, DeleteFileResponse, FileResponse, GetArtifactMetadataRequest, GetFileMetadataRequest, GrantArtifactRequest, ListArtifactsRequest, ListArtifactsResponse, ListFilesRequest, ListFilesResponse, PrepareFileUploadRequest, PrepareFileUploadResponse, PromoteArtifactRequest, ReadArtifactRequest, ReadArtifactResponse, ReadFileRequest, ReadFileResponse, UpdateFileRequest } from "./files_pb.js";
+import { ArtifactResponse, ArtifactUriResponse, CompleteFileUploadRequest, CreateFileRequest, DeleteFileRequest, DeleteFileResponse, FileResponse, GetArtifactMetadataRequest, GetFileMetadataRequest, GrantArtifactRequest, ListArtifactsRequest, ListArtifactsResponse, ListFilesRequest, ListFilesResponse, PrepareFileUploadRequest, PrepareFileUploadResponse, PromoteArtifactRequest, ReadArtifactRequest, ReadArtifactResponse, ReadFileRequest, ReadFileResponse, UpdateFileRequest } from "./files_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -111,8 +111,8 @@ export const ArtifactService = {
   methods: {
     /**
      * Artifact creation is handled by the runtime/tooling for an active session.
-     * This service only exposes handle-based artifact reads, metadata, listing,
-     * and grant operations.
+     * This service only exposes URI-based artifact reads, metadata, listing,
+     * and access grant operations.
      *
      * @generated from rpc talon.v1.ArtifactService.ReadArtifact
      */
@@ -146,7 +146,7 @@ export const ArtifactService = {
     grantArtifact: {
       name: "GrantArtifact",
       I: GrantArtifactRequest,
-      O: ArtifactHandleResponse,
+      O: ArtifactUriResponse,
       kind: MethodKind.Unary,
     },
   }

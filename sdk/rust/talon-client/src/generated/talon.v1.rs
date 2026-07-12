@@ -2223,7 +2223,7 @@ pub struct FileRef {
     #[prost(string, tag = "3")]
     pub path: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
-    pub handle: ::prost::alloc::string::String,
+    pub uri: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateFileRequest {
@@ -2353,7 +2353,7 @@ pub struct DeleteFileResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PromoteArtifactRequest {
     #[prost(string, tag = "1")]
-    pub artifact_handle: ::prost::alloc::string::String,
+    pub artifact_uri: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub target_path: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
@@ -2370,12 +2370,12 @@ pub struct FileResponse {
     #[prost(message, optional, tag = "1")]
     pub file: ::core::option::Option<super::resources::File>,
     #[prost(string, tag = "2")]
-    pub file_handle: ::prost::alloc::string::String,
+    pub file_uri: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadArtifactRequest {
     #[prost(string, tag = "1")]
-    pub artifact_handle: ::prost::alloc::string::String,
+    pub artifact_uri: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadArtifactResponse {
@@ -2391,7 +2391,7 @@ pub struct ReadArtifactResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetArtifactMetadataRequest {
     #[prost(string, tag = "1")]
-    pub artifact_handle: ::prost::alloc::string::String,
+    pub artifact_uri: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListArtifactsRequest {
@@ -2418,7 +2418,7 @@ pub struct ListArtifactsResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GrantArtifactRequest {
     #[prost(string, tag = "1")]
-    pub artifact_handle: ::prost::alloc::string::String,
+    pub artifact_uri: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub target_agent: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
@@ -2433,12 +2433,12 @@ pub struct ArtifactResponse {
     #[prost(message, optional, tag = "1")]
     pub artifact: ::core::option::Option<super::data::Artifact>,
     #[prost(string, tag = "2")]
-    pub artifact_handle: ::prost::alloc::string::String,
+    pub artifact_uri: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ArtifactHandleResponse {
+pub struct ArtifactUriResponse {
     #[prost(string, tag = "1")]
-    pub artifact_handle: ::prost::alloc::string::String,
+    pub artifact_uri: ::prost::alloc::string::String,
 }
 /// Generated client implementations.
 pub mod file_service_client {
@@ -2831,8 +2831,8 @@ pub mod artifact_service_client {
             self
         }
         /// Artifact creation is handled by the runtime/tooling for an active session.
-        /// This service only exposes handle-based artifact reads, metadata, listing,
-        /// and grant operations.
+        /// This service only exposes URI-based artifact reads, metadata, listing,
+        /// and access grant operations.
         pub async fn read_artifact(
             &mut self,
             request: impl tonic::IntoRequest<super::ReadArtifactRequest>,
@@ -2911,7 +2911,7 @@ pub mod artifact_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::GrantArtifactRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::ArtifactHandleResponse>,
+            tonic::Response<super::ArtifactUriResponse>,
             tonic::Status,
         > {
             self.inner

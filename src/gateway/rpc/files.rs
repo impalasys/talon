@@ -16,14 +16,12 @@ use std::fmt;
 use std::time::Duration;
 use tonic::{metadata::MetadataMap, Request, Response, Status};
 
-const HANDLE_KIND_ARTIFACT: &str = "ARTIFACT";
-const HANDLE_KIND_FILE: &str = "FILE";
 const OP_READ: &str = "read";
 const OP_METADATA: &str = "metadata";
 const OP_WRITE: &str = "write";
 const OP_DELETE: &str = "delete";
 const OP_PROMOTE: &str = "promote";
-const MAX_HANDLE_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
+const MAX_ACCESS_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
 const MAX_UNARY_FILE_CONTENT_BYTES: usize = 3 * 1024 * 1024;
 const FILE_LIST_SCAN_PAGE_SIZE: usize = 200;
 const MAX_FILE_LIST_SCAN_PAGES: usize = 25;
@@ -39,84 +37,31 @@ struct HandleCaller {
 }
 
 #[derive(Debug, Clone)]
-enum HandleLocator {
-    File {
-        namespace: String,
-        file_name: String,
-    },
-    Artifact {
-        namespace: String,
-        agent: String,
-        session_id: String,
-        artifact_id: String,
-    },
+struct FileUri {
+    namespace: String,
+    file_name: String,
 }
 
-impl HandleLocator {
-    fn grant_key(&self, handle_id: &str) -> keys::ResourceKey {
-        match self {
-            Self::File {
-                namespace,
-                file_name,
-            } => keys::file_handle_grant(namespace, file_name, handle_id),
-            Self::Artifact {
-                namespace,
-                agent,
-                session_id,
-                artifact_id,
-            } => keys::artifact_handle_grant(namespace, agent, session_id, artifact_id, handle_id),
-        }
-    }
-
-    fn matches_grant(&self, grant: &data_proto::HandleGrant) -> bool {
-        match self {
-            Self::File {
-                namespace,
-                file_name,
-            } => {
-                grant.kind == HANDLE_KIND_FILE
-                    && grant.namespace == *namespace
-                    && grant.target_id == *file_name
-            }
-            Self::Artifact {
-                namespace,
-                agent,
-                session_id,
-                artifact_id,
-            } => {
-                grant.kind == HANDLE_KIND_ARTIFACT
-                    && grant.namespace == *namespace
-                    && grant.agent == *agent
-                    && grant.session_id == *session_id
-                    && grant.target_id == *artifact_id
-            }
-        }
-    }
-
+impl FileUri {
     fn encode(&self) -> String {
-        let raw = match self {
-            Self::File {
-                namespace,
-                file_name,
-            } => format!(
-                "file/{}/{}",
-                urlencoding::encode(namespace),
-                urlencoding::encode(file_name)
-            ),
-            Self::Artifact {
-                namespace,
-                agent,
-                session_id,
-                artifact_id,
-            } => format!(
-                "artifact/{}/{}/{}/{}",
-                urlencoding::encode(namespace),
-                urlencoding::encode(agent),
-                urlencoding::encode(session_id),
-                urlencoding::encode(artifact_id)
-            ),
-        };
-        urlencoding::encode(&raw).into_owned()
+        format!("file://{}/{}", self.namespace, self.file_name)
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ArtifactUri {
+    namespace: String,
+    agent: String,
+    session_id: String,
+    artifact_id: String,
+}
+
+impl ArtifactUri {
+    fn encode(&self) -> String {
+        format!(
+            "artifact://{}/{}/{}/{}",
+            self.namespace, self.agent, self.session_id, self.artifact_id
+        )
     }
 }
 
@@ -348,20 +293,8 @@ impl GrpcGatewayHandler {
             }
         }
         let file = file_from_resource(resource)?;
-        let handle = self
-            .mint_handle(
-                namespace,
-                HANDLE_KIND_FILE,
-                file.name(),
-                "",
-                "",
-                &[OP_READ, OP_METADATA, OP_WRITE, OP_DELETE],
-                "",
-                "",
-                default_handle_expiry(),
-            )
-            .await?;
-        Ok((file, handle))
+        let uri = file_uri(&file)?;
+        Ok((file, uri))
     }
 
     async fn write_file_cas_object(
@@ -498,21 +431,6 @@ impl GrpcGatewayHandler {
             )
             .await?;
         file_from_resource(resource)
-    }
-
-    async fn mint_file_handle(&self, file: &resources_proto::File) -> Result<String> {
-        self.mint_handle(
-            file.namespace(),
-            HANDLE_KIND_FILE,
-            file.name(),
-            "",
-            "",
-            &[OP_READ, OP_METADATA, OP_WRITE, OP_DELETE],
-            "",
-            "",
-            default_handle_expiry(),
-        )
-        .await
     }
 
     async fn prepare_file_upload_impl(
@@ -704,8 +622,8 @@ impl GrpcGatewayHandler {
                 "signed upload object cannot be read back; latest File view was not materialized"
             );
         }
-        let handle = self.mint_file_handle(&file).await?;
-        Ok((file, handle))
+        let uri = file_uri(&file)?;
+        Ok((file, uri))
     }
 
     async fn find_file_by_path(
@@ -727,20 +645,13 @@ impl GrpcGatewayHandler {
     async fn get_file_by_ref(
         &self,
         reference: Option<proto::FileRef>,
-        operation: &str,
-        caller: HandleCaller,
+        _operation: &str,
+        _caller: HandleCaller,
     ) -> Result<resources_proto::File> {
         let reference = reference.ok_or_else(|| invalid_argument("file reference is required"))?;
-        if !reference.handle.trim().is_empty() {
-            let grant = self
-                .resolve_handle(&reference.handle, operation, caller)
-                .await?;
-            if grant.kind != HANDLE_KIND_FILE {
-                return Err(invalid_argument("handle is not a file handle"));
-            }
-            return self
-                .get_file_by_name(&grant.namespace, &grant.target_id)
-                .await;
+        if !reference.uri.trim().is_empty() {
+            let uri = parse_file_uri(&reference.uri)?;
+            return self.get_file_by_name(&uri.namespace, &uri.file_name).await;
         }
         if !reference.name.trim().is_empty() {
             return self
@@ -755,7 +666,7 @@ impl GrpcGatewayHandler {
                 .ok_or_else(|| not_found(format!("File '{}' not found", path)));
         }
         Err(invalid_argument(
-            "file reference must include handle, name, or path",
+            "file reference must include uri, name, or path",
         ))
     }
 
@@ -768,67 +679,29 @@ impl GrpcGatewayHandler {
         file_from_resource(resource)
     }
 
-    async fn mint_handle(
+    async fn resolve_artifact_uri(
         &self,
-        namespace: &str,
-        kind: &str,
-        target_id: &str,
-        agent: &str,
-        session_id: &str,
-        operations: &[&str],
-        audience_agent: &str,
-        audience_session_id: &str,
-        expires_at: i64,
-    ) -> Result<String> {
-        let id = crate::control::uuid::unique_name("hnd");
-        let locator = handle_locator_for_grant(namespace, kind, target_id, agent, session_id)?;
-        let grant = data_proto::HandleGrant {
-            id: id.clone(),
-            namespace: namespace.to_string(),
-            kind: kind.to_string(),
-            target_id: target_id.to_string(),
-            agent: agent.to_string(),
-            session_id: session_id.to_string(),
-            operations: operations.iter().map(|op| op.to_string()).collect(),
-            audience_agent: audience_agent.to_string(),
-            audience_session_id: audience_session_id.to_string(),
-            expires_at,
-            created_at: chrono::Utc::now().timestamp_micros(),
-        };
-        self.gateway
-            .kv
-            .set_msg(&locator.grant_key(&id), &grant)
-            .await?;
-        Ok(format!("talon-handle:{}/{}", locator.encode(), id))
-    }
-
-    async fn resolve_handle(
-        &self,
-        handle: &str,
+        artifact_uri: &str,
         operation: &str,
         caller: HandleCaller,
-    ) -> Result<data_proto::HandleGrant> {
-        let (locator, id) = handle_locator_and_id(handle)?;
-        let grant = self
-            .gateway
+    ) -> Result<(ArtifactUri, data_proto::Artifact)> {
+        let uri = parse_artifact_uri(artifact_uri)?;
+        let artifact = self.load_artifact_by_uri(&uri).await?;
+        authorize_artifact_access(self, &uri, operation, caller, artifact_uri).await?;
+        Ok((uri, artifact))
+    }
+
+    async fn load_artifact_by_uri(&self, uri: &ArtifactUri) -> Result<data_proto::Artifact> {
+        self.gateway
             .kv
-            .get_msg::<data_proto::HandleGrant>(&locator.grant_key(&id))
+            .get_msg::<data_proto::Artifact>(&keys::artifact(
+                &uri.namespace,
+                &uri.agent,
+                &uri.session_id,
+                &uri.artifact_id,
+            ))
             .await?
-            .ok_or_else(|| not_found(format!("handle '{}' not found", handle)))?;
-        if !locator.matches_grant(&grant) {
-            return Err(permission_denied("handle grant does not match locator"));
-        }
-        if grant.expires_at > 0 && grant.expires_at < chrono::Utc::now().timestamp_micros() {
-            return Err(permission_denied(format!("handle '{}' is expired", handle)));
-        }
-        if !grant.operations.iter().any(|op| op == operation) {
-            return Err(permission_denied(format!(
-                "handle '{}' does not allow '{}'",
-                handle, operation
-            )));
-        }
-        validate_handle_audience(&grant, caller)?;
-        Ok(grant)
+            .ok_or_else(|| not_found(format!("Artifact '{}' not found", uri.artifact_id)))
     }
 
     async fn read_object_content_or_signed_url(
@@ -867,7 +740,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
         require_auth!(self, req, &namespace);
         let req = req.into_inner();
         ensure_unary_content_len(req.content.len())?;
-        let (file, file_handle) = self
+        let (file, file_uri) = self
             .create_file_impl(
                 &req.namespace,
                 &req.path,
@@ -881,7 +754,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
             .map_err(to_status)?;
         Ok(Response::new(proto::FileResponse {
             file: Some(file),
-            file_handle,
+            file_uri,
         }))
     }
 
@@ -920,13 +793,13 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
             )?;
         }
         let req = req.into_inner();
-        let (file, file_handle) = self
+        let (file, file_uri) = self
             .complete_file_upload_impl(&req.upload_token)
             .await
             .map_err(to_status)?;
         Ok(Response::new(proto::FileResponse {
             file: Some(file),
-            file_handle,
+            file_uri,
         }))
     }
 
@@ -976,7 +849,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
             .as_ref()
             .ok_or_else(|| Status::failed_precondition("File spec missing"))?;
         let media_type = non_empty(&req.media_type).unwrap_or(&spec.media_type);
-        let (updated, handle) = self
+        let (updated, uri) = self
             .create_file_impl(
                 &namespace,
                 &spec.path,
@@ -993,7 +866,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
         }
         Ok(Response::new(proto::FileResponse {
             file: Some(updated),
-            file_handle: handle,
+            file_uri: uri,
         }))
     }
 
@@ -1009,7 +882,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
             .map_err(to_status)?;
         Ok(Response::new(proto::FileResponse {
             file: Some(file),
-            file_handle: String::new(),
+            file_uri: String::new(),
         }))
     }
 
@@ -1134,20 +1007,17 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
         &self,
         req: Request<proto::PromoteArtifactRequest>,
     ) -> std::result::Result<Response<proto::FileResponse>, Status> {
-        let grant = self
-            .resolve_handle(
-                &req.get_ref().artifact_handle,
+        let uri = parse_artifact_uri(&req.get_ref().artifact_uri).map_err(to_status)?;
+        require_auth!(self, req, &uri.namespace);
+        let (_, artifact) = self
+            .resolve_artifact_uri(
+                &req.get_ref().artifact_uri,
                 OP_PROMOTE,
                 handle_caller_from_request(self, &req),
             )
             .await
             .map_err(to_status)?;
-        require_auth!(self, req, &grant.namespace);
-        if grant.kind != HANDLE_KIND_ARTIFACT {
-            return Err(Status::invalid_argument("handle is not an artifact handle"));
-        }
         let req = req.into_inner();
-        let artifact = load_artifact(self, &grant).await.map_err(to_status)?;
         let object_ref = artifact
             .object_ref
             .as_ref()
@@ -1176,9 +1046,9 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
         } else {
             req.retention
         };
-        let (file, file_handle) = self
+        let (file, file_uri) = self
             .create_file_impl(
-                &grant.namespace,
+                &uri.namespace,
                 &req.target_path,
                 media_type,
                 purpose,
@@ -1190,7 +1060,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
             .map_err(to_status)?;
         Ok(Response::new(proto::FileResponse {
             file: Some(file),
-            file_handle,
+            file_uri,
         }))
     }
 }
@@ -1201,18 +1071,14 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
         &self,
         req: Request<proto::ReadArtifactRequest>,
     ) -> std::result::Result<Response<proto::ReadArtifactResponse>, Status> {
-        let grant = self
-            .resolve_handle(
-                &req.get_ref().artifact_handle,
+        let (_, artifact) = self
+            .resolve_artifact_uri(
+                &req.get_ref().artifact_uri,
                 OP_READ,
                 handle_caller_from_request(self, &req),
             )
             .await
             .map_err(to_status)?;
-        if grant.kind != HANDLE_KIND_ARTIFACT {
-            return Err(Status::invalid_argument("handle is not an artifact handle"));
-        }
-        let artifact = load_artifact(self, &grant).await.map_err(to_status)?;
         let object_ref = artifact
             .object_ref
             .as_ref()
@@ -1232,21 +1098,17 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
         &self,
         req: Request<proto::GetArtifactMetadataRequest>,
     ) -> std::result::Result<Response<proto::ArtifactResponse>, Status> {
-        let grant = self
-            .resolve_handle(
-                &req.get_ref().artifact_handle,
+        let (_, artifact) = self
+            .resolve_artifact_uri(
+                &req.get_ref().artifact_uri,
                 OP_METADATA,
                 handle_caller_from_request(self, &req),
             )
             .await
             .map_err(to_status)?;
-        if grant.kind != HANDLE_KIND_ARTIFACT {
-            return Err(Status::invalid_argument("handle is not an artifact handle"));
-        }
-        let artifact = load_artifact(self, &grant).await.map_err(to_status)?;
         Ok(Response::new(proto::ArtifactResponse {
             artifact: Some(artifact),
-            artifact_handle: String::new(),
+            artifact_uri: String::new(),
         }))
     }
 
@@ -1307,16 +1169,13 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
     async fn grant_artifact(
         &self,
         req: Request<proto::GrantArtifactRequest>,
-    ) -> std::result::Result<Response<proto::ArtifactHandleResponse>, Status> {
+    ) -> std::result::Result<Response<proto::ArtifactUriResponse>, Status> {
         let caller = handle_caller_from_request(self, &req);
         let req = req.into_inner();
-        let grant = self
-            .resolve_handle(&req.artifact_handle, OP_READ, caller)
+        let (uri, _) = self
+            .resolve_artifact_uri(&req.artifact_uri, OP_READ, caller.clone())
             .await
             .map_err(to_status)?;
-        if grant.kind != HANDLE_KIND_ARTIFACT {
-            return Err(Status::invalid_argument("handle is not an artifact handle"));
-        }
         let operations = if req.operations.is_empty() {
             vec![OP_READ, OP_METADATA]
         } else {
@@ -1326,38 +1185,40 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
                 .collect::<Vec<_>>()
         };
         validate_artifact_operations(&operations).map_err(to_status)?;
-        for operation in &operations {
-            if !grant.operations.iter().any(|allowed| allowed == operation) {
-                return Err(Status::permission_denied(format!(
-                    "source handle does not allow '{}'",
-                    operation
-                )));
-            }
-        }
         let ttl = if req.ttl_seconds <= 0 {
-            default_handle_expiry()
+            default_access_expiry()
         } else {
-            let ttl_micros = req.ttl_seconds.min(MAX_HANDLE_TTL_SECONDS) * 1_000_000;
+            let ttl_micros = req.ttl_seconds.min(MAX_ACCESS_TTL_SECONDS) * 1_000_000;
             chrono::Utc::now()
                 .timestamp_micros()
                 .saturating_add(ttl_micros)
         };
-        let handle = self
-            .mint_handle(
-                &grant.namespace,
-                HANDLE_KIND_ARTIFACT,
-                &grant.target_id,
-                &grant.agent,
-                &grant.session_id,
-                &operations,
-                &req.target_agent,
-                &req.target_session_id,
-                ttl,
+        let access = data_proto::ArtifactAccess {
+            target_agent: req.target_agent.clone(),
+            target_session_id: req.target_session_id.clone(),
+            operations: operations.iter().map(|op| (*op).to_string()).collect(),
+            expires_at: ttl,
+            granted_by_agent: caller.agent,
+            granted_by_session_id: caller.session_id,
+            created_at: chrono::Utc::now().timestamp_micros(),
+        };
+        self.gateway
+            .kv
+            .set_msg(
+                &keys::artifact_access(
+                    &uri.namespace,
+                    &uri.agent,
+                    &uri.session_id,
+                    &uri.artifact_id,
+                    &req.target_agent,
+                    &req.target_session_id,
+                ),
+                &access,
             )
             .await
             .map_err(to_status)?;
-        Ok(Response::new(proto::ArtifactHandleResponse {
-            artifact_handle: handle,
+        Ok(Response::new(proto::ArtifactUriResponse {
+            artifact_uri: uri.encode(),
         }))
     }
 }
@@ -1373,12 +1234,14 @@ where
     let Some(reference) = req.get_ref().file_ref() else {
         return Err(Status::invalid_argument("file reference is required"));
     };
-    if !reference.handle.trim().is_empty() {
-        return Ok(());
-    }
-    if reference.namespace.trim().is_empty() {
+    let namespace = if !reference.uri.trim().is_empty() {
+        parse_file_uri(&reference.uri).map_err(to_status)?.namespace
+    } else {
+        reference.namespace.clone()
+    };
+    if namespace.trim().is_empty() {
         return Err(Status::invalid_argument(
-            "namespace is required without a file handle",
+            "namespace is required without a file uri",
         ));
     }
     if let Some(auth_config) = &handler.gateway.auth_config {
@@ -1390,7 +1253,7 @@ where
             req.metadata(),
             auth_config,
             auth_operation,
-            &reference.namespace,
+            &namespace,
             None,
             None,
         )?;
@@ -1405,12 +1268,14 @@ fn require_prepare_file_ref_auth(
     let Some(reference) = req.get_ref().file_ref() else {
         return Ok(());
     };
-    if !reference.handle.trim().is_empty() {
-        return Ok(());
-    }
-    if reference.namespace.trim().is_empty() {
+    let namespace = if !reference.uri.trim().is_empty() {
+        parse_file_uri(&reference.uri).map_err(to_status)?.namespace
+    } else {
+        reference.namespace.clone()
+    };
+    if namespace.trim().is_empty() {
         return Err(Status::invalid_argument(
-            "namespace is required without a file handle",
+            "namespace is required without a file uri",
         ));
     }
     if let Some(auth_config) = &handler.gateway.auth_config {
@@ -1418,7 +1283,7 @@ fn require_prepare_file_ref_auth(
             req.metadata(),
             auth_config,
             crate::gateway::auth::AuthzOperation::ReadWrite,
-            &reference.namespace,
+            &namespace,
             None,
             None,
         )?;
@@ -1428,7 +1293,7 @@ fn require_prepare_file_ref_auth(
 
 fn has_file_ref(reference: Option<&proto::FileRef>) -> bool {
     reference.is_some_and(|reference| {
-        !reference.handle.trim().is_empty()
+        !reference.uri.trim().is_empty()
             || !reference.name.trim().is_empty()
             || !reference.path.trim().is_empty()
     })
@@ -1462,28 +1327,6 @@ fn metadata_ascii(metadata: &MetadataMap, key: &'static str) -> Option<String> {
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(str::to_string)
-}
-
-fn validate_handle_audience(grant: &data_proto::HandleGrant, caller: HandleCaller) -> Result<()> {
-    if !grant.audience_agent.trim().is_empty() && grant.audience_agent != caller.agent {
-        if caller.agent.trim().is_empty() {
-            return Err(permission_denied("handle requires caller agent identity"));
-        }
-        return Err(permission_denied(
-            "handle audience agent does not match caller",
-        ));
-    }
-    if !grant.audience_session_id.trim().is_empty()
-        && grant.audience_session_id != caller.session_id
-    {
-        if caller.session_id.trim().is_empty() {
-            return Err(permission_denied("handle requires caller session identity"));
-        }
-        return Err(permission_denied(
-            "handle audience session does not match caller",
-        ));
-    }
-    Ok(())
 }
 
 trait FileRefRequest {
@@ -1572,21 +1415,45 @@ fn validate_artifact_operations(operations: &[&str]) -> Result<()> {
     Ok(())
 }
 
-async fn load_artifact(
+async fn authorize_artifact_access(
     handler: &GrpcGatewayHandler,
-    grant: &data_proto::HandleGrant,
-) -> Result<data_proto::Artifact> {
-    handler
+    uri: &ArtifactUri,
+    operation: &str,
+    caller: HandleCaller,
+    artifact_uri: &str,
+) -> Result<()> {
+    if caller.agent == uri.agent && caller.session_id == uri.session_id {
+        return Ok(());
+    }
+    if caller.agent.trim().is_empty() || caller.session_id.trim().is_empty() {
+        return Err(permission_denied(
+            "artifact uri requires caller agent and session identity",
+        ));
+    }
+    let access = handler
         .gateway
         .kv
-        .get_msg::<data_proto::Artifact>(&keys::artifact(
-            &grant.namespace,
-            &grant.agent,
-            &grant.session_id,
-            &grant.target_id,
+        .get_msg::<data_proto::ArtifactAccess>(&keys::artifact_access(
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
+            &caller.agent,
+            &caller.session_id,
         ))
         .await?
-        .ok_or_else(|| not_found(format!("Artifact '{}' not found", grant.target_id)))
+        .ok_or_else(|| permission_denied(format!("artifact access denied for '{artifact_uri}'")))?;
+    if access.expires_at > 0 && access.expires_at < chrono::Utc::now().timestamp_micros() {
+        return Err(permission_denied(format!(
+            "artifact access for '{artifact_uri}' is expired"
+        )));
+    }
+    if !access.operations.iter().any(|op| op == operation) {
+        return Err(permission_denied(format!(
+            "artifact access for '{artifact_uri}' does not allow '{operation}'"
+        )));
+    }
+    Ok(())
 }
 
 fn file_from_resource(resource: resources_proto::Resource) -> Result<resources_proto::File> {
@@ -1644,6 +1511,66 @@ fn file_name(resource: &resources_proto::Resource) -> Result<&str> {
         .map(|meta| meta.name.as_str())
         .filter(|name| !name.is_empty())
         .ok_or_else(|| anyhow!("File resource name missing"))
+}
+
+fn file_uri(file: &resources_proto::File) -> Result<String> {
+    let namespace = file.namespace();
+    let name = file.name();
+    if namespace.trim().is_empty() || name.trim().is_empty() {
+        return Err(anyhow!("File namespace/name missing"));
+    }
+    Ok(FileUri {
+        namespace: namespace.to_string(),
+        file_name: name.to_string(),
+    }
+    .encode())
+}
+
+fn parse_file_uri(uri: &str) -> Result<FileUri> {
+    let rest = uri
+        .trim()
+        .strip_prefix("file://")
+        .ok_or_else(|| invalid_argument("file uri must start with 'file://'"))?;
+    let parts = rest.split('/').collect::<Vec<_>>();
+    match parts.as_slice() {
+        [namespace, file_name] => Ok(FileUri {
+            namespace: validate_uri_segment(namespace, "file namespace")?,
+            file_name: validate_uri_segment(file_name, "file name")?,
+        }),
+        _ => Err(invalid_argument(
+            "file uri must be file://<namespace>/<file>",
+        )),
+    }
+}
+
+fn parse_artifact_uri(uri: &str) -> Result<ArtifactUri> {
+    let rest = uri
+        .trim()
+        .strip_prefix("artifact://")
+        .ok_or_else(|| invalid_argument("artifact uri must start with 'artifact://'"))?;
+    let parts = rest.split('/').collect::<Vec<_>>();
+    match parts.as_slice() {
+        [namespace, agent, session_id, artifact_id] => Ok(ArtifactUri {
+            namespace: validate_uri_segment(namespace, "artifact namespace")?,
+            agent: validate_uri_segment(agent, "artifact agent")?,
+            session_id: validate_uri_segment(session_id, "artifact session")?,
+            artifact_id: validate_uri_segment(artifact_id, "artifact id")?,
+        }),
+        _ => Err(invalid_argument(
+            "artifact uri must be artifact://<namespace>/<agent>/<session>/<artifact>",
+        )),
+    }
+}
+
+fn validate_uri_segment(segment: &str, name: &str) -> Result<String> {
+    if segment.trim().is_empty()
+        || segment.contains('/')
+        || segment.contains('\0')
+        || segment.chars().any(char::is_control)
+    {
+        return Err(invalid_argument(format!("{name} segment is invalid")));
+    }
+    Ok(segment.to_string())
 }
 
 fn validate_file_spec(purpose: i32, index_policy: i32, retention: i32) -> Result<()> {
@@ -1863,82 +1790,7 @@ fn encoded_ns(namespace: &str) -> String {
     urlencoding::encode(namespace).into_owned()
 }
 
-fn handle_locator_for_grant(
-    namespace: &str,
-    kind: &str,
-    target_id: &str,
-    agent: &str,
-    session_id: &str,
-) -> Result<HandleLocator> {
-    match kind {
-        HANDLE_KIND_FILE => Ok(HandleLocator::File {
-            namespace: namespace.to_string(),
-            file_name: target_id.to_string(),
-        }),
-        HANDLE_KIND_ARTIFACT => {
-            if agent.trim().is_empty() || session_id.trim().is_empty() {
-                return Err(invalid_argument(
-                    "artifact handles require source agent and session",
-                ));
-            }
-            Ok(HandleLocator::Artifact {
-                namespace: namespace.to_string(),
-                agent: agent.to_string(),
-                session_id: session_id.to_string(),
-                artifact_id: target_id.to_string(),
-            })
-        }
-        _ => Err(invalid_argument("unsupported handle kind")),
-    }
-}
-
-fn handle_locator_and_id(handle: &str) -> Result<(HandleLocator, String)> {
-    let handle = handle.trim();
-    let Some(rest) = handle.strip_prefix("talon-handle:") else {
-        return Err(invalid_argument("handle must start with 'talon-handle:'"));
-    };
-    let Some((locator, id)) = rest.rsplit_once('/') else {
-        return Err(invalid_argument(
-            "handle must be 'talon-handle:<encoded-locator>/<id>'",
-        ));
-    };
-    let locator = urlencoding::decode(locator)
-        .map(|value| value.into_owned())
-        .context("failed to decode handle locator")?;
-    if id.trim().is_empty() {
-        return Err(invalid_argument("handle id is required"));
-    }
-    Ok((parse_handle_locator(&locator)?, id.to_string()))
-}
-
-fn parse_handle_locator(locator: &str) -> Result<HandleLocator> {
-    let parts = locator.split('/').collect::<Vec<_>>();
-    match parts.as_slice() {
-        ["file", namespace, file_name] => Ok(HandleLocator::File {
-            namespace: decode_handle_locator_part(namespace)?,
-            file_name: decode_handle_locator_part(file_name)?,
-        }),
-        ["artifact", namespace, agent, session_id, artifact_id] => Ok(HandleLocator::Artifact {
-            namespace: decode_handle_locator_part(namespace)?,
-            agent: decode_handle_locator_part(agent)?,
-            session_id: decode_handle_locator_part(session_id)?,
-            artifact_id: decode_handle_locator_part(artifact_id)?,
-        }),
-        _ => Err(invalid_argument("handle locator is invalid")),
-    }
-}
-
-fn decode_handle_locator_part(part: &str) -> Result<String> {
-    let decoded = urlencoding::decode(part)
-        .map(|value| value.into_owned())
-        .context("failed to decode handle locator component")?;
-    if decoded.trim().is_empty() {
-        return Err(invalid_argument("handle locator component is empty"));
-    }
-    Ok(decoded)
-}
-
-fn default_handle_expiry() -> i64 {
+fn default_access_expiry() -> i64 {
     chrono::Utc::now().timestamp_micros() + 24 * 60 * 60 * 1_000_000
 }
 
@@ -2145,6 +1997,15 @@ mod tests {
         }
     }
 
+    fn artifact_request<T>(agent: &str, session_id: &str, inner: T) -> Request<T> {
+        let mut req = Request::new(inner);
+        req.metadata_mut()
+            .insert(HANDLE_CALLER_AGENT_HEADER, agent.parse().unwrap());
+        req.metadata_mut()
+            .insert(HANDLE_CALLER_SESSION_HEADER, session_id.parse().unwrap());
+        req
+    }
+
     #[test]
     fn normalize_logical_path_rejects_root() {
         assert!(normalize_logical_path("/").is_err());
@@ -2224,6 +2085,110 @@ mod tests {
             "https://objects.example/cas/Tenant%3Aacme/files/file-1/sha"
         );
         assert_eq!(expires_at, 1234);
+    }
+
+    #[tokio::test]
+    async fn artifact_service_uses_uri_identity_access_records() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let handler = handler_with_objects(objects.clone());
+        let namespace = "Tenant:acme:Workspace:main";
+        let artifact_id = "artifact-1";
+        let session_id = "session-1";
+        let object_ref = CasStore::new(objects)
+            .put_artifact(
+                namespace,
+                "writer",
+                session_id,
+                artifact_id,
+                "/outputs/final.md",
+                b"final draft",
+                "text/markdown",
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
+        handler
+            .gateway
+            .kv
+            .set_msg(
+                &keys::artifact(namespace, "writer", session_id, artifact_id),
+                &data_proto::Artifact {
+                    id: artifact_id.to_string(),
+                    session_id: session_id.to_string(),
+                    title: "Final draft".to_string(),
+                    path: "/outputs/final.md".to_string(),
+                    media_type: "text/markdown".to_string(),
+                    object_ref: Some(object_ref),
+                    created_by_agent: "writer".to_string(),
+                    created_at: chrono::Utc::now().timestamp_micros(),
+                    labels: HashMap::new(),
+                    metadata: HashMap::new(),
+                },
+            )
+            .await
+            .unwrap();
+        let artifact_uri = format!("artifact://{namespace}/writer/{session_id}/{artifact_id}");
+
+        let owner_read = proto::artifact_service_server::ArtifactService::read_artifact(
+            &handler,
+            artifact_request(
+                "writer",
+                session_id,
+                proto::ReadArtifactRequest {
+                    artifact_uri: artifact_uri.clone(),
+                },
+            ),
+        )
+        .await
+        .unwrap()
+        .into_inner();
+        assert_eq!(owner_read.content, b"final draft");
+
+        let denied = proto::artifact_service_server::ArtifactService::read_artifact(
+            &handler,
+            artifact_request(
+                "critic",
+                "session-2",
+                proto::ReadArtifactRequest {
+                    artifact_uri: artifact_uri.clone(),
+                },
+            ),
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(denied.code(), tonic::Code::PermissionDenied);
+
+        proto::artifact_service_server::ArtifactService::grant_artifact(
+            &handler,
+            artifact_request(
+                "writer",
+                session_id,
+                proto::GrantArtifactRequest {
+                    artifact_uri: artifact_uri.clone(),
+                    target_agent: "critic".to_string(),
+                    target_session_id: "session-2".to_string(),
+                    operations: vec![OP_READ.to_string()],
+                    ttl_seconds: 60,
+                },
+            ),
+        )
+        .await
+        .unwrap();
+
+        let granted_read = proto::artifact_service_server::ArtifactService::read_artifact(
+            &handler,
+            artifact_request(
+                "critic",
+                "session-2",
+                proto::ReadArtifactRequest {
+                    artifact_uri: artifact_uri.clone(),
+                },
+            ),
+        )
+        .await
+        .unwrap()
+        .into_inner();
+        assert_eq!(granted_read.content, b"final draft");
     }
 
     #[tokio::test]
@@ -2347,7 +2312,7 @@ mod tests {
                         namespace: original.namespace().to_string(),
                         name: original.name().to_string(),
                         path: String::new(),
-                        handle: String::new(),
+                        uri: String::new(),
                     }),
                     expected_size_bytes: new_content.len() as u64,
                     expected_sha256: new_sha.clone(),
@@ -2445,32 +2410,6 @@ mod tests {
                 .unwrap_err(),
         );
         assert_eq!(status.code(), tonic::Code::PermissionDenied);
-    }
-
-    #[test]
-    fn handle_audience_requires_matching_caller_identity() {
-        let grant = data_proto::HandleGrant {
-            audience_agent: "writer".to_string(),
-            audience_session_id: "session-1".to_string(),
-            ..Default::default()
-        };
-        assert!(validate_handle_audience(
-            &grant,
-            HandleCaller {
-                agent: "writer".to_string(),
-                session_id: "session-1".to_string(),
-            }
-        )
-        .is_ok());
-        assert!(validate_handle_audience(
-            &grant,
-            HandleCaller {
-                agent: "critic".to_string(),
-                session_id: "session-1".to_string(),
-            }
-        )
-        .is_err());
-        assert!(validate_handle_audience(&grant, HandleCaller::default()).is_err());
     }
 
     #[test]
