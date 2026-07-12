@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { ArrowUpRight, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../utils/cn';
@@ -66,18 +66,14 @@ export function ConnectionConfigScreen({
   onGoogleSignIn,
   onConnect,
 }: ConnectionConfigScreenProps) {
-  const formRef = useRef<HTMLFormElement>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const submitConnection = () => {
-    const form = formRef.current;
-    if (!form) return;
-    const formData = new FormData(form);
     onConnect({
-      gatewayUrl: String(formData.get('gatewayUrl') || ''),
-      apiKey: String(formData.get('apiKey') || ''),
-      jwtToken: String(formData.get('jwtToken') || ''),
-      namespace: String(formData.get('namespace') || ''),
+      gatewayUrl,
+      apiKey,
+      jwtToken,
+      namespace,
     });
   };
 
@@ -85,10 +81,8 @@ export function ConnectionConfigScreen({
     <main className="grid min-h-screen min-w-0 grid-cols-1 overflow-hidden bg-background text-foreground lg:grid-cols-2">
       <section className="flex min-h-screen items-center px-6 py-10 sm:px-10 lg:px-16">
         <motion.form
-          ref={formRef}
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
-          noValidate
           onSubmit={(event) => {
             event.preventDefault();
             submitConnection();
@@ -109,7 +103,7 @@ export function ConnectionConfigScreen({
               type="text"
               inputMode="url"
               required
-              defaultValue={gatewayUrl}
+              value={gatewayUrl}
               onChange={(event) => onGatewayUrlChange(event.target.value)}
               className="h-12 w-full rounded-lg border border-border/80 bg-background px-4 font-mono text-[15px] text-foreground shadow-sm transition-shadow focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
               placeholder="https://talon.impala.systems"
@@ -174,8 +168,7 @@ export function ConnectionConfigScreen({
           </div>
           {connectionError ? <p className="text-[12px] leading-5 text-red-400">{connectionError}</p> : null}
           <button
-            type="button"
-            onClick={submitConnection}
+            type="submit"
             disabled={isConnecting}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#030716] text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#111827] disabled:opacity-50"
           >

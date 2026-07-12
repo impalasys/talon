@@ -30,7 +30,7 @@ function compareByName(left: ExplorerNode, right: ExplorerNode) {
 }
 
 function parseSessionTimestamp(id: string): number | null {
-  if (id && id.length === 36 && id.charAt(8) === '-') {
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
     const hex = id.substring(0, 13).replace('-', '');
     const time = parseInt(hex, 16);
     return Number.isNaN(time) ? null : time;
@@ -79,13 +79,17 @@ function ensureNamespaceNode(root: ExplorerNode, ns: string, labels?: Record<str
         children: [],
       };
       current.children.push(child);
-      current.children.sort(compareByName);
     } else if (index === parts.length - 1 && labels) {
       child.badge = namespaceLabel(labels);
     }
     current = child;
   }
   return current;
+}
+
+function sortNamespaceTree(node: ExplorerNode) {
+  node.children.sort(compareByName);
+  node.children.forEach(sortNamespaceTree);
 }
 
 export function buildNamespaceTree({
@@ -124,6 +128,8 @@ export function buildNamespaceTree({
   for (const ns of namespacesToEnsure) {
     ensureNamespaceNode(root, ns);
   }
+
+  sortNamespaceTree(root);
 
   return root;
 }

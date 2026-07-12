@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { buildNamespaceContents, buildNamespaceTree } from './explorerModel';
+import { buildNamespaceContents, buildNamespaceTree, parseSessionDate } from './explorerModel';
 
 function resource(kind: string, ns: string, name: string, caseName: string, value: any = {}) {
   return {
@@ -62,5 +62,9 @@ describe('explorer model', () => {
     expect(groups[0].nodes[0].selection).toMatchObject({ type: 'agent', ns: 'Tenant:conic', agent: 'writer' });
     expect(groups[0].nodes[0].children[0].selection.type).toBe('session');
     expect(groups.flatMap((group) => group.nodes).some((node) => node.name === 'other-agent')).toBe(false);
+  });
+
+  it('falls back to the ID prefix for non-v7 UUID session IDs', () => {
+    expect(parseSessionDate('550e8400-e29b-41d4-a716-446655440000')).toBe('550e8400');
   });
 });

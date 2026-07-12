@@ -232,6 +232,6 @@ export function useExplorerQueries({
     channelSubscriptionTargets,
     subscriptionQueries,
     channelSubscriptionsByKey,
-    isInitialLoading: namespaceQueries.some((query) => query.isLoading),
+    isLoading: namespaceQueries.some((query) => query.isLoading),
   };
 }

@@ -816,7 +816,7 @@ export function Explorer({
           ) : (
             <div className="py-2 text-[11px] text-muted-foreground">No namespaces discovered.</div>
           )}
-          {queries.isInitialLoading ? (
+          {queries.isLoading ? (
             <div className="py-1 text-[11px] text-muted-foreground">Loading namespaces...</div>
           ) : null}
         </div>

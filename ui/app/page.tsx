@@ -1153,9 +1153,9 @@ function DebuggerPageContent() {
                 apiKey: submittedApiKey,
               });
             } catch (error) {
-              if (!submittedNamespace) throw error;
+              if (!submittedNamespace || !error) throw error;
               const candidate = error as { message?: string; rawMessage?: string };
-              const message = `${candidate.rawMessage || candidate.message || ''}`.toLowerCase();
+              const message = `${candidate?.rawMessage || candidate?.message || ''}`.toLowerCase();
               if (!message.includes('grant is required')) throw error;
               try {
                 return await getGatewayClient().auth.exchangeApiKey({

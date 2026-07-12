@@ -224,6 +224,7 @@ export function WorkspaceCommandPalette({
   }, [open, isConnected, query, resourceKind, selectedNamespace?.ns]);
 
   useEffect(() => {
+    if (triggerVariant === 'menu-item') return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
@@ -234,7 +235,7 @@ export function WorkspaceCommandPalette({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isConnected]);
+  }, [isConnected, triggerVariant]);
 
   return (
     <>
