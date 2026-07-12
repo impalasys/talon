@@ -287,7 +287,7 @@ type ChannelSubscriptionDocument = {
 };
 
 function formatMicros(value: unknown) {
-  const normalized = typeof value === 'string' ? Number(value) : value;
+  const normalized = typeof value === 'bigint' || typeof value === 'string' ? Number(value) : value;
   if (typeof normalized !== 'number' || !Number.isFinite(normalized) || normalized <= 0) {
     return '—';
   }
