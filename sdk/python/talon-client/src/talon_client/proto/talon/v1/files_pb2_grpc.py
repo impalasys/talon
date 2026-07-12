@@ -39,6 +39,16 @@ class FileServiceStub(object):
                 request_serializer=proto_dot_talon_dot_v1_dot_files__pb2.CreateFileRequest.SerializeToString,
                 response_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.FileResponse.FromString,
                 _registered_method=True)
+        self.PrepareFileUpload = channel.unary_unary(
+                '/talon.v1.FileService/PrepareFileUpload',
+                request_serializer=proto_dot_talon_dot_v1_dot_files__pb2.PrepareFileUploadRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.PrepareFileUploadResponse.FromString,
+                _registered_method=True)
+        self.CompleteFileUpload = channel.unary_unary(
+                '/talon.v1.FileService/CompleteFileUpload',
+                request_serializer=proto_dot_talon_dot_v1_dot_files__pb2.CompleteFileUploadRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.FileResponse.FromString,
+                _registered_method=True)
         self.ReadFile = channel.unary_unary(
                 '/talon.v1.FileService/ReadFile',
                 request_serializer=proto_dot_talon_dot_v1_dot_files__pb2.ReadFileRequest.SerializeToString,
@@ -79,6 +89,18 @@ class FileServiceServicer(object):
         them. Inline content is a small-object fallback and is capped by the
         gateway.
         """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PrepareFileUpload(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CompleteFileUpload(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -127,6 +149,16 @@ def add_FileServiceServicer_to_server(servicer, server):
             'CreateFile': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateFile,
                     request_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.CreateFileRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_files__pb2.FileResponse.SerializeToString,
+            ),
+            'PrepareFileUpload': grpc.unary_unary_rpc_method_handler(
+                    servicer.PrepareFileUpload,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.PrepareFileUploadRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_files__pb2.PrepareFileUploadResponse.SerializeToString,
+            ),
+            'CompleteFileUpload': grpc.unary_unary_rpc_method_handler(
+                    servicer.CompleteFileUpload,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_files__pb2.CompleteFileUploadRequest.FromString,
                     response_serializer=proto_dot_talon_dot_v1_dot_files__pb2.FileResponse.SerializeToString,
             ),
             'ReadFile': grpc.unary_unary_rpc_method_handler(
@@ -186,6 +218,60 @@ class FileService(object):
             target,
             '/talon.v1.FileService/CreateFile',
             proto_dot_talon_dot_v1_dot_files__pb2.CreateFileRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_files__pb2.FileResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def PrepareFileUpload(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.FileService/PrepareFileUpload',
+            proto_dot_talon_dot_v1_dot_files__pb2.PrepareFileUploadRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_files__pb2.PrepareFileUploadResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CompleteFileUpload(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.FileService/CompleteFileUpload',
+            proto_dot_talon_dot_v1_dot_files__pb2.CompleteFileUploadRequest.SerializeToString,
             proto_dot_talon_dot_v1_dot_files__pb2.FileResponse.FromString,
             options,
             channel_credentials,

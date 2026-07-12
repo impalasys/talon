@@ -43,6 +43,68 @@ public final class FileServiceGrpc {
     return getCreateFileMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Files.PrepareFileUploadRequest,
+      talon.v1.Files.PrepareFileUploadResponse> getPrepareFileUploadMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "PrepareFileUpload",
+      requestType = talon.v1.Files.PrepareFileUploadRequest.class,
+      responseType = talon.v1.Files.PrepareFileUploadResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Files.PrepareFileUploadRequest,
+      talon.v1.Files.PrepareFileUploadResponse> getPrepareFileUploadMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Files.PrepareFileUploadRequest, talon.v1.Files.PrepareFileUploadResponse> getPrepareFileUploadMethod;
+    if ((getPrepareFileUploadMethod = FileServiceGrpc.getPrepareFileUploadMethod) == null) {
+      synchronized (FileServiceGrpc.class) {
+        if ((getPrepareFileUploadMethod = FileServiceGrpc.getPrepareFileUploadMethod) == null) {
+          FileServiceGrpc.getPrepareFileUploadMethod = getPrepareFileUploadMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Files.PrepareFileUploadRequest, talon.v1.Files.PrepareFileUploadResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "PrepareFileUpload"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Files.PrepareFileUploadRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Files.PrepareFileUploadResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new FileServiceMethodDescriptorSupplier("PrepareFileUpload"))
+              .build();
+        }
+      }
+    }
+    return getPrepareFileUploadMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Files.CompleteFileUploadRequest,
+      talon.v1.Files.FileResponse> getCompleteFileUploadMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CompleteFileUpload",
+      requestType = talon.v1.Files.CompleteFileUploadRequest.class,
+      responseType = talon.v1.Files.FileResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Files.CompleteFileUploadRequest,
+      talon.v1.Files.FileResponse> getCompleteFileUploadMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Files.CompleteFileUploadRequest, talon.v1.Files.FileResponse> getCompleteFileUploadMethod;
+    if ((getCompleteFileUploadMethod = FileServiceGrpc.getCompleteFileUploadMethod) == null) {
+      synchronized (FileServiceGrpc.class) {
+        if ((getCompleteFileUploadMethod = FileServiceGrpc.getCompleteFileUploadMethod) == null) {
+          FileServiceGrpc.getCompleteFileUploadMethod = getCompleteFileUploadMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Files.CompleteFileUploadRequest, talon.v1.Files.FileResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CompleteFileUpload"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Files.CompleteFileUploadRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Files.FileResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new FileServiceMethodDescriptorSupplier("CompleteFileUpload"))
+              .build();
+        }
+      }
+    }
+    return getCompleteFileUploadMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.v1.Files.ReadFileRequest,
       talon.v1.Files.ReadFileResponse> getReadFileMethod;
 
@@ -306,6 +368,20 @@ public final class FileServiceGrpc {
 
     /**
      */
+    default void prepareFileUpload(talon.v1.Files.PrepareFileUploadRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Files.PrepareFileUploadResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getPrepareFileUploadMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void completeFileUpload(talon.v1.Files.CompleteFileUploadRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Files.FileResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCompleteFileUploadMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void readFile(talon.v1.Files.ReadFileRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Files.ReadFileResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getReadFileMethod(), responseObserver);
@@ -393,6 +469,22 @@ public final class FileServiceGrpc {
 
     /**
      */
+    public void prepareFileUpload(talon.v1.Files.PrepareFileUploadRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Files.PrepareFileUploadResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getPrepareFileUploadMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void completeFileUpload(talon.v1.Files.CompleteFileUploadRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Files.FileResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCompleteFileUploadMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
     public void readFile(talon.v1.Files.ReadFileRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Files.ReadFileResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
@@ -474,6 +566,20 @@ public final class FileServiceGrpc {
 
     /**
      */
+    public talon.v1.Files.PrepareFileUploadResponse prepareFileUpload(talon.v1.Files.PrepareFileUploadRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getPrepareFileUploadMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Files.FileResponse completeFileUpload(talon.v1.Files.CompleteFileUploadRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getCompleteFileUploadMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
     public talon.v1.Files.ReadFileResponse readFile(talon.v1.Files.ReadFileRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getReadFileMethod(), getCallOptions(), request);
@@ -545,6 +651,20 @@ public final class FileServiceGrpc {
     public talon.v1.Files.FileResponse createFile(talon.v1.Files.CreateFileRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getCreateFileMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Files.PrepareFileUploadResponse prepareFileUpload(talon.v1.Files.PrepareFileUploadRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getPrepareFileUploadMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Files.FileResponse completeFileUpload(talon.v1.Files.CompleteFileUploadRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCompleteFileUploadMethod(), getCallOptions(), request);
     }
 
     /**
@@ -625,6 +745,22 @@ public final class FileServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Files.PrepareFileUploadResponse> prepareFileUpload(
+        talon.v1.Files.PrepareFileUploadRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getPrepareFileUploadMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Files.FileResponse> completeFileUpload(
+        talon.v1.Files.CompleteFileUploadRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCompleteFileUploadMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Files.ReadFileResponse> readFile(
         talon.v1.Files.ReadFileRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -677,12 +813,14 @@ public final class FileServiceGrpc {
   }
 
   private static final int METHODID_CREATE_FILE = 0;
-  private static final int METHODID_READ_FILE = 1;
-  private static final int METHODID_UPDATE_FILE = 2;
-  private static final int METHODID_GET_FILE_METADATA = 3;
-  private static final int METHODID_LIST_FILES = 4;
-  private static final int METHODID_DELETE_FILE = 5;
-  private static final int METHODID_PROMOTE_ARTIFACT = 6;
+  private static final int METHODID_PREPARE_FILE_UPLOAD = 1;
+  private static final int METHODID_COMPLETE_FILE_UPLOAD = 2;
+  private static final int METHODID_READ_FILE = 3;
+  private static final int METHODID_UPDATE_FILE = 4;
+  private static final int METHODID_GET_FILE_METADATA = 5;
+  private static final int METHODID_LIST_FILES = 6;
+  private static final int METHODID_DELETE_FILE = 7;
+  private static final int METHODID_PROMOTE_ARTIFACT = 8;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -703,6 +841,14 @@ public final class FileServiceGrpc {
       switch (methodId) {
         case METHODID_CREATE_FILE:
           serviceImpl.createFile((talon.v1.Files.CreateFileRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Files.FileResponse>) responseObserver);
+          break;
+        case METHODID_PREPARE_FILE_UPLOAD:
+          serviceImpl.prepareFileUpload((talon.v1.Files.PrepareFileUploadRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Files.PrepareFileUploadResponse>) responseObserver);
+          break;
+        case METHODID_COMPLETE_FILE_UPLOAD:
+          serviceImpl.completeFileUpload((talon.v1.Files.CompleteFileUploadRequest) request,
               (io.grpc.stub.StreamObserver<talon.v1.Files.FileResponse>) responseObserver);
           break;
         case METHODID_READ_FILE:
@@ -754,6 +900,20 @@ public final class FileServiceGrpc {
               talon.v1.Files.CreateFileRequest,
               talon.v1.Files.FileResponse>(
                 service, METHODID_CREATE_FILE)))
+        .addMethod(
+          getPrepareFileUploadMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Files.PrepareFileUploadRequest,
+              talon.v1.Files.PrepareFileUploadResponse>(
+                service, METHODID_PREPARE_FILE_UPLOAD)))
+        .addMethod(
+          getCompleteFileUploadMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Files.CompleteFileUploadRequest,
+              talon.v1.Files.FileResponse>(
+                service, METHODID_COMPLETE_FILE_UPLOAD)))
         .addMethod(
           getReadFileMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -845,6 +1005,8 @@ public final class FileServiceGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new FileServiceFileDescriptorSupplier())
               .addMethod(getCreateFileMethod())
+              .addMethod(getPrepareFileUploadMethod())
+              .addMethod(getCompleteFileUploadMethod())
               .addMethod(getReadFileMethod())
               .addMethod(getUpdateFileMethod())
               .addMethod(getGetFileMetadataMethod())

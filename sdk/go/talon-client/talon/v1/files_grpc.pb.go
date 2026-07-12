@@ -19,13 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FileService_CreateFile_FullMethodName      = "/talon.v1.FileService/CreateFile"
-	FileService_ReadFile_FullMethodName        = "/talon.v1.FileService/ReadFile"
-	FileService_UpdateFile_FullMethodName      = "/talon.v1.FileService/UpdateFile"
-	FileService_GetFileMetadata_FullMethodName = "/talon.v1.FileService/GetFileMetadata"
-	FileService_ListFiles_FullMethodName       = "/talon.v1.FileService/ListFiles"
-	FileService_DeleteFile_FullMethodName      = "/talon.v1.FileService/DeleteFile"
-	FileService_PromoteArtifact_FullMethodName = "/talon.v1.FileService/PromoteArtifact"
+	FileService_CreateFile_FullMethodName         = "/talon.v1.FileService/CreateFile"
+	FileService_PrepareFileUpload_FullMethodName  = "/talon.v1.FileService/PrepareFileUpload"
+	FileService_CompleteFileUpload_FullMethodName = "/talon.v1.FileService/CompleteFileUpload"
+	FileService_ReadFile_FullMethodName           = "/talon.v1.FileService/ReadFile"
+	FileService_UpdateFile_FullMethodName         = "/talon.v1.FileService/UpdateFile"
+	FileService_GetFileMetadata_FullMethodName    = "/talon.v1.FileService/GetFileMetadata"
+	FileService_ListFiles_FullMethodName          = "/talon.v1.FileService/ListFiles"
+	FileService_DeleteFile_FullMethodName         = "/talon.v1.FileService/DeleteFile"
+	FileService_PromoteArtifact_FullMethodName    = "/talon.v1.FileService/PromoteArtifact"
 )
 
 // FileServiceClient is the client API for FileService service.
@@ -36,6 +38,8 @@ type FileServiceClient interface {
 	// them. Inline content is a small-object fallback and is capped by the
 	// gateway.
 	CreateFile(ctx context.Context, in *CreateFileRequest, opts ...grpc.CallOption) (*FileResponse, error)
+	PrepareFileUpload(ctx context.Context, in *PrepareFileUploadRequest, opts ...grpc.CallOption) (*PrepareFileUploadResponse, error)
+	CompleteFileUpload(ctx context.Context, in *CompleteFileUploadRequest, opts ...grpc.CallOption) (*FileResponse, error)
 	ReadFile(ctx context.Context, in *ReadFileRequest, opts ...grpc.CallOption) (*ReadFileResponse, error)
 	UpdateFile(ctx context.Context, in *UpdateFileRequest, opts ...grpc.CallOption) (*FileResponse, error)
 	GetFileMetadata(ctx context.Context, in *GetFileMetadataRequest, opts ...grpc.CallOption) (*FileResponse, error)
@@ -58,6 +62,26 @@ func (c *fileServiceClient) CreateFile(ctx context.Context, in *CreateFileReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FileResponse)
 	err := c.cc.Invoke(ctx, FileService_CreateFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) PrepareFileUpload(ctx context.Context, in *PrepareFileUploadRequest, opts ...grpc.CallOption) (*PrepareFileUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PrepareFileUploadResponse)
+	err := c.cc.Invoke(ctx, FileService_PrepareFileUpload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) CompleteFileUpload(ctx context.Context, in *CompleteFileUploadRequest, opts ...grpc.CallOption) (*FileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FileResponse)
+	err := c.cc.Invoke(ctx, FileService_CompleteFileUpload_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -132,6 +156,8 @@ type FileServiceServer interface {
 	// them. Inline content is a small-object fallback and is capped by the
 	// gateway.
 	CreateFile(context.Context, *CreateFileRequest) (*FileResponse, error)
+	PrepareFileUpload(context.Context, *PrepareFileUploadRequest) (*PrepareFileUploadResponse, error)
+	CompleteFileUpload(context.Context, *CompleteFileUploadRequest) (*FileResponse, error)
 	ReadFile(context.Context, *ReadFileRequest) (*ReadFileResponse, error)
 	UpdateFile(context.Context, *UpdateFileRequest) (*FileResponse, error)
 	GetFileMetadata(context.Context, *GetFileMetadataRequest) (*FileResponse, error)
@@ -152,6 +178,12 @@ type UnimplementedFileServiceServer struct{}
 
 func (UnimplementedFileServiceServer) CreateFile(context.Context, *CreateFileRequest) (*FileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateFile not implemented")
+}
+func (UnimplementedFileServiceServer) PrepareFileUpload(context.Context, *PrepareFileUploadRequest) (*PrepareFileUploadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PrepareFileUpload not implemented")
+}
+func (UnimplementedFileServiceServer) CompleteFileUpload(context.Context, *CompleteFileUploadRequest) (*FileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompleteFileUpload not implemented")
 }
 func (UnimplementedFileServiceServer) ReadFile(context.Context, *ReadFileRequest) (*ReadFileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadFile not implemented")
@@ -206,6 +238,42 @@ func _FileService_CreateFile_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FileServiceServer).CreateFile(ctx, req.(*CreateFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_PrepareFileUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrepareFileUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).PrepareFileUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_PrepareFileUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).PrepareFileUpload(ctx, req.(*PrepareFileUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_CompleteFileUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteFileUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).CompleteFileUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_CompleteFileUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).CompleteFileUpload(ctx, req.(*CompleteFileUploadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -328,6 +396,14 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateFile",
 			Handler:    _FileService_CreateFile_Handler,
+		},
+		{
+			MethodName: "PrepareFileUpload",
+			Handler:    _FileService_PrepareFileUpload_Handler,
+		},
+		{
+			MethodName: "CompleteFileUpload",
+			Handler:    _FileService_CompleteFileUpload_Handler,
 		},
 		{
 			MethodName: "ReadFile",

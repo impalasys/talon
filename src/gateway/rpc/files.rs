@@ -28,6 +28,7 @@ const MAX_UNARY_FILE_CONTENT_BYTES: usize = 3 * 1024 * 1024;
 const FILE_LIST_SCAN_PAGE_SIZE: usize = 200;
 const MAX_FILE_LIST_SCAN_PAGES: usize = 25;
 const FILE_SIGNED_URL_TTL: Duration = Duration::from_secs(5 * 60);
+const FILE_UPLOAD_SIGNED_URL_TTL: Duration = Duration::from_secs(15 * 60);
 const HANDLE_CALLER_AGENT_HEADER: &str = "x-talon-agent";
 const HANDLE_CALLER_SESSION_HEADER: &str = "x-talon-session-id";
 
@@ -305,6 +306,294 @@ impl GrpcGatewayHandler {
             .await
     }
 
+    async fn reserve_file_upload(
+        &self,
+        namespace: &str,
+        path: &str,
+        media_type: &str,
+        purpose: i32,
+        index_policy: i32,
+        retention: i32,
+    ) -> Result<(resources_proto::File, bool)> {
+        let path = normalize_logical_path(path)?;
+        validate_file_spec(purpose, index_policy, retention)?;
+        let media_type = normalize_media_type(media_type)?;
+        let existing = self.find_file_by_path(namespace, &path).await?;
+        let is_new_file = existing.is_none();
+        let name = existing
+            .as_ref()
+            .map(|file| file.name().to_string())
+            .unwrap_or_else(|| file_resource_name_for_path(&path));
+        let status = existing
+            .as_ref()
+            .and_then(|file| file.status.clone())
+            .unwrap_or(resources_proto::FileStatus {
+                phase: "PendingUpload".to_string(),
+                ..Default::default()
+            });
+        let labels = file_labels(purpose, index_policy, retention);
+        let spec = resources_proto::FileSpec {
+            path,
+            media_type,
+            purpose,
+            index_policy,
+            retention,
+        };
+        let resource =
+            resource_model::file_resource(namespace.to_string(), name, spec, status, labels);
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let resource = store.upsert(namespace, resource).await?;
+        Ok((file_from_resource(resource)?, is_new_file))
+    }
+
+    async fn patch_file_object_ref(
+        &self,
+        namespace: &str,
+        file_name: &str,
+        object_ref: data_proto::ObjectRef,
+    ) -> Result<resources_proto::File> {
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let resource = store
+            .get(namespace, "File", file_name)
+            .await?
+            .ok_or_else(|| not_found(format!("File '{}' not found", file_name)))?;
+        let generation = resource
+            .metadata
+            .as_ref()
+            .map(|meta| meta.generation)
+            .unwrap_or_default();
+        let status = resources_proto::FileStatus {
+            observed_generation: generation,
+            phase: "Ready".to_string(),
+            conditions: Vec::new(),
+            object_ref: Some(file_object_ref(object_ref)),
+            updated_at: chrono::Utc::now().timestamp_micros(),
+        };
+        let resource = store
+            .patch_status(
+                namespace,
+                "File",
+                file_name,
+                None,
+                resources_proto::ResourceStatus {
+                    kind: Some(resources_proto::resource_status::Kind::File(status)),
+                },
+            )
+            .await?;
+        file_from_resource(resource)
+    }
+
+    async fn mint_file_handle(&self, file: &resources_proto::File) -> Result<String> {
+        self.mint_handle(
+            file.namespace(),
+            HANDLE_KIND_FILE,
+            file.name(),
+            "",
+            "",
+            &[OP_READ, OP_METADATA, OP_WRITE, OP_DELETE],
+            "",
+            "",
+            default_handle_expiry(),
+        )
+        .await
+    }
+
+    async fn prepare_file_upload_impl(
+        &self,
+        req: proto::PrepareFileUploadRequest,
+        caller: HandleCaller,
+    ) -> Result<proto::PrepareFileUploadResponse> {
+        let expected_sha = normalize_sha256(&req.expected_sha256)?;
+        if expected_sha.is_empty() {
+            return Err(invalid_argument(
+                "expectedSha256 is required for signed File uploads",
+            ));
+        }
+        let requested_media_type = non_empty(&req.media_type).map(str::to_string);
+        let (file, is_new_file) = if has_file_ref(req.file.as_ref()) {
+            let target = self
+                .get_file_by_ref(req.file, OP_WRITE, caller.clone())
+                .await?;
+            let namespace = target.namespace().to_string();
+            let spec = target
+                .spec
+                .as_ref()
+                .ok_or_else(|| invalid_argument("File spec missing"))?;
+            let media_type = requested_media_type
+                .as_deref()
+                .map(normalize_media_type)
+                .transpose()?
+                .unwrap_or_else(|| spec.media_type.clone());
+            let (file, _) = self
+                .reserve_file_upload(
+                    &namespace,
+                    &spec.path,
+                    &media_type,
+                    spec.purpose,
+                    spec.index_policy,
+                    spec.retention,
+                )
+                .await?;
+            (file, false)
+        } else {
+            let media_type = normalize_media_type(&req.media_type)?;
+            self.reserve_file_upload(
+                &req.namespace,
+                &req.path,
+                &media_type,
+                req.purpose,
+                req.index_policy,
+                req.retention,
+            )
+            .await?
+        };
+        let namespace = file.namespace().to_string();
+        let file_name = file.name().to_string();
+        let file_uid = file
+            .metadata
+            .as_ref()
+            .map(|meta| meta.uid.as_str())
+            .filter(|uid| !uid.is_empty())
+            .ok_or_else(|| anyhow!("File resource uid missing after upload reserve"))?
+            .to_string();
+        let spec = file
+            .spec
+            .as_ref()
+            .ok_or_else(|| anyhow!("File spec missing after upload reserve"))?;
+        let media_type = spec.media_type.clone();
+        let cas = CasStore::new(self.gateway.objects.clone());
+        let signed = cas
+            .signed_put_file_url(
+                &namespace,
+                &file_uid,
+                &spec.path,
+                &media_type,
+                &expected_sha,
+                &expected_sha,
+                req.expected_size_bytes,
+                FILE_UPLOAD_SIGNED_URL_TTL,
+            )
+            .await?;
+        let Some(signed) = signed else {
+            if is_new_file {
+                let store =
+                    ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+                let _ = store.delete(&namespace, "File", &file_name).await;
+            }
+            return Err(invalid_argument(
+                "configured object store does not support signed File upload URLs",
+            ));
+        };
+        let id = crate::control::uuid::unique_name("upl");
+        let now = chrono::Utc::now().timestamp_micros();
+        let object_key = crate::control::cas::file_object_key(&namespace, &file_uid, &expected_sha);
+        let upload = data_proto::FileUpload {
+            id: id.clone(),
+            namespace: namespace.clone(),
+            file_name: file_name.clone(),
+            file_uid,
+            path: spec.path.clone(),
+            media_type,
+            purpose: spec.purpose,
+            index_policy: spec.index_policy,
+            retention: spec.retention,
+            object_key: object_key.clone(),
+            expected_size_bytes: req.expected_size_bytes,
+            expected_sha256: expected_sha,
+            required_headers: signed.required_headers.clone(),
+            created_by_agent: caller.agent,
+            created_by_session_id: caller.session_id,
+            expires_at: now + FILE_UPLOAD_SIGNED_URL_TTL.as_micros() as i64,
+            created_at: now,
+            consumed: false,
+        };
+        self.gateway
+            .kv
+            .set_msg(&keys::file_upload(&namespace, &id), &upload)
+            .await?;
+        Ok(proto::PrepareFileUploadResponse {
+            file: Some(file),
+            upload_token: upload_token(&namespace, &id),
+            signed_upload_url: signed.url,
+            method: "PUT".to_string(),
+            required_headers: signed.required_headers,
+            signed_url_expires_at_unix_seconds: signed.expires_at_unix_seconds,
+            object_key,
+        })
+    }
+
+    async fn complete_file_upload_impl(
+        &self,
+        upload_token: &str,
+    ) -> Result<(resources_proto::File, String)> {
+        let (namespace, upload_id) = upload_token_namespace_and_id(upload_token)?;
+        let key = keys::file_upload(&namespace, &upload_id);
+        let mut upload = self
+            .gateway
+            .kv
+            .get_msg::<data_proto::FileUpload>(&key)
+            .await?
+            .ok_or_else(|| not_found(format!("File upload '{}' not found", upload_token)))?;
+        if upload.consumed {
+            return Err(permission_denied("File upload has already been completed"));
+        }
+        if upload.expires_at > 0 && upload.expires_at < chrono::Utc::now().timestamp_micros() {
+            return Err(permission_denied("File upload is expired"));
+        }
+        let metadata = self
+            .gateway
+            .objects
+            .head(&upload.object_key)
+            .await?
+            .ok_or_else(|| not_found("uploaded File object not found"))?;
+        validate_uploaded_file_metadata(&upload, &metadata)?;
+        let object_ref = data_proto::ObjectRef {
+            key: upload.object_key.clone(),
+            media_type: metadata.media_type.clone(),
+            size_bytes: metadata.size_bytes,
+            sha256: metadata.sha256.clone(),
+            filename: metadata.filename.clone(),
+            metadata: metadata.metadata.clone(),
+            content_encoding: metadata.content_encoding.clone(),
+        };
+        let file = self
+            .patch_file_object_ref(&namespace, &upload.file_name, object_ref)
+            .await?;
+        if let Some(object) = CasStore::new(self.gateway.objects.clone())
+            .get_object_decoded(&upload.object_key)
+            .await?
+        {
+            if let Err(error) = self
+                .write_latest_file_object(
+                    &namespace,
+                    &upload.path,
+                    &upload.media_type,
+                    &object.bytes,
+                )
+                .await
+            {
+                tracing::warn!(
+                    error = %error,
+                    namespace = %namespace,
+                    file = %upload.file_name,
+                    path = %upload.path,
+                    "failed to materialize latest File object after signed upload"
+                );
+            }
+        } else {
+            tracing::info!(
+                namespace = %namespace,
+                file = %upload.file_name,
+                object_key = %upload.object_key,
+                "signed upload object cannot be read back; latest File view was not materialized"
+            );
+        }
+        upload.consumed = true;
+        self.gateway.kv.set_msg(&key, &upload).await?;
+        let handle = self.mint_file_handle(&file).await?;
+        Ok((file, handle))
+    }
+
     async fn find_file_by_path(
         &self,
         namespace: &str,
@@ -470,6 +759,51 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
                 req.retention,
                 &req.content,
             )
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(proto::FileResponse {
+            file: Some(file),
+            file_handle,
+        }))
+    }
+
+    async fn prepare_file_upload(
+        &self,
+        req: Request<proto::PrepareFileUploadRequest>,
+    ) -> std::result::Result<Response<proto::PrepareFileUploadResponse>, Status> {
+        if has_file_ref(req.get_ref().file.as_ref()) {
+            require_prepare_file_ref_auth(self, &req)?;
+        } else {
+            let namespace = req.get_ref().namespace.clone();
+            require_auth!(self, req, &namespace);
+        }
+        let caller = handle_caller_from_request(self, &req);
+        let response = self
+            .prepare_file_upload_impl(req.into_inner(), caller)
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(response))
+    }
+
+    async fn complete_file_upload(
+        &self,
+        req: Request<proto::CompleteFileUploadRequest>,
+    ) -> std::result::Result<Response<proto::FileResponse>, Status> {
+        let (namespace, _) =
+            upload_token_namespace_and_id(&req.get_ref().upload_token).map_err(to_status)?;
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_auth_for_operation(
+                req.metadata(),
+                auth_config,
+                crate::gateway::auth::AuthzOperation::ReadWrite,
+                &namespace,
+                None,
+                None,
+            )?;
+        }
+        let req = req.into_inner();
+        let (file, file_handle) = self
+            .complete_file_upload_impl(&req.upload_token)
             .await
             .map_err(to_status)?;
         Ok(Response::new(proto::FileResponse {
@@ -946,6 +1280,42 @@ where
     Ok(())
 }
 
+fn require_prepare_file_ref_auth(
+    handler: &GrpcGatewayHandler,
+    req: &Request<proto::PrepareFileUploadRequest>,
+) -> std::result::Result<(), Status> {
+    let Some(reference) = req.get_ref().file_ref() else {
+        return Ok(());
+    };
+    if !reference.handle.trim().is_empty() {
+        return Ok(());
+    }
+    if reference.namespace.trim().is_empty() {
+        return Err(Status::invalid_argument(
+            "namespace is required without a file handle",
+        ));
+    }
+    if let Some(auth_config) = &handler.gateway.auth_config {
+        crate::gateway::auth::check_auth_for_operation(
+            req.metadata(),
+            auth_config,
+            crate::gateway::auth::AuthzOperation::ReadWrite,
+            &reference.namespace,
+            None,
+            None,
+        )?;
+    }
+    Ok(())
+}
+
+fn has_file_ref(reference: Option<&proto::FileRef>) -> bool {
+    reference.is_some_and(|reference| {
+        !reference.handle.trim().is_empty()
+            || !reference.name.trim().is_empty()
+            || !reference.path.trim().is_empty()
+    })
+}
+
 fn handle_caller_from_request<T>(handler: &GrpcGatewayHandler, req: &Request<T>) -> HandleCaller {
     if handler.gateway.auth_config.is_some() {
         return req
@@ -1014,6 +1384,12 @@ impl FileRefRequest for proto::UpdateFileRequest {
     }
 }
 
+impl FileRefRequest for proto::PrepareFileUploadRequest {
+    fn file_ref(&self) -> Option<&proto::FileRef> {
+        self.file.as_ref()
+    }
+}
+
 impl FileRefRequest for proto::GetFileMetadataRequest {
     fn file_ref(&self) -> Option<&proto::FileRef> {
         self.file.as_ref()
@@ -1024,6 +1400,31 @@ impl FileRefRequest for proto::DeleteFileRequest {
     fn file_ref(&self) -> Option<&proto::FileRef> {
         self.file.as_ref()
     }
+}
+
+fn upload_token(namespace: &str, upload_id: &str) -> String {
+    format!("talon-upload:{}/{}", encoded_ns(namespace), upload_id)
+}
+
+fn upload_token_namespace_and_id(token: &str) -> Result<(String, String)> {
+    let token = token.trim();
+    let Some(rest) = token.strip_prefix("talon-upload:") else {
+        return Err(invalid_argument(
+            "upload token must start with 'talon-upload:'",
+        ));
+    };
+    let Some((namespace, id)) = rest.split_once('/') else {
+        return Err(invalid_argument(
+            "upload token must be 'talon-upload:<namespace>/<id>'",
+        ));
+    };
+    let namespace = urlencoding::decode(namespace)
+        .map(|value| value.into_owned())
+        .context("failed to decode upload token namespace")?;
+    if id.trim().is_empty() {
+        return Err(invalid_argument("upload token id is required"));
+    }
+    Ok((namespace, id.to_string()))
 }
 
 fn validate_artifact_operations(operations: &[&str]) -> Result<()> {
@@ -1192,6 +1593,69 @@ fn normalize_media_type(value: &str) -> Result<String> {
     Ok(value.to_string())
 }
 
+fn normalize_sha256(value: &str) -> Result<String> {
+    let value = value.trim().to_ascii_lowercase();
+    if value.is_empty() {
+        return Ok(String::new());
+    }
+    if value.len() != 64 || !value.chars().all(|ch| ch.is_ascii_hexdigit()) {
+        return Err(invalid_argument(
+            "expectedSha256 must be lowercase hex sha256",
+        ));
+    }
+    Ok(value)
+}
+
+fn validate_uploaded_file_metadata(
+    upload: &data_proto::FileUpload,
+    metadata: &crate::control::object_store::ObjectMetadata,
+) -> Result<()> {
+    if upload.expected_size_bytes > 0 && metadata.size_bytes != upload.expected_size_bytes {
+        return Err(invalid_argument(format!(
+            "uploaded File size {} does not match expected size {}",
+            metadata.size_bytes, upload.expected_size_bytes
+        )));
+    }
+    if metadata.sha256.trim().is_empty() {
+        return Err(
+            Status::failed_precondition("uploaded File object is missing sha256 metadata").into(),
+        );
+    }
+    if metadata.sha256 != upload.expected_sha256 {
+        return Err(invalid_argument(
+            "uploaded File sha256 does not match expectedSha256",
+        ));
+    }
+    if metadata.media_type != upload.media_type {
+        return Err(invalid_argument(
+            "uploaded File media type does not match upload",
+        ));
+    }
+    let object_namespace = metadata.metadata.get("namespace").map(String::as_str);
+    if object_namespace != Some(upload.namespace.as_str()) {
+        return Err(invalid_argument(
+            "uploaded File namespace metadata does not match",
+        ));
+    }
+    let object_file_uid = metadata.metadata.get("file_uid").map(String::as_str);
+    if object_file_uid != Some(upload.file_uid.as_str()) {
+        return Err(invalid_argument(
+            "uploaded File uid metadata does not match",
+        ));
+    }
+    let object_path = metadata.metadata.get("path").map(String::as_str);
+    if object_path != Some(upload.path.as_str()) {
+        return Err(invalid_argument(
+            "uploaded File path metadata does not match",
+        ));
+    }
+    let object_kind = metadata.metadata.get(crate::control::cas::METADATA_KIND);
+    if object_kind.map(String::as_str) != Some(crate::control::cas::METADATA_KIND_FILE) {
+        return Err(invalid_argument("uploaded object is not File CAS content"));
+    }
+    Ok(())
+}
+
 fn is_media_type_token(value: &str) -> bool {
     !value.is_empty()
         && value.chars().all(|ch| {
@@ -1319,13 +1783,14 @@ fn to_status(error: anyhow::Error) -> Status {
 mod tests {
     use super::*;
     use crate::control::object_store::{
-        ObjectMetadata, ObjectStore, SignedObjectUrl, StoredObject,
+        InMemoryObjectStore, ObjectMetadata, ObjectStore, SignedObjectUrl, StoredObject,
     };
     use crate::control::ControlPlane;
     use crate::gateway::auth::AuthConfig;
     use crate::gateway::Gateway;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use async_trait::async_trait;
+    use sha2::{Digest, Sha256};
     use std::sync::Arc;
     use std::time::Duration as StdDuration;
 
@@ -1370,6 +1835,57 @@ mod tests {
             Ok(Some(SignedObjectUrl {
                 url: format!("https://objects.example/{key}"),
                 expires_at_unix_seconds: 1234,
+                required_headers: HashMap::new(),
+            }))
+        }
+    }
+
+    struct SignedUploadObjectStore {
+        inner: Arc<InMemoryObjectStore>,
+    }
+
+    impl SignedUploadObjectStore {
+        fn new(inner: Arc<InMemoryObjectStore>) -> Self {
+            Self { inner }
+        }
+    }
+
+    #[async_trait]
+    impl ObjectStore for SignedUploadObjectStore {
+        async fn put(
+            &self,
+            key: &str,
+            bytes: &[u8],
+            metadata: ObjectMetadata,
+        ) -> Result<data_proto::ObjectRef> {
+            self.inner.put(key, bytes, metadata).await
+        }
+
+        async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
+            self.inner.get(key).await
+        }
+
+        async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
+            self.inner.head(key).await
+        }
+
+        async fn delete(&self, key: &str) -> Result<()> {
+            self.inner.delete(key).await
+        }
+
+        async fn signed_put_url(
+            &self,
+            key: &str,
+            metadata: ObjectMetadata,
+            _expires_in: StdDuration,
+        ) -> Result<Option<SignedObjectUrl>> {
+            let mut required_headers = HashMap::new();
+            required_headers.insert("content-type".to_string(), metadata.media_type.clone());
+            required_headers.insert("x-amz-meta-talon-sha256".to_string(), metadata.sha256);
+            Ok(Some(SignedObjectUrl {
+                url: format!("https://uploads.example/{key}"),
+                expires_at_unix_seconds: 1234,
+                required_headers,
             }))
         }
     }
@@ -1384,6 +1900,41 @@ mod tests {
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
+    }
+
+    fn sha256_hex(bytes: &[u8]) -> String {
+        let digest = Sha256::digest(bytes);
+        let mut out = String::with_capacity(digest.len() * 2);
+        for byte in digest {
+            out.push_str(&format!("{byte:02x}"));
+        }
+        out
+    }
+
+    async fn simulate_signed_file_upload(
+        store: &InMemoryObjectStore,
+        response: &proto::PrepareFileUploadResponse,
+        bytes: &[u8],
+    ) {
+        let file = response.file.as_ref().unwrap();
+        let metadata = file.metadata.as_ref().unwrap();
+        let spec = file.spec.as_ref().unwrap();
+        let sha = sha256_hex(bytes);
+        store
+            .put(
+                &response.object_key,
+                bytes,
+                CasStore::file_upload_metadata(
+                    file.namespace(),
+                    &metadata.uid,
+                    &spec.path,
+                    &spec.media_type,
+                    &sha,
+                    bytes.len() as u64,
+                ),
+            )
+            .await
+            .unwrap();
     }
 
     fn handler_with_auth() -> GrpcGatewayHandler {
@@ -1479,6 +2030,211 @@ mod tests {
             "https://objects.example/cas/Tenant%3Aacme/files/file-1/sha"
         );
         assert_eq!(expires_at, 1234);
+    }
+
+    #[tokio::test]
+    async fn signed_upload_prepare_complete_creates_file() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let handler = handler_with_objects(Arc::new(SignedUploadObjectStore::new(objects.clone())));
+        let content = b"# Brand guidelines\n\nUse plain language.";
+        let sha = sha256_hex(content);
+
+        let prepared = handler
+            .prepare_file_upload_impl(
+                proto::PrepareFileUploadRequest {
+                    namespace: "Tenant:acme".to_string(),
+                    path: "/memory/brand-guidelines.md".to_string(),
+                    media_type: "text/markdown".to_string(),
+                    purpose: resources_proto::FilePurpose::Memory as i32,
+                    index_policy: resources_proto::FileIndexPolicy::Retrieval as i32,
+                    retention: resources_proto::FileRetention::Retained as i32,
+                    file: None,
+                    expected_size_bytes: content.len() as u64,
+                    expected_sha256: sha.clone(),
+                },
+                HandleCaller {
+                    agent: "agent".to_string(),
+                    session_id: "session-1".to_string(),
+                },
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(prepared.method, "PUT");
+        assert_eq!(
+            prepared.object_key,
+            format!(
+                "cas/Tenant%3Aacme/files/{}/{}",
+                prepared
+                    .file
+                    .as_ref()
+                    .unwrap()
+                    .metadata
+                    .as_ref()
+                    .unwrap()
+                    .uid,
+                sha
+            )
+        );
+        assert_eq!(
+            prepared.required_headers.get("x-amz-meta-talon-sha256"),
+            Some(&sha)
+        );
+        simulate_signed_file_upload(&objects, &prepared, content).await;
+
+        let completed = handler
+            .complete_file_upload_impl(&prepared.upload_token)
+            .await
+            .unwrap();
+        let file = completed.0;
+        let object_ref = file.status.unwrap().object_ref.unwrap();
+        assert_eq!(object_ref.key, prepared.object_key);
+        assert_eq!(object_ref.sha256, sha);
+        assert_eq!(file.spec.unwrap().path, "/memory/brand-guidelines.md");
+
+        let latest = objects
+            .get("latest/Tenant%3Aacme/files/memory/brand-guidelines.md")
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(latest.bytes, content);
+    }
+
+    #[tokio::test]
+    async fn signed_upload_prepare_complete_updates_file() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let handler = handler_with_objects(Arc::new(SignedUploadObjectStore::new(objects.clone())));
+        let (original, _) = handler
+            .create_file_impl(
+                "Tenant:acme",
+                "/memory/brand-guidelines.md",
+                "text/markdown",
+                resources_proto::FilePurpose::Memory as i32,
+                resources_proto::FileIndexPolicy::Retrieval as i32,
+                resources_proto::FileRetention::Retained as i32,
+                b"old",
+            )
+            .await
+            .unwrap();
+        let original_ref = original
+            .status
+            .as_ref()
+            .unwrap()
+            .object_ref
+            .as_ref()
+            .unwrap();
+        let new_content = b"new guidance";
+        let new_sha = sha256_hex(new_content);
+
+        let prepared = handler
+            .prepare_file_upload_impl(
+                proto::PrepareFileUploadRequest {
+                    namespace: String::new(),
+                    path: String::new(),
+                    media_type: "text/markdown".to_string(),
+                    purpose: 0,
+                    index_policy: 0,
+                    retention: 0,
+                    file: Some(proto::FileRef {
+                        namespace: original.namespace().to_string(),
+                        name: original.name().to_string(),
+                        path: String::new(),
+                        handle: String::new(),
+                    }),
+                    expected_size_bytes: new_content.len() as u64,
+                    expected_sha256: new_sha.clone(),
+                },
+                HandleCaller::default(),
+            )
+            .await
+            .unwrap();
+        simulate_signed_file_upload(&objects, &prepared, new_content).await;
+
+        let completed = handler
+            .complete_file_upload_impl(&prepared.upload_token)
+            .await
+            .unwrap();
+        let updated_ref = completed.0.status.unwrap().object_ref.unwrap();
+        assert_eq!(updated_ref.key, prepared.object_key);
+        assert_eq!(updated_ref.sha256, new_sha);
+        assert_ne!(updated_ref.key, original_ref.key);
+        assert!(objects.get(&original_ref.key).await.unwrap().is_some());
+    }
+
+    #[tokio::test]
+    async fn signed_upload_complete_missing_object_does_not_commit_file() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let handler = handler_with_objects(Arc::new(SignedUploadObjectStore::new(objects)));
+        let content = b"not uploaded";
+        let prepared = handler
+            .prepare_file_upload_impl(
+                proto::PrepareFileUploadRequest {
+                    namespace: "Tenant:acme".to_string(),
+                    path: "/memory/missing.md".to_string(),
+                    media_type: "text/markdown".to_string(),
+                    purpose: resources_proto::FilePurpose::Memory as i32,
+                    index_policy: resources_proto::FileIndexPolicy::Retrieval as i32,
+                    retention: resources_proto::FileRetention::Retained as i32,
+                    file: None,
+                    expected_size_bytes: content.len() as u64,
+                    expected_sha256: sha256_hex(content),
+                },
+                HandleCaller::default(),
+            )
+            .await
+            .unwrap();
+
+        let status = to_status(
+            handler
+                .complete_file_upload_impl(&prepared.upload_token)
+                .await
+                .unwrap_err(),
+        );
+        assert_eq!(status.code(), tonic::Code::NotFound);
+
+        let file = prepared.file.unwrap();
+        let stored = handler
+            .get_file_by_name(file.namespace(), file.name())
+            .await
+            .unwrap();
+        assert!(stored.status.unwrap().object_ref.is_none());
+    }
+
+    #[tokio::test]
+    async fn signed_upload_complete_rejects_consumed_token() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let handler = handler_with_objects(Arc::new(SignedUploadObjectStore::new(objects.clone())));
+        let content = b"# Final";
+        let prepared = handler
+            .prepare_file_upload_impl(
+                proto::PrepareFileUploadRequest {
+                    namespace: "Tenant:acme".to_string(),
+                    path: "/memory/final.md".to_string(),
+                    media_type: "text/markdown".to_string(),
+                    purpose: resources_proto::FilePurpose::Memory as i32,
+                    index_policy: resources_proto::FileIndexPolicy::Retrieval as i32,
+                    retention: resources_proto::FileRetention::Retained as i32,
+                    file: None,
+                    expected_size_bytes: content.len() as u64,
+                    expected_sha256: sha256_hex(content),
+                },
+                HandleCaller::default(),
+            )
+            .await
+            .unwrap();
+        simulate_signed_file_upload(&objects, &prepared, content).await;
+        handler
+            .complete_file_upload_impl(&prepared.upload_token)
+            .await
+            .unwrap();
+
+        let status = to_status(
+            handler
+                .complete_file_upload_impl(&prepared.upload_token)
+                .await
+                .unwrap_err(),
+        );
+        assert_eq!(status.code(), tonic::Code::PermissionDenied);
     }
 
     #[test]
