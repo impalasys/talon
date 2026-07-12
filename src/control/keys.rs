@@ -346,6 +346,14 @@ pub fn agent_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("Agent"))
 }
 
+pub fn file(namespace: &str, name: &str) -> ResourceKey {
+    resource_key(namespace, &[], "File", name)
+}
+
+pub fn file_prefix(namespace: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[], Some("File"))
+}
+
 pub fn session(namespace: &str, agent: &str, session_id: &str) -> ResourceKey {
     resource_key(namespace, &[("Agent", agent)], "Session", session_id)
 }
@@ -739,6 +747,10 @@ mod tests {
             "@Namespace/Impala:Talon/Channel/incident-123/@/ChannelSubscription/researcher"
         );
         assert_eq!(
+            file("Impala:Talon", "brand-guidelines-md-7f3a").canonical(),
+            "@Namespace/Impala:Talon/@/File/brand-guidelines-md-7f3a"
+        );
+        assert_eq!(
             connector_route("Impala:Talon", "slack", "team\u{1f}teamId=T123").canonical(),
             "@Namespace/Impala:Talon/ConnectorClass/slack/@/Route/team%1FteamId%3DT123"
         );
@@ -782,6 +794,10 @@ mod tests {
             session_journal_entry_prefix("Impala:Talon", "hello-agent", "session-id", "submission-id")
                 .canonical_prefix(),
             "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/SessionSubmission/submission-id/@/SessionJournalEntry/"
+        );
+        assert_eq!(
+            file_prefix("Impala:Talon").canonical_prefix(),
+            "@Namespace/Impala:Talon/@/File/"
         );
     }
 
