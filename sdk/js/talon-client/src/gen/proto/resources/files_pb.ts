@@ -246,6 +246,11 @@ export class FileStatus extends Message<FileStatus> {
    */
   updatedAt = protoInt64.zero;
 
+  /**
+   * @generated from field: talon.resources.PendingFileUpload pending_upload = 6;
+   */
+  pendingUpload?: PendingFileUpload;
+
   constructor(data?: PartialMessage<FileStatus>) {
     super();
     proto3.util.initPartial(data, this);
@@ -259,6 +264,7 @@ export class FileStatus extends Message<FileStatus> {
     { no: 3, name: "conditions", kind: "message", T: ResourceCondition, repeated: true },
     { no: 4, name: "object_ref", kind: "message", T: FileObjectRef },
     { no: 5, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 6, name: "pending_upload", kind: "message", T: PendingFileUpload },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FileStatus {
@@ -342,5 +348,90 @@ export class FileObjectRef extends Message<FileObjectRef> {
 
   static equals(a: FileObjectRef | PlainMessage<FileObjectRef> | undefined, b: FileObjectRef | PlainMessage<FileObjectRef> | undefined): boolean {
     return proto3.util.equals(FileObjectRef, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.PendingFileUpload
+ */
+export class PendingFileUpload extends Message<PendingFileUpload> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string object_key = 2;
+   */
+  objectKey = "";
+
+  /**
+   * @generated from field: uint64 expected_size_bytes = 3;
+   */
+  expectedSizeBytes = protoInt64.zero;
+
+  /**
+   * @generated from field: string expected_sha256 = 4;
+   */
+  expectedSha256 = "";
+
+  /**
+   * @generated from field: map<string, string> required_headers = 5;
+   */
+  requiredHeaders: { [key: string]: string } = {};
+
+  /**
+   * @generated from field: string created_by_agent = 6;
+   */
+  createdByAgent = "";
+
+  /**
+   * @generated from field: string created_by_session_id = 7;
+   */
+  createdBySessionId = "";
+
+  /**
+   * @generated from field: int64 expires_at = 8;
+   */
+  expiresAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 created_at = 9;
+   */
+  createdAt = protoInt64.zero;
+
+  constructor(data?: PartialMessage<PendingFileUpload>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.PendingFileUpload";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "object_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "expected_size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "expected_sha256", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "required_headers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 6, name: "created_by_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "created_by_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 9, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PendingFileUpload {
+    return new PendingFileUpload().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PendingFileUpload {
+    return new PendingFileUpload().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PendingFileUpload {
+    return new PendingFileUpload().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PendingFileUpload | PlainMessage<PendingFileUpload> | undefined, b: PendingFileUpload | PlainMessage<PendingFileUpload> | undefined): boolean {
+    return proto3.util.equals(PendingFileUpload, a, b);
   }
 }

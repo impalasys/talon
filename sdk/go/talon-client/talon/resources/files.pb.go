@@ -324,6 +324,7 @@ type FileStatus struct {
 	Conditions         []*ResourceCondition   `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
 	ObjectRef          *FileObjectRef         `protobuf:"bytes,4,opt,name=object_ref,json=objectRef,proto3" json:"object_ref,omitempty"`
 	UpdatedAt          int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	PendingUpload      *PendingFileUpload     `protobuf:"bytes,6,opt,name=pending_upload,json=pendingUpload,proto3" json:"pending_upload,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -391,6 +392,13 @@ func (x *FileStatus) GetUpdatedAt() int64 {
 		return x.UpdatedAt
 	}
 	return 0
+}
+
+func (x *FileStatus) GetPendingUpload() *PendingFileUpload {
+	if x != nil {
+		return x.PendingUpload
+	}
+	return nil
 }
 
 type FileObjectRef struct {
@@ -477,6 +485,114 @@ func (x *FileObjectRef) GetMetadata() map[string]string {
 	return nil
 }
 
+type PendingFileUpload struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ObjectKey          string                 `protobuf:"bytes,2,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	ExpectedSizeBytes  uint64                 `protobuf:"varint,3,opt,name=expected_size_bytes,json=expectedSizeBytes,proto3" json:"expected_size_bytes,omitempty"`
+	ExpectedSha256     string                 `protobuf:"bytes,4,opt,name=expected_sha256,json=expectedSha256,proto3" json:"expected_sha256,omitempty"`
+	RequiredHeaders    map[string]string      `protobuf:"bytes,5,rep,name=required_headers,json=requiredHeaders,proto3" json:"required_headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	CreatedByAgent     string                 `protobuf:"bytes,6,opt,name=created_by_agent,json=createdByAgent,proto3" json:"created_by_agent,omitempty"`
+	CreatedBySessionId string                 `protobuf:"bytes,7,opt,name=created_by_session_id,json=createdBySessionId,proto3" json:"created_by_session_id,omitempty"`
+	ExpiresAt          int64                  `protobuf:"varint,8,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	CreatedAt          int64                  `protobuf:"varint,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *PendingFileUpload) Reset() {
+	*x = PendingFileUpload{}
+	mi := &file_proto_resources_files_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PendingFileUpload) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PendingFileUpload) ProtoMessage() {}
+
+func (x *PendingFileUpload) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_files_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PendingFileUpload.ProtoReflect.Descriptor instead.
+func (*PendingFileUpload) Descriptor() ([]byte, []int) {
+	return file_proto_resources_files_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PendingFileUpload) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PendingFileUpload) GetObjectKey() string {
+	if x != nil {
+		return x.ObjectKey
+	}
+	return ""
+}
+
+func (x *PendingFileUpload) GetExpectedSizeBytes() uint64 {
+	if x != nil {
+		return x.ExpectedSizeBytes
+	}
+	return 0
+}
+
+func (x *PendingFileUpload) GetExpectedSha256() string {
+	if x != nil {
+		return x.ExpectedSha256
+	}
+	return ""
+}
+
+func (x *PendingFileUpload) GetRequiredHeaders() map[string]string {
+	if x != nil {
+		return x.RequiredHeaders
+	}
+	return nil
+}
+
+func (x *PendingFileUpload) GetCreatedByAgent() string {
+	if x != nil {
+		return x.CreatedByAgent
+	}
+	return ""
+}
+
+func (x *PendingFileUpload) GetCreatedBySessionId() string {
+	if x != nil {
+		return x.CreatedBySessionId
+	}
+	return ""
+}
+
+func (x *PendingFileUpload) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+func (x *PendingFileUpload) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
 var File_proto_resources_files_proto protoreflect.FileDescriptor
 
 const file_proto_resources_files_proto_rawDesc = "" +
@@ -492,7 +608,7 @@ const file_proto_resources_files_proto_rawDesc = "" +
 	"media_type\x18\x02 \x01(\tR\tmediaType\x126\n" +
 	"\apurpose\x18\x03 \x01(\x0e2\x1c.talon.resources.FilePurposeR\apurpose\x12C\n" +
 	"\findex_policy\x18\x04 \x01(\x0e2 .talon.resources.FileIndexPolicyR\vindexPolicy\x12<\n" +
-	"\tretention\x18\x05 \x01(\x0e2\x1e.talon.resources.FileRetentionR\tretention\"\xf5\x01\n" +
+	"\tretention\x18\x05 \x01(\x0e2\x1e.talon.resources.FileRetentionR\tretention\"\xc0\x02\n" +
 	"\n" +
 	"FileStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
@@ -503,7 +619,8 @@ const file_proto_resources_files_proto_rawDesc = "" +
 	"\n" +
 	"object_ref\x18\x04 \x01(\v2\x1e.talon.resources.FileObjectRefR\tobjectRef\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"\x9a\x02\n" +
+	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\x12I\n" +
+	"\x0epending_upload\x18\x06 \x01(\v2\".talon.resources.PendingFileUploadR\rpendingUpload\"\x9a\x02\n" +
 	"\rFileObjectRef\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1d\n" +
 	"\n" +
@@ -514,6 +631,22 @@ const file_proto_resources_files_proto_rawDesc = "" +
 	"\bfilename\x18\x05 \x01(\tR\bfilename\x12H\n" +
 	"\bmetadata\x18\x06 \x03(\v2,.talon.resources.FileObjectRef.MetadataEntryR\bmetadata\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xde\x03\n" +
+	"\x11PendingFileUpload\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"object_key\x18\x02 \x01(\tR\tobjectKey\x12.\n" +
+	"\x13expected_size_bytes\x18\x03 \x01(\x04R\x11expectedSizeBytes\x12'\n" +
+	"\x0fexpected_sha256\x18\x04 \x01(\tR\x0eexpectedSha256\x12b\n" +
+	"\x10required_headers\x18\x05 \x03(\v27.talon.resources.PendingFileUpload.RequiredHeadersEntryR\x0frequiredHeaders\x12(\n" +
+	"\x10created_by_agent\x18\x06 \x01(\tR\x0ecreatedByAgent\x121\n" +
+	"\x15created_by_session_id\x18\a \x01(\tR\x12createdBySessionId\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\b \x01(\x03R\texpiresAt\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\t \x01(\x03R\tcreatedAt\x1aB\n" +
+	"\x14RequiredHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*_\n" +
 	"\vFilePurpose\x12\x1c\n" +
@@ -542,7 +675,7 @@ func file_proto_resources_files_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_resources_files_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_proto_resources_files_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_resources_files_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_resources_files_proto_goTypes = []any{
 	(FilePurpose)(0),          // 0: talon.resources.FilePurpose
 	(FileIndexPolicy)(0),      // 1: talon.resources.FileIndexPolicy
@@ -551,25 +684,29 @@ var file_proto_resources_files_proto_goTypes = []any{
 	(*FileSpec)(nil),          // 4: talon.resources.FileSpec
 	(*FileStatus)(nil),        // 5: talon.resources.FileStatus
 	(*FileObjectRef)(nil),     // 6: talon.resources.FileObjectRef
-	nil,                       // 7: talon.resources.FileObjectRef.MetadataEntry
-	(*ResourceMeta)(nil),      // 8: talon.resources.ResourceMeta
-	(*ResourceCondition)(nil), // 9: talon.resources.ResourceCondition
+	(*PendingFileUpload)(nil), // 7: talon.resources.PendingFileUpload
+	nil,                       // 8: talon.resources.FileObjectRef.MetadataEntry
+	nil,                       // 9: talon.resources.PendingFileUpload.RequiredHeadersEntry
+	(*ResourceMeta)(nil),      // 10: talon.resources.ResourceMeta
+	(*ResourceCondition)(nil), // 11: talon.resources.ResourceCondition
 }
 var file_proto_resources_files_proto_depIdxs = []int32{
-	8, // 0: talon.resources.File.metadata:type_name -> talon.resources.ResourceMeta
-	4, // 1: talon.resources.File.spec:type_name -> talon.resources.FileSpec
-	5, // 2: talon.resources.File.status:type_name -> talon.resources.FileStatus
-	0, // 3: talon.resources.FileSpec.purpose:type_name -> talon.resources.FilePurpose
-	1, // 4: talon.resources.FileSpec.index_policy:type_name -> talon.resources.FileIndexPolicy
-	2, // 5: talon.resources.FileSpec.retention:type_name -> talon.resources.FileRetention
-	9, // 6: talon.resources.FileStatus.conditions:type_name -> talon.resources.ResourceCondition
-	6, // 7: talon.resources.FileStatus.object_ref:type_name -> talon.resources.FileObjectRef
-	7, // 8: talon.resources.FileObjectRef.metadata:type_name -> talon.resources.FileObjectRef.MetadataEntry
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	10, // 0: talon.resources.File.metadata:type_name -> talon.resources.ResourceMeta
+	4,  // 1: talon.resources.File.spec:type_name -> talon.resources.FileSpec
+	5,  // 2: talon.resources.File.status:type_name -> talon.resources.FileStatus
+	0,  // 3: talon.resources.FileSpec.purpose:type_name -> talon.resources.FilePurpose
+	1,  // 4: talon.resources.FileSpec.index_policy:type_name -> talon.resources.FileIndexPolicy
+	2,  // 5: talon.resources.FileSpec.retention:type_name -> talon.resources.FileRetention
+	11, // 6: talon.resources.FileStatus.conditions:type_name -> talon.resources.ResourceCondition
+	6,  // 7: talon.resources.FileStatus.object_ref:type_name -> talon.resources.FileObjectRef
+	7,  // 8: talon.resources.FileStatus.pending_upload:type_name -> talon.resources.PendingFileUpload
+	8,  // 9: talon.resources.FileObjectRef.metadata:type_name -> talon.resources.FileObjectRef.MetadataEntry
+	9,  // 10: talon.resources.PendingFileUpload.required_headers:type_name -> talon.resources.PendingFileUpload.RequiredHeadersEntry
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_files_proto_init() }
@@ -584,7 +721,7 @@ func file_proto_resources_files_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_files_proto_rawDesc), len(file_proto_resources_files_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

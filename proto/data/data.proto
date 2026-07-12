@@ -64,30 +64,6 @@ message Artifact {
   map<string, string> metadata = 10;
 }
 
-// Pending direct-to-object-storage upload for a namespace File.
-//
-// The target File is not committed to this object until CompleteFileUpload
-// validates the uploaded object metadata and patches File.status.objectRef.
-message FileUpload {
-  string id = 1;
-  string namespace = 2;
-  string file_name = 3;
-  string file_uid = 4;
-  string path = 5;
-  string media_type = 6;
-  int32 purpose = 7;
-  int32 index_policy = 8;
-  int32 retention = 9;
-  string object_key = 10;
-  uint64 expected_size_bytes = 11;
-  string expected_sha256 = 12;
-  map<string, string> required_headers = 13;
-  string created_by_agent = 14;
-  string created_by_session_id = 15;
-  int64 expires_at = 16;
-  int64 created_at = 17;
-  bool consumed = 18;
-}
 // Opaque access grant for a File or Artifact handle.
 //
 // Handle strings resolve to these KV-backed grant records. Callers must present
