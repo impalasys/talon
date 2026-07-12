@@ -82,7 +82,24 @@ describe('resource mappers', () => {
       spec: { kind: 'cron', enabled: true },
       status: { nextRunAt: 20n },
     });
-    expect(scheduleDocumentFromResource(schedule).spec.kind).toBe('cron');
+    expect(scheduleDocumentFromResource(schedule)).toMatchObject({
+      spec: { kind: 'cron', enabled: true },
+      status: { nextRunAt: '20' },
+    });
+
+    const bytes = new Uint8Array([12, 34]);
+    expect(scheduleDocumentFromResource(resource('schedule', { payload: bytes })).spec.payload).toBe(bytes);
+
+    const protobufScheduleSpec = Object.assign(Object.create({}), {
+      $typeName: 'talon.resources.ScheduleSpec',
+      nextRunAt: 30n,
+      payload: bytes,
+    });
+    expect(scheduleDocumentFromResource(resource('schedule', protobufScheduleSpec)).spec).toEqual({
+      nextRunAt: '30',
+      payload: bytes,
+    });
+
     expect(knowledgeFromResource(resource('knowledge', { path: '/docs', content: 'hello' })).spec).toEqual({
       path: '/docs',
       content: 'hello',
