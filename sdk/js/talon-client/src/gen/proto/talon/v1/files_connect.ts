@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ArtifactHandleResponse, ArtifactResponse, CreateFileRequest, DeleteFileRequest, DeleteFileResponse, FileResponse, GetArtifactMetadataRequest, GetFileMetadataRequest, GrantArtifactRequest, ListArtifactsRequest, ListArtifactsResponse, ListFilesRequest, ListFilesResponse, PromoteArtifactRequest, ReadArtifactRequest, ReadArtifactResponse, ReadFileRequest, ReadFileResponse, UpdateFileRequest } from "./files_pb.js";
+import { ArtifactHandleResponse, ArtifactResponse, CompleteFileUploadRequest, CreateFileRequest, DeleteFileRequest, DeleteFileResponse, FileResponse, GetArtifactMetadataRequest, GetFileMetadataRequest, GrantArtifactRequest, ListArtifactsRequest, ListArtifactsResponse, ListFilesRequest, ListFilesResponse, PrepareFileUploadRequest, PrepareFileUploadResponse, PromoteArtifactRequest, ReadArtifactRequest, ReadArtifactResponse, ReadFileRequest, ReadFileResponse, UpdateFileRequest } from "./files_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -22,6 +22,24 @@ export const FileService = {
     createFile: {
       name: "CreateFile",
       I: CreateFileRequest,
+      O: FileResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.FileService.PrepareFileUpload
+     */
+    prepareFileUpload: {
+      name: "PrepareFileUpload",
+      I: PrepareFileUploadRequest,
+      O: PrepareFileUploadResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.FileService.CompleteFileUpload
+     */
+    completeFileUpload: {
+      name: "CompleteFileUpload",
+      I: CompleteFileUploadRequest,
       O: FileResponse,
       kind: MethodKind.Unary,
     },
