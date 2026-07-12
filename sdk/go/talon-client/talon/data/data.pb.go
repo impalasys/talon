@@ -1577,7 +1577,7 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x10content_encoding\x18\a \x01(\tR\x0fcontentEncoding\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe5\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xdf\x03\n" +
 	"\bArtifact\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -1598,7 +1598,7 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x04\x10\x05\"\x9a\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9a\x02\n" +
 	"\x0eArtifactAccess\x12!\n" +
 	"\ftarget_agent\x18\x01 \x01(\tR\vtargetAgent\x12*\n" +
 	"\x11target_session_id\x18\x02 \x01(\tR\x0ftargetSessionId\x12\x1e\n" +

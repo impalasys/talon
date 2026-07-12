@@ -1554,7 +1554,7 @@ const file_proto_talon_v1_files_proto_rawDesc = "" +
 	"signed_url\x18\x03 \x01(\tR\tsignedUrl\x12I\n" +
 	"\"signed_url_expires_at_unix_seconds\x18\x04 \x01(\x03R\x1dsignedUrlExpiresAtUnixSeconds\"?\n" +
 	"\x1aGetArtifactMetadataRequest\x12!\n" +
-	"\fartifact_uri\x18\x01 \x01(\tR\vartifactUri\"\xa4\x01\n" +
+	"\fartifact_uri\x18\x01 \x01(\tR\vartifactUri\"\x9e\x01\n" +
 	"\x14ListArtifactsRequest\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1d\n" +
@@ -1562,7 +1562,7 @@ const file_proto_talon_v1_files_proto_rawDesc = "" +
 	"session_id\x18\x03 \x01(\tR\tsessionId\x12\x14\n" +
 	"\x05limit\x18\x05 \x01(\rR\x05limit\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x06 \x01(\tR\tpageTokenJ\x04\b\x04\x10\x05\"s\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken\"s\n" +
 	"\x15ListArtifactsResponse\x122\n" +
 	"\tartifacts\x18\x01 \x03(\v2\x14.talon.data.ArtifactR\tartifacts\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xc9\x01\n" +
