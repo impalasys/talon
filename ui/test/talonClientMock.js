@@ -40,5 +40,20 @@ function createTalonClient() {
 module.exports = {
   buildAuthorizationHeader,
   createTalonClient,
-  data: {},
+  data: {
+    MessageRole: {
+      ROLE_ASSISTANT: "ROLE_ASSISTANT",
+      ROLE_USER: "ROLE_USER",
+      ROLE_SYSTEM: "ROLE_SYSTEM",
+    },
+    SessionMessagePartType: {
+      TEXT: "SESSION_MESSAGE_PART_TYPE_TEXT",
+      REASONING: "SESSION_MESSAGE_PART_TYPE_REASONING",
+      TOOL_CALL: "SESSION_MESSAGE_PART_TYPE_TOOL_CALL",
+      TOOL_RESULT: "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT",
+      USAGE: "SESSION_MESSAGE_PART_TYPE_USAGE",
+      ERROR: "SESSION_MESSAGE_PART_TYPE_ERROR",
+      IMAGE: "SESSION_MESSAGE_PART_TYPE_IMAGE",
+    },
+  },
 };

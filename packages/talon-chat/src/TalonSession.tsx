@@ -26,6 +26,12 @@ import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
 
 const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
+const SESSION_MESSAGE_PART_TYPE = {
+  TEXT: (data.SessionMessagePartType?.TEXT ?? "SESSION_MESSAGE_PART_TYPE_TEXT") as data.SessionMessagePartType,
+  TOOL_RESULT: (data.SessionMessagePartType?.TOOL_RESULT ?? "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT") as data.SessionMessagePartType,
+  IMAGE: (data.SessionMessagePartType?.IMAGE ?? "SESSION_MESSAGE_PART_TYPE_IMAGE") as data.SessionMessagePartType,
+};
+
 export type SessionServiceClientLike = {
   sessions: Pick<
     TalonClient["sessions"],
@@ -316,13 +322,13 @@ function protoSessionPartsFromChatParts(parts: unknown) {
   return (serializableMessageParts(parts) || []).map((part: any) => {
     if (part?.type === "image") {
       return {
-        partType: data.SessionMessagePartType.IMAGE,
+        partType: SESSION_MESSAGE_PART_TYPE.IMAGE,
         payloadJson: part.payloadJson ?? part.payload_json ?? "",
         object: part.object,
       };
     }
     return {
-      partType: data.SessionMessagePartType.TEXT,
+      partType: SESSION_MESSAGE_PART_TYPE.TEXT,
       content: String(part?.text ?? part?.content ?? ""),
     };
   });
@@ -330,7 +336,7 @@ function protoSessionPartsFromChatParts(parts: unknown) {
 
 function isSessionTextPart(part: any) {
   const type = part?.type ?? part?.partType ?? part?.part_type;
-  return type === "text" || type === data.SessionMessagePartType.TEXT || type === "SESSION_MESSAGE_PART_TYPE_TEXT";
+  return type === "text" || type === SESSION_MESSAGE_PART_TYPE.TEXT || type === "SESSION_MESSAGE_PART_TYPE_TEXT";
 }
 
 function replaceMessageTextPart(message: CopilotMessage, text: string) {
@@ -355,7 +361,7 @@ function replaceMessageTextPart(message: CopilotMessage, text: string) {
   return [
     ...parts,
     {
-      partType: data.SessionMessagePartType.TEXT,
+      partType: SESSION_MESSAGE_PART_TYPE.TEXT,
       content: text,
     },
   ];
@@ -366,7 +372,7 @@ function messagePartsForSessionUpdate(message: CopilotMessage) {
     ? message.parts
     : [
         {
-          partType: data.SessionMessagePartType.TEXT,
+          partType: SESSION_MESSAGE_PART_TYPE.TEXT,
           content: getMessageContent(message),
         },
       ];
@@ -401,7 +407,7 @@ function objectRefContentEncoding(object: TalonChatObjectRef | undefined): strin
 
 function isToolResultPart(part: any) {
   const type = part?.type ?? part?.partType ?? part?.part_type;
-  return type === data.SessionMessagePartType.TOOL_RESULT || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
+  return type === SESSION_MESSAGE_PART_TYPE.TOOL_RESULT || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
 }
 
 function withToolResultContent(part: any, output: string) {
@@ -497,7 +503,7 @@ function messageImageParts(
   if (!Array.isArray(message.parts)) return [];
   return message.parts.flatMap((part: any, index) => {
     const type = part?.type ?? part?.partType ?? part?.part_type;
-    if (type !== "image" && type !== data.SessionMessagePartType.IMAGE && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
+    if (type !== "image" && type !== SESSION_MESSAGE_PART_TYPE.IMAGE && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
       return [];
     }
     const payload = parsePayloadJson(part.payloadJson ?? part.payload_json);
@@ -645,7 +651,7 @@ function messageWithEditedContent(message: CopilotMessage, nextContent: string):
       const type = part?.partType ?? part?.part_type ?? part?.type;
       const isTextPart =
         type === "text" ||
-        type === data.SessionMessagePartType.TEXT ||
+        type === SESSION_MESSAGE_PART_TYPE.TEXT ||
         type === "SESSION_MESSAGE_PART_TYPE_TEXT";
       if (!isTextPart || replacedTextPart) {
         return part;

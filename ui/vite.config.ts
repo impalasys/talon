@@ -22,6 +22,10 @@ export default defineConfig({
       allow: [repoRoot],
     },
   },
+  preview: {
+    host: '0.0.0.0',
+    port: 3000,
+  },
   define: {
     'process.env.NEXT_PUBLIC_GATEWAY_URL': JSON.stringify(
       process.env.VITE_GATEWAY_URL ?? process.env.NEXT_PUBLIC_GATEWAY_URL ?? '',
