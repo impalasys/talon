@@ -25,19 +25,19 @@ service FileService {
 
 service ArtifactService {
   // Artifact creation is handled by the runtime/tooling for an active session.
-  // This service only exposes handle-based artifact reads, metadata, listing,
-  // and grant operations.
+  // This service only exposes URI-based artifact reads, metadata, listing,
+  // and access grant operations.
   rpc ReadArtifact(ReadArtifactRequest) returns (ReadArtifactResponse);
   rpc GetArtifactMetadata(GetArtifactMetadataRequest) returns (ArtifactResponse);
   rpc ListArtifacts(ListArtifactsRequest) returns (ListArtifactsResponse);
-  rpc GrantArtifact(GrantArtifactRequest) returns (ArtifactHandleResponse);
+  rpc GrantArtifact(GrantArtifactRequest) returns (ArtifactUriResponse);
 }
 
 message FileRef {
   string namespace = 1;
   string name = 2;
   string path = 3;
-  string handle = 4;
+  string uri = 4;
 }
 
 message CreateFileRequest {
@@ -120,7 +120,7 @@ message DeleteFileResponse {
 }
 
 message PromoteArtifactRequest {
-  string artifact_handle = 1;
+  string artifact_uri = 1;
   string target_path = 2;
   string media_type = 3;
   talon.resources.FilePurpose purpose = 4;
@@ -130,11 +130,11 @@ message PromoteArtifactRequest {
 
 message FileResponse {
   talon.resources.File file = 1;
-  string file_handle = 2;
+  string file_uri = 2;
 }
 
 message ReadArtifactRequest {
-  string artifact_handle = 1;
+  string artifact_uri = 1;
 }
 
 message ReadArtifactResponse {
@@ -145,7 +145,7 @@ message ReadArtifactResponse {
 }
 
 message GetArtifactMetadataRequest {
-  string artifact_handle = 1;
+  string artifact_uri = 1;
 }
 
 message ListArtifactsRequest {
@@ -163,7 +163,7 @@ message ListArtifactsResponse {
 }
 
 message GrantArtifactRequest {
-  string artifact_handle = 1;
+  string artifact_uri = 1;
   string target_agent = 2;
   string target_session_id = 3;
   repeated string operations = 4;
@@ -172,9 +172,9 @@ message GrantArtifactRequest {
 
 message ArtifactResponse {
   talon.data.Artifact artifact = 1;
-  string artifact_handle = 2;
+  string artifact_uri = 2;
 }
 
-message ArtifactHandleResponse {
-  string artifact_handle = 1;
+message ArtifactUriResponse {
+  string artifact_uri = 1;
 }

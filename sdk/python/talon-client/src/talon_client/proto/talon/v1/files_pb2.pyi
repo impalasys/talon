@@ -9,16 +9,16 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class FileRef(_message.Message):
-    __slots__ = ("namespace", "name", "path", "handle")
+    __slots__ = ("namespace", "name", "path", "uri")
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
-    HANDLE_FIELD_NUMBER: _ClassVar[int]
+    URI_FIELD_NUMBER: _ClassVar[int]
     namespace: str
     name: str
     path: str
-    handle: str
-    def __init__(self, namespace: _Optional[str] = ..., name: _Optional[str] = ..., path: _Optional[str] = ..., handle: _Optional[str] = ...) -> None: ...
+    uri: str
+    def __init__(self, namespace: _Optional[str] = ..., name: _Optional[str] = ..., path: _Optional[str] = ..., uri: _Optional[str] = ...) -> None: ...
 
 class CreateFileRequest(_message.Message):
     __slots__ = ("namespace", "path", "media_type", "purpose", "index_policy", "retention", "content")
@@ -162,34 +162,34 @@ class DeleteFileResponse(_message.Message):
     def __init__(self, success: bool = ...) -> None: ...
 
 class PromoteArtifactRequest(_message.Message):
-    __slots__ = ("artifact_handle", "target_path", "media_type", "purpose", "index_policy", "retention")
-    ARTIFACT_HANDLE_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("artifact_uri", "target_path", "media_type", "purpose", "index_policy", "retention")
+    ARTIFACT_URI_FIELD_NUMBER: _ClassVar[int]
     TARGET_PATH_FIELD_NUMBER: _ClassVar[int]
     MEDIA_TYPE_FIELD_NUMBER: _ClassVar[int]
     PURPOSE_FIELD_NUMBER: _ClassVar[int]
     INDEX_POLICY_FIELD_NUMBER: _ClassVar[int]
     RETENTION_FIELD_NUMBER: _ClassVar[int]
-    artifact_handle: str
+    artifact_uri: str
     target_path: str
     media_type: str
     purpose: _files_pb2.FilePurpose
     index_policy: _files_pb2.FileIndexPolicy
     retention: _files_pb2.FileRetention
-    def __init__(self, artifact_handle: _Optional[str] = ..., target_path: _Optional[str] = ..., media_type: _Optional[str] = ..., purpose: _Optional[_Union[_files_pb2.FilePurpose, str]] = ..., index_policy: _Optional[_Union[_files_pb2.FileIndexPolicy, str]] = ..., retention: _Optional[_Union[_files_pb2.FileRetention, str]] = ...) -> None: ...
+    def __init__(self, artifact_uri: _Optional[str] = ..., target_path: _Optional[str] = ..., media_type: _Optional[str] = ..., purpose: _Optional[_Union[_files_pb2.FilePurpose, str]] = ..., index_policy: _Optional[_Union[_files_pb2.FileIndexPolicy, str]] = ..., retention: _Optional[_Union[_files_pb2.FileRetention, str]] = ...) -> None: ...
 
 class FileResponse(_message.Message):
-    __slots__ = ("file", "file_handle")
+    __slots__ = ("file", "file_uri")
     FILE_FIELD_NUMBER: _ClassVar[int]
-    FILE_HANDLE_FIELD_NUMBER: _ClassVar[int]
+    FILE_URI_FIELD_NUMBER: _ClassVar[int]
     file: _files_pb2.File
-    file_handle: str
-    def __init__(self, file: _Optional[_Union[_files_pb2.File, _Mapping]] = ..., file_handle: _Optional[str] = ...) -> None: ...
+    file_uri: str
+    def __init__(self, file: _Optional[_Union[_files_pb2.File, _Mapping]] = ..., file_uri: _Optional[str] = ...) -> None: ...
 
 class ReadArtifactRequest(_message.Message):
-    __slots__ = ("artifact_handle",)
-    ARTIFACT_HANDLE_FIELD_NUMBER: _ClassVar[int]
-    artifact_handle: str
-    def __init__(self, artifact_handle: _Optional[str] = ...) -> None: ...
+    __slots__ = ("artifact_uri",)
+    ARTIFACT_URI_FIELD_NUMBER: _ClassVar[int]
+    artifact_uri: str
+    def __init__(self, artifact_uri: _Optional[str] = ...) -> None: ...
 
 class ReadArtifactResponse(_message.Message):
     __slots__ = ("artifact", "content", "signed_url", "signed_url_expires_at_unix_seconds")
@@ -204,10 +204,10 @@ class ReadArtifactResponse(_message.Message):
     def __init__(self, artifact: _Optional[_Union[_data_pb2.Artifact, _Mapping]] = ..., content: _Optional[bytes] = ..., signed_url: _Optional[str] = ..., signed_url_expires_at_unix_seconds: _Optional[int] = ...) -> None: ...
 
 class GetArtifactMetadataRequest(_message.Message):
-    __slots__ = ("artifact_handle",)
-    ARTIFACT_HANDLE_FIELD_NUMBER: _ClassVar[int]
-    artifact_handle: str
-    def __init__(self, artifact_handle: _Optional[str] = ...) -> None: ...
+    __slots__ = ("artifact_uri",)
+    ARTIFACT_URI_FIELD_NUMBER: _ClassVar[int]
+    artifact_uri: str
+    def __init__(self, artifact_uri: _Optional[str] = ...) -> None: ...
 
 class ListArtifactsRequest(_message.Message):
     __slots__ = ("namespace", "agent", "session_id", "prefix", "limit", "page_token")
@@ -234,29 +234,29 @@ class ListArtifactsResponse(_message.Message):
     def __init__(self, artifacts: _Optional[_Iterable[_Union[_data_pb2.Artifact, _Mapping]]] = ..., next_page_token: _Optional[str] = ...) -> None: ...
 
 class GrantArtifactRequest(_message.Message):
-    __slots__ = ("artifact_handle", "target_agent", "target_session_id", "operations", "ttl_seconds")
-    ARTIFACT_HANDLE_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("artifact_uri", "target_agent", "target_session_id", "operations", "ttl_seconds")
+    ARTIFACT_URI_FIELD_NUMBER: _ClassVar[int]
     TARGET_AGENT_FIELD_NUMBER: _ClassVar[int]
     TARGET_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     OPERATIONS_FIELD_NUMBER: _ClassVar[int]
     TTL_SECONDS_FIELD_NUMBER: _ClassVar[int]
-    artifact_handle: str
+    artifact_uri: str
     target_agent: str
     target_session_id: str
     operations: _containers.RepeatedScalarFieldContainer[str]
     ttl_seconds: int
-    def __init__(self, artifact_handle: _Optional[str] = ..., target_agent: _Optional[str] = ..., target_session_id: _Optional[str] = ..., operations: _Optional[_Iterable[str]] = ..., ttl_seconds: _Optional[int] = ...) -> None: ...
+    def __init__(self, artifact_uri: _Optional[str] = ..., target_agent: _Optional[str] = ..., target_session_id: _Optional[str] = ..., operations: _Optional[_Iterable[str]] = ..., ttl_seconds: _Optional[int] = ...) -> None: ...
 
 class ArtifactResponse(_message.Message):
-    __slots__ = ("artifact", "artifact_handle")
+    __slots__ = ("artifact", "artifact_uri")
     ARTIFACT_FIELD_NUMBER: _ClassVar[int]
-    ARTIFACT_HANDLE_FIELD_NUMBER: _ClassVar[int]
+    ARTIFACT_URI_FIELD_NUMBER: _ClassVar[int]
     artifact: _data_pb2.Artifact
-    artifact_handle: str
-    def __init__(self, artifact: _Optional[_Union[_data_pb2.Artifact, _Mapping]] = ..., artifact_handle: _Optional[str] = ...) -> None: ...
+    artifact_uri: str
+    def __init__(self, artifact: _Optional[_Union[_data_pb2.Artifact, _Mapping]] = ..., artifact_uri: _Optional[str] = ...) -> None: ...
 
-class ArtifactHandleResponse(_message.Message):
-    __slots__ = ("artifact_handle",)
-    ARTIFACT_HANDLE_FIELD_NUMBER: _ClassVar[int]
-    artifact_handle: str
-    def __init__(self, artifact_handle: _Optional[str] = ...) -> None: ...
+class ArtifactUriResponse(_message.Message):
+    __slots__ = ("artifact_uri",)
+    ARTIFACT_URI_FIELD_NUMBER: _ClassVar[int]
+    artifact_uri: str
+    def __init__(self, artifact_uri: _Optional[str] = ...) -> None: ...

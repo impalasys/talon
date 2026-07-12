@@ -38,9 +38,9 @@ message ObjectRef {
 // Session-scoped immutable output produced by an agent.
 //
 // Artifacts are not namespace-level File resources. They live under the
-// owning session/run, are exchanged through HandleGrant records, and are not
-// indexed directly. Promoting an Artifact to a durable File copies its bytes
-// into File-owned CAS storage and creates or updates a File resource.
+// owning session/run, are referenced by artifact:// URIs, and are not indexed
+// directly. Promoting an Artifact to a durable File copies its bytes into
+// File-owned CAS storage and creates or updates a File resource.
 message Artifact {
   // Stable artifact id unique within the namespace/session artifact store.
   string id = 1;
@@ -64,35 +64,27 @@ message Artifact {
   map<string, string> metadata = 10;
 }
 
-// Opaque access grant for a File or Artifact handle.
+// Target-local access record for an artifact URI.
 //
-// Handle strings include an encoded target locator plus this grant id. File
-// grants are stored under the target File; Artifact grants are stored under the
-// target Artifact. Callers must present a valid handle and match the recorded
-// audience before FileService or ArtifactService allows the requested operation.
-message HandleGrant {
-  // Opaque grant id encoded into the external handle string.
-  string id = 1;
-  // Namespace containing the target resource or session child record.
-  string namespace = 2;
-  // Target kind, currently ARTIFACT or FILE.
-  string kind = 3;
-  // Target id, such as an artifact id or File resource name.
-  string target_id = 4;
-  // Agent that minted the grant.
-  string agent = 5;
-  // Session that minted the grant, when the grant is session scoped.
-  string session_id = 6;
-  // Allowed operations, such as read, metadata, promote, or write.
-  repeated string operations = 7;
-  // Optional agent audience. Empty means any authorized agent may use it.
-  string audience_agent = 8;
-  // Optional session audience. Empty means any authorized session may use it.
-  string audience_session_id = 9;
-  // Unix timestamp in microseconds when the grant expires. Zero means unset.
-  int64 expires_at = 10;
-  // Unix timestamp in microseconds when the grant was created.
-  int64 created_at = 11;
+// Artifact URIs are references, not bearer secrets. A caller can use an
+// artifact:// URI only when it is the owning session or when an ArtifactAccess
+// child record under that artifact grants the caller session the requested
+// operation.
+message ArtifactAccess {
+  // Agent that may access the artifact.
+  string target_agent = 1;
+  // Session that may access the artifact.
+  string target_session_id = 2;
+  // Allowed operations, such as read, metadata, or promote.
+  repeated string operations = 3;
+  // Unix timestamp in microseconds when access expires. Zero means unset.
+  int64 expires_at = 4;
+  // Agent that granted access.
+  string granted_by_agent = 5;
+  // Session that granted access.
+  string granted_by_session_id = 6;
+  // Unix timestamp in microseconds when the access record was created.
+  int64 created_at = 7;
 }
 
 message Principal {
