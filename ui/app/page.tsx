@@ -1269,6 +1269,8 @@ function DebuggerPageContent() {
     );
   }
 
+  const selectedSession = selectedNamespace?.type === 'session' ? selectedNamespace : null;
+
   return (
     <div className="sightline-app-viewport flex min-w-0 flex-row overflow-x-hidden overflow-y-hidden bg-background text-foreground">
       {/* Invisible Hover Zone at Left Edge */}
@@ -1367,26 +1369,27 @@ function DebuggerPageContent() {
         />
 
         <MainPanel
-          isSessionSelected={selectedNamespace?.type === 'session'}
+          isSessionSelected={Boolean(selectedSession)}
           sessionContent={
-            <div className={cn("flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
-              {sessionConnectorMetadata ? (
-                <div className="mx-auto mt-3 flex w-[calc(100%-2rem)] max-w-4xl flex-wrap items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/8 px-3 py-2 text-xs text-emerald-200">
-                  <Plug className="h-3.5 w-3.5" />
-                  <span className="font-medium">{sessionConnectorMetadata.connectorClass || 'connector'}</span>
-                  {sessionConnectorMetadata.connector ? <span className="text-emerald-100/70">{sessionConnectorMetadata.connector}</span> : null}
-                  <span className="min-w-0 truncate text-emerald-100/80">{sessionConnectorMetadata.externalConversation}</span>
-                  {sessionConnectorMetadata.externalSender ? <span className="text-emerald-100/60">from {sessionConnectorMetadata.externalSender}</span> : null}
-                  {sessionConnectorMetadata.conversationType ? <span className="ml-auto rounded-full bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100/80">{sessionConnectorMetadata.conversationType}</span> : null}
-                </div>
-              ) : null}
-              <div className="min-h-0 flex-1 overflow-hidden">
-                <TalonCopilot
-                  className="h-full"
-                  namespace={selectedNamespace.ns}
-                  agent={selectedNamespace.agent || 'default'}
-                  sessionId={selectedNamespace.type === 'session' ? selectedNamespace.sessionId : undefined}
-                  gatewayClient={getGatewayClient()}
+            selectedSession ? (
+              <div className={cn("flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
+                {sessionConnectorMetadata ? (
+                  <div className="mx-auto mt-3 flex w-[calc(100%-2rem)] max-w-4xl flex-wrap items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/8 px-3 py-2 text-xs text-emerald-200">
+                    <Plug className="h-3.5 w-3.5" />
+                    <span className="font-medium">{sessionConnectorMetadata.connectorClass || 'connector'}</span>
+                    {sessionConnectorMetadata.connector ? <span className="text-emerald-100/70">{sessionConnectorMetadata.connector}</span> : null}
+                    <span className="min-w-0 truncate text-emerald-100/80">{sessionConnectorMetadata.externalConversation}</span>
+                    {sessionConnectorMetadata.externalSender ? <span className="text-emerald-100/60">from {sessionConnectorMetadata.externalSender}</span> : null}
+                    {sessionConnectorMetadata.conversationType ? <span className="ml-auto rounded-full bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100/80">{sessionConnectorMetadata.conversationType}</span> : null}
+                  </div>
+                ) : null}
+                <div className="min-h-0 flex-1 overflow-hidden">
+                  <TalonCopilot
+                    className="h-full"
+                    namespace={selectedSession.ns}
+                    agent={selectedSession.agent || 'default'}
+                    sessionId={selectedSession.sessionId}
+                    gatewayClient={getGatewayClient()}
                   historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
                   enabledBuiltInCommands={['clear']}
                   onImageUpload={sessionComposerRole === 'assistant' || !imageUploadsEnabled ? undefined : uploadTalonImage}
@@ -1446,15 +1449,16 @@ function DebuggerPageContent() {
                   onSessionChange={(nextSessionId) => {
                     handleSelectionChange({
                       type: 'session',
-                      ns: selectedNamespace.ns,
-                      agent: selectedNamespace.agent || 'default',
+                      ns: selectedSession.ns,
+                      agent: selectedSession.agent || 'default',
                       sessionId: nextSessionId,
-                      fullPath: `${selectedNamespace.ns}/${selectedNamespace.agent || 'default'}/${nextSessionId}`,
+                      fullPath: `${selectedSession.ns}/${selectedSession.agent || 'default'}/${nextSessionId}`,
                     });
                   }}
                 />
               </div>
             </div>
+            ) : null
           }
           resourceContent={
             <ResourceInspector
