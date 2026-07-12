@@ -1,3 +1,4 @@
+import hashlib
 import time
 import uuid
 from pathlib import Path
@@ -6,6 +7,16 @@ import pytest
 
 from e2e import scenarios as e2e
 from e2e.stack import E2EStack
+
+
+def file_resource_name_for_path(path: str) -> str:
+    slug = "".join(
+        ch.lower() if ch.isascii() and ch.isalnum() else "-"
+        for ch in path.strip("/")
+    )
+    slug = slug.strip("-")[:48] or "file"
+    digest = hashlib.sha256(path.encode()).hexdigest()
+    return f"{slug}-{digest[:12]}"
 
 
 @pytest.fixture
@@ -161,3 +172,113 @@ status:
 
     assert result.returncode != 0
     assert "Resource manifests cannot set status" in (result.stderr + result.stdout)
+
+
+def test_cli_apply_file_manifest_with_symbolic_enums_sqlite_local_socket(
+    stack: E2EStack,
+    tmp_path: Path,
+) -> None:
+    cli = stack.cli()
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-file-yaml-{suffix}"
+    file_name = file_resource_name_for_path("/memory/brand-guidelines.md")
+    manifest = tmp_path / "file.yaml"
+    manifest.write_text(
+        f"""
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: {namespace}
+---
+apiVersion: talon.impalasys.com/v1
+kind: File
+metadata:
+  name: {file_name}
+  namespace: {namespace}
+spec:
+  path: /memory/brand-guidelines.md
+  mediaType: text/markdown
+  purpose: MEMORY
+  indexPolicy: RETRIEVAL
+  retention: RETAINED
+"""
+    )
+
+    cli.run("apply", "-f", str(manifest))
+    resource = e2e.get_resource(
+        cli,
+        "file",
+        file_name,
+        namespace,
+    )
+
+    assert resource["kind"] == "File"
+    assert resource["spec"]["purpose"] == "MEMORY"
+    assert resource["spec"]["indexPolicy"] == "RETRIEVAL"
+    assert resource["spec"]["retention"] == "RETAINED"
+
+    rendered = cli.run(
+        "get",
+        "file",
+        file_name,
+        "--namespace",
+        namespace,
+        "--output",
+        "yaml",
+    ).stdout
+    assert "purpose: MEMORY" in rendered
+    assert "indexPolicy: RETRIEVAL" in rendered
+    assert "retention: RETAINED" in rendered
+
+
+def test_cli_apply_task_manifest_with_symbolic_enums_sqlite_local_socket(
+    stack: E2EStack,
+    tmp_path: Path,
+) -> None:
+    cli = stack.cli()
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-task-yaml-{suffix}"
+    manifest = tmp_path / "task.yaml"
+    manifest.write_text(
+        f"""
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: {namespace}
+---
+apiVersion: talon.impalasys.com/v1
+kind: Task
+metadata:
+  name: launch-copy-{suffix}
+  namespace: {namespace}
+spec:
+  title: Launch copy
+  description: Draft launch copy.
+  type: COPYWRITING
+  requester:
+    namespace: {namespace}
+    agent: cmo
+    sessionId: session-{suffix}
+  assignee:
+    namespace: {namespace}
+    agent: writer
+    sessionId: writer-session-{suffix}
+"""
+    )
+
+    cli.run("apply", "-f", str(manifest))
+    resource = e2e.get_resource(cli, "task", f"launch-copy-{suffix}", namespace)
+
+    assert resource["kind"] == "Task"
+    assert resource["spec"]["type"] == "COPYWRITING"
+
+    rendered = cli.run(
+        "get",
+        "task",
+        f"launch-copy-{suffix}",
+        "--namespace",
+        namespace,
+        "--output",
+        "yaml",
+    ).stdout
+    assert "type: COPYWRITING" in rendered
