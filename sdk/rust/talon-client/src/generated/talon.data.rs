@@ -174,9 +174,6 @@ pub struct Artifact {
     /// Human-readable label suitable for UI display.
     #[prost(string, tag = "3")]
     pub title: ::prost::alloc::string::String,
-    /// Session-local logical path, such as /outputs/final-draft.md.
-    #[prost(string, tag = "4")]
-    pub path: ::prost::alloc::string::String,
     /// Media type of the artifact content, for example text/markdown.
     #[prost(string, tag = "5")]
     pub media_type: ::prost::alloc::string::String,

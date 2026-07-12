@@ -230,13 +230,6 @@ export class Artifact extends Message<Artifact> {
   title = "";
 
   /**
-   * Session-local logical path, such as /outputs/final-draft.md.
-   *
-   * @generated from field: string path = 4;
-   */
-  path = "";
-
-  /**
    * Media type of the artifact content, for example text/markdown.
    *
    * @generated from field: string media_type = 5;
@@ -289,7 +282,6 @@ export class Artifact extends Message<Artifact> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "object_ref", kind: "message", T: ObjectRef },
     { no: 7, name: "created_by_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },

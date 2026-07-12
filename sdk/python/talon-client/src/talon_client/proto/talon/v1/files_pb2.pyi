@@ -210,20 +210,18 @@ class GetArtifactMetadataRequest(_message.Message):
     def __init__(self, artifact_uri: _Optional[str] = ...) -> None: ...
 
 class ListArtifactsRequest(_message.Message):
-    __slots__ = ("namespace", "agent", "session_id", "prefix", "limit", "page_token")
+    __slots__ = ("namespace", "agent", "session_id", "limit", "page_token")
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
     AGENT_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    PREFIX_FIELD_NUMBER: _ClassVar[int]
     LIMIT_FIELD_NUMBER: _ClassVar[int]
     PAGE_TOKEN_FIELD_NUMBER: _ClassVar[int]
     namespace: str
     agent: str
     session_id: str
-    prefix: str
     limit: int
     page_token: str
-    def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., prefix: _Optional[str] = ..., limit: _Optional[int] = ..., page_token: _Optional[str] = ...) -> None: ...
+    def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., limit: _Optional[int] = ..., page_token: _Optional[str] = ...) -> None: ...
 
 class ListArtifactsResponse(_message.Message):
     __slots__ = ("artifacts", "next_page_token")

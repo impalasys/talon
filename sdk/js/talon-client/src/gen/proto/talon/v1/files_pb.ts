@@ -952,11 +952,6 @@ export class ListArtifactsRequest extends Message<ListArtifactsRequest> {
   sessionId = "";
 
   /**
-   * @generated from field: string prefix = 4;
-   */
-  prefix = "";
-
-  /**
    * @generated from field: uint32 limit = 5;
    */
   limit = 0;
@@ -977,7 +972,6 @@ export class ListArtifactsRequest extends Message<ListArtifactsRequest> {
     { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "prefix", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "limit", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 6, name: "page_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);

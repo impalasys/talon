@@ -152,7 +152,7 @@ message ListArtifactsRequest {
   string namespace = 1;
   string agent = 2;
   string session_id = 3;
-  string prefix = 4;
+  reserved 4;
   uint32 limit = 5;
   string page_token = 6;
 }

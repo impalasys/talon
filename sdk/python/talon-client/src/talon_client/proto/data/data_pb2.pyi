@@ -73,7 +73,7 @@ class ObjectRef(_message.Message):
     def __init__(self, key: _Optional[str] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ..., content_encoding: _Optional[str] = ...) -> None: ...
 
 class Artifact(_message.Message):
-    __slots__ = ("id", "session_id", "title", "path", "media_type", "object_ref", "created_by_agent", "created_at", "labels", "metadata")
+    __slots__ = ("id", "session_id", "title", "media_type", "object_ref", "created_by_agent", "created_at", "labels", "metadata")
     class LabelsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -91,7 +91,6 @@ class Artifact(_message.Message):
     ID_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     TITLE_FIELD_NUMBER: _ClassVar[int]
-    PATH_FIELD_NUMBER: _ClassVar[int]
     MEDIA_TYPE_FIELD_NUMBER: _ClassVar[int]
     OBJECT_REF_FIELD_NUMBER: _ClassVar[int]
     CREATED_BY_AGENT_FIELD_NUMBER: _ClassVar[int]
@@ -101,14 +100,13 @@ class Artifact(_message.Message):
     id: str
     session_id: str
     title: str
-    path: str
     media_type: str
     object_ref: ObjectRef
     created_by_agent: str
     created_at: int
     labels: _containers.ScalarMap[str, str]
     metadata: _containers.ScalarMap[str, str]
-    def __init__(self, id: _Optional[str] = ..., session_id: _Optional[str] = ..., title: _Optional[str] = ..., path: _Optional[str] = ..., media_type: _Optional[str] = ..., object_ref: _Optional[_Union[ObjectRef, _Mapping]] = ..., created_by_agent: _Optional[str] = ..., created_at: _Optional[int] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., session_id: _Optional[str] = ..., title: _Optional[str] = ..., media_type: _Optional[str] = ..., object_ref: _Optional[_Union[ObjectRef, _Mapping]] = ..., created_by_agent: _Optional[str] = ..., created_at: _Optional[int] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class ArtifactAccess(_message.Message):
     __slots__ = ("target_agent", "target_session_id", "operations", "expires_at", "granted_by_agent", "granted_by_session_id", "created_at")
