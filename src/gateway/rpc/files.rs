@@ -21,6 +21,7 @@ const OP_METADATA: &str = "metadata";
 const OP_WRITE: &str = "write";
 const OP_DELETE: &str = "delete";
 const OP_PROMOTE: &str = "promote";
+const FILE_RESOURCE_KIND: &str = "File";
 const MAX_ACCESS_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
 const MAX_UNARY_FILE_CONTENT_BYTES: usize = 3 * 1024 * 1024;
 const FILE_LIST_SCAN_PAGE_SIZE: usize = 200;
@@ -190,8 +191,9 @@ impl GrpcGatewayHandler {
                 Ok(object_ref) => object_ref,
                 Err(error) => {
                     if is_new_file {
-                        if let Err(cleanup_error) =
-                            store.delete(namespace, "File", &resource_name).await
+                        if let Err(cleanup_error) = store
+                            .delete(namespace, FILE_RESOURCE_KIND, &resource_name)
+                            .await
                         {
                             tracing::warn!(
                                 error = %cleanup_error,
@@ -224,7 +226,7 @@ impl GrpcGatewayHandler {
         });
         let status = resource.status.clone().unwrap();
         let resource = match store
-            .patch_status(namespace, "File", &resource_name, None, status)
+            .patch_status(namespace, FILE_RESOURCE_KIND, &resource_name, None, status)
             .await
         {
             Ok(resource) => resource,
@@ -250,8 +252,9 @@ impl GrpcGatewayHandler {
                     );
                 }
                 if is_new_file {
-                    if let Err(cleanup_error) =
-                        store.delete(namespace, "File", &resource_name).await
+                    if let Err(cleanup_error) = store
+                        .delete(namespace, FILE_RESOURCE_KIND, &resource_name)
+                        .await
                     {
                         tracing::warn!(
                             error = %cleanup_error,
@@ -370,7 +373,7 @@ impl GrpcGatewayHandler {
     ) -> Result<resources_proto::File> {
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
         let resource = store
-            .get(namespace, "File", file_name)
+            .get(namespace, FILE_RESOURCE_KIND, file_name)
             .await?
             .ok_or_else(|| not_found(format!("File '{}' not found", file_name)))?;
         let generation = resource
@@ -389,7 +392,7 @@ impl GrpcGatewayHandler {
         let resource = store
             .patch_status(
                 namespace,
-                "File",
+                FILE_RESOURCE_KIND,
                 file_name,
                 None,
                 resources_proto::ResourceStatus {
@@ -422,7 +425,7 @@ impl GrpcGatewayHandler {
         let resource = store
             .patch_status(
                 &namespace,
-                "File",
+                FILE_RESOURCE_KIND,
                 &file_name,
                 None,
                 resources_proto::ResourceStatus {
@@ -513,7 +516,9 @@ impl GrpcGatewayHandler {
             if is_new_file {
                 let store =
                     ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
-                let _ = store.delete(&namespace, "File", &file_name).await;
+                let _ = store
+                    .delete(&namespace, FILE_RESOURCE_KIND, &file_name)
+                    .await;
             }
             return Err(invalid_argument(
                 "configured object store does not support signed File upload URLs",
@@ -633,7 +638,7 @@ impl GrpcGatewayHandler {
     ) -> Result<Option<resources_proto::File>> {
         let name = file_resource_name_for_path(path);
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
-        if let Some(resource) = store.get(namespace, "File", &name).await? {
+        if let Some(resource) = store.get(namespace, FILE_RESOURCE_KIND, &name).await? {
             let file = file_from_resource(resource)?;
             if file.spec.as_ref().map(|spec| spec.path.as_str()) == Some(path) {
                 return Ok(Some(file));
@@ -673,7 +678,7 @@ impl GrpcGatewayHandler {
     async fn get_file_by_name(&self, namespace: &str, name: &str) -> Result<resources_proto::File> {
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
         let resource = store
-            .get(namespace, "File", name)
+            .get(namespace, FILE_RESOURCE_KIND, name)
             .await?
             .ok_or_else(|| not_found(format!("File '{}' not found", name)))?;
         file_from_resource(resource)
@@ -896,7 +901,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
         let prefix = normalize_prefix(&req.prefix).map_err(to_status)?;
         let limit = (req.limit as usize).clamp(1, 200);
         let mut before_name = normalize_resource_name_cursor(&req.page_token).map_err(to_status)?;
-        let list = keys::ResourceParent::root(&req.namespace).list(Some("File"));
+        let list = keys::file_prefix(&req.namespace);
         let mut files = Vec::with_capacity(limit);
         let mut scanned_pages = 0usize;
         let mut next_page_token = String::new();
@@ -976,7 +981,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
             .map(|object| object.key.clone());
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
         let success = store
-            .delete(file.namespace(), "File", file.name())
+            .delete(file.namespace(), FILE_RESOURCE_KIND, file.name())
             .await
             .map_err(to_status)?;
         if success {
