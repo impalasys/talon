@@ -437,14 +437,13 @@ fn register_artifact_tools(registry: &mut ToolRegistry) {
             "type": "object",
             "properties": {
                 "title": { "type": "string", "description": "Human-readable artifact title." },
-                "path": { "type": "string", "description": "Absolute logical path, e.g. /outputs/final.md." },
                 "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
                 "content": { "type": "string", "description": "Text content to store." },
                 "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." },
                 "labels": { "type": "object", "additionalProperties": { "type": "string" } },
                 "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
             },
-            "required": ["path"]
+            "required": ["title"]
         }),
     );
     registry.register_builtin(
@@ -1625,8 +1624,7 @@ async fn create_artifact(
     if current_session.trim().is_empty() {
         return Err(anyhow!("create_artifact requires an active session"));
     }
-    let path = normalize_logical_path(req_str(args, "path")?)?;
-    let title = opt_str(args, "title").unwrap_or_else(|| filename_for_path(&path));
+    let title = req_str(args, "title")?;
     let media_type = opt_str(args, "media_type").unwrap_or("text/markdown");
     let content = artifact_content_bytes(args)?;
     let labels = string_map(args.get("labels"));
@@ -1638,7 +1636,6 @@ async fn create_artifact(
             current_agent,
             current_session,
             &artifact_id,
-            &path,
             &content,
             media_type,
             metadata.clone(),
@@ -1648,7 +1645,6 @@ async fn create_artifact(
         id: artifact_id.clone(),
         session_id: current_session.to_string(),
         title: title.to_string(),
-        path,
         media_type: media_type.to_string(),
         object_ref: Some(object_ref),
         created_by_agent: current_agent.to_string(),
@@ -2608,7 +2604,6 @@ fn artifact_json(artifact: &crate::gateway::rpc::data_proto::Artifact) -> Value 
         "id": artifact.id,
         "sessionId": artifact.session_id,
         "title": artifact.title,
-        "path": artifact.path,
         "mediaType": artifact.media_type,
         "createdByAgent": artifact.created_by_agent,
         "createdAt": artifact.created_at,
@@ -2888,14 +2883,6 @@ fn normalize_logical_path(path: &str) -> Result<String> {
         return Err(anyhow!("path is not normalized"));
     }
     Ok(path.trim_end_matches('/').to_string())
-}
-
-fn filename_for_path(path: &str) -> &str {
-    path.trim_end_matches('/')
-        .rsplit('/')
-        .next()
-        .filter(|value| !value.is_empty())
-        .unwrap_or("artifact")
 }
 
 fn parse_artifact_uri(uri: &str) -> Result<ArtifactUri> {
@@ -3289,7 +3276,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             CREATE_ARTIFACT_TOOL,
             &json!({
-                "path": "/outputs/final draft.md",
+                "title": "Final draft",
                 "content": "draft body",
                 "media_type": "text/markdown",
                 "metadata": {"source": "tool"}
@@ -3312,7 +3299,7 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(stored.bytes, b"draft body");
-        assert_eq!(stored.metadata.filename, "final_draft.md");
+        assert_eq!(stored.metadata.filename, "");
         assert_eq!(
             stored.metadata.metadata[crate::control::cas::METADATA_KIND],
             crate::control::cas::METADATA_KIND_ARTIFACT

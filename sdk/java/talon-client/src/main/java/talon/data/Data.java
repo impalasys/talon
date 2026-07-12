@@ -2116,26 +2116,6 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Session-local logical path, such as /outputs/final-draft.md.
-     * </pre>
-     *
-     * <code>string path = 4;</code>
-     * @return The path.
-     */
-    java.lang.String getPath();
-    /**
-     * <pre>
-     * Session-local logical path, such as /outputs/final-draft.md.
-     * </pre>
-     *
-     * <code>string path = 4;</code>
-     * @return The bytes for path.
-     */
-    com.google.protobuf.ByteString
-        getPathBytes();
-
-    /**
-     * <pre>
      * Media type of the artifact content, for example text/markdown.
      * </pre>
      *
@@ -2353,7 +2333,6 @@ java.lang.String defaultValue);
       id_ = "";
       sessionId_ = "";
       title_ = "";
-      path_ = "";
       mediaType_ = "";
       createdByAgent_ = "";
     }
@@ -2526,53 +2505,6 @@ java.lang.String defaultValue);
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         title_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int PATH_FIELD_NUMBER = 4;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object path_ = "";
-    /**
-     * <pre>
-     * Session-local logical path, such as /outputs/final-draft.md.
-     * </pre>
-     *
-     * <code>string path = 4;</code>
-     * @return The path.
-     */
-    @java.lang.Override
-    public java.lang.String getPath() {
-      java.lang.Object ref = path_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        path_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Session-local logical path, such as /outputs/final-draft.md.
-     * </pre>
-     *
-     * <code>string path = 4;</code>
-     * @return The bytes for path.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getPathBytes() {
-      java.lang.Object ref = path_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        path_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -2939,9 +2871,6 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(title_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, title_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, path_);
-      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 5, mediaType_);
       }
@@ -2983,9 +2912,6 @@ java.lang.String defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(title_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(3, title_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, path_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(5, mediaType_);
@@ -3042,8 +2968,6 @@ java.lang.String defaultValue) {
           .equals(other.getSessionId())) return false;
       if (!getTitle()
           .equals(other.getTitle())) return false;
-      if (!getPath()
-          .equals(other.getPath())) return false;
       if (!getMediaType()
           .equals(other.getMediaType())) return false;
       if (hasObjectRef() != other.hasObjectRef()) return false;
@@ -3076,8 +3000,6 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getSessionId().hashCode();
       hash = (37 * hash) + TITLE_FIELD_NUMBER;
       hash = (53 * hash) + getTitle().hashCode();
-      hash = (37 * hash) + PATH_FIELD_NUMBER;
-      hash = (53 * hash) + getPath().hashCode();
       hash = (37 * hash) + MEDIA_TYPE_FIELD_NUMBER;
       hash = (53 * hash) + getMediaType().hashCode();
       if (hasObjectRef()) {
@@ -3272,7 +3194,6 @@ java.lang.String defaultValue) {
         id_ = "";
         sessionId_ = "";
         title_ = "";
-        path_ = "";
         mediaType_ = "";
         objectRef_ = null;
         if (objectRefBuilder_ != null) {
@@ -3326,29 +3247,26 @@ java.lang.String defaultValue) {
           result.title_ = title_;
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.path_ = path_;
-        }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
           result.mediaType_ = mediaType_;
         }
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
           result.objectRef_ = objectRefBuilder_ == null
               ? objectRef_
               : objectRefBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
-        if (((from_bitField0_ & 0x00000040) != 0)) {
+        if (((from_bitField0_ & 0x00000020) != 0)) {
           result.createdByAgent_ = createdByAgent_;
         }
-        if (((from_bitField0_ & 0x00000080) != 0)) {
+        if (((from_bitField0_ & 0x00000040) != 0)) {
           result.createdAt_ = createdAt_;
         }
-        if (((from_bitField0_ & 0x00000100) != 0)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
           result.labels_ = internalGetLabels();
           result.labels_.makeImmutable();
         }
-        if (((from_bitField0_ & 0x00000200) != 0)) {
+        if (((from_bitField0_ & 0x00000100) != 0)) {
           result.metadata_ = internalGetMetadata();
           result.metadata_.makeImmutable();
         }
@@ -3382,14 +3300,9 @@ java.lang.String defaultValue) {
           bitField0_ |= 0x00000004;
           onChanged();
         }
-        if (!other.getPath().isEmpty()) {
-          path_ = other.path_;
-          bitField0_ |= 0x00000008;
-          onChanged();
-        }
         if (!other.getMediaType().isEmpty()) {
           mediaType_ = other.mediaType_;
-          bitField0_ |= 0x00000010;
+          bitField0_ |= 0x00000008;
           onChanged();
         }
         if (other.hasObjectRef()) {
@@ -3397,7 +3310,7 @@ java.lang.String defaultValue) {
         }
         if (!other.getCreatedByAgent().isEmpty()) {
           createdByAgent_ = other.createdByAgent_;
-          bitField0_ |= 0x00000040;
+          bitField0_ |= 0x00000020;
           onChanged();
         }
         if (other.getCreatedAt() != 0L) {
@@ -3405,10 +3318,10 @@ java.lang.String defaultValue) {
         }
         internalGetMutableLabels().mergeFrom(
             other.internalGetLabels());
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000080;
         internalGetMutableMetadata().mergeFrom(
             other.internalGetMetadata());
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000100;
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -3450,31 +3363,26 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
-              case 34: {
-                path_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
               case 42: {
                 mediaType_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000010;
+                bitField0_ |= 0x00000008;
                 break;
               } // case 42
               case 50: {
                 input.readMessage(
                     internalGetObjectRefFieldBuilder().getBuilder(),
                     extensionRegistry);
-                bitField0_ |= 0x00000020;
+                bitField0_ |= 0x00000010;
                 break;
               } // case 50
               case 58: {
                 createdByAgent_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000040;
+                bitField0_ |= 0x00000020;
                 break;
               } // case 58
               case 64: {
                 createdAt_ = input.readInt64();
-                bitField0_ |= 0x00000080;
+                bitField0_ |= 0x00000040;
                 break;
               } // case 64
               case 74: {
@@ -3483,7 +3391,7 @@ java.lang.String defaultValue) {
                     LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
                 internalGetMutableLabels().getMutableMap().put(
                     labels__.getKey(), labels__.getValue());
-                bitField0_ |= 0x00000100;
+                bitField0_ |= 0x00000080;
                 break;
               } // case 74
               case 82: {
@@ -3492,7 +3400,7 @@ java.lang.String defaultValue) {
                     MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
                 internalGetMutableMetadata().getMutableMap().put(
                     metadata__.getKey(), metadata__.getValue());
-                bitField0_ |= 0x00000200;
+                bitField0_ |= 0x00000100;
                 break;
               } // case 82
               default: {
@@ -3788,98 +3696,6 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private java.lang.Object path_ = "";
-      /**
-       * <pre>
-       * Session-local logical path, such as /outputs/final-draft.md.
-       * </pre>
-       *
-       * <code>string path = 4;</code>
-       * @return The path.
-       */
-      public java.lang.String getPath() {
-        java.lang.Object ref = path_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          path_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Session-local logical path, such as /outputs/final-draft.md.
-       * </pre>
-       *
-       * <code>string path = 4;</code>
-       * @return The bytes for path.
-       */
-      public com.google.protobuf.ByteString
-          getPathBytes() {
-        java.lang.Object ref = path_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          path_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Session-local logical path, such as /outputs/final-draft.md.
-       * </pre>
-       *
-       * <code>string path = 4;</code>
-       * @param value The path to set.
-       * @return This builder for chaining.
-       */
-      public Builder setPath(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        path_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Session-local logical path, such as /outputs/final-draft.md.
-       * </pre>
-       *
-       * <code>string path = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearPath() {
-        path_ = getDefaultInstance().getPath();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Session-local logical path, such as /outputs/final-draft.md.
-       * </pre>
-       *
-       * <code>string path = 4;</code>
-       * @param value The bytes for path to set.
-       * @return This builder for chaining.
-       */
-      public Builder setPathBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        path_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
       private java.lang.Object mediaType_ = "";
       /**
        * <pre>
@@ -3935,7 +3751,7 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         mediaType_ = value;
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
@@ -3949,7 +3765,7 @@ java.lang.String defaultValue) {
        */
       public Builder clearMediaType() {
         mediaType_ = getDefaultInstance().getMediaType();
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         onChanged();
         return this;
       }
@@ -3967,7 +3783,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         mediaType_ = value;
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
@@ -3984,7 +3800,7 @@ java.lang.String defaultValue) {
        * @return Whether the objectRef field is set.
        */
       public boolean hasObjectRef() {
-        return ((bitField0_ & 0x00000020) != 0);
+        return ((bitField0_ & 0x00000010) != 0);
       }
       /**
        * <pre>
@@ -4017,7 +3833,7 @@ java.lang.String defaultValue) {
         } else {
           objectRefBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -4035,7 +3851,7 @@ java.lang.String defaultValue) {
         } else {
           objectRefBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -4048,7 +3864,7 @@ java.lang.String defaultValue) {
        */
       public Builder mergeObjectRef(talon.data.Data.ObjectRef value) {
         if (objectRefBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) != 0) &&
+          if (((bitField0_ & 0x00000010) != 0) &&
             objectRef_ != null &&
             objectRef_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
             getObjectRefBuilder().mergeFrom(value);
@@ -4059,7 +3875,7 @@ java.lang.String defaultValue) {
           objectRefBuilder_.mergeFrom(value);
         }
         if (objectRef_ != null) {
-          bitField0_ |= 0x00000020;
+          bitField0_ |= 0x00000010;
           onChanged();
         }
         return this;
@@ -4072,7 +3888,7 @@ java.lang.String defaultValue) {
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       public Builder clearObjectRef() {
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
         objectRef_ = null;
         if (objectRefBuilder_ != null) {
           objectRefBuilder_.dispose();
@@ -4089,7 +3905,7 @@ java.lang.String defaultValue) {
        * <code>.talon.data.ObjectRef object_ref = 6;</code>
        */
       public talon.data.Data.ObjectRef.Builder getObjectRefBuilder() {
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000010;
         onChanged();
         return internalGetObjectRefFieldBuilder().getBuilder();
       }
@@ -4184,7 +4000,7 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         createdByAgent_ = value;
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
@@ -4198,7 +4014,7 @@ java.lang.String defaultValue) {
        */
       public Builder clearCreatedByAgent() {
         createdByAgent_ = getDefaultInstance().getCreatedByAgent();
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         onChanged();
         return this;
       }
@@ -4216,7 +4032,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         createdByAgent_ = value;
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
@@ -4246,7 +4062,7 @@ java.lang.String defaultValue) {
       public Builder setCreatedAt(long value) {
 
         createdAt_ = value;
-        bitField0_ |= 0x00000080;
+        bitField0_ |= 0x00000040;
         onChanged();
         return this;
       }
@@ -4259,7 +4075,7 @@ java.lang.String defaultValue) {
        * @return This builder for chaining.
        */
       public Builder clearCreatedAt() {
-        bitField0_ = (bitField0_ & ~0x00000080);
+        bitField0_ = (bitField0_ & ~0x00000040);
         createdAt_ = 0L;
         onChanged();
         return this;
@@ -4284,7 +4100,7 @@ java.lang.String defaultValue) {
         if (!labels_.isMutable()) {
           labels_ = labels_.copy();
         }
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000080;
         onChanged();
         return labels_;
       }
@@ -4360,7 +4176,7 @@ java.lang.String defaultValue) {
         return map.get(key);
       }
       public Builder clearLabels() {
-        bitField0_ = (bitField0_ & ~0x00000100);
+        bitField0_ = (bitField0_ & ~0x00000080);
         internalGetMutableLabels().getMutableMap()
             .clear();
         return this;
@@ -4385,7 +4201,7 @@ java.lang.String defaultValue) {
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, java.lang.String>
           getMutableLabels() {
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000080;
         return internalGetMutableLabels().getMutableMap();
       }
       /**
@@ -4402,7 +4218,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException("map value"); }
         internalGetMutableLabels().getMutableMap()
             .put(key, value);
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000080;
         return this;
       }
       /**
@@ -4416,7 +4232,7 @@ java.lang.String defaultValue) {
           java.util.Map<java.lang.String, java.lang.String> values) {
         internalGetMutableLabels().getMutableMap()
             .putAll(values);
-        bitField0_ |= 0x00000100;
+        bitField0_ |= 0x00000080;
         return this;
       }
 
@@ -4439,7 +4255,7 @@ java.lang.String defaultValue) {
         if (!metadata_.isMutable()) {
           metadata_ = metadata_.copy();
         }
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000100;
         onChanged();
         return metadata_;
       }
@@ -4515,7 +4331,7 @@ java.lang.String defaultValue) {
         return map.get(key);
       }
       public Builder clearMetadata() {
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000100);
         internalGetMutableMetadata().getMutableMap()
             .clear();
         return this;
@@ -4540,7 +4356,7 @@ java.lang.String defaultValue) {
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, java.lang.String>
           getMutableMetadata() {
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000100;
         return internalGetMutableMetadata().getMutableMap();
       }
       /**
@@ -4557,7 +4373,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException("map value"); }
         internalGetMutableMetadata().getMutableMap()
             .put(key, value);
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000100;
         return this;
       }
       /**
@@ -4571,7 +4387,7 @@ java.lang.String defaultValue) {
           java.util.Map<java.lang.String, java.lang.String> values) {
         internalGetMutableMetadata().getMutableMap()
             .putAll(values);
-        bitField0_ |= 0x00000200;
+        bitField0_ |= 0x00000100;
         return this;
       }
 
@@ -29329,128 +29145,128 @@ java.lang.String defaultValue) {
       "\n\010filename\030\005 \001(\t\0225\n\010metadata\030\006 \003(\0132#.tal" +
       "on.data.ObjectRef.MetadataEntry\022\030\n\020conte" +
       "nt_encoding\030\007 \001(\t\032/\n\rMetadataEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\374\002\n\010Artifact\022" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\364\002\n\010Artifact\022" +
       "\n\n\002id\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(\t\022\r\n\005title" +
-      "\030\003 \001(\t\022\014\n\004path\030\004 \001(\t\022\022\n\nmedia_type\030\005 \001(\t" +
-      "\022)\n\nobject_ref\030\006 \001(\0132\025.talon.data.Object" +
-      "Ref\022\030\n\020created_by_agent\030\007 \001(\t\022\022\n\ncreated" +
-      "_at\030\010 \001(\003\0220\n\006labels\030\t \003(\0132 .talon.data.A" +
-      "rtifact.LabelsEntry\0224\n\010metadata\030\n \003(\0132\"." +
-      "talon.data.Artifact.MetadataEntry\032-\n\013Lab" +
-      "elsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001" +
-      "\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
-      "\002 \001(\t:\0028\001\"\230\001\n\017GoalEvidenceRef\022\014\n\004kind\030\001 " +
-      "\001(\t\022\021\n\tnamespace\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\r\n\005" +
-      "agent\030\004 \001(\t\022\022\n\nsession_id\030\005 \001(\t\022\016\n\006handl" +
-      "e\030\006 \001(\t\022\022\n\nobject_key\030\007 \001(\t\022\017\n\007summary\030\010" +
-      " \001(\t\"\252\004\n\004Goal\022\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002" +
-      " \001(\t\022\r\n\005agent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022" +
-      "\021\n\tobjective\030\005 \001(\t\022\030\n\020success_criteria\030\006" +
-      " \003(\t\022$\n\005phase\030\007 \001(\0162\025.talon.data.GoalPha" +
-      "se\022\030\n\020progress_summary\030\010 \001(\t\022\021\n\titeratio" +
-      "n\030\t \001(\005\022\026\n\016max_iterations\030\n \001(\005\0222\n\revide" +
-      "nce_refs\030\013 \003(\0132\033.talon.data.GoalEvidence" +
-      "Ref\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r " +
-      "\001(\003\022\024\n\014completed_at\030\016 \001(\003\022\026\n\016blocked_rea" +
-      "son\030\017 \001(\t\022,\n\006labels\030\020 \003(\0132\034.talon.data.G" +
-      "oal.LabelsEntry\0220\n\010metadata\030\021 \003(\0132\036.talo" +
-      "n.data.Goal.MetadataEntry\032-\n\013LabelsEntry" +
-      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMeta" +
-      "dataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
-      "\001\"\247\001\n\016GoalIndexEntry\022\021\n\tnamespace\030\001 \001(\t\022" +
-      "\r\n\005agent\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\017\n\007go" +
-      "al_id\030\004 \001(\t\022$\n\005phase\030\005 \001(\0162\025.talon.data." +
-      "GoalPhase\022\024\n\014status_group\030\006 \001(\t\022\022\n\nupdat" +
-      "ed_at\030\007 \001(\003\"\266\001\n\016ArtifactAccess\022\024\n\014target" +
-      "_agent\030\001 \001(\t\022\031\n\021target_session_id\030\002 \001(\t\022" +
-      "\022\n\noperations\030\003 \003(\t\022\022\n\nexpires_at\030\004 \001(\003\022" +
-      "\030\n\020granted_by_agent\030\005 \001(\t\022\035\n\025granted_by_" +
-      "session_id\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\"\275\001\n" +
-      "\tPrincipal\022\023\n\013external_id\030\001 \001(\t\022\017\n\007addre" +
-      "ss\030\002 \001(\t\022\024\n\014display_name\030\003 \001(\t\022\014\n\004kind\030\004" +
-      " \001(\t\0225\n\010metadata\030\005 \003(\0132#.talon.data.Prin" +
-      "cipal.MetadataEntry\032/\n\rMetadataEntry\022\013\n\003" +
-      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022Session" +
-      "MessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030\002 \001" +
-      "(\0162\".talon.data.SessionMessagePartType\022\017" +
-      "\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payload" +
-      "_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006objec" +
-      "t\030\007 \001(\0132\025.talon.data.ObjectRef\"\363\001\n\016Sessi" +
-      "onMessage\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.ta" +
-      "lon.data.MessageRole\022\022\n\ncreated_at\030\004 \001(\003" +
-      "\0226\n\006labels\030\005 \003(\0132&.talon.data.SessionMes" +
-      "sage.LabelsEntry\022-\n\005parts\030\006 \003(\0132\036.talon." +
-      "data.SessionMessagePart\032-\n\013LabelsEntry\022\013" +
-      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002\n" +
-      "\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002n" +
-      "s\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncreated_at\030\005 " +
-      "\001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010metadata\030\007 \003" +
-      "(\0132!.talon.data.Session.MetadataEntry\022/\n" +
-      "\006labels\030\010 \003(\0132\037.talon.data.Session.Label" +
-      "sEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005" +
-      "value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 " +
-      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMessag" +
-      "e\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001" +
-      "(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022" +
-      "\017\n\007content\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014" +
-      "source_agent\030\010 \001(\t\022\031\n\021source_session_id\030" +
-      "\t \001(\t\0226\n\006labels\030\n \003(\0132&.talon.data.Chann" +
-      "elMessage.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003" +
-      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnowledg" +
-      "e\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\nupda" +
-      "ted_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004name\030" +
-      "\005 \001(\t\"k\n\025KnowledgeSearchResult\022\014\n\004path\030\001" +
-      " \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\t" +
-      "timestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013W" +
-      "orkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t" +
-      "\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_js" +
-      "on\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n\013output_j" +
-      "son\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupdated" +
-      "_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.talon.data.W" +
-      "orkflowRun.LabelsEntry\022\035\n\020claim_expires_" +
-      "at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec_jso" +
-      "n\030\r \001(\t\022\031\n\021workflow_revision\030\016 \001(\004\022\023\n\013cl" +
-      "aim_owner\030\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001(\r\022\034" +
-      "\n\024last_dispatch_reason\030\021 \001(\t\032-\n\013LabelsEn" +
-      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_" +
-      "claim_expires_at\"\263\003\n\017WorkflowStepRun\022\n\n\002" +
-      "id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001" +
-      "(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023" +
-      "\n\013output_json\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020ch" +
-      "ild_session_id\030\010 \001(\t\022\035\n\025child_workflow_r" +
-      "un_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014susp" +
-      "end_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nup" +
-      "dated_at\030\r \001(\003\022\032\n\rnext_retry_at\030\016 \001(\003H\000\210" +
-      "\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wake" +
-      "up_handle\030\020 \001(\t\022\032\n\rwait_until_at\030\021 \001(\003H\002" +
-      "\210\001\001B\020\n\016_next_retry_atB\r\n\013_timeout_atB\020\n\016" +
-      "_wait_until_at\"\245\001\n\020WorkflowRunEvent\022\n\n\002i" +
-      "d\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n" +
-      "\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006" +
-      " \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payload_json\030\010 " +
-      "\001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013MessageRole\022\024\n" +
-      "\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016RO" +
-      "LE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026Sess" +
-      "ionMessagePartType\022)\n%SESSION_MESSAGE_PA" +
-      "RT_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSION_MESSAGE" +
-      "_PART_TYPE_TEXT\020\001\022\'\n#SESSION_MESSAGE_PAR" +
-      "T_TYPE_REASONING\020\002\022\'\n#SESSION_MESSAGE_PA" +
-      "RT_TYPE_TOOL_CALL\020\003\022)\n%SESSION_MESSAGE_P" +
-      "ART_TYPE_TOOL_RESULT\020\004\022#\n\037SESSION_MESSAG" +
-      "E_PART_TYPE_USAGE\020\005\022#\n\037SESSION_MESSAGE_P" +
-      "ART_TYPE_ERROR\020\006\022#\n\037SESSION_MESSAGE_PART" +
-      "_TYPE_IMAGE\020\007\022#\n\037SESSION_MESSAGE_PART_TY" +
-      "PE_AUDIO\020\010\022#\n\037SESSION_MESSAGE_PART_TYPE_" +
-      "VIDEO\020\t\022\"\n\036SESSION_MESSAGE_PART_TYPE_FIL" +
-      "E\020\n\0220\n,SESSION_MESSAGE_PART_TYPE_REQUEST" +
-      "_PERMISSION\020\013\022/\n+SESSION_MESSAGE_PART_TY" +
-      "PE_PERMISSION_RESULT\020\014*\355\001\n\tGoalPhase\022\032\n\026" +
-      "GOAL_PHASE_UNSPECIFIED\020\000\022\026\n\022GOAL_PHASE_R" +
-      "UNNING\020\001\022\025\n\021GOAL_PHASE_PAUSED\020\002\022\033\n\027GOAL_" +
-      "PHASE_NEEDS_REVIEW\020\003\022\030\n\024GOAL_PHASE_SUCCE" +
-      "EDED\020\004\022\025\n\021GOAL_PHASE_FAILED\020\005\022\026\n\022GOAL_PH" +
-      "ASE_BLOCKED\020\006\022\027\n\023GOAL_PHASE_CANCELED\020\007\022\026" +
-      "\n\022GOAL_PHASE_EXPIRED\020\010b\006proto3"
+      "\030\003 \001(\t\022\022\n\nmedia_type\030\005 \001(\t\022)\n\nobject_ref" +
+      "\030\006 \001(\0132\025.talon.data.ObjectRef\022\030\n\020created" +
+      "_by_agent\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\0220\n\006l" +
+      "abels\030\t \003(\0132 .talon.data.Artifact.Labels" +
+      "Entry\0224\n\010metadata\030\n \003(\0132\".talon.data.Art" +
+      "ifact.MetadataEntry\032-\n\013LabelsEntry\022\013\n\003ke" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEn" +
+      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\004\020" +
+      "\005\"\230\001\n\017GoalEvidenceRef\022\014\n\004kind\030\001 \001(\t\022\021\n\tn" +
+      "amespace\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\r\n\005agent\030\004 " +
+      "\001(\t\022\022\n\nsession_id\030\005 \001(\t\022\016\n\006handle\030\006 \001(\t\022" +
+      "\022\n\nobject_key\030\007 \001(\t\022\017\n\007summary\030\010 \001(\t\"\252\004\n" +
+      "\004Goal\022\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005" +
+      "agent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022\021\n\tobjec" +
+      "tive\030\005 \001(\t\022\030\n\020success_criteria\030\006 \003(\t\022$\n\005" +
+      "phase\030\007 \001(\0162\025.talon.data.GoalPhase\022\030\n\020pr" +
+      "ogress_summary\030\010 \001(\t\022\021\n\titeration\030\t \001(\005\022" +
+      "\026\n\016max_iterations\030\n \001(\005\0222\n\revidence_refs" +
+      "\030\013 \003(\0132\033.talon.data.GoalEvidenceRef\022\022\n\nc" +
+      "reated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\024\n\014c" +
+      "ompleted_at\030\016 \001(\003\022\026\n\016blocked_reason\030\017 \001(" +
+      "\t\022,\n\006labels\030\020 \003(\0132\034.talon.data.Goal.Labe" +
+      "lsEntry\0220\n\010metadata\030\021 \003(\0132\036.talon.data.G" +
+      "oal.MetadataEntry\032-\n\013LabelsEntry\022\013\n\003key\030" +
+      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\247\001\n\016Go" +
+      "alIndexEntry\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent" +
+      "\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\017\n\007goal_id\030\004 " +
+      "\001(\t\022$\n\005phase\030\005 \001(\0162\025.talon.data.GoalPhas" +
+      "e\022\024\n\014status_group\030\006 \001(\t\022\022\n\nupdated_at\030\007 " +
+      "\001(\003\"\266\001\n\016ArtifactAccess\022\024\n\014target_agent\030\001" +
+      " \001(\t\022\031\n\021target_session_id\030\002 \001(\t\022\022\n\nopera" +
+      "tions\030\003 \003(\t\022\022\n\nexpires_at\030\004 \001(\003\022\030\n\020grant" +
+      "ed_by_agent\030\005 \001(\t\022\035\n\025granted_by_session_" +
+      "id\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\"\275\001\n\tPrincip" +
+      "al\022\023\n\013external_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t" +
+      "\022\024\n\014display_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010" +
+      "metadata\030\005 \003(\0132#.talon.data.Principal.Me" +
+      "tadataEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessageP" +
+      "art\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".tal" +
+      "on.data.SessionMessagePartType\022\017\n\007conten" +
+      "t\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 " +
+      "\001(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132" +
+      "\025.talon.data.ObjectRef\"\363\001\n\016SessionMessag" +
+      "e\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data" +
+      ".MessageRole\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006labe" +
+      "ls\030\005 \003(\0132&.talon.data.SessionMessage.Lab" +
+      "elsEntry\022-\n\005parts\030\006 \003(\0132\036.talon.data.Ses" +
+      "sionMessagePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 " +
+      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002\n\007Session" +
+      "\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022" +
+      "\016\n\006status\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013l" +
+      "ast_active\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.tal" +
+      "on.data.Session.MetadataEntry\022/\n\006labels\030" +
+      "\010 \003(\0132\037.talon.data.Session.LabelsEntry\032/" +
+      "\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
+      "\001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMessage\022\n\n\002id\030" +
+      "\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013au" +
+      "thor_kind\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007conte" +
+      "nt\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_a" +
+      "gent\030\010 \001(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n" +
+      "\006labels\030\n \003(\0132&.talon.data.ChannelMessag" +
+      "e.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004pat" +
+      "h\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003" +
+      " \001(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n" +
+      "\025KnowledgeSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007" +
+      "snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestam" +
+      "p\030\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowR" +
+      "un\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003" +
+      " \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t" +
+      "\022\022\n\nstate_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(" +
+      "\t\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(" +
+      "\003\0223\n\006labels\030\n \003(\0132#.talon.data.WorkflowR" +
+      "un.LabelsEntry\022\035\n\020claim_expires_at\030\013 \001(\003" +
+      "H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022" +
+      "\031\n\021workflow_revision\030\016 \001(\004\022\023\n\013claim_owne" +
+      "r\030\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_d" +
+      "ispatch_reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003k" +
+      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_ex" +
+      "pires_at\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t" +
+      "\022\017\n\007step_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006st" +
+      "atus\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output" +
+      "_json\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_sess" +
+      "ion_id\030\010 \001(\t\022\035\n\025child_workflow_run_id\030\t " +
+      "\001(\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014suspend_json" +
+      "\030\013 \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at" +
+      "\030\r \001(\003\022\032\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\nti" +
+      "meout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handl" +
+      "e\030\020 \001(\t\022\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_" +
+      "next_retry_atB\r\n\013_timeout_atB\020\n\016_wait_un" +
+      "til_at\"\245\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022" +
+      "\n\n\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030" +
+      "\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007" +
+      "message\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\tt" +
+      "imestamp\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UN" +
+      "SPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSIS" +
+      "TANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026SessionMessa" +
+      "gePartType\022)\n%SESSION_MESSAGE_PART_TYPE_" +
+      "UNSPECIFIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TY" +
+      "PE_TEXT\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_R" +
+      "EASONING\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_" +
+      "TOOL_CALL\020\003\022)\n%SESSION_MESSAGE_PART_TYPE" +
+      "_TOOL_RESULT\020\004\022#\n\037SESSION_MESSAGE_PART_T" +
+      "YPE_USAGE\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE" +
+      "_ERROR\020\006\022#\n\037SESSION_MESSAGE_PART_TYPE_IM" +
+      "AGE\020\007\022#\n\037SESSION_MESSAGE_PART_TYPE_AUDIO" +
+      "\020\010\022#\n\037SESSION_MESSAGE_PART_TYPE_VIDEO\020\t\022" +
+      "\"\n\036SESSION_MESSAGE_PART_TYPE_FILE\020\n\0220\n,S" +
+      "ESSION_MESSAGE_PART_TYPE_REQUEST_PERMISS" +
+      "ION\020\013\022/\n+SESSION_MESSAGE_PART_TYPE_PERMI" +
+      "SSION_RESULT\020\014*\355\001\n\tGoalPhase\022\032\n\026GOAL_PHA" +
+      "SE_UNSPECIFIED\020\000\022\026\n\022GOAL_PHASE_RUNNING\020\001" +
+      "\022\025\n\021GOAL_PHASE_PAUSED\020\002\022\033\n\027GOAL_PHASE_NE" +
+      "EDS_REVIEW\020\003\022\030\n\024GOAL_PHASE_SUCCEEDED\020\004\022\025" +
+      "\n\021GOAL_PHASE_FAILED\020\005\022\026\n\022GOAL_PHASE_BLOC" +
+      "KED\020\006\022\027\n\023GOAL_PHASE_CANCELED\020\007\022\026\n\022GOAL_P" +
+      "HASE_EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -29473,7 +29289,7 @@ java.lang.String defaultValue) {
     internal_static_talon_data_Artifact_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Artifact_descriptor,
-        new java.lang.String[] { "Id", "SessionId", "Title", "Path", "MediaType", "ObjectRef", "CreatedByAgent", "CreatedAt", "Labels", "Metadata", });
+        new java.lang.String[] { "Id", "SessionId", "Title", "MediaType", "ObjectRef", "CreatedByAgent", "CreatedAt", "Labels", "Metadata", });
     internal_static_talon_data_Artifact_LabelsEntry_descriptor =
       internal_static_talon_data_Artifact_descriptor.getNestedType(0);
     internal_static_talon_data_Artifact_LabelsEntry_fieldAccessorTable = new
