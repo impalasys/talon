@@ -21,73 +21,30 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type TaskType int32
-
-const (
-	TaskType_TASK_TYPE_UNSPECIFIED TaskType = 0
-	TaskType_TASK_TYPE_COPYWRITING TaskType = 1
-	TaskType_TASK_TYPE_RESEARCH    TaskType = 2
-	TaskType_TASK_TYPE_ANALYSIS    TaskType = 3
-	TaskType_TASK_TYPE_OPERATIONS  TaskType = 4
-)
-
-// Enum value maps for TaskType.
-var (
-	TaskType_name = map[int32]string{
-		0: "TASK_TYPE_UNSPECIFIED",
-		1: "TASK_TYPE_COPYWRITING",
-		2: "TASK_TYPE_RESEARCH",
-		3: "TASK_TYPE_ANALYSIS",
-		4: "TASK_TYPE_OPERATIONS",
-	}
-	TaskType_value = map[string]int32{
-		"TASK_TYPE_UNSPECIFIED": 0,
-		"TASK_TYPE_COPYWRITING": 1,
-		"TASK_TYPE_RESEARCH":    2,
-		"TASK_TYPE_ANALYSIS":    3,
-		"TASK_TYPE_OPERATIONS":  4,
-	}
-)
-
-func (x TaskType) Enum() *TaskType {
-	p := new(TaskType)
-	*p = x
-	return p
-}
-
-func (x TaskType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (TaskType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_resources_tasks_proto_enumTypes[0].Descriptor()
-}
-
-func (TaskType) Type() protoreflect.EnumType {
-	return &file_proto_resources_tasks_proto_enumTypes[0]
-}
-
-func (x TaskType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use TaskType.Descriptor instead.
-func (TaskType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{0}
-}
-
+// Lifecycle phase for a Task.
 type TaskPhase int32
 
 const (
-	TaskPhase_TASK_PHASE_UNSPECIFIED  TaskPhase = 0
-	TaskPhase_TASK_PHASE_QUEUED       TaskPhase = 1
-	TaskPhase_TASK_PHASE_RUNNING      TaskPhase = 2
-	TaskPhase_TASK_PHASE_BLOCKED      TaskPhase = 3
+	// No phase has been set. Writers should avoid persisting this outside
+	// partially initialized records.
+	TaskPhase_TASK_PHASE_UNSPECIFIED TaskPhase = 0
+	// The task exists but no assignee execution has started.
+	TaskPhase_TASK_PHASE_QUEUED TaskPhase = 1
+	// The assignee is actively working on the task.
+	TaskPhase_TASK_PHASE_RUNNING TaskPhase = 2
+	// Progress is blocked on user input, permissions, dependencies, or another
+	// external condition.
+	TaskPhase_TASK_PHASE_BLOCKED TaskPhase = 3
+	// Work is complete enough for the requester or another reviewer to inspect.
 	TaskPhase_TASK_PHASE_NEEDS_REVIEW TaskPhase = 4
-	TaskPhase_TASK_PHASE_SUCCEEDED    TaskPhase = 5
-	TaskPhase_TASK_PHASE_FAILED       TaskPhase = 6
-	TaskPhase_TASK_PHASE_CANCELED     TaskPhase = 7
-	TaskPhase_TASK_PHASE_EXPIRED      TaskPhase = 8
+	// The task completed successfully.
+	TaskPhase_TASK_PHASE_SUCCEEDED TaskPhase = 5
+	// The task ended because execution failed.
+	TaskPhase_TASK_PHASE_FAILED TaskPhase = 6
+	// The task was intentionally stopped before completion.
+	TaskPhase_TASK_PHASE_CANCELED TaskPhase = 7
+	// The task exceeded its allowed lifetime or retention policy.
+	TaskPhase_TASK_PHASE_EXPIRED TaskPhase = 8
 )
 
 // Enum value maps for TaskPhase.
@@ -127,11 +84,11 @@ func (x TaskPhase) String() string {
 }
 
 func (TaskPhase) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_resources_tasks_proto_enumTypes[1].Descriptor()
+	return file_proto_resources_tasks_proto_enumTypes[0].Descriptor()
 }
 
 func (TaskPhase) Type() protoreflect.EnumType {
-	return &file_proto_resources_tasks_proto_enumTypes[1]
+	return &file_proto_resources_tasks_proto_enumTypes[0]
 }
 
 func (x TaskPhase) Number() protoreflect.EnumNumber {
@@ -140,7 +97,7 @@ func (x TaskPhase) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TaskPhase.Descriptor instead.
 func (TaskPhase) EnumDescriptor() ([]byte, []int) {
-	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{1}
+	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{0}
 }
 
 type Task struct {
@@ -204,15 +161,20 @@ func (x *Task) GetStatus() *TaskStatus {
 }
 
 type TaskSpec struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Title          string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Description    string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Type           TaskType               `protobuf:"varint,3,opt,name=type,proto3,enum=talon.resources.TaskType" json:"type,omitempty"`
-	Requester      *TaskParticipant       `protobuf:"bytes,4,opt,name=requester,proto3" json:"requester,omitempty"`
-	Assignee       *TaskParticipant       `protobuf:"bytes,5,opt,name=assignee,proto3" json:"assignee,omitempty"`
-	ExecutionRef   *TaskExecutionRef      `protobuf:"bytes,6,opt,name=execution_ref,json=executionRef,proto3" json:"execution_ref,omitempty"`
-	ParentTaskName string                 `protobuf:"bytes,7,opt,name=parent_task_name,json=parentTaskName,proto3" json:"parent_task_name,omitempty"`
-	Retention      *TaskRetention         `protobuf:"bytes,8,opt,name=retention,proto3" json:"retention,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Title       string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Description string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// Optional caller-defined classifier for grouping or UI display.
+	//
+	// Talon does not interpret this field for scheduling, routing, auth, or task
+	// lifecycle. Use values such as "agent_delegation", "human_review", or an
+	// application-specific string when the caller needs a stable category.
+	Type           string            `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	Requester      *TaskParticipant  `protobuf:"bytes,4,opt,name=requester,proto3" json:"requester,omitempty"`
+	Assignee       *TaskParticipant  `protobuf:"bytes,5,opt,name=assignee,proto3" json:"assignee,omitempty"`
+	ExecutionRef   *TaskExecutionRef `protobuf:"bytes,6,opt,name=execution_ref,json=executionRef,proto3" json:"execution_ref,omitempty"`
+	ParentTaskName string            `protobuf:"bytes,7,opt,name=parent_task_name,json=parentTaskName,proto3" json:"parent_task_name,omitempty"`
+	Retention      *TaskRetention    `protobuf:"bytes,8,opt,name=retention,proto3" json:"retention,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -261,11 +223,11 @@ func (x *TaskSpec) GetDescription() string {
 	return ""
 }
 
-func (x *TaskSpec) GetType() TaskType {
+func (x *TaskSpec) GetType() string {
 	if x != nil {
 		return x.Type
 	}
-	return TaskType_TASK_TYPE_UNSPECIFIED
+	return ""
 }
 
 func (x *TaskSpec) GetRequester() *TaskParticipant {
@@ -615,11 +577,11 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\x04Task\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12-\n" +
 	"\x04spec\x18\x02 \x01(\v2\x19.talon.resources.TaskSpecR\x04spec\x123\n" +
-	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\x9f\x03\n" +
+	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\x84\x03\n" +
 	"\bTaskSpec\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\x12-\n" +
-	"\x04type\x18\x03 \x01(\x0e2\x19.talon.resources.TaskTypeR\x04type\x12>\n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x12\n" +
+	"\x04type\x18\x03 \x01(\tR\x04type\x12>\n" +
 	"\trequester\x18\x04 \x01(\v2 .talon.resources.TaskParticipantR\trequester\x12<\n" +
 	"\bassignee\x18\x05 \x01(\v2 .talon.resources.TaskParticipantR\bassignee\x12F\n" +
 	"\rexecution_ref\x18\x06 \x01(\v2!.talon.resources.TaskExecutionRefR\fexecutionRef\x12(\n" +
@@ -657,13 +619,7 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"updated_at\x18\a \x01(\x03R\tupdatedAt\x12!\n" +
 	"\fcompleted_at\x18\b \x01(\x03R\vcompletedAt\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\t \x01(\x03R\texpiresAt*\x8a\x01\n" +
-	"\bTaskType\x12\x19\n" +
-	"\x15TASK_TYPE_UNSPECIFIED\x10\x00\x12\x19\n" +
-	"\x15TASK_TYPE_COPYWRITING\x10\x01\x12\x16\n" +
-	"\x12TASK_TYPE_RESEARCH\x10\x02\x12\x16\n" +
-	"\x12TASK_TYPE_ANALYSIS\x10\x03\x12\x18\n" +
-	"\x14TASK_TYPE_OPERATIONS\x10\x04*\xed\x01\n" +
+	"expires_at\x18\t \x01(\x03R\texpiresAt*\xed\x01\n" +
 	"\tTaskPhase\x12\x1a\n" +
 	"\x16TASK_PHASE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11TASK_PHASE_QUEUED\x10\x01\x12\x16\n" +
@@ -687,38 +643,36 @@ func file_proto_resources_tasks_proto_rawDescGZIP() []byte {
 	return file_proto_resources_tasks_proto_rawDescData
 }
 
-var file_proto_resources_tasks_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_proto_resources_tasks_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_resources_tasks_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_resources_tasks_proto_goTypes = []any{
-	(TaskType)(0),             // 0: talon.resources.TaskType
-	(TaskPhase)(0),            // 1: talon.resources.TaskPhase
-	(*Task)(nil),              // 2: talon.resources.Task
-	(*TaskSpec)(nil),          // 3: talon.resources.TaskSpec
-	(*TaskParticipant)(nil),   // 4: talon.resources.TaskParticipant
-	(*TaskExecutionRef)(nil),  // 5: talon.resources.TaskExecutionRef
-	(*TaskRetention)(nil),     // 6: talon.resources.TaskRetention
-	(*TaskStatus)(nil),        // 7: talon.resources.TaskStatus
-	(*ResourceMeta)(nil),      // 8: talon.resources.ResourceMeta
-	(*ResourceCondition)(nil), // 9: talon.resources.ResourceCondition
-	(*FileObjectRef)(nil),     // 10: talon.resources.FileObjectRef
+	(TaskPhase)(0),            // 0: talon.resources.TaskPhase
+	(*Task)(nil),              // 1: talon.resources.Task
+	(*TaskSpec)(nil),          // 2: talon.resources.TaskSpec
+	(*TaskParticipant)(nil),   // 3: talon.resources.TaskParticipant
+	(*TaskExecutionRef)(nil),  // 4: talon.resources.TaskExecutionRef
+	(*TaskRetention)(nil),     // 5: talon.resources.TaskRetention
+	(*TaskStatus)(nil),        // 6: talon.resources.TaskStatus
+	(*ResourceMeta)(nil),      // 7: talon.resources.ResourceMeta
+	(*ResourceCondition)(nil), // 8: talon.resources.ResourceCondition
+	(*FileObjectRef)(nil),     // 9: talon.resources.FileObjectRef
 }
 var file_proto_resources_tasks_proto_depIdxs = []int32{
-	8,  // 0: talon.resources.Task.metadata:type_name -> talon.resources.ResourceMeta
-	3,  // 1: talon.resources.Task.spec:type_name -> talon.resources.TaskSpec
-	7,  // 2: talon.resources.Task.status:type_name -> talon.resources.TaskStatus
-	0,  // 3: talon.resources.TaskSpec.type:type_name -> talon.resources.TaskType
-	4,  // 4: talon.resources.TaskSpec.requester:type_name -> talon.resources.TaskParticipant
-	4,  // 5: talon.resources.TaskSpec.assignee:type_name -> talon.resources.TaskParticipant
-	5,  // 6: talon.resources.TaskSpec.execution_ref:type_name -> talon.resources.TaskExecutionRef
-	6,  // 7: talon.resources.TaskSpec.retention:type_name -> talon.resources.TaskRetention
-	1,  // 8: talon.resources.TaskStatus.phase:type_name -> talon.resources.TaskPhase
-	9,  // 9: talon.resources.TaskStatus.conditions:type_name -> talon.resources.ResourceCondition
-	10, // 10: talon.resources.TaskStatus.result_artifacts:type_name -> talon.resources.FileObjectRef
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	7,  // 0: talon.resources.Task.metadata:type_name -> talon.resources.ResourceMeta
+	2,  // 1: talon.resources.Task.spec:type_name -> talon.resources.TaskSpec
+	6,  // 2: talon.resources.Task.status:type_name -> talon.resources.TaskStatus
+	3,  // 3: talon.resources.TaskSpec.requester:type_name -> talon.resources.TaskParticipant
+	3,  // 4: talon.resources.TaskSpec.assignee:type_name -> talon.resources.TaskParticipant
+	4,  // 5: talon.resources.TaskSpec.execution_ref:type_name -> talon.resources.TaskExecutionRef
+	5,  // 6: talon.resources.TaskSpec.retention:type_name -> talon.resources.TaskRetention
+	0,  // 7: talon.resources.TaskStatus.phase:type_name -> talon.resources.TaskPhase
+	8,  // 8: talon.resources.TaskStatus.conditions:type_name -> talon.resources.ResourceCondition
+	9,  // 9: talon.resources.TaskStatus.result_artifacts:type_name -> talon.resources.FileObjectRef
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_tasks_proto_init() }
@@ -733,7 +687,7 @@ func file_proto_resources_tasks_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_tasks_proto_rawDesc), len(file_proto_resources_tasks_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      1,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,

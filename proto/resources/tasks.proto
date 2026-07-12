@@ -14,7 +14,12 @@ message Task {
 message TaskSpec {
   string title = 1;
   string description = 2;
-  TaskType type = 3;
+  // Optional caller-defined classifier for grouping or UI display.
+  //
+  // Talon does not interpret this field for scheduling, routing, auth, or task
+  // lifecycle. Use values such as "agent_delegation", "human_review", or an
+  // application-specific string when the caller needs a stable category.
+  string type = 3;
   TaskParticipant requester = 4;
   TaskParticipant assignee = 5;
   TaskExecutionRef execution_ref = 6;
@@ -42,23 +47,27 @@ message TaskRetention {
   string artifacts = 3;
 }
 
-enum TaskType {
-  TASK_TYPE_UNSPECIFIED = 0;
-  TASK_TYPE_COPYWRITING = 1;
-  TASK_TYPE_RESEARCH = 2;
-  TASK_TYPE_ANALYSIS = 3;
-  TASK_TYPE_OPERATIONS = 4;
-}
-
+// Lifecycle phase for a Task.
 enum TaskPhase {
+  // No phase has been set. Writers should avoid persisting this outside
+  // partially initialized records.
   TASK_PHASE_UNSPECIFIED = 0;
+  // The task exists but no assignee execution has started.
   TASK_PHASE_QUEUED = 1;
+  // The assignee is actively working on the task.
   TASK_PHASE_RUNNING = 2;
+  // Progress is blocked on user input, permissions, dependencies, or another
+  // external condition.
   TASK_PHASE_BLOCKED = 3;
+  // Work is complete enough for the requester or another reviewer to inspect.
   TASK_PHASE_NEEDS_REVIEW = 4;
+  // The task completed successfully.
   TASK_PHASE_SUCCEEDED = 5;
+  // The task ended because execution failed.
   TASK_PHASE_FAILED = 6;
+  // The task was intentionally stopped before completion.
   TASK_PHASE_CANCELED = 7;
+  // The task exceeded its allowed lifetime or retention policy.
   TASK_PHASE_EXPIRED = 8;
 }
 

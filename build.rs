@@ -217,10 +217,6 @@ fn main() -> std::io::Result<()> {
             "#[serde(with = \"crate::control::manifest::enum_serde::file_retention\")]",
         )
         .field_attribute(
-            ".talon.resources.TaskSpec.type",
-            "#[serde(with = \"crate::control::manifest::enum_serde::task_type\")]",
-        )
-        .field_attribute(
             ".talon.resources.TaskStatus.phase",
             "#[serde(with = \"crate::control::manifest::enum_serde::task_phase\")]",
         )

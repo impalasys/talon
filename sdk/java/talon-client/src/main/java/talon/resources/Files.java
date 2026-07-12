@@ -32,14 +32,28 @@ public final class Files extends com.google.protobuf.GeneratedFile {
   public enum FilePurpose
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
+     * <pre>
+     * No purpose has been set. Writers should choose a concrete purpose before
+     * creating namespace-visible File resources.
+     * </pre>
+     *
      * <code>FILE_PURPOSE_UNSPECIFIED = 0;</code>
      */
     FILE_PURPOSE_UNSPECIFIED(0),
     /**
+     * <pre>
+     * Durable memory used for retrieval by agents, replacing legacy Knowledge.
+     * </pre>
+     *
      * <code>FILE_PURPOSE_MEMORY = 1;</code>
      */
     FILE_PURPOSE_MEMORY(1),
     /**
+     * <pre>
+     * Durable namespace-level artifact, usually promoted from a session Artifact
+     * or created by privileged file APIs.
+     * </pre>
+     *
      * <code>FILE_PURPOSE_ARTIFACT = 2;</code>
      */
     FILE_PURPOSE_ARTIFACT(2),
@@ -56,14 +70,28 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         "FilePurpose");
     }
     /**
+     * <pre>
+     * No purpose has been set. Writers should choose a concrete purpose before
+     * creating namespace-visible File resources.
+     * </pre>
+     *
      * <code>FILE_PURPOSE_UNSPECIFIED = 0;</code>
      */
     public static final int FILE_PURPOSE_UNSPECIFIED_VALUE = 0;
     /**
+     * <pre>
+     * Durable memory used for retrieval by agents, replacing legacy Knowledge.
+     * </pre>
+     *
      * <code>FILE_PURPOSE_MEMORY = 1;</code>
      */
     public static final int FILE_PURPOSE_MEMORY_VALUE = 1;
     /**
+     * <pre>
+     * Durable namespace-level artifact, usually promoted from a session Artifact
+     * or created by privileged file APIs.
+     * </pre>
+     *
      * <code>FILE_PURPOSE_ARTIFACT = 2;</code>
      */
     public static final int FILE_PURPOSE_ARTIFACT_VALUE = 2;
@@ -158,18 +186,35 @@ public final class Files extends com.google.protobuf.GeneratedFile {
   public enum FileIndexPolicy
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
+     * <pre>
+     * No index policy has been set. Writers should choose NONE, SEARCH, or
+     * RETRIEVAL explicitly.
+     * </pre>
+     *
      * <code>FILE_INDEX_POLICY_UNSPECIFIED = 0;</code>
      */
     FILE_INDEX_POLICY_UNSPECIFIED(0),
     /**
+     * <pre>
+     * Do not index this File's content.
+     * </pre>
+     *
      * <code>FILE_INDEX_POLICY_NONE = 1;</code>
      */
     FILE_INDEX_POLICY_NONE(1),
     /**
+     * <pre>
+     * Index this File in generic search, but not memory retrieval.
+     * </pre>
+     *
      * <code>FILE_INDEX_POLICY_SEARCH = 2;</code>
      */
     FILE_INDEX_POLICY_SEARCH(2),
     /**
+     * <pre>
+     * Index this File for agent memory retrieval.
+     * </pre>
+     *
      * <code>FILE_INDEX_POLICY_RETRIEVAL = 3;</code>
      */
     FILE_INDEX_POLICY_RETRIEVAL(3),
@@ -186,18 +231,35 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         "FileIndexPolicy");
     }
     /**
+     * <pre>
+     * No index policy has been set. Writers should choose NONE, SEARCH, or
+     * RETRIEVAL explicitly.
+     * </pre>
+     *
      * <code>FILE_INDEX_POLICY_UNSPECIFIED = 0;</code>
      */
     public static final int FILE_INDEX_POLICY_UNSPECIFIED_VALUE = 0;
     /**
+     * <pre>
+     * Do not index this File's content.
+     * </pre>
+     *
      * <code>FILE_INDEX_POLICY_NONE = 1;</code>
      */
     public static final int FILE_INDEX_POLICY_NONE_VALUE = 1;
     /**
+     * <pre>
+     * Index this File in generic search, but not memory retrieval.
+     * </pre>
+     *
      * <code>FILE_INDEX_POLICY_SEARCH = 2;</code>
      */
     public static final int FILE_INDEX_POLICY_SEARCH_VALUE = 2;
     /**
+     * <pre>
+     * Index this File for agent memory retrieval.
+     * </pre>
+     *
      * <code>FILE_INDEX_POLICY_RETRIEVAL = 3;</code>
      */
     public static final int FILE_INDEX_POLICY_RETRIEVAL_VALUE = 3;
@@ -293,10 +355,19 @@ public final class Files extends com.google.protobuf.GeneratedFile {
   public enum FileRetention
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
+     * <pre>
+     * No retention policy has been set. Writers should choose a concrete policy
+     * before creating namespace-visible File resources.
+     * </pre>
+     *
      * <code>FILE_RETENTION_UNSPECIFIED = 0;</code>
      */
     FILE_RETENTION_UNSPECIFIED(0),
     /**
+     * <pre>
+     * Retain until an authorized caller updates or deletes the File.
+     * </pre>
+     *
      * <code>FILE_RETENTION_RETAINED = 1;</code>
      */
     FILE_RETENTION_RETAINED(1),
@@ -313,10 +384,19 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         "FileRetention");
     }
     /**
+     * <pre>
+     * No retention policy has been set. Writers should choose a concrete policy
+     * before creating namespace-visible File resources.
+     * </pre>
+     *
      * <code>FILE_RETENTION_UNSPECIFIED = 0;</code>
      */
     public static final int FILE_RETENTION_UNSPECIFIED_VALUE = 0;
     /**
+     * <pre>
+     * Retain until an authorized caller updates or deletes the File.
+     * </pre>
+     *
      * <code>FILE_RETENTION_RETAINED = 1;</code>
      */
     public static final int FILE_RETENTION_RETAINED_VALUE = 1;

@@ -9,14 +9,6 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class TaskType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    TASK_TYPE_UNSPECIFIED: _ClassVar[TaskType]
-    TASK_TYPE_COPYWRITING: _ClassVar[TaskType]
-    TASK_TYPE_RESEARCH: _ClassVar[TaskType]
-    TASK_TYPE_ANALYSIS: _ClassVar[TaskType]
-    TASK_TYPE_OPERATIONS: _ClassVar[TaskType]
-
 class TaskPhase(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     TASK_PHASE_UNSPECIFIED: _ClassVar[TaskPhase]
@@ -28,11 +20,6 @@ class TaskPhase(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     TASK_PHASE_FAILED: _ClassVar[TaskPhase]
     TASK_PHASE_CANCELED: _ClassVar[TaskPhase]
     TASK_PHASE_EXPIRED: _ClassVar[TaskPhase]
-TASK_TYPE_UNSPECIFIED: TaskType
-TASK_TYPE_COPYWRITING: TaskType
-TASK_TYPE_RESEARCH: TaskType
-TASK_TYPE_ANALYSIS: TaskType
-TASK_TYPE_OPERATIONS: TaskType
 TASK_PHASE_UNSPECIFIED: TaskPhase
 TASK_PHASE_QUEUED: TaskPhase
 TASK_PHASE_RUNNING: TaskPhase
@@ -65,13 +52,13 @@ class TaskSpec(_message.Message):
     RETENTION_FIELD_NUMBER: _ClassVar[int]
     title: str
     description: str
-    type: TaskType
+    type: str
     requester: TaskParticipant
     assignee: TaskParticipant
     execution_ref: TaskExecutionRef
     parent_task_name: str
     retention: TaskRetention
-    def __init__(self, title: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[_Union[TaskType, str]] = ..., requester: _Optional[_Union[TaskParticipant, _Mapping]] = ..., assignee: _Optional[_Union[TaskParticipant, _Mapping]] = ..., execution_ref: _Optional[_Union[TaskExecutionRef, _Mapping]] = ..., parent_task_name: _Optional[str] = ..., retention: _Optional[_Union[TaskRetention, _Mapping]] = ...) -> None: ...
+    def __init__(self, title: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[str] = ..., requester: _Optional[_Union[TaskParticipant, _Mapping]] = ..., assignee: _Optional[_Union[TaskParticipant, _Mapping]] = ..., execution_ref: _Optional[_Union[TaskExecutionRef, _Mapping]] = ..., parent_task_name: _Optional[str] = ..., retention: _Optional[_Union[TaskRetention, _Mapping]] = ...) -> None: ...
 
 class TaskParticipant(_message.Message):
     __slots__ = ("namespace", "agent", "session_id")

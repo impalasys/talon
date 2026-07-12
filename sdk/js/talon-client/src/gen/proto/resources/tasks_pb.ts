@@ -9,88 +9,72 @@ import { ResourceCondition, ResourceMeta } from "./common_pb.js";
 import { FileObjectRef } from "./files_pb.js";
 
 /**
- * @generated from enum talon.resources.TaskType
- */
-export enum TaskType {
-  /**
-   * @generated from enum value: TASK_TYPE_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * @generated from enum value: TASK_TYPE_COPYWRITING = 1;
-   */
-  COPYWRITING = 1,
-
-  /**
-   * @generated from enum value: TASK_TYPE_RESEARCH = 2;
-   */
-  RESEARCH = 2,
-
-  /**
-   * @generated from enum value: TASK_TYPE_ANALYSIS = 3;
-   */
-  ANALYSIS = 3,
-
-  /**
-   * @generated from enum value: TASK_TYPE_OPERATIONS = 4;
-   */
-  OPERATIONS = 4,
-}
-// Retrieve enum metadata with: proto3.getEnumType(TaskType)
-proto3.util.setEnumType(TaskType, "talon.resources.TaskType", [
-  { no: 0, name: "TASK_TYPE_UNSPECIFIED" },
-  { no: 1, name: "TASK_TYPE_COPYWRITING" },
-  { no: 2, name: "TASK_TYPE_RESEARCH" },
-  { no: 3, name: "TASK_TYPE_ANALYSIS" },
-  { no: 4, name: "TASK_TYPE_OPERATIONS" },
-]);
-
-/**
+ * Lifecycle phase for a Task.
+ *
  * @generated from enum talon.resources.TaskPhase
  */
 export enum TaskPhase {
   /**
+   * No phase has been set. Writers should avoid persisting this outside
+   * partially initialized records.
+   *
    * @generated from enum value: TASK_PHASE_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
+   * The task exists but no assignee execution has started.
+   *
    * @generated from enum value: TASK_PHASE_QUEUED = 1;
    */
   QUEUED = 1,
 
   /**
+   * The assignee is actively working on the task.
+   *
    * @generated from enum value: TASK_PHASE_RUNNING = 2;
    */
   RUNNING = 2,
 
   /**
+   * Progress is blocked on user input, permissions, dependencies, or another
+   * external condition.
+   *
    * @generated from enum value: TASK_PHASE_BLOCKED = 3;
    */
   BLOCKED = 3,
 
   /**
+   * Work is complete enough for the requester or another reviewer to inspect.
+   *
    * @generated from enum value: TASK_PHASE_NEEDS_REVIEW = 4;
    */
   NEEDS_REVIEW = 4,
 
   /**
+   * The task completed successfully.
+   *
    * @generated from enum value: TASK_PHASE_SUCCEEDED = 5;
    */
   SUCCEEDED = 5,
 
   /**
+   * The task ended because execution failed.
+   *
    * @generated from enum value: TASK_PHASE_FAILED = 6;
    */
   FAILED = 6,
 
   /**
+   * The task was intentionally stopped before completion.
+   *
    * @generated from enum value: TASK_PHASE_CANCELED = 7;
    */
   CANCELED = 7,
 
   /**
+   * The task exceeded its allowed lifetime or retention policy.
+   *
    * @generated from enum value: TASK_PHASE_EXPIRED = 8;
    */
   EXPIRED = 8,
@@ -172,9 +156,15 @@ export class TaskSpec extends Message<TaskSpec> {
   description = "";
 
   /**
-   * @generated from field: talon.resources.TaskType type = 3;
+   * Optional caller-defined classifier for grouping or UI display.
+   *
+   * Talon does not interpret this field for scheduling, routing, auth, or task
+   * lifecycle. Use values such as "agent_delegation", "human_review", or an
+   * application-specific string when the caller needs a stable category.
+   *
+   * @generated from field: string type = 3;
    */
-  type = TaskType.UNSPECIFIED;
+  type = "";
 
   /**
    * @generated from field: talon.resources.TaskParticipant requester = 4;
@@ -211,7 +201,7 @@ export class TaskSpec extends Message<TaskSpec> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "type", kind: "enum", T: proto3.getEnumType(TaskType) },
+    { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "requester", kind: "message", T: TaskParticipant },
     { no: 5, name: "assignee", kind: "message", T: TaskParticipant },
     { no: 6, name: "execution_ref", kind: "message", T: TaskExecutionRef },

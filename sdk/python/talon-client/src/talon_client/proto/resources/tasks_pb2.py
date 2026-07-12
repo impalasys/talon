@@ -26,27 +26,25 @@ from talon_client.proto.resources import common_pb2 as proto_dot_resources_dot_c
 from talon_client.proto.resources import files_pb2 as proto_dot_resources_dot_files__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1bproto/resources/tasks.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\x1a\x1bproto/resources/files.proto\"\x8d\x01\n\x04Task\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12\'\n\x04spec\x18\x02 \x01(\x0b\x32\x19.talon.resources.TaskSpec\x12+\n\x06status\x18\x03 \x01(\x0b\x32\x1b.talon.resources.TaskStatus\"\xc7\x02\n\x08TaskSpec\x12\r\n\x05title\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\'\n\x04type\x18\x03 \x01(\x0e\x32\x19.talon.resources.TaskType\x12\x33\n\trequester\x18\x04 \x01(\x0b\x32 .talon.resources.TaskParticipant\x12\x32\n\x08\x61ssignee\x18\x05 \x01(\x0b\x32 .talon.resources.TaskParticipant\x12\x38\n\rexecution_ref\x18\x06 \x01(\x0b\x32!.talon.resources.TaskExecutionRef\x12\x18\n\x10parent_task_name\x18\x07 \x01(\t\x12\x31\n\tretention\x18\x08 \x01(\x0b\x32\x1e.talon.resources.TaskRetention\"G\n\x0fTaskParticipant\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\r\n\x05\x61gent\x18\x02 \x01(\t\x12\x12\n\nsession_id\x18\x03 \x01(\t\"f\n\x10TaskExecutionRef\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x11\n\tnamespace\x18\x02 \x01(\t\x12\r\n\x05\x61gent\x18\x03 \x01(\t\x12\x12\n\nsession_id\x18\x04 \x01(\t\x12\x0e\n\x06run_id\x18\x05 \x01(\t\"G\n\rTaskRetention\x12\x13\n\x0btask_record\x18\x01 \x01(\t\x12\x0e\n\x06\x65vents\x18\x02 \x01(\t\x12\x11\n\tartifacts\x18\x03 \x01(\t\"\xb2\x02\n\nTaskStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12)\n\x05phase\x18\x02 \x01(\x0e\x32\x1a.talon.resources.TaskPhase\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12\x18\n\x10progress_summary\x18\x04 \x01(\t\x12\x38\n\x10result_artifacts\x18\x05 \x03(\x0b\x32\x1e.talon.resources.FileObjectRef\x12\x12\n\ncreated_at\x18\x06 \x01(\x03\x12\x12\n\nupdated_at\x18\x07 \x01(\x03\x12\x14\n\x0c\x63ompleted_at\x18\x08 \x01(\x03\x12\x12\n\nexpires_at\x18\t \x01(\x03*\x8a\x01\n\x08TaskType\x12\x19\n\x15TASK_TYPE_UNSPECIFIED\x10\x00\x12\x19\n\x15TASK_TYPE_COPYWRITING\x10\x01\x12\x16\n\x12TASK_TYPE_RESEARCH\x10\x02\x12\x16\n\x12TASK_TYPE_ANALYSIS\x10\x03\x12\x18\n\x14TASK_TYPE_OPERATIONS\x10\x04*\xed\x01\n\tTaskPhase\x12\x1a\n\x16TASK_PHASE_UNSPECIFIED\x10\x00\x12\x15\n\x11TASK_PHASE_QUEUED\x10\x01\x12\x16\n\x12TASK_PHASE_RUNNING\x10\x02\x12\x16\n\x12TASK_PHASE_BLOCKED\x10\x03\x12\x1b\n\x17TASK_PHASE_NEEDS_REVIEW\x10\x04\x12\x18\n\x14TASK_PHASE_SUCCEEDED\x10\x05\x12\x15\n\x11TASK_PHASE_FAILED\x10\x06\x12\x17\n\x13TASK_PHASE_CANCELED\x10\x07\x12\x16\n\x12TASK_PHASE_EXPIRED\x10\x08\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1bproto/resources/tasks.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\x1a\x1bproto/resources/files.proto\"\x8d\x01\n\x04Task\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12\'\n\x04spec\x18\x02 \x01(\x0b\x32\x19.talon.resources.TaskSpec\x12+\n\x06status\x18\x03 \x01(\x0b\x32\x1b.talon.resources.TaskStatus\"\xac\x02\n\x08TaskSpec\x12\r\n\x05title\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x33\n\trequester\x18\x04 \x01(\x0b\x32 .talon.resources.TaskParticipant\x12\x32\n\x08\x61ssignee\x18\x05 \x01(\x0b\x32 .talon.resources.TaskParticipant\x12\x38\n\rexecution_ref\x18\x06 \x01(\x0b\x32!.talon.resources.TaskExecutionRef\x12\x18\n\x10parent_task_name\x18\x07 \x01(\t\x12\x31\n\tretention\x18\x08 \x01(\x0b\x32\x1e.talon.resources.TaskRetention\"G\n\x0fTaskParticipant\x12\x11\n\tnamespace\x18\x01 \x01(\t\x12\r\n\x05\x61gent\x18\x02 \x01(\t\x12\x12\n\nsession_id\x18\x03 \x01(\t\"f\n\x10TaskExecutionRef\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x11\n\tnamespace\x18\x02 \x01(\t\x12\r\n\x05\x61gent\x18\x03 \x01(\t\x12\x12\n\nsession_id\x18\x04 \x01(\t\x12\x0e\n\x06run_id\x18\x05 \x01(\t\"G\n\rTaskRetention\x12\x13\n\x0btask_record\x18\x01 \x01(\t\x12\x0e\n\x06\x65vents\x18\x02 \x01(\t\x12\x11\n\tartifacts\x18\x03 \x01(\t\"\xb2\x02\n\nTaskStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12)\n\x05phase\x18\x02 \x01(\x0e\x32\x1a.talon.resources.TaskPhase\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12\x18\n\x10progress_summary\x18\x04 \x01(\t\x12\x38\n\x10result_artifacts\x18\x05 \x03(\x0b\x32\x1e.talon.resources.FileObjectRef\x12\x12\n\ncreated_at\x18\x06 \x01(\x03\x12\x12\n\nupdated_at\x18\x07 \x01(\x03\x12\x14\n\x0c\x63ompleted_at\x18\x08 \x01(\x03\x12\x12\n\nexpires_at\x18\t \x01(\x03*\xed\x01\n\tTaskPhase\x12\x1a\n\x16TASK_PHASE_UNSPECIFIED\x10\x00\x12\x15\n\x11TASK_PHASE_QUEUED\x10\x01\x12\x16\n\x12TASK_PHASE_RUNNING\x10\x02\x12\x16\n\x12TASK_PHASE_BLOCKED\x10\x03\x12\x1b\n\x17TASK_PHASE_NEEDS_REVIEW\x10\x04\x12\x18\n\x14TASK_PHASE_SUCCEEDED\x10\x05\x12\x15\n\x11TASK_PHASE_FAILED\x10\x06\x12\x17\n\x13TASK_PHASE_CANCELED\x10\x07\x12\x16\n\x12TASK_PHASE_EXPIRED\x10\x08\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.resources.tasks_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_TASKTYPE']._serialized_start=1141
-  _globals['_TASKTYPE']._serialized_end=1279
-  _globals['_TASKPHASE']._serialized_start=1282
-  _globals['_TASKPHASE']._serialized_end=1519
+  _globals['_TASKPHASE']._serialized_start=1114
+  _globals['_TASKPHASE']._serialized_end=1351
   _globals['_TASK']._serialized_start=108
   _globals['_TASK']._serialized_end=249
   _globals['_TASKSPEC']._serialized_start=252
-  _globals['_TASKSPEC']._serialized_end=579
-  _globals['_TASKPARTICIPANT']._serialized_start=581
-  _globals['_TASKPARTICIPANT']._serialized_end=652
-  _globals['_TASKEXECUTIONREF']._serialized_start=654
-  _globals['_TASKEXECUTIONREF']._serialized_end=756
-  _globals['_TASKRETENTION']._serialized_start=758
-  _globals['_TASKRETENTION']._serialized_end=829
-  _globals['_TASKSTATUS']._serialized_start=832
-  _globals['_TASKSTATUS']._serialized_end=1138
+  _globals['_TASKSPEC']._serialized_end=552
+  _globals['_TASKPARTICIPANT']._serialized_start=554
+  _globals['_TASKPARTICIPANT']._serialized_end=625
+  _globals['_TASKEXECUTIONREF']._serialized_start=627
+  _globals['_TASKEXECUTIONREF']._serialized_end=729
+  _globals['_TASKRETENTION']._serialized_start=731
+  _globals['_TASKRETENTION']._serialized_end=802
+  _globals['_TASKSTATUS']._serialized_start=805
+  _globals['_TASKSTATUS']._serialized_end=1111
 # @@protoc_insertion_point(module_scope)

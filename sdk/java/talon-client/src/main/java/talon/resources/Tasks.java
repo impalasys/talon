@@ -27,187 +27,85 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   /**
-   * Protobuf enum {@code talon.resources.TaskType}
-   */
-  public enum TaskType
-      implements com.google.protobuf.ProtocolMessageEnum {
-    /**
-     * <code>TASK_TYPE_UNSPECIFIED = 0;</code>
-     */
-    TASK_TYPE_UNSPECIFIED(0),
-    /**
-     * <code>TASK_TYPE_COPYWRITING = 1;</code>
-     */
-    TASK_TYPE_COPYWRITING(1),
-    /**
-     * <code>TASK_TYPE_RESEARCH = 2;</code>
-     */
-    TASK_TYPE_RESEARCH(2),
-    /**
-     * <code>TASK_TYPE_ANALYSIS = 3;</code>
-     */
-    TASK_TYPE_ANALYSIS(3),
-    /**
-     * <code>TASK_TYPE_OPERATIONS = 4;</code>
-     */
-    TASK_TYPE_OPERATIONS(4),
-    UNRECOGNIZED(-1),
-    ;
-
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "TaskType");
-    }
-    /**
-     * <code>TASK_TYPE_UNSPECIFIED = 0;</code>
-     */
-    public static final int TASK_TYPE_UNSPECIFIED_VALUE = 0;
-    /**
-     * <code>TASK_TYPE_COPYWRITING = 1;</code>
-     */
-    public static final int TASK_TYPE_COPYWRITING_VALUE = 1;
-    /**
-     * <code>TASK_TYPE_RESEARCH = 2;</code>
-     */
-    public static final int TASK_TYPE_RESEARCH_VALUE = 2;
-    /**
-     * <code>TASK_TYPE_ANALYSIS = 3;</code>
-     */
-    public static final int TASK_TYPE_ANALYSIS_VALUE = 3;
-    /**
-     * <code>TASK_TYPE_OPERATIONS = 4;</code>
-     */
-    public static final int TASK_TYPE_OPERATIONS_VALUE = 4;
-
-
-    public final int getNumber() {
-      if (this == UNRECOGNIZED) {
-        throw new java.lang.IllegalArgumentException(
-            "Can't get the number of an unknown enum value.");
-      }
-      return value;
-    }
-
-    /**
-     * @param value The numeric wire value of the corresponding enum entry.
-     * @return The enum associated with the given numeric wire value.
-     * @deprecated Use {@link #forNumber(int)} instead.
-     */
-    @java.lang.Deprecated
-    public static TaskType valueOf(int value) {
-      return forNumber(value);
-    }
-
-    /**
-     * @param value The numeric wire value of the corresponding enum entry.
-     * @return The enum associated with the given numeric wire value.
-     */
-    public static TaskType forNumber(int value) {
-      switch (value) {
-        case 0: return TASK_TYPE_UNSPECIFIED;
-        case 1: return TASK_TYPE_COPYWRITING;
-        case 2: return TASK_TYPE_RESEARCH;
-        case 3: return TASK_TYPE_ANALYSIS;
-        case 4: return TASK_TYPE_OPERATIONS;
-        default: return null;
-      }
-    }
-
-    public static com.google.protobuf.Internal.EnumLiteMap<TaskType>
-        internalGetValueMap() {
-      return internalValueMap;
-    }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
-        TaskType> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<TaskType>() {
-            public TaskType findValueByNumber(int number) {
-              return TaskType.forNumber(number);
-            }
-          };
-
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
-      if (this == UNRECOGNIZED) {
-        throw new java.lang.IllegalStateException(
-            "Can't get the descriptor of an unrecognized enum value.");
-      }
-      return getDescriptor().getValue(ordinal());
-    }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
-      return getDescriptor();
-    }
-    public static com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
-      return talon.resources.Tasks.getDescriptor().getEnumType(0);
-    }
-
-    private static final TaskType[] VALUES = values();
-
-    public static TaskType valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-      if (desc.getType() != getDescriptor()) {
-        throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
-      }
-      if (desc.getIndex() == -1) {
-        return UNRECOGNIZED;
-      }
-      return VALUES[desc.getIndex()];
-    }
-
-    private final int value;
-
-    private TaskType(int value) {
-      this.value = value;
-    }
-
-    // @@protoc_insertion_point(enum_scope:talon.resources.TaskType)
-  }
-
-  /**
+   * <pre>
+   * Lifecycle phase for a Task.
+   * </pre>
+   *
    * Protobuf enum {@code talon.resources.TaskPhase}
    */
   public enum TaskPhase
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
+     * <pre>
+     * No phase has been set. Writers should avoid persisting this outside
+     * partially initialized records.
+     * </pre>
+     *
      * <code>TASK_PHASE_UNSPECIFIED = 0;</code>
      */
     TASK_PHASE_UNSPECIFIED(0),
     /**
+     * <pre>
+     * The task exists but no assignee execution has started.
+     * </pre>
+     *
      * <code>TASK_PHASE_QUEUED = 1;</code>
      */
     TASK_PHASE_QUEUED(1),
     /**
+     * <pre>
+     * The assignee is actively working on the task.
+     * </pre>
+     *
      * <code>TASK_PHASE_RUNNING = 2;</code>
      */
     TASK_PHASE_RUNNING(2),
     /**
+     * <pre>
+     * Progress is blocked on user input, permissions, dependencies, or another
+     * external condition.
+     * </pre>
+     *
      * <code>TASK_PHASE_BLOCKED = 3;</code>
      */
     TASK_PHASE_BLOCKED(3),
     /**
+     * <pre>
+     * Work is complete enough for the requester or another reviewer to inspect.
+     * </pre>
+     *
      * <code>TASK_PHASE_NEEDS_REVIEW = 4;</code>
      */
     TASK_PHASE_NEEDS_REVIEW(4),
     /**
+     * <pre>
+     * The task completed successfully.
+     * </pre>
+     *
      * <code>TASK_PHASE_SUCCEEDED = 5;</code>
      */
     TASK_PHASE_SUCCEEDED(5),
     /**
+     * <pre>
+     * The task ended because execution failed.
+     * </pre>
+     *
      * <code>TASK_PHASE_FAILED = 6;</code>
      */
     TASK_PHASE_FAILED(6),
     /**
+     * <pre>
+     * The task was intentionally stopped before completion.
+     * </pre>
+     *
      * <code>TASK_PHASE_CANCELED = 7;</code>
      */
     TASK_PHASE_CANCELED(7),
     /**
+     * <pre>
+     * The task exceeded its allowed lifetime or retention policy.
+     * </pre>
+     *
      * <code>TASK_PHASE_EXPIRED = 8;</code>
      */
     TASK_PHASE_EXPIRED(8),
@@ -224,38 +122,76 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         "TaskPhase");
     }
     /**
+     * <pre>
+     * No phase has been set. Writers should avoid persisting this outside
+     * partially initialized records.
+     * </pre>
+     *
      * <code>TASK_PHASE_UNSPECIFIED = 0;</code>
      */
     public static final int TASK_PHASE_UNSPECIFIED_VALUE = 0;
     /**
+     * <pre>
+     * The task exists but no assignee execution has started.
+     * </pre>
+     *
      * <code>TASK_PHASE_QUEUED = 1;</code>
      */
     public static final int TASK_PHASE_QUEUED_VALUE = 1;
     /**
+     * <pre>
+     * The assignee is actively working on the task.
+     * </pre>
+     *
      * <code>TASK_PHASE_RUNNING = 2;</code>
      */
     public static final int TASK_PHASE_RUNNING_VALUE = 2;
     /**
+     * <pre>
+     * Progress is blocked on user input, permissions, dependencies, or another
+     * external condition.
+     * </pre>
+     *
      * <code>TASK_PHASE_BLOCKED = 3;</code>
      */
     public static final int TASK_PHASE_BLOCKED_VALUE = 3;
     /**
+     * <pre>
+     * Work is complete enough for the requester or another reviewer to inspect.
+     * </pre>
+     *
      * <code>TASK_PHASE_NEEDS_REVIEW = 4;</code>
      */
     public static final int TASK_PHASE_NEEDS_REVIEW_VALUE = 4;
     /**
+     * <pre>
+     * The task completed successfully.
+     * </pre>
+     *
      * <code>TASK_PHASE_SUCCEEDED = 5;</code>
      */
     public static final int TASK_PHASE_SUCCEEDED_VALUE = 5;
     /**
+     * <pre>
+     * The task ended because execution failed.
+     * </pre>
+     *
      * <code>TASK_PHASE_FAILED = 6;</code>
      */
     public static final int TASK_PHASE_FAILED_VALUE = 6;
     /**
+     * <pre>
+     * The task was intentionally stopped before completion.
+     * </pre>
+     *
      * <code>TASK_PHASE_CANCELED = 7;</code>
      */
     public static final int TASK_PHASE_CANCELED_VALUE = 7;
     /**
+     * <pre>
+     * The task exceeded its allowed lifetime or retention policy.
+     * </pre>
+     *
      * <code>TASK_PHASE_EXPIRED = 8;</code>
      */
     public static final int TASK_PHASE_EXPIRED_VALUE = 8;
@@ -324,7 +260,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     }
     public static com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return talon.resources.Tasks.getDescriptor().getEnumType(1);
+      return talon.resources.Tasks.getDescriptor().getEnumType(0);
     }
 
     private static final TaskPhase[] VALUES = values();
@@ -1354,15 +1290,32 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         getDescriptionBytes();
 
     /**
-     * <code>.talon.resources.TaskType type = 3;</code>
-     * @return The enum numeric value on the wire for type.
-     */
-    int getTypeValue();
-    /**
-     * <code>.talon.resources.TaskType type = 3;</code>
+     * <pre>
+     * Optional caller-defined classifier for grouping or UI display.
+     *
+     * Talon does not interpret this field for scheduling, routing, auth, or task
+     * lifecycle. Use values such as "agent_delegation", "human_review", or an
+     * application-specific string when the caller needs a stable category.
+     * </pre>
+     *
+     * <code>string type = 3;</code>
      * @return The type.
      */
-    talon.resources.Tasks.TaskType getType();
+    java.lang.String getType();
+    /**
+     * <pre>
+     * Optional caller-defined classifier for grouping or UI display.
+     *
+     * Talon does not interpret this field for scheduling, routing, auth, or task
+     * lifecycle. Use values such as "agent_delegation", "human_review", or an
+     * application-specific string when the caller needs a stable category.
+     * </pre>
+     *
+     * <code>string type = 3;</code>
+     * @return The bytes for type.
+     */
+    com.google.protobuf.ByteString
+        getTypeBytes();
 
     /**
      * <code>.talon.resources.TaskParticipant requester = 4;</code>
@@ -1460,7 +1413,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     private TaskSpec() {
       title_ = "";
       description_ = "";
-      type_ = 0;
+      type_ = "";
       parentTaskName_ = "";
     }
 
@@ -1562,21 +1515,58 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int TYPE_FIELD_NUMBER = 3;
-    private int type_ = 0;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object type_ = "";
     /**
-     * <code>.talon.resources.TaskType type = 3;</code>
-     * @return The enum numeric value on the wire for type.
-     */
-    @java.lang.Override public int getTypeValue() {
-      return type_;
-    }
-    /**
-     * <code>.talon.resources.TaskType type = 3;</code>
+     * <pre>
+     * Optional caller-defined classifier for grouping or UI display.
+     *
+     * Talon does not interpret this field for scheduling, routing, auth, or task
+     * lifecycle. Use values such as "agent_delegation", "human_review", or an
+     * application-specific string when the caller needs a stable category.
+     * </pre>
+     *
+     * <code>string type = 3;</code>
      * @return The type.
      */
-    @java.lang.Override public talon.resources.Tasks.TaskType getType() {
-      talon.resources.Tasks.TaskType result = talon.resources.Tasks.TaskType.forNumber(type_);
-      return result == null ? talon.resources.Tasks.TaskType.UNRECOGNIZED : result;
+    @java.lang.Override
+    public java.lang.String getType() {
+      java.lang.Object ref = type_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        type_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Optional caller-defined classifier for grouping or UI display.
+     *
+     * Talon does not interpret this field for scheduling, routing, auth, or task
+     * lifecycle. Use values such as "agent_delegation", "human_review", or an
+     * application-specific string when the caller needs a stable category.
+     * </pre>
+     *
+     * <code>string type = 3;</code>
+     * @return The bytes for type.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTypeBytes() {
+      java.lang.Object ref = type_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        type_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int REQUESTER_FIELD_NUMBER = 4;
@@ -1742,8 +1732,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, description_);
       }
-      if (type_ != talon.resources.Tasks.TaskType.TASK_TYPE_UNSPECIFIED.getNumber()) {
-        output.writeEnum(3, type_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(type_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, type_);
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(4, getRequester());
@@ -1775,9 +1765,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, description_);
       }
-      if (type_ != talon.resources.Tasks.TaskType.TASK_TYPE_UNSPECIFIED.getNumber()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(3, type_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(type_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, type_);
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
@@ -1817,7 +1806,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           .equals(other.getTitle())) return false;
       if (!getDescription()
           .equals(other.getDescription())) return false;
-      if (type_ != other.type_) return false;
+      if (!getType()
+          .equals(other.getType())) return false;
       if (hasRequester() != other.hasRequester()) return false;
       if (hasRequester()) {
         if (!getRequester()
@@ -1856,7 +1846,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
       hash = (53 * hash) + getDescription().hashCode();
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
-      hash = (53 * hash) + type_;
+      hash = (53 * hash) + getType().hashCode();
       if (hasRequester()) {
         hash = (37 * hash) + REQUESTER_FIELD_NUMBER;
         hash = (53 * hash) + getRequester().hashCode();
@@ -2017,7 +2007,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         bitField0_ = 0;
         title_ = "";
         description_ = "";
-        type_ = 0;
+        type_ = "";
         requester_ = null;
         if (requesterBuilder_ != null) {
           requesterBuilder_.dispose();
@@ -2134,8 +2124,10 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000002;
           onChanged();
         }
-        if (other.type_ != 0) {
-          setTypeValue(other.getTypeValue());
+        if (!other.getType().isEmpty()) {
+          type_ = other.type_;
+          bitField0_ |= 0x00000004;
+          onChanged();
         }
         if (other.hasRequester()) {
           mergeRequester(other.getRequester());
@@ -2190,11 +2182,11 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
-              case 24: {
-                type_ = input.readEnum();
+              case 26: {
+                type_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000004;
                 break;
-              } // case 24
+              } // case 26
               case 34: {
                 input.readMessage(
                     internalGetRequesterFieldBuilder().getBuilder(),
@@ -2389,54 +2381,114 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private int type_ = 0;
+      private java.lang.Object type_ = "";
       /**
-       * <code>.talon.resources.TaskType type = 3;</code>
-       * @return The enum numeric value on the wire for type.
+       * <pre>
+       * Optional caller-defined classifier for grouping or UI display.
+       *
+       * Talon does not interpret this field for scheduling, routing, auth, or task
+       * lifecycle. Use values such as "agent_delegation", "human_review", or an
+       * application-specific string when the caller needs a stable category.
+       * </pre>
+       *
+       * <code>string type = 3;</code>
+       * @return The type.
        */
-      @java.lang.Override public int getTypeValue() {
-        return type_;
+      public java.lang.String getType() {
+        java.lang.Object ref = type_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          type_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>.talon.resources.TaskType type = 3;</code>
-       * @param value The enum numeric value on the wire for type to set.
-       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * <pre>
+       * Optional caller-defined classifier for grouping or UI display.
+       *
+       * Talon does not interpret this field for scheduling, routing, auth, or task
+       * lifecycle. Use values such as "agent_delegation", "human_review", or an
+       * application-specific string when the caller needs a stable category.
+       * </pre>
+       *
+       * <code>string type = 3;</code>
+       * @return The bytes for type.
+       */
+      public com.google.protobuf.ByteString
+          getTypeBytes() {
+        java.lang.Object ref = type_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          type_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Optional caller-defined classifier for grouping or UI display.
+       *
+       * Talon does not interpret this field for scheduling, routing, auth, or task
+       * lifecycle. Use values such as "agent_delegation", "human_review", or an
+       * application-specific string when the caller needs a stable category.
+       * </pre>
+       *
+       * <code>string type = 3;</code>
+       * @param value The type to set.
        * @return This builder for chaining.
        */
-      public Builder setTypeValue(int value) {
+      public Builder setType(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
         type_ = value;
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.TaskType type = 3;</code>
-       * @return The type.
-       */
-      @java.lang.Override
-      public talon.resources.Tasks.TaskType getType() {
-        talon.resources.Tasks.TaskType result = talon.resources.Tasks.TaskType.forNumber(type_);
-        return result == null ? talon.resources.Tasks.TaskType.UNRECOGNIZED : result;
-      }
-      /**
-       * <code>.talon.resources.TaskType type = 3;</code>
-       * @param value The type to set.
+       * <pre>
+       * Optional caller-defined classifier for grouping or UI display.
+       *
+       * Talon does not interpret this field for scheduling, routing, auth, or task
+       * lifecycle. Use values such as "agent_delegation", "human_review", or an
+       * application-specific string when the caller needs a stable category.
+       * </pre>
+       *
+       * <code>string type = 3;</code>
        * @return This builder for chaining.
        */
-      public Builder setType(talon.resources.Tasks.TaskType value) {
-        if (value == null) { throw new NullPointerException(); }
-        bitField0_ |= 0x00000004;
-        type_ = value.getNumber();
+      public Builder clearType() {
+        type_ = getDefaultInstance().getType();
+        bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.TaskType type = 3;</code>
+       * <pre>
+       * Optional caller-defined classifier for grouping or UI display.
+       *
+       * Talon does not interpret this field for scheduling, routing, auth, or task
+       * lifecycle. Use values such as "agent_delegation", "human_review", or an
+       * application-specific string when the caller needs a stable category.
+       * </pre>
+       *
+       * <code>string type = 3;</code>
+       * @param value The bytes for type to set.
        * @return This builder for chaining.
        */
-      public Builder clearType() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        type_ = 0;
+      public Builder setTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        type_ = value;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
@@ -7568,39 +7620,34 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       "tadata\030\001 \001(\0132\035.talon.resources.ResourceM" +
       "eta\022\'\n\004spec\030\002 \001(\0132\031.talon.resources.Task" +
       "Spec\022+\n\006status\030\003 \001(\0132\033.talon.resources.T" +
-      "askStatus\"\307\002\n\010TaskSpec\022\r\n\005title\030\001 \001(\t\022\023\n" +
-      "\013description\030\002 \001(\t\022\'\n\004type\030\003 \001(\0162\031.talon" +
-      ".resources.TaskType\0223\n\trequester\030\004 \001(\0132 " +
-      ".talon.resources.TaskParticipant\0222\n\010assi" +
-      "gnee\030\005 \001(\0132 .talon.resources.TaskPartici" +
-      "pant\0228\n\rexecution_ref\030\006 \001(\0132!.talon.reso" +
-      "urces.TaskExecutionRef\022\030\n\020parent_task_na" +
-      "me\030\007 \001(\t\0221\n\tretention\030\010 \001(\0132\036.talon.reso" +
-      "urces.TaskRetention\"G\n\017TaskParticipant\022\021" +
-      "\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nsess" +
-      "ion_id\030\003 \001(\t\"f\n\020TaskExecutionRef\022\014\n\004kind" +
-      "\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005agent\030\003 \001(\t" +
-      "\022\022\n\nsession_id\030\004 \001(\t\022\016\n\006run_id\030\005 \001(\t\"G\n\r" +
-      "TaskRetention\022\023\n\013task_record\030\001 \001(\t\022\016\n\006ev" +
-      "ents\030\002 \001(\t\022\021\n\tartifacts\030\003 \001(\t\"\262\002\n\nTaskSt" +
-      "atus\022\033\n\023observed_generation\030\001 \001(\004\022)\n\005pha" +
-      "se\030\002 \001(\0162\032.talon.resources.TaskPhase\0226\n\n" +
-      "conditions\030\003 \003(\0132\".talon.resources.Resou" +
-      "rceCondition\022\030\n\020progress_summary\030\004 \001(\t\0228" +
-      "\n\020result_artifacts\030\005 \003(\0132\036.talon.resourc" +
-      "es.FileObjectRef\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\n" +
-      "updated_at\030\007 \001(\003\022\024\n\014completed_at\030\010 \001(\003\022\022" +
-      "\n\nexpires_at\030\t \001(\003*\212\001\n\010TaskType\022\031\n\025TASK_" +
-      "TYPE_UNSPECIFIED\020\000\022\031\n\025TASK_TYPE_COPYWRIT" +
-      "ING\020\001\022\026\n\022TASK_TYPE_RESEARCH\020\002\022\026\n\022TASK_TY" +
-      "PE_ANALYSIS\020\003\022\030\n\024TASK_TYPE_OPERATIONS\020\004*" +
-      "\355\001\n\tTaskPhase\022\032\n\026TASK_PHASE_UNSPECIFIED\020" +
-      "\000\022\025\n\021TASK_PHASE_QUEUED\020\001\022\026\n\022TASK_PHASE_R" +
-      "UNNING\020\002\022\026\n\022TASK_PHASE_BLOCKED\020\003\022\033\n\027TASK" +
-      "_PHASE_NEEDS_REVIEW\020\004\022\030\n\024TASK_PHASE_SUCC" +
-      "EEDED\020\005\022\025\n\021TASK_PHASE_FAILED\020\006\022\027\n\023TASK_P" +
-      "HASE_CANCELED\020\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b" +
-      "\006proto3"
+      "askStatus\"\254\002\n\010TaskSpec\022\r\n\005title\030\001 \001(\t\022\023\n" +
+      "\013description\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\0223\n\trequ" +
+      "ester\030\004 \001(\0132 .talon.resources.TaskPartic" +
+      "ipant\0222\n\010assignee\030\005 \001(\0132 .talon.resource" +
+      "s.TaskParticipant\0228\n\rexecution_ref\030\006 \001(\013" +
+      "2!.talon.resources.TaskExecutionRef\022\030\n\020p" +
+      "arent_task_name\030\007 \001(\t\0221\n\tretention\030\010 \001(\013" +
+      "2\036.talon.resources.TaskRetention\"G\n\017Task" +
+      "Participant\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030" +
+      "\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\"f\n\020TaskExecuti" +
+      "onRef\022\014\n\004kind\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r" +
+      "\n\005agent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022\016\n\006run" +
+      "_id\030\005 \001(\t\"G\n\rTaskRetention\022\023\n\013task_recor" +
+      "d\030\001 \001(\t\022\016\n\006events\030\002 \001(\t\022\021\n\tartifacts\030\003 \001" +
+      "(\t\"\262\002\n\nTaskStatus\022\033\n\023observed_generation" +
+      "\030\001 \001(\004\022)\n\005phase\030\002 \001(\0162\032.talon.resources." +
+      "TaskPhase\0226\n\nconditions\030\003 \003(\0132\".talon.re" +
+      "sources.ResourceCondition\022\030\n\020progress_su" +
+      "mmary\030\004 \001(\t\0228\n\020result_artifacts\030\005 \003(\0132\036." +
+      "talon.resources.FileObjectRef\022\022\n\ncreated" +
+      "_at\030\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003\022\024\n\014complet" +
+      "ed_at\030\010 \001(\003\022\022\n\nexpires_at\030\t \001(\003*\355\001\n\tTask" +
+      "Phase\022\032\n\026TASK_PHASE_UNSPECIFIED\020\000\022\025\n\021TAS" +
+      "K_PHASE_QUEUED\020\001\022\026\n\022TASK_PHASE_RUNNING\020\002" +
+      "\022\026\n\022TASK_PHASE_BLOCKED\020\003\022\033\n\027TASK_PHASE_N" +
+      "EEDS_REVIEW\020\004\022\030\n\024TASK_PHASE_SUCCEEDED\020\005\022" +
+      "\025\n\021TASK_PHASE_FAILED\020\006\022\027\n\023TASK_PHASE_CAN" +
+      "CELED\020\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

@@ -19,20 +19,33 @@ message FileSpec {
 }
 
 enum FilePurpose {
+  // No purpose has been set. Writers should choose a concrete purpose before
+  // creating namespace-visible File resources.
   FILE_PURPOSE_UNSPECIFIED = 0;
+  // Durable memory used for retrieval by agents, replacing legacy Knowledge.
   FILE_PURPOSE_MEMORY = 1;
+  // Durable namespace-level artifact, usually promoted from a session Artifact
+  // or created by privileged file APIs.
   FILE_PURPOSE_ARTIFACT = 2;
 }
 
 enum FileIndexPolicy {
+  // No index policy has been set. Writers should choose NONE, SEARCH, or
+  // RETRIEVAL explicitly.
   FILE_INDEX_POLICY_UNSPECIFIED = 0;
+  // Do not index this File's content.
   FILE_INDEX_POLICY_NONE = 1;
+  // Index this File in generic search, but not memory retrieval.
   FILE_INDEX_POLICY_SEARCH = 2;
+  // Index this File for agent memory retrieval.
   FILE_INDEX_POLICY_RETRIEVAL = 3;
 }
 
 enum FileRetention {
+  // No retention policy has been set. Writers should choose a concrete policy
+  // before creating namespace-visible File resources.
   FILE_RETENTION_UNSPECIFIED = 0;
+  // Retain until an authorized caller updates or deletes the File.
   FILE_RETENTION_RETAINED = 1;
 }
 

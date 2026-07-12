@@ -24,9 +24,14 @@ const (
 type FilePurpose int32
 
 const (
+	// No purpose has been set. Writers should choose a concrete purpose before
+	// creating namespace-visible File resources.
 	FilePurpose_FILE_PURPOSE_UNSPECIFIED FilePurpose = 0
-	FilePurpose_FILE_PURPOSE_MEMORY      FilePurpose = 1
-	FilePurpose_FILE_PURPOSE_ARTIFACT    FilePurpose = 2
+	// Durable memory used for retrieval by agents, replacing legacy Knowledge.
+	FilePurpose_FILE_PURPOSE_MEMORY FilePurpose = 1
+	// Durable namespace-level artifact, usually promoted from a session Artifact
+	// or created by privileged file APIs.
+	FilePurpose_FILE_PURPOSE_ARTIFACT FilePurpose = 2
 )
 
 // Enum value maps for FilePurpose.
@@ -73,10 +78,15 @@ func (FilePurpose) EnumDescriptor() ([]byte, []int) {
 type FileIndexPolicy int32
 
 const (
+	// No index policy has been set. Writers should choose NONE, SEARCH, or
+	// RETRIEVAL explicitly.
 	FileIndexPolicy_FILE_INDEX_POLICY_UNSPECIFIED FileIndexPolicy = 0
-	FileIndexPolicy_FILE_INDEX_POLICY_NONE        FileIndexPolicy = 1
-	FileIndexPolicy_FILE_INDEX_POLICY_SEARCH      FileIndexPolicy = 2
-	FileIndexPolicy_FILE_INDEX_POLICY_RETRIEVAL   FileIndexPolicy = 3
+	// Do not index this File's content.
+	FileIndexPolicy_FILE_INDEX_POLICY_NONE FileIndexPolicy = 1
+	// Index this File in generic search, but not memory retrieval.
+	FileIndexPolicy_FILE_INDEX_POLICY_SEARCH FileIndexPolicy = 2
+	// Index this File for agent memory retrieval.
+	FileIndexPolicy_FILE_INDEX_POLICY_RETRIEVAL FileIndexPolicy = 3
 )
 
 // Enum value maps for FileIndexPolicy.
@@ -125,8 +135,11 @@ func (FileIndexPolicy) EnumDescriptor() ([]byte, []int) {
 type FileRetention int32
 
 const (
+	// No retention policy has been set. Writers should choose a concrete policy
+	// before creating namespace-visible File resources.
 	FileRetention_FILE_RETENTION_UNSPECIFIED FileRetention = 0
-	FileRetention_FILE_RETENTION_RETAINED    FileRetention = 1
+	// Retain until an authorized caller updates or deletes the File.
+	FileRetention_FILE_RETENTION_RETAINED FileRetention = 1
 )
 
 // Enum value maps for FileRetention.

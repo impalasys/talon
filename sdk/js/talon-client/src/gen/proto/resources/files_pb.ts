@@ -12,16 +12,24 @@ import { ResourceCondition, ResourceMeta } from "./common_pb.js";
  */
 export enum FilePurpose {
   /**
+   * No purpose has been set. Writers should choose a concrete purpose before
+   * creating namespace-visible File resources.
+   *
    * @generated from enum value: FILE_PURPOSE_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
+   * Durable memory used for retrieval by agents, replacing legacy Knowledge.
+   *
    * @generated from enum value: FILE_PURPOSE_MEMORY = 1;
    */
   MEMORY = 1,
 
   /**
+   * Durable namespace-level artifact, usually promoted from a session Artifact
+   * or created by privileged file APIs.
+   *
    * @generated from enum value: FILE_PURPOSE_ARTIFACT = 2;
    */
   ARTIFACT = 2,
@@ -38,21 +46,30 @@ proto3.util.setEnumType(FilePurpose, "talon.resources.FilePurpose", [
  */
 export enum FileIndexPolicy {
   /**
+   * No index policy has been set. Writers should choose NONE, SEARCH, or
+   * RETRIEVAL explicitly.
+   *
    * @generated from enum value: FILE_INDEX_POLICY_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
+   * Do not index this File's content.
+   *
    * @generated from enum value: FILE_INDEX_POLICY_NONE = 1;
    */
   NONE = 1,
 
   /**
+   * Index this File in generic search, but not memory retrieval.
+   *
    * @generated from enum value: FILE_INDEX_POLICY_SEARCH = 2;
    */
   SEARCH = 2,
 
   /**
+   * Index this File for agent memory retrieval.
+   *
    * @generated from enum value: FILE_INDEX_POLICY_RETRIEVAL = 3;
    */
   RETRIEVAL = 3,
@@ -70,11 +87,16 @@ proto3.util.setEnumType(FileIndexPolicy, "talon.resources.FileIndexPolicy", [
  */
 export enum FileRetention {
   /**
+   * No retention policy has been set. Writers should choose a concrete policy
+   * before creating namespace-visible File resources.
+   *
    * @generated from enum value: FILE_RETENTION_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
+   * Retain until an authorized caller updates or deletes the File.
+   *
    * @generated from enum value: FILE_RETENTION_RETAINED = 1;
    */
   RETAINED = 1,

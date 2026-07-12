@@ -714,7 +714,7 @@ spec:
     }
 
     #[test]
-    fn task_manifest_accepts_and_renders_symbolic_enums() {
+    fn task_manifest_accepts_string_type_and_renders_symbolic_phase() {
         let manifest = parse_resource_manifest(
             r#"
 apiVersion: talon.impalasys.com/v1
@@ -725,16 +725,16 @@ metadata:
 spec:
   title: Launch copy
   description: Draft launch copy.
-  type: COPYWRITING
+  type: agent_delegation
 "#,
         )
-        .expect("task manifest should parse symbolic enum values");
+        .expect("task manifest should parse string type");
         let Some(resource_spec::Kind::Task(spec)) =
             manifest.spec.clone().and_then(|spec| spec.kind)
         else {
             panic!("expected Task spec");
         };
-        assert_eq!(spec.r#type, resources_proto::TaskType::Copywriting as i32);
+        assert_eq!(spec.r#type, "agent_delegation");
 
         let rendered = render_resource_yaml(&resources_proto::Resource {
             api_version: manifest.api_version,
@@ -752,7 +752,7 @@ spec:
         })
         .expect("task resource should render");
 
-        assert!(rendered.contains("type: COPYWRITING"));
+        assert!(rendered.contains("type: agent_delegation"));
         assert!(rendered.contains("phase: NEEDS_REVIEW"));
     }
 

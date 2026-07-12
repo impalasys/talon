@@ -131,44 +131,6 @@ pub mod file_retention {
     }
 }
 
-pub mod task_type {
-    use super::*;
-
-    pub fn serialize<S>(value: &i32, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(match resources_proto::TaskType::try_from(*value).ok() {
-            Some(resources_proto::TaskType::Copywriting) => "COPYWRITING",
-            Some(resources_proto::TaskType::Research) => "RESEARCH",
-            Some(resources_proto::TaskType::Analysis) => "ANALYSIS",
-            Some(resources_proto::TaskType::Operations) => "OPERATIONS",
-            _ => "UNSPECIFIED",
-        })
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<i32, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserialize_enum_i32(deserializer, "TaskType", |value| match value {
-            EnumValue::Number(number) => resources_proto::TaskType::try_from(number)
-                .map(|_| number)
-                .map_err(|_| format!("unsupported numeric value {number}")),
-            EnumValue::String(value) => {
-                match normalize_enum_name(&value).trim_start_matches("TASK_TYPE_") {
-                    "" | "UNSPECIFIED" => Ok(resources_proto::TaskType::Unspecified as i32),
-                    "COPYWRITING" => Ok(resources_proto::TaskType::Copywriting as i32),
-                    "RESEARCH" => Ok(resources_proto::TaskType::Research as i32),
-                    "ANALYSIS" => Ok(resources_proto::TaskType::Analysis as i32),
-                    "OPERATIONS" => Ok(resources_proto::TaskType::Operations as i32),
-                    other => Err(format!("unsupported value '{other}'")),
-                }
-            }
-        })
-    }
-}
-
 pub mod task_phase {
     use super::*;
 

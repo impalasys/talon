@@ -303,7 +303,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                     "namespace": { "type": "string", "description": "Namespace that owns the task. Defaults to the current agent namespace if omitted." },
                     "title": { "type": "string", "description": "Short human-readable task title." },
                     "description": { "type": "string", "description": "Brief or acceptance criteria for the task." },
-                    "type": { "type": "string", "description": "Task type: COPYWRITING, RESEARCH, ANALYSIS, or OPERATIONS." },
+                    "type": { "type": "string", "description": "Optional caller-defined classifier such as agent_delegation or human_review. Talon does not interpret it." },
                     "assignee_namespace": { "type": "string", "description": "Namespace of the worker agent." },
                     "assignee_agent": { "type": "string", "description": "Worker agent name." },
                     "parent_task_name": { "type": "string", "description": "Optional parent task name." }
@@ -2217,7 +2217,10 @@ async fn create_task(
     let assignee_namespace = opt_str(args, "assignee_namespace")
         .unwrap_or(current_namespace)
         .to_string();
-    let task_type = parse_task_type(opt_str(args, "type").unwrap_or("OPERATIONS"))?;
+    let task_type = opt_str(args, "type")
+        .unwrap_or("agent_delegation")
+        .trim()
+        .to_string();
     let now = chrono::Utc::now().timestamp_micros();
     let name = unique_task_name(&title);
     let labels = HashMap::from([
@@ -2438,7 +2441,7 @@ fn task_json(task: &resources_proto::Task) -> Value {
         "namespace": task.namespace(),
         "title": spec.map(|spec| spec.title.clone()).unwrap_or_default(),
         "description": spec.map(|spec| spec.description.clone()).unwrap_or_default(),
-        "type": spec.map(|spec| task_type_name(spec.r#type)).unwrap_or("UNSPECIFIED"),
+        "type": spec.map(|spec| spec.r#type.clone()).unwrap_or_default(),
         "requester": participant_json(requester),
         "assignee": participant_json(assignee),
         "executionRef": execution.map(|execution| json!({
@@ -2504,18 +2507,6 @@ fn unique_task_name(title: &str) -> String {
     )
 }
 
-fn parse_task_type(value: &str) -> Result<i32> {
-    let task_type = match value.trim().to_ascii_uppercase().as_str() {
-        "" | "UNSPECIFIED" => resources_proto::TaskType::Unspecified,
-        "COPYWRITING" => resources_proto::TaskType::Copywriting,
-        "RESEARCH" => resources_proto::TaskType::Research,
-        "ANALYSIS" => resources_proto::TaskType::Analysis,
-        "OPERATIONS" => resources_proto::TaskType::Operations,
-        other => return Err(anyhow!("unsupported task type '{}'", other)),
-    };
-    Ok(task_type as i32)
-}
-
 fn parse_task_phase(value: &str) -> Result<i32> {
     let phase = match value.trim().to_ascii_uppercase().as_str() {
         "" | "UNSPECIFIED" => resources_proto::TaskPhase::Unspecified,
@@ -2530,16 +2521,6 @@ fn parse_task_phase(value: &str) -> Result<i32> {
         other => return Err(anyhow!("unsupported task phase '{}'", other)),
     };
     Ok(phase as i32)
-}
-
-fn task_type_name(value: i32) -> &'static str {
-    match resources_proto::TaskType::try_from(value).ok() {
-        Some(resources_proto::TaskType::Copywriting) => "COPYWRITING",
-        Some(resources_proto::TaskType::Research) => "RESEARCH",
-        Some(resources_proto::TaskType::Analysis) => "ANALYSIS",
-        Some(resources_proto::TaskType::Operations) => "OPERATIONS",
-        _ => "UNSPECIFIED",
-    }
 }
 
 fn task_phase_name(value: i32) -> &'static str {

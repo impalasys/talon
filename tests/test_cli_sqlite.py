@@ -231,7 +231,7 @@ spec:
     assert "retention: RETAINED" in rendered
 
 
-def test_cli_apply_task_manifest_with_symbolic_enums_sqlite_local_socket(
+def test_cli_apply_task_manifest_with_string_type_sqlite_local_socket(
     stack: E2EStack,
     tmp_path: Path,
 ) -> None:
@@ -254,7 +254,7 @@ metadata:
 spec:
   title: Launch copy
   description: Draft launch copy.
-  type: COPYWRITING
+  type: agent_delegation
   requester:
     namespace: {namespace}
     agent: cmo
@@ -270,7 +270,7 @@ spec:
     resource = e2e.get_resource(cli, "task", f"launch-copy-{suffix}", namespace)
 
     assert resource["kind"] == "Task"
-    assert resource["spec"]["type"] == "COPYWRITING"
+    assert resource["spec"]["type"] == "agent_delegation"
 
     rendered = cli.run(
         "get",
@@ -281,4 +281,4 @@ spec:
         "--output",
         "yaml",
     ).stdout
-    assert "type: COPYWRITING" in rendered
+    assert "type: agent_delegation" in rendered

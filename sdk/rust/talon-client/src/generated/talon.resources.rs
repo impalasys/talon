@@ -795,8 +795,13 @@ pub struct FileObjectRef {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum FilePurpose {
+    /// No purpose has been set. Writers should choose a concrete purpose before
+    /// creating namespace-visible File resources.
     Unspecified = 0,
+    /// Durable memory used for retrieval by agents, replacing legacy Knowledge.
     Memory = 1,
+    /// Durable namespace-level artifact, usually promoted from a session Artifact
+    /// or created by privileged file APIs.
     Artifact = 2,
 }
 impl FilePurpose {
@@ -824,9 +829,14 @@ impl FilePurpose {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum FileIndexPolicy {
+    /// No index policy has been set. Writers should choose NONE, SEARCH, or
+    /// RETRIEVAL explicitly.
     Unspecified = 0,
+    /// Do not index this File's content.
     None = 1,
+    /// Index this File in generic search, but not memory retrieval.
     Search = 2,
+    /// Index this File for agent memory retrieval.
     Retrieval = 3,
 }
 impl FileIndexPolicy {
@@ -856,7 +866,10 @@ impl FileIndexPolicy {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum FileRetention {
+    /// No retention policy has been set. Writers should choose a concrete policy
+    /// before creating namespace-visible File resources.
     Unspecified = 0,
+    /// Retain until an authorized caller updates or deletes the File.
     Retained = 1,
 }
 impl FileRetention {
@@ -1102,8 +1115,13 @@ pub struct TaskSpec {
     pub title: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub description: ::prost::alloc::string::String,
-    #[prost(enumeration = "TaskType", tag = "3")]
-    pub r#type: i32,
+    /// Optional caller-defined classifier for grouping or UI display.
+    ///
+    /// Talon does not interpret this field for scheduling, routing, auth, or task
+    /// lifecycle. Use values such as "agent_delegation", "human_review", or an
+    /// application-specific string when the caller needs a stable category.
+    #[prost(string, tag = "3")]
+    pub r#type: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "4")]
     pub requester: ::core::option::Option<TaskParticipant>,
     #[prost(message, optional, tag = "5")]
@@ -1167,52 +1185,29 @@ pub struct TaskStatus {
     #[prost(int64, tag = "9")]
     pub expires_at: i64,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum TaskType {
-    Unspecified = 0,
-    Copywriting = 1,
-    Research = 2,
-    Analysis = 3,
-    Operations = 4,
-}
-impl TaskType {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            Self::Unspecified => "TASK_TYPE_UNSPECIFIED",
-            Self::Copywriting => "TASK_TYPE_COPYWRITING",
-            Self::Research => "TASK_TYPE_RESEARCH",
-            Self::Analysis => "TASK_TYPE_ANALYSIS",
-            Self::Operations => "TASK_TYPE_OPERATIONS",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "TASK_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
-            "TASK_TYPE_COPYWRITING" => Some(Self::Copywriting),
-            "TASK_TYPE_RESEARCH" => Some(Self::Research),
-            "TASK_TYPE_ANALYSIS" => Some(Self::Analysis),
-            "TASK_TYPE_OPERATIONS" => Some(Self::Operations),
-            _ => None,
-        }
-    }
-}
+/// Lifecycle phase for a Task.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum TaskPhase {
+    /// No phase has been set. Writers should avoid persisting this outside
+    /// partially initialized records.
     Unspecified = 0,
+    /// The task exists but no assignee execution has started.
     Queued = 1,
+    /// The assignee is actively working on the task.
     Running = 2,
+    /// Progress is blocked on user input, permissions, dependencies, or another
+    /// external condition.
     Blocked = 3,
+    /// Work is complete enough for the requester or another reviewer to inspect.
     NeedsReview = 4,
+    /// The task completed successfully.
     Succeeded = 5,
+    /// The task ended because execution failed.
     Failed = 6,
+    /// The task was intentionally stopped before completion.
     Canceled = 7,
+    /// The task exceeded its allowed lifetime or retention policy.
     Expired = 8,
 }
 impl TaskPhase {
