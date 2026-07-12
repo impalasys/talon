@@ -128,6 +128,49 @@ impl CasStore {
             .await
     }
 
+    pub fn file_upload_metadata(
+        namespace: &str,
+        file_uid: &str,
+        path: &str,
+        media_type: &str,
+        sha: &str,
+        size_bytes: u64,
+    ) -> ObjectMetadata {
+        let metadata = HashMap::from([
+            (METADATA_KIND.to_string(), METADATA_KIND_FILE.to_string()),
+            ("namespace".to_string(), namespace.to_string()),
+            ("file_uid".to_string(), file_uid.to_string()),
+            ("path".to_string(), path.to_string()),
+        ]);
+        ObjectMetadata {
+            media_type: media_type.to_string(),
+            size_bytes,
+            sha256: sha.to_string(),
+            filename: filename_for_path(path),
+            content_encoding: String::new(),
+            metadata,
+        }
+    }
+
+    pub async fn signed_put_file_url(
+        &self,
+        namespace: &str,
+        file_uid: &str,
+        path: &str,
+        media_type: &str,
+        object_key_suffix: &str,
+        sha: &str,
+        size_bytes: u64,
+        expires_in: Duration,
+    ) -> Result<Option<crate::control::object_store::SignedObjectUrl>> {
+        let key = file_object_key(namespace, file_uid, object_key_suffix);
+        let metadata =
+            Self::file_upload_metadata(namespace, file_uid, path, media_type, sha, size_bytes);
+        self.objects
+            .signed_put_url(&key, metadata, expires_in)
+            .await
+    }
+
     pub async fn put_latest_file(
         &self,
         namespace: &str,

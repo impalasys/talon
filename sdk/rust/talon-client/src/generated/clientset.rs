@@ -329,6 +329,20 @@ impl crate::TalonClient {
         crate::v1::FileResponse,
     );
     delegate_dynamic_unary_rpc!(
+        prepare_file_upload,
+        files,
+        prepare_file_upload,
+        crate::v1::PrepareFileUploadRequest,
+        crate::v1::PrepareFileUploadResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        complete_file_upload,
+        files,
+        complete_file_upload,
+        crate::v1::CompleteFileUploadRequest,
+        crate::v1::FileResponse,
+    );
+    delegate_dynamic_unary_rpc!(
         read_file,
         files,
         read_file,

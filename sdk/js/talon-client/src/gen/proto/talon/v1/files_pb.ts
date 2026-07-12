@@ -137,6 +137,201 @@ export class CreateFileRequest extends Message<CreateFileRequest> {
 }
 
 /**
+ * @generated from message talon.v1.PrepareFileUploadRequest
+ */
+export class PrepareFileUploadRequest extends Message<PrepareFileUploadRequest> {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path = "";
+
+  /**
+   * @generated from field: string media_type = 3;
+   */
+  mediaType = "";
+
+  /**
+   * @generated from field: talon.resources.FilePurpose purpose = 4;
+   */
+  purpose = FilePurpose.UNSPECIFIED;
+
+  /**
+   * @generated from field: talon.resources.FileIndexPolicy index_policy = 5;
+   */
+  indexPolicy = FileIndexPolicy.UNSPECIFIED;
+
+  /**
+   * @generated from field: talon.resources.FileRetention retention = 6;
+   */
+  retention = FileRetention.UNSPECIFIED;
+
+  /**
+   * @generated from field: talon.v1.FileRef file = 7;
+   */
+  file?: FileRef;
+
+  /**
+   * @generated from field: uint64 expected_size_bytes = 8;
+   */
+  expectedSizeBytes = protoInt64.zero;
+
+  /**
+   * @generated from field: string expected_sha256 = 9;
+   */
+  expectedSha256 = "";
+
+  constructor(data?: PartialMessage<PrepareFileUploadRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.PrepareFileUploadRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "purpose", kind: "enum", T: proto3.getEnumType(FilePurpose) },
+    { no: 5, name: "index_policy", kind: "enum", T: proto3.getEnumType(FileIndexPolicy) },
+    { no: 6, name: "retention", kind: "enum", T: proto3.getEnumType(FileRetention) },
+    { no: 7, name: "file", kind: "message", T: FileRef },
+    { no: 8, name: "expected_size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 9, name: "expected_sha256", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PrepareFileUploadRequest {
+    return new PrepareFileUploadRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PrepareFileUploadRequest {
+    return new PrepareFileUploadRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PrepareFileUploadRequest {
+    return new PrepareFileUploadRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PrepareFileUploadRequest | PlainMessage<PrepareFileUploadRequest> | undefined, b: PrepareFileUploadRequest | PlainMessage<PrepareFileUploadRequest> | undefined): boolean {
+    return proto3.util.equals(PrepareFileUploadRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.PrepareFileUploadResponse
+ */
+export class PrepareFileUploadResponse extends Message<PrepareFileUploadResponse> {
+  /**
+   * @generated from field: talon.resources.File file = 1;
+   */
+  file?: File;
+
+  /**
+   * @generated from field: string upload_token = 2;
+   */
+  uploadToken = "";
+
+  /**
+   * @generated from field: string signed_upload_url = 3;
+   */
+  signedUploadUrl = "";
+
+  /**
+   * @generated from field: string method = 4;
+   */
+  method = "";
+
+  /**
+   * @generated from field: map<string, string> required_headers = 5;
+   */
+  requiredHeaders: { [key: string]: string } = {};
+
+  /**
+   * @generated from field: int64 signed_url_expires_at_unix_seconds = 6;
+   */
+  signedUrlExpiresAtUnixSeconds = protoInt64.zero;
+
+  /**
+   * @generated from field: string object_key = 7;
+   */
+  objectKey = "";
+
+  constructor(data?: PartialMessage<PrepareFileUploadResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.PrepareFileUploadResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "file", kind: "message", T: File },
+    { no: 2, name: "upload_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "signed_upload_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "required_headers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 6, name: "signed_url_expires_at_unix_seconds", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 7, name: "object_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PrepareFileUploadResponse {
+    return new PrepareFileUploadResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PrepareFileUploadResponse {
+    return new PrepareFileUploadResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PrepareFileUploadResponse {
+    return new PrepareFileUploadResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PrepareFileUploadResponse | PlainMessage<PrepareFileUploadResponse> | undefined, b: PrepareFileUploadResponse | PlainMessage<PrepareFileUploadResponse> | undefined): boolean {
+    return proto3.util.equals(PrepareFileUploadResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.CompleteFileUploadRequest
+ */
+export class CompleteFileUploadRequest extends Message<CompleteFileUploadRequest> {
+  /**
+   * @generated from field: string upload_token = 1;
+   */
+  uploadToken = "";
+
+  constructor(data?: PartialMessage<CompleteFileUploadRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.CompleteFileUploadRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "upload_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CompleteFileUploadRequest {
+    return new CompleteFileUploadRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CompleteFileUploadRequest {
+    return new CompleteFileUploadRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CompleteFileUploadRequest {
+    return new CompleteFileUploadRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CompleteFileUploadRequest | PlainMessage<CompleteFileUploadRequest> | undefined, b: CompleteFileUploadRequest | PlainMessage<CompleteFileUploadRequest> | undefined): boolean {
+    return proto3.util.equals(CompleteFileUploadRequest, a, b);
+  }
+}
+
+/**
  * @generated from message talon.v1.ReadFileRequest
  */
 export class ReadFileRequest extends Message<ReadFileRequest> {

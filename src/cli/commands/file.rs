@@ -4,6 +4,7 @@
 use anyhow::{Context, Result};
 use clap::{Args, Subcommand};
 use futures::StreamExt;
+use sha2::{Digest, Sha256};
 use std::fs;
 use std::io::Write;
 use std::time::Duration;
@@ -11,8 +12,8 @@ use std::time::Duration;
 use super::{Cli, RunOutcome};
 use crate::cli::connect_gateway;
 use talon_client::v1::{
-    CreateFileRequest, DeleteFileRequest, FileRef, ListFilesRequest, ReadFileRequest,
-    UpdateFileRequest,
+    CompleteFileUploadRequest, CreateFileRequest, DeleteFileRequest, FileRef, ListFilesRequest,
+    PrepareFileUploadRequest, ReadFileRequest, UpdateFileRequest,
 };
 
 const MAX_SIGNED_URL_DOWNLOAD_BYTES: u64 = 512 * 1024 * 1024;
@@ -106,21 +107,37 @@ pub(super) async fn run(cli: &Cli, command: &FileCommand) -> Result<RunOutcome> 
             index_policy,
         } => {
             let bytes = fs::read(file).with_context(|| format!("Failed to read '{}'", file))?;
-            ensure_unary_upload_size(bytes.len() as u64)?;
             let media_type = media_type_for_create(file, media_type.as_deref());
             let mut client = connect_gateway(cli).await?;
-            let response = client
-                .create_file(CreateFileRequest {
-                    namespace: namespace.clone(),
-                    path: path.clone(),
+            let purpose = parse_purpose(purpose)?;
+            let index_policy = parse_index_policy(index_policy)?;
+            let retention = talon_client::resources::FileRetention::Retained as i32;
+            let response = if bytes.len() as u64 <= MAX_UNARY_FILE_UPLOAD_BYTES {
+                client
+                    .create_file(CreateFileRequest {
+                        namespace: namespace.clone(),
+                        path: path.clone(),
+                        media_type,
+                        purpose,
+                        index_policy,
+                        retention,
+                        content: bytes,
+                    })
+                    .await?
+                    .into_inner()
+            } else {
+                signed_upload_create(
+                    &mut client,
+                    namespace,
+                    path,
                     media_type,
-                    purpose: parse_purpose(purpose)?,
-                    index_policy: parse_index_policy(index_policy)?,
-                    retention: talon_client::resources::FileRetention::Retained as i32,
-                    content: bytes,
-                })
+                    purpose,
+                    index_policy,
+                    retention,
+                    &bytes,
+                )
                 .await?
-                .into_inner();
+            };
             let file = response.file.context("FileService returned no file")?;
             println!(
                 "✓ File '{}/{}' written. handle={}",
@@ -165,17 +182,21 @@ pub(super) async fn run(cli: &Cli, command: &FileCommand) -> Result<RunOutcome> 
             media_type,
         } => {
             let bytes = fs::read(file).with_context(|| format!("Failed to read '{}'", file))?;
-            ensure_unary_upload_size(bytes.len() as u64)?;
             let media_type = media_type_for_update(file, media_type.as_deref());
             let mut client = connect_gateway(cli).await?;
-            let response = client
-                .update_file(UpdateFileRequest {
-                    file: Some(file_ref(namespace, name, path, handle)?),
-                    media_type,
-                    content: bytes,
-                })
-                .await?
-                .into_inner();
+            let file_ref = file_ref(namespace, name, path, handle)?;
+            let response = if bytes.len() as u64 <= MAX_UNARY_FILE_UPLOAD_BYTES {
+                client
+                    .update_file(UpdateFileRequest {
+                        file: Some(file_ref),
+                        media_type,
+                        content: bytes,
+                    })
+                    .await?
+                    .into_inner()
+            } else {
+                signed_upload_update(&mut client, file_ref, media_type, &bytes).await?
+            };
             let file = response.file.context("FileService returned no file")?;
             println!(
                 "✓ File '{}' updated.",
@@ -296,17 +317,6 @@ async fn read_file_response_content(response: talon_client::v1::ReadFileResponse
     Ok(response.content)
 }
 
-fn ensure_unary_upload_size(size_bytes: u64) -> Result<()> {
-    if size_bytes > MAX_UNARY_FILE_UPLOAD_BYTES {
-        anyhow::bail!(
-            "file is {} bytes; unary file upload cap is {} bytes",
-            size_bytes,
-            MAX_UNARY_FILE_UPLOAD_BYTES
-        );
-    }
-    Ok(())
-}
-
 fn media_type_for_create(file: &str, explicit: Option<&str>) -> String {
     explicit
         .map(str::trim)
@@ -329,6 +339,106 @@ fn media_type_for_update(file: &str, explicit: Option<&str>) -> String {
         .filter(|value| *value != "application/octet-stream")
         .unwrap_or_default()
         .to_string()
+}
+
+async fn signed_upload_create(
+    client: &mut talon_client::TalonClient,
+    namespace: &str,
+    path: &str,
+    media_type: String,
+    purpose: i32,
+    index_policy: i32,
+    retention: i32,
+    bytes: &[u8],
+) -> Result<talon_client::v1::FileResponse> {
+    let response = client
+        .prepare_file_upload(PrepareFileUploadRequest {
+            namespace: namespace.to_string(),
+            path: path.to_string(),
+            media_type,
+            purpose,
+            index_policy,
+            retention,
+            file: None,
+            expected_size_bytes: bytes.len() as u64,
+            expected_sha256: sha256_hex(bytes),
+        })
+        .await?
+        .into_inner();
+    upload_to_signed_url(&response.signed_upload_url, &response.required_headers, bytes).await?;
+    Ok(client
+        .complete_file_upload(CompleteFileUploadRequest {
+            upload_token: response.upload_token,
+        })
+        .await?
+        .into_inner())
+}
+
+async fn signed_upload_update(
+    client: &mut talon_client::TalonClient,
+    file: FileRef,
+    media_type: String,
+    bytes: &[u8],
+) -> Result<talon_client::v1::FileResponse> {
+    let response = client
+        .prepare_file_upload(PrepareFileUploadRequest {
+            namespace: String::new(),
+            path: String::new(),
+            media_type,
+            purpose: 0,
+            index_policy: 0,
+            retention: 0,
+            file: Some(file),
+            expected_size_bytes: bytes.len() as u64,
+            expected_sha256: sha256_hex(bytes),
+        })
+        .await?
+        .into_inner();
+    upload_to_signed_url(&response.signed_upload_url, &response.required_headers, bytes).await?;
+    Ok(client
+        .complete_file_upload(CompleteFileUploadRequest {
+            upload_token: response.upload_token,
+        })
+        .await?
+        .into_inner())
+}
+
+async fn upload_to_signed_url(
+    url: &str,
+    headers: &std::collections::HashMap<String, String>,
+    bytes: &[u8],
+) -> Result<()> {
+    if url.trim().is_empty() {
+        anyhow::bail!(
+            "gateway did not return a signed upload URL; configured object store may not support signed uploads"
+        );
+    }
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(300))
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .context("Failed to build signed URL upload client")?;
+    let mut request = client.put(url).body(bytes.to_vec());
+    for (name, value) in headers {
+        request = request.header(name, value);
+    }
+    request
+        .send()
+        .await
+        .context("Failed to upload file to signed URL")?
+        .error_for_status()
+        .context("Signed upload URL returned an error")?;
+    Ok(())
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    let mut out = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        use std::fmt::Write as _;
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
 }
 
 async fn download_signed_url(url: &str) -> Result<Vec<u8>> {
