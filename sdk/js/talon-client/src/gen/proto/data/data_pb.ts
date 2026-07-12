@@ -201,9 +201,9 @@ export class ObjectRef extends Message<ObjectRef> {
  * Session-scoped immutable output produced by an agent.
  *
  * Artifacts are not namespace-level File resources. They live under the
- * owning session/run, are exchanged through HandleGrant records, and are not
- * indexed directly. Promoting an Artifact to a durable File copies its bytes
- * into File-owned CAS storage and creates or updates a File resource.
+ * owning session/run, are referenced by artifact:// URIs, and are not indexed
+ * directly. Promoting an Artifact to a durable File copies its bytes into
+ * File-owned CAS storage and creates or updates a File resource.
  *
  * @generated from message talon.data.Artifact
  */
@@ -316,127 +316,96 @@ export class Artifact extends Message<Artifact> {
 }
 
 /**
- * Opaque access grant for a File or Artifact handle.
+ * Target-local access record for an artifact URI.
  *
- * Handle strings resolve to these KV-backed grant records. Callers must present
- * a valid handle and match the recorded audience before FileService or
- * ArtifactService allows the requested operation.
+ * Artifact URIs are references, not bearer secrets. A caller can use an
+ * artifact:// URI only when it is the owning session or when an ArtifactAccess
+ * child record under that artifact grants the caller session the requested
+ * operation.
  *
- * @generated from message talon.data.HandleGrant
+ * @generated from message talon.data.ArtifactAccess
  */
-export class HandleGrant extends Message<HandleGrant> {
+export class ArtifactAccess extends Message<ArtifactAccess> {
   /**
-   * Opaque grant id encoded into the external handle string.
+   * Agent that may access the artifact.
    *
-   * @generated from field: string id = 1;
+   * @generated from field: string target_agent = 1;
    */
-  id = "";
+  targetAgent = "";
 
   /**
-   * Namespace containing the target resource or session child record.
+   * Session that may access the artifact.
    *
-   * @generated from field: string namespace = 2;
+   * @generated from field: string target_session_id = 2;
    */
-  namespace = "";
+  targetSessionId = "";
 
   /**
-   * Target kind, currently ARTIFACT or FILE.
+   * Allowed operations, such as read, metadata, or promote.
    *
-   * @generated from field: string kind = 3;
-   */
-  kind = "";
-
-  /**
-   * Target id, such as an artifact id or File resource name.
-   *
-   * @generated from field: string target_id = 4;
-   */
-  targetId = "";
-
-  /**
-   * Agent that minted the grant.
-   *
-   * @generated from field: string agent = 5;
-   */
-  agent = "";
-
-  /**
-   * Session that minted the grant, when the grant is session scoped.
-   *
-   * @generated from field: string session_id = 6;
-   */
-  sessionId = "";
-
-  /**
-   * Allowed operations, such as read, metadata, promote, or write.
-   *
-   * @generated from field: repeated string operations = 7;
+   * @generated from field: repeated string operations = 3;
    */
   operations: string[] = [];
 
   /**
-   * Optional agent audience. Empty means any authorized agent may use it.
+   * Unix timestamp in microseconds when access expires. Zero means unset.
    *
-   * @generated from field: string audience_agent = 8;
-   */
-  audienceAgent = "";
-
-  /**
-   * Optional session audience. Empty means any authorized session may use it.
-   *
-   * @generated from field: string audience_session_id = 9;
-   */
-  audienceSessionId = "";
-
-  /**
-   * Unix timestamp in microseconds when the grant expires. Zero means unset.
-   *
-   * @generated from field: int64 expires_at = 10;
+   * @generated from field: int64 expires_at = 4;
    */
   expiresAt = protoInt64.zero;
 
   /**
-   * Unix timestamp in microseconds when the grant was created.
+   * Agent that granted access.
    *
-   * @generated from field: int64 created_at = 11;
+   * @generated from field: string granted_by_agent = 5;
+   */
+  grantedByAgent = "";
+
+  /**
+   * Session that granted access.
+   *
+   * @generated from field: string granted_by_session_id = 6;
+   */
+  grantedBySessionId = "";
+
+  /**
+   * Unix timestamp in microseconds when the access record was created.
+   *
+   * @generated from field: int64 created_at = 7;
    */
   createdAt = protoInt64.zero;
 
-  constructor(data?: PartialMessage<HandleGrant>) {
+  constructor(data?: PartialMessage<ArtifactAccess>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.data.HandleGrant";
+  static readonly typeName = "talon.data.ArtifactAccess";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "target_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "operations", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 8, name: "audience_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "audience_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 10, name: "expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 11, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "target_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "target_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "operations", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 5, name: "granted_by_agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "granted_by_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): HandleGrant {
-    return new HandleGrant().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ArtifactAccess {
+    return new ArtifactAccess().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): HandleGrant {
-    return new HandleGrant().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ArtifactAccess {
+    return new ArtifactAccess().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): HandleGrant {
-    return new HandleGrant().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ArtifactAccess {
+    return new ArtifactAccess().fromJsonString(jsonString, options);
   }
 
-  static equals(a: HandleGrant | PlainMessage<HandleGrant> | undefined, b: HandleGrant | PlainMessage<HandleGrant> | undefined): boolean {
-    return proto3.util.equals(HandleGrant, a, b);
+  static equals(a: ArtifactAccess | PlainMessage<ArtifactAccess> | undefined, b: ArtifactAccess | PlainMessage<ArtifactAccess> | undefined): boolean {
+    return proto3.util.equals(ArtifactAccess, a, b);
   }
 }
 
