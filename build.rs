@@ -49,6 +49,7 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.DeploymentStatus",
         ".talon.resources.File",
         ".talon.resources.FileObjectRef",
+        ".talon.resources.PendingFileUpload",
         ".talon.resources.FileSpec",
         ".talon.resources.FileStatus",
         ".talon.resources.Feature",
