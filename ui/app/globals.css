@@ -2,7 +2,8 @@
 @plugin '@tailwindcss/forms';
 
 @theme {
-  --font-sans: var(--font-sans), sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
   /* Primary */
   --color-primary-50: #eff3ff;
@@ -707,6 +708,12 @@ body {
   overscroll-behavior: none;
 }
 
+.sightline-app-viewport {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+
 ::selection {
   background: var(--sightline-selection-bg);
   color: var(--sightline-selection-fg);
@@ -716,6 +723,14 @@ body {
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -740,35 +755,41 @@ body {
 
 /* Scrollbars */
 .elegant-scrollbar,
-.custom-scrollbar {
+.custom-scrollbar,
+.sightline-yaml-editor .cm-scroller {
   scrollbar-width: thin;
   scrollbar-color: var(--sightline-scrollbar-thumb) transparent;
 }
 
 .elegant-scrollbar::-webkit-scrollbar,
-.custom-scrollbar::-webkit-scrollbar {
+.custom-scrollbar::-webkit-scrollbar,
+.sightline-yaml-editor .cm-scroller::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
 .elegant-scrollbar::-webkit-scrollbar-track,
-.custom-scrollbar::-webkit-scrollbar-track {
+.custom-scrollbar::-webkit-scrollbar-track,
+.sightline-yaml-editor .cm-scroller::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .elegant-scrollbar::-webkit-scrollbar-thumb,
-.custom-scrollbar::-webkit-scrollbar-thumb {
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.sightline-yaml-editor .cm-scroller::-webkit-scrollbar-thumb {
   background: transparent;
   border-radius: 999px;
   transition: background 0.18s ease;
 }
 
 .elegant-scrollbar:hover::-webkit-scrollbar-thumb,
-.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+.custom-scrollbar:hover::-webkit-scrollbar-thumb,
+.sightline-yaml-editor:hover .cm-scroller::-webkit-scrollbar-thumb {
   background: var(--sightline-scrollbar-thumb);
 }
 
 .elegant-scrollbar::-webkit-scrollbar-thumb:hover,
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.sightline-yaml-editor .cm-scroller::-webkit-scrollbar-thumb:hover {
   background: var(--sightline-scrollbar-thumb-hover) !important;
 }

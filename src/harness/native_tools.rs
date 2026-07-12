@@ -53,6 +53,7 @@ pub const LIST_MEMORY_TOOL: &str = "list_memory";
 pub const CREATE_MEMORY_TOOL: &str = "create_memory";
 pub const UPDATE_MEMORY_TOOL: &str = "update_memory";
 
+const HANDLE_KIND_FILE: &str = "FILE";
 const HANDLE_KIND_ARTIFACT: &str = "ARTIFACT";
 const OP_READ: &str = "read";
 const OP_METADATA: &str = "metadata";
@@ -3090,6 +3091,88 @@ fn artifact_content_bytes(args: &Value) -> Result<Vec<u8>> {
     Ok(opt_str(args, "content").unwrap_or("").as_bytes().to_vec())
 }
 
+#[derive(Debug, Clone)]
+enum HandleLocator {
+    File {
+        namespace: String,
+        file_name: String,
+    },
+    Artifact {
+        namespace: String,
+        agent: String,
+        session_id: String,
+        artifact_id: String,
+    },
+}
+
+impl HandleLocator {
+    fn grant_key(&self, handle_id: &str) -> keys::ResourceKey {
+        match self {
+            Self::File {
+                namespace,
+                file_name,
+            } => keys::file_handle_grant(namespace, file_name, handle_id),
+            Self::Artifact {
+                namespace,
+                agent,
+                session_id,
+                artifact_id,
+            } => keys::artifact_handle_grant(namespace, agent, session_id, artifact_id, handle_id),
+        }
+    }
+
+    fn matches_grant(&self, grant: &crate::gateway::rpc::data_proto::HandleGrant) -> bool {
+        match self {
+            Self::File {
+                namespace,
+                file_name,
+            } => {
+                grant.kind == HANDLE_KIND_FILE
+                    && grant.namespace == *namespace
+                    && grant.target_id == *file_name
+            }
+            Self::Artifact {
+                namespace,
+                agent,
+                session_id,
+                artifact_id,
+            } => {
+                grant.kind == HANDLE_KIND_ARTIFACT
+                    && grant.namespace == *namespace
+                    && grant.agent == *agent
+                    && grant.session_id == *session_id
+                    && grant.target_id == *artifact_id
+            }
+        }
+    }
+
+    fn encode(&self) -> String {
+        let raw = match self {
+            Self::File {
+                namespace,
+                file_name,
+            } => format!(
+                "file/{}/{}",
+                urlencoding::encode(namespace),
+                urlencoding::encode(file_name)
+            ),
+            Self::Artifact {
+                namespace,
+                agent,
+                session_id,
+                artifact_id,
+            } => format!(
+                "artifact/{}/{}/{}/{}",
+                urlencoding::encode(namespace),
+                urlencoding::encode(agent),
+                urlencoding::encode(session_id),
+                urlencoding::encode(artifact_id)
+            ),
+        };
+        urlencoding::encode(&raw).into_owned()
+    }
+}
+
 async fn mint_handle(
     cp: &ControlPlane,
     namespace: &str,
@@ -3103,6 +3186,7 @@ async fn mint_handle(
     expires_at: i64,
 ) -> Result<String> {
     let id = crate::control::uuid::unique_name("hnd");
+    let locator = handle_locator_for_grant(namespace, kind, target_id, agent, session_id)?;
     let grant = crate::gateway::rpc::data_proto::HandleGrant {
         id: id.clone(),
         namespace: namespace.to_string(),
@@ -3116,28 +3200,27 @@ async fn mint_handle(
         expires_at,
         created_at: chrono::Utc::now().timestamp_micros(),
     };
-    cp.kv
-        .set_msg(&keys::handle_grant(namespace, &id), &grant)
-        .await?;
-    Ok(format!("talon-handle:{}/{}", encoded_ns(namespace), id))
+    cp.kv.set_msg(&locator.grant_key(&id), &grant).await?;
+    Ok(format!("talon-handle:{}/{}", locator.encode(), id))
 }
 
 async fn resolve_handle(
     cp: &ControlPlane,
-    current_namespace: &str,
+    _current_namespace: &str,
     current_agent: &str,
     current_session: &str,
     handle: &str,
     operation: &str,
 ) -> Result<crate::gateway::rpc::data_proto::HandleGrant> {
-    let (namespace, id) = handle_namespace_and_id(current_namespace, handle)?;
+    let (locator, id) = handle_locator_and_id(handle)?;
     let grant = cp
         .kv
-        .get_msg::<crate::gateway::rpc::data_proto::HandleGrant>(&keys::handle_grant(
-            &namespace, &id,
-        ))
+        .get_msg::<crate::gateway::rpc::data_proto::HandleGrant>(&locator.grant_key(&id))
         .await?
         .ok_or_else(|| anyhow!("handle '{}' not found", handle))?;
+    if !locator.matches_grant(&grant) {
+        return Err(anyhow!("handle grant does not match locator"));
+    }
     if grant.expires_at > 0 && grant.expires_at < chrono::Utc::now().timestamp_micros() {
         return Err(anyhow!("handle '{}' is expired", handle));
     }
@@ -3469,29 +3552,75 @@ fn filename_for_path(path: &str) -> &str {
         .unwrap_or("artifact")
 }
 
-fn encoded_ns(namespace: &str) -> String {
-    urlencoding::encode(namespace).into_owned()
+fn handle_locator_for_grant(
+    namespace: &str,
+    kind: &str,
+    target_id: &str,
+    agent: &str,
+    session_id: &str,
+) -> Result<HandleLocator> {
+    match kind {
+        HANDLE_KIND_FILE => Ok(HandleLocator::File {
+            namespace: namespace.to_string(),
+            file_name: target_id.to_string(),
+        }),
+        HANDLE_KIND_ARTIFACT => {
+            if agent.trim().is_empty() || session_id.trim().is_empty() {
+                return Err(anyhow!("artifact handles require source agent and session"));
+            }
+            Ok(HandleLocator::Artifact {
+                namespace: namespace.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+                artifact_id: target_id.to_string(),
+            })
+        }
+        _ => Err(anyhow!("unsupported handle kind")),
+    }
 }
 
-fn handle_namespace_and_id(current_namespace: &str, handle: &str) -> Result<(String, String)> {
+fn handle_locator_and_id(handle: &str) -> Result<(HandleLocator, String)> {
     let handle = handle.trim();
-    if handle.starts_with("hnd-") {
-        return Ok((current_namespace.to_string(), handle.to_string()));
-    }
     let rest = handle
         .strip_prefix("talon-handle:")
-        .or_else(|| handle.strip_prefix("talen-handle:"))
         .ok_or_else(|| anyhow!("invalid handle prefix"))?;
-    let (namespace, id) = rest
-        .split_once('/')
+    let (locator, id) = rest
+        .rsplit_once('/')
         .ok_or_else(|| anyhow!("invalid handle format"))?;
-    let namespace = urlencoding::decode(namespace)
-        .map_err(|err| anyhow!("invalid handle namespace: {err}"))?
+    let locator = urlencoding::decode(locator)
+        .map_err(|err| anyhow!("invalid handle locator: {err}"))?
         .into_owned();
     if id.trim().is_empty() {
         return Err(anyhow!("invalid handle id"));
     }
-    Ok((namespace, id.to_string()))
+    Ok((parse_handle_locator(&locator)?, id.to_string()))
+}
+
+fn parse_handle_locator(locator: &str) -> Result<HandleLocator> {
+    let parts = locator.split('/').collect::<Vec<_>>();
+    match parts.as_slice() {
+        ["file", namespace, file_name] => Ok(HandleLocator::File {
+            namespace: decode_handle_locator_part(namespace)?,
+            file_name: decode_handle_locator_part(file_name)?,
+        }),
+        ["artifact", namespace, agent, session_id, artifact_id] => Ok(HandleLocator::Artifact {
+            namespace: decode_handle_locator_part(namespace)?,
+            agent: decode_handle_locator_part(agent)?,
+            session_id: decode_handle_locator_part(session_id)?,
+            artifact_id: decode_handle_locator_part(artifact_id)?,
+        }),
+        _ => Err(anyhow!("handle locator is invalid")),
+    }
+}
+
+fn decode_handle_locator_part(part: &str) -> Result<String> {
+    let decoded = urlencoding::decode(part)
+        .map_err(|err| anyhow!("invalid handle locator component: {err}"))?
+        .into_owned();
+    if decoded.trim().is_empty() {
+        return Err(anyhow!("handle locator component is empty"));
+    }
+    Ok(decoded)
 }
 
 fn require_capability(spec: &manifests::AgentSpec, capability: &str, action: &str) -> Result<()> {
@@ -3706,18 +3835,46 @@ mod tests {
     }
 
     #[test]
-    fn handle_namespace_and_id_accepts_common_talon_typo() {
-        let (namespace, id) =
-            handle_namespace_and_id("ignored", "talen-handle:Tenant%3Aacme/hnd-123").unwrap();
-        assert_eq!(namespace, "Tenant:acme");
+    fn handle_locator_and_id_parses_artifact_handles() {
+        let locator = HandleLocator::Artifact {
+            namespace: "Tenant:acme".to_string(),
+            agent: "copywriter".to_string(),
+            session_id: "session-1".to_string(),
+            artifact_id: "artifact-1".to_string(),
+        };
+        let (parsed, id) =
+            handle_locator_and_id(&format!("talon-handle:{}/hnd-123", locator.encode())).unwrap();
         assert_eq!(id, "hnd-123");
+        assert!(matches!(
+            parsed,
+            HandleLocator::Artifact {
+                namespace,
+                agent,
+                session_id,
+                artifact_id
+            } if namespace == "Tenant:acme"
+                && agent == "copywriter"
+                && session_id == "session-1"
+                && artifact_id == "artifact-1"
+        ));
     }
 
     #[test]
-    fn handle_namespace_and_id_accepts_bare_handle_id_in_current_namespace() {
-        let (namespace, id) = handle_namespace_and_id("Tenant:acme", "hnd-123").unwrap();
-        assert_eq!(namespace, "Tenant:acme");
+    fn handle_locator_and_id_parses_file_handles() {
+        let locator = HandleLocator::File {
+            namespace: "Tenant:acme".to_string(),
+            file_name: "brand-guidelines-md-7f3a".to_string(),
+        };
+        let (parsed, id) =
+            handle_locator_and_id(&format!("talon-handle:{}/hnd-123", locator.encode())).unwrap();
         assert_eq!(id, "hnd-123");
+        assert!(matches!(
+            parsed,
+            HandleLocator::File {
+                namespace,
+                file_name
+            } if namespace == "Tenant:acme" && file_name == "brand-guidelines-md-7f3a"
+        ));
     }
 
     #[test]
@@ -3846,6 +4003,7 @@ mod tests {
         .unwrap();
         let value: Value = serde_json::from_str(&output).unwrap();
         let artifact_id = value["artifact"]["id"].as_str().unwrap();
+        let artifact_handle = value["artifactHandle"].as_str().unwrap();
         let object_key = value["artifact"]["objectRef"]["key"].as_str().unwrap();
 
         assert!(object_key.starts_with("cas/Tenant%3Aacme%3AWorkspace%3Amain/artifacts/"));
@@ -3868,6 +4026,33 @@ mod tests {
         );
         assert_eq!(stored.metadata.metadata["session_id"], "session-1");
         assert_eq!(stored.metadata.metadata["source"], "tool");
+
+        let (locator, grant_id) = handle_locator_and_id(artifact_handle).unwrap();
+        assert!(matches!(
+            locator,
+            HandleLocator::Artifact {
+                namespace,
+                agent,
+                session_id,
+                artifact_id: parsed_artifact_id
+            } if namespace == "Tenant:acme:Workspace:main"
+                && agent == "writer"
+                && session_id == "session-1"
+                && parsed_artifact_id == artifact_id
+        ));
+        let stored_grant = kv
+            .get_msg::<crate::gateway::rpc::data_proto::HandleGrant>(&keys::artifact_handle_grant(
+                "Tenant:acme:Workspace:main",
+                "writer",
+                "session-1",
+                artifact_id,
+                &grant_id,
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(stored_grant.kind, HANDLE_KIND_ARTIFACT);
+        assert_eq!(stored_grant.target_id, artifact_id);
     }
 
     #[tokio::test]

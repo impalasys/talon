@@ -119,9 +119,10 @@ message GoalIndexEntry {
 
 // Opaque access grant for a File or Artifact handle.
 //
-// Handle strings resolve to these KV-backed grant records. Callers must present
-// a valid handle and match the recorded audience before FileService or
-// ArtifactService allows the requested operation.
+// Handle strings include an encoded target locator plus this grant id. File
+// grants are stored under the target File; Artifact grants are stored under the
+// target Artifact. Callers must present a valid handle and match the recorded
+// audience before FileService or ArtifactService allows the requested operation.
 message HandleGrant {
   // Opaque grant id encoded into the external handle string.
   string id = 1;
