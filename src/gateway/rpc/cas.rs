@@ -155,7 +155,7 @@ mod tests {
             .await
             .unwrap()
             .expect("large result should be object-backed");
-        assert_eq!(object.content_encoding, "zstd");
+        assert_eq!(object.content_encoding, "gzip");
 
         let response = handler(objects)
             .handle_get_cas_object(tonic::Request::new(proto::GetCasObjectRequest {
@@ -166,8 +166,8 @@ mod tests {
             .into_inner();
 
         assert_ne!(response.data, raw.as_bytes());
-        assert_eq!(&response.data[..4], &[0x28, 0xb5, 0x2f, 0xfd]);
-        assert_eq!(response.content_encoding, "zstd");
+        assert_eq!(&response.data[..2], &[0x1f, 0x8b]);
+        assert_eq!(response.content_encoding, "gzip");
     }
 
     #[tokio::test]

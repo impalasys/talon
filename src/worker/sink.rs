@@ -20,6 +20,7 @@ use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
 
 const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
+const LIVE_TOOL_RESULT_OUTPUT_CHARS: usize = 12_000;
 
 fn chat_usage_payload_json(usage: &ChatUsage) -> String {
     serde_json::to_string(&serde_json::json!({
@@ -29,6 +30,13 @@ fn chat_usage_payload_json(usage: &ChatUsage) -> String {
         "total_tokens": usage.total_tokens,
     }))
     .unwrap_or_else(|_| "{}".to_string())
+}
+
+fn live_tool_result_output(result: &str) -> String {
+    crate::harness::executor::tool_result_preview(result)
+        .chars()
+        .take(LIVE_TOOL_RESULT_OUTPUT_CHARS)
+        .collect()
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -1167,7 +1175,7 @@ impl ExecutionSink for PubSubSessionSink {
         self.publish_event(AgentEvent::Observation {
             id: id.to_string(),
             name: name.to_string(),
-            output: result.to_string(),
+            output: live_tool_result_output(result),
         })
         .await;
     }
@@ -2008,6 +2016,7 @@ mod tests {
             "x".repeat(40_000)
         );
 
+        let mut fanout = fanout_stream(&sink).await;
         sink.on_tool_result("tool-1", "mcp_github_get_file_contents", &raw_output)
             .await;
         sink.on_done().await;
@@ -2035,6 +2044,17 @@ mod tests {
         )
         .unwrap();
         assert_eq!(hydrated, raw_output);
+
+        let fanout_events = fanout_events_until_terminal(&mut fanout).await;
+        let live_output = fanout_events
+            .iter()
+            .find(|event| {
+                event_part(event).part_type == data_proto::SessionMessagePartType::ToolResult as i32
+            })
+            .map(|event| event_part(event).content.clone())
+            .expect("tool result event should be published");
+        assert!(live_output.len() <= super::LIVE_TOOL_RESULT_OUTPUT_CHARS);
+        assert!(live_output.contains("chars omitted"));
     }
 
     #[tokio::test]

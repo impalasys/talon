@@ -158,6 +158,139 @@ pub struct ObjectRef {
     pub content_encoding: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Artifact {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "6")]
+    pub object_ref: ::core::option::Option<ObjectRef>,
+    #[prost(string, tag = "7")]
+    pub created_by_agent: ::prost::alloc::string::String,
+    #[prost(int64, tag = "8")]
+    pub created_at: i64,
+    #[prost(map = "string, string", tag = "9")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(map = "string, string", tag = "10")]
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoalEvidenceRef {
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub handle: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub object_key: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub summary: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Goal {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub objective: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "6")]
+    pub success_criteria: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(enumeration = "GoalPhase", tag = "7")]
+    pub phase: i32,
+    #[prost(string, tag = "8")]
+    pub progress_summary: ::prost::alloc::string::String,
+    #[prost(int32, tag = "9")]
+    pub iteration: i32,
+    #[prost(int32, tag = "10")]
+    pub max_iterations: i32,
+    #[prost(message, repeated, tag = "11")]
+    pub evidence_refs: ::prost::alloc::vec::Vec<GoalEvidenceRef>,
+    #[prost(int64, tag = "12")]
+    pub created_at: i64,
+    #[prost(int64, tag = "13")]
+    pub updated_at: i64,
+    #[prost(int64, tag = "14")]
+    pub completed_at: i64,
+    #[prost(string, tag = "15")]
+    pub blocked_reason: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "16")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(map = "string, string", tag = "17")]
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoalIndexEntry {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub goal_id: ::prost::alloc::string::String,
+    #[prost(enumeration = "GoalPhase", tag = "5")]
+    pub phase: i32,
+    #[prost(string, tag = "6")]
+    pub status_group: ::prost::alloc::string::String,
+    #[prost(int64, tag = "7")]
+    pub updated_at: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct HandleGrant {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub target_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "7")]
+    pub operations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "8")]
+    pub audience_agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "9")]
+    pub audience_session_id: ::prost::alloc::string::String,
+    #[prost(int64, tag = "10")]
+    pub expires_at: i64,
+    #[prost(int64, tag = "11")]
+    pub created_at: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Principal {
     /// Stable provider-native principal identifier when available, such as a
     /// Slack user ID or iMessage handle GUID.
@@ -493,6 +626,53 @@ impl SessionMessagePartType {
                 Some(Self::RequestPermission)
             }
             "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT" => Some(Self::PermissionResult),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum GoalPhase {
+    Unspecified = 0,
+    Running = 1,
+    Paused = 2,
+    NeedsReview = 3,
+    Succeeded = 4,
+    Failed = 5,
+    Blocked = 6,
+    Canceled = 7,
+    Expired = 8,
+}
+impl GoalPhase {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "GOAL_PHASE_UNSPECIFIED",
+            Self::Running => "GOAL_PHASE_RUNNING",
+            Self::Paused => "GOAL_PHASE_PAUSED",
+            Self::NeedsReview => "GOAL_PHASE_NEEDS_REVIEW",
+            Self::Succeeded => "GOAL_PHASE_SUCCEEDED",
+            Self::Failed => "GOAL_PHASE_FAILED",
+            Self::Blocked => "GOAL_PHASE_BLOCKED",
+            Self::Canceled => "GOAL_PHASE_CANCELED",
+            Self::Expired => "GOAL_PHASE_EXPIRED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "GOAL_PHASE_UNSPECIFIED" => Some(Self::Unspecified),
+            "GOAL_PHASE_RUNNING" => Some(Self::Running),
+            "GOAL_PHASE_PAUSED" => Some(Self::Paused),
+            "GOAL_PHASE_NEEDS_REVIEW" => Some(Self::NeedsReview),
+            "GOAL_PHASE_SUCCEEDED" => Some(Self::Succeeded),
+            "GOAL_PHASE_FAILED" => Some(Self::Failed),
+            "GOAL_PHASE_BLOCKED" => Some(Self::Blocked),
+            "GOAL_PHASE_CANCELED" => Some(Self::Canceled),
+            "GOAL_PHASE_EXPIRED" => Some(Self::Expired),
             _ => None,
         }
     }

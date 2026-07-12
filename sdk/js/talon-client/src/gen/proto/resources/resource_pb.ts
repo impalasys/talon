@@ -20,6 +20,7 @@ import { DeploymentReplicaSpec, DeploymentReplicaStatus, DeploymentSpec, Deploym
 import { SandboxClassSpec, SandboxPolicySpec, SandboxSpec, SandboxStatus } from "./sandboxes_pb.js";
 import { WorkerSpec, WorkerStatus } from "./workers_pb.js";
 import { UsagePolicySpec, UsagePolicyStatus } from "./usage_pb.js";
+import { FileSpec, FileStatus } from "./files_pb.js";
 
 /**
  * @generated from message talon.resources.Resource
@@ -340,6 +341,12 @@ export class ResourceSpec extends Message<ResourceSpec> {
     case: "usagePolicy";
   } | {
     /**
+     * @generated from field: talon.resources.FileSpec file = 70;
+     */
+    value: FileSpec;
+    case: "file";
+  } | {
+    /**
      * @generated from field: talon.resources.RawResourceSpec raw = 1000;
      */
     value: RawResourceSpec;
@@ -374,6 +381,7 @@ export class ResourceSpec extends Message<ResourceSpec> {
     { no: 42, name: "sandbox", kind: "message", T: SandboxSpec, oneof: "kind" },
     { no: 50, name: "worker", kind: "message", T: WorkerSpec, oneof: "kind" },
     { no: 60, name: "usage_policy", kind: "message", T: UsagePolicySpec, oneof: "kind" },
+    { no: 70, name: "file", kind: "message", T: FileSpec, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceSpec, oneof: "kind" },
   ]);
 
@@ -523,6 +531,12 @@ export class ResourceStatus extends Message<ResourceStatus> {
     case: "usagePolicy";
   } | {
     /**
+     * @generated from field: talon.resources.FileStatus file = 70;
+     */
+    value: FileStatus;
+    case: "file";
+  } | {
+    /**
      * @generated from field: talon.resources.RawResourceStatus raw = 1000;
      */
     value: RawResourceStatus;
@@ -557,6 +571,7 @@ export class ResourceStatus extends Message<ResourceStatus> {
     { no: 42, name: "sandbox", kind: "message", T: SandboxStatus, oneof: "kind" },
     { no: 50, name: "worker", kind: "message", T: WorkerStatus, oneof: "kind" },
     { no: 60, name: "usage_policy", kind: "message", T: UsagePolicyStatus, oneof: "kind" },
+    { no: 70, name: "file", kind: "message", T: FileStatus, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceStatus, oneof: "kind" },
   ]);
 

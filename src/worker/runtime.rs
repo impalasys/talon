@@ -13,9 +13,8 @@ use crate::gateway::rpc::resources_proto;
 use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 use crate::harness::executor::{
     session_message_to_loop_messages, AgentExecutor, ContextAssembler, ExecutionContext,
-    RegisteredMcpTool,
+    LoopMessage, RegisteredMcpTool,
 };
-use crate::harness::knowledge::KvKnowledgeBook;
 use crate::harness::sessions::{
     SESSION_LABEL_PROJECTION_STATE, SESSION_PROJECTION_STATE_COMMITTED,
 };
@@ -24,7 +23,7 @@ use prost::Message;
 
 /// Fully-assembled, ready-to-run environment for one agent session.
 /// Build it from identity coordinates; it resolves everything else
-/// (agent spec, history, LLM, tools, knowledge) from the control plane.
+/// (agent spec, history, LLM, and tools) from the control plane.
 pub struct AgentRuntime {
     pub executor: AgentExecutor,
     pub context: ExecutionContext,
@@ -97,6 +96,11 @@ impl AgentRuntime {
                 history.extend(session_message_to_loop_messages(&msg, cp.objects.as_ref()).await?);
             }
         }
+        if let Some(goal_context) =
+            crate::harness::native_tools::active_goals_context(cp, ns, agent_id, session_id).await?
+        {
+            history.insert(0, LoopMessage::text("system", goal_context));
+        }
 
         // 3. Resolve LLM from AgentSpec + Config
         let llm = crate::harness::llm::resolver::resolve_llm(&spec, config).await?;
@@ -104,7 +108,6 @@ impl AgentRuntime {
         // 4. Build tool registry (builtins + future MCP servers)
         let mut mcp_tools = std::collections::HashMap::new();
         let mut reg = ToolRegistry::new();
-        crate::harness::knowledge::register_tools(&mut reg);
         crate::harness::native_tools::register_tools(&mut reg, &spec);
         if allow_channel_reply_tools {
             crate::harness::native_tools::register_channel_tools(&mut reg);
@@ -186,7 +189,6 @@ impl AgentRuntime {
             ContextAssembler::new("."),
             registry,
             Arc::new(config.clone()),
-            Arc::new(KvKnowledgeBook::new(cp.kv.clone())),
             ns.to_string(),
             agent_id.to_string(),
             session_id.to_string(),
@@ -239,6 +241,17 @@ fn visible_tools_for_agent(
                 };
             }
 
+            if is_goal_tool_name(&tool.name) {
+                return match tool.name.as_str() {
+                    "list_goals" | "get_goal" => has_capability_action(spec, "goals", "inspect"),
+                    "create_goal" => has_capability_action(spec, "goals", "create"),
+                    "update_goal" | "attach_goal_evidence" | "complete_goal" | "block_goal" => {
+                        has_capability_action(spec, "goals", "update")
+                    }
+                    _ => true,
+                };
+            }
+
             true
         })
         .cloned()
@@ -269,6 +282,19 @@ fn is_session_tool_name(name: &str) -> bool {
     matches!(name, "list_sessions" | "get_session")
 }
 
+fn is_goal_tool_name(name: &str) -> bool {
+    matches!(
+        name,
+        "list_goals"
+            | "get_goal"
+            | "create_goal"
+            | "update_goal"
+            | "attach_goal_evidence"
+            | "complete_goal"
+            | "block_goal"
+    )
+}
+
 fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: &str) -> bool {
     spec.capabilities
         .get(capability)
@@ -285,17 +311,34 @@ fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: 
 
 fn builtin_tool_names() -> &'static [&'static str] {
     &[
-        crate::harness::knowledge::KNOWLEDGE_WRITE_TOOL,
-        crate::harness::knowledge::KNOWLEDGE_SEARCH_TOOL,
-        crate::harness::knowledge::KNOWLEDGE_GET_TOOL,
-        crate::harness::knowledge::KNOWLEDGE_LIST_TOOL,
         crate::harness::native_tools::CREATE_SCHEDULE_TOOL,
         crate::harness::native_tools::GET_SCHEDULE_TOOL,
         crate::harness::native_tools::LIST_SCHEDULES_TOOL,
         crate::harness::native_tools::UPDATE_SCHEDULE_TOOL,
         crate::harness::native_tools::DELETE_SCHEDULE_TOOL,
+        crate::harness::native_tools::CREATE_GOAL_TOOL,
+        crate::harness::native_tools::GET_GOAL_TOOL,
+        crate::harness::native_tools::LIST_GOALS_TOOL,
+        crate::harness::native_tools::UPDATE_GOAL_TOOL,
+        crate::harness::native_tools::ATTACH_GOAL_EVIDENCE_TOOL,
+        crate::harness::native_tools::COMPLETE_GOAL_TOOL,
+        crate::harness::native_tools::BLOCK_GOAL_TOOL,
         crate::harness::native_tools::CHANNEL_PUBLISH_TOOL,
         crate::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL,
+        crate::harness::native_tools::DELEGATE_AGENT_TOOL,
+        crate::harness::native_tools::DELEGATE_AGENT_ASYNC_TOOL,
+        crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL,
+        crate::harness::native_tools::CREATE_ARTIFACT_TOOL,
+        crate::harness::native_tools::READ_ARTIFACT_TOOL,
+        crate::harness::native_tools::GET_ARTIFACT_METADATA_TOOL,
+        crate::harness::native_tools::GRANT_ARTIFACT_TOOL,
+        crate::harness::native_tools::FETCH_URL_TOOL,
+        crate::harness::native_tools::WEB_SEARCH_TOOL,
+        crate::harness::native_tools::SEARCH_MEMORY_TOOL,
+        crate::harness::native_tools::READ_MEMORY_TOOL,
+        crate::harness::native_tools::LIST_MEMORY_TOOL,
+        crate::harness::native_tools::CREATE_MEMORY_TOOL,
+        crate::harness::native_tools::UPDATE_MEMORY_TOOL,
     ]
 }
 
@@ -630,11 +673,14 @@ mod tests {
             tool("create_schedule"),
             tool("delete_schedule"),
             tool("list_sessions"),
+            tool("list_goals"),
+            tool("create_goal"),
             tool("custom_tool"),
         ];
         let spec = spec_with_capabilities(&[
             ("schedules", &["inspect", "create"]),
             ("sessions", &["inspect"]),
+            ("goals", &["inspect"]),
         ]);
 
         let visible =
@@ -647,8 +693,10 @@ mod tests {
         assert!(names.contains(&"list_schedules".to_string()));
         assert!(names.contains(&"create_schedule".to_string()));
         assert!(names.contains(&"list_sessions".to_string()));
+        assert!(names.contains(&"list_goals".to_string()));
         assert!(names.contains(&"custom_tool".to_string()));
         assert!(!names.contains(&"delete_schedule".to_string()));
+        assert!(!names.contains(&"create_goal".to_string()));
     }
 
     #[test]
@@ -661,12 +709,17 @@ mod tests {
     }
 
     #[test]
-    fn builtin_tool_names_contains_expected_schedule_and_knowledge_tools() {
+    fn builtin_tool_names_contains_expected_native_tools() {
         let names = builtin_tool_names();
-        assert!(names.contains(&crate::harness::knowledge::KNOWLEDGE_GET_TOOL));
-        assert!(names.contains(&crate::harness::knowledge::KNOWLEDGE_LIST_TOOL));
         assert!(names.contains(&crate::harness::native_tools::CREATE_SCHEDULE_TOOL));
         assert!(names.contains(&crate::harness::native_tools::DELETE_SCHEDULE_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::CREATE_GOAL_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::LIST_GOALS_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::CREATE_ARTIFACT_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::DELEGATE_AGENT_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::SEARCH_MEMORY_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::READ_MEMORY_TOOL));
     }
 
     #[tokio::test]

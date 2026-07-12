@@ -63,6 +63,17 @@ const SQS_RECEIVE_ERROR_INITIAL_BACKOFF: std::time::Duration =
     std::time::Duration::from_millis(250);
 #[cfg(feature = "aws")]
 const SQS_RECEIVE_ERROR_MAX_BACKOFF: std::time::Duration = std::time::Duration::from_secs(10);
+const DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES: usize = 8 * 1024 * 1024;
+
+fn worker_thread_stack_size<F>(mut get: F) -> usize
+where
+    F: FnMut(&str) -> Option<String>,
+{
+    get("TALON_WORKER_THREAD_STACK_SIZE_BYTES")
+        .and_then(|value| value.parse::<usize>().ok())
+        .filter(|value| *value >= 1024 * 1024)
+        .unwrap_or(DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES)
+}
 
 fn next_pull_error_backoff(
     attempts: &mut u32,
@@ -1358,8 +1369,15 @@ async fn schedule_fire(
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .thread_stack_size(worker_thread_stack_size(|name| std::env::var(name).ok()))
+        .build()?
+        .block_on(worker_main())
+}
+
+async fn worker_main() -> Result<()> {
     talon::control::security::install_jwt_crypto_provider();
     let _telemetry_guard = talon::control::telemetry::init_from_env("talon-worker")?;
     talon::control::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
@@ -1406,7 +1424,8 @@ mod tests {
         run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
         serve_worker_http, session_dispatch_concurrency, worker_bind_addr, worker_port,
         worker_router, LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend,
-        PullSubscriptionBackend, ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
+        PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
+        DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES, HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
     use axum::body::Bytes;
@@ -1601,6 +1620,24 @@ mod tests {
                 _ => None,
             }),
             1
+        );
+        assert_eq!(
+            super::worker_thread_stack_size(|_| None),
+            DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES
+        );
+        assert_eq!(
+            super::worker_thread_stack_size(|name| match name {
+                "TALON_WORKER_THREAD_STACK_SIZE_BYTES" => Some("524288".to_string()),
+                _ => None,
+            }),
+            DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES
+        );
+        assert_eq!(
+            super::worker_thread_stack_size(|name| match name {
+                "TALON_WORKER_THREAD_STACK_SIZE_BYTES" => Some("16777216".to_string()),
+                _ => None,
+            }),
+            16 * 1024 * 1024
         );
         assert_eq!(pubsub_project_id(|_| None), "talon-local");
         assert_eq!(

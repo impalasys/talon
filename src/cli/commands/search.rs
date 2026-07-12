@@ -7,8 +7,7 @@ use clap::{Args, Subcommand};
 use super::{Cli, RunOutcome};
 use crate::cli::connect_gateway;
 use talon_client::v1::{
-    SearchKnowledgeRequest, SearchMode, SearchRequest, SearchResult, SearchSort,
-    SearchSourceFilter,
+    SearchKnowledgeRequest, SearchMode, SearchRequest, SearchResult, SearchSort, SearchSourceFilter,
 };
 
 #[derive(Args)]
@@ -81,7 +80,10 @@ pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome
                     }),
                     attributes: [
                         ("agent".to_string(), agent.clone().unwrap_or_default()),
-                        ("session_id".to_string(), session.clone().unwrap_or_default()),
+                        (
+                            "session_id".to_string(),
+                            session.clone().unwrap_or_default(),
+                        ),
                         ("channel".to_string(), channel.clone().unwrap_or_default()),
                     ]
                     .into_iter()
@@ -116,7 +118,10 @@ pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome
                     }),
                     attributes: [
                         ("agent".to_string(), agent.clone()),
-                        ("session_id".to_string(), session.clone().unwrap_or_default()),
+                        (
+                            "session_id".to_string(),
+                            session.clone().unwrap_or_default(),
+                        ),
                     ]
                     .into_iter()
                     .filter(|(_, value)| !value.is_empty())

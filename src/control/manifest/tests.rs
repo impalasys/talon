@@ -665,6 +665,55 @@ spec:
     }
 
     #[test]
+    fn file_manifest_accepts_and_renders_symbolic_enums() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: File
+metadata:
+  name: brand-guidelines-md-7f3a
+  namespace: Tenant:acme:Workspace:main
+spec:
+  path: /memory/brand-guidelines.md
+  mediaType: text/markdown
+  purpose: MEMORY
+  indexPolicy: RETRIEVAL
+  retention: RETAINED
+"#,
+        )
+        .expect("file manifest should parse symbolic enum values");
+        let Some(resource_spec::Kind::File(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected File spec");
+        };
+        assert_eq!(spec.purpose, resources_proto::FilePurpose::Memory as i32);
+        assert_eq!(
+            spec.index_policy,
+            resources_proto::FileIndexPolicy::Retrieval as i32
+        );
+        assert_eq!(
+            spec.retention,
+            resources_proto::FileRetention::Retained as i32
+        );
+
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: manifest.api_version,
+            kind: manifest.kind,
+            metadata: manifest.metadata,
+            spec: manifest.spec,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::File(Default::default())),
+            }),
+        })
+        .expect("file resource should render");
+
+        assert!(rendered.contains("purpose: MEMORY"));
+        assert!(rendered.contains("indexPolicy: RETRIEVAL"));
+        assert!(rendered.contains("retention: RETAINED"));
+    }
+
+    #[test]
     fn agent_manifest_rejects_invalid_acp_permission_policy() {
         let error = parse_resource_manifest(
             r#"

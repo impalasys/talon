@@ -6,6 +6,7 @@ from talon_client.proto.talon.v1 import auth_pb2_grpc
 from talon_client.proto.talon.v1 import cas_pb2_grpc
 from talon_client.proto.talon.v1 import channels_pb2_grpc
 from talon_client.proto.talon.v1 import connectors_pb2_grpc
+from talon_client.proto.talon.v1 import files_pb2_grpc
 from talon_client.proto.talon.v1 import knowledge_pb2_grpc
 from talon_client.proto.talon.v1 import namespaces_pb2_grpc
 from talon_client.proto.talon.v1 import resources_pb2_grpc
@@ -19,6 +20,8 @@ class TalonClient:
     cas: cas_pb2_grpc.CasServiceStub
     channels: channels_pb2_grpc.ChannelServiceStub
     connectors: connectors_pb2_grpc.ConnectorServiceStub
+    files: files_pb2_grpc.FileServiceStub
+    artifacts: files_pb2_grpc.ArtifactServiceStub
     knowledge: knowledge_pb2_grpc.KnowledgeServiceStub
     namespaces: namespaces_pb2_grpc.NamespaceServiceStub
     resources: resources_pb2_grpc.ResourceServiceStub
@@ -31,6 +34,8 @@ class TalonClient:
         self.cas = cas_pb2_grpc.CasServiceStub(channel)
         self.channels = channels_pb2_grpc.ChannelServiceStub(channel)
         self.connectors = connectors_pb2_grpc.ConnectorServiceStub(channel)
+        self.files = files_pb2_grpc.FileServiceStub(channel)
+        self.artifacts = files_pb2_grpc.ArtifactServiceStub(channel)
         self.knowledge = knowledge_pb2_grpc.KnowledgeServiceStub(channel)
         self.namespaces = namespaces_pb2_grpc.NamespaceServiceStub(channel)
         self.resources = resources_pb2_grpc.ResourceServiceStub(channel)

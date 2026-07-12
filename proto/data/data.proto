@@ -35,6 +35,86 @@ message ObjectRef {
   string content_encoding = 7;
 }
 
+message Artifact {
+  string id = 1;
+  string session_id = 2;
+  string title = 3;
+  string path = 4;
+  string media_type = 5;
+  ObjectRef object_ref = 6;
+  string created_by_agent = 7;
+  int64 created_at = 8;
+  map<string, string> labels = 9;
+  map<string, string> metadata = 10;
+}
+
+enum GoalPhase {
+  GOAL_PHASE_UNSPECIFIED = 0;
+  GOAL_PHASE_RUNNING = 1;
+  GOAL_PHASE_PAUSED = 2;
+  GOAL_PHASE_NEEDS_REVIEW = 3;
+  GOAL_PHASE_SUCCEEDED = 4;
+  GOAL_PHASE_FAILED = 5;
+  GOAL_PHASE_BLOCKED = 6;
+  GOAL_PHASE_CANCELED = 7;
+  GOAL_PHASE_EXPIRED = 8;
+}
+
+message GoalEvidenceRef {
+  string kind = 1;
+  string namespace = 2;
+  string name = 3;
+  string agent = 4;
+  string session_id = 5;
+  string handle = 6;
+  string object_key = 7;
+  string summary = 8;
+}
+
+message Goal {
+  string id = 1;
+  string namespace = 2;
+  string agent = 3;
+  string session_id = 4;
+  string objective = 5;
+  repeated string success_criteria = 6;
+  GoalPhase phase = 7;
+  string progress_summary = 8;
+  int32 iteration = 9;
+  int32 max_iterations = 10;
+  repeated GoalEvidenceRef evidence_refs = 11;
+  int64 created_at = 12;
+  int64 updated_at = 13;
+  int64 completed_at = 14;
+  string blocked_reason = 15;
+  map<string, string> labels = 16;
+  map<string, string> metadata = 17;
+}
+
+message GoalIndexEntry {
+  string namespace = 1;
+  string agent = 2;
+  string session_id = 3;
+  string goal_id = 4;
+  GoalPhase phase = 5;
+  string status_group = 6;
+  int64 updated_at = 7;
+}
+
+message HandleGrant {
+  string id = 1;
+  string namespace = 2;
+  string kind = 3;
+  string target_id = 4;
+  string agent = 5;
+  string session_id = 6;
+  repeated string operations = 7;
+  string audience_agent = 8;
+  string audience_session_id = 9;
+  int64 expires_at = 10;
+  int64 created_at = 11;
+}
+
 message Principal {
   // Stable provider-native principal identifier when available, such as a
   // Slack user ID or iMessage handle GUID.
