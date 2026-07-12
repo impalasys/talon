@@ -48,7 +48,6 @@ message Artifact {
   string session_id = 2;
   // Human-readable label suitable for UI display.
   string title = 3;
-  reserved 4;
   // Media type of the artifact content, for example text/markdown.
   string media_type = 5;
   // Authoritative CAS/object reference for immutable artifact bytes.
