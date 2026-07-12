@@ -205,6 +205,26 @@ fn main() -> std::io::Result<()> {
     );
     builder = builder
         .field_attribute(
+            ".talon.resources.FileSpec.purpose",
+            "#[serde(with = \"crate::control::manifest::enum_serde::file_purpose\")]",
+        )
+        .field_attribute(
+            ".talon.resources.FileSpec.index_policy",
+            "#[serde(with = \"crate::control::manifest::enum_serde::file_index_policy\")]",
+        )
+        .field_attribute(
+            ".talon.resources.FileSpec.retention",
+            "#[serde(with = \"crate::control::manifest::enum_serde::file_retention\")]",
+        )
+        .field_attribute(
+            ".talon.resources.TaskSpec.type",
+            "#[serde(with = \"crate::control::manifest::enum_serde::task_type\")]",
+        )
+        .field_attribute(
+            ".talon.resources.TaskStatus.phase",
+            "#[serde(with = \"crate::control::manifest::enum_serde::task_phase\")]",
+        )
+        .field_attribute(
             ".talon.external.RegisterClusterResponse.registration_id",
             "#[serde(skip_serializing_if = \"Option::is_none\")]",
         )
