@@ -11,6 +11,8 @@ export type SelectionType =
   | 'template'
   | 'deployment'
   | 'deployment-replica'
+  | 'connector-class'
+  | 'connector'
   | 'sandbox-class'
   | 'sandbox-policy'
   | 'sandbox'
@@ -36,6 +38,8 @@ export const RESOURCE_KIND_BY_SELECTION: Partial<Record<SelectionType, string>> 
   template: 'Template',
   deployment: 'Deployment',
   'deployment-replica': 'DeploymentReplica',
+  'connector-class': 'ConnectorClass',
+  connector: 'Connector',
   'sandbox-class': 'SandboxClass',
   'sandbox-policy': 'SandboxPolicy',
   sandbox: 'Sandbox',
@@ -176,6 +180,8 @@ export function selectionFromSearchParams(searchParams: URLSearchParams): Select
       type === 'deployment' ||
       type === 'workflow' ||
       type === 'deployment-replica' ||
+      type === 'connector-class' ||
+      type === 'connector' ||
       type === 'sandbox-class' ||
       type === 'sandbox-policy' ||
       type === 'sandbox'
@@ -251,6 +257,8 @@ export function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'template') return `${selection.ns} / Template`;
   if (selection.type === 'deployment') return `${selection.ns} / Deployment`;
   if (selection.type === 'deployment-replica') return `${selection.ns} / DeploymentReplica`;
+  if (selection.type === 'connector-class') return `${selection.ns} / ConnectorClass`;
+  if (selection.type === 'connector') return `${selection.ns} / Connector`;
   if (selection.type === 'sandbox-class') return `${selection.ns} / SandboxClass`;
   if (selection.type === 'sandbox-policy') return `${selection.ns} / SandboxPolicy`;
   if (selection.type === 'sandbox') return `${selection.ns} / Sandbox`;
