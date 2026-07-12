@@ -606,6 +606,16 @@ fn status_phase(resource: &resources_proto::Resource) -> String {
         resources_proto::resource_status::Kind::McpServer(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Knowledge(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::File(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Task(status) => {
+            resources_proto::TaskPhase::try_from(status.phase)
+                .map(|phase| {
+                    phase
+                        .as_str_name()
+                        .trim_start_matches("TASK_PHASE_")
+                        .to_string()
+                })
+                .unwrap_or_default()
+        }
         resources_proto::resource_status::Kind::Namespace(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Session(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Skill(status) => status.phase.clone(),

@@ -24,6 +24,10 @@ pub const GET_SCHEDULE_TOOL: &str = "get_schedule";
 pub const LIST_SCHEDULES_TOOL: &str = "list_schedules";
 pub const UPDATE_SCHEDULE_TOOL: &str = "update_schedule";
 pub const DELETE_SCHEDULE_TOOL: &str = "delete_schedule";
+pub const CREATE_TASK_TOOL: &str = "create_task";
+pub const GET_TASK_TOOL: &str = "get_task";
+pub const LIST_TASKS_TOOL: &str = "list_tasks";
+pub const UPDATE_TASK_TOOL: &str = "update_task";
 pub const READ_SESSION_MESSAGES_TOOL: &str = "read_session_messages";
 pub const CREATE_GOAL_TOOL: &str = "create_goal";
 pub const GET_GOAL_TOOL: &str = "get_goal";
@@ -111,6 +115,9 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         && !has_capability_action(spec, "schedules", "create")
         && !has_capability_action(spec, "schedules", "update")
         && !has_capability_action(spec, "schedules", "delete")
+        && !has_capability_action(spec, "tasks", "inspect")
+        && !has_capability_action(spec, "tasks", "create")
+        && !has_capability_action(spec, "tasks", "update")
         && !has_capability_action(spec, "sessions", "read:messages")
         && !has_capability_action(spec, "memory", "inspect")
         && !has_capability_action(spec, "memory", "read")
@@ -174,6 +181,37 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                 "properties": {
                     "namespace": { "type": "string", "description": "Namespace containing the schedule. Defaults to the current agent namespace if omitted." },
                     "name": { "type": "string", "description": "Schedule name." }
+                },
+                "required": ["name"]
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "tasks", "inspect") {
+        registry.register_builtin(
+            LIST_TASKS_TOOL,
+            "List durable Talon Tasks in a namespace. Use this to rediscover delegated work across sessions.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Namespace to inspect. Defaults to the current agent namespace if omitted." },
+                    "status_group": { "type": "string", "description": "Optional group: active or terminal." },
+                    "phase": { "type": "string", "description": "Optional phase filter such as RUNNING, NEEDS_REVIEW, SUCCEEDED, FAILED, or CANCELED." },
+                    "requester_agent": { "type": "string", "description": "Optional requester agent filter." },
+                    "assignee_agent": { "type": "string", "description": "Optional assignee agent filter." },
+                    "parent_task_name": { "type": "string", "description": "Optional parent task filter." },
+                    "limit": { "type": "integer", "description": "Optional maximum number of results to return." }
+                }
+            }),
+        );
+        registry.register_builtin(
+            GET_TASK_TOOL,
+            "Get one durable Talon Task by name.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Namespace containing the task. Defaults to the current agent namespace if omitted." },
+                    "name": { "type": "string", "description": "Task resource name." }
                 },
                 "required": ["name"]
             }),
@@ -255,6 +293,47 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         );
     }
 
+    if has_capability_action(spec, "tasks", "create") {
+        registry.register_builtin(
+            CREATE_TASK_TOOL,
+            "Create a durable caller-owned Task before delegating work to another agent.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Namespace that owns the task. Defaults to the current agent namespace if omitted." },
+                    "title": { "type": "string", "description": "Short human-readable task title." },
+                    "description": { "type": "string", "description": "Brief or acceptance criteria for the task." },
+                    "type": { "type": "string", "description": "Optional caller-defined classifier such as agent_delegation or human_review. Talon does not interpret it." },
+                    "assignee_namespace": { "type": "string", "description": "Namespace of the worker agent." },
+                    "assignee_agent": { "type": "string", "description": "Worker agent name." },
+                    "parent_task_name": { "type": "string", "description": "Optional parent task name." }
+                },
+                "required": ["title", "description", "assignee_agent"]
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "tasks", "update") {
+        registry.register_builtin(
+            UPDATE_TASK_TOOL,
+            "Update Task status after delegation progress, review, completion, or failure.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Namespace containing the task. Defaults to the current agent namespace if omitted." },
+                    "name": { "type": "string", "description": "Task resource name." },
+                    "phase": { "type": "string", "description": "Optional phase: QUEUED, RUNNING, BLOCKED, NEEDS_REVIEW, SUCCEEDED, FAILED, CANCELED, or EXPIRED." },
+                    "progress_summary": { "type": "string", "description": "Short current state or result summary." },
+                    "execution_namespace": { "type": "string", "description": "Optional execution namespace." },
+                    "execution_agent": { "type": "string", "description": "Optional execution agent." },
+                    "execution_session_id": { "type": "string", "description": "Optional child session id." },
+                    "run_id": { "type": "string", "description": "Optional workflow or run id." }
+                },
+                "required": ["name"]
+            }),
+        );
+    }
+
     if has_capability_action(spec, "goals", "inspect") {
         registry.register_builtin(
             LIST_GOALS_TOOL,
@@ -327,7 +406,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         );
         registry.register_builtin(
             ATTACH_GOAL_EVIDENCE_TOOL,
-            "Attach evidence such as an Artifact handle, File, Session, or CAS key to a Goal.",
+            "Attach evidence such as a Task, Artifact handle, File, Session, or CAS key to a Goal.",
             goal_evidence_schema(),
         );
         registry.register_builtin(
@@ -817,6 +896,80 @@ pub async fn execute_tool_for_session(
             Ok(Some(serde_json::to_string_pretty(
                 &json!({ "success": true }),
             )?))
+        }
+        LIST_TASKS_TOOL => {
+            require_capability(spec, "tasks", "inspect")?;
+            let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+            let status_group = opt_str(args, "status_group");
+            let phase = opt_str(args, "phase");
+            let requester_agent = opt_str(args, "requester_agent");
+            let assignee_agent = opt_str(args, "assignee_agent");
+            let parent_task_name = opt_str(args, "parent_task_name");
+            let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
+            let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+            let mut resources = store.list(namespace, Some("Task")).await?;
+            resources.sort_by(|a, b| task_updated_at(b).cmp(&task_updated_at(a)));
+            let mut tasks = Vec::new();
+            for resource in resources {
+                let Some(task) = task_from_resource(resource) else {
+                    continue;
+                };
+                if !task_matches(
+                    &task,
+                    status_group,
+                    phase,
+                    requester_agent,
+                    assignee_agent,
+                    parent_task_name,
+                ) {
+                    continue;
+                }
+                tasks.push(task_json(&task));
+                if tasks.len() >= limit {
+                    break;
+                }
+            }
+            Ok(Some(serde_json::to_string_pretty(
+                &json!({ "tasks": tasks }),
+            )?))
+        }
+        GET_TASK_TOOL => {
+            require_capability(spec, "tasks", "inspect")?;
+            let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+            let name = req_str(args, "name")?;
+            let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+            let resource = store
+                .get(namespace, "Task", name)
+                .await?
+                .ok_or_else(|| anyhow!("task '{}' not found", name))?;
+            let task = task_from_resource(resource).ok_or_else(|| anyhow!("invalid Task"))?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "task": task_json(&task)
+            }))?))
+        }
+        CREATE_TASK_TOOL => {
+            require_capability(spec, "tasks", "create")?;
+            let task =
+                create_task(cp, current_namespace, current_agent, current_session, args).await?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "task": task_json(&task)
+            }))?))
+        }
+        UPDATE_TASK_TOOL => {
+            require_capability(spec, "tasks", "update")?;
+            let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+            let name = req_str(args, "name")?;
+            let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+            let mut resource = store
+                .get(namespace, "Task", name)
+                .await?
+                .ok_or_else(|| anyhow!("task '{}' not found", name))?;
+            update_task_resource(&mut resource, args)?;
+            let resource = store.upsert(namespace, resource).await?;
+            let task = task_from_resource(resource).ok_or_else(|| anyhow!("invalid Task"))?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "task": task_json(&task)
+            }))?))
         }
         LIST_GOALS_TOOL => {
             require_capability(spec, "goals", "inspect")?;
@@ -2048,6 +2201,362 @@ fn schedule_json(schedule: &resources_proto::Schedule) -> Value {
     })
 }
 
+async fn create_task(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<resources_proto::Task> {
+    let namespace = opt_str(args, "namespace")
+        .unwrap_or(current_namespace)
+        .to_string();
+    let title = req_str(args, "title")?.to_string();
+    let description = req_str(args, "description")?.to_string();
+    let assignee_agent = req_str(args, "assignee_agent")?.to_string();
+    let assignee_namespace = opt_str(args, "assignee_namespace")
+        .unwrap_or(current_namespace)
+        .to_string();
+    let task_type = opt_str(args, "type")
+        .unwrap_or("agent_delegation")
+        .trim()
+        .to_string();
+    let now = chrono::Utc::now().timestamp_micros();
+    let name = unique_task_name(&title);
+    let labels = HashMap::from([
+        (
+            "talon.impalasys.com/requester-agent".to_string(),
+            current_agent.to_string(),
+        ),
+        (
+            "talon.impalasys.com/assignee-agent".to_string(),
+            assignee_agent.clone(),
+        ),
+    ]);
+    let task = resource_model::task_resource(
+        namespace.clone(),
+        name,
+        resources_proto::TaskSpec {
+            title,
+            description,
+            r#type: task_type,
+            requester: Some(resources_proto::TaskParticipant {
+                namespace: current_namespace.to_string(),
+                agent: current_agent.to_string(),
+                session_id: current_session.to_string(),
+            }),
+            assignee: Some(resources_proto::TaskParticipant {
+                namespace: assignee_namespace.clone(),
+                agent: assignee_agent.clone(),
+                session_id: String::new(),
+            }),
+            execution_ref: Some(resources_proto::TaskExecutionRef {
+                kind: "AGENT_SESSION".to_string(),
+                namespace: assignee_namespace,
+                agent: assignee_agent,
+                session_id: String::new(),
+                run_id: String::new(),
+            }),
+            parent_task_name: opt_str(args, "parent_task_name")
+                .unwrap_or_default()
+                .to_string(),
+            retention: Some(resources_proto::TaskRetention {
+                task_record: "P90D".to_string(),
+                events: "P30D".to_string(),
+                artifacts: "TASK_POLICY".to_string(),
+            }),
+        },
+        resources_proto::TaskStatus {
+            observed_generation: 0,
+            phase: resources_proto::TaskPhase::Queued as i32,
+            conditions: Vec::new(),
+            progress_summary: "Task created; waiting for delegated execution.".to_string(),
+            result_artifacts: Vec::new(),
+            created_at: now,
+            updated_at: now,
+            completed_at: 0,
+            expires_at: 0,
+        },
+        labels,
+    );
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let resource = store.upsert(&namespace, task).await?;
+    task_from_resource(resource).ok_or_else(|| anyhow!("invalid Task after create"))
+}
+
+fn update_task_resource(resource: &mut resources_proto::Resource, args: &Value) -> Result<()> {
+    let now = chrono::Utc::now().timestamp_micros();
+    if let Some(resources_proto::ResourceSpec {
+        kind: Some(resources_proto::resource_spec::Kind::Task(spec)),
+    }) = resource.spec.as_mut()
+    {
+        if let Some(namespace) = opt_str(args, "execution_namespace") {
+            spec.execution_ref
+                .get_or_insert_with(Default::default)
+                .namespace = namespace.to_string();
+        }
+        if let Some(agent) = opt_str(args, "execution_agent") {
+            let execution = spec.execution_ref.get_or_insert_with(Default::default);
+            execution.agent = agent.to_string();
+            if let Some(assignee) = spec.assignee.as_mut() {
+                assignee.agent = agent.to_string();
+            }
+        }
+        if let Some(session_id) = opt_str(args, "execution_session_id") {
+            let execution = spec.execution_ref.get_or_insert_with(Default::default);
+            execution.kind = "AGENT_SESSION".to_string();
+            execution.session_id = session_id.to_string();
+            if let Some(assignee) = spec.assignee.as_mut() {
+                assignee.session_id = session_id.to_string();
+            }
+        }
+        if let Some(run_id) = opt_str(args, "run_id") {
+            spec.execution_ref
+                .get_or_insert_with(Default::default)
+                .run_id = run_id.to_string();
+        }
+    }
+    let status = match resource
+        .status
+        .as_mut()
+        .and_then(|status| status.kind.as_mut())
+    {
+        Some(resources_proto::resource_status::Kind::Task(status)) => status,
+        _ => {
+            resource.status = Some(resources_proto::ResourceStatus {
+                kind: Some(resources_proto::resource_status::Kind::Task(
+                    Default::default(),
+                )),
+            });
+            match resource
+                .status
+                .as_mut()
+                .and_then(|status| status.kind.as_mut())
+            {
+                Some(resources_proto::resource_status::Kind::Task(status)) => status,
+                _ => return Err(anyhow!("failed to initialize Task status")),
+            }
+        }
+    };
+    if let Some(phase) = opt_str(args, "phase") {
+        status.phase = parse_task_phase(phase)?;
+    }
+    if let Some(summary) = opt_str(args, "progress_summary") {
+        status.progress_summary = summary.to_string();
+    }
+    status.updated_at = now;
+    if is_terminal_phase(status.phase) && status.completed_at == 0 {
+        status.completed_at = now;
+        status.expires_at = now + 90 * 24 * 60 * 60 * 1_000_000;
+    }
+    Ok(())
+}
+
+fn task_from_resource(resource: resources_proto::Resource) -> Option<resources_proto::Task> {
+    let spec = match resource.spec?.kind? {
+        resources_proto::resource_spec::Kind::Task(spec) => spec,
+        _ => return None,
+    };
+    let status = match resource.status.and_then(|status| status.kind) {
+        Some(resources_proto::resource_status::Kind::Task(status)) => Some(status),
+        _ => None,
+    };
+    Some(resources_proto::Task {
+        metadata: resource.metadata,
+        spec: Some(spec),
+        status,
+    })
+}
+
+fn task_matches(
+    task: &resources_proto::Task,
+    status_group: Option<&str>,
+    phase: Option<&str>,
+    requester_agent: Option<&str>,
+    assignee_agent: Option<&str>,
+    parent_task_name: Option<&str>,
+) -> bool {
+    let spec = task.spec.as_ref();
+    let current_phase = task
+        .status
+        .as_ref()
+        .map(|status| status.phase)
+        .unwrap_or_default();
+    if let Some(group) = status_group {
+        let matches = match group.to_ascii_lowercase().as_str() {
+            "active" => is_active_phase(current_phase),
+            "terminal" => is_terminal_phase(current_phase),
+            _ => false,
+        };
+        if !matches {
+            return false;
+        }
+    }
+    if let Some(phase) = phase {
+        if parse_task_phase(phase).ok() != Some(current_phase) {
+            return false;
+        }
+    }
+    if requester_agent.is_some_and(|agent| {
+        spec.and_then(|spec| spec.requester.as_ref())
+            .map(|requester| requester.agent.as_str())
+            != Some(agent)
+    }) {
+        return false;
+    }
+    if assignee_agent.is_some_and(|agent| {
+        spec.and_then(|spec| spec.assignee.as_ref())
+            .map(|assignee| assignee.agent.as_str())
+            != Some(agent)
+    }) {
+        return false;
+    }
+    if parent_task_name
+        .is_some_and(|parent| spec.map(|spec| spec.parent_task_name.as_str()) != Some(parent))
+    {
+        return false;
+    }
+    true
+}
+
+fn task_updated_at(resource: &resources_proto::Resource) -> i64 {
+    match resource
+        .status
+        .as_ref()
+        .and_then(|status| status.kind.as_ref())
+    {
+        Some(resources_proto::resource_status::Kind::Task(status)) => status.updated_at,
+        _ => 0,
+    }
+}
+
+fn task_json(task: &resources_proto::Task) -> Value {
+    let spec = task.spec.as_ref();
+    let status = task.status.as_ref();
+    let requester = spec.and_then(|spec| spec.requester.as_ref());
+    let assignee = spec.and_then(|spec| spec.assignee.as_ref());
+    let execution = spec.and_then(|spec| spec.execution_ref.as_ref());
+    json!({
+        "name": task.name(),
+        "namespace": task.namespace(),
+        "title": spec.map(|spec| spec.title.clone()).unwrap_or_default(),
+        "description": spec.map(|spec| spec.description.clone()).unwrap_or_default(),
+        "type": spec.map(|spec| spec.r#type.clone()).unwrap_or_default(),
+        "requester": participant_json(requester),
+        "assignee": participant_json(assignee),
+        "executionRef": execution.map(|execution| json!({
+            "kind": execution.kind,
+            "namespace": execution.namespace,
+            "agent": execution.agent,
+            "sessionId": execution.session_id,
+            "runId": execution.run_id,
+        })).unwrap_or_else(|| json!({})),
+        "parentTaskName": spec.map(|spec| spec.parent_task_name.clone()).unwrap_or_default(),
+        "phase": status.map(|status| task_phase_name(status.phase)).unwrap_or("UNSPECIFIED"),
+        "statusGroup": status.map(|status| {
+            if is_active_phase(status.phase) {
+                "ACTIVE"
+            } else if is_terminal_phase(status.phase) {
+                "TERMINAL"
+            } else {
+                "UNKNOWN"
+            }
+        }).unwrap_or("UNKNOWN"),
+        "progressSummary": status.map(|status| status.progress_summary.clone()).unwrap_or_default(),
+        "createdAt": status.map(|status| status.created_at).unwrap_or_default(),
+        "updatedAt": status.map(|status| status.updated_at).unwrap_or_default(),
+        "completedAt": status.map(|status| status.completed_at).unwrap_or_default(),
+        "expiresAt": status.map(|status| status.expires_at).unwrap_or_default(),
+        "labels": task.labels(),
+    })
+}
+
+fn participant_json(participant: Option<&resources_proto::TaskParticipant>) -> Value {
+    participant
+        .map(|participant| {
+            json!({
+                "namespace": participant.namespace,
+                "agent": participant.agent,
+                "sessionId": participant.session_id,
+            })
+        })
+        .unwrap_or_else(|| json!({}))
+}
+
+fn unique_task_name(title: &str) -> String {
+    let mut slug = title
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() {
+                ch.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>();
+    while slug.contains("--") {
+        slug = slug.replace("--", "-");
+    }
+    let slug = slug.trim_matches('-');
+    let slug = if slug.is_empty() { "task" } else { slug };
+    let trimmed = slug.chars().take(48).collect::<String>();
+    format!(
+        "{}-{}",
+        trimmed.trim_matches('-'),
+        crate::control::uuid::unique_name("tsk")
+    )
+}
+
+fn parse_task_phase(value: &str) -> Result<i32> {
+    let phase = match value.trim().to_ascii_uppercase().as_str() {
+        "" | "UNSPECIFIED" => resources_proto::TaskPhase::Unspecified,
+        "QUEUED" => resources_proto::TaskPhase::Queued,
+        "RUNNING" => resources_proto::TaskPhase::Running,
+        "BLOCKED" => resources_proto::TaskPhase::Blocked,
+        "NEEDS_REVIEW" | "NEEDS-REVIEW" => resources_proto::TaskPhase::NeedsReview,
+        "SUCCEEDED" | "SUCCESS" | "COMPLETED" => resources_proto::TaskPhase::Succeeded,
+        "FAILED" => resources_proto::TaskPhase::Failed,
+        "CANCELED" | "CANCELLED" => resources_proto::TaskPhase::Canceled,
+        "EXPIRED" => resources_proto::TaskPhase::Expired,
+        other => return Err(anyhow!("unsupported task phase '{}'", other)),
+    };
+    Ok(phase as i32)
+}
+
+fn task_phase_name(value: i32) -> &'static str {
+    match resources_proto::TaskPhase::try_from(value).ok() {
+        Some(resources_proto::TaskPhase::Queued) => "QUEUED",
+        Some(resources_proto::TaskPhase::Running) => "RUNNING",
+        Some(resources_proto::TaskPhase::Blocked) => "BLOCKED",
+        Some(resources_proto::TaskPhase::NeedsReview) => "NEEDS_REVIEW",
+        Some(resources_proto::TaskPhase::Succeeded) => "SUCCEEDED",
+        Some(resources_proto::TaskPhase::Failed) => "FAILED",
+        Some(resources_proto::TaskPhase::Canceled) => "CANCELED",
+        Some(resources_proto::TaskPhase::Expired) => "EXPIRED",
+        _ => "UNSPECIFIED",
+    }
+}
+
+fn is_active_phase(value: i32) -> bool {
+    matches!(
+        resources_proto::TaskPhase::try_from(value).ok(),
+        Some(resources_proto::TaskPhase::Queued)
+            | Some(resources_proto::TaskPhase::Running)
+            | Some(resources_proto::TaskPhase::Blocked)
+            | Some(resources_proto::TaskPhase::NeedsReview)
+    )
+}
+
+fn is_terminal_phase(value: i32) -> bool {
+    matches!(
+        resources_proto::TaskPhase::try_from(value).ok(),
+        Some(resources_proto::TaskPhase::Succeeded)
+            | Some(resources_proto::TaskPhase::Failed)
+            | Some(resources_proto::TaskPhase::Canceled)
+            | Some(resources_proto::TaskPhase::Expired)
+    )
+}
+
 async fn create_goal(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -3089,6 +3598,23 @@ mod tests {
         }
     }
 
+    fn task_spec(capabilities: &[&str]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            capabilities: HashMap::from([(
+                "tasks".to_string(),
+                crate::gateway::rpc::protobuf_value::ListValue {
+                    values: capabilities
+                        .iter()
+                        .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                        })
+                        .collect(),
+                },
+            )]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
     fn goal_spec(capabilities: &[&str]) -> manifests::AgentSpec {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
@@ -3585,6 +4111,84 @@ mod tests {
         .unwrap()
         .unwrap();
         assert_eq!(listed.matches("\"name\":").count(), 1);
+    }
+
+    #[tokio::test]
+    async fn task_tools_create_update_and_list_active_work() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let spec = task_spec(&["inspect", "create", "update"]);
+
+        let created = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            CREATE_TASK_TOOL,
+            &json!({
+                "title": "Prepare customer onboarding checklist",
+                "description": "Create a reviewed onboarding checklist.",
+                "type": "OPERATIONS",
+                "assignee_namespace": "Tenant:acme:Operations",
+                "assignee_agent": "support-agent"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let created: Value = serde_json::from_str(&created).unwrap();
+        let name = created["task"]["name"].as_str().unwrap();
+        assert_eq!(created["task"]["phase"], "QUEUED");
+        assert_eq!(created["task"]["statusGroup"], "ACTIVE");
+        assert_eq!(created["task"]["requester"]["agent"], "ops-lead");
+        assert_eq!(created["task"]["assignee"]["agent"], "support-agent");
+
+        let updated = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            UPDATE_TASK_TOOL,
+            &json!({
+                "name": name,
+                "phase": "RUNNING",
+                "progress_summary": "Support agent is preparing the checklist.",
+                "execution_namespace": "Tenant:acme:Operations",
+                "execution_agent": "support-agent",
+                "execution_session_id": "support-session-1"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let updated: Value = serde_json::from_str(&updated).unwrap();
+        assert_eq!(updated["task"]["phase"], "RUNNING");
+        assert_eq!(
+            updated["task"]["executionRef"]["sessionId"],
+            "support-session-1"
+        );
+
+        let listed = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-3",
+            &spec,
+            LIST_TASKS_TOOL,
+            &json!({
+                "status_group": "active",
+                "requester_agent": "ops-lead"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let listed: Value = serde_json::from_str(&listed).unwrap();
+        assert_eq!(listed["tasks"].as_array().unwrap().len(), 1);
+        assert_eq!(listed["tasks"][0]["name"], name);
     }
 
     #[tokio::test]

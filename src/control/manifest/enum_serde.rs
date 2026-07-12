@@ -130,3 +130,51 @@ pub mod file_retention {
         })
     }
 }
+
+pub mod task_phase {
+    use super::*;
+
+    pub fn serialize<S>(value: &i32, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(match resources_proto::TaskPhase::try_from(*value).ok() {
+            Some(resources_proto::TaskPhase::Queued) => "QUEUED",
+            Some(resources_proto::TaskPhase::Running) => "RUNNING",
+            Some(resources_proto::TaskPhase::Blocked) => "BLOCKED",
+            Some(resources_proto::TaskPhase::NeedsReview) => "NEEDS_REVIEW",
+            Some(resources_proto::TaskPhase::Succeeded) => "SUCCEEDED",
+            Some(resources_proto::TaskPhase::Failed) => "FAILED",
+            Some(resources_proto::TaskPhase::Canceled) => "CANCELED",
+            Some(resources_proto::TaskPhase::Expired) => "EXPIRED",
+            _ => "UNSPECIFIED",
+        })
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<i32, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_enum_i32(deserializer, "TaskPhase", |value| match value {
+            EnumValue::Number(number) => resources_proto::TaskPhase::try_from(number)
+                .map(|_| number)
+                .map_err(|_| format!("unsupported numeric value {number}")),
+            EnumValue::String(value) => {
+                match normalize_enum_name(&value).trim_start_matches("TASK_PHASE_") {
+                    "" | "UNSPECIFIED" => Ok(resources_proto::TaskPhase::Unspecified as i32),
+                    "QUEUED" => Ok(resources_proto::TaskPhase::Queued as i32),
+                    "RUNNING" => Ok(resources_proto::TaskPhase::Running as i32),
+                    "BLOCKED" => Ok(resources_proto::TaskPhase::Blocked as i32),
+                    "NEEDS_REVIEW" => Ok(resources_proto::TaskPhase::NeedsReview as i32),
+                    "SUCCEEDED" | "SUCCESS" | "COMPLETED" => {
+                        Ok(resources_proto::TaskPhase::Succeeded as i32)
+                    }
+                    "FAILED" => Ok(resources_proto::TaskPhase::Failed as i32),
+                    "CANCELED" | "CANCELLED" => Ok(resources_proto::TaskPhase::Canceled as i32),
+                    "EXPIRED" => Ok(resources_proto::TaskPhase::Expired as i32),
+                    other => Err(format!("unsupported value '{other}'")),
+                }
+            }
+        })
+    }
+}

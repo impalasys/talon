@@ -102,6 +102,12 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.SkillSpec",
         ".talon.resources.Template",
         ".talon.resources.TemplateSpec",
+        ".talon.resources.Task",
+        ".talon.resources.TaskExecutionRef",
+        ".talon.resources.TaskParticipant",
+        ".talon.resources.TaskRetention",
+        ".talon.resources.TaskSpec",
+        ".talon.resources.TaskStatus",
         ".talon.resources.ThinkingConfig",
         ".talon.resources.Worker",
         ".talon.resources.WorkerEndpoint",
@@ -211,6 +217,10 @@ fn main() -> std::io::Result<()> {
             "#[serde(with = \"crate::control::manifest::enum_serde::file_retention\")]",
         )
         .field_attribute(
+            ".talon.resources.TaskStatus.phase",
+            "#[serde(with = \"crate::control::manifest::enum_serde::task_phase\")]",
+        )
+        .field_attribute(
             ".talon.external.RegisterClusterResponse.registration_id",
             "#[serde(skip_serializing_if = \"Option::is_none\")]",
         )
@@ -247,6 +257,7 @@ fn main() -> std::io::Result<()> {
             "proto/resources/sandboxes.proto",
             "proto/resources/sessions.proto",
             "proto/resources/skills.proto",
+            "proto/resources/tasks.proto",
             "proto/resources/usage.proto",
             "proto/resources/workers.proto",
             "proto/resources/resource.proto",

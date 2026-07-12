@@ -1100,6 +1100,159 @@ pub struct Skill {
     #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<CommonResourceStatus>,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Task {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<TaskSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<TaskStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskSpec {
+    #[prost(string, tag = "1")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+    /// Optional caller-defined classifier for grouping or UI display.
+    ///
+    /// Talon does not interpret this field for scheduling, routing, auth, or task
+    /// lifecycle. Use values such as "agent_delegation", "human_review", or an
+    /// application-specific string when the caller needs a stable category.
+    #[prost(string, tag = "3")]
+    pub r#type: ::prost::alloc::string::String,
+    /// Agent/session that created and owns follow-up responsibility for the task.
+    #[prost(message, optional, tag = "4")]
+    pub requester: ::core::option::Option<TaskParticipant>,
+    /// Intended worker agent/session, if the caller already delegated the work.
+    #[prost(message, optional, tag = "5")]
+    pub assignee: ::core::option::Option<TaskParticipant>,
+    /// Concrete runtime execution once an assignee session or run is known.
+    #[prost(message, optional, tag = "6")]
+    pub execution_ref: ::core::option::Option<TaskExecutionRef>,
+    #[prost(string, tag = "7")]
+    pub parent_task_name: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "8")]
+    pub retention: ::core::option::Option<TaskRetention>,
+}
+/// Participant identity copied from the caller or delegate context at creation
+/// time. Talon does not infer ownership from resource ancestry; callers set the
+/// requester and assignee explicitly so tasks can be queried by namespace,
+/// requester agent, assignee agent, or parent task.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskParticipant {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub session_id: ::prost::alloc::string::String,
+}
+/// Runtime location of the work that is fulfilling the task. This may be absent
+/// while queued and filled in after async delegation starts.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskExecutionRef {
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub run_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskRetention {
+    #[prost(string, tag = "1")]
+    pub task_record: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub events: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub artifacts: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskStatus {
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(enumeration = "TaskPhase", tag = "2")]
+    pub phase: i32,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(string, tag = "4")]
+    pub progress_summary: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "5")]
+    pub result_artifacts: ::prost::alloc::vec::Vec<FileObjectRef>,
+    #[prost(int64, tag = "6")]
+    pub created_at: i64,
+    #[prost(int64, tag = "7")]
+    pub updated_at: i64,
+    #[prost(int64, tag = "8")]
+    pub completed_at: i64,
+    #[prost(int64, tag = "9")]
+    pub expires_at: i64,
+}
+/// Lifecycle phase for a Task.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TaskPhase {
+    /// No phase has been set. Writers should avoid persisting this outside
+    /// partially initialized records.
+    Unspecified = 0,
+    /// The task exists but no assignee execution has started.
+    Queued = 1,
+    /// The assignee is actively working on the task.
+    Running = 2,
+    /// Progress is blocked on user input, permissions, dependencies, or another
+    /// external condition.
+    Blocked = 3,
+    /// Work is complete enough for the requester or another reviewer to inspect.
+    NeedsReview = 4,
+    /// The task completed successfully.
+    Succeeded = 5,
+    /// The task ended because execution failed.
+    Failed = 6,
+    /// The task was intentionally stopped before completion.
+    Canceled = 7,
+    /// The task exceeded its allowed lifetime or retention policy.
+    Expired = 8,
+}
+impl TaskPhase {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "TASK_PHASE_UNSPECIFIED",
+            Self::Queued => "TASK_PHASE_QUEUED",
+            Self::Running => "TASK_PHASE_RUNNING",
+            Self::Blocked => "TASK_PHASE_BLOCKED",
+            Self::NeedsReview => "TASK_PHASE_NEEDS_REVIEW",
+            Self::Succeeded => "TASK_PHASE_SUCCEEDED",
+            Self::Failed => "TASK_PHASE_FAILED",
+            Self::Canceled => "TASK_PHASE_CANCELED",
+            Self::Expired => "TASK_PHASE_EXPIRED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "TASK_PHASE_UNSPECIFIED" => Some(Self::Unspecified),
+            "TASK_PHASE_QUEUED" => Some(Self::Queued),
+            "TASK_PHASE_RUNNING" => Some(Self::Running),
+            "TASK_PHASE_BLOCKED" => Some(Self::Blocked),
+            "TASK_PHASE_NEEDS_REVIEW" => Some(Self::NeedsReview),
+            "TASK_PHASE_SUCCEEDED" => Some(Self::Succeeded),
+            "TASK_PHASE_FAILED" => Some(Self::Failed),
+            "TASK_PHASE_CANCELED" => Some(Self::Canceled),
+            "TASK_PHASE_EXPIRED" => Some(Self::Expired),
+            _ => None,
+        }
+    }
+}
 /// Selects the traffic within a namespace that a UsagePolicy limit applies to.
 /// Empty fields are wildcards.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1437,7 +1590,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 80, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1487,6 +1640,8 @@ pub mod resource_spec {
         UsagePolicy(super::UsagePolicySpec),
         #[prost(message, tag = "70")]
         File(super::FileSpec),
+        #[prost(message, tag = "80")]
+        Task(super::TaskSpec),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceSpec),
     }
@@ -1495,7 +1650,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 80, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1545,6 +1700,8 @@ pub mod resource_status {
         UsagePolicy(super::UsagePolicyStatus),
         #[prost(message, tag = "70")]
         File(super::FileStatus),
+        #[prost(message, tag = "80")]
+        Task(super::TaskStatus),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceStatus),
     }

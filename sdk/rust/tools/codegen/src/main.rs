@@ -47,6 +47,7 @@ fn main() {
         root.join("proto/resources/sandboxes.proto"),
         root.join("proto/resources/sessions.proto"),
         root.join("proto/resources/skills.proto"),
+        root.join("proto/resources/tasks.proto"),
         root.join("proto/resources/usage.proto"),
         root.join("proto/resources/workers.proto"),
         root.join("proto/resources/resource.proto"),
