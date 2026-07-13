@@ -286,30 +286,6 @@ pub struct Goal {
         ::prost::alloc::string::String,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GoalIndexEntry {
-    /// Namespace of the indexed goal.
-    #[prost(string, tag = "1")]
-    pub namespace: ::prost::alloc::string::String,
-    /// Agent that owns the indexed goal.
-    #[prost(string, tag = "2")]
-    pub agent: ::prost::alloc::string::String,
-    /// Session that owns the indexed goal.
-    #[prost(string, tag = "3")]
-    pub session_id: ::prost::alloc::string::String,
-    /// Goal identifier under the owning session.
-    #[prost(string, tag = "4")]
-    pub goal_id: ::prost::alloc::string::String,
-    /// Current indexed phase.
-    #[prost(enumeration = "GoalPhase", tag = "5")]
-    pub phase: i32,
-    /// Coarse status bucket used for active/history listings.
-    #[prost(string, tag = "6")]
-    pub status_group: ::prost::alloc::string::String,
-    /// Unix timestamp in microseconds used for recency ordering.
-    #[prost(int64, tag = "7")]
-    pub updated_at: i64,
-}
 /// Target-local access record for an artifact URI.
 ///
 /// Artifact URIs are references, not bearer secrets. A caller can use an
