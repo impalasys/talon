@@ -71,7 +71,7 @@ describe('selection helpers', () => {
       ['channel-subscription', { channel: 'alerts', name: 'responder' }, 'demo:channel:alerts:subscription:responder'],
       ['schedule', { name: 'daily' }, 'demo:schedule:daily'],
       ['mcp-server', { name: 'github' }, 'demo:mcp-server:github'],
-      ['knowledge', { name: 'docs' }, 'demo:knowledge:docs'],
+      ['file', { name: 'docs' }, 'demo:file:docs'],
       ['workflow', { name: 'wf' }, 'demo:workflow:wf'],
       ['deployment', { name: 'prod' }, 'demo:deployment:prod'],
       ['deployment-replica', { name: 'prod-1' }, 'demo:deployment-replica:prod-1'],
@@ -150,7 +150,7 @@ describe('selection helpers', () => {
       [{ type: 'workflow', ns: 'demo', resourceName: 'wf', fullPath: 'demo:workflow:wf' }, 'wf', 'demo / Workflow'],
       [{ type: 'schedule', ns: 'demo', resourceName: 'daily', fullPath: 'demo:schedule:daily' }, 'daily', 'demo / Schedule'],
       [{ type: 'mcp-server', ns: 'demo', resourceName: 'github', fullPath: 'demo:mcp-server:github' }, 'github', 'demo / MCPServer'],
-      [{ type: 'knowledge', ns: 'demo', resourceName: 'docs', fullPath: 'demo:knowledge:docs' }, 'docs', 'demo / Knowledge'],
+      [{ type: 'file', ns: 'demo', resourceName: 'docs', fullPath: 'demo:file:docs' }, 'docs', 'demo / File'],
       [{ type: 'template', ns: 'Sys', resourceName: 'starter', fullPath: 'Sys:template:starter' }, 'starter', 'Sys / Template'],
       [{ type: 'deployment', ns: 'demo', resourceName: 'prod', fullPath: 'demo:deployment:prod' }, 'prod', 'demo / Deployment'],
       [

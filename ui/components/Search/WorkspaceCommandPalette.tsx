@@ -26,7 +26,7 @@ type SearchDocument = NonNullable<SearchResult['document']>;
 const RESOURCE_KIND_OPTIONS = [
   { label: 'All', value: '' },
   { label: 'Sessions', value: 'SessionMessage' },
-  { label: 'Knowledge', value: 'Knowledge' },
+  { label: 'Files', value: 'File' },
   { label: 'Agents', value: 'Agent' },
   { label: 'Workflows', value: 'Workflow' },
   { label: 'Schedules', value: 'Schedule' },
@@ -47,7 +47,7 @@ const SELECTION_TYPE_BY_RESOURCE_KIND: Partial<Record<string, Selection['type']>
   SandboxPolicy: 'sandbox-policy',
   Sandbox: 'sandbox',
   McpServer: 'mcp-server',
-  Knowledge: 'knowledge',
+  File: 'file',
   Workflow: 'workflow',
 };
 

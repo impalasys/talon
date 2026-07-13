@@ -13,7 +13,7 @@ describe('explorer model', () => {
   it('builds a namespace-only tree', () => {
     const tree = buildNamespaceTree({
       activeNamespace: 'Tenant:conic',
-      selectedNode: { type: 'knowledge', ns: 'Tenant:conic', resourceName: 'guide', fullPath: 'Tenant:conic:knowledge:guide' },
+      selectedNode: { type: 'file', ns: 'Tenant:conic', resourceName: 'guide', fullPath: 'Tenant:conic:file:guide' },
       namespaceParents: ['', 'Tenant'],
       namespaceQueries: [
         { data: [{ name: 'Tenant', labels: {} }] },
@@ -37,7 +37,7 @@ describe('explorer model', () => {
       resourcesByNamespaceKind: {
         'Tenant:conic': {
           Agent: [resource('Agent', 'Tenant:conic', 'writer', 'agent')],
-          Knowledge: [resource('Knowledge', 'Tenant:conic', 'guide', 'knowledge', { path: 'docs/guide.md' })],
+          File: [resource('File', 'Tenant:conic', 'guide', 'file', { path: 'docs/guide.md' })],
           Channel: [resource('Channel', 'Tenant:conic', 'alerts', 'channel', { title: 'Alerts' })],
           Schedule: [],
           McpServer: [],
@@ -67,7 +67,7 @@ describe('explorer model', () => {
       channelSubscriptionsByKey: {},
     } as any);
 
-    expect(groups.map((group) => group.title)).toEqual(['Agents', 'Channels', 'Knowledge', 'Connectors']);
+    expect(groups.map((group) => group.title)).toEqual(['Agents', 'Channels', 'Files', 'Connectors']);
     expect(groups[0].nodes[0].selection).toMatchObject({ type: 'agent', ns: 'Tenant:conic', agent: 'writer' });
     expect(groups[0].nodes[0].children[0].selection.type).toBe('session');
     expect(groups[3].nodes.map((node) => node.selection.type)).toEqual(['connector', 'connector-class']);

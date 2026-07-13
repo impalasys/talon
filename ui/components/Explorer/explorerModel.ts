@@ -3,7 +3,7 @@ import { namespaceAncestors, SYSTEM_NAMESPACE } from '../../lib/selection';
 import {
   channelFromResource,
   channelSubscriptionFromResource,
-  knowledgeFromResource,
+  fileFromResource,
   namespaceLabel,
   scheduleFromResource,
   type ResourceEnvelope,
@@ -242,16 +242,16 @@ export function buildNamespaceContents({
     .sort(compareByName);
   if (channels.length > 0) groups.push({ id: 'channels', title: 'Channels', nodes: channels });
 
-  const knowledge = (resourcesByKind.Knowledge || [])
+  const files = (resourcesByKind.File || [])
     .map((resource) => {
-      const summary = knowledgeFromResource(resource);
-      const name = summary.metadata?.name || summary.spec?.path || 'unknown-knowledge';
-      return resourceNode(activeNamespace, `${activeNamespace}:knowledge:${name}`, summary.spec?.path || name, 'knowledge', 'knowledge', {
+      const summary = fileFromResource(resource);
+      const name = summary.metadata?.name || summary.spec?.path || 'unknown-file';
+      return resourceNode(activeNamespace, `${activeNamespace}:file:${name}`, summary.spec?.path || name, 'file', 'file', {
         resourceName: name,
       });
     })
     .sort(compareByName);
-  if (knowledge.length > 0) groups.push({ id: 'knowledge', title: 'Knowledge', nodes: knowledge });
+  if (files.length > 0) groups.push({ id: 'files', title: 'Files', nodes: files });
 
   const schedules = (resourcesByKind.Schedule || [])
     .map((resource) => {

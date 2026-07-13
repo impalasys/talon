@@ -2,6 +2,50 @@ import { dump } from 'js-yaml';
 import { resourceToManifestDocument } from './resourceManifest';
 
 describe('resourceToManifestDocument', () => {
+  it('renders File enum fields as symbolic YAML values', () => {
+    const document = resourceToManifestDocument({
+      apiVersion: 'talon.impalasys.com/v1',
+      kind: 'File',
+      metadata: {
+        name: 'brand-guidelines-md-7f3a',
+        namespace: 'Tenant:acme',
+        labels: {},
+        annotations: {},
+      },
+      spec: {
+        kind: {
+          case: 'file',
+          value: {
+            path: '/memory/brand-guidelines.md',
+            mediaType: 'text/markdown',
+            purpose: 1,
+            indexPolicy: 3,
+            retention: 1,
+          },
+        },
+      },
+      status: {
+        kind: {
+          case: 'file',
+          value: {
+            observedGeneration: BigInt(0),
+            phase: '',
+            conditions: [],
+          },
+        },
+      },
+    } as any);
+
+    expect(document.spec).toEqual({
+      path: '/memory/brand-guidelines.md',
+      mediaType: 'text/markdown',
+      purpose: 'MEMORY',
+      indexPolicy: 'RETRIEVAL',
+      retention: 'RETAINED',
+    });
+    expect(document).not.toHaveProperty('status');
+  });
+
   it('renders a protobuf Resource as user-facing Template YAML', () => {
     const document = resourceToManifestDocument({
       $typeName: 'talon.resources.Resource',
