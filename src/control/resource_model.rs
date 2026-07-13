@@ -131,6 +131,26 @@ pub fn file_resource(
     }
 }
 
+pub fn task_resource(
+    namespace: impl Into<String>,
+    name: impl Into<String>,
+    spec: resources_proto::TaskSpec,
+    status: resources_proto::TaskStatus,
+    labels: HashMap<String, String>,
+) -> resources_proto::Resource {
+    resources_proto::Resource {
+        api_version: "talon.impalasys.com/v1".to_string(),
+        kind: "Task".to_string(),
+        metadata: Some(metadata(name, namespace, labels)),
+        spec: Some(resources_proto::ResourceSpec {
+            kind: Some(resources_proto::resource_spec::Kind::Task(spec)),
+        }),
+        status: Some(resources_proto::ResourceStatus {
+            kind: Some(resources_proto::resource_status::Kind::Task(status)),
+        }),
+    }
+}
+
 pub fn workflow(
     namespace: impl Into<String>,
     name: impl Into<String>,
@@ -244,6 +264,7 @@ impl_typed_resource!(
     resources_proto::McpServer,
     resources_proto::Namespace,
     resources_proto::Schedule,
+    resources_proto::Task,
     resources_proto::Worker,
     resources_proto::Workflow,
 );

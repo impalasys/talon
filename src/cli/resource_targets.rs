@@ -51,6 +51,10 @@ pub(super) fn resource_lookup_target(
             let ns = namespace.cloned().context("File requires --namespace")?;
             Ok((ns, "File".to_string(), name.to_string()))
         }
+        "task" | "tasks" => {
+            let ns = namespace.cloned().context("Task requires --namespace")?;
+            Ok((ns, "Task".to_string(), name.to_string()))
+        }
         "schedule" | "schedules" => {
             let ns = namespace.cloned().context("Schedule requires --namespace")?;
             Ok((ns, "Schedule".to_string(), name.to_string()))

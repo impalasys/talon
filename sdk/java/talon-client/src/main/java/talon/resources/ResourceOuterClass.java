@@ -3718,6 +3718,21 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Files.FileSpecOrBuilder getFileOrBuilder();
 
     /**
+     * <code>.talon.resources.TaskSpec task = 80;</code>
+     * @return Whether the task field is set.
+     */
+    boolean hasTask();
+    /**
+     * <code>.talon.resources.TaskSpec task = 80;</code>
+     * @return The task.
+     */
+    talon.resources.Tasks.TaskSpec getTask();
+    /**
+     * <code>.talon.resources.TaskSpec task = 80;</code>
+     */
+    talon.resources.Tasks.TaskSpecOrBuilder getTaskOrBuilder();
+
+    /**
      * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
      * @return Whether the raw field is set.
      */
@@ -3803,6 +3818,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       WORKER(50),
       USAGE_POLICY(60),
       FILE(70),
+      TASK(80),
       RAW(1000),
       KIND_NOT_SET(0);
       private final int value;
@@ -3842,6 +3858,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 50: return WORKER;
           case 60: return USAGE_POLICY;
           case 70: return FILE;
+          case 80: return TASK;
           case 1000: return RAW;
           case 0: return KIND_NOT_SET;
           default: return null;
@@ -4509,6 +4526,37 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Files.FileSpec.getDefaultInstance();
     }
 
+    public static final int TASK_FIELD_NUMBER = 80;
+    /**
+     * <code>.talon.resources.TaskSpec task = 80;</code>
+     * @return Whether the task field is set.
+     */
+    @java.lang.Override
+    public boolean hasTask() {
+      return kindCase_ == 80;
+    }
+    /**
+     * <code>.talon.resources.TaskSpec task = 80;</code>
+     * @return The task.
+     */
+    @java.lang.Override
+    public talon.resources.Tasks.TaskSpec getTask() {
+      if (kindCase_ == 80) {
+         return (talon.resources.Tasks.TaskSpec) kind_;
+      }
+      return talon.resources.Tasks.TaskSpec.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.TaskSpec task = 80;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Tasks.TaskSpecOrBuilder getTaskOrBuilder() {
+      if (kindCase_ == 80) {
+         return (talon.resources.Tasks.TaskSpec) kind_;
+      }
+      return talon.resources.Tasks.TaskSpec.getDefaultInstance();
+    }
+
     public static final int RAW_FIELD_NUMBER = 1000;
     /**
      * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
@@ -4617,6 +4665,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 70) {
         output.writeMessage(70, (talon.resources.Files.FileSpec) kind_);
       }
+      if (kindCase_ == 80) {
+        output.writeMessage(80, (talon.resources.Tasks.TaskSpec) kind_);
+      }
       if (kindCase_ == 1000) {
         output.writeMessage(1000, (talon.resources.ResourceOuterClass.RawResourceSpec) kind_);
       }
@@ -4712,6 +4763,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 70) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(70, (talon.resources.Files.FileSpec) kind_);
+      }
+      if (kindCase_ == 80) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(80, (talon.resources.Tasks.TaskSpec) kind_);
       }
       if (kindCase_ == 1000) {
         size += com.google.protobuf.CodedOutputStream
@@ -4818,6 +4873,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getFile()
               .equals(other.getFile())) return false;
           break;
+        case 80:
+          if (!getTask()
+              .equals(other.getTask())) return false;
+          break;
         case 1000:
           if (!getRaw()
               .equals(other.getRaw())) return false;
@@ -4920,6 +4979,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 70:
           hash = (37 * hash) + FILE_FIELD_NUMBER;
           hash = (53 * hash) + getFile().hashCode();
+          break;
+        case 80:
+          hash = (37 * hash) + TASK_FIELD_NUMBER;
+          hash = (53 * hash) + getTask().hashCode();
           break;
         case 1000:
           hash = (37 * hash) + RAW_FIELD_NUMBER;
@@ -5122,6 +5185,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (fileBuilder_ != null) {
           fileBuilder_.clear();
         }
+        if (taskBuilder_ != null) {
+          taskBuilder_.clear();
+        }
         if (rawBuilder_ != null) {
           rawBuilder_.clear();
         }
@@ -5250,6 +5316,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             fileBuilder_ != null) {
           result.kind_ = fileBuilder_.build();
         }
+        if (kindCase_ == 80 &&
+            taskBuilder_ != null) {
+          result.kind_ = taskBuilder_.build();
+        }
         if (kindCase_ == 1000 &&
             rawBuilder_ != null) {
           result.kind_ = rawBuilder_.build();
@@ -5351,6 +5421,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case FILE: {
             mergeFile(other.getFile());
+            break;
+          }
+          case TASK: {
+            mergeTask(other.getTask());
             break;
           }
           case RAW: {
@@ -5534,6 +5608,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 70;
                 break;
               } // case 562
+              case 642: {
+                input.readMessage(
+                    internalGetTaskFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 80;
+                break;
+              } // case 642
               case 8002: {
                 input.readMessage(
                     internalGetRawFieldBuilder().getBuilder(),
@@ -8556,6 +8637,148 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Tasks.TaskSpec, talon.resources.Tasks.TaskSpec.Builder, talon.resources.Tasks.TaskSpecOrBuilder> taskBuilder_;
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       * @return Whether the task field is set.
+       */
+      @java.lang.Override
+      public boolean hasTask() {
+        return kindCase_ == 80;
+      }
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       * @return The task.
+       */
+      @java.lang.Override
+      public talon.resources.Tasks.TaskSpec getTask() {
+        if (taskBuilder_ == null) {
+          if (kindCase_ == 80) {
+            return (talon.resources.Tasks.TaskSpec) kind_;
+          }
+          return talon.resources.Tasks.TaskSpec.getDefaultInstance();
+        } else {
+          if (kindCase_ == 80) {
+            return taskBuilder_.getMessage();
+          }
+          return talon.resources.Tasks.TaskSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       */
+      public Builder setTask(talon.resources.Tasks.TaskSpec value) {
+        if (taskBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          taskBuilder_.setMessage(value);
+        }
+        kindCase_ = 80;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       */
+      public Builder setTask(
+          talon.resources.Tasks.TaskSpec.Builder builderForValue) {
+        if (taskBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          taskBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 80;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       */
+      public Builder mergeTask(talon.resources.Tasks.TaskSpec value) {
+        if (taskBuilder_ == null) {
+          if (kindCase_ == 80 &&
+              kind_ != talon.resources.Tasks.TaskSpec.getDefaultInstance()) {
+            kind_ = talon.resources.Tasks.TaskSpec.newBuilder((talon.resources.Tasks.TaskSpec) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 80) {
+            taskBuilder_.mergeFrom(value);
+          } else {
+            taskBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 80;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       */
+      public Builder clearTask() {
+        if (taskBuilder_ == null) {
+          if (kindCase_ == 80) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 80) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          taskBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       */
+      public talon.resources.Tasks.TaskSpec.Builder getTaskBuilder() {
+        return internalGetTaskFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Tasks.TaskSpecOrBuilder getTaskOrBuilder() {
+        if ((kindCase_ == 80) && (taskBuilder_ != null)) {
+          return taskBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 80) {
+            return (talon.resources.Tasks.TaskSpec) kind_;
+          }
+          return talon.resources.Tasks.TaskSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.TaskSpec task = 80;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Tasks.TaskSpec, talon.resources.Tasks.TaskSpec.Builder, talon.resources.Tasks.TaskSpecOrBuilder>
+          internalGetTaskFieldBuilder() {
+        if (taskBuilder_ == null) {
+          if (!(kindCase_ == 80)) {
+            kind_ = talon.resources.Tasks.TaskSpec.getDefaultInstance();
+          }
+          taskBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Tasks.TaskSpec, talon.resources.Tasks.TaskSpec.Builder, talon.resources.Tasks.TaskSpecOrBuilder>(
+                  (talon.resources.Tasks.TaskSpec) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 80;
+        onChanged();
+        return taskBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.ResourceOuterClass.RawResourceSpec, talon.resources.ResourceOuterClass.RawResourceSpec.Builder, talon.resources.ResourceOuterClass.RawResourceSpecOrBuilder> rawBuilder_;
       /**
        * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
@@ -9068,6 +9291,21 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Files.FileStatusOrBuilder getFileOrBuilder();
 
     /**
+     * <code>.talon.resources.TaskStatus task = 80;</code>
+     * @return Whether the task field is set.
+     */
+    boolean hasTask();
+    /**
+     * <code>.talon.resources.TaskStatus task = 80;</code>
+     * @return The task.
+     */
+    talon.resources.Tasks.TaskStatus getTask();
+    /**
+     * <code>.talon.resources.TaskStatus task = 80;</code>
+     */
+    talon.resources.Tasks.TaskStatusOrBuilder getTaskOrBuilder();
+
+    /**
      * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
      * @return Whether the raw field is set.
      */
@@ -9153,6 +9391,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       WORKER(50),
       USAGE_POLICY(60),
       FILE(70),
+      TASK(80),
       RAW(1000),
       KIND_NOT_SET(0);
       private final int value;
@@ -9192,6 +9431,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 50: return WORKER;
           case 60: return USAGE_POLICY;
           case 70: return FILE;
+          case 80: return TASK;
           case 1000: return RAW;
           case 0: return KIND_NOT_SET;
           default: return null;
@@ -9859,6 +10099,37 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Files.FileStatus.getDefaultInstance();
     }
 
+    public static final int TASK_FIELD_NUMBER = 80;
+    /**
+     * <code>.talon.resources.TaskStatus task = 80;</code>
+     * @return Whether the task field is set.
+     */
+    @java.lang.Override
+    public boolean hasTask() {
+      return kindCase_ == 80;
+    }
+    /**
+     * <code>.talon.resources.TaskStatus task = 80;</code>
+     * @return The task.
+     */
+    @java.lang.Override
+    public talon.resources.Tasks.TaskStatus getTask() {
+      if (kindCase_ == 80) {
+         return (talon.resources.Tasks.TaskStatus) kind_;
+      }
+      return talon.resources.Tasks.TaskStatus.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.TaskStatus task = 80;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Tasks.TaskStatusOrBuilder getTaskOrBuilder() {
+      if (kindCase_ == 80) {
+         return (talon.resources.Tasks.TaskStatus) kind_;
+      }
+      return talon.resources.Tasks.TaskStatus.getDefaultInstance();
+    }
+
     public static final int RAW_FIELD_NUMBER = 1000;
     /**
      * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
@@ -9967,6 +10238,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 70) {
         output.writeMessage(70, (talon.resources.Files.FileStatus) kind_);
       }
+      if (kindCase_ == 80) {
+        output.writeMessage(80, (talon.resources.Tasks.TaskStatus) kind_);
+      }
       if (kindCase_ == 1000) {
         output.writeMessage(1000, (talon.resources.ResourceOuterClass.RawResourceStatus) kind_);
       }
@@ -10062,6 +10336,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 70) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(70, (talon.resources.Files.FileStatus) kind_);
+      }
+      if (kindCase_ == 80) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(80, (talon.resources.Tasks.TaskStatus) kind_);
       }
       if (kindCase_ == 1000) {
         size += com.google.protobuf.CodedOutputStream
@@ -10168,6 +10446,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getFile()
               .equals(other.getFile())) return false;
           break;
+        case 80:
+          if (!getTask()
+              .equals(other.getTask())) return false;
+          break;
         case 1000:
           if (!getRaw()
               .equals(other.getRaw())) return false;
@@ -10270,6 +10552,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 70:
           hash = (37 * hash) + FILE_FIELD_NUMBER;
           hash = (53 * hash) + getFile().hashCode();
+          break;
+        case 80:
+          hash = (37 * hash) + TASK_FIELD_NUMBER;
+          hash = (53 * hash) + getTask().hashCode();
           break;
         case 1000:
           hash = (37 * hash) + RAW_FIELD_NUMBER;
@@ -10472,6 +10758,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (fileBuilder_ != null) {
           fileBuilder_.clear();
         }
+        if (taskBuilder_ != null) {
+          taskBuilder_.clear();
+        }
         if (rawBuilder_ != null) {
           rawBuilder_.clear();
         }
@@ -10600,6 +10889,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             fileBuilder_ != null) {
           result.kind_ = fileBuilder_.build();
         }
+        if (kindCase_ == 80 &&
+            taskBuilder_ != null) {
+          result.kind_ = taskBuilder_.build();
+        }
         if (kindCase_ == 1000 &&
             rawBuilder_ != null) {
           result.kind_ = rawBuilder_.build();
@@ -10701,6 +10994,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case FILE: {
             mergeFile(other.getFile());
+            break;
+          }
+          case TASK: {
+            mergeTask(other.getTask());
             break;
           }
           case RAW: {
@@ -10884,6 +11181,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 70;
                 break;
               } // case 562
+              case 642: {
+                input.readMessage(
+                    internalGetTaskFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 80;
+                break;
+              } // case 642
               case 8002: {
                 input.readMessage(
                     internalGetRawFieldBuilder().getBuilder(),
@@ -13906,6 +14210,148 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Tasks.TaskStatus, talon.resources.Tasks.TaskStatus.Builder, talon.resources.Tasks.TaskStatusOrBuilder> taskBuilder_;
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       * @return Whether the task field is set.
+       */
+      @java.lang.Override
+      public boolean hasTask() {
+        return kindCase_ == 80;
+      }
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       * @return The task.
+       */
+      @java.lang.Override
+      public talon.resources.Tasks.TaskStatus getTask() {
+        if (taskBuilder_ == null) {
+          if (kindCase_ == 80) {
+            return (talon.resources.Tasks.TaskStatus) kind_;
+          }
+          return talon.resources.Tasks.TaskStatus.getDefaultInstance();
+        } else {
+          if (kindCase_ == 80) {
+            return taskBuilder_.getMessage();
+          }
+          return talon.resources.Tasks.TaskStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       */
+      public Builder setTask(talon.resources.Tasks.TaskStatus value) {
+        if (taskBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          taskBuilder_.setMessage(value);
+        }
+        kindCase_ = 80;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       */
+      public Builder setTask(
+          talon.resources.Tasks.TaskStatus.Builder builderForValue) {
+        if (taskBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          taskBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 80;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       */
+      public Builder mergeTask(talon.resources.Tasks.TaskStatus value) {
+        if (taskBuilder_ == null) {
+          if (kindCase_ == 80 &&
+              kind_ != talon.resources.Tasks.TaskStatus.getDefaultInstance()) {
+            kind_ = talon.resources.Tasks.TaskStatus.newBuilder((talon.resources.Tasks.TaskStatus) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 80) {
+            taskBuilder_.mergeFrom(value);
+          } else {
+            taskBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 80;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       */
+      public Builder clearTask() {
+        if (taskBuilder_ == null) {
+          if (kindCase_ == 80) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 80) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          taskBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       */
+      public talon.resources.Tasks.TaskStatus.Builder getTaskBuilder() {
+        return internalGetTaskFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Tasks.TaskStatusOrBuilder getTaskOrBuilder() {
+        if ((kindCase_ == 80) && (taskBuilder_ != null)) {
+          return taskBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 80) {
+            return (talon.resources.Tasks.TaskStatus) kind_;
+          }
+          return talon.resources.Tasks.TaskStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.TaskStatus task = 80;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Tasks.TaskStatus, talon.resources.Tasks.TaskStatus.Builder, talon.resources.Tasks.TaskStatusOrBuilder>
+          internalGetTaskFieldBuilder() {
+        if (taskBuilder_ == null) {
+          if (!(kindCase_ == 80)) {
+            kind_ = talon.resources.Tasks.TaskStatus.getDefaultInstance();
+          }
+          taskBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Tasks.TaskStatus, talon.resources.Tasks.TaskStatus.Builder, talon.resources.Tasks.TaskStatusOrBuilder>(
+                  (talon.resources.Tasks.TaskStatus) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 80;
+        onChanged();
+        return taskBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.ResourceOuterClass.RawResourceStatus, talon.resources.ResourceOuterClass.RawResourceStatus.Builder, talon.resources.ResourceOuterClass.RawResourceStatusOrBuilder> rawBuilder_;
       /**
        * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
@@ -14148,83 +14594,86 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       "espaces.proto\032\037proto/resources/sandboxes" +
       ".proto\032\037proto/resources/schedules.proto\032" +
       "\036proto/resources/sessions.proto\032\034proto/r" +
-      "esources/skills.proto\032\033proto/resources/u" +
-      "sage.proto\032\035proto/resources/workers.prot" +
-      "o\032\037proto/resources/workflows.proto\"\274\001\n\010R" +
-      "esource\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001" +
-      "(\t\022/\n\010metadata\030\003 \001(\0132\035.talon.resources.R" +
-      "esourceMeta\022+\n\004spec\030\004 \001(\0132\035.talon.resour" +
-      "ces.ResourceSpec\022/\n\006status\030\005 \001(\0132\037.talon" +
-      ".resources.ResourceStatus\"\223\001\n\020ResourceMa" +
-      "nifest\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(" +
-      "\t\022/\n\010metadata\030\003 \001(\0132\035.talon.resources.Re" +
-      "sourceMeta\022+\n\004spec\030\004 \001(\0132\035.talon.resourc" +
-      "es.ResourceSpec\"\037\n\017RawResourceSpec\022\014\n\004js" +
-      "on\030\001 \001(\t\"!\n\021RawResourceStatus\022\014\n\004json\030\001 " +
-      "\001(\t\"\322\t\n\014ResourceSpec\022+\n\005agent\030\001 \001(\0132\032.ta" +
-      "lon.resources.AgentSpecH\000\0221\n\010workflow\030\002 " +
-      "\001(\0132\035.talon.resources.WorkflowSpecH\000\0221\n\010" +
-      "schedule\030\003 \001(\0132\035.talon.resources.Schedul" +
-      "eSpecH\000\022/\n\007channel\030\004 \001(\0132\034.talon.resourc" +
-      "es.ChannelSpecH\000\022H\n\024channel_subscription" +
-      "\030\005 \001(\0132(.talon.resources.ChannelSubscrip" +
-      "tionSpecH\000\022>\n\017connector_class\030\014 \001(\0132#.ta" +
-      "lon.resources.ConnectorClassSpecH\000\0223\n\tco" +
-      "nnector\030\r \001(\0132\036.talon.resources.Connecto" +
-      "rSpecH\000\0224\n\nmcp_server\030\006 \001(\0132\036.talon.reso" +
-      "urces.McpServerSpecH\000\0223\n\tknowledge\030\010 \001(\013" +
-      "2\036.talon.resources.KnowledgeSpecH\000\0223\n\tna" +
-      "mespace\030\t \001(\0132\036.talon.resources.Namespac" +
-      "eSpecH\000\022/\n\007session\030\n \001(\0132\034.talon.resourc" +
-      "es.SessionSpecH\000\022+\n\005skill\030\013 \001(\0132\032.talon." +
-      "resources.SkillSpecH\000\0221\n\010template\030\024 \001(\0132" +
-      "\035.talon.resources.TemplateSpecH\000\0225\n\ndepl" +
-      "oyment\030\025 \001(\0132\037.talon.resources.Deploymen" +
-      "tSpecH\000\022D\n\022deployment_replica\030\026 \001(\0132&.ta" +
-      "lon.resources.DeploymentReplicaSpecH\000\022:\n" +
-      "\rsandbox_class\030( \001(\0132!.talon.resources.S" +
-      "andboxClassSpecH\000\022<\n\016sandbox_policy\030) \001(" +
-      "\0132\".talon.resources.SandboxPolicySpecH\000\022" +
-      "/\n\007sandbox\030* \001(\0132\034.talon.resources.Sandb" +
-      "oxSpecH\000\022-\n\006worker\0302 \001(\0132\033.talon.resourc" +
-      "es.WorkerSpecH\000\0228\n\014usage_policy\030< \001(\0132 ." +
-      "talon.resources.UsagePolicySpecH\000\022)\n\004fil" +
-      "e\030F \001(\0132\031.talon.resources.FileSpecH\000\0220\n\003" +
-      "raw\030\350\007 \001(\0132 .talon.resources.RawResource" +
-      "SpecH\000B\006\n\004kindJ\004\010\007\020\010R\022mcp_server_binding" +
-      "\"\227\n\n\016ResourceStatus\022-\n\005agent\030\001 \001(\0132\034.tal" +
-      "on.resources.AgentStatusH\000\0223\n\010workflow\030\002" +
-      " \001(\0132\037.talon.resources.WorkflowStatusH\000\022" +
-      "3\n\010schedule\030\003 \001(\0132\037.talon.resources.Sche" +
-      "duleStatusH\000\0221\n\007channel\030\004 \001(\0132\036.talon.re" +
-      "sources.ChannelStatusH\000\022E\n\024channel_subsc" +
-      "ription\030\005 \001(\0132%.talon.resources.CommonRe" +
-      "sourceStatusH\000\022@\n\017connector_class\030\014 \001(\0132" +
-      "%.talon.resources.ConnectorClassStatusH\000" +
-      "\0225\n\tconnector\030\r \001(\0132 .talon.resources.Co" +
-      "nnectorStatusH\000\022;\n\nmcp_server\030\006 \001(\0132%.ta" +
-      "lon.resources.CommonResourceStatusH\000\022:\n\t" +
-      "knowledge\030\010 \001(\0132%.talon.resources.Common" +
-      "ResourceStatusH\000\0225\n\tnamespace\030\t \001(\0132 .ta" +
-      "lon.resources.NamespaceStatusH\000\0221\n\007sessi" +
-      "on\030\n \001(\0132\036.talon.resources.SessionStatus" +
-      "H\000\0226\n\005skill\030\013 \001(\0132%.talon.resources.Comm" +
-      "onResourceStatusH\000\0229\n\010template\030\024 \001(\0132%.t" +
-      "alon.resources.CommonResourceStatusH\000\0227\n" +
-      "\ndeployment\030\025 \001(\0132!.talon.resources.Depl" +
-      "oymentStatusH\000\022F\n\022deployment_replica\030\026 \001" +
-      "(\0132(.talon.resources.DeploymentReplicaSt" +
-      "atusH\000\022>\n\rsandbox_class\030( \001(\0132%.talon.re" +
-      "sources.CommonResourceStatusH\000\022?\n\016sandbo" +
-      "x_policy\030) \001(\0132%.talon.resources.CommonR" +
-      "esourceStatusH\000\0221\n\007sandbox\030* \001(\0132\036.talon" +
-      ".resources.SandboxStatusH\000\022/\n\006worker\0302 \001" +
-      "(\0132\035.talon.resources.WorkerStatusH\000\022:\n\014u" +
-      "sage_policy\030< \001(\0132\".talon.resources.Usag" +
-      "ePolicyStatusH\000\022+\n\004file\030F \001(\0132\033.talon.re" +
-      "sources.FileStatusH\000\0222\n\003raw\030\350\007 \001(\0132\".tal" +
-      "on.resources.RawResourceStatusH\000B\006\n\004kind" +
-      "J\004\010\007\020\010R\022mcp_server_bindingb\006proto3"
+      "esources/skills.proto\032\033proto/resources/t" +
+      "asks.proto\032\033proto/resources/usage.proto\032" +
+      "\035proto/resources/workers.proto\032\037proto/re" +
+      "sources/workflows.proto\"\274\001\n\010Resource\022\023\n\013" +
+      "api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022/\n\010metad" +
+      "ata\030\003 \001(\0132\035.talon.resources.ResourceMeta" +
+      "\022+\n\004spec\030\004 \001(\0132\035.talon.resources.Resourc" +
+      "eSpec\022/\n\006status\030\005 \001(\0132\037.talon.resources." +
+      "ResourceStatus\"\223\001\n\020ResourceManifest\022\023\n\013a" +
+      "pi_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022/\n\010metada" +
+      "ta\030\003 \001(\0132\035.talon.resources.ResourceMeta\022" +
+      "+\n\004spec\030\004 \001(\0132\035.talon.resources.Resource" +
+      "Spec\"\037\n\017RawResourceSpec\022\014\n\004json\030\001 \001(\t\"!\n" +
+      "\021RawResourceStatus\022\014\n\004json\030\001 \001(\t\"\375\t\n\014Res" +
+      "ourceSpec\022+\n\005agent\030\001 \001(\0132\032.talon.resourc" +
+      "es.AgentSpecH\000\0221\n\010workflow\030\002 \001(\0132\035.talon" +
+      ".resources.WorkflowSpecH\000\0221\n\010schedule\030\003 " +
+      "\001(\0132\035.talon.resources.ScheduleSpecH\000\022/\n\007" +
+      "channel\030\004 \001(\0132\034.talon.resources.ChannelS" +
+      "pecH\000\022H\n\024channel_subscription\030\005 \001(\0132(.ta" +
+      "lon.resources.ChannelSubscriptionSpecH\000\022" +
+      ">\n\017connector_class\030\014 \001(\0132#.talon.resourc" +
+      "es.ConnectorClassSpecH\000\0223\n\tconnector\030\r \001" +
+      "(\0132\036.talon.resources.ConnectorSpecH\000\0224\n\n" +
+      "mcp_server\030\006 \001(\0132\036.talon.resources.McpSe" +
+      "rverSpecH\000\0223\n\tknowledge\030\010 \001(\0132\036.talon.re" +
+      "sources.KnowledgeSpecH\000\0223\n\tnamespace\030\t \001" +
+      "(\0132\036.talon.resources.NamespaceSpecH\000\022/\n\007" +
+      "session\030\n \001(\0132\034.talon.resources.SessionS" +
+      "pecH\000\022+\n\005skill\030\013 \001(\0132\032.talon.resources.S" +
+      "killSpecH\000\0221\n\010template\030\024 \001(\0132\035.talon.res" +
+      "ources.TemplateSpecH\000\0225\n\ndeployment\030\025 \001(" +
+      "\0132\037.talon.resources.DeploymentSpecH\000\022D\n\022" +
+      "deployment_replica\030\026 \001(\0132&.talon.resourc" +
+      "es.DeploymentReplicaSpecH\000\022:\n\rsandbox_cl" +
+      "ass\030( \001(\0132!.talon.resources.SandboxClass" +
+      "SpecH\000\022<\n\016sandbox_policy\030) \001(\0132\".talon.r" +
+      "esources.SandboxPolicySpecH\000\022/\n\007sandbox\030" +
+      "* \001(\0132\034.talon.resources.SandboxSpecH\000\022-\n" +
+      "\006worker\0302 \001(\0132\033.talon.resources.WorkerSp" +
+      "ecH\000\0228\n\014usage_policy\030< \001(\0132 .talon.resou" +
+      "rces.UsagePolicySpecH\000\022)\n\004file\030F \001(\0132\031.t" +
+      "alon.resources.FileSpecH\000\022)\n\004task\030P \001(\0132" +
+      "\031.talon.resources.TaskSpecH\000\0220\n\003raw\030\350\007 \001" +
+      "(\0132 .talon.resources.RawResourceSpecH\000B\006" +
+      "\n\004kindJ\004\010\007\020\010R\022mcp_server_binding\"\304\n\n\016Res" +
+      "ourceStatus\022-\n\005agent\030\001 \001(\0132\034.talon.resou" +
+      "rces.AgentStatusH\000\0223\n\010workflow\030\002 \001(\0132\037.t" +
+      "alon.resources.WorkflowStatusH\000\0223\n\010sched" +
+      "ule\030\003 \001(\0132\037.talon.resources.ScheduleStat" +
+      "usH\000\0221\n\007channel\030\004 \001(\0132\036.talon.resources." +
+      "ChannelStatusH\000\022E\n\024channel_subscription\030" +
+      "\005 \001(\0132%.talon.resources.CommonResourceSt" +
+      "atusH\000\022@\n\017connector_class\030\014 \001(\0132%.talon." +
+      "resources.ConnectorClassStatusH\000\0225\n\tconn" +
+      "ector\030\r \001(\0132 .talon.resources.ConnectorS" +
+      "tatusH\000\022;\n\nmcp_server\030\006 \001(\0132%.talon.reso" +
+      "urces.CommonResourceStatusH\000\022:\n\tknowledg" +
+      "e\030\010 \001(\0132%.talon.resources.CommonResource" +
+      "StatusH\000\0225\n\tnamespace\030\t \001(\0132 .talon.reso" +
+      "urces.NamespaceStatusH\000\0221\n\007session\030\n \001(\013" +
+      "2\036.talon.resources.SessionStatusH\000\0226\n\005sk" +
+      "ill\030\013 \001(\0132%.talon.resources.CommonResour" +
+      "ceStatusH\000\0229\n\010template\030\024 \001(\0132%.talon.res" +
+      "ources.CommonResourceStatusH\000\0227\n\ndeploym" +
+      "ent\030\025 \001(\0132!.talon.resources.DeploymentSt" +
+      "atusH\000\022F\n\022deployment_replica\030\026 \001(\0132(.tal" +
+      "on.resources.DeploymentReplicaStatusH\000\022>" +
+      "\n\rsandbox_class\030( \001(\0132%.talon.resources." +
+      "CommonResourceStatusH\000\022?\n\016sandbox_policy" +
+      "\030) \001(\0132%.talon.resources.CommonResourceS" +
+      "tatusH\000\0221\n\007sandbox\030* \001(\0132\036.talon.resourc" +
+      "es.SandboxStatusH\000\022/\n\006worker\0302 \001(\0132\035.tal" +
+      "on.resources.WorkerStatusH\000\022:\n\014usage_pol" +
+      "icy\030< \001(\0132\".talon.resources.UsagePolicyS" +
+      "tatusH\000\022+\n\004file\030F \001(\0132\033.talon.resources." +
+      "FileStatusH\000\022+\n\004task\030P \001(\0132\033.talon.resou" +
+      "rces.TaskStatusH\000\0222\n\003raw\030\350\007 \001(\0132\".talon." +
+      "resources.RawResourceStatusH\000B\006\n\004kindJ\004\010" +
+      "\007\020\010R\022mcp_server_bindingb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -14242,6 +14691,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           talon.resources.Schedules.getDescriptor(),
           talon.resources.Sessions.getDescriptor(),
           talon.resources.Skills.getDescriptor(),
+          talon.resources.Tasks.getDescriptor(),
           talon.resources.Usage.getDescriptor(),
           talon.resources.Workers.getDescriptor(),
           talon.resources.Workflows.getDescriptor(),
@@ -14275,13 +14725,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     internal_static_talon_resources_ResourceSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceSpec_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "File", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "File", "Task", "Raw", "Kind", });
     internal_static_talon_resources_ResourceStatus_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_resources_ResourceStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceStatus_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "File", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "File", "Task", "Raw", "Kind", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Agents.getDescriptor();
     talon.resources.Channels.getDescriptor();
@@ -14296,6 +14746,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Schedules.getDescriptor();
     talon.resources.Sessions.getDescriptor();
     talon.resources.Skills.getDescriptor();
+    talon.resources.Tasks.getDescriptor();
     talon.resources.Usage.getDescriptor();
     talon.resources.Workers.getDescriptor();
     talon.resources.Workflows.getDescriptor();

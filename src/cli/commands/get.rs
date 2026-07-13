@@ -11,7 +11,7 @@ use talon_client::v1::{GetResourceRequest, ListNamespacesRequest, ListResourcesR
 
 #[derive(clap::Args)]
 pub(crate) struct GetCommand {
-    /// Type of resource to get: agent, template, mcp-server, worker, knowledge, file, schedule, channel, channel-subscription
+    /// Type of resource to get: agent, template, mcp-server, worker, knowledge, file, task, schedule, channel, channel-subscription
     #[arg(value_name = "KIND")]
     pub(crate) kind: String,
     /// Name of the resource. Omit to list resources of this kind.
@@ -112,6 +112,10 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
         "file" | "files" => Ok(ResourceListTarget::Resources {
             ns: ns_or_default(),
             kind: Some("File".to_string()),
+        }),
+        "task" | "tasks" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Task".to_string()),
         }),
         "schedule" | "schedules" => Ok(ResourceListTarget::Resources {
             ns: ns_or_default(),
@@ -491,6 +495,14 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         | StatusKind::SandboxClass(status)
         | StatusKind::SandboxPolicy(status) => Some(status.phase.clone()),
         StatusKind::File(status) => Some(status.phase.clone()),
+        StatusKind::Task(status) => resources_proto::TaskPhase::try_from(status.phase)
+            .ok()
+            .map(|phase| {
+                phase
+                    .as_str_name()
+                    .trim_start_matches("TASK_PHASE_")
+                    .to_string()
+            }),
         StatusKind::ConnectorClass(status) => Some(status.phase.clone()),
         StatusKind::Connector(status) => Some(status.phase.clone()),
         StatusKind::Worker(status) => Some(status.phase.clone()),

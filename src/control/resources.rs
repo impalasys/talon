@@ -97,6 +97,12 @@ impl ResourceStore {
                 resources_proto::resource_spec::Kind::File,
                 resources_proto::resource_status::Kind::File,
             ),
+            "Task" => decode_typed_resource::<resources_proto::Task, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Task,
+                resources_proto::resource_status::Kind::Task,
+            ),
             "Namespace" => decode_typed_resource::<resources_proto::Namespace, _, _, _, _>(
                 kind,
                 bytes,
@@ -682,6 +688,11 @@ impl_stored_typed_resource!(
     resources_proto::FileStatus
 );
 impl_stored_typed_resource!(
+    resources_proto::Task,
+    resources_proto::TaskSpec,
+    resources_proto::TaskStatus
+);
+impl_stored_typed_resource!(
     resources_proto::Namespace,
     resources_proto::NamespaceSpec,
     resources_proto::NamespaceStatus
@@ -935,6 +946,23 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
             },
             |kind| match kind {
                 resources_proto::resource_status::Kind::File(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Task" => encode_typed_resource::<
+            resources_proto::Task,
+            resources_proto::TaskSpec,
+            resources_proto::TaskStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Task(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Task(status) => Some(status),
                 _ => None,
             },
         ),
@@ -1216,6 +1244,7 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
             validate_file_resource_name(resource, spec)?;
             "File"
         }
+        Kind::Task(_) => "Task",
         Kind::Namespace(_) => "Namespace",
         Kind::Session(_) => "Session",
         Kind::Skill(_) => "Skill",
@@ -1279,6 +1308,7 @@ fn default_status_for_resource(
         Some(SpecKind::McpServer(_)) => StatusKind::McpServer(Default::default()),
         Some(SpecKind::Knowledge(_)) => StatusKind::Knowledge(Default::default()),
         Some(SpecKind::File(_)) => StatusKind::File(Default::default()),
+        Some(SpecKind::Task(_)) => StatusKind::Task(Default::default()),
         Some(SpecKind::Namespace(_)) => StatusKind::Namespace(Default::default()),
         Some(SpecKind::Session(_)) => StatusKind::Session(Default::default()),
         Some(SpecKind::Skill(_)) => StatusKind::Skill(Default::default()),

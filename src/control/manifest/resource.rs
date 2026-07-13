@@ -308,6 +308,9 @@ pub fn resource_spec_status_from_json(
         "File" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::File(file_spec_from_value(spec_value)?)),
         },
+        "Task" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::Task(serde_json::from_value(spec_value)?)),
+        },
         "Skill" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Skill(skill_spec_from_value(spec_value)?)),
         },
@@ -387,6 +390,9 @@ pub fn resource_spec_status_from_json(
         "File" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::File(file_status_from_value(status_value)?)),
         },
+        "Task" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::Task(serde_json::from_value(status_value)?)),
+        },
         "Worker" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Worker(worker_status_from_value(status_value)?)),
         },
@@ -454,6 +460,7 @@ fn resource_spec_status_to_yaml_values(
         Some(SpecKind::ConnectorClass(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Connector(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::File(spec)) => serde_json::to_string(&FileSpecManifest::from_proto(spec))?,
+        Some(SpecKind::Task(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::McpServer(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
             "description": spec.description,
@@ -595,6 +602,7 @@ fn resource_spec_status_to_yaml_values(
         Some(StatusKind::ConnectorClass(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Connector(status)) => serde_json::to_string(status)?,
         Some(StatusKind::File(status)) => serde_json::to_string(status)?,
+        Some(StatusKind::Task(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
     };

@@ -345,3 +345,54 @@ metadata:
     )
     assert missing.returncode != 0
     assert "not found" in (missing.stderr + missing.stdout).lower()
+
+
+def test_cli_apply_task_manifest_with_string_type_sqlite_local_socket(
+    stack: E2EStack,
+    tmp_path: Path,
+) -> None:
+    cli = stack.cli()
+    suffix = uuid.uuid4().hex[:8]
+    namespace = f"talon-cli-task-yaml-{suffix}"
+    manifest = tmp_path / "task.yaml"
+    manifest.write_text(
+        f"""
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: {namespace}
+---
+apiVersion: talon.impalasys.com/v1
+kind: Task
+metadata:
+  name: launch-copy-{suffix}
+  namespace: {namespace}
+spec:
+  title: Launch copy
+  description: Draft launch copy.
+  type: agent_delegation
+  requester:
+    namespace: {namespace}
+    name: cmo
+  assignee:
+    namespace: {namespace}
+    name: writer
+"""
+    )
+
+    cli.run("apply", "-f", str(manifest))
+    resource = e2e.get_resource(cli, "task", f"launch-copy-{suffix}", namespace)
+
+    assert resource["kind"] == "Task"
+    assert resource["spec"]["type"] == "agent_delegation"
+
+    rendered = cli.run(
+        "get",
+        "task",
+        f"launch-copy-{suffix}",
+        "--namespace",
+        namespace,
+        "--output",
+        "yaml",
+    ).stdout
+    assert "type: agent_delegation" in rendered

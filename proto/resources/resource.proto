@@ -15,6 +15,7 @@ import "proto/resources/sandboxes.proto";
 import "proto/resources/schedules.proto";
 import "proto/resources/sessions.proto";
 import "proto/resources/skills.proto";
+import "proto/resources/tasks.proto";
 import "proto/resources/usage.proto";
 import "proto/resources/workers.proto";
 import "proto/resources/workflows.proto";
@@ -68,6 +69,7 @@ message ResourceSpec {
     WorkerSpec worker = 50;
     UsagePolicySpec usage_policy = 60;
     FileSpec file = 70;
+    TaskSpec task = 80;
     RawResourceSpec raw = 1000;
   }
 }
@@ -98,6 +100,7 @@ message ResourceStatus {
     WorkerStatus worker = 50;
     UsagePolicyStatus usage_policy = 60;
     FileStatus file = 70;
+    TaskStatus task = 80;
     RawResourceStatus raw = 1000;
   }
 }
