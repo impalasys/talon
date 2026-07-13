@@ -44,6 +44,15 @@ describe('explorer model', () => {
           Template: [],
           Deployment: [],
           DeploymentReplica: [],
+          ConnectorClass: [
+            resource('ConnectorClass', 'Tenant:conic', 'slack', 'connectorClass', { platform: 'slack' }),
+          ],
+          Connector: [
+            resource('Connector', 'Tenant:conic', 'alerts', 'connector', {
+              classRef: { name: 'slack' },
+              enabled: true,
+            }),
+          ],
           SandboxClass: [],
           SandboxPolicy: [],
           Sandbox: [],
@@ -58,9 +67,10 @@ describe('explorer model', () => {
       channelSubscriptionsByKey: {},
     } as any);
 
-    expect(groups.map((group) => group.title)).toEqual(['Agents', 'Channels', 'Knowledge']);
+    expect(groups.map((group) => group.title)).toEqual(['Agents', 'Channels', 'Knowledge', 'Connectors']);
     expect(groups[0].nodes[0].selection).toMatchObject({ type: 'agent', ns: 'Tenant:conic', agent: 'writer' });
     expect(groups[0].nodes[0].children[0].selection.type).toBe('session');
+    expect(groups[3].nodes.map((node) => node.selection.type)).toEqual(['connector', 'connector-class']);
     expect(groups.flatMap((group) => group.nodes).some((node) => node.name === 'other-agent')).toBe(false);
   });
 

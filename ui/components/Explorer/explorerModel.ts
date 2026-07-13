@@ -206,6 +206,7 @@ function channelNode(ns: string, resource: ResourceEnvelope, subscriptions: Reso
 
 function descriptorGroupTitle(kind: string) {
   if (kind === 'Deployment' || kind === 'DeploymentReplica') return 'Deployments';
+  if (kind === 'ConnectorClass' || kind === 'Connector') return 'Connectors';
   if (kind === 'McpServer') return 'MCP Servers';
   if (kind === 'SandboxClass') return 'Sandboxes';
   if (kind === 'SandboxPolicy') return 'Sandboxes';
@@ -285,7 +286,7 @@ export function buildNamespaceContents({
     }
   }
 
-  for (const title of ['Deployments', 'Sandboxes', 'Templates', 'MCP Servers']) {
+  for (const title of ['Deployments', 'Connectors', 'Sandboxes', 'Templates', 'MCP Servers']) {
     const nodes = (descriptorGroups.get(title) || []).sort(compareByName);
     if (nodes.length > 0) {
       groups.push({ id: title.toLowerCase().replace(/\s+/g, '-'), title, nodes });
