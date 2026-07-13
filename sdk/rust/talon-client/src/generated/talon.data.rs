@@ -200,33 +200,6 @@ pub struct Artifact {
     >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GoalEvidenceRef {
-    /// Evidence type, such as artifact, file, message, or object.
-    #[prost(string, tag = "1")]
-    pub kind: ::prost::alloc::string::String,
-    /// Namespace that owns the referenced evidence when it is a Talon resource.
-    #[prost(string, tag = "2")]
-    pub namespace: ::prost::alloc::string::String,
-    /// Resource name or provider-local identifier for the referenced evidence.
-    #[prost(string, tag = "3")]
-    pub name: ::prost::alloc::string::String,
-    /// Agent that owns the referenced session-scoped evidence, when applicable.
-    #[prost(string, tag = "4")]
-    pub agent: ::prost::alloc::string::String,
-    /// Session that owns the referenced session-scoped evidence, when applicable.
-    #[prost(string, tag = "5")]
-    pub session_id: ::prost::alloc::string::String,
-    /// Opaque or URI-style handle that can be passed back to tools.
-    #[prost(string, tag = "6")]
-    pub handle: ::prost::alloc::string::String,
-    /// Object-store key for evidence backed directly by stored bytes.
-    #[prost(string, tag = "7")]
-    pub object_key: ::prost::alloc::string::String,
-    /// Short human-readable description of why this evidence matters.
-    #[prost(string, tag = "8")]
-    pub summary: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Goal {
     /// Stable goal identifier unique under the owning session.
     #[prost(string, tag = "1")]
@@ -258,9 +231,6 @@ pub struct Goal {
     /// Maximum iterations allowed before the runtime should stop or expire.
     #[prost(int32, tag = "10")]
     pub max_iterations: i32,
-    /// Evidence accumulated while pursuing or evaluating the goal.
-    #[prost(message, repeated, tag = "11")]
-    pub evidence_refs: ::prost::alloc::vec::Vec<GoalEvidenceRef>,
     /// Unix timestamp in microseconds when the goal was created.
     #[prost(int64, tag = "12")]
     pub created_at: i64,

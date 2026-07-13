@@ -123,7 +123,6 @@ fn main() -> std::io::Result<()> {
         ".talon.data.ChannelMessage",
         ".talon.data.Artifact",
         ".talon.data.Goal",
-        ".talon.data.GoalEvidenceRef",
         ".talon.data.ApiKeyGrant",
         ".talon.data.ApiKeyRecord",
         ".talon.data.ChannelMessageConsumer",

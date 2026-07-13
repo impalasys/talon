@@ -390,101 +390,6 @@ export class Artifact extends Message<Artifact> {
 }
 
 /**
- * @generated from message talon.data.GoalEvidenceRef
- */
-export class GoalEvidenceRef extends Message<GoalEvidenceRef> {
-  /**
-   * Evidence type, such as artifact, file, message, or object.
-   *
-   * @generated from field: string kind = 1;
-   */
-  kind = "";
-
-  /**
-   * Namespace that owns the referenced evidence when it is a Talon resource.
-   *
-   * @generated from field: string namespace = 2;
-   */
-  namespace = "";
-
-  /**
-   * Resource name or provider-local identifier for the referenced evidence.
-   *
-   * @generated from field: string name = 3;
-   */
-  name = "";
-
-  /**
-   * Agent that owns the referenced session-scoped evidence, when applicable.
-   *
-   * @generated from field: string agent = 4;
-   */
-  agent = "";
-
-  /**
-   * Session that owns the referenced session-scoped evidence, when applicable.
-   *
-   * @generated from field: string session_id = 5;
-   */
-  sessionId = "";
-
-  /**
-   * Opaque or URI-style handle that can be passed back to tools.
-   *
-   * @generated from field: string handle = 6;
-   */
-  handle = "";
-
-  /**
-   * Object-store key for evidence backed directly by stored bytes.
-   *
-   * @generated from field: string object_key = 7;
-   */
-  objectKey = "";
-
-  /**
-   * Short human-readable description of why this evidence matters.
-   *
-   * @generated from field: string summary = 8;
-   */
-  summary = "";
-
-  constructor(data?: PartialMessage<GoalEvidenceRef>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.data.GoalEvidenceRef";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "object_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GoalEvidenceRef {
-    return new GoalEvidenceRef().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GoalEvidenceRef {
-    return new GoalEvidenceRef().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GoalEvidenceRef {
-    return new GoalEvidenceRef().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GoalEvidenceRef | PlainMessage<GoalEvidenceRef> | undefined, b: GoalEvidenceRef | PlainMessage<GoalEvidenceRef> | undefined): boolean {
-    return proto3.util.equals(GoalEvidenceRef, a, b);
-  }
-}
-
-/**
  * @generated from message talon.data.Goal
  */
 export class Goal extends Message<Goal> {
@@ -559,13 +464,6 @@ export class Goal extends Message<Goal> {
   maxIterations = 0;
 
   /**
-   * Evidence accumulated while pursuing or evaluating the goal.
-   *
-   * @generated from field: repeated talon.data.GoalEvidenceRef evidence_refs = 11;
-   */
-  evidenceRefs: GoalEvidenceRef[] = [];
-
-  /**
    * Unix timestamp in microseconds when the goal was created.
    *
    * @generated from field: int64 created_at = 12;
@@ -625,7 +523,6 @@ export class Goal extends Message<Goal> {
     { no: 8, name: "progress_summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "iteration", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 10, name: "max_iterations", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 11, name: "evidence_refs", kind: "message", T: GoalEvidenceRef, repeated: true },
     { no: 12, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 13, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 14, name: "completed_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },

@@ -129,28 +129,8 @@ class Artifact(_message.Message):
     metadata: _containers.ScalarMap[str, str]
     def __init__(self, id: _Optional[str] = ..., session_id: _Optional[str] = ..., title: _Optional[str] = ..., media_type: _Optional[str] = ..., object_ref: _Optional[_Union[ObjectRef, _Mapping]] = ..., created_by_agent: _Optional[str] = ..., created_at: _Optional[int] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
-class GoalEvidenceRef(_message.Message):
-    __slots__ = ("kind", "namespace", "name", "agent", "session_id", "handle", "object_key", "summary")
-    KIND_FIELD_NUMBER: _ClassVar[int]
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    NAME_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    HANDLE_FIELD_NUMBER: _ClassVar[int]
-    OBJECT_KEY_FIELD_NUMBER: _ClassVar[int]
-    SUMMARY_FIELD_NUMBER: _ClassVar[int]
-    kind: str
-    namespace: str
-    name: str
-    agent: str
-    session_id: str
-    handle: str
-    object_key: str
-    summary: str
-    def __init__(self, kind: _Optional[str] = ..., namespace: _Optional[str] = ..., name: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., handle: _Optional[str] = ..., object_key: _Optional[str] = ..., summary: _Optional[str] = ...) -> None: ...
-
 class Goal(_message.Message):
-    __slots__ = ("id", "namespace", "agent", "session_id", "objective", "success_criteria", "phase", "progress_summary", "iteration", "max_iterations", "evidence_refs", "created_at", "updated_at", "completed_at", "blocked_reason", "labels", "metadata")
+    __slots__ = ("id", "namespace", "agent", "session_id", "objective", "success_criteria", "phase", "progress_summary", "iteration", "max_iterations", "created_at", "updated_at", "completed_at", "blocked_reason", "labels", "metadata")
     class LabelsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -175,7 +155,6 @@ class Goal(_message.Message):
     PROGRESS_SUMMARY_FIELD_NUMBER: _ClassVar[int]
     ITERATION_FIELD_NUMBER: _ClassVar[int]
     MAX_ITERATIONS_FIELD_NUMBER: _ClassVar[int]
-    EVIDENCE_REFS_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
     COMPLETED_AT_FIELD_NUMBER: _ClassVar[int]
@@ -192,14 +171,13 @@ class Goal(_message.Message):
     progress_summary: str
     iteration: int
     max_iterations: int
-    evidence_refs: _containers.RepeatedCompositeFieldContainer[GoalEvidenceRef]
     created_at: int
     updated_at: int
     completed_at: int
     blocked_reason: str
     labels: _containers.ScalarMap[str, str]
     metadata: _containers.ScalarMap[str, str]
-    def __init__(self, id: _Optional[str] = ..., namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., objective: _Optional[str] = ..., success_criteria: _Optional[_Iterable[str]] = ..., phase: _Optional[_Union[GoalPhase, str]] = ..., progress_summary: _Optional[str] = ..., iteration: _Optional[int] = ..., max_iterations: _Optional[int] = ..., evidence_refs: _Optional[_Iterable[_Union[GoalEvidenceRef, _Mapping]]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., completed_at: _Optional[int] = ..., blocked_reason: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., objective: _Optional[str] = ..., success_criteria: _Optional[_Iterable[str]] = ..., phase: _Optional[_Union[GoalPhase, str]] = ..., progress_summary: _Optional[str] = ..., iteration: _Optional[int] = ..., max_iterations: _Optional[int] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., completed_at: _Optional[int] = ..., blocked_reason: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class ArtifactAccess(_message.Message):
     __slots__ = ("target_agent", "target_session_id", "operations", "expires_at", "granted_by_agent", "granted_by_session_id", "created_at")

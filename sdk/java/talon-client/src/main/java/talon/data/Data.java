@@ -4518,1845 +4518,6 @@ java.lang.String defaultValue) {
 
   }
 
-  public interface GoalEvidenceRefOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.data.GoalEvidenceRef)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * Evidence type, such as artifact, file, message, or object.
-     * </pre>
-     *
-     * <code>string kind = 1;</code>
-     * @return The kind.
-     */
-    java.lang.String getKind();
-    /**
-     * <pre>
-     * Evidence type, such as artifact, file, message, or object.
-     * </pre>
-     *
-     * <code>string kind = 1;</code>
-     * @return The bytes for kind.
-     */
-    com.google.protobuf.ByteString
-        getKindBytes();
-
-    /**
-     * <pre>
-     * Namespace that owns the referenced evidence when it is a Talon resource.
-     * </pre>
-     *
-     * <code>string namespace = 2;</code>
-     * @return The namespace.
-     */
-    java.lang.String getNamespace();
-    /**
-     * <pre>
-     * Namespace that owns the referenced evidence when it is a Talon resource.
-     * </pre>
-     *
-     * <code>string namespace = 2;</code>
-     * @return The bytes for namespace.
-     */
-    com.google.protobuf.ByteString
-        getNamespaceBytes();
-
-    /**
-     * <pre>
-     * Resource name or provider-local identifier for the referenced evidence.
-     * </pre>
-     *
-     * <code>string name = 3;</code>
-     * @return The name.
-     */
-    java.lang.String getName();
-    /**
-     * <pre>
-     * Resource name or provider-local identifier for the referenced evidence.
-     * </pre>
-     *
-     * <code>string name = 3;</code>
-     * @return The bytes for name.
-     */
-    com.google.protobuf.ByteString
-        getNameBytes();
-
-    /**
-     * <pre>
-     * Agent that owns the referenced session-scoped evidence, when applicable.
-     * </pre>
-     *
-     * <code>string agent = 4;</code>
-     * @return The agent.
-     */
-    java.lang.String getAgent();
-    /**
-     * <pre>
-     * Agent that owns the referenced session-scoped evidence, when applicable.
-     * </pre>
-     *
-     * <code>string agent = 4;</code>
-     * @return The bytes for agent.
-     */
-    com.google.protobuf.ByteString
-        getAgentBytes();
-
-    /**
-     * <pre>
-     * Session that owns the referenced session-scoped evidence, when applicable.
-     * </pre>
-     *
-     * <code>string session_id = 5;</code>
-     * @return The sessionId.
-     */
-    java.lang.String getSessionId();
-    /**
-     * <pre>
-     * Session that owns the referenced session-scoped evidence, when applicable.
-     * </pre>
-     *
-     * <code>string session_id = 5;</code>
-     * @return The bytes for sessionId.
-     */
-    com.google.protobuf.ByteString
-        getSessionIdBytes();
-
-    /**
-     * <pre>
-     * Opaque or URI-style handle that can be passed back to tools.
-     * </pre>
-     *
-     * <code>string handle = 6;</code>
-     * @return The handle.
-     */
-    java.lang.String getHandle();
-    /**
-     * <pre>
-     * Opaque or URI-style handle that can be passed back to tools.
-     * </pre>
-     *
-     * <code>string handle = 6;</code>
-     * @return The bytes for handle.
-     */
-    com.google.protobuf.ByteString
-        getHandleBytes();
-
-    /**
-     * <pre>
-     * Object-store key for evidence backed directly by stored bytes.
-     * </pre>
-     *
-     * <code>string object_key = 7;</code>
-     * @return The objectKey.
-     */
-    java.lang.String getObjectKey();
-    /**
-     * <pre>
-     * Object-store key for evidence backed directly by stored bytes.
-     * </pre>
-     *
-     * <code>string object_key = 7;</code>
-     * @return The bytes for objectKey.
-     */
-    com.google.protobuf.ByteString
-        getObjectKeyBytes();
-
-    /**
-     * <pre>
-     * Short human-readable description of why this evidence matters.
-     * </pre>
-     *
-     * <code>string summary = 8;</code>
-     * @return The summary.
-     */
-    java.lang.String getSummary();
-    /**
-     * <pre>
-     * Short human-readable description of why this evidence matters.
-     * </pre>
-     *
-     * <code>string summary = 8;</code>
-     * @return The bytes for summary.
-     */
-    com.google.protobuf.ByteString
-        getSummaryBytes();
-  }
-  /**
-   * Protobuf type {@code talon.data.GoalEvidenceRef}
-   */
-  public static final class GoalEvidenceRef extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.data.GoalEvidenceRef)
-      GoalEvidenceRefOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "GoalEvidenceRef");
-    }
-    // Use GoalEvidenceRef.newBuilder() to construct.
-    private GoalEvidenceRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private GoalEvidenceRef() {
-      kind_ = "";
-      namespace_ = "";
-      name_ = "";
-      agent_ = "";
-      sessionId_ = "";
-      handle_ = "";
-      objectKey_ = "";
-      summary_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.data.Data.GoalEvidenceRef.class, talon.data.Data.GoalEvidenceRef.Builder.class);
-    }
-
-    public static final int KIND_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object kind_ = "";
-    /**
-     * <pre>
-     * Evidence type, such as artifact, file, message, or object.
-     * </pre>
-     *
-     * <code>string kind = 1;</code>
-     * @return The kind.
-     */
-    @java.lang.Override
-    public java.lang.String getKind() {
-      java.lang.Object ref = kind_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        kind_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Evidence type, such as artifact, file, message, or object.
-     * </pre>
-     *
-     * <code>string kind = 1;</code>
-     * @return The bytes for kind.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getKindBytes() {
-      java.lang.Object ref = kind_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        kind_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int NAMESPACE_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object namespace_ = "";
-    /**
-     * <pre>
-     * Namespace that owns the referenced evidence when it is a Talon resource.
-     * </pre>
-     *
-     * <code>string namespace = 2;</code>
-     * @return The namespace.
-     */
-    @java.lang.Override
-    public java.lang.String getNamespace() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        namespace_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Namespace that owns the referenced evidence when it is a Talon resource.
-     * </pre>
-     *
-     * <code>string namespace = 2;</code>
-     * @return The bytes for namespace.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNamespaceBytes() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        namespace_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int NAME_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object name_ = "";
-    /**
-     * <pre>
-     * Resource name or provider-local identifier for the referenced evidence.
-     * </pre>
-     *
-     * <code>string name = 3;</code>
-     * @return The name.
-     */
-    @java.lang.Override
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        name_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Resource name or provider-local identifier for the referenced evidence.
-     * </pre>
-     *
-     * <code>string name = 3;</code>
-     * @return The bytes for name.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        name_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int AGENT_FIELD_NUMBER = 4;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object agent_ = "";
-    /**
-     * <pre>
-     * Agent that owns the referenced session-scoped evidence, when applicable.
-     * </pre>
-     *
-     * <code>string agent = 4;</code>
-     * @return The agent.
-     */
-    @java.lang.Override
-    public java.lang.String getAgent() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        agent_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Agent that owns the referenced session-scoped evidence, when applicable.
-     * </pre>
-     *
-     * <code>string agent = 4;</code>
-     * @return The bytes for agent.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getAgentBytes() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        agent_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SESSION_ID_FIELD_NUMBER = 5;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object sessionId_ = "";
-    /**
-     * <pre>
-     * Session that owns the referenced session-scoped evidence, when applicable.
-     * </pre>
-     *
-     * <code>string session_id = 5;</code>
-     * @return The sessionId.
-     */
-    @java.lang.Override
-    public java.lang.String getSessionId() {
-      java.lang.Object ref = sessionId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        sessionId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Session that owns the referenced session-scoped evidence, when applicable.
-     * </pre>
-     *
-     * <code>string session_id = 5;</code>
-     * @return The bytes for sessionId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getSessionIdBytes() {
-      java.lang.Object ref = sessionId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        sessionId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int HANDLE_FIELD_NUMBER = 6;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object handle_ = "";
-    /**
-     * <pre>
-     * Opaque or URI-style handle that can be passed back to tools.
-     * </pre>
-     *
-     * <code>string handle = 6;</code>
-     * @return The handle.
-     */
-    @java.lang.Override
-    public java.lang.String getHandle() {
-      java.lang.Object ref = handle_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        handle_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Opaque or URI-style handle that can be passed back to tools.
-     * </pre>
-     *
-     * <code>string handle = 6;</code>
-     * @return The bytes for handle.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getHandleBytes() {
-      java.lang.Object ref = handle_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        handle_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int OBJECT_KEY_FIELD_NUMBER = 7;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object objectKey_ = "";
-    /**
-     * <pre>
-     * Object-store key for evidence backed directly by stored bytes.
-     * </pre>
-     *
-     * <code>string object_key = 7;</code>
-     * @return The objectKey.
-     */
-    @java.lang.Override
-    public java.lang.String getObjectKey() {
-      java.lang.Object ref = objectKey_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        objectKey_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Object-store key for evidence backed directly by stored bytes.
-     * </pre>
-     *
-     * <code>string object_key = 7;</code>
-     * @return The bytes for objectKey.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getObjectKeyBytes() {
-      java.lang.Object ref = objectKey_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        objectKey_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SUMMARY_FIELD_NUMBER = 8;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object summary_ = "";
-    /**
-     * <pre>
-     * Short human-readable description of why this evidence matters.
-     * </pre>
-     *
-     * <code>string summary = 8;</code>
-     * @return The summary.
-     */
-    @java.lang.Override
-    public java.lang.String getSummary() {
-      java.lang.Object ref = summary_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        summary_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * Short human-readable description of why this evidence matters.
-     * </pre>
-     *
-     * <code>string summary = 8;</code>
-     * @return The bytes for summary.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getSummaryBytes() {
-      java.lang.Object ref = summary_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        summary_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, kind_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, namespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 4, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 5, sessionId_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(handle_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 6, handle_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objectKey_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 7, objectKey_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 8, summary_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, kind_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, namespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, sessionId_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(handle_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, handle_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objectKey_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, objectKey_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, summary_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.data.Data.GoalEvidenceRef)) {
-        return super.equals(obj);
-      }
-      talon.data.Data.GoalEvidenceRef other = (talon.data.Data.GoalEvidenceRef) obj;
-
-      if (!getKind()
-          .equals(other.getKind())) return false;
-      if (!getNamespace()
-          .equals(other.getNamespace())) return false;
-      if (!getName()
-          .equals(other.getName())) return false;
-      if (!getAgent()
-          .equals(other.getAgent())) return false;
-      if (!getSessionId()
-          .equals(other.getSessionId())) return false;
-      if (!getHandle()
-          .equals(other.getHandle())) return false;
-      if (!getObjectKey()
-          .equals(other.getObjectKey())) return false;
-      if (!getSummary()
-          .equals(other.getSummary())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + KIND_FIELD_NUMBER;
-      hash = (53 * hash) + getKind().hashCode();
-      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
-      hash = (53 * hash) + getNamespace().hashCode();
-      hash = (37 * hash) + NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getName().hashCode();
-      hash = (37 * hash) + AGENT_FIELD_NUMBER;
-      hash = (53 * hash) + getAgent().hashCode();
-      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getSessionId().hashCode();
-      hash = (37 * hash) + HANDLE_FIELD_NUMBER;
-      hash = (53 * hash) + getHandle().hashCode();
-      hash = (37 * hash) + OBJECT_KEY_FIELD_NUMBER;
-      hash = (53 * hash) + getObjectKey().hashCode();
-      hash = (37 * hash) + SUMMARY_FIELD_NUMBER;
-      hash = (53 * hash) + getSummary().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.data.Data.GoalEvidenceRef parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.data.Data.GoalEvidenceRef parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.data.Data.GoalEvidenceRef parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.data.Data.GoalEvidenceRef parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.data.Data.GoalEvidenceRef prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.data.GoalEvidenceRef}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.data.GoalEvidenceRef)
-        talon.data.Data.GoalEvidenceRefOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.data.Data.GoalEvidenceRef.class, talon.data.Data.GoalEvidenceRef.Builder.class);
-      }
-
-      // Construct using talon.data.Data.GoalEvidenceRef.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        kind_ = "";
-        namespace_ = "";
-        name_ = "";
-        agent_ = "";
-        sessionId_ = "";
-        handle_ = "";
-        objectKey_ = "";
-        summary_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.data.Data.internal_static_talon_data_GoalEvidenceRef_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.data.Data.GoalEvidenceRef getDefaultInstanceForType() {
-        return talon.data.Data.GoalEvidenceRef.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.data.Data.GoalEvidenceRef build() {
-        talon.data.Data.GoalEvidenceRef result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.data.Data.GoalEvidenceRef buildPartial() {
-        talon.data.Data.GoalEvidenceRef result = new talon.data.Data.GoalEvidenceRef(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.data.Data.GoalEvidenceRef result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.kind_ = kind_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.namespace_ = namespace_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.name_ = name_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.agent_ = agent_;
-        }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.sessionId_ = sessionId_;
-        }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.handle_ = handle_;
-        }
-        if (((from_bitField0_ & 0x00000040) != 0)) {
-          result.objectKey_ = objectKey_;
-        }
-        if (((from_bitField0_ & 0x00000080) != 0)) {
-          result.summary_ = summary_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.data.Data.GoalEvidenceRef) {
-          return mergeFrom((talon.data.Data.GoalEvidenceRef)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.data.Data.GoalEvidenceRef other) {
-        if (other == talon.data.Data.GoalEvidenceRef.getDefaultInstance()) return this;
-        if (!other.getKind().isEmpty()) {
-          kind_ = other.kind_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getNamespace().isEmpty()) {
-          namespace_ = other.namespace_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (!other.getName().isEmpty()) {
-          name_ = other.name_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        if (!other.getAgent().isEmpty()) {
-          agent_ = other.agent_;
-          bitField0_ |= 0x00000008;
-          onChanged();
-        }
-        if (!other.getSessionId().isEmpty()) {
-          sessionId_ = other.sessionId_;
-          bitField0_ |= 0x00000010;
-          onChanged();
-        }
-        if (!other.getHandle().isEmpty()) {
-          handle_ = other.handle_;
-          bitField0_ |= 0x00000020;
-          onChanged();
-        }
-        if (!other.getObjectKey().isEmpty()) {
-          objectKey_ = other.objectKey_;
-          bitField0_ |= 0x00000040;
-          onChanged();
-        }
-        if (!other.getSummary().isEmpty()) {
-          summary_ = other.summary_;
-          bitField0_ |= 0x00000080;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                kind_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                namespace_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                name_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              case 34: {
-                agent_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
-              case 42: {
-                sessionId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 42
-              case 50: {
-                handle_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000020;
-                break;
-              } // case 50
-              case 58: {
-                objectKey_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000040;
-                break;
-              } // case 58
-              case 66: {
-                summary_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000080;
-                break;
-              } // case 66
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object kind_ = "";
-      /**
-       * <pre>
-       * Evidence type, such as artifact, file, message, or object.
-       * </pre>
-       *
-       * <code>string kind = 1;</code>
-       * @return The kind.
-       */
-      public java.lang.String getKind() {
-        java.lang.Object ref = kind_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          kind_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Evidence type, such as artifact, file, message, or object.
-       * </pre>
-       *
-       * <code>string kind = 1;</code>
-       * @return The bytes for kind.
-       */
-      public com.google.protobuf.ByteString
-          getKindBytes() {
-        java.lang.Object ref = kind_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          kind_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Evidence type, such as artifact, file, message, or object.
-       * </pre>
-       *
-       * <code>string kind = 1;</code>
-       * @param value The kind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setKind(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        kind_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence type, such as artifact, file, message, or object.
-       * </pre>
-       *
-       * <code>string kind = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearKind() {
-        kind_ = getDefaultInstance().getKind();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence type, such as artifact, file, message, or object.
-       * </pre>
-       *
-       * <code>string kind = 1;</code>
-       * @param value The bytes for kind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setKindBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        kind_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object namespace_ = "";
-      /**
-       * <pre>
-       * Namespace that owns the referenced evidence when it is a Talon resource.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @return The namespace.
-       */
-      public java.lang.String getNamespace() {
-        java.lang.Object ref = namespace_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          namespace_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Namespace that owns the referenced evidence when it is a Talon resource.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @return The bytes for namespace.
-       */
-      public com.google.protobuf.ByteString
-          getNamespaceBytes() {
-        java.lang.Object ref = namespace_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          namespace_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Namespace that owns the referenced evidence when it is a Talon resource.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @param value The namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespace(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        namespace_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Namespace that owns the referenced evidence when it is a Talon resource.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNamespace() {
-        namespace_ = getDefaultInstance().getNamespace();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Namespace that owns the referenced evidence when it is a Talon resource.
-       * </pre>
-       *
-       * <code>string namespace = 2;</code>
-       * @param value The bytes for namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespaceBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        namespace_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object name_ = "";
-      /**
-       * <pre>
-       * Resource name or provider-local identifier for the referenced evidence.
-       * </pre>
-       *
-       * <code>string name = 3;</code>
-       * @return The name.
-       */
-      public java.lang.String getName() {
-        java.lang.Object ref = name_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          name_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Resource name or provider-local identifier for the referenced evidence.
-       * </pre>
-       *
-       * <code>string name = 3;</code>
-       * @return The bytes for name.
-       */
-      public com.google.protobuf.ByteString
-          getNameBytes() {
-        java.lang.Object ref = name_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          name_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Resource name or provider-local identifier for the referenced evidence.
-       * </pre>
-       *
-       * <code>string name = 3;</code>
-       * @param value The name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        name_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Resource name or provider-local identifier for the referenced evidence.
-       * </pre>
-       *
-       * <code>string name = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearName() {
-        name_ = getDefaultInstance().getName();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Resource name or provider-local identifier for the referenced evidence.
-       * </pre>
-       *
-       * <code>string name = 3;</code>
-       * @param value The bytes for name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        name_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object agent_ = "";
-      /**
-       * <pre>
-       * Agent that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string agent = 4;</code>
-       * @return The agent.
-       */
-      public java.lang.String getAgent() {
-        java.lang.Object ref = agent_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          agent_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Agent that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string agent = 4;</code>
-       * @return The bytes for agent.
-       */
-      public com.google.protobuf.ByteString
-          getAgentBytes() {
-        java.lang.Object ref = agent_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          agent_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Agent that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string agent = 4;</code>
-       * @param value The agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgent(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        agent_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Agent that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string agent = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAgent() {
-        agent_ = getDefaultInstance().getAgent();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Agent that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string agent = 4;</code>
-       * @param value The bytes for agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgentBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        agent_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object sessionId_ = "";
-      /**
-       * <pre>
-       * Session that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string session_id = 5;</code>
-       * @return The sessionId.
-       */
-      public java.lang.String getSessionId() {
-        java.lang.Object ref = sessionId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          sessionId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Session that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string session_id = 5;</code>
-       * @return The bytes for sessionId.
-       */
-      public com.google.protobuf.ByteString
-          getSessionIdBytes() {
-        java.lang.Object ref = sessionId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          sessionId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Session that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string session_id = 5;</code>
-       * @param value The sessionId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSessionId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        sessionId_ = value;
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Session that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string session_id = 5;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearSessionId() {
-        sessionId_ = getDefaultInstance().getSessionId();
-        bitField0_ = (bitField0_ & ~0x00000010);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Session that owns the referenced session-scoped evidence, when applicable.
-       * </pre>
-       *
-       * <code>string session_id = 5;</code>
-       * @param value The bytes for sessionId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSessionIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        sessionId_ = value;
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object handle_ = "";
-      /**
-       * <pre>
-       * Opaque or URI-style handle that can be passed back to tools.
-       * </pre>
-       *
-       * <code>string handle = 6;</code>
-       * @return The handle.
-       */
-      public java.lang.String getHandle() {
-        java.lang.Object ref = handle_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          handle_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Opaque or URI-style handle that can be passed back to tools.
-       * </pre>
-       *
-       * <code>string handle = 6;</code>
-       * @return The bytes for handle.
-       */
-      public com.google.protobuf.ByteString
-          getHandleBytes() {
-        java.lang.Object ref = handle_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          handle_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Opaque or URI-style handle that can be passed back to tools.
-       * </pre>
-       *
-       * <code>string handle = 6;</code>
-       * @param value The handle to set.
-       * @return This builder for chaining.
-       */
-      public Builder setHandle(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        handle_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Opaque or URI-style handle that can be passed back to tools.
-       * </pre>
-       *
-       * <code>string handle = 6;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearHandle() {
-        handle_ = getDefaultInstance().getHandle();
-        bitField0_ = (bitField0_ & ~0x00000020);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Opaque or URI-style handle that can be passed back to tools.
-       * </pre>
-       *
-       * <code>string handle = 6;</code>
-       * @param value The bytes for handle to set.
-       * @return This builder for chaining.
-       */
-      public Builder setHandleBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        handle_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object objectKey_ = "";
-      /**
-       * <pre>
-       * Object-store key for evidence backed directly by stored bytes.
-       * </pre>
-       *
-       * <code>string object_key = 7;</code>
-       * @return The objectKey.
-       */
-      public java.lang.String getObjectKey() {
-        java.lang.Object ref = objectKey_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          objectKey_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Object-store key for evidence backed directly by stored bytes.
-       * </pre>
-       *
-       * <code>string object_key = 7;</code>
-       * @return The bytes for objectKey.
-       */
-      public com.google.protobuf.ByteString
-          getObjectKeyBytes() {
-        java.lang.Object ref = objectKey_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          objectKey_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Object-store key for evidence backed directly by stored bytes.
-       * </pre>
-       *
-       * <code>string object_key = 7;</code>
-       * @param value The objectKey to set.
-       * @return This builder for chaining.
-       */
-      public Builder setObjectKey(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        objectKey_ = value;
-        bitField0_ |= 0x00000040;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Object-store key for evidence backed directly by stored bytes.
-       * </pre>
-       *
-       * <code>string object_key = 7;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearObjectKey() {
-        objectKey_ = getDefaultInstance().getObjectKey();
-        bitField0_ = (bitField0_ & ~0x00000040);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Object-store key for evidence backed directly by stored bytes.
-       * </pre>
-       *
-       * <code>string object_key = 7;</code>
-       * @param value The bytes for objectKey to set.
-       * @return This builder for chaining.
-       */
-      public Builder setObjectKeyBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        objectKey_ = value;
-        bitField0_ |= 0x00000040;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object summary_ = "";
-      /**
-       * <pre>
-       * Short human-readable description of why this evidence matters.
-       * </pre>
-       *
-       * <code>string summary = 8;</code>
-       * @return The summary.
-       */
-      public java.lang.String getSummary() {
-        java.lang.Object ref = summary_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          summary_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Short human-readable description of why this evidence matters.
-       * </pre>
-       *
-       * <code>string summary = 8;</code>
-       * @return The bytes for summary.
-       */
-      public com.google.protobuf.ByteString
-          getSummaryBytes() {
-        java.lang.Object ref = summary_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          summary_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * Short human-readable description of why this evidence matters.
-       * </pre>
-       *
-       * <code>string summary = 8;</code>
-       * @param value The summary to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSummary(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        summary_ = value;
-        bitField0_ |= 0x00000080;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Short human-readable description of why this evidence matters.
-       * </pre>
-       *
-       * <code>string summary = 8;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearSummary() {
-        summary_ = getDefaultInstance().getSummary();
-        bitField0_ = (bitField0_ & ~0x00000080);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Short human-readable description of why this evidence matters.
-       * </pre>
-       *
-       * <code>string summary = 8;</code>
-       * @param value The bytes for summary to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSummaryBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        summary_ = value;
-        bitField0_ |= 0x00000080;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.data.GoalEvidenceRef)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.data.GoalEvidenceRef)
-    private static final talon.data.Data.GoalEvidenceRef DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.data.Data.GoalEvidenceRef();
-    }
-
-    public static talon.data.Data.GoalEvidenceRef getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<GoalEvidenceRef>
-        PARSER = new com.google.protobuf.AbstractParser<GoalEvidenceRef>() {
-      @java.lang.Override
-      public GoalEvidenceRef parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<GoalEvidenceRef> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<GoalEvidenceRef> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.data.Data.GoalEvidenceRef getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
   public interface GoalOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.Goal)
       com.google.protobuf.MessageOrBuilder {
@@ -6563,50 +4724,6 @@ java.lang.String defaultValue) {
 
     /**
      * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    java.util.List<talon.data.Data.GoalEvidenceRef>
-        getEvidenceRefsList();
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    talon.data.Data.GoalEvidenceRef getEvidenceRefs(int index);
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    int getEvidenceRefsCount();
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    java.util.List<? extends talon.data.Data.GoalEvidenceRefOrBuilder>
-        getEvidenceRefsOrBuilderList();
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    talon.data.Data.GoalEvidenceRefOrBuilder getEvidenceRefsOrBuilder(
-        int index);
-
-    /**
-     * <pre>
      * Unix timestamp in microseconds when the goal was created.
      * </pre>
      *
@@ -6794,7 +4911,6 @@ java.lang.String defaultValue);
           com.google.protobuf.LazyStringArrayList.emptyList();
       phase_ = 0;
       progressSummary_ = "";
-      evidenceRefs_ = java.util.Collections.emptyList();
       blockedReason_ = "";
     }
 
@@ -7221,67 +5337,6 @@ java.lang.String defaultValue);
       return maxIterations_;
     }
 
-    public static final int EVIDENCE_REFS_FIELD_NUMBER = 11;
-    @SuppressWarnings("serial")
-    private java.util.List<talon.data.Data.GoalEvidenceRef> evidenceRefs_;
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    @java.lang.Override
-    public java.util.List<talon.data.Data.GoalEvidenceRef> getEvidenceRefsList() {
-      return evidenceRefs_;
-    }
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    @java.lang.Override
-    public java.util.List<? extends talon.data.Data.GoalEvidenceRefOrBuilder>
-        getEvidenceRefsOrBuilderList() {
-      return evidenceRefs_;
-    }
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    @java.lang.Override
-    public int getEvidenceRefsCount() {
-      return evidenceRefs_.size();
-    }
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    @java.lang.Override
-    public talon.data.Data.GoalEvidenceRef getEvidenceRefs(int index) {
-      return evidenceRefs_.get(index);
-    }
-    /**
-     * <pre>
-     * Evidence accumulated while pursuing or evaluating the goal.
-     * </pre>
-     *
-     * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-     */
-    @java.lang.Override
-    public talon.data.Data.GoalEvidenceRefOrBuilder getEvidenceRefsOrBuilder(
-        int index) {
-      return evidenceRefs_.get(index);
-    }
-
     public static final int CREATED_AT_FIELD_NUMBER = 12;
     private long createdAt_ = 0L;
     /**
@@ -7608,9 +5663,6 @@ java.lang.String defaultValue) {
       if (maxIterations_ != 0) {
         output.writeInt32(10, maxIterations_);
       }
-      for (int i = 0; i < evidenceRefs_.size(); i++) {
-        output.writeMessage(11, evidenceRefs_.get(i));
-      }
       if (createdAt_ != 0L) {
         output.writeInt64(12, createdAt_);
       }
@@ -7682,15 +5734,6 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(10, maxIterations_);
       }
-
-          {
-            final int count = evidenceRefs_.size();
-            for (int i = 0; i < count; i++) {
-              size += com.google.protobuf.CodedOutputStream
-                .computeMessageSizeNoTag(evidenceRefs_.get(i));
-            }
-            size += 1 * count;
-          }
       if (createdAt_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(12, createdAt_);
@@ -7760,8 +5803,6 @@ java.lang.String defaultValue) {
           != other.getIteration()) return false;
       if (getMaxIterations()
           != other.getMaxIterations()) return false;
-      if (!getEvidenceRefsList()
-          .equals(other.getEvidenceRefsList())) return false;
       if (getCreatedAt()
           != other.getCreatedAt()) return false;
       if (getUpdatedAt()
@@ -7807,10 +5848,6 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getIteration();
       hash = (37 * hash) + MAX_ITERATIONS_FIELD_NUMBER;
       hash = (53 * hash) + getMaxIterations();
-      if (getEvidenceRefsCount() > 0) {
-        hash = (37 * hash) + EVIDENCE_REFS_FIELD_NUMBER;
-        hash = (53 * hash) + getEvidenceRefsList().hashCode();
-      }
       hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getCreatedAt());
@@ -7998,13 +6035,6 @@ java.lang.String defaultValue) {
         progressSummary_ = "";
         iteration_ = 0;
         maxIterations_ = 0;
-        if (evidenceRefsBuilder_ == null) {
-          evidenceRefs_ = java.util.Collections.emptyList();
-        } else {
-          evidenceRefs_ = null;
-          evidenceRefsBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000400);
         createdAt_ = 0L;
         updatedAt_ = 0L;
         completedAt_ = 0L;
@@ -8037,22 +6067,9 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public talon.data.Data.Goal buildPartial() {
         talon.data.Data.Goal result = new talon.data.Data.Goal(this);
-        buildPartialRepeatedFields(result);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
-      }
-
-      private void buildPartialRepeatedFields(talon.data.Data.Goal result) {
-        if (evidenceRefsBuilder_ == null) {
-          if (((bitField0_ & 0x00000400) != 0)) {
-            evidenceRefs_ = java.util.Collections.unmodifiableList(evidenceRefs_);
-            bitField0_ = (bitField0_ & ~0x00000400);
-          }
-          result.evidenceRefs_ = evidenceRefs_;
-        } else {
-          result.evidenceRefs_ = evidenceRefsBuilder_.build();
-        }
       }
 
       private void buildPartial0(talon.data.Data.Goal result) {
@@ -8088,23 +6105,23 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000200) != 0)) {
           result.maxIterations_ = maxIterations_;
         }
-        if (((from_bitField0_ & 0x00000800) != 0)) {
+        if (((from_bitField0_ & 0x00000400) != 0)) {
           result.createdAt_ = createdAt_;
         }
-        if (((from_bitField0_ & 0x00001000) != 0)) {
+        if (((from_bitField0_ & 0x00000800) != 0)) {
           result.updatedAt_ = updatedAt_;
         }
-        if (((from_bitField0_ & 0x00002000) != 0)) {
+        if (((from_bitField0_ & 0x00001000) != 0)) {
           result.completedAt_ = completedAt_;
         }
-        if (((from_bitField0_ & 0x00004000) != 0)) {
+        if (((from_bitField0_ & 0x00002000) != 0)) {
           result.blockedReason_ = blockedReason_;
         }
-        if (((from_bitField0_ & 0x00008000) != 0)) {
+        if (((from_bitField0_ & 0x00004000) != 0)) {
           result.labels_ = internalGetLabels();
           result.labels_.makeImmutable();
         }
-        if (((from_bitField0_ & 0x00010000) != 0)) {
+        if (((from_bitField0_ & 0x00008000) != 0)) {
           result.metadata_ = internalGetMetadata();
           result.metadata_.makeImmutable();
         }
@@ -8171,32 +6188,6 @@ java.lang.String defaultValue) {
         if (other.getMaxIterations() != 0) {
           setMaxIterations(other.getMaxIterations());
         }
-        if (evidenceRefsBuilder_ == null) {
-          if (!other.evidenceRefs_.isEmpty()) {
-            if (evidenceRefs_.isEmpty()) {
-              evidenceRefs_ = other.evidenceRefs_;
-              bitField0_ = (bitField0_ & ~0x00000400);
-            } else {
-              ensureEvidenceRefsIsMutable();
-              evidenceRefs_.addAll(other.evidenceRefs_);
-            }
-            onChanged();
-          }
-        } else {
-          if (!other.evidenceRefs_.isEmpty()) {
-            if (evidenceRefsBuilder_.isEmpty()) {
-              evidenceRefsBuilder_.dispose();
-              evidenceRefsBuilder_ = null;
-              evidenceRefs_ = other.evidenceRefs_;
-              bitField0_ = (bitField0_ & ~0x00000400);
-              evidenceRefsBuilder_ =
-                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
-                   internalGetEvidenceRefsFieldBuilder() : null;
-            } else {
-              evidenceRefsBuilder_.addAllMessages(other.evidenceRefs_);
-            }
-          }
-        }
         if (other.getCreatedAt() != 0L) {
           setCreatedAt(other.getCreatedAt());
         }
@@ -8208,15 +6199,15 @@ java.lang.String defaultValue) {
         }
         if (!other.getBlockedReason().isEmpty()) {
           blockedReason_ = other.blockedReason_;
-          bitField0_ |= 0x00004000;
+          bitField0_ |= 0x00002000;
           onChanged();
         }
         internalGetMutableLabels().mergeFrom(
             other.internalGetLabels());
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         internalGetMutableMetadata().mergeFrom(
             other.internalGetMetadata());
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -8293,37 +6284,24 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000200;
                 break;
               } // case 80
-              case 90: {
-                talon.data.Data.GoalEvidenceRef m =
-                    input.readMessage(
-                        talon.data.Data.GoalEvidenceRef.parser(),
-                        extensionRegistry);
-                if (evidenceRefsBuilder_ == null) {
-                  ensureEvidenceRefsIsMutable();
-                  evidenceRefs_.add(m);
-                } else {
-                  evidenceRefsBuilder_.addMessage(m);
-                }
-                break;
-              } // case 90
               case 96: {
                 createdAt_ = input.readInt64();
-                bitField0_ |= 0x00000800;
+                bitField0_ |= 0x00000400;
                 break;
               } // case 96
               case 104: {
                 updatedAt_ = input.readInt64();
-                bitField0_ |= 0x00001000;
+                bitField0_ |= 0x00000800;
                 break;
               } // case 104
               case 112: {
                 completedAt_ = input.readInt64();
-                bitField0_ |= 0x00002000;
+                bitField0_ |= 0x00001000;
                 break;
               } // case 112
               case 122: {
                 blockedReason_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00004000;
+                bitField0_ |= 0x00002000;
                 break;
               } // case 122
               case 130: {
@@ -8332,7 +6310,7 @@ java.lang.String defaultValue) {
                     LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
                 internalGetMutableLabels().getMutableMap().put(
                     labels__.getKey(), labels__.getValue());
-                bitField0_ |= 0x00008000;
+                bitField0_ |= 0x00004000;
                 break;
               } // case 130
               case 138: {
@@ -8341,7 +6319,7 @@ java.lang.String defaultValue) {
                     MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
                 internalGetMutableMetadata().getMutableMap().put(
                     metadata__.getKey(), metadata__.getValue());
-                bitField0_ |= 0x00010000;
+                bitField0_ |= 0x00008000;
                 break;
               } // case 138
               default: {
@@ -9220,318 +7198,6 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private java.util.List<talon.data.Data.GoalEvidenceRef> evidenceRefs_ =
-        java.util.Collections.emptyList();
-      private void ensureEvidenceRefsIsMutable() {
-        if (!((bitField0_ & 0x00000400) != 0)) {
-          evidenceRefs_ = new java.util.ArrayList<talon.data.Data.GoalEvidenceRef>(evidenceRefs_);
-          bitField0_ |= 0x00000400;
-         }
-      }
-
-      private com.google.protobuf.RepeatedFieldBuilder<
-          talon.data.Data.GoalEvidenceRef, talon.data.Data.GoalEvidenceRef.Builder, talon.data.Data.GoalEvidenceRefOrBuilder> evidenceRefsBuilder_;
-
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public java.util.List<talon.data.Data.GoalEvidenceRef> getEvidenceRefsList() {
-        if (evidenceRefsBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(evidenceRefs_);
-        } else {
-          return evidenceRefsBuilder_.getMessageList();
-        }
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public int getEvidenceRefsCount() {
-        if (evidenceRefsBuilder_ == null) {
-          return evidenceRefs_.size();
-        } else {
-          return evidenceRefsBuilder_.getCount();
-        }
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public talon.data.Data.GoalEvidenceRef getEvidenceRefs(int index) {
-        if (evidenceRefsBuilder_ == null) {
-          return evidenceRefs_.get(index);
-        } else {
-          return evidenceRefsBuilder_.getMessage(index);
-        }
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder setEvidenceRefs(
-          int index, talon.data.Data.GoalEvidenceRef value) {
-        if (evidenceRefsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureEvidenceRefsIsMutable();
-          evidenceRefs_.set(index, value);
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.setMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder setEvidenceRefs(
-          int index, talon.data.Data.GoalEvidenceRef.Builder builderForValue) {
-        if (evidenceRefsBuilder_ == null) {
-          ensureEvidenceRefsIsMutable();
-          evidenceRefs_.set(index, builderForValue.build());
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.setMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder addEvidenceRefs(talon.data.Data.GoalEvidenceRef value) {
-        if (evidenceRefsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureEvidenceRefsIsMutable();
-          evidenceRefs_.add(value);
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.addMessage(value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder addEvidenceRefs(
-          int index, talon.data.Data.GoalEvidenceRef value) {
-        if (evidenceRefsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureEvidenceRefsIsMutable();
-          evidenceRefs_.add(index, value);
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.addMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder addEvidenceRefs(
-          talon.data.Data.GoalEvidenceRef.Builder builderForValue) {
-        if (evidenceRefsBuilder_ == null) {
-          ensureEvidenceRefsIsMutable();
-          evidenceRefs_.add(builderForValue.build());
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.addMessage(builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder addEvidenceRefs(
-          int index, talon.data.Data.GoalEvidenceRef.Builder builderForValue) {
-        if (evidenceRefsBuilder_ == null) {
-          ensureEvidenceRefsIsMutable();
-          evidenceRefs_.add(index, builderForValue.build());
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.addMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder addAllEvidenceRefs(
-          java.lang.Iterable<? extends talon.data.Data.GoalEvidenceRef> values) {
-        if (evidenceRefsBuilder_ == null) {
-          ensureEvidenceRefsIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, evidenceRefs_);
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.addAllMessages(values);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder clearEvidenceRefs() {
-        if (evidenceRefsBuilder_ == null) {
-          evidenceRefs_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000400);
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public Builder removeEvidenceRefs(int index) {
-        if (evidenceRefsBuilder_ == null) {
-          ensureEvidenceRefsIsMutable();
-          evidenceRefs_.remove(index);
-          onChanged();
-        } else {
-          evidenceRefsBuilder_.remove(index);
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public talon.data.Data.GoalEvidenceRef.Builder getEvidenceRefsBuilder(
-          int index) {
-        return internalGetEvidenceRefsFieldBuilder().getBuilder(index);
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public talon.data.Data.GoalEvidenceRefOrBuilder getEvidenceRefsOrBuilder(
-          int index) {
-        if (evidenceRefsBuilder_ == null) {
-          return evidenceRefs_.get(index);  } else {
-          return evidenceRefsBuilder_.getMessageOrBuilder(index);
-        }
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public java.util.List<? extends talon.data.Data.GoalEvidenceRefOrBuilder>
-           getEvidenceRefsOrBuilderList() {
-        if (evidenceRefsBuilder_ != null) {
-          return evidenceRefsBuilder_.getMessageOrBuilderList();
-        } else {
-          return java.util.Collections.unmodifiableList(evidenceRefs_);
-        }
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public talon.data.Data.GoalEvidenceRef.Builder addEvidenceRefsBuilder() {
-        return internalGetEvidenceRefsFieldBuilder().addBuilder(
-            talon.data.Data.GoalEvidenceRef.getDefaultInstance());
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public talon.data.Data.GoalEvidenceRef.Builder addEvidenceRefsBuilder(
-          int index) {
-        return internalGetEvidenceRefsFieldBuilder().addBuilder(
-            index, talon.data.Data.GoalEvidenceRef.getDefaultInstance());
-      }
-      /**
-       * <pre>
-       * Evidence accumulated while pursuing or evaluating the goal.
-       * </pre>
-       *
-       * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
-       */
-      public java.util.List<talon.data.Data.GoalEvidenceRef.Builder>
-           getEvidenceRefsBuilderList() {
-        return internalGetEvidenceRefsFieldBuilder().getBuilderList();
-      }
-      private com.google.protobuf.RepeatedFieldBuilder<
-          talon.data.Data.GoalEvidenceRef, talon.data.Data.GoalEvidenceRef.Builder, talon.data.Data.GoalEvidenceRefOrBuilder>
-          internalGetEvidenceRefsFieldBuilder() {
-        if (evidenceRefsBuilder_ == null) {
-          evidenceRefsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.data.Data.GoalEvidenceRef, talon.data.Data.GoalEvidenceRef.Builder, talon.data.Data.GoalEvidenceRefOrBuilder>(
-                  evidenceRefs_,
-                  ((bitField0_ & 0x00000400) != 0),
-                  getParentForChildren(),
-                  isClean());
-          evidenceRefs_ = null;
-        }
-        return evidenceRefsBuilder_;
-      }
-
       private long createdAt_ ;
       /**
        * <pre>
@@ -9557,7 +7223,7 @@ java.lang.String defaultValue) {
       public Builder setCreatedAt(long value) {
 
         createdAt_ = value;
-        bitField0_ |= 0x00000800;
+        bitField0_ |= 0x00000400;
         onChanged();
         return this;
       }
@@ -9570,7 +7236,7 @@ java.lang.String defaultValue) {
        * @return This builder for chaining.
        */
       public Builder clearCreatedAt() {
-        bitField0_ = (bitField0_ & ~0x00000800);
+        bitField0_ = (bitField0_ & ~0x00000400);
         createdAt_ = 0L;
         onChanged();
         return this;
@@ -9601,7 +7267,7 @@ java.lang.String defaultValue) {
       public Builder setUpdatedAt(long value) {
 
         updatedAt_ = value;
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00000800;
         onChanged();
         return this;
       }
@@ -9614,7 +7280,7 @@ java.lang.String defaultValue) {
        * @return This builder for chaining.
        */
       public Builder clearUpdatedAt() {
-        bitField0_ = (bitField0_ & ~0x00001000);
+        bitField0_ = (bitField0_ & ~0x00000800);
         updatedAt_ = 0L;
         onChanged();
         return this;
@@ -9645,7 +7311,7 @@ java.lang.String defaultValue) {
       public Builder setCompletedAt(long value) {
 
         completedAt_ = value;
-        bitField0_ |= 0x00002000;
+        bitField0_ |= 0x00001000;
         onChanged();
         return this;
       }
@@ -9658,7 +7324,7 @@ java.lang.String defaultValue) {
        * @return This builder for chaining.
        */
       public Builder clearCompletedAt() {
-        bitField0_ = (bitField0_ & ~0x00002000);
+        bitField0_ = (bitField0_ & ~0x00001000);
         completedAt_ = 0L;
         onChanged();
         return this;
@@ -9719,7 +7385,7 @@ java.lang.String defaultValue) {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         blockedReason_ = value;
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00002000;
         onChanged();
         return this;
       }
@@ -9733,7 +7399,7 @@ java.lang.String defaultValue) {
        */
       public Builder clearBlockedReason() {
         blockedReason_ = getDefaultInstance().getBlockedReason();
-        bitField0_ = (bitField0_ & ~0x00004000);
+        bitField0_ = (bitField0_ & ~0x00002000);
         onChanged();
         return this;
       }
@@ -9751,7 +7417,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         blockedReason_ = value;
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00002000;
         onChanged();
         return this;
       }
@@ -9775,7 +7441,7 @@ java.lang.String defaultValue) {
         if (!labels_.isMutable()) {
           labels_ = labels_.copy();
         }
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         onChanged();
         return labels_;
       }
@@ -9851,7 +7517,7 @@ java.lang.String defaultValue) {
         return map.get(key);
       }
       public Builder clearLabels() {
-        bitField0_ = (bitField0_ & ~0x00008000);
+        bitField0_ = (bitField0_ & ~0x00004000);
         internalGetMutableLabels().getMutableMap()
             .clear();
         return this;
@@ -9876,7 +7542,7 @@ java.lang.String defaultValue) {
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, java.lang.String>
           getMutableLabels() {
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         return internalGetMutableLabels().getMutableMap();
       }
       /**
@@ -9893,7 +7559,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException("map value"); }
         internalGetMutableLabels().getMutableMap()
             .put(key, value);
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         return this;
       }
       /**
@@ -9907,7 +7573,7 @@ java.lang.String defaultValue) {
           java.util.Map<java.lang.String, java.lang.String> values) {
         internalGetMutableLabels().getMutableMap()
             .putAll(values);
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         return this;
       }
 
@@ -9930,7 +7596,7 @@ java.lang.String defaultValue) {
         if (!metadata_.isMutable()) {
           metadata_ = metadata_.copy();
         }
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         onChanged();
         return metadata_;
       }
@@ -10006,7 +7672,7 @@ java.lang.String defaultValue) {
         return map.get(key);
       }
       public Builder clearMetadata() {
-        bitField0_ = (bitField0_ & ~0x00010000);
+        bitField0_ = (bitField0_ & ~0x00008000);
         internalGetMutableMetadata().getMutableMap()
             .clear();
         return this;
@@ -10031,7 +7697,7 @@ java.lang.String defaultValue) {
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, java.lang.String>
           getMutableMetadata() {
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         return internalGetMutableMetadata().getMutableMap();
       }
       /**
@@ -10048,7 +7714,7 @@ java.lang.String defaultValue) {
         if (value == null) { throw new NullPointerException("map value"); }
         internalGetMutableMetadata().getMutableMap()
             .put(key, value);
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         return this;
       }
       /**
@@ -10062,7 +7728,7 @@ java.lang.String defaultValue) {
           java.util.Map<java.lang.String, java.lang.String> values) {
         internalGetMutableMetadata().getMutableMap()
             .putAll(values);
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         return this;
       }
 
@@ -28797,11 +26463,6 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_Artifact_MetadataEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_data_GoalEvidenceRef_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_data_GoalEvidenceRef_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_Goal_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -28925,115 +26586,109 @@ java.lang.String defaultValue) {
       "Entry\0224\n\010metadata\030\n \003(\0132\".talon.data.Art" +
       "ifact.MetadataEntry\032-\n\013LabelsEntry\022\013\n\003ke" +
       "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEn" +
-      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\230\001\n\017" +
-      "GoalEvidenceRef\022\014\n\004kind\030\001 \001(\t\022\021\n\tnamespa" +
-      "ce\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\r\n\005agent\030\004 \001(\t\022\022\n" +
-      "\nsession_id\030\005 \001(\t\022\016\n\006handle\030\006 \001(\t\022\022\n\nobj" +
-      "ect_key\030\007 \001(\t\022\017\n\007summary\030\010 \001(\t\"\252\004\n\004Goal\022" +
-      "\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005agent\030" +
-      "\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022\021\n\tobjective\030\005" +
-      " \001(\t\022\030\n\020success_criteria\030\006 \003(\t\022$\n\005phase\030" +
-      "\007 \001(\0162\025.talon.data.GoalPhase\022\030\n\020progress" +
-      "_summary\030\010 \001(\t\022\021\n\titeration\030\t \001(\005\022\026\n\016max" +
-      "_iterations\030\n \001(\005\0222\n\revidence_refs\030\013 \003(\013" +
-      "2\033.talon.data.GoalEvidenceRef\022\022\n\ncreated" +
-      "_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\024\n\014complet" +
-      "ed_at\030\016 \001(\003\022\026\n\016blocked_reason\030\017 \001(\t\022,\n\006l" +
-      "abels\030\020 \003(\0132\034.talon.data.Goal.LabelsEntr" +
-      "y\0220\n\010metadata\030\021 \003(\0132\036.talon.data.Goal.Me" +
-      "tadataEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEntry\022\013\n\003k" +
-      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\266\001\n\016Artifact" +
-      "Access\022\024\n\014target_agent\030\001 \001(\t\022\031\n\021target_s" +
-      "ession_id\030\002 \001(\t\022\022\n\noperations\030\003 \003(\t\022\022\n\ne" +
-      "xpires_at\030\004 \001(\003\022\030\n\020granted_by_agent\030\005 \001(" +
-      "\t\022\035\n\025granted_by_session_id\030\006 \001(\t\022\022\n\ncrea" +
-      "ted_at\030\007 \001(\003\"\275\001\n\tPrincipal\022\023\n\013external_i" +
-      "d\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022\024\n\014display_name" +
-      "\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010metadata\030\005 \003(\0132#" +
-      ".talon.data.Principal.MetadataEntry\032/\n\rM" +
-      "etadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t" +
-      ":\0028\001\"\307\001\n\022SessionMessagePart\022\n\n\002id\030\001 \001(\t\022" +
-      "5\n\tpart_type\030\002 \001(\0162\".talon.data.SessionM" +
-      "essagePartType\022\017\n\007content\030\003 \001(\t\022\014\n\004name\030" +
-      "\004 \001(\t\022\024\n\014payload_json\030\005 \001(\t\022\022\n\ncreated_a" +
-      "t\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025.talon.data.Obj" +
-      "ectRef\"\363\001\n\016SessionMessage\022\n\n\002id\030\001 \001(\t\022%\n" +
-      "\004role\030\002 \001(\0162\027.talon.data.MessageRole\022\022\n\n" +
-      "created_at\030\004 \001(\003\0226\n\006labels\030\005 \003(\0132&.talon" +
-      ".data.SessionMessage.LabelsEntry\022-\n\005part" +
-      "s\030\006 \003(\0132\036.talon.data.SessionMessagePart\032" +
-      "-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
-      "(\t:\0028\001J\004\010\003\020\004\"\257\002\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005" +
-      "agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022" +
-      "\022\n\ncreated_at\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003" +
-      "\0223\n\010metadata\030\007 \003(\0132!.talon.data.Session." +
-      "MetadataEntry\022/\n\006labels\030\010 \003(\0132\037.talon.da" +
-      "ta.Session.LabelsEntry\032/\n\rMetadataEntry\022" +
-      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013Label" +
-      "sEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233" +
-      "\002\n\016ChannelMessage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(" +
-      "\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022" +
-      "\016\n\006author\030\005 \001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncrea" +
-      "ted_at\030\007 \001(\003\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021so" +
-      "urce_session_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&." +
-      "talon.data.ChannelMessage.LabelsEntry\032-\n" +
+      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\366\003\n\004" +
+      "Goal\022\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005a" +
+      "gent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022\021\n\tobject" +
+      "ive\030\005 \001(\t\022\030\n\020success_criteria\030\006 \003(\t\022$\n\005p" +
+      "hase\030\007 \001(\0162\025.talon.data.GoalPhase\022\030\n\020pro" +
+      "gress_summary\030\010 \001(\t\022\021\n\titeration\030\t \001(\005\022\026" +
+      "\n\016max_iterations\030\n \001(\005\022\022\n\ncreated_at\030\014 \001" +
+      "(\003\022\022\n\nupdated_at\030\r \001(\003\022\024\n\014completed_at\030\016" +
+      " \001(\003\022\026\n\016blocked_reason\030\017 \001(\t\022,\n\006labels\030\020" +
+      " \003(\0132\034.talon.data.Goal.LabelsEntry\0220\n\010me" +
+      "tadata\030\021 \003(\0132\036.talon.data.Goal.MetadataE" +
+      "ntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
+      "e\030\002 \001(\t:\0028\001\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\266\001\n\016ArtifactAccess\022" +
+      "\024\n\014target_agent\030\001 \001(\t\022\031\n\021target_session_" +
+      "id\030\002 \001(\t\022\022\n\noperations\030\003 \003(\t\022\022\n\nexpires_" +
+      "at\030\004 \001(\003\022\030\n\020granted_by_agent\030\005 \001(\t\022\035\n\025gr" +
+      "anted_by_session_id\030\006 \001(\t\022\022\n\ncreated_at\030" +
+      "\007 \001(\003\"\275\001\n\tPrincipal\022\023\n\013external_id\030\001 \001(\t" +
+      "\022\017\n\007address\030\002 \001(\t\022\024\n\014display_name\030\003 \001(\t\022" +
+      "\014\n\004kind\030\004 \001(\t\0225\n\010metadata\030\005 \003(\0132#.talon." +
+      "data.Principal.MetadataEntry\032/\n\rMetadata" +
+      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001" +
+      "\n\022SessionMessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tpart" +
+      "_type\030\002 \001(\0162\".talon.data.SessionMessageP" +
+      "artType\022\017\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024" +
+      "\n\014payload_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 \001(\003" +
+      "\022%\n\006object\030\007 \001(\0132\025.talon.data.ObjectRef\"" +
+      "\363\001\n\016SessionMessage\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002" +
+      " \001(\0162\027.talon.data.MessageRole\022\022\n\ncreated" +
+      "_at\030\004 \001(\003\0226\n\006labels\030\005 \003(\0132&.talon.data.S" +
+      "essionMessage.LabelsEntry\022-\n\005parts\030\006 \003(\013" +
+      "2\036.talon.data.SessionMessagePart\032-\n\013Labe" +
+      "lsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J" +
+      "\004\010\003\020\004\"\257\002\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002" +
+      " \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncrea" +
+      "ted_at\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010met" +
+      "adata\030\007 \003(\0132!.talon.data.Session.Metadat" +
+      "aEntry\022/\n\006labels\030\010 \003(\0132\037.talon.data.Sess" +
+      "ion.LabelsEntry\032/\n\rMetadataEntry\022\013\n\003key\030" +
+      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022" +
+      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016Chan" +
+      "nelMessage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007ch" +
+      "annel\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006auth" +
+      "or\030\005 \001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_at\030" +
+      "\007 \001(\003\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021source_se" +
+      "ssion_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talon.d" +
+      "ata.ChannelMessage.LabelsEntry\032-\n\013Labels" +
+      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n" +
+      "\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(" +
+      "\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t" +
+      "\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSearchResult\022" +
+      "\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030" +
+      "\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 " +
+      "\001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workf" +
+      "low\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n" +
+      "\ninput_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n" +
+      "\013output_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022" +
+      "\n\nupdated_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.tal" +
+      "on.data.WorkflowRun.LabelsEntry\022\035\n\020claim" +
+      "_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n" +
+      "\tspec_json\030\r \001(\t\022\031\n\021workflow_revision\030\016 " +
+      "\001(\004\022\023\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_attemp" +
+      "t\030\020 \001(\r\022\034\n\024last_dispatch_reason\030\021 \001(\t\032-\n" +
       "\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t" +
-      ":\0028\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007conte" +
-      "nt\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tnamespac" +
-      "e\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSearch" +
-      "Result\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n" +
-      "\005score\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnames" +
-      "pace\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020" +
-      "\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004" +
-      " \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nstate_json\030\006" +
-      " \001(\t\022\023\n\013output_json\030\007 \001(\t\022\022\n\ncreated_at\030" +
-      "\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006labels\030\n \003(" +
-      "\0132#.talon.data.WorkflowRun.LabelsEntry\022\035" +
-      "\n\020claim_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014" +
-      " \001(\t\022\021\n\tspec_json\030\r \001(\t\022\031\n\021workflow_revi" +
-      "sion\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim" +
-      "_attempt\030\020 \001(\r\022\034\n\024last_dispatch_reason\030\021" +
-      " \001(\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
-      "e\030\002 \001(\t:\0028\001B\023\n\021_claim_expires_at\"\263\003\n\017Wor" +
-      "kflowStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(" +
-      "\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\nin" +
-      "put_json\030\005 \001(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005e" +
-      "rror\030\007 \001(\t\022\030\n\020child_session_id\030\010 \001(\t\022\035\n\025" +
-      "child_workflow_run_id\030\t \001(\t\022\023\n\013resume_js" +
-      "on\030\n \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022\022\n\ncreate" +
-      "d_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032\n\rnext_r" +
-      "etry_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001" +
-      "\210\001\001\022\032\n\022wait_wakeup_handle\030\020 \001(\t\022\032\n\rwait_" +
-      "until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n" +
-      "\013_timeout_atB\020\n\016_wait_until_at\"\245\001\n\020Workf" +
-      "lowRunEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010w" +
-      "orkflow\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 " +
-      "\001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n" +
-      "\014payload_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W" +
-      "\n\013MessageRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tR" +
-      "OLE_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_S" +
-      "YSTEM\020\003*\244\004\n\026SessionMessagePartType\022)\n%SE" +
-      "SSION_MESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n" +
-      "\036SESSION_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SES" +
-      "SION_MESSAGE_PART_TYPE_REASONING\020\002\022\'\n#SE" +
-      "SSION_MESSAGE_PART_TYPE_TOOL_CALL\020\003\022)\n%S" +
-      "ESSION_MESSAGE_PART_TYPE_TOOL_RESULT\020\004\022#" +
-      "\n\037SESSION_MESSAGE_PART_TYPE_USAGE\020\005\022#\n\037S" +
-      "ESSION_MESSAGE_PART_TYPE_ERROR\020\006\022#\n\037SESS" +
-      "ION_MESSAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION" +
-      "_MESSAGE_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_ME" +
-      "SSAGE_PART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSA" +
-      "GE_PART_TYPE_FILE\020\n\0220\n,SESSION_MESSAGE_P" +
-      "ART_TYPE_REQUEST_PERMISSION\020\013\022/\n+SESSION" +
-      "_MESSAGE_PART_TYPE_PERMISSION_RESULT\020\014*\355" +
-      "\001\n\tGoalPhase\022\032\n\026GOAL_PHASE_UNSPECIFIED\020\000" +
-      "\022\026\n\022GOAL_PHASE_RUNNING\020\001\022\025\n\021GOAL_PHASE_P" +
-      "AUSED\020\002\022\033\n\027GOAL_PHASE_NEEDS_REVIEW\020\003\022\030\n\024" +
-      "GOAL_PHASE_SUCCEEDED\020\004\022\025\n\021GOAL_PHASE_FAI" +
-      "LED\020\005\022\026\n\022GOAL_PHASE_BLOCKED\020\006\022\027\n\023GOAL_PH" +
-      "ASE_CANCELED\020\007\022\026\n\022GOAL_PHASE_EXPIRED\020\010b\006" +
-      "proto3"
+      ":\0028\001B\023\n\021_claim_expires_at\"\263\003\n\017WorkflowSt" +
+      "epRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007at" +
+      "tempt\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_jso" +
+      "n\030\005 \001(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005error\030\007 " +
+      "\001(\t\022\030\n\020child_session_id\030\010 \001(\t\022\035\n\025child_w" +
+      "orkflow_run_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(" +
+      "\t\022\024\n\014suspend_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 " +
+      "\001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retry_at" +
+      "\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022" +
+      "wait_wakeup_handle\030\020 \001(\t\022\032\n\rwait_until_a" +
+      "t\030\021 \001(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_timeo" +
+      "ut_atB\020\n\016_wait_until_at\"\245\001\n\020WorkflowRunE" +
+      "vent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow" +
+      "\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007" +
+      "step_id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payloa" +
+      "d_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013Messa" +
+      "geRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_USE" +
+      "R\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003" +
+      "*\244\004\n\026SessionMessagePartType\022)\n%SESSION_M" +
+      "ESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSIO" +
+      "N_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION_ME" +
+      "SSAGE_PART_TYPE_REASONING\020\002\022\'\n#SESSION_M" +
+      "ESSAGE_PART_TYPE_TOOL_CALL\020\003\022)\n%SESSION_" +
+      "MESSAGE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037SESSI" +
+      "ON_MESSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESSION_" +
+      "MESSAGE_PART_TYPE_ERROR\020\006\022#\n\037SESSION_MES" +
+      "SAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION_MESSAG" +
+      "E_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAGE_P" +
+      "ART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_PART" +
+      "_TYPE_FILE\020\n\0220\n,SESSION_MESSAGE_PART_TYP" +
+      "E_REQUEST_PERMISSION\020\013\022/\n+SESSION_MESSAG" +
+      "E_PART_TYPE_PERMISSION_RESULT\020\014*\355\001\n\tGoal" +
+      "Phase\022\032\n\026GOAL_PHASE_UNSPECIFIED\020\000\022\026\n\022GOA" +
+      "L_PHASE_RUNNING\020\001\022\025\n\021GOAL_PHASE_PAUSED\020\002" +
+      "\022\033\n\027GOAL_PHASE_NEEDS_REVIEW\020\003\022\030\n\024GOAL_PH" +
+      "ASE_SUCCEEDED\020\004\022\025\n\021GOAL_PHASE_FAILED\020\005\022\026" +
+      "\n\022GOAL_PHASE_BLOCKED\020\006\022\027\n\023GOAL_PHASE_CAN" +
+      "CELED\020\007\022\026\n\022GOAL_PHASE_EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -29069,18 +26724,12 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Artifact_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_data_GoalEvidenceRef_descriptor =
-      getDescriptor().getMessageType(2);
-    internal_static_talon_data_GoalEvidenceRef_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_data_GoalEvidenceRef_descriptor,
-        new java.lang.String[] { "Kind", "Namespace", "Name", "Agent", "SessionId", "Handle", "ObjectKey", "Summary", });
     internal_static_talon_data_Goal_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(2);
     internal_static_talon_data_Goal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Goal_descriptor,
-        new java.lang.String[] { "Id", "Namespace", "Agent", "SessionId", "Objective", "SuccessCriteria", "Phase", "ProgressSummary", "Iteration", "MaxIterations", "EvidenceRefs", "CreatedAt", "UpdatedAt", "CompletedAt", "BlockedReason", "Labels", "Metadata", });
+        new java.lang.String[] { "Id", "Namespace", "Agent", "SessionId", "Objective", "SuccessCriteria", "Phase", "ProgressSummary", "Iteration", "MaxIterations", "CreatedAt", "UpdatedAt", "CompletedAt", "BlockedReason", "Labels", "Metadata", });
     internal_static_talon_data_Goal_LabelsEntry_descriptor =
       internal_static_talon_data_Goal_descriptor.getNestedType(0);
     internal_static_talon_data_Goal_LabelsEntry_fieldAccessorTable = new
@@ -29094,13 +26743,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Goal_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_ArtifactAccess_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(3);
     internal_static_talon_data_ArtifactAccess_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ArtifactAccess_descriptor,
         new java.lang.String[] { "TargetAgent", "TargetSessionId", "Operations", "ExpiresAt", "GrantedByAgent", "GrantedBySessionId", "CreatedAt", });
     internal_static_talon_data_Principal_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(4);
     internal_static_talon_data_Principal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Principal_descriptor,
@@ -29112,13 +26761,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Principal_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_SessionMessagePart_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(5);
     internal_static_talon_data_SessionMessagePart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessagePart_descriptor,
         new java.lang.String[] { "Id", "PartType", "Content", "Name", "PayloadJson", "CreatedAt", "Object", });
     internal_static_talon_data_SessionMessage_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(6);
     internal_static_talon_data_SessionMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessage_descriptor,
@@ -29130,7 +26779,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_SessionMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Session_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(7);
     internal_static_talon_data_Session_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Session_descriptor,
@@ -29148,7 +26797,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Session_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_ChannelMessage_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(8);
     internal_static_talon_data_ChannelMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ChannelMessage_descriptor,
@@ -29160,19 +26809,19 @@ java.lang.String defaultValue) {
         internal_static_talon_data_ChannelMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Knowledge_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(9);
     internal_static_talon_data_Knowledge_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Knowledge_descriptor,
         new java.lang.String[] { "Path", "Content", "UpdatedAt", "Namespace", "Name", });
     internal_static_talon_data_KnowledgeSearchResult_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(10);
     internal_static_talon_data_KnowledgeSearchResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_KnowledgeSearchResult_descriptor,
         new java.lang.String[] { "Path", "Snippet", "Score", "Timestamp", "Namespace", });
     internal_static_talon_data_WorkflowRun_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(11);
     internal_static_talon_data_WorkflowRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRun_descriptor,
@@ -29184,13 +26833,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_WorkflowRun_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_WorkflowStepRun_descriptor =
-      getDescriptor().getMessageType(13);
+      getDescriptor().getMessageType(12);
     internal_static_talon_data_WorkflowStepRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowStepRun_descriptor,
         new java.lang.String[] { "Id", "StepId", "Attempt", "Status", "InputJson", "OutputJson", "Error", "ChildSessionId", "ChildWorkflowRunId", "ResumeJson", "SuspendJson", "CreatedAt", "UpdatedAt", "NextRetryAt", "TimeoutAt", "WaitWakeupHandle", "WaitUntilAt", });
     internal_static_talon_data_WorkflowRunEvent_descriptor =
-      getDescriptor().getMessageType(14);
+      getDescriptor().getMessageType(13);
     internal_static_talon_data_WorkflowRunEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRunEvent_descriptor,
