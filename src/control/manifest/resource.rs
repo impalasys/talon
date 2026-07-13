@@ -391,7 +391,7 @@ pub fn resource_spec_status_from_json(
             kind: Some(StatusKind::File(file_status_from_value(status_value)?)),
         },
         "Task" => resources_proto::ResourceStatus {
-            kind: Some(StatusKind::Task(serde_json::from_value(status_value)?)),
+            kind: Some(StatusKind::Task(task_status_from_value(status_value)?)),
         },
         "Worker" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Worker(worker_status_from_value(status_value)?)),
@@ -602,7 +602,9 @@ fn resource_spec_status_to_yaml_values(
         Some(StatusKind::ConnectorClass(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Connector(status)) => serde_json::to_string(status)?,
         Some(StatusKind::File(status)) => serde_json::to_string(status)?,
-        Some(StatusKind::Task(status)) => serde_json::to_string(status)?,
+        Some(StatusKind::Task(status)) => {
+            serde_json::to_string(&TaskStatusManifest::from_proto(status))?
+        }
         Some(StatusKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
     };
@@ -664,6 +666,63 @@ fn file_status_from_value(value: serde_json::Value) -> Result<resources_proto::F
         return Ok(resources_proto::FileStatus::default());
     }
     serde_json::from_value(value).context("Failed to parse File status")
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct TaskStatusManifest {
+    observed_generation: u64,
+    #[serde(with = "crate::control::manifest::enum_serde::task_phase")]
+    phase: i32,
+    conditions: Vec<resources_proto::ResourceCondition>,
+    progress_summary: String,
+    result_artifacts: Vec<resources_proto::FileObjectRef>,
+    created_at: i64,
+    updated_at: i64,
+    completed_at: i64,
+    expires_at: i64,
+    execution_ref: Option<resources_proto::TaskExecutionRef>,
+}
+
+impl TaskStatusManifest {
+    fn into_proto(self) -> resources_proto::TaskStatus {
+        resources_proto::TaskStatus {
+            observed_generation: self.observed_generation,
+            phase: self.phase,
+            conditions: self.conditions,
+            progress_summary: self.progress_summary,
+            result_artifacts: self.result_artifacts,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            completed_at: self.completed_at,
+            expires_at: self.expires_at,
+            execution_ref: self.execution_ref,
+        }
+    }
+
+    fn from_proto(status: &resources_proto::TaskStatus) -> Self {
+        Self {
+            observed_generation: status.observed_generation,
+            phase: status.phase,
+            conditions: status.conditions.clone(),
+            progress_summary: status.progress_summary.clone(),
+            result_artifacts: status.result_artifacts.clone(),
+            created_at: status.created_at,
+            updated_at: status.updated_at,
+            completed_at: status.completed_at,
+            expires_at: status.expires_at,
+            execution_ref: status.execution_ref.clone(),
+        }
+    }
+}
+
+fn task_status_from_value(value: serde_json::Value) -> Result<resources_proto::TaskStatus> {
+    if value.as_object().map(|object| object.is_empty()).unwrap_or(false) {
+        return Ok(resources_proto::TaskStatus::default());
+    }
+    Ok(serde_json::from_value::<TaskStatusManifest>(value)
+        .context("Failed to parse Task status")?
+        .into_proto())
 }
 
 fn template_spec_from_value(value: serde_json::Value) -> Result<resources_proto::TemplateSpec> {
