@@ -71,10 +71,27 @@ function runtimeTemplate(template: any) {
   return yamlSafeValue(template || {});
 }
 
+function enumLabel(value: any, labels: Record<number, string>) {
+  if (typeof value === 'number') return labels[value] || 'UNSPECIFIED';
+  if (typeof value === 'bigint') return labels[Number(value)] || 'UNSPECIFIED';
+  if (typeof value === 'string' && value.trim()) {
+    return value.replace(/^FILE_(PURPOSE|INDEX_POLICY|RETENTION)_/, '');
+  }
+  return 'UNSPECIFIED';
+}
+
 function manifestSpec(caseName: string | undefined, value: any) {
   const spec = value || {};
 
   switch (caseName) {
+    case 'file':
+      return yamlSafeValue({
+        path: spec.path || '',
+        mediaType: spec.mediaType || '',
+        purpose: enumLabel(spec.purpose, { 1: 'MEMORY', 2: 'ARTIFACT' }),
+        indexPolicy: enumLabel(spec.indexPolicy, { 1: 'NONE', 2: 'SEARCH', 3: 'RETRIEVAL' }),
+        retention: enumLabel(spec.retention, { 1: 'RETAINED' }),
+      });
     case 'template':
       return yamlSafeValue({
         kind: spec.kind || '',

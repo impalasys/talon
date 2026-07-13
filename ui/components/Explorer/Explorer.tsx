@@ -71,7 +71,7 @@ const API_VERSION = 'talon.impalasys.com/v1';
 const LEAF_TYPES: SelectionType[] = [
   'session',
   'schedule',
-  'knowledge',
+  'file',
   'mcp-server',
   'channel-subscription',
   'workflow',
@@ -109,7 +109,7 @@ function NodeIcon({ type, selected, expanded }: { type: SelectionType; selected:
     'sandbox-policy': ShieldCheck,
     sandbox: Cube,
     'mcp-server': Plug,
-    knowledge: FileText,
+    file: FileText,
   };
   const colorByType: Partial<Record<SelectionType, string>> = {
     namespace: selected ? 'text-slate-900 dark:text-slate-50' : 'text-slate-500',
@@ -126,7 +126,7 @@ function NodeIcon({ type, selected, expanded }: { type: SelectionType; selected:
     'sandbox-policy': 'text-fuchsia-400',
     sandbox: 'text-orange-500',
     'mcp-server': 'text-blue-600',
-    knowledge: 'text-violet-500',
+    file: 'text-violet-500',
   };
   const IconComponent = iconByType[type] || Cube;
   return (
