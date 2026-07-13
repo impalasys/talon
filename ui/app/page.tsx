@@ -1466,6 +1466,7 @@ function DebuggerPageContent() {
               selectedNode={selectedNamespace}
               isLoading={resourceLoading}
               error={resourceError}
+              document={resourceDocument}
               yaml={resourceYaml}
               dedicatedInspector={
                 selectedNamespace?.type === 'schedule' && resourceDocument ? (
