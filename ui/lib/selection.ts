@@ -17,7 +17,7 @@ export type SelectionType =
   | 'sandbox-policy'
   | 'sandbox'
   | 'mcp-server'
-  | 'knowledge';
+  | 'file';
 
 export type Selection = {
   type: SelectionType;
@@ -44,7 +44,7 @@ export const RESOURCE_KIND_BY_SELECTION: Partial<Record<SelectionType, string>> 
   'sandbox-policy': 'SandboxPolicy',
   sandbox: 'Sandbox',
   'mcp-server': 'McpServer',
-  knowledge: 'Knowledge',
+  file: 'File',
 };
 
 export function areSelectionsEqual(left: Selection | null, right: Selection | null) {
@@ -166,12 +166,12 @@ export function selectionFromSearchParams(searchParams: URLSearchParams): Select
     };
   }
 
-  if (type === 'knowledge' && resourceName) {
+  if (type === 'file' && resourceName) {
     return {
-      type: 'knowledge',
+      type: 'file',
       ns,
       resourceName,
-      fullPath: `${ns}:knowledge:${resourceName}`,
+      fullPath: `${ns}:file:${resourceName}`,
     };
   }
 
@@ -253,7 +253,7 @@ export function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'workflow') return `${selection.ns} / Workflow`;
   if (selection.type === 'schedule') return `${selection.ns} / Schedule`;
   if (selection.type === 'mcp-server') return `${selection.ns} / MCPServer`;
-  if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
+  if (selection.type === 'file') return `${selection.ns} / File`;
   if (selection.type === 'template') return `${selection.ns} / Template`;
   if (selection.type === 'deployment') return `${selection.ns} / Deployment`;
   if (selection.type === 'deployment-replica') return `${selection.ns} / DeploymentReplica`;

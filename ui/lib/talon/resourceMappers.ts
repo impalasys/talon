@@ -55,11 +55,14 @@ export type ExplorerSchedule = {
   };
 };
 
-export type ExplorerKnowledge = {
+export type ExplorerFile = {
   metadata?: ResourceEnvelope['metadata'];
   spec?: {
     path?: string;
-    content?: string;
+    mediaType?: string;
+    purpose?: number | string;
+    indexPolicy?: number | string;
+    retention?: number | string;
   };
 };
 
@@ -229,10 +232,10 @@ export function scheduleDocumentFromResource(resource: ResourceEnvelope): Schedu
   });
 }
 
-export function knowledgeFromResource(resource: ResourceEnvelope): ExplorerKnowledge {
+export function fileFromResource(resource: ResourceEnvelope): ExplorerFile {
   return {
     metadata: resource.metadata,
-    spec: resourceSpec(resource, 'knowledge'),
+    spec: resourceSpec(resource, 'file'),
   };
 }
 
