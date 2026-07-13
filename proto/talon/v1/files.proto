@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package talon.v1;
+
+import "proto/data/data.proto";
+import "proto/resources/files.proto";
+
+service FileService {
+  // Read RPCs return signed URLs when the configured object store supports
+  // them. Inline content is a small-object fallback and is capped by the
+  // gateway.
+  rpc CreateFile(CreateFileRequest) returns (FileResponse);
+  rpc PrepareFileUpload(PrepareFileUploadRequest)
+      returns (PrepareFileUploadResponse);
+  rpc CompleteFileUpload(CompleteFileUploadRequest) returns (FileResponse);
+  rpc ReadFile(ReadFileRequest) returns (ReadFileResponse);
+  rpc UpdateFile(UpdateFileRequest) returns (FileResponse);
+  rpc GetFileMetadata(GetFileMetadataRequest) returns (FileResponse);
+  // V1 returns a flat catalog page filtered by File metadata. Directory-style
+  // listing and path indexes are intentionally deferred.
+  rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+  rpc PromoteArtifact(PromoteArtifactRequest) returns (FileResponse);
+}
+
+service ArtifactService {
+  // Artifact creation is handled by the runtime/tooling for an active session.
+  // This service only exposes URI-based artifact reads, metadata, listing,
+  // and access grant operations.
+  rpc ReadArtifact(ReadArtifactRequest) returns (ReadArtifactResponse);
+  rpc GetArtifactMetadata(GetArtifactMetadataRequest) returns (ArtifactResponse);
+  rpc ListArtifacts(ListArtifactsRequest) returns (ListArtifactsResponse);
+  rpc GrantArtifact(GrantArtifactRequest) returns (ArtifactUriResponse);
+}
+
+message FileRef {
+  string namespace = 1;
+  string name = 2;
+  string path = 3;
+  string uri = 4;
+}
+
+message CreateFileRequest {
+  string namespace = 1;
+  string path = 2;
+  string media_type = 3;
+  talon.resources.FilePurpose purpose = 4;
+  talon.resources.FileIndexPolicy index_policy = 5;
+  talon.resources.FileRetention retention = 6;
+  bytes content = 7;
+}
+
+message PrepareFileUploadRequest {
+  string namespace = 1;
+  string path = 2;
+  string media_type = 3;
+  talon.resources.FilePurpose purpose = 4;
+  talon.resources.FileIndexPolicy index_policy = 5;
+  talon.resources.FileRetention retention = 6;
+  FileRef file = 7;
+  uint64 expected_size_bytes = 8;
+  string expected_sha256 = 9;
+}
+
+message PrepareFileUploadResponse {
+  talon.resources.File file = 1;
+  string upload_token = 2;
+  string signed_upload_url = 3;
+  string method = 4;
+  map<string, string> required_headers = 5;
+  int64 signed_url_expires_at_unix_seconds = 6;
+  string object_key = 7;
+}
+
+message CompleteFileUploadRequest {
+  string upload_token = 1;
+}
+
+message ReadFileRequest {
+  FileRef file = 1;
+}
+
+message ReadFileResponse {
+  talon.resources.File file = 1;
+  bytes content = 2;
+  string signed_url = 3;
+  int64 signed_url_expires_at_unix_seconds = 4;
+}
+
+message UpdateFileRequest {
+  FileRef file = 1;
+  string media_type = 2;
+  bytes content = 3;
+}
+
+message GetFileMetadataRequest {
+  FileRef file = 1;
+}
+
+message ListFilesRequest {
+  string namespace = 1;
+  string prefix = 2;
+  talon.resources.FilePurpose purpose = 3;
+  talon.resources.FileIndexPolicy index_policy = 4;
+  uint32 limit = 5;
+  string page_token = 6;
+}
+
+message ListFilesResponse {
+  repeated talon.resources.File files = 1;
+  string next_page_token = 2;
+}
+
+message DeleteFileRequest {
+  FileRef file = 1;
+}
+
+message DeleteFileResponse {
+  bool success = 1;
+}
+
+message PromoteArtifactRequest {
+  string artifact_uri = 1;
+  string target_path = 2;
+  string media_type = 3;
+  talon.resources.FilePurpose purpose = 4;
+  talon.resources.FileIndexPolicy index_policy = 5;
+  talon.resources.FileRetention retention = 6;
+}
+
+message FileResponse {
+  talon.resources.File file = 1;
+  string file_uri = 2;
+}
+
+message ReadArtifactRequest {
+  string artifact_uri = 1;
+}
+
+message ReadArtifactResponse {
+  talon.data.Artifact artifact = 1;
+  bytes content = 2;
+  string signed_url = 3;
+  int64 signed_url_expires_at_unix_seconds = 4;
+}
+
+message GetArtifactMetadataRequest {
+  string artifact_uri = 1;
+}
+
+message ListArtifactsRequest {
+  string namespace = 1;
+  string agent = 2;
+  string session_id = 3;
+  uint32 limit = 5;
+  string page_token = 6;
+}
+
+message ListArtifactsResponse {
+  repeated talon.data.Artifact artifacts = 1;
+  string next_page_token = 2;
+}
+
+message GrantArtifactRequest {
+  string artifact_uri = 1;
+  string target_agent = 2;
+  string target_session_id = 3;
+  repeated string operations = 4;
+  int64 ttl_seconds = 5;
+}
+
+message ArtifactResponse {
+  talon.data.Artifact artifact = 1;
+  string artifact_uri = 2;
+}
+
+message ArtifactUriResponse {
+  string artifact_uri = 1;
+}

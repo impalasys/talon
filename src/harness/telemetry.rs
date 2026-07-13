@@ -7,6 +7,8 @@ use crate::harness::llm::{
 use serde_json::{json, Value};
 use tracing::{field, Span};
 
+const MAX_TELEMETRY_FIELD_CHARS: usize = 12_000;
+
 pub fn tenant_slug(namespace: &str) -> Option<&str> {
     namespace
         .strip_prefix("Tenant:")
@@ -145,7 +147,7 @@ pub fn record_chat_output(span: &Span, content: &str, tool_calls: &[ToolCall]) {
 }
 
 pub fn record_tool_result(span: &Span, result: &str) {
-    let output = serialize_json_or_string(result);
+    let output = serialize_json_or_string(&truncate_middle(result, MAX_TELEMETRY_FIELD_CHARS));
     span.record("gen_ai.tool.call.result", output.as_str());
 }
 
@@ -201,6 +203,38 @@ pub fn serialize_json_or_string(value: &str) -> String {
     serde_json::from_str::<Value>(value)
         .unwrap_or_else(|_| Value::String(value.to_string()))
         .to_string()
+}
+
+fn truncate_middle(text: &str, max_chars: usize) -> String {
+    if max_chars == 0 {
+        return String::new();
+    }
+
+    let chars = text.chars().collect::<Vec<_>>();
+    if chars.len() <= max_chars {
+        return text.to_string();
+    }
+
+    if max_chars <= 32 {
+        return chars.into_iter().take(max_chars).collect();
+    }
+
+    let omitted = chars.len() - max_chars;
+    let marker = format!("\n...[{omitted} chars omitted]...\n");
+    let marker_len = marker.chars().count();
+    if marker_len >= max_chars {
+        return chars.into_iter().take(max_chars).collect();
+    }
+
+    let remaining = max_chars - marker_len;
+    let prefix_len = remaining * 2 / 3;
+    let suffix_len = remaining.saturating_sub(prefix_len);
+    let prefix = chars.iter().take(prefix_len).collect::<String>();
+    let suffix = chars
+        .iter()
+        .skip(chars.len().saturating_sub(suffix_len))
+        .collect::<String>();
+    format!("{prefix}{marker}{suffix}")
 }
 
 fn serialize_json_array(values: impl IntoIterator<Item = Value>) -> String {

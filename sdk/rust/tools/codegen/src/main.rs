@@ -43,6 +43,7 @@ fn main() {
         root.join("proto/resources/schedules.proto"),
         root.join("proto/resources/workflows.proto"),
         root.join("proto/resources/deployments.proto"),
+        root.join("proto/resources/files.proto"),
         root.join("proto/resources/sandboxes.proto"),
         root.join("proto/resources/sessions.proto"),
         root.join("proto/resources/skills.proto"),
@@ -103,6 +104,7 @@ fn talon_v1_protos(root: &std::path::Path) -> Vec<PathBuf> {
         "channels.proto",
         "workflows.proto",
         "knowledge.proto",
+        "files.proto",
         "search.proto",
         "auth.proto",
         "connectors.proto",
@@ -118,6 +120,7 @@ fn parse_talon_v1_services(paths: &[PathBuf]) -> Vec<Service> {
 
     for path in paths {
         let source = std::fs::read_to_string(path).expect("read talon v1 proto");
+        let mut pending_rpc: Option<String> = None;
         for raw_line in source.lines() {
             let line = raw_line.trim();
             if let Some(name) = line
@@ -145,33 +148,48 @@ fn parse_talon_v1_services(paths: &[PathBuf]) -> Vec<Service> {
             let Some(service) = current.as_mut() else {
                 continue;
             };
-            let Some(signature) = line.strip_prefix("rpc ") else {
-                continue;
+            let rpc_line = if let Some(pending) = pending_rpc.as_mut() {
+                pending.push(' ');
+                pending.push_str(line);
+                if !line.ends_with(';') {
+                    continue;
+                }
+                pending_rpc.take().expect("pending rpc")
+            } else {
+                let Some(_) = line.strip_prefix("rpc ") else {
+                    continue;
+                };
+                if !line.ends_with(';') {
+                    pending_rpc = Some(line.to_string());
+                    continue;
+                }
+                line.to_string()
             };
-            let Some((rpc_name, rest)) = signature.split_once('(') else {
-                continue;
-            };
-            let Some((request, rest)) = rest.split_once(") returns (") else {
-                continue;
-            };
-            let Some(response) = rest.strip_suffix(");") else {
-                continue;
-            };
-            let (server_streaming, response) = response
-                .strip_prefix("stream ")
-                .map(|response| (true, response))
-                .unwrap_or((false, response));
-            service.methods.push(Method {
-                rpc_name: rpc_name.trim().to_string(),
-                method_name: delegate_method_name(&service.name, rpc_name.trim()),
-                request: rust_type_path(request.trim()),
-                response: rust_type_path(response.trim()),
-                server_streaming,
-            });
+            if let Some(method) = parse_rpc_method(service, &rpc_line) {
+                service.methods.push(method);
+            }
         }
     }
 
     services
+}
+
+fn parse_rpc_method(service: &Service, line: &str) -> Option<Method> {
+    let signature = line.strip_prefix("rpc ")?;
+    let (rpc_name, rest) = signature.split_once('(')?;
+    let (request, rest) = rest.split_once(") returns (")?;
+    let response = rest.strip_suffix(");")?;
+    let (server_streaming, response) = response
+        .strip_prefix("stream ")
+        .map(|response| (true, response))
+        .unwrap_or((false, response));
+    Some(Method {
+        rpc_name: rpc_name.trim().to_string(),
+        method_name: delegate_method_name(&service.name, rpc_name.trim()),
+        request: rust_type_path(request.trim()),
+        response: rust_type_path(response.trim()),
+        server_streaming,
+    })
 }
 
 fn generate_clientset(services: &[Service]) -> String {

@@ -47,6 +47,11 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.DeploymentReplicaStatus",
         ".talon.resources.DeploymentSpec",
         ".talon.resources.DeploymentStatus",
+        ".talon.resources.File",
+        ".talon.resources.FileObjectRef",
+        ".talon.resources.PendingFileUpload",
+        ".talon.resources.FileSpec",
+        ".talon.resources.FileStatus",
         ".talon.resources.Feature",
         ".talon.resources.InternalConnectionRef",
         ".talon.resources.Knowledge",
@@ -116,12 +121,14 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.WorkflowStepOutputPolicy",
         ".talon.resources.WorkflowStepRetryPolicy",
         ".talon.data.ChannelMessage",
+        ".talon.data.Artifact",
         ".talon.data.ApiKeyGrant",
         ".talon.data.ApiKeyRecord",
         ".talon.data.ChannelMessageConsumer",
         ".talon.data.Document",
         ".talon.data.DocumentRef",
         ".talon.data.DocumentSource",
+        ".talon.data.ArtifactAccess",
         ".talon.data.Knowledge",
         ".talon.data.KnowledgeSearchResult",
         ".talon.data.MessageConsumer",
@@ -190,6 +197,18 @@ fn main() -> std::io::Result<()> {
     );
     builder = builder
         .field_attribute(
+            ".talon.resources.FileSpec.purpose",
+            "#[serde(with = \"crate::control::manifest::enum_serde::file_purpose\")]",
+        )
+        .field_attribute(
+            ".talon.resources.FileSpec.index_policy",
+            "#[serde(with = \"crate::control::manifest::enum_serde::file_index_policy\")]",
+        )
+        .field_attribute(
+            ".talon.resources.FileSpec.retention",
+            "#[serde(with = \"crate::control::manifest::enum_serde::file_retention\")]",
+        )
+        .field_attribute(
             ".talon.external.RegisterClusterResponse.registration_id",
             "#[serde(skip_serializing_if = \"Option::is_none\")]",
         )
@@ -222,6 +241,7 @@ fn main() -> std::io::Result<()> {
             "proto/resources/schedules.proto",
             "proto/resources/workflows.proto",
             "proto/resources/deployments.proto",
+            "proto/resources/files.proto",
             "proto/resources/sandboxes.proto",
             "proto/resources/sessions.proto",
             "proto/resources/skills.proto",
@@ -242,6 +262,7 @@ fn main() -> std::io::Result<()> {
             "proto/talon/v1/cas.proto",
             "proto/talon/v1/channels.proto",
             "proto/talon/v1/connectors.proto",
+            "proto/talon/v1/files.proto",
             "proto/talon/v1/knowledge.proto",
             "proto/talon/v1/namespaces.proto",
             "proto/talon/v1/resources.proto",

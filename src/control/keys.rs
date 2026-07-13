@@ -3,6 +3,7 @@
 
 use crate::control::ns;
 use anyhow::{anyhow, bail, Result};
+use sha2::{Digest, Sha256};
 use std::fmt;
 
 const NS_PREFIX: &str = "@Namespace";
@@ -346,6 +347,38 @@ pub fn agent_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("Agent"))
 }
 
+pub fn file(namespace: &str, name: &str) -> ResourceKey {
+    resource_key(namespace, &[], "File", name)
+}
+
+pub fn file_name_for_path(path: &str) -> String {
+    let slug = path
+        .trim_matches('/')
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() {
+                ch.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>()
+        .trim_matches('-')
+        .chars()
+        .take(48)
+        .collect::<String>();
+    let hash = format!("{:x}", Sha256::digest(path.as_bytes()));
+    format!(
+        "{}-{}",
+        if slug.is_empty() { "file" } else { &slug },
+        &hash[..12]
+    )
+}
+
+pub fn file_prefix(namespace: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[], Some("File"))
+}
+
 pub fn session(namespace: &str, agent: &str, session_id: &str) -> ResourceKey {
     resource_key(namespace, &[("Agent", agent)], "Session", session_id)
 }
@@ -389,6 +422,64 @@ pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) ->
     )
 }
 
+pub fn artifact(namespace: &str, agent: &str, session_id: &str, artifact_id: &str) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "Artifact",
+        artifact_id,
+    )
+}
+
+pub fn artifact_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        Some("Artifact"),
+    )
+}
+
+pub fn artifact_access_name(target_agent: &str, target_session_id: &str) -> String {
+    format!("{target_agent}:{target_session_id}")
+}
+
+pub fn artifact_access(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    artifact_id: &str,
+    target_agent: &str,
+    target_session_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[
+            ("Agent", agent),
+            ("Session", session_id),
+            ("Artifact", artifact_id),
+        ],
+        "ArtifactAccess",
+        &artifact_access_name(target_agent, target_session_id),
+    )
+}
+
+pub fn artifact_access_prefix(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    artifact_id: &str,
+) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[
+            ("Agent", agent),
+            ("Session", session_id),
+            ("Artifact", artifact_id),
+        ],
+        Some("ArtifactAccess"),
+    )
+}
+
 pub fn session_submission(
     namespace: &str,
     agent: &str,
@@ -408,6 +499,28 @@ pub fn session_submission_prefix(namespace: &str, agent: &str, session_id: &str)
         namespace,
         &[("Agent", agent), ("Session", session_id)],
         Some("SessionSubmission"),
+    )
+}
+
+pub fn async_a2a_wakeup(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    wakeup_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "AsyncA2AWakeup",
+        wakeup_id,
+    )
+}
+
+pub fn async_a2a_wakeup_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        Some("AsyncA2AWakeup"),
     )
 }
 
@@ -659,6 +772,10 @@ mod tests {
             "@Namespace/Impala:Talon/Channel/incident-123/@/ChannelSubscription/researcher"
         );
         assert_eq!(
+            file("Impala:Talon", "brand-guidelines-md-7f3a").canonical(),
+            "@Namespace/Impala:Talon/@/File/brand-guidelines-md-7f3a"
+        );
+        assert_eq!(
             connector_route("Impala:Talon", "slack", "team\u{1f}teamId=T123").canonical(),
             "@Namespace/Impala:Talon/ConnectorClass/slack/@/Route/team%1FteamId%3DT123"
         );
@@ -682,6 +799,16 @@ mod tests {
     }
 
     #[test]
+    fn file_names_are_derived_from_full_logical_path() {
+        let acme = file_name_for_path("/memory/acme/brand-guidelines.md");
+        let conic = file_name_for_path("/memory/conic/brand-guidelines.md");
+        assert_ne!(acme, conic);
+        assert!(acme.starts_with("memory-acme-brand-guidelines-md-"));
+        assert!(conic.starts_with("memory-conic-brand-guidelines-md-"));
+        assert_eq!(acme.rsplit_once('-').unwrap().1.len(), 12);
+    }
+
+    #[test]
     fn prefixes_distinguish_direct_and_recursive_listing() {
         assert_eq!(
             session_prefix("Impala:Talon", "hello-agent").canonical_prefix(),
@@ -702,6 +829,10 @@ mod tests {
             session_journal_entry_prefix("Impala:Talon", "hello-agent", "session-id", "submission-id")
                 .canonical_prefix(),
             "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/SessionSubmission/submission-id/@/SessionJournalEntry/"
+        );
+        assert_eq!(
+            file_prefix("Impala:Talon").canonical_prefix(),
+            "@Namespace/Impala:Talon/@/File/"
         );
     }
 

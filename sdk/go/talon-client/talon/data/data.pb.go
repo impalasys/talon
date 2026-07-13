@@ -244,6 +244,234 @@ func (x *ObjectRef) GetContentEncoding() string {
 	return ""
 }
 
+// Session-scoped immutable output produced by an agent.
+//
+// Artifacts are not namespace-level File resources. They live under the
+// owning session/run, are referenced by artifact:// URIs, and are not indexed
+// directly. Promoting an Artifact to a durable File copies its bytes into
+// File-owned CAS storage and creates or updates a File resource.
+type Artifact struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable artifact id unique within the namespace/session artifact store.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Session that owns the artifact lifecycle and cleanup policy.
+	SessionId string `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// Human-readable label suitable for UI display.
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// Media type of the artifact content, for example text/markdown.
+	MediaType string `protobuf:"bytes,5,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	// Authoritative CAS/object reference for immutable artifact bytes.
+	ObjectRef *ObjectRef `protobuf:"bytes,6,opt,name=object_ref,json=objectRef,proto3" json:"object_ref,omitempty"`
+	// Agent name that created the artifact.
+	CreatedByAgent string `protobuf:"bytes,7,opt,name=created_by_agent,json=createdByAgent,proto3" json:"created_by_agent,omitempty"`
+	// Unix timestamp in microseconds when the artifact record was created.
+	CreatedAt int64 `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Query/display labels copied from the creating tool or runtime.
+	Labels map[string]string `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Non-indexed, caller-defined metadata about the artifact.
+	Metadata      map[string]string `protobuf:"bytes,10,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Artifact) Reset() {
+	*x = Artifact{}
+	mi := &file_proto_data_data_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Artifact) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Artifact) ProtoMessage() {}
+
+func (x *Artifact) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_data_data_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Artifact.ProtoReflect.Descriptor instead.
+func (*Artifact) Descriptor() ([]byte, []int) {
+	return file_proto_data_data_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Artifact) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Artifact) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *Artifact) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Artifact) GetMediaType() string {
+	if x != nil {
+		return x.MediaType
+	}
+	return ""
+}
+
+func (x *Artifact) GetObjectRef() *ObjectRef {
+	if x != nil {
+		return x.ObjectRef
+	}
+	return nil
+}
+
+func (x *Artifact) GetCreatedByAgent() string {
+	if x != nil {
+		return x.CreatedByAgent
+	}
+	return ""
+}
+
+func (x *Artifact) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Artifact) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *Artifact) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+// Target-local access record for an artifact URI.
+//
+// Artifact URIs are references, not bearer secrets. A caller can use an
+// artifact:// URI only when it is the owning session or when an ArtifactAccess
+// child record under that artifact grants the caller session the requested
+// operation.
+type ArtifactAccess struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Agent that may access the artifact.
+	TargetAgent string `protobuf:"bytes,1,opt,name=target_agent,json=targetAgent,proto3" json:"target_agent,omitempty"`
+	// Session that may access the artifact.
+	TargetSessionId string `protobuf:"bytes,2,opt,name=target_session_id,json=targetSessionId,proto3" json:"target_session_id,omitempty"`
+	// Allowed operations, such as read, metadata, or promote.
+	Operations []string `protobuf:"bytes,3,rep,name=operations,proto3" json:"operations,omitempty"`
+	// Unix timestamp in microseconds when access expires. Zero means unset.
+	ExpiresAt int64 `protobuf:"varint,4,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// Agent that granted access.
+	GrantedByAgent string `protobuf:"bytes,5,opt,name=granted_by_agent,json=grantedByAgent,proto3" json:"granted_by_agent,omitempty"`
+	// Session that granted access.
+	GrantedBySessionId string `protobuf:"bytes,6,opt,name=granted_by_session_id,json=grantedBySessionId,proto3" json:"granted_by_session_id,omitempty"`
+	// Unix timestamp in microseconds when the access record was created.
+	CreatedAt     int64 `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ArtifactAccess) Reset() {
+	*x = ArtifactAccess{}
+	mi := &file_proto_data_data_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ArtifactAccess) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ArtifactAccess) ProtoMessage() {}
+
+func (x *ArtifactAccess) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_data_data_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ArtifactAccess.ProtoReflect.Descriptor instead.
+func (*ArtifactAccess) Descriptor() ([]byte, []int) {
+	return file_proto_data_data_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ArtifactAccess) GetTargetAgent() string {
+	if x != nil {
+		return x.TargetAgent
+	}
+	return ""
+}
+
+func (x *ArtifactAccess) GetTargetSessionId() string {
+	if x != nil {
+		return x.TargetSessionId
+	}
+	return ""
+}
+
+func (x *ArtifactAccess) GetOperations() []string {
+	if x != nil {
+		return x.Operations
+	}
+	return nil
+}
+
+func (x *ArtifactAccess) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+func (x *ArtifactAccess) GetGrantedByAgent() string {
+	if x != nil {
+		return x.GrantedByAgent
+	}
+	return ""
+}
+
+func (x *ArtifactAccess) GetGrantedBySessionId() string {
+	if x != nil {
+		return x.GrantedBySessionId
+	}
+	return ""
+}
+
+func (x *ArtifactAccess) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
 type Principal struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Stable provider-native principal identifier when available, such as a
@@ -265,7 +493,7 @@ type Principal struct {
 
 func (x *Principal) Reset() {
 	*x = Principal{}
-	mi := &file_proto_data_data_proto_msgTypes[1]
+	mi := &file_proto_data_data_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -277,7 +505,7 @@ func (x *Principal) String() string {
 func (*Principal) ProtoMessage() {}
 
 func (x *Principal) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[1]
+	mi := &file_proto_data_data_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -290,7 +518,7 @@ func (x *Principal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Principal.ProtoReflect.Descriptor instead.
 func (*Principal) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{1}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Principal) GetExternalId() string {
@@ -344,7 +572,7 @@ type SessionMessagePart struct {
 
 func (x *SessionMessagePart) Reset() {
 	*x = SessionMessagePart{}
-	mi := &file_proto_data_data_proto_msgTypes[2]
+	mi := &file_proto_data_data_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -356,7 +584,7 @@ func (x *SessionMessagePart) String() string {
 func (*SessionMessagePart) ProtoMessage() {}
 
 func (x *SessionMessagePart) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[2]
+	mi := &file_proto_data_data_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -369,7 +597,7 @@ func (x *SessionMessagePart) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessagePart.ProtoReflect.Descriptor instead.
 func (*SessionMessagePart) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{2}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SessionMessagePart) GetId() string {
@@ -435,7 +663,7 @@ type SessionMessage struct {
 
 func (x *SessionMessage) Reset() {
 	*x = SessionMessage{}
-	mi := &file_proto_data_data_proto_msgTypes[3]
+	mi := &file_proto_data_data_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -447,7 +675,7 @@ func (x *SessionMessage) String() string {
 func (*SessionMessage) ProtoMessage() {}
 
 func (x *SessionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[3]
+	mi := &file_proto_data_data_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -460,7 +688,7 @@ func (x *SessionMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessage.ProtoReflect.Descriptor instead.
 func (*SessionMessage) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{3}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SessionMessage) GetId() string {
@@ -516,7 +744,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_data_data_proto_msgTypes[4]
+	mi := &file_proto_data_data_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -528,7 +756,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[4]
+	mi := &file_proto_data_data_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -541,7 +769,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{4}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Session) GetId() string {
@@ -619,7 +847,7 @@ type ChannelMessage struct {
 
 func (x *ChannelMessage) Reset() {
 	*x = ChannelMessage{}
-	mi := &file_proto_data_data_proto_msgTypes[5]
+	mi := &file_proto_data_data_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -631,7 +859,7 @@ func (x *ChannelMessage) String() string {
 func (*ChannelMessage) ProtoMessage() {}
 
 func (x *ChannelMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[5]
+	mi := &file_proto_data_data_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -644,7 +872,7 @@ func (x *ChannelMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelMessage.ProtoReflect.Descriptor instead.
 func (*ChannelMessage) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{5}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ChannelMessage) GetId() string {
@@ -731,7 +959,7 @@ type Knowledge struct {
 
 func (x *Knowledge) Reset() {
 	*x = Knowledge{}
-	mi := &file_proto_data_data_proto_msgTypes[6]
+	mi := &file_proto_data_data_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -743,7 +971,7 @@ func (x *Knowledge) String() string {
 func (*Knowledge) ProtoMessage() {}
 
 func (x *Knowledge) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[6]
+	mi := &file_proto_data_data_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -756,7 +984,7 @@ func (x *Knowledge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Knowledge.ProtoReflect.Descriptor instead.
 func (*Knowledge) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{6}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Knowledge) GetPath() string {
@@ -808,7 +1036,7 @@ type KnowledgeSearchResult struct {
 
 func (x *KnowledgeSearchResult) Reset() {
 	*x = KnowledgeSearchResult{}
-	mi := &file_proto_data_data_proto_msgTypes[7]
+	mi := &file_proto_data_data_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -820,7 +1048,7 @@ func (x *KnowledgeSearchResult) String() string {
 func (*KnowledgeSearchResult) ProtoMessage() {}
 
 func (x *KnowledgeSearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[7]
+	mi := &file_proto_data_data_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -833,7 +1061,7 @@ func (x *KnowledgeSearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KnowledgeSearchResult.ProtoReflect.Descriptor instead.
 func (*KnowledgeSearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{7}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *KnowledgeSearchResult) GetPath() string {
@@ -899,7 +1127,7 @@ type WorkflowRun struct {
 
 func (x *WorkflowRun) Reset() {
 	*x = WorkflowRun{}
-	mi := &file_proto_data_data_proto_msgTypes[8]
+	mi := &file_proto_data_data_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -911,7 +1139,7 @@ func (x *WorkflowRun) String() string {
 func (*WorkflowRun) ProtoMessage() {}
 
 func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[8]
+	mi := &file_proto_data_data_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -924,7 +1152,7 @@ func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRun.ProtoReflect.Descriptor instead.
 func (*WorkflowRun) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{8}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *WorkflowRun) GetId() string {
@@ -1076,7 +1304,7 @@ type WorkflowStepRun struct {
 
 func (x *WorkflowStepRun) Reset() {
 	*x = WorkflowStepRun{}
-	mi := &file_proto_data_data_proto_msgTypes[9]
+	mi := &file_proto_data_data_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1088,7 +1316,7 @@ func (x *WorkflowStepRun) String() string {
 func (*WorkflowStepRun) ProtoMessage() {}
 
 func (x *WorkflowStepRun) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[9]
+	mi := &file_proto_data_data_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1101,7 +1329,7 @@ func (x *WorkflowStepRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowStepRun.ProtoReflect.Descriptor instead.
 func (*WorkflowStepRun) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{9}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WorkflowStepRun) GetId() string {
@@ -1240,7 +1468,7 @@ type WorkflowRunEvent struct {
 
 func (x *WorkflowRunEvent) Reset() {
 	*x = WorkflowRunEvent{}
-	mi := &file_proto_data_data_proto_msgTypes[10]
+	mi := &file_proto_data_data_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1252,7 +1480,7 @@ func (x *WorkflowRunEvent) String() string {
 func (*WorkflowRunEvent) ProtoMessage() {}
 
 func (x *WorkflowRunEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[10]
+	mi := &file_proto_data_data_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1265,7 +1493,7 @@ func (x *WorkflowRunEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRunEvent.ProtoReflect.Descriptor instead.
 func (*WorkflowRunEvent) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{10}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *WorkflowRunEvent) GetId() string {
@@ -1349,7 +1577,40 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x10content_encoding\x18\a \x01(\tR\x0fcontentEncoding\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfb\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xdf\x03\n" +
+	"\bArtifact\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x1d\n" +
+	"\n" +
+	"media_type\x18\x05 \x01(\tR\tmediaType\x124\n" +
+	"\n" +
+	"object_ref\x18\x06 \x01(\v2\x15.talon.data.ObjectRefR\tobjectRef\x12(\n" +
+	"\x10created_by_agent\x18\a \x01(\tR\x0ecreatedByAgent\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\x03R\tcreatedAt\x128\n" +
+	"\x06labels\x18\t \x03(\v2 .talon.data.Artifact.LabelsEntryR\x06labels\x12>\n" +
+	"\bmetadata\x18\n" +
+	" \x03(\v2\".talon.data.Artifact.MetadataEntryR\bmetadata\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9a\x02\n" +
+	"\x0eArtifactAccess\x12!\n" +
+	"\ftarget_agent\x18\x01 \x01(\tR\vtargetAgent\x12*\n" +
+	"\x11target_session_id\x18\x02 \x01(\tR\x0ftargetSessionId\x12\x1e\n" +
+	"\n" +
+	"operations\x18\x03 \x03(\tR\n" +
+	"operations\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x04 \x01(\x03R\texpiresAt\x12(\n" +
+	"\x10granted_by_agent\x18\x05 \x01(\tR\x0egrantedByAgent\x121\n" +
+	"\x15granted_by_session_id\x18\x06 \x01(\tR\x12grantedBySessionId\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\a \x01(\x03R\tcreatedAt\"\xfb\x01\n" +
 	"\tPrincipal\x12\x1f\n" +
 	"\vexternal_id\x18\x01 \x01(\tR\n" +
 	"externalId\x12\x18\n" +
@@ -1527,46 +1788,53 @@ func file_proto_data_data_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_data_data_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_data_data_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_proto_data_data_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_proto_data_data_proto_goTypes = []any{
 	(MessageRole)(0),              // 0: talon.data.MessageRole
 	(SessionMessagePartType)(0),   // 1: talon.data.SessionMessagePartType
 	(*ObjectRef)(nil),             // 2: talon.data.ObjectRef
-	(*Principal)(nil),             // 3: talon.data.Principal
-	(*SessionMessagePart)(nil),    // 4: talon.data.SessionMessagePart
-	(*SessionMessage)(nil),        // 5: talon.data.SessionMessage
-	(*Session)(nil),               // 6: talon.data.Session
-	(*ChannelMessage)(nil),        // 7: talon.data.ChannelMessage
-	(*Knowledge)(nil),             // 8: talon.data.Knowledge
-	(*KnowledgeSearchResult)(nil), // 9: talon.data.KnowledgeSearchResult
-	(*WorkflowRun)(nil),           // 10: talon.data.WorkflowRun
-	(*WorkflowStepRun)(nil),       // 11: talon.data.WorkflowStepRun
-	(*WorkflowRunEvent)(nil),      // 12: talon.data.WorkflowRunEvent
-	nil,                           // 13: talon.data.ObjectRef.MetadataEntry
-	nil,                           // 14: talon.data.Principal.MetadataEntry
-	nil,                           // 15: talon.data.SessionMessage.LabelsEntry
-	nil,                           // 16: talon.data.Session.MetadataEntry
-	nil,                           // 17: talon.data.Session.LabelsEntry
-	nil,                           // 18: talon.data.ChannelMessage.LabelsEntry
-	nil,                           // 19: talon.data.WorkflowRun.LabelsEntry
+	(*Artifact)(nil),              // 3: talon.data.Artifact
+	(*ArtifactAccess)(nil),        // 4: talon.data.ArtifactAccess
+	(*Principal)(nil),             // 5: talon.data.Principal
+	(*SessionMessagePart)(nil),    // 6: talon.data.SessionMessagePart
+	(*SessionMessage)(nil),        // 7: talon.data.SessionMessage
+	(*Session)(nil),               // 8: talon.data.Session
+	(*ChannelMessage)(nil),        // 9: talon.data.ChannelMessage
+	(*Knowledge)(nil),             // 10: talon.data.Knowledge
+	(*KnowledgeSearchResult)(nil), // 11: talon.data.KnowledgeSearchResult
+	(*WorkflowRun)(nil),           // 12: talon.data.WorkflowRun
+	(*WorkflowStepRun)(nil),       // 13: talon.data.WorkflowStepRun
+	(*WorkflowRunEvent)(nil),      // 14: talon.data.WorkflowRunEvent
+	nil,                           // 15: talon.data.ObjectRef.MetadataEntry
+	nil,                           // 16: talon.data.Artifact.LabelsEntry
+	nil,                           // 17: talon.data.Artifact.MetadataEntry
+	nil,                           // 18: talon.data.Principal.MetadataEntry
+	nil,                           // 19: talon.data.SessionMessage.LabelsEntry
+	nil,                           // 20: talon.data.Session.MetadataEntry
+	nil,                           // 21: talon.data.Session.LabelsEntry
+	nil,                           // 22: talon.data.ChannelMessage.LabelsEntry
+	nil,                           // 23: talon.data.WorkflowRun.LabelsEntry
 }
 var file_proto_data_data_proto_depIdxs = []int32{
-	13, // 0: talon.data.ObjectRef.metadata:type_name -> talon.data.ObjectRef.MetadataEntry
-	14, // 1: talon.data.Principal.metadata:type_name -> talon.data.Principal.MetadataEntry
-	1,  // 2: talon.data.SessionMessagePart.part_type:type_name -> talon.data.SessionMessagePartType
-	2,  // 3: talon.data.SessionMessagePart.object:type_name -> talon.data.ObjectRef
-	0,  // 4: talon.data.SessionMessage.role:type_name -> talon.data.MessageRole
-	15, // 5: talon.data.SessionMessage.labels:type_name -> talon.data.SessionMessage.LabelsEntry
-	4,  // 6: talon.data.SessionMessage.parts:type_name -> talon.data.SessionMessagePart
-	16, // 7: talon.data.Session.metadata:type_name -> talon.data.Session.MetadataEntry
-	17, // 8: talon.data.Session.labels:type_name -> talon.data.Session.LabelsEntry
-	18, // 9: talon.data.ChannelMessage.labels:type_name -> talon.data.ChannelMessage.LabelsEntry
-	19, // 10: talon.data.WorkflowRun.labels:type_name -> talon.data.WorkflowRun.LabelsEntry
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	15, // 0: talon.data.ObjectRef.metadata:type_name -> talon.data.ObjectRef.MetadataEntry
+	2,  // 1: talon.data.Artifact.object_ref:type_name -> talon.data.ObjectRef
+	16, // 2: talon.data.Artifact.labels:type_name -> talon.data.Artifact.LabelsEntry
+	17, // 3: talon.data.Artifact.metadata:type_name -> talon.data.Artifact.MetadataEntry
+	18, // 4: talon.data.Principal.metadata:type_name -> talon.data.Principal.MetadataEntry
+	1,  // 5: talon.data.SessionMessagePart.part_type:type_name -> talon.data.SessionMessagePartType
+	2,  // 6: talon.data.SessionMessagePart.object:type_name -> talon.data.ObjectRef
+	0,  // 7: talon.data.SessionMessage.role:type_name -> talon.data.MessageRole
+	19, // 8: talon.data.SessionMessage.labels:type_name -> talon.data.SessionMessage.LabelsEntry
+	6,  // 9: talon.data.SessionMessage.parts:type_name -> talon.data.SessionMessagePart
+	20, // 10: talon.data.Session.metadata:type_name -> talon.data.Session.MetadataEntry
+	21, // 11: talon.data.Session.labels:type_name -> talon.data.Session.LabelsEntry
+	22, // 12: talon.data.ChannelMessage.labels:type_name -> talon.data.ChannelMessage.LabelsEntry
+	23, // 13: talon.data.WorkflowRun.labels:type_name -> talon.data.WorkflowRun.LabelsEntry
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_data_proto_init() }
@@ -1574,15 +1842,15 @@ func file_proto_data_data_proto_init() {
 	if File_proto_data_data_proto != nil {
 		return
 	}
-	file_proto_data_data_proto_msgTypes[8].OneofWrappers = []any{}
-	file_proto_data_data_proto_msgTypes[9].OneofWrappers = []any{}
+	file_proto_data_data_proto_msgTypes[10].OneofWrappers = []any{}
+	file_proto_data_data_proto_msgTypes[11].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_data_data_proto_rawDesc), len(file_proto_data_data_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   18,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

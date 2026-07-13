@@ -157,6 +157,78 @@ pub struct ObjectRef {
     #[prost(string, tag = "7")]
     pub content_encoding: ::prost::alloc::string::String,
 }
+/// Session-scoped immutable output produced by an agent.
+///
+/// Artifacts are not namespace-level File resources. They live under the
+/// owning session/run, are referenced by artifact:// URIs, and are not indexed
+/// directly. Promoting an Artifact to a durable File copies its bytes into
+/// File-owned CAS storage and creates or updates a File resource.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Artifact {
+    /// Stable artifact id unique within the namespace/session artifact store.
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// Session that owns the artifact lifecycle and cleanup policy.
+    #[prost(string, tag = "2")]
+    pub session_id: ::prost::alloc::string::String,
+    /// Human-readable label suitable for UI display.
+    #[prost(string, tag = "3")]
+    pub title: ::prost::alloc::string::String,
+    /// Media type of the artifact content, for example text/markdown.
+    #[prost(string, tag = "5")]
+    pub media_type: ::prost::alloc::string::String,
+    /// Authoritative CAS/object reference for immutable artifact bytes.
+    #[prost(message, optional, tag = "6")]
+    pub object_ref: ::core::option::Option<ObjectRef>,
+    /// Agent name that created the artifact.
+    #[prost(string, tag = "7")]
+    pub created_by_agent: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds when the artifact record was created.
+    #[prost(int64, tag = "8")]
+    pub created_at: i64,
+    /// Query/display labels copied from the creating tool or runtime.
+    #[prost(map = "string, string", tag = "9")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Non-indexed, caller-defined metadata about the artifact.
+    #[prost(map = "string, string", tag = "10")]
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+/// Target-local access record for an artifact URI.
+///
+/// Artifact URIs are references, not bearer secrets. A caller can use an
+/// artifact:// URI only when it is the owning session or when an ArtifactAccess
+/// child record under that artifact grants the caller session the requested
+/// operation.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ArtifactAccess {
+    /// Agent that may access the artifact.
+    #[prost(string, tag = "1")]
+    pub target_agent: ::prost::alloc::string::String,
+    /// Session that may access the artifact.
+    #[prost(string, tag = "2")]
+    pub target_session_id: ::prost::alloc::string::String,
+    /// Allowed operations, such as read, metadata, or promote.
+    #[prost(string, repeated, tag = "3")]
+    pub operations: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Unix timestamp in microseconds when access expires. Zero means unset.
+    #[prost(int64, tag = "4")]
+    pub expires_at: i64,
+    /// Agent that granted access.
+    #[prost(string, tag = "5")]
+    pub granted_by_agent: ::prost::alloc::string::String,
+    /// Session that granted access.
+    #[prost(string, tag = "6")]
+    pub granted_by_session_id: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds when the access record was created.
+    #[prost(int64, tag = "7")]
+    pub created_at: i64,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Principal {
     /// Stable provider-native principal identifier when available, such as a

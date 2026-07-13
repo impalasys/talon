@@ -142,6 +142,18 @@ impl Gateway {
                 interceptor.clone(),
             ),
         );
+        let file_service = tonic_web::enable(
+            crate::gateway::rpc::proto::file_service_server::FileServiceServer::with_interceptor(
+                handler.clone(),
+                interceptor.clone(),
+            ),
+        );
+        let artifact_service = tonic_web::enable(
+            crate::gateway::rpc::proto::artifact_service_server::ArtifactServiceServer::with_interceptor(
+                handler.clone(),
+                interceptor.clone(),
+            ),
+        );
         let session_service = tonic_web::enable(
             crate::gateway::rpc::proto::session_service_server::SessionServiceServer::with_interceptor(
                 handler.clone(),
@@ -192,6 +204,8 @@ impl Gateway {
             .accept_http1(true)
             .add_service(namespace_service)
             .add_service(resource_service)
+            .add_service(file_service)
+            .add_service(artifact_service)
             .add_service(session_service)
             .add_service(cas_service)
             .add_service(channel_service)

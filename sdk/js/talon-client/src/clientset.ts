@@ -5,6 +5,7 @@ import { AuthService } from "./gen/proto/talon/v1/auth_connect.js";
 import { CasService } from "./gen/proto/talon/v1/cas_connect.js";
 import { ChannelService } from "./gen/proto/talon/v1/channels_connect.js";
 import { ConnectorService } from "./gen/proto/talon/v1/connectors_connect.js";
+import { ArtifactService, FileService } from "./gen/proto/talon/v1/files_connect.js";
 import { KnowledgeService } from "./gen/proto/talon/v1/knowledge_connect.js";
 import { NamespaceService } from "./gen/proto/talon/v1/namespaces_connect.js";
 import { ResourceService } from "./gen/proto/talon/v1/resources_connect.js";
@@ -17,6 +18,8 @@ export type TalonClient = {
   cas: PromiseClient<typeof CasService>;
   channels: PromiseClient<typeof ChannelService>;
   connectors: PromiseClient<typeof ConnectorService>;
+  files: PromiseClient<typeof FileService>;
+  artifacts: PromiseClient<typeof ArtifactService>;
   knowledge: PromiseClient<typeof KnowledgeService>;
   namespaces: PromiseClient<typeof NamespaceService>;
   resources: PromiseClient<typeof ResourceService>;
@@ -31,6 +34,8 @@ export function createTalonClientset(transport: Transport): TalonClient {
     cas: createPromiseClient(CasService, transport),
     channels: createPromiseClient(ChannelService, transport),
     connectors: createPromiseClient(ConnectorService, transport),
+    files: createPromiseClient(FileService, transport),
+    artifacts: createPromiseClient(ArtifactService, transport),
     knowledge: createPromiseClient(KnowledgeService, transport),
     namespaces: createPromiseClient(NamespaceService, transport),
     resources: createPromiseClient(ResourceService, transport),
