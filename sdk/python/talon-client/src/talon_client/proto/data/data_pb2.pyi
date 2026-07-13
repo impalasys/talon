@@ -29,6 +29,18 @@ class SessionMessagePartType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SESSION_MESSAGE_PART_TYPE_FILE: _ClassVar[SessionMessagePartType]
     SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION: _ClassVar[SessionMessagePartType]
     SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT: _ClassVar[SessionMessagePartType]
+
+class GoalPhase(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    GOAL_PHASE_UNSPECIFIED: _ClassVar[GoalPhase]
+    GOAL_PHASE_RUNNING: _ClassVar[GoalPhase]
+    GOAL_PHASE_PAUSED: _ClassVar[GoalPhase]
+    GOAL_PHASE_NEEDS_REVIEW: _ClassVar[GoalPhase]
+    GOAL_PHASE_SUCCEEDED: _ClassVar[GoalPhase]
+    GOAL_PHASE_FAILED: _ClassVar[GoalPhase]
+    GOAL_PHASE_BLOCKED: _ClassVar[GoalPhase]
+    GOAL_PHASE_CANCELED: _ClassVar[GoalPhase]
+    GOAL_PHASE_EXPIRED: _ClassVar[GoalPhase]
 ROLE_UNSPECIFIED: MessageRole
 ROLE_USER: MessageRole
 ROLE_ASSISTANT: MessageRole
@@ -46,6 +58,15 @@ SESSION_MESSAGE_PART_TYPE_VIDEO: SessionMessagePartType
 SESSION_MESSAGE_PART_TYPE_FILE: SessionMessagePartType
 SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION: SessionMessagePartType
 SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT: SessionMessagePartType
+GOAL_PHASE_UNSPECIFIED: GoalPhase
+GOAL_PHASE_RUNNING: GoalPhase
+GOAL_PHASE_PAUSED: GoalPhase
+GOAL_PHASE_NEEDS_REVIEW: GoalPhase
+GOAL_PHASE_SUCCEEDED: GoalPhase
+GOAL_PHASE_FAILED: GoalPhase
+GOAL_PHASE_BLOCKED: GoalPhase
+GOAL_PHASE_CANCELED: GoalPhase
+GOAL_PHASE_EXPIRED: GoalPhase
 
 class ObjectRef(_message.Message):
     __slots__ = ("key", "media_type", "size_bytes", "sha256", "filename", "metadata", "content_encoding")
@@ -107,6 +128,56 @@ class Artifact(_message.Message):
     labels: _containers.ScalarMap[str, str]
     metadata: _containers.ScalarMap[str, str]
     def __init__(self, id: _Optional[str] = ..., session_id: _Optional[str] = ..., title: _Optional[str] = ..., media_type: _Optional[str] = ..., object_ref: _Optional[_Union[ObjectRef, _Mapping]] = ..., created_by_agent: _Optional[str] = ..., created_at: _Optional[int] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
+class Goal(_message.Message):
+    __slots__ = ("id", "namespace", "agent", "session_id", "objective", "success_criteria", "phase", "progress_summary", "iteration", "max_iterations", "created_at", "updated_at", "completed_at", "blocked_reason", "labels", "metadata")
+    class LabelsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    class MetadataEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    ID_FIELD_NUMBER: _ClassVar[int]
+    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    OBJECTIVE_FIELD_NUMBER: _ClassVar[int]
+    SUCCESS_CRITERIA_FIELD_NUMBER: _ClassVar[int]
+    PHASE_FIELD_NUMBER: _ClassVar[int]
+    PROGRESS_SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    ITERATION_FIELD_NUMBER: _ClassVar[int]
+    MAX_ITERATIONS_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    COMPLETED_AT_FIELD_NUMBER: _ClassVar[int]
+    BLOCKED_REASON_FIELD_NUMBER: _ClassVar[int]
+    LABELS_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    namespace: str
+    agent: str
+    session_id: str
+    objective: str
+    success_criteria: _containers.RepeatedScalarFieldContainer[str]
+    phase: GoalPhase
+    progress_summary: str
+    iteration: int
+    max_iterations: int
+    created_at: int
+    updated_at: int
+    completed_at: int
+    blocked_reason: str
+    labels: _containers.ScalarMap[str, str]
+    metadata: _containers.ScalarMap[str, str]
+    def __init__(self, id: _Optional[str] = ..., namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., objective: _Optional[str] = ..., success_criteria: _Optional[_Iterable[str]] = ..., phase: _Optional[_Union[GoalPhase, str]] = ..., progress_summary: _Optional[str] = ..., iteration: _Optional[int] = ..., max_iterations: _Optional[int] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., completed_at: _Optional[int] = ..., blocked_reason: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class ArtifactAccess(_message.Message):
     __slots__ = ("target_agent", "target_session_id", "operations", "expires_at", "granted_by_agent", "granted_by_session_id", "created_at")

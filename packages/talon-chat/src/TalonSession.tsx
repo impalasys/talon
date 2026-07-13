@@ -1931,6 +1931,13 @@ export function TalonSession({
         run: ({ clear }) => clear?.(),
       });
     }
+    if (enabledBuiltInCommands?.includes("goal")) {
+      builtInCommands.push({
+        name: "goal",
+        description: "Create or update a session Goal.",
+        run: () => undefined,
+      });
+    }
     return [...(commands ?? []), ...builtInCommands];
   }, [clearSession, commands, enabledBuiltInCommands]);
   const commandMenuItems = useMemo(
@@ -2059,7 +2066,7 @@ export function TalonSession({
   }, [onImageUpload]);
 
   const submitMessage = useCallback(async (submittedText: string) => {
-    const text = submittedText.trim();
+    let text = submittedText.trim();
     const pendingAttachments = imageAttachmentsRef.current;
     const hasImages = pendingAttachments.length > 0;
     if ((!text && !hasImages) || isLoading || disabled) return;
@@ -2108,7 +2115,24 @@ export function TalonSession({
       }
     }
 
-    const parsedCommand = parseTalonChatCommandInput(text);
+    let parsedCommand = parseTalonChatCommandInput(text);
+    const isGoalCommand =
+      parsedCommand?.name === "goal" && enabledBuiltInCommands?.includes("goal");
+    if (isGoalCommand) {
+      const goalText = parsedCommand.args?.trim() ?? "";
+      if (!goalText) {
+        setError(new Error("Usage: /goal <objective and success criteria>"));
+        return;
+      }
+      text = [
+        "Create or update a Talon Goal for this session.",
+        "",
+        "Use the goal tools directly. Track this objective until completion:",
+        goalText,
+      ].join("\n");
+      parsedCommand = null;
+    }
+
     const command = findTalonChatCommand(resolvedCommands, parsedCommand);
     if (command && parsedCommand && !hasImages) {
       setInput("");

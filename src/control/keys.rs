@@ -439,6 +439,23 @@ pub fn artifact_prefix(namespace: &str, agent: &str, session_id: &str) -> Resour
     )
 }
 
+pub fn goal(namespace: &str, agent: &str, session_id: &str, goal_id: &str) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "Goal",
+        goal_id,
+    )
+}
+
+pub fn goal_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        Some("Goal"),
+    )
+}
+
 pub fn artifact_access_name(target_agent: &str, target_session_id: &str) -> String {
     format!("{target_agent}:{target_session_id}")
 }

@@ -122,6 +122,7 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.WorkflowStepRetryPolicy",
         ".talon.data.ChannelMessage",
         ".talon.data.Artifact",
+        ".talon.data.Goal",
         ".talon.data.ApiKeyGrant",
         ".talon.data.ApiKeyRecord",
         ".talon.data.ChannelMessageConsumer",

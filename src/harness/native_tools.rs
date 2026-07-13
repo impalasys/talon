@@ -2,15 +2,19 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{anyhow, Result};
+use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::time::Duration;
 
 use crate::control::resource_model::{self, TypedResource};
+use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
 use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{
-    manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
+    data_proto, manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
 };
 use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
@@ -20,9 +24,34 @@ pub const GET_SCHEDULE_TOOL: &str = "get_schedule";
 pub const LIST_SCHEDULES_TOOL: &str = "list_schedules";
 pub const UPDATE_SCHEDULE_TOOL: &str = "update_schedule";
 pub const DELETE_SCHEDULE_TOOL: &str = "delete_schedule";
+pub const READ_SESSION_MESSAGES_TOOL: &str = "read_session_messages";
+pub const CREATE_GOAL_TOOL: &str = "create_goal";
+pub const GET_GOAL_TOOL: &str = "get_goal";
+pub const LIST_GOALS_TOOL: &str = "list_goals";
+pub const UPDATE_GOAL_TOOL: &str = "update_goal";
+pub const COMPLETE_GOAL_TOOL: &str = "complete_goal";
+pub const BLOCK_GOAL_TOOL: &str = "block_goal";
 pub const CHANNEL_PUBLISH_TOOL: &str = "channel_publish";
 pub const CHANNEL_SKIP_REPLY_TOOL: &str = "channel_skip_reply";
 pub const ACTIVATE_SKILL_TOOL: &str = "activate_skill";
+pub const DELEGATE_AGENT_TOOL: &str = "delegate_agent";
+pub const DELEGATE_AGENT_ASYNC_TOOL: &str = "delegate_agent_async";
+pub const CREATE_ARTIFACT_TOOL: &str = "create_artifact";
+pub const READ_ARTIFACT_TOOL: &str = "read_artifact";
+pub const GET_ARTIFACT_METADATA_TOOL: &str = "get_artifact_metadata";
+pub const GRANT_ARTIFACT_TOOL: &str = "grant_artifact";
+pub const FETCH_URL_TOOL: &str = "fetch_url";
+pub const WEB_SEARCH_TOOL: &str = "web_search";
+pub const SEARCH_MEMORY_TOOL: &str = "search_memory";
+pub const READ_MEMORY_TOOL: &str = "read_memory";
+pub const LIST_MEMORY_TOOL: &str = "list_memory";
+pub const CREATE_MEMORY_TOOL: &str = "create_memory";
+pub const UPDATE_MEMORY_TOOL: &str = "update_memory";
+
+const OP_READ: &str = "read";
+const OP_METADATA: &str = "metadata";
+const OP_PROMOTE: &str = "promote";
+const MAX_ACCESS_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
 
 pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
     let names = namespace::effective_skill_names(skills);
@@ -72,10 +101,22 @@ pub fn register_channel_tools(registry: &mut ToolRegistry) {
 }
 
 pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
+    register_a2a_tools(registry, spec);
+    register_artifact_tools(registry);
+    register_research_tools(registry, spec);
+
     if !has_capability_action(spec, "schedules", "inspect")
         && !has_capability_action(spec, "schedules", "create")
         && !has_capability_action(spec, "schedules", "update")
         && !has_capability_action(spec, "schedules", "delete")
+        && !has_capability_action(spec, "sessions", "read:messages")
+        && !has_capability_action(spec, "memory", "inspect")
+        && !has_capability_action(spec, "memory", "read")
+        && !has_capability_action(spec, "memory", "create")
+        && !has_capability_action(spec, "memory", "update")
+        && !has_capability_action(spec, "goals", "inspect")
+        && !has_capability_action(spec, "goals", "create")
+        && !has_capability_action(spec, "goals", "update")
     {
         return;
     }
@@ -136,6 +177,347 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
             }),
         );
     }
+
+    if has_capability_action(spec, "sessions", "read:messages") {
+        registry.register_builtin(
+            READ_SESSION_MESSAGES_TOOL,
+            "Read text messages from a Talon session. Use this to inspect delegated child agent output by namespace, agent, and session id.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Session namespace. Defaults to current namespace." },
+                    "agent": { "type": "string", "description": "Session agent. Defaults to current agent." },
+                    "session_id": { "type": "string", "description": "Session id to inspect." },
+                    "limit": { "type": "integer", "description": "Maximum messages to return. Defaults to 20." }
+                },
+                "required": ["session_id"]
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "memory", "inspect")
+        || has_capability_action(spec, "memory", "read")
+    {
+        registry.register_builtin(
+            SEARCH_MEMORY_TOOL,
+            "Search durable workspace memory Files. Memory is stored as namespace File resources with purpose=MEMORY and indexPolicy=RETRIEVAL.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Memory namespace. Defaults to current namespace." },
+                    "query": { "type": "string", "description": "Keyword query to match against memory path and text content." },
+                    "prefix": { "type": "string", "description": "Optional logical path prefix such as /memory/playbooks." },
+                    "limit": { "type": "integer", "description": "Maximum results. Defaults to 10." }
+                },
+                "required": ["query"]
+            }),
+        );
+        registry.register_builtin(
+            READ_MEMORY_TOOL,
+            "Read one durable workspace memory File by logical path.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Memory namespace. Defaults to current namespace." },
+                    "path": { "type": "string", "description": "Logical memory path, for example /memory/playbooks/aeo-prompt-strategy.md." }
+                },
+                "required": ["path"]
+            }),
+        );
+        registry.register_builtin(
+            LIST_MEMORY_TOOL,
+            "List durable workspace memory Files by optional logical path prefix.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Memory namespace. Defaults to current namespace." },
+                    "prefix": { "type": "string", "description": "Optional logical path prefix. Defaults to /memory." },
+                    "limit": { "type": "integer", "description": "Maximum results. Defaults to 50." }
+                }
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "memory", "create") {
+        registry.register_builtin(
+            CREATE_MEMORY_TOOL,
+            "Create a durable workspace memory File with purpose=MEMORY and indexPolicy=RETRIEVAL.",
+            memory_write_schema(),
+        );
+    }
+    if has_capability_action(spec, "memory", "update") {
+        registry.register_builtin(
+            UPDATE_MEMORY_TOOL,
+            "Update a durable workspace memory File. Updates write a new immutable CAS object and advance File.status.objectRef.",
+            memory_write_schema(),
+        );
+    }
+
+    if has_capability_action(spec, "goals", "inspect") {
+        registry.register_builtin(
+            LIST_GOALS_TOOL,
+            "List Talon Goals for one session.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Namespace to inspect. Defaults to the current namespace." },
+                    "agent": { "type": "string", "description": "Owning agent. Defaults to the current agent." },
+                    "session_id": { "type": "string", "description": "Owning session id. Defaults to the current session." },
+                    "status_group": { "type": "string", "description": "Optional group: active or terminal." },
+                    "phase": { "type": "string", "description": "Optional phase such as RUNNING, NEEDS_REVIEW, SUCCEEDED, FAILED, BLOCKED, or CANCELED." },
+                    "limit": { "type": "integer", "description": "Optional maximum number of goals to return." }
+                }
+            }),
+        );
+        registry.register_builtin(
+            GET_GOAL_TOOL,
+            "Get one Talon Goal by id.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Goal namespace. Defaults to the current namespace." },
+                    "agent": { "type": "string", "description": "Owning agent. Defaults to the current agent." },
+                    "session_id": { "type": "string", "description": "Owning session id. Defaults to the current session." },
+                    "goal_id": { "type": "string", "description": "Goal id." }
+                },
+                "required": ["goal_id"]
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "goals", "create") {
+        registry.register_builtin(
+            CREATE_GOAL_TOOL,
+            "Create a session-scoped Talon Goal that tracks a durable objective and success criteria.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "objective": { "type": "string", "description": "Durable objective the agent should keep in view." },
+                    "success_criteria": { "type": "array", "items": { "type": "string" }, "description": "Concrete completion criteria." },
+                    "max_iterations": { "type": "integer", "description": "Optional maximum iteration count." },
+                    "progress_summary": { "type": "string", "description": "Optional initial progress summary." },
+                    "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+                    "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
+                },
+                "required": ["objective"]
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "goals", "update") {
+        registry.register_builtin(
+            UPDATE_GOAL_TOOL,
+            "Update Goal phase, progress, iteration, or blocked reason.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Goal namespace. Defaults to current namespace." },
+                    "agent": { "type": "string", "description": "Owning agent. Defaults to current agent." },
+                    "session_id": { "type": "string", "description": "Owning session id. Defaults to current session." },
+                    "goal_id": { "type": "string", "description": "Goal id." },
+                    "phase": { "type": "string", "description": "RUNNING, PAUSED, NEEDS_REVIEW, SUCCEEDED, FAILED, BLOCKED, CANCELED, or EXPIRED." },
+                    "progress_summary": { "type": "string", "description": "Concise current state." },
+                    "iteration": { "type": "integer", "description": "Current iteration number." },
+                    "blocked_reason": { "type": "string", "description": "Reason the Goal is blocked." }
+                },
+                "required": ["goal_id"]
+            }),
+        );
+        registry.register_builtin(
+            COMPLETE_GOAL_TOOL,
+            "Mark a Goal as SUCCEEDED with an optional final progress summary.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Goal namespace. Defaults to current namespace." },
+                    "agent": { "type": "string", "description": "Owning agent. Defaults to current agent." },
+                    "session_id": { "type": "string", "description": "Owning session id. Defaults to current session." },
+                    "goal_id": { "type": "string", "description": "Goal id." },
+                    "progress_summary": { "type": "string", "description": "Final result summary." }
+                },
+                "required": ["goal_id"]
+            }),
+        );
+        registry.register_builtin(
+            BLOCK_GOAL_TOOL,
+            "Mark a Goal as BLOCKED with the reason no meaningful progress can continue.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "Goal namespace. Defaults to current namespace." },
+                    "agent": { "type": "string", "description": "Owning agent. Defaults to current agent." },
+                    "session_id": { "type": "string", "description": "Owning session id. Defaults to current session." },
+                    "goal_id": { "type": "string", "description": "Goal id." },
+                    "blocked_reason": { "type": "string", "description": "Concrete blocker." },
+                    "progress_summary": { "type": "string", "description": "Optional progress summary." }
+                },
+                "required": ["goal_id", "blocked_reason"]
+            }),
+        );
+    }
+}
+
+fn register_a2a_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
+    let Some(a2a) = spec.a2a.as_ref() else {
+        return;
+    };
+    let connection_names = a2a
+        .connections
+        .iter()
+        .map(|connection| connection.name.clone())
+        .filter(|name| !name.trim().is_empty())
+        .collect::<Vec<_>>();
+    if connection_names.is_empty() {
+        return;
+    }
+
+    registry.register_builtin(
+        DELEGATE_AGENT_TOOL,
+        "Delegate a task to one of this agent's configured internal A2A connections and return the child agent's final reply.",
+        json!({
+            "type": "object",
+            "properties": {
+                "connection": {
+                    "type": "string",
+                    "description": "Configured A2A connection name.",
+                    "enum": connection_names
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Complete task packet to send to the child agent."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Optional existing child session id. Omit to create a new session."
+                },
+                "timeout_seconds": {
+                    "type": "integer",
+                    "description": "Optional timeout override in seconds."
+                }
+            },
+            "required": ["connection", "message"]
+        }),
+    );
+    registry.register_builtin(
+        DELEGATE_AGENT_ASYNC_TOOL,
+        "Start an internal A2A delegation and return immediately with the child session id. Use this for long-running or multi-step child work.",
+        json!({
+            "type": "object",
+            "properties": {
+                "connection": {
+                    "type": "string",
+                    "description": "Configured A2A connection name.",
+                    "enum": connection_names
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Complete task packet to send to the child agent."
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Optional existing child session id. Omit to create a new session."
+                }
+            },
+            "required": ["connection", "message"]
+        }),
+    );
+}
+
+fn register_artifact_tools(registry: &mut ToolRegistry) {
+    registry.register_builtin(
+        CREATE_ARTIFACT_TOOL,
+        "Create a session-scoped artifact and return an artifact:// URI that can be read or granted to another agent.",
+        json!({
+            "type": "object",
+            "properties": {
+                "title": { "type": "string", "description": "Human-readable artifact title." },
+                "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
+                "content": { "type": "string", "description": "Text content to store." },
+                "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." },
+                "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+                "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
+            },
+            "required": ["title"]
+        }),
+    );
+    registry.register_builtin(
+        READ_ARTIFACT_TOOL,
+        "Read an artifact by artifact:// URI.",
+        json!({
+            "type": "object",
+            "properties": {
+                "artifact_uri": { "type": "string" }
+            },
+            "required": ["artifact_uri"]
+        }),
+    );
+    registry.register_builtin(
+        GET_ARTIFACT_METADATA_TOOL,
+        "Return artifact metadata for an artifact:// URI without reading bytes.",
+        json!({
+            "type": "object",
+            "properties": {
+                "artifact_uri": { "type": "string" }
+            },
+            "required": ["artifact_uri"]
+        }),
+    );
+    registry.register_builtin(
+        GRANT_ARTIFACT_TOOL,
+        "Grant another agent or session access to an artifact:// URI.",
+        json!({
+            "type": "object",
+            "properties": {
+                "artifact_uri": { "type": "string" },
+                "target_agent": { "type": "string" },
+                "target_session_id": { "type": "string" },
+                "operations": {
+                    "type": "array",
+                    "items": { "type": "string", "enum": ["read", "metadata", "promote"] }
+                },
+                "ttl_seconds": { "type": "integer" }
+            },
+            "required": ["artifact_uri"]
+        }),
+    );
+}
+
+fn register_research_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
+    if has_capability_action(spec, "research", "fetch_url") {
+        registry.register_builtin(
+            FETCH_URL_TOOL,
+            "Fetch a supplied HTTP(S) URL and return title, final URL, status, and compact visible text for source-grounded research.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string", "description": "HTTP(S) URL to fetch." },
+                    "max_chars": {
+                        "type": "integer",
+                        "description": "Maximum visible text characters to return. Defaults to 12000."
+                    }
+                },
+                "required": ["url"]
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "research", "web_search") {
+        registry.register_builtin(
+            WEB_SEARCH_TOOL,
+            "Search the public web for source candidates. Use returned URLs with fetch_url before citing claims.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "query": { "type": "string", "description": "Search query." },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of search results. Defaults to 5."
+                    }
+                },
+                "required": ["query"]
+            }),
+        );
+    }
 }
 
 fn put_schedule_schema() -> Value {
@@ -164,6 +546,19 @@ fn put_schedule_schema() -> Value {
     })
 }
 
+fn memory_write_schema() -> Value {
+    json!({
+        "type": "object",
+        "properties": {
+            "namespace": { "type": "string", "description": "Memory namespace. Defaults to current namespace." },
+            "path": { "type": "string", "description": "Logical memory path, for example /memory/research/context.md." },
+            "content": { "type": "string", "description": "Markdown or text content to store." },
+            "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." }
+        },
+        "required": ["path", "content"]
+    })
+}
+
 pub async fn execute_tool(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -185,6 +580,80 @@ pub async fn execute_tool_for_session(
     args: &Value,
 ) -> Result<Option<String>> {
     match name {
+        DELEGATE_AGENT_TOOL => delegate_agent(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            args,
+        )
+        .await
+        .map(Some),
+        DELEGATE_AGENT_ASYNC_TOOL => delegate_agent_async(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            args,
+        )
+        .await
+        .map(Some),
+        CREATE_ARTIFACT_TOOL => {
+            create_artifact(cp, current_namespace, current_agent, current_session, args)
+                .await
+                .map(Some)
+        }
+        READ_ARTIFACT_TOOL => {
+            read_artifact(cp, current_namespace, current_agent, current_session, args)
+                .await
+                .map(Some)
+        }
+        GET_ARTIFACT_METADATA_TOOL => {
+            get_artifact_metadata(cp, current_namespace, current_agent, current_session, args)
+                .await
+                .map(Some)
+        }
+        GRANT_ARTIFACT_TOOL => {
+            grant_artifact(cp, current_namespace, current_agent, current_session, args)
+                .await
+                .map(Some)
+        }
+        READ_SESSION_MESSAGES_TOOL => {
+            require_capability(spec, "sessions", "read:messages")?;
+            read_session_messages(cp, current_namespace, current_agent, args)
+                .await
+                .map(Some)
+        }
+        SEARCH_MEMORY_TOOL => {
+            require_memory_read(spec)?;
+            search_memory(cp, current_namespace, args).await.map(Some)
+        }
+        READ_MEMORY_TOOL => {
+            require_memory_read(spec)?;
+            read_memory(cp, current_namespace, args).await.map(Some)
+        }
+        LIST_MEMORY_TOOL => {
+            require_memory_read(spec)?;
+            list_memory(cp, current_namespace, args).await.map(Some)
+        }
+        CREATE_MEMORY_TOOL => {
+            require_capability(spec, "memory", "create")?;
+            put_memory(cp, current_namespace, args).await.map(Some)
+        }
+        UPDATE_MEMORY_TOOL => {
+            require_capability(spec, "memory", "update")?;
+            put_memory(cp, current_namespace, args).await.map(Some)
+        }
+        FETCH_URL_TOOL => {
+            require_capability(spec, "research", "fetch_url")?;
+            fetch_url(args).await.map(Some)
+        }
+        WEB_SEARCH_TOOL => {
+            require_capability(spec, "research", "web_search")?;
+            web_search(args).await.map(Some)
+        }
         ACTIVATE_SKILL_TOOL => {
             let skill_name = req_str(args, "name")?;
             let skills = namespace::load_effective_skills(cp.kv.clone(), current_namespace).await?;
@@ -321,8 +790,1040 @@ pub async fn execute_tool_for_session(
                 &json!({ "success": true }),
             )?))
         }
+        LIST_GOALS_TOOL => {
+            require_capability(spec, "goals", "inspect")?;
+            let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+            let agent = opt_str(args, "agent").unwrap_or(current_agent);
+            let session_id = opt_str(args, "session_id").unwrap_or(current_session);
+            let status_group = opt_str(args, "status_group");
+            let phase = opt_str(args, "phase");
+            let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
+            let goals = list_goals(cp, namespace, agent, session_id, status_group, phase, limit)
+                .await?
+                .into_iter()
+                .map(|goal| goal_json(&goal))
+                .collect::<Vec<_>>();
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "goals": goals
+            }))?))
+        }
+        GET_GOAL_TOOL => {
+            require_capability(spec, "goals", "inspect")?;
+            let goal =
+                get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
+                    .await?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "goal": goal_json(&goal)
+            }))?))
+        }
+        CREATE_GOAL_TOOL => {
+            require_capability(spec, "goals", "create")?;
+            let goal =
+                create_goal(cp, current_namespace, current_agent, current_session, args).await?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "goal": goal_json(&goal)
+            }))?))
+        }
+        UPDATE_GOAL_TOOL => {
+            require_capability(spec, "goals", "update")?;
+            let mut goal =
+                get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
+                    .await?;
+            update_goal_from_args(&mut goal, args)?;
+            upsert_goal(cp, goal.clone()).await?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "goal": goal_json(&goal)
+            }))?))
+        }
+        COMPLETE_GOAL_TOOL => {
+            require_capability(spec, "goals", "update")?;
+            let mut goal =
+                get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
+                    .await?;
+            let now = chrono::Utc::now().timestamp_micros();
+            goal.phase = crate::gateway::rpc::data_proto::GoalPhase::Succeeded as i32;
+            goal.updated_at = now;
+            goal.completed_at = now;
+            if let Some(summary) = opt_str(args, "progress_summary") {
+                goal.progress_summary = summary.to_string();
+            }
+            upsert_goal(cp, goal.clone()).await?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "goal": goal_json(&goal)
+            }))?))
+        }
+        BLOCK_GOAL_TOOL => {
+            require_capability(spec, "goals", "update")?;
+            let mut goal =
+                get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
+                    .await?;
+            let now = chrono::Utc::now().timestamp_micros();
+            goal.phase = crate::gateway::rpc::data_proto::GoalPhase::Blocked as i32;
+            goal.updated_at = now;
+            goal.blocked_reason = req_str(args, "blocked_reason")?.to_string();
+            if let Some(summary) = opt_str(args, "progress_summary") {
+                goal.progress_summary = summary.to_string();
+            }
+            upsert_goal(cp, goal.clone()).await?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "goal": goal_json(&goal)
+            }))?))
+        }
         _ => Ok(None),
     }
+}
+
+async fn delegate_agent(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    args: &Value,
+) -> Result<String> {
+    let started = start_delegation(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        args,
+        false,
+    )
+    .await?;
+    let connection_name = started.connection_name;
+    let target_namespace = started.target_namespace;
+    let target_agent = started.target_agent;
+    let session_id = started.session_id;
+
+    let timeout_seconds = args
+        .get("timeout_seconds")
+        .and_then(Value::as_u64)
+        .or_else(|| started.timeout_seconds)
+        .unwrap_or(120);
+    let reply = wait_for_session_reply(
+        cp,
+        &target_namespace,
+        &target_agent,
+        &session_id,
+        Duration::from_secs(timeout_seconds),
+    )
+    .await?;
+
+    Ok(serde_json::to_string_pretty(&json!({
+        "connection": connection_name,
+        "namespace": target_namespace,
+        "agent": target_agent,
+        "sessionId": session_id,
+        "reply": reply
+    }))?)
+}
+
+async fn delegate_agent_async(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    args: &Value,
+) -> Result<String> {
+    let started = start_delegation(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        args,
+        true,
+    )
+    .await?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "connection": started.connection_name,
+        "namespace": started.target_namespace,
+        "agent": started.target_agent,
+        "sessionId": started.session_id,
+        "status": "started"
+    }))?)
+}
+
+struct StartedDelegation {
+    connection_name: String,
+    target_namespace: String,
+    target_agent: String,
+    session_id: String,
+    timeout_seconds: Option<u64>,
+}
+
+async fn start_delegation(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    args: &Value,
+    asynchronous: bool,
+) -> Result<StartedDelegation> {
+    let connection_name = req_str(args, "connection")?.to_string();
+    let message = req_str(args, "message")?;
+    let connection = spec
+        .a2a
+        .as_ref()
+        .and_then(|a2a| {
+            a2a.connections
+                .iter()
+                .find(|connection| connection.name == connection_name)
+        })
+        .ok_or_else(|| anyhow!("A2A connection '{}' not found", connection_name))?;
+    let target = connection
+        .target
+        .as_ref()
+        .and_then(|target| target.internal.as_ref())
+        .ok_or_else(|| {
+            anyhow!(
+                "A2A connection '{}' is not an internal target",
+                connection_name
+            )
+        })?;
+
+    let mut delegation_labels = delegation_labels(
+        current_namespace,
+        current_agent,
+        current_session,
+        &connection_name,
+    );
+    if asynchronous {
+        delegation_labels.insert("talon.a2a.async".to_string(), "true".to_string());
+    }
+
+    let session_id = if let Some(session_id) = opt_str(args, "session_id") {
+        if asynchronous {
+            upsert_session_labels(
+                cp,
+                &target.namespace,
+                &target.agent,
+                session_id,
+                delegation_labels.clone(),
+            )
+            .await?;
+        }
+        session_id.to_string()
+    } else {
+        scheduling::create_session_with_labels(
+            cp,
+            &target.namespace,
+            &target.agent,
+            delegation_labels.clone(),
+        )
+        .await?
+    };
+
+    scheduling::send_message(
+        cp.kv.as_ref(),
+        cp.pubsub.as_ref(),
+        &target.namespace,
+        &target.agent,
+        &session_id,
+        message,
+        delegation_labels,
+        chrono::Utc::now(),
+    )
+    .await?;
+
+    Ok(StartedDelegation {
+        connection_name,
+        target_namespace: target.namespace.clone(),
+        target_agent: target.agent.clone(),
+        session_id,
+        timeout_seconds: (connection.timeout_seconds > 0)
+            .then_some(connection.timeout_seconds as u64),
+    })
+}
+
+fn delegation_labels(
+    parent_namespace: &str,
+    parent_agent: &str,
+    parent_session_id: &str,
+    connection_name: &str,
+) -> HashMap<String, String> {
+    HashMap::from([
+        (
+            "talon.a2a.parent_namespace".to_string(),
+            parent_namespace.to_string(),
+        ),
+        (
+            "talon.a2a.parent_agent".to_string(),
+            parent_agent.to_string(),
+        ),
+        (
+            "talon.a2a.parent_session_id".to_string(),
+            parent_session_id.to_string(),
+        ),
+        (
+            "talon.a2a.connection".to_string(),
+            connection_name.to_string(),
+        ),
+    ])
+}
+
+async fn upsert_session_labels(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    labels: HashMap<String, String>,
+) -> Result<()> {
+    let key = keys::session(namespace, agent, session_id);
+    let mut session = cp
+        .kv
+        .get_msg::<data_proto::Session>(&key)
+        .await?
+        .ok_or_else(|| anyhow!("delegated session '{}' not found", session_id))?;
+    session.labels.extend(labels);
+    cp.kv.set_msg(&key, &session).await?;
+    Ok(())
+}
+
+async fn wait_for_session_reply(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    timeout: Duration,
+) -> Result<String> {
+    let deadline = tokio::time::Instant::now() + timeout;
+    loop {
+        if tokio::time::Instant::now() >= deadline {
+            return Err(anyhow!(
+                "timed out waiting for delegated agent '{}/{}' session '{}'",
+                namespace,
+                agent,
+                session_id
+            ));
+        }
+        let session = cp
+            .kv
+            .get_msg::<crate::gateway::rpc::data_proto::Session>(&keys::session(
+                namespace, agent, session_id,
+            ))
+            .await?
+            .ok_or_else(|| anyhow!("delegated session '{}' not found", session_id))?;
+        if session.status == "IDLE" || session.status == "ERROR" {
+            if let Some(reply) = latest_assistant_text(cp, namespace, agent, session_id).await? {
+                return Ok(reply);
+            }
+            if session.status == "ERROR" {
+                return Err(anyhow!("delegated session '{}' failed", session_id));
+            }
+        }
+        tokio::time::sleep(Duration::from_millis(250)).await;
+    }
+}
+
+async fn latest_assistant_text(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+) -> Result<Option<String>> {
+    let mut entries = cp
+        .kv
+        .list_entries(&keys::session_message_prefix(namespace, agent, session_id))
+        .await?;
+    entries.sort_by(|left, right| right.0.name.cmp(&left.0.name));
+    for (_, bytes) in entries {
+        let message = crate::gateway::rpc::data_proto::SessionMessage::decode(bytes.as_slice())?;
+        if message.role == crate::gateway::rpc::data_proto::MessageRole::RoleAssistant as i32 {
+            let text = message
+                .parts
+                .iter()
+                .filter(|part| {
+                    part.part_type
+                        == crate::gateway::rpc::data_proto::SessionMessagePartType::Text as i32
+                })
+                .map(|part| part.content.as_str())
+                .collect::<String>();
+            if !text.trim().is_empty() {
+                return Ok(Some(text));
+            }
+        }
+    }
+    Ok(None)
+}
+
+async fn read_session_messages(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    args: &Value,
+) -> Result<String> {
+    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let agent = opt_str(args, "agent").unwrap_or(current_agent);
+    let session_id = req_str(args, "session_id")?;
+    let limit = opt_usize(args, "limit").unwrap_or(20).clamp(1, 100);
+    let mut entries = cp
+        .kv
+        .list_entries(&keys::session_message_prefix(namespace, agent, session_id))
+        .await?;
+    entries.sort_by(|left, right| left.0.name.cmp(&right.0.name));
+    let mut messages = Vec::new();
+    for (_, bytes) in entries.into_iter().rev().take(limit).rev() {
+        let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
+        let role = data_proto::MessageRole::try_from(message.role)
+            .map(|role| format!("{role:?}"))
+            .unwrap_or_else(|_| message.role.to_string());
+        let text = message
+            .parts
+            .iter()
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .map(|part| part.content.as_str())
+            .collect::<String>();
+        messages.push(json!({
+            "id": message.id,
+            "role": role,
+            "text": text,
+            "createdAt": message.created_at,
+            "labels": message.labels,
+        }));
+    }
+    Ok(serde_json::to_string_pretty(&json!({
+        "namespace": namespace,
+        "agent": agent,
+        "sessionId": session_id,
+        "messages": messages,
+    }))?)
+}
+
+async fn search_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
+    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let query = req_str(args, "query")?.to_ascii_lowercase();
+    let prefix = opt_str(args, "prefix")
+        .map(normalize_logical_path)
+        .transpose()?
+        .unwrap_or_else(|| "/memory".to_string());
+    let limit = opt_usize(args, "limit").unwrap_or(10).clamp(1, 50);
+    let mut results = Vec::new();
+    for file in list_memory_files(cp, namespace, &prefix).await? {
+        let Some(spec) = file.spec.as_ref() else {
+            continue;
+        };
+        let content = read_file_content(cp, &file).await.unwrap_or_default();
+        let haystack = format!("{}\n{}", spec.path, content).to_ascii_lowercase();
+        if haystack.contains(&query) {
+            results.push(json!({
+                "namespace": namespace,
+                "name": file_name_from_file(&file),
+                "path": spec.path,
+                "mediaType": spec.media_type,
+                "excerpt": memory_excerpt(&content, &query),
+            }));
+            if results.len() >= limit {
+                break;
+            }
+        }
+    }
+    Ok(serde_json::to_string_pretty(
+        &json!({ "results": results }),
+    )?)
+}
+
+async fn read_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
+    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let path = normalize_logical_path(req_str(args, "path")?)?;
+    let file = find_memory_file_by_path(cp, namespace, &path)
+        .await?
+        .ok_or_else(|| anyhow!("memory file '{}' not found", path))?;
+    let content = read_file_content(cp, &file).await?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "namespace": namespace,
+        "name": file_name_from_file(&file),
+        "path": path,
+        "content": content,
+    }))?)
+}
+
+async fn list_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
+    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let prefix = opt_str(args, "prefix")
+        .map(normalize_logical_path)
+        .transpose()?
+        .unwrap_or_else(|| "/memory".to_string());
+    let limit = opt_usize(args, "limit").unwrap_or(50).clamp(1, 100);
+    let files = list_memory_files(cp, namespace, &prefix).await?;
+    let entries = files
+        .into_iter()
+        .take(limit)
+        .filter_map(|file| {
+            let spec = file.spec.as_ref()?;
+            let object = file
+                .status
+                .as_ref()
+                .and_then(|status| status.object_ref.as_ref());
+            Some(json!({
+                "namespace": namespace,
+                "name": file_name_from_file(&file),
+                "path": spec.path,
+                "mediaType": spec.media_type,
+                "sizeBytes": object.map(|object| object.size_bytes).unwrap_or_default(),
+                "sha256": object.map(|object| object.sha256.as_str()).unwrap_or_default(),
+            }))
+        })
+        .collect::<Vec<_>>();
+    Ok(serde_json::to_string_pretty(
+        &json!({ "entries": entries }),
+    )?)
+}
+
+async fn put_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
+    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let path = normalize_memory_path(req_str(args, "path")?)?;
+    let content = req_str(args, "content")?;
+    let media_type = opt_str(args, "media_type").unwrap_or("text/markdown");
+    let file = upsert_memory_file(cp, namespace, &path, media_type, content.as_bytes()).await?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "file": memory_file_json(&file),
+    }))?)
+}
+
+async fn list_memory_files(
+    cp: &ControlPlane,
+    namespace: &str,
+    prefix: &str,
+) -> Result<Vec<resources_proto::File>> {
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let mut files = Vec::new();
+    for resource in store.list(namespace, Some("File")).await? {
+        let Some(file) = file_from_resource(resource) else {
+            continue;
+        };
+        let Some(spec) = file.spec.as_ref() else {
+            continue;
+        };
+        if spec.purpose != resources_proto::FilePurpose::Memory as i32 {
+            continue;
+        }
+        if spec.index_policy != resources_proto::FileIndexPolicy::Retrieval as i32 {
+            continue;
+        }
+        if !prefix.is_empty() && !spec.path.starts_with(prefix) {
+            continue;
+        }
+        files.push(file);
+    }
+    files.sort_by(|left, right| {
+        left.spec
+            .as_ref()
+            .map(|spec| spec.path.as_str())
+            .cmp(&right.spec.as_ref().map(|spec| spec.path.as_str()))
+    });
+    Ok(files)
+}
+
+async fn find_memory_file_by_path(
+    cp: &ControlPlane,
+    namespace: &str,
+    path: &str,
+) -> Result<Option<resources_proto::File>> {
+    Ok(list_memory_files(cp, namespace, path)
+        .await?
+        .into_iter()
+        .find(|file| file.spec.as_ref().map(|spec| spec.path.as_str()) == Some(path)))
+}
+
+async fn read_file_content(cp: &ControlPlane, file: &resources_proto::File) -> Result<String> {
+    let object_ref = file
+        .status
+        .as_ref()
+        .and_then(|status| status.object_ref.as_ref())
+        .ok_or_else(|| anyhow!("File has no objectRef"))?;
+    let object = crate::control::cas::CasStore::new(cp.objects.clone())
+        .get_object_decoded(&object_ref.key)
+        .await?
+        .ok_or_else(|| anyhow!("File object '{}' not found", object_ref.key))?;
+    Ok(String::from_utf8_lossy(&object.bytes).to_string())
+}
+
+async fn upsert_memory_file(
+    cp: &ControlPlane,
+    namespace: &str,
+    path: &str,
+    media_type: &str,
+    content: &[u8],
+) -> Result<resources_proto::File> {
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let existing = find_memory_file_by_path(cp, namespace, path).await?;
+    let name = existing
+        .as_ref()
+        .map(file_name_from_file)
+        .filter(|name| !name.is_empty())
+        .unwrap_or_else(|| safe_file_resource_name(path));
+    let status = existing
+        .as_ref()
+        .and_then(|file| file.status.clone())
+        .unwrap_or_default();
+    let spec = resources_proto::FileSpec {
+        path: path.to_string(),
+        media_type: media_type.to_string(),
+        purpose: resources_proto::FilePurpose::Memory as i32,
+        index_policy: resources_proto::FileIndexPolicy::Retrieval as i32,
+        retention: resources_proto::FileRetention::Retained as i32,
+    };
+    let mut resource = store
+        .upsert(
+            namespace,
+            resource_model::file_resource(
+                namespace.to_string(),
+                name,
+                spec,
+                status,
+                file_resource_labels(
+                    resources_proto::FilePurpose::Memory as i32,
+                    resources_proto::FileIndexPolicy::Retrieval as i32,
+                    resources_proto::FileRetention::Retained as i32,
+                ),
+            ),
+        )
+        .await?;
+    let uid = resource
+        .metadata
+        .as_ref()
+        .map(|metadata| metadata.uid.as_str())
+        .filter(|uid| !uid.is_empty())
+        .ok_or_else(|| anyhow!("File resource uid missing after upsert"))?;
+    let object_ref = write_file_objects(cp, namespace, uid, path, media_type, content).await?;
+    let status = resources_proto::FileStatus {
+        observed_generation: resource
+            .metadata
+            .as_ref()
+            .map(|metadata| metadata.generation)
+            .unwrap_or_default(),
+        phase: "Ready".to_string(),
+        conditions: Vec::new(),
+        object_ref: Some(object_ref),
+        updated_at: chrono::Utc::now().timestamp_micros(),
+        pending_upload: None,
+    };
+    resource.status = Some(resources_proto::ResourceStatus {
+        kind: Some(resources_proto::resource_status::Kind::File(status)),
+    });
+    let name = resource
+        .metadata
+        .as_ref()
+        .map(|metadata| metadata.name.clone())
+        .ok_or_else(|| anyhow!("File resource name missing"))?;
+    let resource = store
+        .patch_status(namespace, "File", &name, None, resource.status.unwrap())
+        .await?;
+    file_from_resource(resource).ok_or_else(|| anyhow!("invalid File resource"))
+}
+
+async fn write_file_objects(
+    cp: &ControlPlane,
+    namespace: &str,
+    file_uid: &str,
+    path: &str,
+    media_type: &str,
+    content: &[u8],
+) -> Result<resources_proto::FileObjectRef> {
+    let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+    let object_ref = cas
+        .put_file(namespace, file_uid, path, content, media_type)
+        .await?;
+    cas.put_latest_file(namespace, path, content, media_type)
+        .await?;
+    Ok(resources_proto::FileObjectRef {
+        key: object_ref.key,
+        media_type: object_ref.media_type,
+        size_bytes: object_ref.size_bytes,
+        sha256: object_ref.sha256,
+        filename: object_ref.filename,
+        metadata: object_ref.metadata,
+    })
+}
+
+fn file_from_resource(resource: resources_proto::Resource) -> Option<resources_proto::File> {
+    let spec = resource.spec.and_then(|spec| match spec.kind {
+        Some(resources_proto::resource_spec::Kind::File(spec)) => Some(spec),
+        _ => None,
+    })?;
+    let status = resource.status.and_then(|status| match status.kind {
+        Some(resources_proto::resource_status::Kind::File(status)) => Some(status),
+        _ => None,
+    });
+    Some(resources_proto::File {
+        metadata: resource.metadata,
+        spec: Some(spec),
+        status,
+    })
+}
+
+fn file_name_from_file(file: &resources_proto::File) -> String {
+    file.metadata
+        .as_ref()
+        .map(|metadata| metadata.name.clone())
+        .unwrap_or_default()
+}
+
+fn memory_file_json(file: &resources_proto::File) -> Value {
+    let spec = file.spec.as_ref();
+    let object = file
+        .status
+        .as_ref()
+        .and_then(|status| status.object_ref.as_ref());
+    json!({
+        "namespace": file.metadata.as_ref().map(|metadata| metadata.namespace.as_str()).unwrap_or_default(),
+        "name": file_name_from_file(file),
+        "path": spec.map(|spec| spec.path.as_str()).unwrap_or_default(),
+        "mediaType": spec.map(|spec| spec.media_type.as_str()).unwrap_or_default(),
+        "purpose": "MEMORY",
+        "indexPolicy": "RETRIEVAL",
+        "sizeBytes": object.map(|object| object.size_bytes).unwrap_or_default(),
+        "sha256": object.map(|object| object.sha256.as_str()).unwrap_or_default(),
+    })
+}
+
+fn normalize_memory_path(path: &str) -> Result<String> {
+    let path = normalize_logical_path(path)?;
+    if !path.starts_with("/memory/") && path != "/memory" {
+        return Err(anyhow!("memory path must be under /memory"));
+    }
+    Ok(path)
+}
+
+fn safe_file_resource_name(path: &str) -> String {
+    let slug = path
+        .trim_matches('/')
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() {
+                ch.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>()
+        .trim_matches('-')
+        .chars()
+        .take(48)
+        .collect::<String>();
+    crate::control::uuid::unique_name(if slug.is_empty() { "file" } else { &slug })
+}
+
+fn file_resource_labels(
+    purpose: i32,
+    index_policy: i32,
+    retention: i32,
+) -> HashMap<String, String> {
+    HashMap::from([
+        (
+            "talon.impalasys.com/purpose".to_string(),
+            file_purpose_label(purpose).to_string(),
+        ),
+        (
+            "talon.impalasys.com/index-policy".to_string(),
+            file_index_policy_label(index_policy).to_string(),
+        ),
+        (
+            "talon.impalasys.com/retention".to_string(),
+            file_retention_label(retention).to_string(),
+        ),
+    ])
+}
+
+fn file_purpose_label(value: i32) -> &'static str {
+    match resources_proto::FilePurpose::try_from(value).ok() {
+        Some(resources_proto::FilePurpose::Memory) => "memory",
+        Some(resources_proto::FilePurpose::Artifact) => "artifact",
+        _ => "unspecified",
+    }
+}
+
+fn file_index_policy_label(value: i32) -> &'static str {
+    match resources_proto::FileIndexPolicy::try_from(value).ok() {
+        Some(resources_proto::FileIndexPolicy::None) => "none",
+        Some(resources_proto::FileIndexPolicy::Search) => "search",
+        Some(resources_proto::FileIndexPolicy::Retrieval) => "retrieval",
+        _ => "unspecified",
+    }
+}
+
+fn file_retention_label(value: i32) -> &'static str {
+    match resources_proto::FileRetention::try_from(value).ok() {
+        Some(resources_proto::FileRetention::Retained) => "retained",
+        _ => "unspecified",
+    }
+}
+
+fn memory_excerpt(content: &str, query: &str) -> String {
+    let lower = content.to_ascii_lowercase();
+    let query_index = lower.find(query).unwrap_or(0);
+    let mut byte_count: usize = 0;
+    let mut char_index: usize = 0;
+    for ch in content.chars() {
+        if byte_count >= query_index {
+            break;
+        }
+        byte_count += ch.len_utf8();
+        char_index += 1;
+    }
+    let start = char_index.saturating_sub(120);
+    content
+        .chars()
+        .skip(start)
+        .take(340)
+        .collect::<String>()
+        .trim()
+        .to_string()
+}
+
+async fn create_artifact(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<String> {
+    if current_session.trim().is_empty() {
+        return Err(anyhow!("create_artifact requires an active session"));
+    }
+    let title = req_str(args, "title")?;
+    let media_type = opt_str(args, "media_type").unwrap_or("text/markdown");
+    let content = artifact_content_bytes(args)?;
+    let labels = string_map(args.get("labels"));
+    let metadata = string_map(args.get("metadata"));
+    let artifact_id = crate::control::uuid::unique_name("artifact");
+    let object_ref = crate::control::cas::CasStore::new(cp.objects.clone())
+        .put_artifact(
+            current_namespace,
+            current_agent,
+            current_session,
+            &artifact_id,
+            &content,
+            media_type,
+            metadata.clone(),
+        )
+        .await?;
+    let artifact = crate::gateway::rpc::data_proto::Artifact {
+        id: artifact_id.clone(),
+        session_id: current_session.to_string(),
+        title: title.to_string(),
+        media_type: media_type.to_string(),
+        object_ref: Some(object_ref),
+        created_by_agent: current_agent.to_string(),
+        created_at: chrono::Utc::now().timestamp_micros(),
+        labels,
+        metadata,
+    };
+    cp.kv
+        .set_msg(
+            &keys::artifact(
+                current_namespace,
+                current_agent,
+                current_session,
+                &artifact_id,
+            ),
+            &artifact,
+        )
+        .await?;
+    let artifact_uri = ArtifactUri {
+        namespace: current_namespace.to_string(),
+        agent: current_agent.to_string(),
+        session_id: current_session.to_string(),
+        artifact_id: artifact_id.clone(),
+    }
+    .encode();
+    Ok(serde_json::to_string_pretty(&json!({
+        "artifact": artifact_json(&artifact),
+        "artifactUri": artifact_uri
+    }))?)
+}
+
+async fn read_artifact(
+    cp: &ControlPlane,
+    _current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<String> {
+    let artifact_uri = req_str(args, "artifact_uri")?;
+    let (_, artifact) =
+        resolve_artifact_uri(cp, current_agent, current_session, artifact_uri, OP_READ).await?;
+    let object_ref = artifact
+        .object_ref
+        .as_ref()
+        .ok_or_else(|| anyhow!("Artifact has no objectRef"))?;
+    let object = cp
+        .objects
+        .get(&object_ref.key)
+        .await?
+        .ok_or_else(|| anyhow!("Artifact object not found"))?;
+    let content_text = String::from_utf8(object.bytes.clone()).ok();
+    Ok(serde_json::to_string_pretty(&json!({
+        "artifact": artifact_json(&artifact),
+        "content": content_text,
+        "contentBase64": if content_text.is_none() {
+            Some(general_purpose::STANDARD.encode(&object.bytes))
+        } else {
+            None
+        }
+    }))?)
+}
+
+async fn get_artifact_metadata(
+    cp: &ControlPlane,
+    _current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<String> {
+    let artifact_uri = req_str(args, "artifact_uri")?;
+    let (_, artifact) = resolve_artifact_uri(
+        cp,
+        current_agent,
+        current_session,
+        artifact_uri,
+        OP_METADATA,
+    )
+    .await?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "artifact": artifact_json(&artifact)
+    }))?)
+}
+
+async fn grant_artifact(
+    cp: &ControlPlane,
+    _current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<String> {
+    let artifact_uri = req_str(args, "artifact_uri")?;
+    let (uri, _) =
+        resolve_artifact_uri(cp, current_agent, current_session, artifact_uri, OP_READ).await?;
+    let operations = args
+        .get("operations")
+        .and_then(Value::as_array)
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .filter(|values| !values.is_empty())
+        .unwrap_or_else(|| vec![OP_READ.to_string(), OP_METADATA.to_string()]);
+    for operation in &operations {
+        if !matches!(operation.as_str(), OP_READ | OP_METADATA | OP_PROMOTE) {
+            return Err(anyhow!("unsupported artifact operation '{}'", operation));
+        }
+    }
+    let ttl = args
+        .get("ttl_seconds")
+        .and_then(Value::as_i64)
+        .map(access_expiry_from_ttl_seconds)
+        .unwrap_or_else(default_access_expiry);
+    let target_agent = opt_str(args, "target_agent").unwrap_or("");
+    let target_session_id = opt_str(args, "target_session_id").unwrap_or("");
+    let access = crate::gateway::rpc::data_proto::ArtifactAccess {
+        target_agent: target_agent.to_string(),
+        target_session_id: target_session_id.to_string(),
+        operations,
+        expires_at: ttl,
+        granted_by_agent: current_agent.to_string(),
+        granted_by_session_id: current_session.to_string(),
+        created_at: chrono::Utc::now().timestamp_micros(),
+    };
+    cp.kv
+        .set_msg(
+            &keys::artifact_access(
+                &uri.namespace,
+                &uri.agent,
+                &uri.session_id,
+                &uri.artifact_id,
+                target_agent,
+                target_session_id,
+            ),
+            &access,
+        )
+        .await?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "artifactUri": uri.encode()
+    }))?)
+}
+
+async fn fetch_url(args: &Value) -> Result<String> {
+    let url = req_str(args, "url")?;
+    let mut current_url = validate_public_http_url(url).await?;
+    let max_chars = args
+        .get("max_chars")
+        .and_then(Value::as_u64)
+        .unwrap_or(12_000)
+        .clamp(1_000, 40_000) as usize;
+    let mut redirects = 0usize;
+    let response = loop {
+        let client = http_client(&current_url)?;
+        let response = client.get(current_url.url.clone()).send().await?;
+        if !response.status().is_redirection() {
+            break response;
+        }
+        if redirects >= 5 {
+            return Err(anyhow!("too many redirects while fetching URL"));
+        }
+        let Some(location) = response.headers().get(reqwest::header::LOCATION) else {
+            break response;
+        };
+        let location = location
+            .to_str()
+            .map_err(|err| anyhow!("redirect Location is not valid UTF-8: {err}"))?;
+        current_url = validate_public_http_url(current_url.url.join(location)?.as_str()).await?;
+        redirects += 1;
+    };
+    let status = response.status().as_u16();
+    let final_url = response.url().to_string();
+    let content_type = response
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    let body = response.text().await?;
+    let title = extract_title(&body);
+    let visible_text = compact_visible_text(&body, max_chars);
+
+    Ok(serde_json::to_string_pretty(&json!({
+        "url": url,
+        "finalUrl": final_url,
+        "status": status,
+        "contentType": content_type,
+        "title": title,
+        "text": visible_text,
+        "truncated": body.len() > max_chars
+    }))?)
+}
+
+async fn web_search(args: &Value) -> Result<String> {
+    let query = req_str(args, "query")?;
+    let limit = args
+        .get("limit")
+        .and_then(Value::as_u64)
+        .unwrap_or(5)
+        .clamp(1, 10) as usize;
+    let url = format!(
+        "https://duckduckgo.com/html/?q={}",
+        urlencoding::encode(query)
+    );
+    let url = validate_public_http_url(&url).await?;
+    let response = http_client(&url)?.get(url.url.clone()).send().await?;
+    let status = response.status().as_u16();
+    let body = response.text().await?;
+    let results = extract_duckduckgo_results(&body, limit);
+
+    Ok(serde_json::to_string_pretty(&json!({
+        "query": query,
+        "provider": "duckduckgo-html",
+        "status": status,
+        "results": results,
+        "citationPolicy": "Fetch a result URL with fetch_url before using it as evidence."
+    }))?)
 }
 
 async fn upsert_schedule(
@@ -479,6 +1980,268 @@ fn schedule_json(schedule: &resources_proto::Schedule) -> Value {
     })
 }
 
+async fn create_goal(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<data_proto::Goal> {
+    let objective = req_str(args, "objective")?.to_string();
+    let now = chrono::Utc::now().timestamp_micros();
+    let goal = data_proto::Goal {
+        id: crate::control::uuid::unique_name("goal"),
+        namespace: current_namespace.to_string(),
+        agent: current_agent.to_string(),
+        session_id: current_session.to_string(),
+        objective,
+        success_criteria: string_vec(args.get("success_criteria")),
+        phase: data_proto::GoalPhase::Running as i32,
+        progress_summary: opt_str(args, "progress_summary")
+            .unwrap_or("Goal created.")
+            .to_string(),
+        iteration: 0,
+        max_iterations: args
+            .get("max_iterations")
+            .and_then(Value::as_i64)
+            .unwrap_or_default()
+            .try_into()
+            .unwrap_or_default(),
+        created_at: now,
+        updated_at: now,
+        completed_at: 0,
+        blocked_reason: String::new(),
+        labels: string_map(args.get("labels")),
+        metadata: string_map(args.get("metadata")),
+    };
+    upsert_goal(cp, goal.clone()).await?;
+    Ok(goal)
+}
+
+async fn get_goal_from_args(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<data_proto::Goal> {
+    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let agent = opt_str(args, "agent").unwrap_or(current_agent);
+    let session_id = opt_str(args, "session_id").unwrap_or(current_session);
+    let goal_id = req_str(args, "goal_id")?;
+    load_goal(cp, namespace, agent, session_id, goal_id)
+        .await?
+        .ok_or_else(|| anyhow!("goal '{}' not found", goal_id))
+}
+
+async fn load_goal(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    goal_id: &str,
+) -> Result<Option<data_proto::Goal>> {
+    cp.kv
+        .get_msg::<data_proto::Goal>(&keys::goal(namespace, agent, session_id, goal_id))
+        .await
+}
+
+async fn upsert_goal(cp: &ControlPlane, goal: data_proto::Goal) -> Result<()> {
+    cp.kv
+        .set_msg(
+            &keys::goal(&goal.namespace, &goal.agent, &goal.session_id, &goal.id),
+            &goal,
+        )
+        .await
+}
+
+async fn list_goals(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    status_group: Option<&str>,
+    phase: Option<&str>,
+    limit: usize,
+) -> Result<Vec<data_proto::Goal>> {
+    list_session_goals(cp, namespace, agent, session_id, status_group, phase, limit).await
+}
+
+async fn list_session_goals(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    status_group: Option<&str>,
+    phase: Option<&str>,
+    limit: usize,
+) -> Result<Vec<data_proto::Goal>> {
+    let mut goals = cp
+        .kv
+        .list_entries(&keys::goal_prefix(namespace, agent, session_id))
+        .await?
+        .into_iter()
+        .filter_map(|(_, value)| data_proto::Goal::decode(value.as_slice()).ok())
+        .filter(|goal| goal_matches(goal, status_group, phase))
+        .collect::<Vec<_>>();
+    goals.sort_by(|left, right| right.updated_at.cmp(&left.updated_at));
+    goals.truncate(limit);
+    Ok(goals)
+}
+
+fn goal_matches(goal: &data_proto::Goal, status_group: Option<&str>, phase: Option<&str>) -> bool {
+    if status_group
+        .is_some_and(|current| !goal_status_group(goal.phase).eq_ignore_ascii_case(current))
+    {
+        return false;
+    }
+    if phase.is_some_and(|current| parse_goal_phase(current).ok() != Some(goal.phase)) {
+        return false;
+    }
+    true
+}
+
+fn update_goal_from_args(goal: &mut data_proto::Goal, args: &Value) -> Result<()> {
+    let now = chrono::Utc::now().timestamp_micros();
+    if let Some(phase) = opt_str(args, "phase") {
+        goal.phase = parse_goal_phase(phase)?;
+    }
+    if let Some(summary) = opt_str(args, "progress_summary") {
+        goal.progress_summary = summary.to_string();
+    }
+    if let Some(iteration) = args.get("iteration").and_then(Value::as_i64) {
+        goal.iteration = iteration.try_into().unwrap_or_default();
+    }
+    if let Some(blocked_reason) = opt_str(args, "blocked_reason") {
+        goal.blocked_reason = blocked_reason.to_string();
+    }
+    goal.updated_at = now;
+    if is_terminal_goal_phase(goal.phase) && goal.completed_at == 0 {
+        goal.completed_at = now;
+    }
+    Ok(())
+}
+
+fn goal_json(goal: &data_proto::Goal) -> Value {
+    json!({
+        "id": goal.id,
+        "namespace": goal.namespace,
+        "agent": goal.agent,
+        "sessionId": goal.session_id,
+        "objective": goal.objective,
+        "successCriteria": goal.success_criteria,
+        "phase": goal_phase_name(goal.phase),
+        "statusGroup": goal_status_group(goal.phase),
+        "progressSummary": goal.progress_summary,
+        "iteration": goal.iteration,
+        "maxIterations": goal.max_iterations,
+        "createdAt": goal.created_at,
+        "updatedAt": goal.updated_at,
+        "completedAt": goal.completed_at,
+        "blockedReason": goal.blocked_reason,
+        "labels": goal.labels,
+        "metadata": goal.metadata,
+    })
+}
+
+pub async fn active_goals_context(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+) -> Result<Option<String>> {
+    let goals = list_goals(cp, namespace, agent, session_id, Some("active"), None, 20).await?;
+    if goals.is_empty() {
+        return Ok(None);
+    }
+
+    let mut lines = vec![
+        "# Active Talon Goals".to_string(),
+        "Keep these session-scoped objectives in view while deciding next steps.".to_string(),
+    ];
+    for goal in goals {
+        lines.push(format!(
+            "- {} [{}] {}",
+            goal.id,
+            goal_phase_name(goal.phase),
+            goal.objective
+        ));
+        if !goal.success_criteria.is_empty() {
+            lines.push(format!(
+                "  Success criteria: {}",
+                goal.success_criteria.join("; ")
+            ));
+        }
+        if !goal.progress_summary.is_empty() {
+            lines.push(format!("  Progress: {}", goal.progress_summary));
+        }
+        if !goal.blocked_reason.is_empty() {
+            lines.push(format!("  Blocked reason: {}", goal.blocked_reason));
+        }
+    }
+    Ok(Some(lines.join("\n")))
+}
+
+fn parse_goal_phase(value: &str) -> Result<i32> {
+    let phase = match value.trim().to_ascii_uppercase().as_str() {
+        "" | "UNSPECIFIED" => data_proto::GoalPhase::Unspecified,
+        "RUNNING" => data_proto::GoalPhase::Running,
+        "PAUSED" => data_proto::GoalPhase::Paused,
+        "NEEDS_REVIEW" | "NEEDS-REVIEW" => data_proto::GoalPhase::NeedsReview,
+        "SUCCEEDED" | "SUCCESS" | "COMPLETED" => data_proto::GoalPhase::Succeeded,
+        "FAILED" => data_proto::GoalPhase::Failed,
+        "BLOCKED" => data_proto::GoalPhase::Blocked,
+        "CANCELED" | "CANCELLED" => data_proto::GoalPhase::Canceled,
+        "EXPIRED" => data_proto::GoalPhase::Expired,
+        other => return Err(anyhow!("unsupported goal phase '{}'", other)),
+    };
+    Ok(phase as i32)
+}
+
+fn goal_phase_name(value: i32) -> &'static str {
+    match data_proto::GoalPhase::try_from(value).ok() {
+        Some(data_proto::GoalPhase::Running) => "RUNNING",
+        Some(data_proto::GoalPhase::Paused) => "PAUSED",
+        Some(data_proto::GoalPhase::NeedsReview) => "NEEDS_REVIEW",
+        Some(data_proto::GoalPhase::Succeeded) => "SUCCEEDED",
+        Some(data_proto::GoalPhase::Failed) => "FAILED",
+        Some(data_proto::GoalPhase::Blocked) => "BLOCKED",
+        Some(data_proto::GoalPhase::Canceled) => "CANCELED",
+        Some(data_proto::GoalPhase::Expired) => "EXPIRED",
+        _ => "UNSPECIFIED",
+    }
+}
+
+fn goal_status_group(value: i32) -> &'static str {
+    if is_active_goal_phase(value) {
+        "ACTIVE"
+    } else if is_terminal_goal_phase(value) {
+        "TERMINAL"
+    } else {
+        "UNKNOWN"
+    }
+}
+
+fn is_active_goal_phase(value: i32) -> bool {
+    matches!(
+        data_proto::GoalPhase::try_from(value).ok(),
+        Some(data_proto::GoalPhase::Running)
+            | Some(data_proto::GoalPhase::Paused)
+            | Some(data_proto::GoalPhase::NeedsReview)
+            | Some(data_proto::GoalPhase::Blocked)
+    )
+}
+
+fn is_terminal_goal_phase(value: i32) -> bool {
+    matches!(
+        data_proto::GoalPhase::try_from(value).ok(),
+        Some(data_proto::GoalPhase::Succeeded)
+            | Some(data_proto::GoalPhase::Failed)
+            | Some(data_proto::GoalPhase::Canceled)
+            | Some(data_proto::GoalPhase::Expired)
+    )
+}
+
 fn req_str<'a>(args: &'a Value, key: &str) -> Result<&'a str> {
     args.get(key)
         .and_then(Value::as_str)
@@ -493,6 +2256,453 @@ fn opt_str<'a>(args: &'a Value, key: &str) -> Option<&'a str> {
         .filter(|value| !value.is_empty())
 }
 
+fn opt_usize(args: &Value, key: &str) -> Option<usize> {
+    args.get(key)
+        .and_then(Value::as_u64)
+        .map(|value| value as usize)
+}
+
+fn string_map(value: Option<&Value>) -> HashMap<String, String> {
+    value
+        .and_then(Value::as_object)
+        .map(|map| {
+            map.iter()
+                .filter_map(|(key, value)| {
+                    value
+                        .as_str()
+                        .map(|current| (key.clone(), current.to_string()))
+                })
+                .collect::<HashMap<_, _>>()
+        })
+        .unwrap_or_default()
+}
+
+fn string_vec(value: Option<&Value>) -> Vec<String> {
+    value
+        .and_then(Value::as_array)
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(|value| value.as_str().map(str::trim))
+                .filter(|value| !value.is_empty())
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
+fn artifact_content_bytes(args: &Value) -> Result<Vec<u8>> {
+    if let Some(encoded) = opt_str(args, "content_base64") {
+        return general_purpose::STANDARD
+            .decode(encoded)
+            .map_err(|err| anyhow!("content_base64 is invalid: {err}"));
+    }
+    Ok(opt_str(args, "content").unwrap_or("").as_bytes().to_vec())
+}
+
+#[derive(Debug, Clone)]
+struct ArtifactUri {
+    namespace: String,
+    agent: String,
+    session_id: String,
+    artifact_id: String,
+}
+
+impl ArtifactUri {
+    fn encode(&self) -> String {
+        format!(
+            "artifact://{}/{}/{}/{}",
+            self.namespace, self.agent, self.session_id, self.artifact_id
+        )
+    }
+}
+
+async fn resolve_artifact_uri(
+    cp: &ControlPlane,
+    current_agent: &str,
+    current_session: &str,
+    artifact_uri: &str,
+    operation: &str,
+) -> Result<(ArtifactUri, crate::gateway::rpc::data_proto::Artifact)> {
+    let uri = parse_artifact_uri(artifact_uri)?;
+    let artifact = cp
+        .kv
+        .get_msg::<crate::gateway::rpc::data_proto::Artifact>(&keys::artifact(
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
+        ))
+        .await?
+        .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
+    authorize_artifact_access(
+        cp,
+        &uri,
+        current_agent,
+        current_session,
+        operation,
+        artifact_uri,
+    )
+    .await?;
+    Ok((uri, artifact))
+}
+
+fn artifact_json(artifact: &crate::gateway::rpc::data_proto::Artifact) -> Value {
+    let object_ref = artifact.object_ref.as_ref();
+    json!({
+        "id": artifact.id,
+        "sessionId": artifact.session_id,
+        "title": artifact.title,
+        "mediaType": artifact.media_type,
+        "createdByAgent": artifact.created_by_agent,
+        "createdAt": artifact.created_at,
+        "labels": artifact.labels,
+        "metadata": artifact.metadata,
+        "objectRef": object_ref.map(|object| json!({
+            "key": object.key,
+            "mediaType": object.media_type,
+            "sizeBytes": object.size_bytes,
+            "sha256": object.sha256,
+            "filename": object.filename,
+            "metadata": object.metadata,
+        })).unwrap_or_else(|| json!(null))
+    })
+}
+
+#[derive(Clone, Debug)]
+struct ValidatedHttpUrl {
+    url: url::Url,
+    host: Option<String>,
+    addrs: Vec<SocketAddr>,
+}
+
+fn http_client(target: &ValidatedHttpUrl) -> Result<reqwest::Client> {
+    let mut builder = reqwest::Client::builder()
+        .timeout(Duration::from_secs(20))
+        .user_agent("TalonResearchBot/0.1 (+https://impalasys.com)")
+        .redirect(reqwest::redirect::Policy::none());
+    if let Some(host) = target.host.as_deref() {
+        builder = builder.resolve_to_addrs(host, &target.addrs);
+    }
+    builder
+        .build()
+        .map_err(|err| anyhow!("research HTTP client failed to build: {err}"))
+}
+
+fn validate_http_url(value: &str) -> Result<()> {
+    let url = url::Url::parse(value).map_err(|err| anyhow!("invalid URL: {err}"))?;
+    match url.scheme() {
+        "http" | "https" => Ok(()),
+        scheme => Err(anyhow!("unsupported URL scheme '{}'", scheme)),
+    }
+}
+
+async fn validate_public_http_url(value: &str) -> Result<ValidatedHttpUrl> {
+    validate_http_url(value)?;
+    let url = url::Url::parse(value).map_err(|err| anyhow!("invalid URL: {err}"))?;
+    let host = url
+        .host_str()
+        .ok_or_else(|| anyhow!("URL host is required"))?
+        .to_string();
+    let port = url
+        .port_or_known_default()
+        .ok_or_else(|| anyhow!("URL port is required"))?;
+
+    if let Ok(ip) = host.parse::<IpAddr>() {
+        ensure_public_ip(ip)?;
+        return Ok(ValidatedHttpUrl {
+            url,
+            host: None,
+            addrs: vec![SocketAddr::new(ip, port)],
+        });
+    }
+
+    let mut addrs = tokio::net::lookup_host((host.clone(), port))
+        .await
+        .map_err(|err| anyhow!("failed to resolve URL host '{host}': {err}"))?;
+    let mut public_addrs = Vec::new();
+    for addr in addrs.by_ref() {
+        ensure_public_ip(addr.ip())?;
+        public_addrs.push(addr);
+    }
+    if public_addrs.is_empty() {
+        return Err(anyhow!("URL host '{host}' resolved no addresses"));
+    }
+    Ok(ValidatedHttpUrl {
+        url,
+        host: Some(host),
+        addrs: public_addrs,
+    })
+}
+
+fn ensure_public_ip(ip: IpAddr) -> Result<()> {
+    let blocked = match ip {
+        IpAddr::V4(ip) => is_blocked_ipv4(ip),
+        IpAddr::V6(ip) => is_blocked_ipv6(ip),
+    };
+    if blocked {
+        Err(anyhow!("URL resolves to a non-public address"))
+    } else {
+        Ok(())
+    }
+}
+
+fn is_blocked_ipv4(ip: Ipv4Addr) -> bool {
+    let octets = ip.octets();
+    ip.is_private()
+        || ip.is_loopback()
+        || ip.is_link_local()
+        || ip.is_broadcast()
+        || ip.is_documentation()
+        || ip.is_unspecified()
+        || ip.is_multicast()
+        || octets[0] == 0
+        || octets[0] >= 224
+        || (octets[0] == 100 && (64..=127).contains(&octets[1]))
+        || (octets[0] == 169 && octets[1] == 254)
+}
+
+fn is_blocked_ipv6(ip: Ipv6Addr) -> bool {
+    ip.is_loopback()
+        || ip.is_unspecified()
+        || ip.is_multicast()
+        || (ip.segments()[0] & 0xfe00) == 0xfc00
+        || (ip.segments()[0] & 0xffc0) == 0xfe80
+}
+
+fn extract_title(html: &str) -> String {
+    let lower = html.to_lowercase();
+    let Some(start) = lower.find("<title") else {
+        return String::new();
+    };
+    let Some(open_end) = lower[start..].find('>') else {
+        return String::new();
+    };
+    let content_start = start + open_end + 1;
+    let Some(close) = lower[content_start..].find("</title>") else {
+        return String::new();
+    };
+    decode_html_entities(&html[content_start..content_start + close])
+        .trim()
+        .to_string()
+}
+
+fn compact_visible_text(input: &str, max_chars: usize) -> String {
+    let without_scripts = remove_tag_blocks(input, "script");
+    let without_styles = remove_tag_blocks(&without_scripts, "style");
+    let mut text = String::with_capacity(without_styles.len().min(max_chars));
+    let mut in_tag = false;
+    let mut last_was_space = true;
+    for ch in without_styles.chars() {
+        match ch {
+            '<' => {
+                in_tag = true;
+                if !last_was_space {
+                    text.push(' ');
+                    last_was_space = true;
+                }
+            }
+            '>' => in_tag = false,
+            _ if in_tag => {}
+            _ if ch.is_whitespace() => {
+                if !last_was_space {
+                    text.push(' ');
+                    last_was_space = true;
+                }
+            }
+            _ => {
+                text.push(ch);
+                last_was_space = false;
+            }
+        }
+        if text.len() >= max_chars {
+            break;
+        }
+    }
+    decode_html_entities(text.trim())
+}
+
+fn remove_tag_blocks(input: &str, tag: &str) -> String {
+    let mut output = String::with_capacity(input.len());
+    let lower = input.to_lowercase();
+    let open_prefix = format!("<{}", tag);
+    let close = format!("</{}>", tag);
+    let mut pos = 0;
+    while let Some(start_rel) = lower[pos..].find(&open_prefix) {
+        let start = pos + start_rel;
+        output.push_str(&input[pos..start]);
+        if let Some(end_rel) = lower[start..].find(&close) {
+            pos = start + end_rel + close.len();
+        } else {
+            pos = input.len();
+            break;
+        }
+    }
+    output.push_str(&input[pos..]);
+    output
+}
+
+fn decode_html_entities(input: &str) -> String {
+    input
+        .replace("&amp;", "&")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'")
+        .replace("&apos;", "'")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&nbsp;", " ")
+}
+
+fn extract_duckduckgo_results(html: &str, limit: usize) -> Vec<Value> {
+    let mut results: Vec<Value> = Vec::new();
+    let mut pos = 0;
+    while results.len() < limit {
+        let Some(class_rel) = html[pos..].find("result__a") else {
+            break;
+        };
+        let class_pos = pos + class_rel;
+        let anchor_start = html[..class_pos].rfind("<a").unwrap_or(class_pos);
+        let Some(anchor_end_rel) = html[class_pos..].find("</a>") else {
+            break;
+        };
+        let anchor_end = class_pos + anchor_end_rel + "</a>".len();
+        let anchor = &html[anchor_start..anchor_end];
+        let Some(href) = extract_attr(anchor, "href") else {
+            pos = anchor_end;
+            continue;
+        };
+        let Some(url) = normalize_search_result_url(&href) else {
+            pos = anchor_end;
+            continue;
+        };
+        let title = compact_visible_text(anchor, 500);
+        if !title.is_empty() && !results.iter().any(|item| item["url"] == url) {
+            results.push(json!({
+                "title": title,
+                "url": url
+            }));
+        }
+        pos = anchor_end;
+    }
+    results
+}
+
+fn extract_attr(input: &str, attr: &str) -> Option<String> {
+    let needle = format!("{}=\"", attr);
+    let start = input.find(&needle)? + needle.len();
+    let end = input[start..].find('"')?;
+    Some(decode_html_entities(&input[start..start + end]))
+}
+
+fn normalize_search_result_url(href: &str) -> Option<String> {
+    if href.starts_with("http://") || href.starts_with("https://") {
+        return Some(href.to_string());
+    }
+    let query_start = href.find("uddg=")? + "uddg=".len();
+    let query = &href[query_start..];
+    let value = query.split('&').next().unwrap_or(query);
+    urlencoding::decode(value)
+        .ok()
+        .map(|value| value.into_owned())
+}
+
+fn default_access_expiry() -> i64 {
+    access_expiry_from_ttl_seconds(24 * 60 * 60)
+}
+
+fn access_expiry_from_ttl_seconds(ttl_seconds: i64) -> i64 {
+    if ttl_seconds <= 0 {
+        return default_access_expiry();
+    }
+    let ttl_micros = ttl_seconds.min(MAX_ACCESS_TTL_SECONDS) * 1_000_000;
+    chrono::Utc::now()
+        .timestamp_micros()
+        .saturating_add(ttl_micros)
+}
+
+fn normalize_logical_path(path: &str) -> Result<String> {
+    let path = path.trim();
+    if path.is_empty() {
+        return Err(anyhow!("path is required"));
+    }
+    if !path.starts_with('/') {
+        return Err(anyhow!("path must be absolute"));
+    }
+    if path.contains("//") || path.contains('\0') || path.contains("..") {
+        return Err(anyhow!("path is not normalized"));
+    }
+    Ok(path.trim_end_matches('/').to_string())
+}
+
+fn parse_artifact_uri(uri: &str) -> Result<ArtifactUri> {
+    let rest = uri
+        .trim()
+        .strip_prefix("artifact://")
+        .ok_or_else(|| anyhow!("artifact uri must start with 'artifact://'"))?;
+    let parts = rest.split('/').collect::<Vec<_>>();
+    match parts.as_slice() {
+        [namespace, agent, session_id, artifact_id] => Ok(ArtifactUri {
+            namespace: validate_uri_segment(namespace, "artifact namespace")?,
+            agent: validate_uri_segment(agent, "artifact agent")?,
+            session_id: validate_uri_segment(session_id, "artifact session")?,
+            artifact_id: validate_uri_segment(artifact_id, "artifact id")?,
+        }),
+        _ => Err(anyhow!(
+            "artifact uri must be artifact://<namespace>/<agent>/<session>/<artifact>"
+        )),
+    }
+}
+
+fn validate_uri_segment(segment: &str, name: &str) -> Result<String> {
+    if segment.trim().is_empty()
+        || segment.contains('/')
+        || segment.contains('\0')
+        || segment.chars().any(char::is_control)
+    {
+        return Err(anyhow!("{name} segment is invalid"));
+    }
+    Ok(segment.to_string())
+}
+
+async fn authorize_artifact_access(
+    cp: &ControlPlane,
+    uri: &ArtifactUri,
+    current_agent: &str,
+    current_session: &str,
+    operation: &str,
+    artifact_uri: &str,
+) -> Result<()> {
+    if current_agent == uri.agent && current_session == uri.session_id {
+        return Ok(());
+    }
+    if current_agent.trim().is_empty() || current_session.trim().is_empty() {
+        return Err(anyhow!(
+            "artifact uri requires caller agent and session identity"
+        ));
+    }
+    let access = cp
+        .kv
+        .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
+            current_agent,
+            current_session,
+        ))
+        .await?
+        .ok_or_else(|| anyhow!("artifact access denied for '{artifact_uri}'"))?;
+    if access.expires_at > 0 && access.expires_at < chrono::Utc::now().timestamp_micros() {
+        return Err(anyhow!("artifact access for '{artifact_uri}' is expired"));
+    }
+    if !access.operations.iter().any(|op| op == operation) {
+        return Err(anyhow!(
+            "artifact access for '{artifact_uri}' does not allow '{operation}'"
+        ));
+    }
+    Ok(())
+}
+
 fn require_capability(spec: &manifests::AgentSpec, capability: &str, action: &str) -> Result<()> {
     if has_capability_action(spec, capability, action) {
         return Ok(());
@@ -502,6 +2712,15 @@ fn require_capability(spec: &manifests::AgentSpec, capability: &str, action: &st
         capability,
         action
     ))
+}
+
+fn require_memory_read(spec: &manifests::AgentSpec) -> Result<()> {
+    if has_capability_action(spec, "memory", "read")
+        || has_capability_action(spec, "memory", "inspect")
+    {
+        return Ok(());
+    }
+    Err(anyhow!("agent does not have capability 'memory:read'"))
 }
 
 fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: &str) -> bool {
@@ -572,6 +2791,40 @@ mod tests {
         }
     }
 
+    fn research_spec(capabilities: &[&str]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            capabilities: HashMap::from([(
+                "research".to_string(),
+                crate::gateway::rpc::protobuf_value::ListValue {
+                    values: capabilities
+                        .iter()
+                        .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                        })
+                        .collect(),
+                },
+            )]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
+    fn goal_spec(capabilities: &[&str]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            capabilities: HashMap::from([(
+                "goals".to_string(),
+                crate::gateway::rpc::protobuf_value::ListValue {
+                    values: capabilities
+                        .iter()
+                        .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                        })
+                        .collect(),
+                },
+            )]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
     fn control_plane(kv: Arc<MockKvStore>, scheduler: Arc<MockScheduler>) -> ControlPlane {
         ControlPlane::builder(kv, Arc::new(EmptyPubSub))
             .scheduler(scheduler)
@@ -615,6 +2868,100 @@ mod tests {
         assert!(registry.get_tool(CREATE_SCHEDULE_TOOL).is_some());
         assert!(registry.get_tool(UPDATE_SCHEDULE_TOOL).is_none());
         assert!(registry.get_tool(DELETE_SCHEDULE_TOOL).is_none());
+    }
+
+    #[test]
+    fn register_research_tools_respects_capabilities() {
+        let mut registry = ToolRegistry::new();
+        register_tools(&mut registry, &research_spec(&["fetch_url"]));
+
+        assert!(registry.get_tool(FETCH_URL_TOOL).is_some());
+        assert!(registry.get_tool(WEB_SEARCH_TOOL).is_none());
+    }
+
+    #[test]
+    fn validate_http_url_rejects_non_http_schemes() {
+        assert!(validate_http_url("https://example.com/path").is_ok());
+        assert!(validate_http_url("http://example.com/path").is_ok());
+        assert!(validate_http_url("file:///etc/passwd").is_err());
+        assert!(validate_http_url("not a url").is_err());
+    }
+
+    #[test]
+    fn public_ip_validation_rejects_private_and_metadata_ranges() {
+        assert!(ensure_public_ip("8.8.8.8".parse().unwrap()).is_ok());
+        assert!(ensure_public_ip("10.0.0.1".parse().unwrap()).is_err());
+        assert!(ensure_public_ip("127.0.0.1".parse().unwrap()).is_err());
+        assert!(ensure_public_ip("169.254.169.254".parse().unwrap()).is_err());
+        assert!(ensure_public_ip("::1".parse().unwrap()).is_err());
+        assert!(ensure_public_ip("fc00::1".parse().unwrap()).is_err());
+    }
+
+    #[test]
+    fn parse_artifact_uri_accepts_literal_namespace_segments() {
+        let parsed = parse_artifact_uri(
+            "artifact://Tenant:acme:Workspace:main/copywriter/session-1/artifact-1",
+        )
+        .unwrap();
+
+        assert_eq!(parsed.namespace, "Tenant:acme:Workspace:main");
+        assert_eq!(parsed.agent, "copywriter");
+        assert_eq!(parsed.session_id, "session-1");
+        assert_eq!(parsed.artifact_id, "artifact-1");
+    }
+
+    #[test]
+    fn access_expiry_clamps_requested_ttl() {
+        let now = chrono::Utc::now().timestamp_micros();
+        let expires_at = access_expiry_from_ttl_seconds(i64::MAX);
+        let max_delta = (MAX_ACCESS_TTL_SECONDS * 1_000_000) + 1_000_000;
+
+        assert!(expires_at >= now);
+        assert!(expires_at - now <= max_delta);
+    }
+
+    #[test]
+    fn compact_visible_text_removes_scripts_styles_and_tags() {
+        let html = r#"
+            <html>
+              <head>
+                <title>Research &amp; Notes</title>
+                <style>.hidden { display: none; }</style>
+              </head>
+              <body>
+                <script>alert("nope")</script>
+                <h1>Useful&nbsp;Heading</h1>
+                <p>Visible <strong>claim</strong>.</p>
+              </body>
+            </html>
+        "#;
+
+        assert_eq!(extract_title(html), "Research & Notes");
+        let text = compact_visible_text(html, 1_000);
+        assert!(text.contains("Useful Heading"));
+        assert!(text.contains("Visible"));
+        assert!(text.contains("claim"));
+        assert!(!text.contains("alert"));
+        assert!(!text.contains("display"));
+    }
+
+    #[test]
+    fn extract_duckduckgo_results_decodes_redirect_urls() {
+        let html = r#"
+            <a rel="nofollow" class="result__a"
+               href="/l/?kh=-1&uddg=https%3A%2F%2Fexample.com%2Fpost%3Fx%3D1">
+               Example &amp; Result
+            </a>
+            <a class="result__a" href="https://direct.example/page">
+               Direct Result
+            </a>
+        "#;
+
+        let results = extract_duckduckgo_results(html, 5);
+        assert_eq!(results.len(), 2);
+        assert_eq!(results[0]["title"], "Example & Result");
+        assert_eq!(results[0]["url"], "https://example.com/post?x=1");
+        assert_eq!(results[1]["url"], "https://direct.example/page");
     }
 
     #[test]
@@ -663,6 +3010,111 @@ mod tests {
         .unwrap_err();
 
         assert!(err.to_string().contains("agent does not have capability"));
+    }
+
+    #[tokio::test]
+    async fn create_artifact_stores_canonical_session_owned_cas_object() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        let output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "Final draft",
+                "content": "draft body",
+                "media_type": "text/markdown",
+                "metadata": {"source": "tool"}
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let value: Value = serde_json::from_str(&output).unwrap();
+        let artifact_id = value["artifact"]["id"].as_str().unwrap();
+        let artifact_uri = value["artifactUri"].as_str().unwrap();
+        let object_key = value["artifact"]["objectRef"]["key"].as_str().unwrap();
+
+        assert!(object_key.starts_with("cas/Tenant%3Aacme%3AWorkspace%3Amain/artifacts/"));
+        assert!(object_key.contains(artifact_id));
+
+        let stored = crate::control::cas::CasStore::new(cp.objects.clone())
+            .get_object_decoded(object_key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(stored.bytes, b"draft body");
+        assert_eq!(stored.metadata.filename, "");
+        assert_eq!(
+            stored.metadata.metadata[crate::control::cas::METADATA_KIND],
+            crate::control::cas::METADATA_KIND_ARTIFACT
+        );
+        assert_eq!(
+            stored.metadata.metadata[crate::control::cas::METADATA_AGENT],
+            "writer"
+        );
+        assert_eq!(stored.metadata.metadata["session_id"], "session-1");
+        assert_eq!(stored.metadata.metadata["source"], "tool");
+
+        let parsed_uri = parse_artifact_uri(artifact_uri).unwrap();
+        assert_eq!(parsed_uri.namespace, "Tenant:acme:Workspace:main");
+        assert_eq!(parsed_uri.agent, "writer");
+        assert_eq!(parsed_uri.session_id, "session-1");
+        assert_eq!(parsed_uri.artifact_id, artifact_id);
+
+        let read_output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let read_value: Value = serde_json::from_str(&read_output).unwrap();
+        assert_eq!(read_value["content"], "draft body");
+
+        execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            GRANT_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "target_agent": "critic",
+                "target_session_id": "session-2",
+                "operations": ["read", "metadata"],
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let stored_access = kv
+            .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
+                "Tenant:acme:Workspace:main",
+                "writer",
+                "session-1",
+                artifact_id,
+                "critic",
+                "session-2",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(stored_access.target_agent, "critic");
+        assert_eq!(stored_access.target_session_id, "session-2");
+        assert_eq!(stored_access.operations, vec!["read", "metadata"]);
     }
 
     #[tokio::test]
@@ -907,5 +3359,128 @@ mod tests {
         .unwrap()
         .unwrap();
         assert_eq!(listed.matches("\"name\":").count(), 1);
+    }
+
+    #[tokio::test]
+    async fn goal_tools_create_update_list_and_complete() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let spec = goal_spec(&["inspect", "create", "update"]);
+
+        let created = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            CREATE_GOAL_TOOL,
+            &json!({
+                "objective": "Complete the onboarding checklist to review-ready quality.",
+                "success_criteria": [
+                    "Uses sourced product facts",
+                    "Passes critic review"
+                ],
+                "max_iterations": 4
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let created: Value = serde_json::from_str(&created).unwrap();
+        let goal_id = created["goal"]["id"].as_str().unwrap();
+        assert_eq!(created["goal"]["phase"], "RUNNING");
+        assert_eq!(created["goal"]["statusGroup"], "ACTIVE");
+
+        let context =
+            active_goals_context(&cp, "Tenant:acme:Workspace:main", "ops-lead", "session-1")
+                .await
+                .unwrap()
+                .unwrap();
+        assert!(context.contains("Complete the onboarding checklist"));
+
+        let listed = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-2",
+            &spec,
+            LIST_GOALS_TOOL,
+            &json!({
+                "status_group": "active",
+                "agent": "ops-lead",
+                "session_id": "session-1"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let listed: Value = serde_json::from_str(&listed).unwrap();
+        assert_eq!(listed["goals"].as_array().unwrap().len(), 1);
+        assert_eq!(listed["goals"][0]["id"], goal_id);
+
+        let listed_from_session = list_goals(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            Some("active"),
+            None,
+            10,
+        )
+        .await
+        .unwrap();
+        assert_eq!(listed_from_session.len(), 1);
+        assert_eq!(listed_from_session[0].id, goal_id);
+
+        let updated = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            UPDATE_GOAL_TOOL,
+            &json!({
+                "goal_id": goal_id,
+                "phase": "NEEDS_REVIEW",
+                "iteration": 2,
+                "progress_summary": "Support task produced the revised checklist; draft is ready for critic review."
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let updated: Value = serde_json::from_str(&updated).unwrap();
+        assert_eq!(updated["goal"]["phase"], "NEEDS_REVIEW");
+        assert_eq!(updated["goal"]["iteration"], 2);
+        assert!(updated["goal"]["progressSummary"]
+            .as_str()
+            .unwrap()
+            .contains("revised checklist"));
+
+        let completed = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            COMPLETE_GOAL_TOOL,
+            &json!({
+                "goal_id": goal_id,
+                "progress_summary": "Reviewer approved the final checklist."
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let completed: Value = serde_json::from_str(&completed).unwrap();
+        assert_eq!(completed["goal"]["phase"], "SUCCEEDED");
+        assert_eq!(completed["goal"]["statusGroup"], "TERMINAL");
+
+        let active_context =
+            active_goals_context(&cp, "Tenant:acme:Workspace:main", "ops-lead", "session-1")
+                .await
+                .unwrap();
+        assert!(active_context.is_none());
     }
 }

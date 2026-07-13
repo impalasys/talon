@@ -62,6 +62,64 @@ message Artifact {
   map<string, string> metadata = 10;
 }
 
+enum GoalPhase {
+  // No phase has been set. Stored goals should move to a concrete phase before
+  // being used by the runtime.
+  GOAL_PHASE_UNSPECIFIED = 0;
+  // The agent should continue working toward the objective.
+  GOAL_PHASE_RUNNING = 1;
+  // The goal is intentionally stopped and should not advance automatically.
+  GOAL_PHASE_PAUSED = 2;
+  // The agent has produced work that needs an external review decision.
+  GOAL_PHASE_NEEDS_REVIEW = 3;
+  // The objective and success criteria have been satisfied.
+  GOAL_PHASE_SUCCEEDED = 4;
+  // The goal ended unsuccessfully due to an execution or quality failure.
+  GOAL_PHASE_FAILED = 5;
+  // The agent cannot make meaningful progress without outside input or a
+  // changed external condition.
+  GOAL_PHASE_BLOCKED = 6;
+  // A caller explicitly stopped the goal before completion.
+  GOAL_PHASE_CANCELED = 7;
+  // The goal exceeded its configured time or iteration budget.
+  GOAL_PHASE_EXPIRED = 8;
+}
+
+message Goal {
+  // Stable goal identifier unique under the owning session.
+  string id = 1;
+  // Namespace of the session that owns this goal.
+  string namespace = 2;
+  // Agent that owns this goal.
+  string agent = 3;
+  // Session that owns this goal.
+  string session_id = 4;
+  // Natural-language objective the agent is trying to satisfy.
+  string objective = 5;
+  // Concrete completion checks the agent should use before marking success.
+  repeated string success_criteria = 6;
+  // Current lifecycle phase for scheduling and agent-loop decisions.
+  GoalPhase phase = 7;
+  // Rolling summary of completed work, current state, and next useful action.
+  string progress_summary = 8;
+  // Number of completed agent-loop iterations for this goal.
+  int32 iteration = 9;
+  // Maximum iterations allowed before the runtime should stop or expire.
+  int32 max_iterations = 10;
+  // Unix timestamp in microseconds when the goal was created.
+  int64 created_at = 12;
+  // Unix timestamp in microseconds when the goal was last changed.
+  int64 updated_at = 13;
+  // Unix timestamp in microseconds when the goal reached a terminal phase.
+  int64 completed_at = 14;
+  // Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+  string blocked_reason = 15;
+  // Query labels for grouping goals without changing runtime semantics.
+  map<string, string> labels = 16;
+  // Caller-defined metadata that does not justify a first-class field.
+  map<string, string> metadata = 17;
+}
+
 // Target-local access record for an artifact URI.
 //
 // Artifact URIs are references, not bearer secrets. A caller can use an

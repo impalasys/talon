@@ -125,6 +125,88 @@ proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartTy
 ]);
 
 /**
+ * @generated from enum talon.data.GoalPhase
+ */
+export enum GoalPhase {
+  /**
+   * No phase has been set. Stored goals should move to a concrete phase before
+   * being used by the runtime.
+   *
+   * @generated from enum value: GOAL_PHASE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The agent should continue working toward the objective.
+   *
+   * @generated from enum value: GOAL_PHASE_RUNNING = 1;
+   */
+  RUNNING = 1,
+
+  /**
+   * The goal is intentionally stopped and should not advance automatically.
+   *
+   * @generated from enum value: GOAL_PHASE_PAUSED = 2;
+   */
+  PAUSED = 2,
+
+  /**
+   * The agent has produced work that needs an external review decision.
+   *
+   * @generated from enum value: GOAL_PHASE_NEEDS_REVIEW = 3;
+   */
+  NEEDS_REVIEW = 3,
+
+  /**
+   * The objective and success criteria have been satisfied.
+   *
+   * @generated from enum value: GOAL_PHASE_SUCCEEDED = 4;
+   */
+  SUCCEEDED = 4,
+
+  /**
+   * The goal ended unsuccessfully due to an execution or quality failure.
+   *
+   * @generated from enum value: GOAL_PHASE_FAILED = 5;
+   */
+  FAILED = 5,
+
+  /**
+   * The agent cannot make meaningful progress without outside input or a
+   * changed external condition.
+   *
+   * @generated from enum value: GOAL_PHASE_BLOCKED = 6;
+   */
+  BLOCKED = 6,
+
+  /**
+   * A caller explicitly stopped the goal before completion.
+   *
+   * @generated from enum value: GOAL_PHASE_CANCELED = 7;
+   */
+  CANCELED = 7,
+
+  /**
+   * The goal exceeded its configured time or iteration budget.
+   *
+   * @generated from enum value: GOAL_PHASE_EXPIRED = 8;
+   */
+  EXPIRED = 8,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GoalPhase)
+proto3.util.setEnumType(GoalPhase, "talon.data.GoalPhase", [
+  { no: 0, name: "GOAL_PHASE_UNSPECIFIED" },
+  { no: 1, name: "GOAL_PHASE_RUNNING" },
+  { no: 2, name: "GOAL_PHASE_PAUSED" },
+  { no: 3, name: "GOAL_PHASE_NEEDS_REVIEW" },
+  { no: 4, name: "GOAL_PHASE_SUCCEEDED" },
+  { no: 5, name: "GOAL_PHASE_FAILED" },
+  { no: 6, name: "GOAL_PHASE_BLOCKED" },
+  { no: 7, name: "GOAL_PHASE_CANCELED" },
+  { no: 8, name: "GOAL_PHASE_EXPIRED" },
+]);
+
+/**
  * @generated from message talon.data.ObjectRef
  */
 export class ObjectRef extends Message<ObjectRef> {
@@ -304,6 +386,165 @@ export class Artifact extends Message<Artifact> {
 
   static equals(a: Artifact | PlainMessage<Artifact> | undefined, b: Artifact | PlainMessage<Artifact> | undefined): boolean {
     return proto3.util.equals(Artifact, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.data.Goal
+ */
+export class Goal extends Message<Goal> {
+  /**
+   * Stable goal identifier unique under the owning session.
+   *
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * Namespace of the session that owns this goal.
+   *
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  /**
+   * Agent that owns this goal.
+   *
+   * @generated from field: string agent = 3;
+   */
+  agent = "";
+
+  /**
+   * Session that owns this goal.
+   *
+   * @generated from field: string session_id = 4;
+   */
+  sessionId = "";
+
+  /**
+   * Natural-language objective the agent is trying to satisfy.
+   *
+   * @generated from field: string objective = 5;
+   */
+  objective = "";
+
+  /**
+   * Concrete completion checks the agent should use before marking success.
+   *
+   * @generated from field: repeated string success_criteria = 6;
+   */
+  successCriteria: string[] = [];
+
+  /**
+   * Current lifecycle phase for scheduling and agent-loop decisions.
+   *
+   * @generated from field: talon.data.GoalPhase phase = 7;
+   */
+  phase = GoalPhase.UNSPECIFIED;
+
+  /**
+   * Rolling summary of completed work, current state, and next useful action.
+   *
+   * @generated from field: string progress_summary = 8;
+   */
+  progressSummary = "";
+
+  /**
+   * Number of completed agent-loop iterations for this goal.
+   *
+   * @generated from field: int32 iteration = 9;
+   */
+  iteration = 0;
+
+  /**
+   * Maximum iterations allowed before the runtime should stop or expire.
+   *
+   * @generated from field: int32 max_iterations = 10;
+   */
+  maxIterations = 0;
+
+  /**
+   * Unix timestamp in microseconds when the goal was created.
+   *
+   * @generated from field: int64 created_at = 12;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * Unix timestamp in microseconds when the goal was last changed.
+   *
+   * @generated from field: int64 updated_at = 13;
+   */
+  updatedAt = protoInt64.zero;
+
+  /**
+   * Unix timestamp in microseconds when the goal reached a terminal phase.
+   *
+   * @generated from field: int64 completed_at = 14;
+   */
+  completedAt = protoInt64.zero;
+
+  /**
+   * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+   *
+   * @generated from field: string blocked_reason = 15;
+   */
+  blockedReason = "";
+
+  /**
+   * Query labels for grouping goals without changing runtime semantics.
+   *
+   * @generated from field: map<string, string> labels = 16;
+   */
+  labels: { [key: string]: string } = {};
+
+  /**
+   * Caller-defined metadata that does not justify a first-class field.
+   *
+   * @generated from field: map<string, string> metadata = 17;
+   */
+  metadata: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<Goal>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.Goal";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "objective", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "success_criteria", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "phase", kind: "enum", T: proto3.getEnumType(GoalPhase) },
+    { no: 8, name: "progress_summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "iteration", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 10, name: "max_iterations", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 12, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 13, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 14, name: "completed_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 15, name: "blocked_reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 17, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Goal {
+    return new Goal().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Goal {
+    return new Goal().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Goal {
+    return new Goal().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Goal | PlainMessage<Goal> | undefined, b: Goal | PlainMessage<Goal> | undefined): boolean {
+    return proto3.util.equals(Goal, a, b);
   }
 }
 

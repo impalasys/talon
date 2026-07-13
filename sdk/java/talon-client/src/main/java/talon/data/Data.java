@@ -377,6 +377,262 @@ public final class Data extends com.google.protobuf.GeneratedFile {
     // @@protoc_insertion_point(enum_scope:talon.data.SessionMessagePartType)
   }
 
+  /**
+   * Protobuf enum {@code talon.data.GoalPhase}
+   */
+  public enum GoalPhase
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <pre>
+     * No phase has been set. Stored goals should move to a concrete phase before
+     * being used by the runtime.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_UNSPECIFIED = 0;</code>
+     */
+    GOAL_PHASE_UNSPECIFIED(0),
+    /**
+     * <pre>
+     * The agent should continue working toward the objective.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_RUNNING = 1;</code>
+     */
+    GOAL_PHASE_RUNNING(1),
+    /**
+     * <pre>
+     * The goal is intentionally stopped and should not advance automatically.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_PAUSED = 2;</code>
+     */
+    GOAL_PHASE_PAUSED(2),
+    /**
+     * <pre>
+     * The agent has produced work that needs an external review decision.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_NEEDS_REVIEW = 3;</code>
+     */
+    GOAL_PHASE_NEEDS_REVIEW(3),
+    /**
+     * <pre>
+     * The objective and success criteria have been satisfied.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_SUCCEEDED = 4;</code>
+     */
+    GOAL_PHASE_SUCCEEDED(4),
+    /**
+     * <pre>
+     * The goal ended unsuccessfully due to an execution or quality failure.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_FAILED = 5;</code>
+     */
+    GOAL_PHASE_FAILED(5),
+    /**
+     * <pre>
+     * The agent cannot make meaningful progress without outside input or a
+     * changed external condition.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_BLOCKED = 6;</code>
+     */
+    GOAL_PHASE_BLOCKED(6),
+    /**
+     * <pre>
+     * A caller explicitly stopped the goal before completion.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_CANCELED = 7;</code>
+     */
+    GOAL_PHASE_CANCELED(7),
+    /**
+     * <pre>
+     * The goal exceeded its configured time or iteration budget.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_EXPIRED = 8;</code>
+     */
+    GOAL_PHASE_EXPIRED(8),
+    UNRECOGNIZED(-1),
+    ;
+
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "GoalPhase");
+    }
+    /**
+     * <pre>
+     * No phase has been set. Stored goals should move to a concrete phase before
+     * being used by the runtime.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_UNSPECIFIED = 0;</code>
+     */
+    public static final int GOAL_PHASE_UNSPECIFIED_VALUE = 0;
+    /**
+     * <pre>
+     * The agent should continue working toward the objective.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_RUNNING = 1;</code>
+     */
+    public static final int GOAL_PHASE_RUNNING_VALUE = 1;
+    /**
+     * <pre>
+     * The goal is intentionally stopped and should not advance automatically.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_PAUSED = 2;</code>
+     */
+    public static final int GOAL_PHASE_PAUSED_VALUE = 2;
+    /**
+     * <pre>
+     * The agent has produced work that needs an external review decision.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_NEEDS_REVIEW = 3;</code>
+     */
+    public static final int GOAL_PHASE_NEEDS_REVIEW_VALUE = 3;
+    /**
+     * <pre>
+     * The objective and success criteria have been satisfied.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_SUCCEEDED = 4;</code>
+     */
+    public static final int GOAL_PHASE_SUCCEEDED_VALUE = 4;
+    /**
+     * <pre>
+     * The goal ended unsuccessfully due to an execution or quality failure.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_FAILED = 5;</code>
+     */
+    public static final int GOAL_PHASE_FAILED_VALUE = 5;
+    /**
+     * <pre>
+     * The agent cannot make meaningful progress without outside input or a
+     * changed external condition.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_BLOCKED = 6;</code>
+     */
+    public static final int GOAL_PHASE_BLOCKED_VALUE = 6;
+    /**
+     * <pre>
+     * A caller explicitly stopped the goal before completion.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_CANCELED = 7;</code>
+     */
+    public static final int GOAL_PHASE_CANCELED_VALUE = 7;
+    /**
+     * <pre>
+     * The goal exceeded its configured time or iteration budget.
+     * </pre>
+     *
+     * <code>GOAL_PHASE_EXPIRED = 8;</code>
+     */
+    public static final int GOAL_PHASE_EXPIRED_VALUE = 8;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static GoalPhase valueOf(int value) {
+      return forNumber(value);
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
+    public static GoalPhase forNumber(int value) {
+      switch (value) {
+        case 0: return GOAL_PHASE_UNSPECIFIED;
+        case 1: return GOAL_PHASE_RUNNING;
+        case 2: return GOAL_PHASE_PAUSED;
+        case 3: return GOAL_PHASE_NEEDS_REVIEW;
+        case 4: return GOAL_PHASE_SUCCEEDED;
+        case 5: return GOAL_PHASE_FAILED;
+        case 6: return GOAL_PHASE_BLOCKED;
+        case 7: return GOAL_PHASE_CANCELED;
+        case 8: return GOAL_PHASE_EXPIRED;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<GoalPhase>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        GoalPhase> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<GoalPhase>() {
+            public GoalPhase findValueByNumber(int number) {
+              return GoalPhase.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
+      return getDescriptor().getValue(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return talon.data.Data.getDescriptor().getEnumType(2);
+    }
+
+    private static final GoalPhase[] VALUES = values();
+
+    public static GoalPhase valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private GoalPhase(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:talon.data.GoalPhase)
+  }
+
   public interface ObjectRefOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.ObjectRef)
       com.google.protobuf.MessageOrBuilder {
@@ -4257,6 +4513,3271 @@ java.lang.String defaultValue) {
 
     @java.lang.Override
     public talon.data.Data.Artifact getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GoalOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.Goal)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Stable goal identifier unique under the owning session.
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <pre>
+     * Stable goal identifier unique under the owning session.
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <pre>
+     * Namespace of the session that owns this goal.
+     * </pre>
+     *
+     * <code>string namespace = 2;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <pre>
+     * Namespace of the session that owns this goal.
+     * </pre>
+     *
+     * <code>string namespace = 2;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <pre>
+     * Agent that owns this goal.
+     * </pre>
+     *
+     * <code>string agent = 3;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <pre>
+     * Agent that owns this goal.
+     * </pre>
+     *
+     * <code>string agent = 3;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <pre>
+     * Session that owns this goal.
+     * </pre>
+     *
+     * <code>string session_id = 4;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <pre>
+     * Session that owns this goal.
+     * </pre>
+     *
+     * <code>string session_id = 4;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <pre>
+     * Natural-language objective the agent is trying to satisfy.
+     * </pre>
+     *
+     * <code>string objective = 5;</code>
+     * @return The objective.
+     */
+    java.lang.String getObjective();
+    /**
+     * <pre>
+     * Natural-language objective the agent is trying to satisfy.
+     * </pre>
+     *
+     * <code>string objective = 5;</code>
+     * @return The bytes for objective.
+     */
+    com.google.protobuf.ByteString
+        getObjectiveBytes();
+
+    /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
+     * <code>repeated string success_criteria = 6;</code>
+     * @return A list containing the successCriteria.
+     */
+    java.util.List<java.lang.String>
+        getSuccessCriteriaList();
+    /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
+     * <code>repeated string success_criteria = 6;</code>
+     * @return The count of successCriteria.
+     */
+    int getSuccessCriteriaCount();
+    /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
+     * <code>repeated string success_criteria = 6;</code>
+     * @param index The index of the element to return.
+     * @return The successCriteria at the given index.
+     */
+    java.lang.String getSuccessCriteria(int index);
+    /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
+     * <code>repeated string success_criteria = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the successCriteria at the given index.
+     */
+    com.google.protobuf.ByteString
+        getSuccessCriteriaBytes(int index);
+
+    /**
+     * <pre>
+     * Current lifecycle phase for scheduling and agent-loop decisions.
+     * </pre>
+     *
+     * <code>.talon.data.GoalPhase phase = 7;</code>
+     * @return The enum numeric value on the wire for phase.
+     */
+    int getPhaseValue();
+    /**
+     * <pre>
+     * Current lifecycle phase for scheduling and agent-loop decisions.
+     * </pre>
+     *
+     * <code>.talon.data.GoalPhase phase = 7;</code>
+     * @return The phase.
+     */
+    talon.data.Data.GoalPhase getPhase();
+
+    /**
+     * <pre>
+     * Rolling summary of completed work, current state, and next useful action.
+     * </pre>
+     *
+     * <code>string progress_summary = 8;</code>
+     * @return The progressSummary.
+     */
+    java.lang.String getProgressSummary();
+    /**
+     * <pre>
+     * Rolling summary of completed work, current state, and next useful action.
+     * </pre>
+     *
+     * <code>string progress_summary = 8;</code>
+     * @return The bytes for progressSummary.
+     */
+    com.google.protobuf.ByteString
+        getProgressSummaryBytes();
+
+    /**
+     * <pre>
+     * Number of completed agent-loop iterations for this goal.
+     * </pre>
+     *
+     * <code>int32 iteration = 9;</code>
+     * @return The iteration.
+     */
+    int getIteration();
+
+    /**
+     * <pre>
+     * Maximum iterations allowed before the runtime should stop or expire.
+     * </pre>
+     *
+     * <code>int32 max_iterations = 10;</code>
+     * @return The maxIterations.
+     */
+    int getMaxIterations();
+
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal was created.
+     * </pre>
+     *
+     * <code>int64 created_at = 12;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal was last changed.
+     * </pre>
+     *
+     * <code>int64 updated_at = 13;</code>
+     * @return The updatedAt.
+     */
+    long getUpdatedAt();
+
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal reached a terminal phase.
+     * </pre>
+     *
+     * <code>int64 completed_at = 14;</code>
+     * @return The completedAt.
+     */
+    long getCompletedAt();
+
+    /**
+     * <pre>
+     * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+     * </pre>
+     *
+     * <code>string blocked_reason = 15;</code>
+     * @return The blockedReason.
+     */
+    java.lang.String getBlockedReason();
+    /**
+     * <pre>
+     * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+     * </pre>
+     *
+     * <code>string blocked_reason = 15;</code>
+     * @return The bytes for blockedReason.
+     */
+    com.google.protobuf.ByteString
+        getBlockedReasonBytes();
+
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    int getLabelsCount();
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    boolean containsLabels(
+        java.lang.String key);
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabels();
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabelsMap();
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    java.lang.String getLabelsOrThrow(
+        java.lang.String key);
+
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    int getMetadataCount();
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    boolean containsMetadata(
+        java.lang.String key);
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadata();
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadataMap();
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    java.lang.String getMetadataOrThrow(
+        java.lang.String key);
+  }
+  /**
+   * Protobuf type {@code talon.data.Goal}
+   */
+  public static final class Goal extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.Goal)
+      GoalOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Goal");
+    }
+    // Use Goal.newBuilder() to construct.
+    private Goal(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Goal() {
+      id_ = "";
+      namespace_ = "";
+      agent_ = "";
+      sessionId_ = "";
+      objective_ = "";
+      successCriteria_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      phase_ = 0;
+      progressSummary_ = "";
+      blockedReason_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Data.internal_static_talon_data_Goal_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Data.internal_static_talon_data_Goal_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 16:
+          return internalGetLabels();
+        case 17:
+          return internalGetMetadata();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Data.internal_static_talon_data_Goal_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Data.Goal.class, talon.data.Data.Goal.Builder.class);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <pre>
+     * Stable goal identifier unique under the owning session.
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Stable goal identifier unique under the owning session.
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <pre>
+     * Namespace of the session that owns this goal.
+     * </pre>
+     *
+     * <code>string namespace = 2;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Namespace of the session that owns this goal.
+     * </pre>
+     *
+     * <code>string namespace = 2;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <pre>
+     * Agent that owns this goal.
+     * </pre>
+     *
+     * <code>string agent = 3;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Agent that owns this goal.
+     * </pre>
+     *
+     * <code>string agent = 3;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <pre>
+     * Session that owns this goal.
+     * </pre>
+     *
+     * <code>string session_id = 4;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Session that owns this goal.
+     * </pre>
+     *
+     * <code>string session_id = 4;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OBJECTIVE_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object objective_ = "";
+    /**
+     * <pre>
+     * Natural-language objective the agent is trying to satisfy.
+     * </pre>
+     *
+     * <code>string objective = 5;</code>
+     * @return The objective.
+     */
+    @java.lang.Override
+    public java.lang.String getObjective() {
+      java.lang.Object ref = objective_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        objective_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Natural-language objective the agent is trying to satisfy.
+     * </pre>
+     *
+     * <code>string objective = 5;</code>
+     * @return The bytes for objective.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getObjectiveBytes() {
+      java.lang.Object ref = objective_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        objective_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SUCCESS_CRITERIA_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList successCriteria_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
+     * <code>repeated string success_criteria = 6;</code>
+     * @return A list containing the successCriteria.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getSuccessCriteriaList() {
+      return successCriteria_;
+    }
+    /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
+     * <code>repeated string success_criteria = 6;</code>
+     * @return The count of successCriteria.
+     */
+    public int getSuccessCriteriaCount() {
+      return successCriteria_.size();
+    }
+    /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
+     * <code>repeated string success_criteria = 6;</code>
+     * @param index The index of the element to return.
+     * @return The successCriteria at the given index.
+     */
+    public java.lang.String getSuccessCriteria(int index) {
+      return successCriteria_.get(index);
+    }
+    /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
+     * <code>repeated string success_criteria = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the successCriteria at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getSuccessCriteriaBytes(int index) {
+      return successCriteria_.getByteString(index);
+    }
+
+    public static final int PHASE_FIELD_NUMBER = 7;
+    private int phase_ = 0;
+    /**
+     * <pre>
+     * Current lifecycle phase for scheduling and agent-loop decisions.
+     * </pre>
+     *
+     * <code>.talon.data.GoalPhase phase = 7;</code>
+     * @return The enum numeric value on the wire for phase.
+     */
+    @java.lang.Override public int getPhaseValue() {
+      return phase_;
+    }
+    /**
+     * <pre>
+     * Current lifecycle phase for scheduling and agent-loop decisions.
+     * </pre>
+     *
+     * <code>.talon.data.GoalPhase phase = 7;</code>
+     * @return The phase.
+     */
+    @java.lang.Override public talon.data.Data.GoalPhase getPhase() {
+      talon.data.Data.GoalPhase result = talon.data.Data.GoalPhase.forNumber(phase_);
+      return result == null ? talon.data.Data.GoalPhase.UNRECOGNIZED : result;
+    }
+
+    public static final int PROGRESS_SUMMARY_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object progressSummary_ = "";
+    /**
+     * <pre>
+     * Rolling summary of completed work, current state, and next useful action.
+     * </pre>
+     *
+     * <code>string progress_summary = 8;</code>
+     * @return The progressSummary.
+     */
+    @java.lang.Override
+    public java.lang.String getProgressSummary() {
+      java.lang.Object ref = progressSummary_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        progressSummary_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Rolling summary of completed work, current state, and next useful action.
+     * </pre>
+     *
+     * <code>string progress_summary = 8;</code>
+     * @return The bytes for progressSummary.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getProgressSummaryBytes() {
+      java.lang.Object ref = progressSummary_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        progressSummary_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ITERATION_FIELD_NUMBER = 9;
+    private int iteration_ = 0;
+    /**
+     * <pre>
+     * Number of completed agent-loop iterations for this goal.
+     * </pre>
+     *
+     * <code>int32 iteration = 9;</code>
+     * @return The iteration.
+     */
+    @java.lang.Override
+    public int getIteration() {
+      return iteration_;
+    }
+
+    public static final int MAX_ITERATIONS_FIELD_NUMBER = 10;
+    private int maxIterations_ = 0;
+    /**
+     * <pre>
+     * Maximum iterations allowed before the runtime should stop or expire.
+     * </pre>
+     *
+     * <code>int32 max_iterations = 10;</code>
+     * @return The maxIterations.
+     */
+    @java.lang.Override
+    public int getMaxIterations() {
+      return maxIterations_;
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 12;
+    private long createdAt_ = 0L;
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal was created.
+     * </pre>
+     *
+     * <code>int64 created_at = 12;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    public static final int UPDATED_AT_FIELD_NUMBER = 13;
+    private long updatedAt_ = 0L;
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal was last changed.
+     * </pre>
+     *
+     * <code>int64 updated_at = 13;</code>
+     * @return The updatedAt.
+     */
+    @java.lang.Override
+    public long getUpdatedAt() {
+      return updatedAt_;
+    }
+
+    public static final int COMPLETED_AT_FIELD_NUMBER = 14;
+    private long completedAt_ = 0L;
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal reached a terminal phase.
+     * </pre>
+     *
+     * <code>int64 completed_at = 14;</code>
+     * @return The completedAt.
+     */
+    @java.lang.Override
+    public long getCompletedAt() {
+      return completedAt_;
+    }
+
+    public static final int BLOCKED_REASON_FIELD_NUMBER = 15;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object blockedReason_ = "";
+    /**
+     * <pre>
+     * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+     * </pre>
+     *
+     * <code>string blocked_reason = 15;</code>
+     * @return The blockedReason.
+     */
+    @java.lang.Override
+    public java.lang.String getBlockedReason() {
+      java.lang.Object ref = blockedReason_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        blockedReason_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+     * </pre>
+     *
+     * <code>string blocked_reason = 15;</code>
+     * @return The bytes for blockedReason.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getBlockedReasonBytes() {
+      java.lang.Object ref = blockedReason_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        blockedReason_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int LABELS_FIELD_NUMBER = 16;
+    private static final class LabelsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.data.Data.internal_static_talon_data_Goal_LabelsEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> labels_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetLabels() {
+      if (labels_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            LabelsDefaultEntryHolder.defaultEntry);
+      }
+      return labels_;
+    }
+    public int getLabelsCount() {
+      return internalGetLabels().getMap().size();
+    }
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    @java.lang.Override
+    public boolean containsLabels(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetLabels().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+      return getLabelsMap();
+    }
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+      return internalGetLabels().getMap();
+    }
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 16;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getLabelsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int METADATA_FIELD_NUMBER = 17;
+    private static final class MetadataDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.data.Data.internal_static_talon_data_Goal_MetadataEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> metadata_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetMetadata() {
+      if (metadata_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            MetadataDefaultEntryHolder.defaultEntry);
+      }
+      return metadata_;
+    }
+    public int getMetadataCount() {
+      return internalGetMetadata().getMap().size();
+    }
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    @java.lang.Override
+    public boolean containsMetadata(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetMetadata().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+      return getMetadataMap();
+    }
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+      return internalGetMetadata().getMap();
+    }
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 17;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getMetadataOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objective_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, objective_);
+      }
+      for (int i = 0; i < successCriteria_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, successCriteria_.getRaw(i));
+      }
+      if (phase_ != talon.data.Data.GoalPhase.GOAL_PHASE_UNSPECIFIED.getNumber()) {
+        output.writeEnum(7, phase_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(progressSummary_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, progressSummary_);
+      }
+      if (iteration_ != 0) {
+        output.writeInt32(9, iteration_);
+      }
+      if (maxIterations_ != 0) {
+        output.writeInt32(10, maxIterations_);
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(12, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        output.writeInt64(13, updatedAt_);
+      }
+      if (completedAt_ != 0L) {
+        output.writeInt64(14, completedAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(blockedReason_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 15, blockedReason_);
+      }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetLabels(),
+          LabelsDefaultEntryHolder.defaultEntry,
+          16);
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetMetadata(),
+          MetadataDefaultEntryHolder.defaultEntry,
+          17);
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(objective_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, objective_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < successCriteria_.size(); i++) {
+          dataSize += computeStringSizeNoTag(successCriteria_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getSuccessCriteriaList().size();
+      }
+      if (phase_ != talon.data.Data.GoalPhase.GOAL_PHASE_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(7, phase_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(progressSummary_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, progressSummary_);
+      }
+      if (iteration_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(9, iteration_);
+      }
+      if (maxIterations_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(10, maxIterations_);
+      }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(12, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(13, updatedAt_);
+      }
+      if (completedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(14, completedAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(blockedReason_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(15, blockedReason_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetLabels().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(16, labels__);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetMetadata().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        metadata__ = MetadataDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(17, metadata__);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Data.Goal)) {
+        return super.equals(obj);
+      }
+      talon.data.Data.Goal other = (talon.data.Data.Goal) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getObjective()
+          .equals(other.getObjective())) return false;
+      if (!getSuccessCriteriaList()
+          .equals(other.getSuccessCriteriaList())) return false;
+      if (phase_ != other.phase_) return false;
+      if (!getProgressSummary()
+          .equals(other.getProgressSummary())) return false;
+      if (getIteration()
+          != other.getIteration()) return false;
+      if (getMaxIterations()
+          != other.getMaxIterations()) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (getUpdatedAt()
+          != other.getUpdatedAt()) return false;
+      if (getCompletedAt()
+          != other.getCompletedAt()) return false;
+      if (!getBlockedReason()
+          .equals(other.getBlockedReason())) return false;
+      if (!internalGetLabels().equals(
+          other.internalGetLabels())) return false;
+      if (!internalGetMetadata().equals(
+          other.internalGetMetadata())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + OBJECTIVE_FIELD_NUMBER;
+      hash = (53 * hash) + getObjective().hashCode();
+      if (getSuccessCriteriaCount() > 0) {
+        hash = (37 * hash) + SUCCESS_CRITERIA_FIELD_NUMBER;
+        hash = (53 * hash) + getSuccessCriteriaList().hashCode();
+      }
+      hash = (37 * hash) + PHASE_FIELD_NUMBER;
+      hash = (53 * hash) + phase_;
+      hash = (37 * hash) + PROGRESS_SUMMARY_FIELD_NUMBER;
+      hash = (53 * hash) + getProgressSummary().hashCode();
+      hash = (37 * hash) + ITERATION_FIELD_NUMBER;
+      hash = (53 * hash) + getIteration();
+      hash = (37 * hash) + MAX_ITERATIONS_FIELD_NUMBER;
+      hash = (53 * hash) + getMaxIterations();
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getUpdatedAt());
+      hash = (37 * hash) + COMPLETED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCompletedAt());
+      hash = (37 * hash) + BLOCKED_REASON_FIELD_NUMBER;
+      hash = (53 * hash) + getBlockedReason().hashCode();
+      if (!internalGetLabels().getMap().isEmpty()) {
+        hash = (37 * hash) + LABELS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetLabels().hashCode();
+      }
+      if (!internalGetMetadata().getMap().isEmpty()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetMetadata().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Data.Goal parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Goal parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Goal parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Data.Goal parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Data.Goal parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.Goal parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Data.Goal prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.Goal}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.Goal)
+        talon.data.Data.GoalOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Data.internal_static_talon_data_Goal_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 16:
+            return internalGetLabels();
+          case 17:
+            return internalGetMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 16:
+            return internalGetMutableLabels();
+          case 17:
+            return internalGetMutableMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Data.internal_static_talon_data_Goal_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Data.Goal.class, talon.data.Data.Goal.Builder.class);
+      }
+
+      // Construct using talon.data.Data.Goal.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        namespace_ = "";
+        agent_ = "";
+        sessionId_ = "";
+        objective_ = "";
+        successCriteria_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        phase_ = 0;
+        progressSummary_ = "";
+        iteration_ = 0;
+        maxIterations_ = 0;
+        createdAt_ = 0L;
+        updatedAt_ = 0L;
+        completedAt_ = 0L;
+        blockedReason_ = "";
+        internalGetMutableLabels().clear();
+        internalGetMutableMetadata().clear();
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Data.internal_static_talon_data_Goal_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Goal getDefaultInstanceForType() {
+        return talon.data.Data.Goal.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Goal build() {
+        talon.data.Data.Goal result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Goal buildPartial() {
+        talon.data.Data.Goal result = new talon.data.Data.Goal(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Data.Goal result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.objective_ = objective_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          successCriteria_.makeImmutable();
+          result.successCriteria_ = successCriteria_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.phase_ = phase_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.progressSummary_ = progressSummary_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.iteration_ = iteration_;
+        }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.maxIterations_ = maxIterations_;
+        }
+        if (((from_bitField0_ & 0x00000400) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+        if (((from_bitField0_ & 0x00000800) != 0)) {
+          result.updatedAt_ = updatedAt_;
+        }
+        if (((from_bitField0_ & 0x00001000) != 0)) {
+          result.completedAt_ = completedAt_;
+        }
+        if (((from_bitField0_ & 0x00002000) != 0)) {
+          result.blockedReason_ = blockedReason_;
+        }
+        if (((from_bitField0_ & 0x00004000) != 0)) {
+          result.labels_ = internalGetLabels();
+          result.labels_.makeImmutable();
+        }
+        if (((from_bitField0_ & 0x00008000) != 0)) {
+          result.metadata_ = internalGetMetadata();
+          result.metadata_.makeImmutable();
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Data.Goal) {
+          return mergeFrom((talon.data.Data.Goal)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Data.Goal other) {
+        if (other == talon.data.Data.Goal.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getObjective().isEmpty()) {
+          objective_ = other.objective_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.successCriteria_.isEmpty()) {
+          if (successCriteria_.isEmpty()) {
+            successCriteria_ = other.successCriteria_;
+            bitField0_ |= 0x00000020;
+          } else {
+            ensureSuccessCriteriaIsMutable();
+            successCriteria_.addAll(other.successCriteria_);
+          }
+          onChanged();
+        }
+        if (other.phase_ != 0) {
+          setPhaseValue(other.getPhaseValue());
+        }
+        if (!other.getProgressSummary().isEmpty()) {
+          progressSummary_ = other.progressSummary_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        if (other.getIteration() != 0) {
+          setIteration(other.getIteration());
+        }
+        if (other.getMaxIterations() != 0) {
+          setMaxIterations(other.getMaxIterations());
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        if (other.getUpdatedAt() != 0L) {
+          setUpdatedAt(other.getUpdatedAt());
+        }
+        if (other.getCompletedAt() != 0L) {
+          setCompletedAt(other.getCompletedAt());
+        }
+        if (!other.getBlockedReason().isEmpty()) {
+          blockedReason_ = other.blockedReason_;
+          bitField0_ |= 0x00002000;
+          onChanged();
+        }
+        internalGetMutableLabels().mergeFrom(
+            other.internalGetLabels());
+        bitField0_ |= 0x00004000;
+        internalGetMutableMetadata().mergeFrom(
+            other.internalGetMetadata());
+        bitField0_ |= 0x00008000;
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                objective_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                ensureSuccessCriteriaIsMutable();
+                successCriteria_.add(input.readStringRequireUtf8());
+                break;
+              } // case 50
+              case 56: {
+                phase_ = input.readEnum();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              case 66: {
+                progressSummary_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              case 72: {
+                iteration_ = input.readInt32();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 72
+              case 80: {
+                maxIterations_ = input.readInt32();
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 80
+              case 96: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000400;
+                break;
+              } // case 96
+              case 104: {
+                updatedAt_ = input.readInt64();
+                bitField0_ |= 0x00000800;
+                break;
+              } // case 104
+              case 112: {
+                completedAt_ = input.readInt64();
+                bitField0_ |= 0x00001000;
+                break;
+              } // case 112
+              case 122: {
+                blockedReason_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00002000;
+                break;
+              } // case 122
+              case 130: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                labels__ = input.readMessage(
+                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableLabels().getMutableMap().put(
+                    labels__.getKey(), labels__.getValue());
+                bitField0_ |= 0x00004000;
+                break;
+              } // case 130
+              case 138: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                metadata__ = input.readMessage(
+                    MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableMetadata().getMutableMap().put(
+                    metadata__.getKey(), metadata__.getValue());
+                bitField0_ |= 0x00008000;
+                break;
+              } // case 138
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
+       * <code>string namespace = 2;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
+       * <code>string namespace = 2;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
+       * <code>string namespace = 2;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
+       * <code>string namespace = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
+       * <code>string namespace = 2;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
+       * <code>string agent = 3;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
+       * <code>string agent = 3;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
+       * <code>string agent = 3;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
+       * <code>string agent = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
+       * <code>string agent = 3;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
+       * <code>string session_id = 4;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
+       * <code>string session_id = 4;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
+       * <code>string session_id = 4;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
+       * <code>string session_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
+       * <code>string session_id = 4;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object objective_ = "";
+      /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
+       * <code>string objective = 5;</code>
+       * @return The objective.
+       */
+      public java.lang.String getObjective() {
+        java.lang.Object ref = objective_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          objective_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
+       * <code>string objective = 5;</code>
+       * @return The bytes for objective.
+       */
+      public com.google.protobuf.ByteString
+          getObjectiveBytes() {
+        java.lang.Object ref = objective_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          objective_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
+       * <code>string objective = 5;</code>
+       * @param value The objective to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjective(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        objective_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
+       * <code>string objective = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearObjective() {
+        objective_ = getDefaultInstance().getObjective();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
+       * <code>string objective = 5;</code>
+       * @param value The bytes for objective to set.
+       * @return This builder for chaining.
+       */
+      public Builder setObjectiveBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        objective_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList successCriteria_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureSuccessCriteriaIsMutable() {
+        if (!successCriteria_.isModifiable()) {
+          successCriteria_ = new com.google.protobuf.LazyStringArrayList(successCriteria_);
+        }
+        bitField0_ |= 0x00000020;
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @return A list containing the successCriteria.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getSuccessCriteriaList() {
+        successCriteria_.makeImmutable();
+        return successCriteria_;
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @return The count of successCriteria.
+       */
+      public int getSuccessCriteriaCount() {
+        return successCriteria_.size();
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @param index The index of the element to return.
+       * @return The successCriteria at the given index.
+       */
+      public java.lang.String getSuccessCriteria(int index) {
+        return successCriteria_.get(index);
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the successCriteria at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getSuccessCriteriaBytes(int index) {
+        return successCriteria_.getByteString(index);
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @param index The index to set the value at.
+       * @param value The successCriteria to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSuccessCriteria(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureSuccessCriteriaIsMutable();
+        successCriteria_.set(index, value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @param value The successCriteria to add.
+       * @return This builder for chaining.
+       */
+      public Builder addSuccessCriteria(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureSuccessCriteriaIsMutable();
+        successCriteria_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @param values The successCriteria to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllSuccessCriteria(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureSuccessCriteriaIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, successCriteria_);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSuccessCriteria() {
+        successCriteria_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000020);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
+       * <code>repeated string success_criteria = 6;</code>
+       * @param value The bytes of the successCriteria to add.
+       * @return This builder for chaining.
+       */
+      public Builder addSuccessCriteriaBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureSuccessCriteriaIsMutable();
+        successCriteria_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private int phase_ = 0;
+      /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @return The enum numeric value on the wire for phase.
+       */
+      @java.lang.Override public int getPhaseValue() {
+        return phase_;
+      }
+      /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @param value The enum numeric value on the wire for phase to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setPhaseValue(int value) {
+        phase_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @return The phase.
+       */
+      @java.lang.Override
+      public talon.data.Data.GoalPhase getPhase() {
+        talon.data.Data.GoalPhase result = talon.data.Data.GoalPhase.forNumber(phase_);
+        return result == null ? talon.data.Data.GoalPhase.UNRECOGNIZED : result;
+      }
+      /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @param value The phase to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPhase(talon.data.Data.GoalPhase value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000040;
+        phase_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
+       * <code>.talon.data.GoalPhase phase = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPhase() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        phase_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object progressSummary_ = "";
+      /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
+       * <code>string progress_summary = 8;</code>
+       * @return The progressSummary.
+       */
+      public java.lang.String getProgressSummary() {
+        java.lang.Object ref = progressSummary_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          progressSummary_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
+       * <code>string progress_summary = 8;</code>
+       * @return The bytes for progressSummary.
+       */
+      public com.google.protobuf.ByteString
+          getProgressSummaryBytes() {
+        java.lang.Object ref = progressSummary_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          progressSummary_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
+       * <code>string progress_summary = 8;</code>
+       * @param value The progressSummary to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProgressSummary(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        progressSummary_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
+       * <code>string progress_summary = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProgressSummary() {
+        progressSummary_ = getDefaultInstance().getProgressSummary();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
+       * <code>string progress_summary = 8;</code>
+       * @param value The bytes for progressSummary to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProgressSummaryBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        progressSummary_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private int iteration_ ;
+      /**
+       * <pre>
+       * Number of completed agent-loop iterations for this goal.
+       * </pre>
+       *
+       * <code>int32 iteration = 9;</code>
+       * @return The iteration.
+       */
+      @java.lang.Override
+      public int getIteration() {
+        return iteration_;
+      }
+      /**
+       * <pre>
+       * Number of completed agent-loop iterations for this goal.
+       * </pre>
+       *
+       * <code>int32 iteration = 9;</code>
+       * @param value The iteration to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIteration(int value) {
+
+        iteration_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Number of completed agent-loop iterations for this goal.
+       * </pre>
+       *
+       * <code>int32 iteration = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearIteration() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        iteration_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int maxIterations_ ;
+      /**
+       * <pre>
+       * Maximum iterations allowed before the runtime should stop or expire.
+       * </pre>
+       *
+       * <code>int32 max_iterations = 10;</code>
+       * @return The maxIterations.
+       */
+      @java.lang.Override
+      public int getMaxIterations() {
+        return maxIterations_;
+      }
+      /**
+       * <pre>
+       * Maximum iterations allowed before the runtime should stop or expire.
+       * </pre>
+       *
+       * <code>int32 max_iterations = 10;</code>
+       * @param value The maxIterations to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaxIterations(int value) {
+
+        maxIterations_ = value;
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Maximum iterations allowed before the runtime should stop or expire.
+       * </pre>
+       *
+       * <code>int32 max_iterations = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaxIterations() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        maxIterations_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 12;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 12;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long updatedAt_ ;
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was last changed.
+       * </pre>
+       *
+       * <code>int64 updated_at = 13;</code>
+       * @return The updatedAt.
+       */
+      @java.lang.Override
+      public long getUpdatedAt() {
+        return updatedAt_;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was last changed.
+       * </pre>
+       *
+       * <code>int64 updated_at = 13;</code>
+       * @param value The updatedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdatedAt(long value) {
+
+        updatedAt_ = value;
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was last changed.
+       * </pre>
+       *
+       * <code>int64 updated_at = 13;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        updatedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long completedAt_ ;
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal reached a terminal phase.
+       * </pre>
+       *
+       * <code>int64 completed_at = 14;</code>
+       * @return The completedAt.
+       */
+      @java.lang.Override
+      public long getCompletedAt() {
+        return completedAt_;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal reached a terminal phase.
+       * </pre>
+       *
+       * <code>int64 completed_at = 14;</code>
+       * @param value The completedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCompletedAt(long value) {
+
+        completedAt_ = value;
+        bitField0_ |= 0x00001000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal reached a terminal phase.
+       * </pre>
+       *
+       * <code>int64 completed_at = 14;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCompletedAt() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        completedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object blockedReason_ = "";
+      /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
+       * <code>string blocked_reason = 15;</code>
+       * @return The blockedReason.
+       */
+      public java.lang.String getBlockedReason() {
+        java.lang.Object ref = blockedReason_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          blockedReason_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
+       * <code>string blocked_reason = 15;</code>
+       * @return The bytes for blockedReason.
+       */
+      public com.google.protobuf.ByteString
+          getBlockedReasonBytes() {
+        java.lang.Object ref = blockedReason_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          blockedReason_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
+       * <code>string blocked_reason = 15;</code>
+       * @param value The blockedReason to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBlockedReason(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        blockedReason_ = value;
+        bitField0_ |= 0x00002000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
+       * <code>string blocked_reason = 15;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBlockedReason() {
+        blockedReason_ = getDefaultInstance().getBlockedReason();
+        bitField0_ = (bitField0_ & ~0x00002000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
+       * <code>string blocked_reason = 15;</code>
+       * @param value The bytes for blockedReason to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBlockedReasonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        blockedReason_ = value;
+        bitField0_ |= 0x00002000;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> labels_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetLabels() {
+        if (labels_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        return labels_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableLabels() {
+        if (labels_ == null) {
+          labels_ = com.google.protobuf.MapField.newMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        if (!labels_.isMutable()) {
+          labels_ = labels_.copy();
+        }
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return labels_;
+      }
+      public int getLabelsCount() {
+        return internalGetLabels().getMap().size();
+      }
+      /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      @java.lang.Override
+      public boolean containsLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetLabels().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getLabelsMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+        return getLabelsMap();
+      }
+      /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+        return internalGetLabels().getMap();
+      }
+      /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getLabelsOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getLabelsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearLabels() {
+        bitField0_ = (bitField0_ & ~0x00004000);
+        internalGetMutableLabels().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      public Builder removeLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableLabels().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableLabels() {
+        bitField0_ |= 0x00004000;
+        return internalGetMutableLabels().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      public Builder putLabels(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableLabels().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00004000;
+        return this;
+      }
+      /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 16;</code>
+       */
+      public Builder putAllLabels(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableLabels().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00004000;
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> metadata_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMetadata() {
+        if (metadata_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        return metadata_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableMetadata() {
+        if (metadata_ == null) {
+          metadata_ = com.google.protobuf.MapField.newMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        if (!metadata_.isMutable()) {
+          metadata_ = metadata_.copy();
+        }
+        bitField0_ |= 0x00008000;
+        onChanged();
+        return metadata_;
+      }
+      public int getMetadataCount() {
+        return internalGetMetadata().getMap().size();
+      }
+      /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      @java.lang.Override
+      public boolean containsMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetMetadata().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getMetadataMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+        return getMetadataMap();
+      }
+      /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+        return internalGetMetadata().getMap();
+      }
+      /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getMetadataOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getMetadataOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00008000);
+        internalGetMutableMetadata().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      public Builder removeMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableMetadata().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableMetadata() {
+        bitField0_ |= 0x00008000;
+        return internalGetMutableMetadata().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      public Builder putMetadata(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableMetadata().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00008000;
+        return this;
+      }
+      /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 17;</code>
+       */
+      public Builder putAllMetadata(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableMetadata().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00008000;
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.Goal)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.Goal)
+    private static final talon.data.Data.Goal DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Data.Goal();
+    }
+
+    public static talon.data.Data.Goal getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Goal>
+        PARSER = new com.google.protobuf.AbstractParser<Goal>() {
+      @java.lang.Override
+      public Goal parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Goal> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Goal> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Data.Goal getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -22942,6 +26463,21 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_Artifact_MetadataEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Goal_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Goal_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Goal_LabelsEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Goal_LabelsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Goal_MetadataEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Goal_MetadataEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_ArtifactAccess_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -23050,91 +26586,109 @@ java.lang.String defaultValue) {
       "Entry\0224\n\010metadata\030\n \003(\0132\".talon.data.Art" +
       "ifact.MetadataEntry\032-\n\013LabelsEntry\022\013\n\003ke" +
       "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEn" +
-      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\266\001\n\016" +
-      "ArtifactAccess\022\024\n\014target_agent\030\001 \001(\t\022\031\n\021" +
-      "target_session_id\030\002 \001(\t\022\022\n\noperations\030\003 " +
-      "\003(\t\022\022\n\nexpires_at\030\004 \001(\003\022\030\n\020granted_by_ag" +
-      "ent\030\005 \001(\t\022\035\n\025granted_by_session_id\030\006 \001(\t" +
-      "\022\022\n\ncreated_at\030\007 \001(\003\"\275\001\n\tPrincipal\022\023\n\013ex" +
-      "ternal_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022\024\n\014disp" +
-      "lay_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010metadata" +
-      "\030\005 \003(\0132#.talon.data.Principal.MetadataEn" +
-      "try\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
-      "ue\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessagePart\022\n\n\002i" +
-      "d\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".talon.data." +
-      "SessionMessagePartType\022\017\n\007content\030\003 \001(\t\022" +
-      "\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 \001(\t\022\022\n\nc" +
-      "reated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025.talon." +
-      "data.ObjectRef\"\363\001\n\016SessionMessage\022\n\n\002id\030" +
-      "\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data.Message" +
-      "Role\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006labels\030\005 \003(\013" +
-      "2&.talon.data.SessionMessage.LabelsEntry" +
-      "\022-\n\005parts\030\006 \003(\0132\036.talon.data.SessionMess" +
-      "agePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
-      "alue\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002\n\007Session\022\n\n\002id\030\001" +
-      " \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006statu" +
-      "s\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013last_acti" +
-      "ve\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.talon.data." +
-      "Session.MetadataEntry\022/\n\006labels\030\010 \003(\0132\037." +
-      "talon.data.Session.LabelsEntry\032/\n\rMetada" +
-      "taEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032" +
-      "-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
-      "(\t:\0028\001\"\233\002\n\016ChannelMessage\022\n\n\002id\030\001 \001(\t\022\n\n" +
-      "\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013author_kin" +
-      "d\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007content\030\006 \001(\t" +
-      "\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_agent\030\010 \001" +
-      "(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n\006labels\030" +
-      "\n \003(\0132&.talon.data.ChannelMessage.Labels" +
-      "Entry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
-      "ue\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t\022" +
-      "\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\t" +
-      "namespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025Knowled" +
-      "geSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030" +
-      "\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022" +
-      "\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id" +
-      "\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006" +
-      "status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nstat" +
-      "e_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(\t\022\022\n\ncre" +
-      "ated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006lab" +
-      "els\030\n \003(\0132#.talon.data.WorkflowRun.Label" +
-      "sEntry\022\035\n\020claim_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n" +
-      "\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022\031\n\021workf" +
-      "low_revision\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t\022" +
-      "\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_dispatch_" +
-      "reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t" +
-      "\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_expires_at" +
-      "\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step" +
-      "_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006status\030\004 \001" +
-      "(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output_json\030\006 " +
-      "\001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_session_id\030\010" +
-      " \001(\t\022\035\n\025child_workflow_run_id\030\t \001(\t\022\023\n\013r" +
-      "esume_json\030\n \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022\022" +
-      "\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032" +
-      "\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at" +
-      "\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handle\030\020 \001(\t\022" +
-      "\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_ret" +
-      "ry_atB\r\n\013_timeout_atB\020\n\016_wait_until_at\"\245" +
-      "\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 " +
-      "\001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n" +
-      "\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007message\030" +
-      "\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\ttimestamp" +
-      "\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UNSPECIFIE" +
-      "D\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017" +
-      "\n\013ROLE_SYSTEM\020\003*\244\004\n\026SessionMessagePartTy" +
-      "pe\022)\n%SESSION_MESSAGE_PART_TYPE_UNSPECIF" +
-      "IED\020\000\022\"\n\036SESSION_MESSAGE_PART_TYPE_TEXT\020" +
-      "\001\022\'\n#SESSION_MESSAGE_PART_TYPE_REASONING" +
-      "\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_TOOL_CAL" +
-      "L\020\003\022)\n%SESSION_MESSAGE_PART_TYPE_TOOL_RE" +
-      "SULT\020\004\022#\n\037SESSION_MESSAGE_PART_TYPE_USAG" +
-      "E\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE_ERROR\020\006" +
-      "\022#\n\037SESSION_MESSAGE_PART_TYPE_IMAGE\020\007\022#\n" +
-      "\037SESSION_MESSAGE_PART_TYPE_AUDIO\020\010\022#\n\037SE" +
-      "SSION_MESSAGE_PART_TYPE_VIDEO\020\t\022\"\n\036SESSI" +
-      "ON_MESSAGE_PART_TYPE_FILE\020\n\0220\n,SESSION_M" +
-      "ESSAGE_PART_TYPE_REQUEST_PERMISSION\020\013\022/\n" +
-      "+SESSION_MESSAGE_PART_TYPE_PERMISSION_RE" +
-      "SULT\020\014b\006proto3"
+      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\366\003\n\004" +
+      "Goal\022\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005a" +
+      "gent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022\021\n\tobject" +
+      "ive\030\005 \001(\t\022\030\n\020success_criteria\030\006 \003(\t\022$\n\005p" +
+      "hase\030\007 \001(\0162\025.talon.data.GoalPhase\022\030\n\020pro" +
+      "gress_summary\030\010 \001(\t\022\021\n\titeration\030\t \001(\005\022\026" +
+      "\n\016max_iterations\030\n \001(\005\022\022\n\ncreated_at\030\014 \001" +
+      "(\003\022\022\n\nupdated_at\030\r \001(\003\022\024\n\014completed_at\030\016" +
+      " \001(\003\022\026\n\016blocked_reason\030\017 \001(\t\022,\n\006labels\030\020" +
+      " \003(\0132\034.talon.data.Goal.LabelsEntry\0220\n\010me" +
+      "tadata\030\021 \003(\0132\036.talon.data.Goal.MetadataE" +
+      "ntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
+      "e\030\002 \001(\t:\0028\001\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\266\001\n\016ArtifactAccess\022" +
+      "\024\n\014target_agent\030\001 \001(\t\022\031\n\021target_session_" +
+      "id\030\002 \001(\t\022\022\n\noperations\030\003 \003(\t\022\022\n\nexpires_" +
+      "at\030\004 \001(\003\022\030\n\020granted_by_agent\030\005 \001(\t\022\035\n\025gr" +
+      "anted_by_session_id\030\006 \001(\t\022\022\n\ncreated_at\030" +
+      "\007 \001(\003\"\275\001\n\tPrincipal\022\023\n\013external_id\030\001 \001(\t" +
+      "\022\017\n\007address\030\002 \001(\t\022\024\n\014display_name\030\003 \001(\t\022" +
+      "\014\n\004kind\030\004 \001(\t\0225\n\010metadata\030\005 \003(\0132#.talon." +
+      "data.Principal.MetadataEntry\032/\n\rMetadata" +
+      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001" +
+      "\n\022SessionMessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tpart" +
+      "_type\030\002 \001(\0162\".talon.data.SessionMessageP" +
+      "artType\022\017\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024" +
+      "\n\014payload_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 \001(\003" +
+      "\022%\n\006object\030\007 \001(\0132\025.talon.data.ObjectRef\"" +
+      "\363\001\n\016SessionMessage\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002" +
+      " \001(\0162\027.talon.data.MessageRole\022\022\n\ncreated" +
+      "_at\030\004 \001(\003\0226\n\006labels\030\005 \003(\0132&.talon.data.S" +
+      "essionMessage.LabelsEntry\022-\n\005parts\030\006 \003(\013" +
+      "2\036.talon.data.SessionMessagePart\032-\n\013Labe" +
+      "lsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J" +
+      "\004\010\003\020\004\"\257\002\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002" +
+      " \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncrea" +
+      "ted_at\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010met" +
+      "adata\030\007 \003(\0132!.talon.data.Session.Metadat" +
+      "aEntry\022/\n\006labels\030\010 \003(\0132\037.talon.data.Sess" +
+      "ion.LabelsEntry\032/\n\rMetadataEntry\022\013\n\003key\030" +
+      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022" +
+      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016Chan" +
+      "nelMessage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007ch" +
+      "annel\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006auth" +
+      "or\030\005 \001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_at\030" +
+      "\007 \001(\003\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021source_se" +
+      "ssion_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talon.d" +
+      "ata.ChannelMessage.LabelsEntry\032-\n\013Labels" +
+      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n" +
+      "\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(" +
+      "\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t" +
+      "\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSearchResult\022" +
+      "\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030" +
+      "\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 " +
+      "\001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workf" +
+      "low\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n" +
+      "\ninput_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n" +
+      "\013output_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022" +
+      "\n\nupdated_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.tal" +
+      "on.data.WorkflowRun.LabelsEntry\022\035\n\020claim" +
+      "_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n" +
+      "\tspec_json\030\r \001(\t\022\031\n\021workflow_revision\030\016 " +
+      "\001(\004\022\023\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_attemp" +
+      "t\030\020 \001(\r\022\034\n\024last_dispatch_reason\030\021 \001(\t\032-\n" +
+      "\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t" +
+      ":\0028\001B\023\n\021_claim_expires_at\"\263\003\n\017WorkflowSt" +
+      "epRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007at" +
+      "tempt\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_jso" +
+      "n\030\005 \001(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005error\030\007 " +
+      "\001(\t\022\030\n\020child_session_id\030\010 \001(\t\022\035\n\025child_w" +
+      "orkflow_run_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(" +
+      "\t\022\024\n\014suspend_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 " +
+      "\001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retry_at" +
+      "\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022" +
+      "wait_wakeup_handle\030\020 \001(\t\022\032\n\rwait_until_a" +
+      "t\030\021 \001(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_timeo" +
+      "ut_atB\020\n\016_wait_until_at\"\245\001\n\020WorkflowRunE" +
+      "vent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow" +
+      "\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007" +
+      "step_id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payloa" +
+      "d_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013Messa" +
+      "geRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_USE" +
+      "R\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003" +
+      "*\244\004\n\026SessionMessagePartType\022)\n%SESSION_M" +
+      "ESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSIO" +
+      "N_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION_ME" +
+      "SSAGE_PART_TYPE_REASONING\020\002\022\'\n#SESSION_M" +
+      "ESSAGE_PART_TYPE_TOOL_CALL\020\003\022)\n%SESSION_" +
+      "MESSAGE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037SESSI" +
+      "ON_MESSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESSION_" +
+      "MESSAGE_PART_TYPE_ERROR\020\006\022#\n\037SESSION_MES" +
+      "SAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION_MESSAG" +
+      "E_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAGE_P" +
+      "ART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_PART" +
+      "_TYPE_FILE\020\n\0220\n,SESSION_MESSAGE_PART_TYP" +
+      "E_REQUEST_PERMISSION\020\013\022/\n+SESSION_MESSAG" +
+      "E_PART_TYPE_PERMISSION_RESULT\020\014*\355\001\n\tGoal" +
+      "Phase\022\032\n\026GOAL_PHASE_UNSPECIFIED\020\000\022\026\n\022GOA" +
+      "L_PHASE_RUNNING\020\001\022\025\n\021GOAL_PHASE_PAUSED\020\002" +
+      "\022\033\n\027GOAL_PHASE_NEEDS_REVIEW\020\003\022\030\n\024GOAL_PH" +
+      "ASE_SUCCEEDED\020\004\022\025\n\021GOAL_PHASE_FAILED\020\005\022\026" +
+      "\n\022GOAL_PHASE_BLOCKED\020\006\022\027\n\023GOAL_PHASE_CAN" +
+      "CELED\020\007\022\026\n\022GOAL_PHASE_EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -23170,14 +26724,32 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Artifact_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_data_ArtifactAccess_descriptor =
+    internal_static_talon_data_Goal_descriptor =
       getDescriptor().getMessageType(2);
+    internal_static_talon_data_Goal_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Goal_descriptor,
+        new java.lang.String[] { "Id", "Namespace", "Agent", "SessionId", "Objective", "SuccessCriteria", "Phase", "ProgressSummary", "Iteration", "MaxIterations", "CreatedAt", "UpdatedAt", "CompletedAt", "BlockedReason", "Labels", "Metadata", });
+    internal_static_talon_data_Goal_LabelsEntry_descriptor =
+      internal_static_talon_data_Goal_descriptor.getNestedType(0);
+    internal_static_talon_data_Goal_LabelsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Goal_LabelsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_data_Goal_MetadataEntry_descriptor =
+      internal_static_talon_data_Goal_descriptor.getNestedType(1);
+    internal_static_talon_data_Goal_MetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Goal_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_data_ArtifactAccess_descriptor =
+      getDescriptor().getMessageType(3);
     internal_static_talon_data_ArtifactAccess_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ArtifactAccess_descriptor,
         new java.lang.String[] { "TargetAgent", "TargetSessionId", "Operations", "ExpiresAt", "GrantedByAgent", "GrantedBySessionId", "CreatedAt", });
     internal_static_talon_data_Principal_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(4);
     internal_static_talon_data_Principal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Principal_descriptor,
@@ -23189,13 +26761,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Principal_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_SessionMessagePart_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(5);
     internal_static_talon_data_SessionMessagePart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessagePart_descriptor,
         new java.lang.String[] { "Id", "PartType", "Content", "Name", "PayloadJson", "CreatedAt", "Object", });
     internal_static_talon_data_SessionMessage_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(6);
     internal_static_talon_data_SessionMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessage_descriptor,
@@ -23207,7 +26779,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_SessionMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Session_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(7);
     internal_static_talon_data_Session_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Session_descriptor,
@@ -23225,7 +26797,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Session_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_ChannelMessage_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(8);
     internal_static_talon_data_ChannelMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ChannelMessage_descriptor,
@@ -23237,19 +26809,19 @@ java.lang.String defaultValue) {
         internal_static_talon_data_ChannelMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Knowledge_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(9);
     internal_static_talon_data_Knowledge_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Knowledge_descriptor,
         new java.lang.String[] { "Path", "Content", "UpdatedAt", "Namespace", "Name", });
     internal_static_talon_data_KnowledgeSearchResult_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(10);
     internal_static_talon_data_KnowledgeSearchResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_KnowledgeSearchResult_descriptor,
         new java.lang.String[] { "Path", "Snippet", "Score", "Timestamp", "Namespace", });
     internal_static_talon_data_WorkflowRun_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(11);
     internal_static_talon_data_WorkflowRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRun_descriptor,
@@ -23261,13 +26833,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_WorkflowRun_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_WorkflowStepRun_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(12);
     internal_static_talon_data_WorkflowStepRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowStepRun_descriptor,
         new java.lang.String[] { "Id", "StepId", "Attempt", "Status", "InputJson", "OutputJson", "Error", "ChildSessionId", "ChildWorkflowRunId", "ResumeJson", "SuspendJson", "CreatedAt", "UpdatedAt", "NextRetryAt", "TimeoutAt", "WaitWakeupHandle", "WaitUntilAt", });
     internal_static_talon_data_WorkflowRunEvent_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(13);
     internal_static_talon_data_WorkflowRunEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRunEvent_descriptor,
