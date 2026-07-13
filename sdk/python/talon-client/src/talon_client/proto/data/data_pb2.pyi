@@ -201,24 +201,6 @@ class Goal(_message.Message):
     metadata: _containers.ScalarMap[str, str]
     def __init__(self, id: _Optional[str] = ..., namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., objective: _Optional[str] = ..., success_criteria: _Optional[_Iterable[str]] = ..., phase: _Optional[_Union[GoalPhase, str]] = ..., progress_summary: _Optional[str] = ..., iteration: _Optional[int] = ..., max_iterations: _Optional[int] = ..., evidence_refs: _Optional[_Iterable[_Union[GoalEvidenceRef, _Mapping]]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., completed_at: _Optional[int] = ..., blocked_reason: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
-class GoalIndexEntry(_message.Message):
-    __slots__ = ("namespace", "agent", "session_id", "goal_id", "phase", "status_group", "updated_at")
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    GOAL_ID_FIELD_NUMBER: _ClassVar[int]
-    PHASE_FIELD_NUMBER: _ClassVar[int]
-    STATUS_GROUP_FIELD_NUMBER: _ClassVar[int]
-    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
-    namespace: str
-    agent: str
-    session_id: str
-    goal_id: str
-    phase: GoalPhase
-    status_group: str
-    updated_at: int
-    def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., goal_id: _Optional[str] = ..., phase: _Optional[_Union[GoalPhase, str]] = ..., status_group: _Optional[str] = ..., updated_at: _Optional[int] = ...) -> None: ...
-
 class ArtifactAccess(_message.Message):
     __slots__ = ("target_agent", "target_session_id", "operations", "expires_at", "granted_by_agent", "granted_by_session_id", "created_at")
     TARGET_AGENT_FIELD_NUMBER: _ClassVar[int]

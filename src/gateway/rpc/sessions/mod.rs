@@ -1028,23 +1028,6 @@ impl GrpcGatewayHandler {
             tonic::Status::internal(format!("Failed to delete session descendants: {}", e))
         })?;
 
-        if let Err(error) = crate::harness::native_tools::delete_goal_indexes_for_session(
-            self.gateway.kv.as_ref(),
-            &req.ns,
-            &req.agent,
-            &req.session_id,
-        )
-        .await
-        {
-            tracing::warn!(
-                error = %error,
-                namespace = %req.ns,
-                agent = %req.agent,
-                session_id = %req.session_id,
-                "failed to delete goal indexes during session deletion; proceeding"
-            );
-        }
-
         self.gateway
             .kv
             .delete(&session_db_key)
@@ -1135,30 +1118,6 @@ impl GrpcGatewayHandler {
             }
             return Err(tonic::Status::internal(format!(
                 "Failed to clear session descendants: {}",
-                e
-            )));
-        }
-
-        if let Err(e) = crate::harness::native_tools::delete_goal_indexes_for_session(
-            self.gateway.kv.as_ref(),
-            &req.ns,
-            &req.agent,
-            &req.session_id,
-        )
-        .await
-        {
-            if let Err(release_err) =
-                release_clear_session_lock(self.gateway.kv.as_ref(), &session_db_key, now_micros)
-                    .await
-            {
-                tracing::warn!(
-                    key = %session_db_key,
-                    error = %release_err,
-                    "failed to release session lock after clear_session goal index error"
-                );
-            }
-            return Err(tonic::Status::internal(format!(
-                "Failed to clear goal indexes: {}",
                 e
             )));
         }

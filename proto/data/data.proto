@@ -141,23 +141,6 @@ message Goal {
   map<string, string> metadata = 17;
 }
 
-message GoalIndexEntry {
-  // Namespace of the indexed goal.
-  string namespace = 1;
-  // Agent that owns the indexed goal.
-  string agent = 2;
-  // Session that owns the indexed goal.
-  string session_id = 3;
-  // Goal identifier under the owning session.
-  string goal_id = 4;
-  // Current indexed phase.
-  GoalPhase phase = 5;
-  // Coarse status bucket used for active/history listings.
-  string status_group = 6;
-  // Unix timestamp in microseconds used for recency ordering.
-  int64 updated_at = 7;
-}
-
 // Target-local access record for an artifact URI.
 //
 // Artifact URIs are references, not bearer secrets. A caller can use an

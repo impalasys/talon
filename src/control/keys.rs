@@ -456,14 +456,6 @@ pub fn goal_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceLi
     )
 }
 
-pub fn goal_index(namespace: &str, index_name: &str) -> ResourceKey {
-    resource_key(namespace, &[], "GoalIndex", index_name)
-}
-
-pub fn goal_index_prefix(namespace: &str) -> ResourceList {
-    direct_child_prefix(namespace, &[], Some("GoalIndex"))
-}
-
 pub fn artifact_access_name(target_agent: &str, target_session_id: &str) -> String {
     format!("{target_agent}:{target_session_id}")
 }
