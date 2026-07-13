@@ -3,6 +3,7 @@
 
 use crate::control::ns;
 use anyhow::{anyhow, bail, Result};
+use sha2::{Digest, Sha256};
 use std::fmt;
 
 const NS_PREFIX: &str = "@Namespace";
@@ -348,6 +349,30 @@ pub fn agent_prefix(namespace: &str) -> ResourceList {
 
 pub fn file(namespace: &str, name: &str) -> ResourceKey {
     resource_key(namespace, &[], "File", name)
+}
+
+pub fn file_name_for_path(path: &str) -> String {
+    let slug = path
+        .trim_matches('/')
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() {
+                ch.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>()
+        .trim_matches('-')
+        .chars()
+        .take(48)
+        .collect::<String>();
+    let hash = format!("{:x}", Sha256::digest(path.as_bytes()));
+    format!(
+        "{}-{}",
+        if slug.is_empty() { "file" } else { &slug },
+        &hash[..12]
+    )
 }
 
 pub fn file_prefix(namespace: &str) -> ResourceList {
@@ -796,6 +821,16 @@ mod tests {
         assert!(parse_connector_registration_id("Namespace/acme/Connector/slack").is_err());
         assert!(parse_connector_registration_id("Namespace//ConnectorClass/slack").is_err());
         assert!(parse_connector_registration_id("Namespace/acme/ConnectorClass/").is_err());
+    }
+
+    #[test]
+    fn file_names_are_derived_from_full_logical_path() {
+        let acme = file_name_for_path("/memory/acme/brand-guidelines.md");
+        let conic = file_name_for_path("/memory/conic/brand-guidelines.md");
+        assert_ne!(acme, conic);
+        assert!(acme.starts_with("memory-acme-brand-guidelines-md-"));
+        assert!(conic.starts_with("memory-conic-brand-guidelines-md-"));
+        assert_eq!(acme.rsplit_once('-').unwrap().1.len(), 12);
     }
 
     #[test]
