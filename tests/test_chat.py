@@ -24,6 +24,7 @@ from talon_client import (
     GetCasObjectRequest,
     GetSessionRequest,
     SendMessageRequest,
+    StopSessionGenerationRequest,
     StreamSessionPartsRequest,
     TalonClient,
 )
@@ -38,6 +39,57 @@ STREAM_TIMEOUT_SECONDS = 30
 
 
 logger = logging.getLogger(__name__)
+
+
+def _mock_control(method: str, path: str, payload: dict | None = None) -> dict:
+    response = requests.request(
+        method,
+        f"http://127.0.0.1:{MOCK_LLM_PORT}{path}",
+        json=payload,
+        timeout=10,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def _wait_for_session_state(
+    client: TalonClient,
+    *,
+    namespace: str,
+    agent: str,
+    session_id: str,
+    state: str,
+    attempts: int = 60,
+    delay: float = 0.2,
+) -> None:
+    last_state = ""
+    for _ in range(attempts):
+        res = client.sessions.Get(
+            GetSessionRequest(
+                agent=agent,
+                session_id=session_id,
+                ns=namespace,
+                message_limit=-1,
+            )
+        )
+        last_state = res.state
+        if last_state == state:
+            return
+        time.sleep(delay)
+    raise AssertionError(
+        f"session {namespace}/{agent}/{session_id} did not reach {state}; "
+        f"last state={last_state}"
+    )
+
+
+def _wait_for_mock_stream_blocked(*, attempts: int = 80, delay: float = 0.1) -> dict:
+    state = {}
+    for _ in range(attempts):
+        state = _mock_control("GET", "/__control/state")
+        if state.get("blocked"):
+            return state
+        time.sleep(delay)
+    raise AssertionError(f"mock LLM did not block; final state={state}")
 
 
 def _cas_response_bytes(response) -> bytes:
@@ -442,6 +494,99 @@ def test_large_tool_result_is_fetched_from_cas(
     hydrated = _cas_tool_result_text(fetched)
     assert hydrated.startswith("blocking_lookup result for docs.example.com")
     assert "reference section 079" in hydrated
+
+
+def test_stop_generation_releases_processing_session_on_aws_stack(
+    aws_local_stack: E2EStack,
+) -> None:
+    raw_channel, channel = aws_local_stack.channel()
+    try:
+        client = TalonClient(channel)
+        namespace = f"talon-stop-aws-{uuid.uuid4().hex[:8]}"
+        agent_name = "stop-agent"
+        ensure_namespace(client, namespace)
+        create_agent_resource(
+            client,
+            namespace,
+            agent_name,
+            AgentSpec(
+                model_policy={
+                    "profiles": [
+                        {
+                            "name": "default",
+                            "model": Model(
+                                provider="mock",
+                                name="minimax-m2.7",
+                                temperature=0.7,
+                            ),
+                        }
+                    ]
+                },
+                system_prompt="You are a helpful test assistant.",
+            ),
+        )
+
+        _mock_control("POST", "/__control/reset")
+        _mock_control("POST", "/__control/block_stream_after_chunks", {"chunks": 1})
+
+        session_id = client.sessions.Create(
+            CreateSessionRequest(agent=agent_name, ns=namespace)
+        ).session_id
+        client.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent_name,
+                session_id=session_id,
+                ns=namespace,
+                message="Please stream a long response about local session cancellation.",
+            )
+        )
+
+        _wait_for_session_state(
+            client,
+            namespace=namespace,
+            agent=agent_name,
+            session_id=session_id,
+            state="PROCESSING",
+        )
+        _wait_for_mock_stream_blocked()
+
+        stopped = client.sessions.StopGeneration(
+            StopSessionGenerationRequest(
+                agent=agent_name,
+                session_id=session_id,
+                ns=namespace,
+            )
+        )
+        assert stopped.success
+
+        _wait_for_session_state(
+            client,
+            namespace=namespace,
+            agent=agent_name,
+            session_id=session_id,
+            state="IDLE",
+        )
+
+        # If stop failed to release the processing lock, this second turn would
+        # remain blocked behind the stale PROCESSING state.
+        _mock_control("POST", "/__control/unblock_stream")
+        client.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent_name,
+                session_id=session_id,
+                ns=namespace,
+                message="hello",
+            )
+        )
+        _wait_for_session_state(
+            client,
+            namespace=namespace,
+            agent=agent_name,
+            session_id=session_id,
+            state="IDLE",
+        )
+    finally:
+        raw_channel.close()
 
 
 def test_super_large_tool_result_uses_s3_object_store_on_aws_stack(

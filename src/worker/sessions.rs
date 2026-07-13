@@ -974,7 +974,65 @@ impl WorkerEventHandler {
                 "Session stop requested, but no in-flight generation was registered"
             );
         }
+        self.clear_pending_async_a2a_wakeups(&event.ns, &event.agent, &event.session_id)
+            .await?;
+        self.release_stopped_session(&event.ns, &event.agent, &event.session_id)
+            .await?;
         Ok(())
+    }
+
+    async fn clear_pending_async_a2a_wakeups(
+        &self,
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+    ) -> Result<()> {
+        let entries = self
+            .cp
+            .kv
+            .list_entries(&crate::control::keys::async_a2a_wakeup_prefix(
+                ns, agent_id, session_id,
+            ))
+            .await?;
+        for (key, _) in entries {
+            self.cp.kv.delete(&key).await?;
+        }
+        Ok(())
+    }
+
+    async fn release_stopped_session(
+        &self,
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+    ) -> Result<()> {
+        let key = crate::control::keys::session(ns, agent_id, session_id);
+        for _ in 0..MAX_SESSION_RELEASE_CAS_RETRIES {
+            let Some(current) = self.cp.kv.get(&key).await? else {
+                return Ok(());
+            };
+            let mut session = data_proto::Session::decode(current.as_slice())?;
+            if session.status != "PROCESSING" {
+                return Ok(());
+            }
+            session.status = "IDLE".to_string();
+            session.last_active = chrono::Utc::now().timestamp_micros();
+            let updated = session.encode_to_vec();
+            if self
+                .cp
+                .kv
+                .compare_and_swap(&key, Some(current.as_slice()), &updated)
+                .await?
+            {
+                return Ok(());
+            }
+        }
+        Err(anyhow!(
+            "failed to atomically release stopped session {}/{}/{}",
+            ns,
+            agent_id,
+            session_id
+        ))
     }
 
     async fn release_session_lock(
@@ -1991,7 +2049,42 @@ mod tests {
     #[tokio::test]
     async fn handle_session_control_cancels_registered_session() {
         let kv = Arc::new(MockKvStore::default());
-        let handler = handler_with_kv(kv);
+        let handler = handler_with_kv(kv.clone());
+        let session = data_proto::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "PROCESSING".to_string(),
+            created_at: 0,
+            last_active: 123,
+            metadata: HashMap::new(),
+            labels: HashMap::new(),
+        };
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &session,
+        )
+        .await
+        .expect("session should persist");
+        let wakeup = SessionMessageEvent {
+            ns: "conic:test".to_string(),
+            agent: "assistant".to_string(),
+            session_id: "session-1".to_string(),
+            message_id: "message-1".to_string(),
+            submission_id: "wakeup-1".to_string(),
+            direction: MessageDirection::Inbound as i32,
+            message: "wake up".to_string(),
+            timestamp: 0,
+        };
+        let wakeup_key = crate::control::keys::async_a2a_wakeup(
+            "conic:test",
+            "assistant",
+            "session-1",
+            "wakeup-1",
+        );
+        kv.set_msg(&wakeup_key, &wakeup)
+            .await
+            .expect("wakeup should persist");
         let token = CancellationToken::new();
         handler
             .session_cancellations
@@ -2011,6 +2104,21 @@ mod tests {
             .expect("stop generation should succeed");
 
         assert!(token.is_cancelled());
+        let stored_session = kv
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(stored_session.status, "IDLE");
+        assert!(kv
+            .get_msg::<SessionMessageEvent>(&wakeup_key)
+            .await
+            .unwrap()
+            .is_none());
     }
 
     #[tokio::test]
