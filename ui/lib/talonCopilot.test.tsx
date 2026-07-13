@@ -4,6 +4,10 @@ import {
   TalonCopilot as RawTalonCopilot,
 } from '@impalasys/talon-chat';
 
+jest.mock('fzstd', () => ({
+  decompress: jest.fn((bytes: Uint8Array) => bytes),
+}));
+
 function makeJsonResponse(payload: any, ok = true) {
   return {
     ok,
@@ -260,7 +264,7 @@ function makeGatewayClient(raw: any = {}, gatewayUrl = 'http://localhost:18789',
       return response.json();
     }),
   };
-  return { sessions, channels };
+  return { sessions, channels, cas: raw.cas };
 }
 
 function TalonCopilot(props: any) {
@@ -333,6 +337,94 @@ describe('TalonCopilot', () => {
       });
     });
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
+  });
+
+  it('hydrates zstd CAS tool results with a library fallback when the browser stream rejects zstd', async () => {
+    const decodedOutput = new TextEncoder().encode('zstd hydrated tool output');
+    const decompressZstd = jest.requireMock('fzstd').decompress as jest.Mock;
+    decompressZstd.mockReturnValueOnce(decodedOutput);
+    const originalDecompressionStream = global.DecompressionStream;
+    global.DecompressionStream = jest.fn().mockImplementation((format: string) => {
+      if (format === 'zstd') {
+        throw new TypeError("DecompressionStream does not support 'zstd'");
+      }
+      return {};
+    }) as any;
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-zstd',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-zstd',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                  name: 'knowledge_search',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-zstd', input: { query: 'docs' } }),
+                  createdAt: String(Date.now() * 1000),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                  name: 'knowledge_search',
+                  content: '',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-zstd' }),
+                  object: {
+                    key: 'cas/ops/sessions/sess-zstd/messages/assistant-zstd/000001.txt',
+                    contentEncoding: 'zstd',
+                  },
+                  createdAt: String(Date.now() * 1000),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Done',
+                  createdAt: String(Date.now() * 1000),
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      getSession: jest.fn(),
+      cas: {
+        getObject: jest.fn().mockResolvedValue({
+          data: new Uint8Array([0x28, 0xb5, 0x2f, 0xfd]),
+          contentEncoding: 'zstd',
+        }),
+      },
+    };
+
+    try {
+      render(
+        <TalonCopilot
+          namespace="ops"
+          agent="copilot"
+          gatewayClient={gatewayClient}
+          sessionId="sess-zstd"
+        />,
+      );
+
+      expect(await screen.findByText('Done')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+      fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
+      expect(await screen.findByText('zstd hydrated tool output')).toBeInTheDocument();
+      expect(decompressZstd).toHaveBeenCalledWith(new Uint8Array([0x28, 0xb5, 0x2f, 0xfd]));
+      expect(warnSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('Could not hydrate CAS tool-result object'),
+        expect.anything(),
+        expect.anything(),
+      );
+    } finally {
+      global.DecompressionStream = originalDecompressionStream;
+      warnSpy.mockRestore();
+    }
   });
 
   it('shows pending connector replies and requests delivery by updating message labels', async () => {

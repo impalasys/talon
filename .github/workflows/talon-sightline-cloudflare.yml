@@ -72,7 +72,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: sightline-static-export
-          path: ui/out
+          path: ui/dist
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
