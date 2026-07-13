@@ -383,38 +383,76 @@ public final class Data extends com.google.protobuf.GeneratedFile {
   public enum GoalPhase
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
+     * <pre>
+     * No phase has been set. Stored goals should move to a concrete phase before
+     * being used by the runtime.
+     * </pre>
+     *
      * <code>GOAL_PHASE_UNSPECIFIED = 0;</code>
      */
     GOAL_PHASE_UNSPECIFIED(0),
     /**
+     * <pre>
+     * The agent should continue working toward the objective.
+     * </pre>
+     *
      * <code>GOAL_PHASE_RUNNING = 1;</code>
      */
     GOAL_PHASE_RUNNING(1),
     /**
+     * <pre>
+     * The goal is intentionally stopped and should not advance automatically.
+     * </pre>
+     *
      * <code>GOAL_PHASE_PAUSED = 2;</code>
      */
     GOAL_PHASE_PAUSED(2),
     /**
+     * <pre>
+     * The agent has produced work that needs an external review decision.
+     * </pre>
+     *
      * <code>GOAL_PHASE_NEEDS_REVIEW = 3;</code>
      */
     GOAL_PHASE_NEEDS_REVIEW(3),
     /**
+     * <pre>
+     * The objective and success criteria have been satisfied.
+     * </pre>
+     *
      * <code>GOAL_PHASE_SUCCEEDED = 4;</code>
      */
     GOAL_PHASE_SUCCEEDED(4),
     /**
+     * <pre>
+     * The goal ended unsuccessfully due to an execution or quality failure.
+     * </pre>
+     *
      * <code>GOAL_PHASE_FAILED = 5;</code>
      */
     GOAL_PHASE_FAILED(5),
     /**
+     * <pre>
+     * The agent cannot make meaningful progress without outside input or a
+     * changed external condition.
+     * </pre>
+     *
      * <code>GOAL_PHASE_BLOCKED = 6;</code>
      */
     GOAL_PHASE_BLOCKED(6),
     /**
+     * <pre>
+     * A caller explicitly stopped the goal before completion.
+     * </pre>
+     *
      * <code>GOAL_PHASE_CANCELED = 7;</code>
      */
     GOAL_PHASE_CANCELED(7),
     /**
+     * <pre>
+     * The goal exceeded its configured time or iteration budget.
+     * </pre>
+     *
      * <code>GOAL_PHASE_EXPIRED = 8;</code>
      */
     GOAL_PHASE_EXPIRED(8),
@@ -431,38 +469,76 @@ public final class Data extends com.google.protobuf.GeneratedFile {
         "GoalPhase");
     }
     /**
+     * <pre>
+     * No phase has been set. Stored goals should move to a concrete phase before
+     * being used by the runtime.
+     * </pre>
+     *
      * <code>GOAL_PHASE_UNSPECIFIED = 0;</code>
      */
     public static final int GOAL_PHASE_UNSPECIFIED_VALUE = 0;
     /**
+     * <pre>
+     * The agent should continue working toward the objective.
+     * </pre>
+     *
      * <code>GOAL_PHASE_RUNNING = 1;</code>
      */
     public static final int GOAL_PHASE_RUNNING_VALUE = 1;
     /**
+     * <pre>
+     * The goal is intentionally stopped and should not advance automatically.
+     * </pre>
+     *
      * <code>GOAL_PHASE_PAUSED = 2;</code>
      */
     public static final int GOAL_PHASE_PAUSED_VALUE = 2;
     /**
+     * <pre>
+     * The agent has produced work that needs an external review decision.
+     * </pre>
+     *
      * <code>GOAL_PHASE_NEEDS_REVIEW = 3;</code>
      */
     public static final int GOAL_PHASE_NEEDS_REVIEW_VALUE = 3;
     /**
+     * <pre>
+     * The objective and success criteria have been satisfied.
+     * </pre>
+     *
      * <code>GOAL_PHASE_SUCCEEDED = 4;</code>
      */
     public static final int GOAL_PHASE_SUCCEEDED_VALUE = 4;
     /**
+     * <pre>
+     * The goal ended unsuccessfully due to an execution or quality failure.
+     * </pre>
+     *
      * <code>GOAL_PHASE_FAILED = 5;</code>
      */
     public static final int GOAL_PHASE_FAILED_VALUE = 5;
     /**
+     * <pre>
+     * The agent cannot make meaningful progress without outside input or a
+     * changed external condition.
+     * </pre>
+     *
      * <code>GOAL_PHASE_BLOCKED = 6;</code>
      */
     public static final int GOAL_PHASE_BLOCKED_VALUE = 6;
     /**
+     * <pre>
+     * A caller explicitly stopped the goal before completion.
+     * </pre>
+     *
      * <code>GOAL_PHASE_CANCELED = 7;</code>
      */
     public static final int GOAL_PHASE_CANCELED_VALUE = 7;
     /**
+     * <pre>
+     * The goal exceeded its configured time or iteration budget.
+     * </pre>
+     *
      * <code>GOAL_PHASE_EXPIRED = 8;</code>
      */
     public static final int GOAL_PHASE_EXPIRED_VALUE = 8;
@@ -4447,11 +4523,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Evidence type, such as artifact, file, message, or object.
+     * </pre>
+     *
      * <code>string kind = 1;</code>
      * @return The kind.
      */
     java.lang.String getKind();
     /**
+     * <pre>
+     * Evidence type, such as artifact, file, message, or object.
+     * </pre>
+     *
      * <code>string kind = 1;</code>
      * @return The bytes for kind.
      */
@@ -4459,11 +4543,19 @@ java.lang.String defaultValue) {
         getKindBytes();
 
     /**
+     * <pre>
+     * Namespace that owns the referenced evidence when it is a Talon resource.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The namespace.
      */
     java.lang.String getNamespace();
     /**
+     * <pre>
+     * Namespace that owns the referenced evidence when it is a Talon resource.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The bytes for namespace.
      */
@@ -4471,11 +4563,19 @@ java.lang.String defaultValue) {
         getNamespaceBytes();
 
     /**
+     * <pre>
+     * Resource name or provider-local identifier for the referenced evidence.
+     * </pre>
+     *
      * <code>string name = 3;</code>
      * @return The name.
      */
     java.lang.String getName();
     /**
+     * <pre>
+     * Resource name or provider-local identifier for the referenced evidence.
+     * </pre>
+     *
      * <code>string name = 3;</code>
      * @return The bytes for name.
      */
@@ -4483,11 +4583,19 @@ java.lang.String defaultValue) {
         getNameBytes();
 
     /**
+     * <pre>
+     * Agent that owns the referenced session-scoped evidence, when applicable.
+     * </pre>
+     *
      * <code>string agent = 4;</code>
      * @return The agent.
      */
     java.lang.String getAgent();
     /**
+     * <pre>
+     * Agent that owns the referenced session-scoped evidence, when applicable.
+     * </pre>
+     *
      * <code>string agent = 4;</code>
      * @return The bytes for agent.
      */
@@ -4495,11 +4603,19 @@ java.lang.String defaultValue) {
         getAgentBytes();
 
     /**
+     * <pre>
+     * Session that owns the referenced session-scoped evidence, when applicable.
+     * </pre>
+     *
      * <code>string session_id = 5;</code>
      * @return The sessionId.
      */
     java.lang.String getSessionId();
     /**
+     * <pre>
+     * Session that owns the referenced session-scoped evidence, when applicable.
+     * </pre>
+     *
      * <code>string session_id = 5;</code>
      * @return The bytes for sessionId.
      */
@@ -4507,11 +4623,19 @@ java.lang.String defaultValue) {
         getSessionIdBytes();
 
     /**
+     * <pre>
+     * Opaque or URI-style handle that can be passed back to tools.
+     * </pre>
+     *
      * <code>string handle = 6;</code>
      * @return The handle.
      */
     java.lang.String getHandle();
     /**
+     * <pre>
+     * Opaque or URI-style handle that can be passed back to tools.
+     * </pre>
+     *
      * <code>string handle = 6;</code>
      * @return The bytes for handle.
      */
@@ -4519,11 +4643,19 @@ java.lang.String defaultValue) {
         getHandleBytes();
 
     /**
+     * <pre>
+     * Object-store key for evidence backed directly by stored bytes.
+     * </pre>
+     *
      * <code>string object_key = 7;</code>
      * @return The objectKey.
      */
     java.lang.String getObjectKey();
     /**
+     * <pre>
+     * Object-store key for evidence backed directly by stored bytes.
+     * </pre>
+     *
      * <code>string object_key = 7;</code>
      * @return The bytes for objectKey.
      */
@@ -4531,11 +4663,19 @@ java.lang.String defaultValue) {
         getObjectKeyBytes();
 
     /**
+     * <pre>
+     * Short human-readable description of why this evidence matters.
+     * </pre>
+     *
      * <code>string summary = 8;</code>
      * @return The summary.
      */
     java.lang.String getSummary();
     /**
+     * <pre>
+     * Short human-readable description of why this evidence matters.
+     * </pre>
+     *
      * <code>string summary = 8;</code>
      * @return The bytes for summary.
      */
@@ -4596,6 +4736,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object kind_ = "";
     /**
+     * <pre>
+     * Evidence type, such as artifact, file, message, or object.
+     * </pre>
+     *
      * <code>string kind = 1;</code>
      * @return The kind.
      */
@@ -4613,6 +4757,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Evidence type, such as artifact, file, message, or object.
+     * </pre>
+     *
      * <code>string kind = 1;</code>
      * @return The bytes for kind.
      */
@@ -4635,6 +4783,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object namespace_ = "";
     /**
+     * <pre>
+     * Namespace that owns the referenced evidence when it is a Talon resource.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The namespace.
      */
@@ -4652,6 +4804,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Namespace that owns the referenced evidence when it is a Talon resource.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The bytes for namespace.
      */
@@ -4674,6 +4830,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object name_ = "";
     /**
+     * <pre>
+     * Resource name or provider-local identifier for the referenced evidence.
+     * </pre>
+     *
      * <code>string name = 3;</code>
      * @return The name.
      */
@@ -4691,6 +4851,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Resource name or provider-local identifier for the referenced evidence.
+     * </pre>
+     *
      * <code>string name = 3;</code>
      * @return The bytes for name.
      */
@@ -4713,6 +4877,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object agent_ = "";
     /**
+     * <pre>
+     * Agent that owns the referenced session-scoped evidence, when applicable.
+     * </pre>
+     *
      * <code>string agent = 4;</code>
      * @return The agent.
      */
@@ -4730,6 +4898,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Agent that owns the referenced session-scoped evidence, when applicable.
+     * </pre>
+     *
      * <code>string agent = 4;</code>
      * @return The bytes for agent.
      */
@@ -4752,6 +4924,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object sessionId_ = "";
     /**
+     * <pre>
+     * Session that owns the referenced session-scoped evidence, when applicable.
+     * </pre>
+     *
      * <code>string session_id = 5;</code>
      * @return The sessionId.
      */
@@ -4769,6 +4945,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Session that owns the referenced session-scoped evidence, when applicable.
+     * </pre>
+     *
      * <code>string session_id = 5;</code>
      * @return The bytes for sessionId.
      */
@@ -4791,6 +4971,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object handle_ = "";
     /**
+     * <pre>
+     * Opaque or URI-style handle that can be passed back to tools.
+     * </pre>
+     *
      * <code>string handle = 6;</code>
      * @return The handle.
      */
@@ -4808,6 +4992,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Opaque or URI-style handle that can be passed back to tools.
+     * </pre>
+     *
      * <code>string handle = 6;</code>
      * @return The bytes for handle.
      */
@@ -4830,6 +5018,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object objectKey_ = "";
     /**
+     * <pre>
+     * Object-store key for evidence backed directly by stored bytes.
+     * </pre>
+     *
      * <code>string object_key = 7;</code>
      * @return The objectKey.
      */
@@ -4847,6 +5039,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Object-store key for evidence backed directly by stored bytes.
+     * </pre>
+     *
      * <code>string object_key = 7;</code>
      * @return The bytes for objectKey.
      */
@@ -4869,6 +5065,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object summary_ = "";
     /**
+     * <pre>
+     * Short human-readable description of why this evidence matters.
+     * </pre>
+     *
      * <code>string summary = 8;</code>
      * @return The summary.
      */
@@ -4886,6 +5086,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Short human-readable description of why this evidence matters.
+     * </pre>
+     *
      * <code>string summary = 8;</code>
      * @return The bytes for summary.
      */
@@ -5368,6 +5572,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object kind_ = "";
       /**
+       * <pre>
+       * Evidence type, such as artifact, file, message, or object.
+       * </pre>
+       *
        * <code>string kind = 1;</code>
        * @return The kind.
        */
@@ -5384,6 +5592,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Evidence type, such as artifact, file, message, or object.
+       * </pre>
+       *
        * <code>string kind = 1;</code>
        * @return The bytes for kind.
        */
@@ -5401,6 +5613,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Evidence type, such as artifact, file, message, or object.
+       * </pre>
+       *
        * <code>string kind = 1;</code>
        * @param value The kind to set.
        * @return This builder for chaining.
@@ -5414,6 +5630,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence type, such as artifact, file, message, or object.
+       * </pre>
+       *
        * <code>string kind = 1;</code>
        * @return This builder for chaining.
        */
@@ -5424,6 +5644,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence type, such as artifact, file, message, or object.
+       * </pre>
+       *
        * <code>string kind = 1;</code>
        * @param value The bytes for kind to set.
        * @return This builder for chaining.
@@ -5440,6 +5664,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object namespace_ = "";
       /**
+       * <pre>
+       * Namespace that owns the referenced evidence when it is a Talon resource.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return The namespace.
        */
@@ -5456,6 +5684,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace that owns the referenced evidence when it is a Talon resource.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return The bytes for namespace.
        */
@@ -5473,6 +5705,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace that owns the referenced evidence when it is a Talon resource.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @param value The namespace to set.
        * @return This builder for chaining.
@@ -5486,6 +5722,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace that owns the referenced evidence when it is a Talon resource.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return This builder for chaining.
        */
@@ -5496,6 +5736,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace that owns the referenced evidence when it is a Talon resource.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @param value The bytes for namespace to set.
        * @return This builder for chaining.
@@ -5512,6 +5756,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object name_ = "";
       /**
+       * <pre>
+       * Resource name or provider-local identifier for the referenced evidence.
+       * </pre>
+       *
        * <code>string name = 3;</code>
        * @return The name.
        */
@@ -5528,6 +5776,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Resource name or provider-local identifier for the referenced evidence.
+       * </pre>
+       *
        * <code>string name = 3;</code>
        * @return The bytes for name.
        */
@@ -5545,6 +5797,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Resource name or provider-local identifier for the referenced evidence.
+       * </pre>
+       *
        * <code>string name = 3;</code>
        * @param value The name to set.
        * @return This builder for chaining.
@@ -5558,6 +5814,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Resource name or provider-local identifier for the referenced evidence.
+       * </pre>
+       *
        * <code>string name = 3;</code>
        * @return This builder for chaining.
        */
@@ -5568,6 +5828,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Resource name or provider-local identifier for the referenced evidence.
+       * </pre>
+       *
        * <code>string name = 3;</code>
        * @param value The bytes for name to set.
        * @return This builder for chaining.
@@ -5584,6 +5848,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object agent_ = "";
       /**
+       * <pre>
+       * Agent that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string agent = 4;</code>
        * @return The agent.
        */
@@ -5600,6 +5868,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string agent = 4;</code>
        * @return The bytes for agent.
        */
@@ -5617,6 +5889,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string agent = 4;</code>
        * @param value The agent to set.
        * @return This builder for chaining.
@@ -5630,6 +5906,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string agent = 4;</code>
        * @return This builder for chaining.
        */
@@ -5640,6 +5920,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string agent = 4;</code>
        * @param value The bytes for agent to set.
        * @return This builder for chaining.
@@ -5656,6 +5940,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object sessionId_ = "";
       /**
+       * <pre>
+       * Session that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string session_id = 5;</code>
        * @return The sessionId.
        */
@@ -5672,6 +5960,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string session_id = 5;</code>
        * @return The bytes for sessionId.
        */
@@ -5689,6 +5981,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string session_id = 5;</code>
        * @param value The sessionId to set.
        * @return This builder for chaining.
@@ -5702,6 +5998,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string session_id = 5;</code>
        * @return This builder for chaining.
        */
@@ -5712,6 +6012,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that owns the referenced session-scoped evidence, when applicable.
+       * </pre>
+       *
        * <code>string session_id = 5;</code>
        * @param value The bytes for sessionId to set.
        * @return This builder for chaining.
@@ -5728,6 +6032,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object handle_ = "";
       /**
+       * <pre>
+       * Opaque or URI-style handle that can be passed back to tools.
+       * </pre>
+       *
        * <code>string handle = 6;</code>
        * @return The handle.
        */
@@ -5744,6 +6052,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Opaque or URI-style handle that can be passed back to tools.
+       * </pre>
+       *
        * <code>string handle = 6;</code>
        * @return The bytes for handle.
        */
@@ -5761,6 +6073,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Opaque or URI-style handle that can be passed back to tools.
+       * </pre>
+       *
        * <code>string handle = 6;</code>
        * @param value The handle to set.
        * @return This builder for chaining.
@@ -5774,6 +6090,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Opaque or URI-style handle that can be passed back to tools.
+       * </pre>
+       *
        * <code>string handle = 6;</code>
        * @return This builder for chaining.
        */
@@ -5784,6 +6104,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Opaque or URI-style handle that can be passed back to tools.
+       * </pre>
+       *
        * <code>string handle = 6;</code>
        * @param value The bytes for handle to set.
        * @return This builder for chaining.
@@ -5800,6 +6124,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object objectKey_ = "";
       /**
+       * <pre>
+       * Object-store key for evidence backed directly by stored bytes.
+       * </pre>
+       *
        * <code>string object_key = 7;</code>
        * @return The objectKey.
        */
@@ -5816,6 +6144,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Object-store key for evidence backed directly by stored bytes.
+       * </pre>
+       *
        * <code>string object_key = 7;</code>
        * @return The bytes for objectKey.
        */
@@ -5833,6 +6165,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Object-store key for evidence backed directly by stored bytes.
+       * </pre>
+       *
        * <code>string object_key = 7;</code>
        * @param value The objectKey to set.
        * @return This builder for chaining.
@@ -5846,6 +6182,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Object-store key for evidence backed directly by stored bytes.
+       * </pre>
+       *
        * <code>string object_key = 7;</code>
        * @return This builder for chaining.
        */
@@ -5856,6 +6196,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Object-store key for evidence backed directly by stored bytes.
+       * </pre>
+       *
        * <code>string object_key = 7;</code>
        * @param value The bytes for objectKey to set.
        * @return This builder for chaining.
@@ -5872,6 +6216,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object summary_ = "";
       /**
+       * <pre>
+       * Short human-readable description of why this evidence matters.
+       * </pre>
+       *
        * <code>string summary = 8;</code>
        * @return The summary.
        */
@@ -5888,6 +6236,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Short human-readable description of why this evidence matters.
+       * </pre>
+       *
        * <code>string summary = 8;</code>
        * @return The bytes for summary.
        */
@@ -5905,6 +6257,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Short human-readable description of why this evidence matters.
+       * </pre>
+       *
        * <code>string summary = 8;</code>
        * @param value The summary to set.
        * @return This builder for chaining.
@@ -5918,6 +6274,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Short human-readable description of why this evidence matters.
+       * </pre>
+       *
        * <code>string summary = 8;</code>
        * @return This builder for chaining.
        */
@@ -5928,6 +6288,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Short human-readable description of why this evidence matters.
+       * </pre>
+       *
        * <code>string summary = 8;</code>
        * @param value The bytes for summary to set.
        * @return This builder for chaining.
@@ -5998,11 +6362,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Stable goal identifier unique under the owning session.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The id.
      */
     java.lang.String getId();
     /**
+     * <pre>
+     * Stable goal identifier unique under the owning session.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The bytes for id.
      */
@@ -6010,11 +6382,19 @@ java.lang.String defaultValue) {
         getIdBytes();
 
     /**
+     * <pre>
+     * Namespace of the session that owns this goal.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The namespace.
      */
     java.lang.String getNamespace();
     /**
+     * <pre>
+     * Namespace of the session that owns this goal.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The bytes for namespace.
      */
@@ -6022,11 +6402,19 @@ java.lang.String defaultValue) {
         getNamespaceBytes();
 
     /**
+     * <pre>
+     * Agent that owns this goal.
+     * </pre>
+     *
      * <code>string agent = 3;</code>
      * @return The agent.
      */
     java.lang.String getAgent();
     /**
+     * <pre>
+     * Agent that owns this goal.
+     * </pre>
+     *
      * <code>string agent = 3;</code>
      * @return The bytes for agent.
      */
@@ -6034,11 +6422,19 @@ java.lang.String defaultValue) {
         getAgentBytes();
 
     /**
+     * <pre>
+     * Session that owns this goal.
+     * </pre>
+     *
      * <code>string session_id = 4;</code>
      * @return The sessionId.
      */
     java.lang.String getSessionId();
     /**
+     * <pre>
+     * Session that owns this goal.
+     * </pre>
+     *
      * <code>string session_id = 4;</code>
      * @return The bytes for sessionId.
      */
@@ -6046,11 +6442,19 @@ java.lang.String defaultValue) {
         getSessionIdBytes();
 
     /**
+     * <pre>
+     * Natural-language objective the agent is trying to satisfy.
+     * </pre>
+     *
      * <code>string objective = 5;</code>
      * @return The objective.
      */
     java.lang.String getObjective();
     /**
+     * <pre>
+     * Natural-language objective the agent is trying to satisfy.
+     * </pre>
+     *
      * <code>string objective = 5;</code>
      * @return The bytes for objective.
      */
@@ -6058,23 +6462,39 @@ java.lang.String defaultValue) {
         getObjectiveBytes();
 
     /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
      * <code>repeated string success_criteria = 6;</code>
      * @return A list containing the successCriteria.
      */
     java.util.List<java.lang.String>
         getSuccessCriteriaList();
     /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
      * <code>repeated string success_criteria = 6;</code>
      * @return The count of successCriteria.
      */
     int getSuccessCriteriaCount();
     /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
      * <code>repeated string success_criteria = 6;</code>
      * @param index The index of the element to return.
      * @return The successCriteria at the given index.
      */
     java.lang.String getSuccessCriteria(int index);
     /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
      * <code>repeated string success_criteria = 6;</code>
      * @param index The index of the value to return.
      * @return The bytes of the successCriteria at the given index.
@@ -6083,22 +6503,38 @@ java.lang.String defaultValue) {
         getSuccessCriteriaBytes(int index);
 
     /**
+     * <pre>
+     * Current lifecycle phase for scheduling and agent-loop decisions.
+     * </pre>
+     *
      * <code>.talon.data.GoalPhase phase = 7;</code>
      * @return The enum numeric value on the wire for phase.
      */
     int getPhaseValue();
     /**
+     * <pre>
+     * Current lifecycle phase for scheduling and agent-loop decisions.
+     * </pre>
+     *
      * <code>.talon.data.GoalPhase phase = 7;</code>
      * @return The phase.
      */
     talon.data.Data.GoalPhase getPhase();
 
     /**
+     * <pre>
+     * Rolling summary of completed work, current state, and next useful action.
+     * </pre>
+     *
      * <code>string progress_summary = 8;</code>
      * @return The progressSummary.
      */
     java.lang.String getProgressSummary();
     /**
+     * <pre>
+     * Rolling summary of completed work, current state, and next useful action.
+     * </pre>
+     *
      * <code>string progress_summary = 8;</code>
      * @return The bytes for progressSummary.
      */
@@ -6106,65 +6542,113 @@ java.lang.String defaultValue) {
         getProgressSummaryBytes();
 
     /**
+     * <pre>
+     * Number of completed agent-loop iterations for this goal.
+     * </pre>
+     *
      * <code>int32 iteration = 9;</code>
      * @return The iteration.
      */
     int getIteration();
 
     /**
+     * <pre>
+     * Maximum iterations allowed before the runtime should stop or expire.
+     * </pre>
+     *
      * <code>int32 max_iterations = 10;</code>
      * @return The maxIterations.
      */
     int getMaxIterations();
 
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     java.util.List<talon.data.Data.GoalEvidenceRef>
         getEvidenceRefsList();
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     talon.data.Data.GoalEvidenceRef getEvidenceRefs(int index);
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     int getEvidenceRefsCount();
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     java.util.List<? extends talon.data.Data.GoalEvidenceRefOrBuilder>
         getEvidenceRefsOrBuilderList();
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     talon.data.Data.GoalEvidenceRefOrBuilder getEvidenceRefsOrBuilder(
         int index);
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal was created.
+     * </pre>
+     *
      * <code>int64 created_at = 12;</code>
      * @return The createdAt.
      */
     long getCreatedAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal was last changed.
+     * </pre>
+     *
      * <code>int64 updated_at = 13;</code>
      * @return The updatedAt.
      */
     long getUpdatedAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal reached a terminal phase.
+     * </pre>
+     *
      * <code>int64 completed_at = 14;</code>
      * @return The completedAt.
      */
     long getCompletedAt();
 
     /**
+     * <pre>
+     * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+     * </pre>
+     *
      * <code>string blocked_reason = 15;</code>
      * @return The blockedReason.
      */
     java.lang.String getBlockedReason();
     /**
+     * <pre>
+     * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+     * </pre>
+     *
      * <code>string blocked_reason = 15;</code>
      * @return The bytes for blockedReason.
      */
@@ -6172,10 +6656,18 @@ java.lang.String defaultValue) {
         getBlockedReasonBytes();
 
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     int getLabelsCount();
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     boolean containsLabels(
@@ -6187,11 +6679,19 @@ java.lang.String defaultValue) {
     java.util.Map<java.lang.String, java.lang.String>
     getLabels();
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getLabelsMap();
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     /* nullable */
@@ -6200,16 +6700,28 @@ java.lang.String getLabelsOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     java.lang.String getLabelsOrThrow(
         java.lang.String key);
 
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     int getMetadataCount();
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     boolean containsMetadata(
@@ -6221,11 +6733,19 @@ java.lang.String defaultValue);
     java.util.Map<java.lang.String, java.lang.String>
     getMetadata();
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getMetadataMap();
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     /* nullable */
@@ -6234,6 +6754,10 @@ java.lang.String getMetadataOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     java.lang.String getMetadataOrThrow(
@@ -6310,6 +6834,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object id_ = "";
     /**
+     * <pre>
+     * Stable goal identifier unique under the owning session.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The id.
      */
@@ -6327,6 +6855,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Stable goal identifier unique under the owning session.
+     * </pre>
+     *
      * <code>string id = 1;</code>
      * @return The bytes for id.
      */
@@ -6349,6 +6881,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object namespace_ = "";
     /**
+     * <pre>
+     * Namespace of the session that owns this goal.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The namespace.
      */
@@ -6366,6 +6902,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Namespace of the session that owns this goal.
+     * </pre>
+     *
      * <code>string namespace = 2;</code>
      * @return The bytes for namespace.
      */
@@ -6388,6 +6928,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object agent_ = "";
     /**
+     * <pre>
+     * Agent that owns this goal.
+     * </pre>
+     *
      * <code>string agent = 3;</code>
      * @return The agent.
      */
@@ -6405,6 +6949,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Agent that owns this goal.
+     * </pre>
+     *
      * <code>string agent = 3;</code>
      * @return The bytes for agent.
      */
@@ -6427,6 +6975,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object sessionId_ = "";
     /**
+     * <pre>
+     * Session that owns this goal.
+     * </pre>
+     *
      * <code>string session_id = 4;</code>
      * @return The sessionId.
      */
@@ -6444,6 +6996,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Session that owns this goal.
+     * </pre>
+     *
      * <code>string session_id = 4;</code>
      * @return The bytes for sessionId.
      */
@@ -6466,6 +7022,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object objective_ = "";
     /**
+     * <pre>
+     * Natural-language objective the agent is trying to satisfy.
+     * </pre>
+     *
      * <code>string objective = 5;</code>
      * @return The objective.
      */
@@ -6483,6 +7043,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Natural-language objective the agent is trying to satisfy.
+     * </pre>
+     *
      * <code>string objective = 5;</code>
      * @return The bytes for objective.
      */
@@ -6506,6 +7070,10 @@ java.lang.String defaultValue);
     private com.google.protobuf.LazyStringArrayList successCriteria_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
     /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
      * <code>repeated string success_criteria = 6;</code>
      * @return A list containing the successCriteria.
      */
@@ -6514,6 +7082,10 @@ java.lang.String defaultValue);
       return successCriteria_;
     }
     /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
      * <code>repeated string success_criteria = 6;</code>
      * @return The count of successCriteria.
      */
@@ -6521,6 +7093,10 @@ java.lang.String defaultValue);
       return successCriteria_.size();
     }
     /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
      * <code>repeated string success_criteria = 6;</code>
      * @param index The index of the element to return.
      * @return The successCriteria at the given index.
@@ -6529,6 +7105,10 @@ java.lang.String defaultValue);
       return successCriteria_.get(index);
     }
     /**
+     * <pre>
+     * Concrete completion checks the agent should use before marking success.
+     * </pre>
+     *
      * <code>repeated string success_criteria = 6;</code>
      * @param index The index of the value to return.
      * @return The bytes of the successCriteria at the given index.
@@ -6541,6 +7121,10 @@ java.lang.String defaultValue);
     public static final int PHASE_FIELD_NUMBER = 7;
     private int phase_ = 0;
     /**
+     * <pre>
+     * Current lifecycle phase for scheduling and agent-loop decisions.
+     * </pre>
+     *
      * <code>.talon.data.GoalPhase phase = 7;</code>
      * @return The enum numeric value on the wire for phase.
      */
@@ -6548,6 +7132,10 @@ java.lang.String defaultValue);
       return phase_;
     }
     /**
+     * <pre>
+     * Current lifecycle phase for scheduling and agent-loop decisions.
+     * </pre>
+     *
      * <code>.talon.data.GoalPhase phase = 7;</code>
      * @return The phase.
      */
@@ -6560,6 +7148,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object progressSummary_ = "";
     /**
+     * <pre>
+     * Rolling summary of completed work, current state, and next useful action.
+     * </pre>
+     *
      * <code>string progress_summary = 8;</code>
      * @return The progressSummary.
      */
@@ -6577,6 +7169,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Rolling summary of completed work, current state, and next useful action.
+     * </pre>
+     *
      * <code>string progress_summary = 8;</code>
      * @return The bytes for progressSummary.
      */
@@ -6598,6 +7194,10 @@ java.lang.String defaultValue);
     public static final int ITERATION_FIELD_NUMBER = 9;
     private int iteration_ = 0;
     /**
+     * <pre>
+     * Number of completed agent-loop iterations for this goal.
+     * </pre>
+     *
      * <code>int32 iteration = 9;</code>
      * @return The iteration.
      */
@@ -6609,6 +7209,10 @@ java.lang.String defaultValue);
     public static final int MAX_ITERATIONS_FIELD_NUMBER = 10;
     private int maxIterations_ = 0;
     /**
+     * <pre>
+     * Maximum iterations allowed before the runtime should stop or expire.
+     * </pre>
+     *
      * <code>int32 max_iterations = 10;</code>
      * @return The maxIterations.
      */
@@ -6621,6 +7225,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private java.util.List<talon.data.Data.GoalEvidenceRef> evidenceRefs_;
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     @java.lang.Override
@@ -6628,6 +7236,10 @@ java.lang.String defaultValue);
       return evidenceRefs_;
     }
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     @java.lang.Override
@@ -6636,6 +7248,10 @@ java.lang.String defaultValue);
       return evidenceRefs_;
     }
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     @java.lang.Override
@@ -6643,6 +7259,10 @@ java.lang.String defaultValue);
       return evidenceRefs_.size();
     }
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     @java.lang.Override
@@ -6650,6 +7270,10 @@ java.lang.String defaultValue);
       return evidenceRefs_.get(index);
     }
     /**
+     * <pre>
+     * Evidence accumulated while pursuing or evaluating the goal.
+     * </pre>
+     *
      * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
      */
     @java.lang.Override
@@ -6661,6 +7285,10 @@ java.lang.String defaultValue);
     public static final int CREATED_AT_FIELD_NUMBER = 12;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal was created.
+     * </pre>
+     *
      * <code>int64 created_at = 12;</code>
      * @return The createdAt.
      */
@@ -6672,6 +7300,10 @@ java.lang.String defaultValue);
     public static final int UPDATED_AT_FIELD_NUMBER = 13;
     private long updatedAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal was last changed.
+     * </pre>
+     *
      * <code>int64 updated_at = 13;</code>
      * @return The updatedAt.
      */
@@ -6683,6 +7315,10 @@ java.lang.String defaultValue);
     public static final int COMPLETED_AT_FIELD_NUMBER = 14;
     private long completedAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds when the goal reached a terminal phase.
+     * </pre>
+     *
      * <code>int64 completed_at = 14;</code>
      * @return The completedAt.
      */
@@ -6695,6 +7331,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object blockedReason_ = "";
     /**
+     * <pre>
+     * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+     * </pre>
+     *
      * <code>string blocked_reason = 15;</code>
      * @return The blockedReason.
      */
@@ -6712,6 +7352,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+     * </pre>
+     *
      * <code>string blocked_reason = 15;</code>
      * @return The bytes for blockedReason.
      */
@@ -6757,6 +7401,10 @@ java.lang.String defaultValue);
       return internalGetLabels().getMap().size();
     }
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     @java.lang.Override
@@ -6774,6 +7422,10 @@ java.lang.String defaultValue);
       return getLabelsMap();
     }
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     @java.lang.Override
@@ -6781,6 +7433,10 @@ java.lang.String defaultValue);
       return internalGetLabels().getMap();
     }
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     @java.lang.Override
@@ -6795,6 +7451,10 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Query labels for grouping goals without changing runtime semantics.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; labels = 16;</code>
      */
     @java.lang.Override
@@ -6836,6 +7496,10 @@ java.lang.String defaultValue) {
       return internalGetMetadata().getMap().size();
     }
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     @java.lang.Override
@@ -6853,6 +7517,10 @@ java.lang.String defaultValue) {
       return getMetadataMap();
     }
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     @java.lang.Override
@@ -6860,6 +7528,10 @@ java.lang.String defaultValue) {
       return internalGetMetadata().getMap();
     }
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     @java.lang.Override
@@ -6874,6 +7546,10 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Caller-defined metadata that does not justify a first-class field.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; metadata = 17;</code>
      */
     @java.lang.Override
@@ -7687,6 +8363,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object id_ = "";
       /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return The id.
        */
@@ -7703,6 +8383,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return The bytes for id.
        */
@@ -7720,6 +8404,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @param value The id to set.
        * @return This builder for chaining.
@@ -7733,6 +8421,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @return This builder for chaining.
        */
@@ -7743,6 +8435,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Stable goal identifier unique under the owning session.
+       * </pre>
+       *
        * <code>string id = 1;</code>
        * @param value The bytes for id to set.
        * @return This builder for chaining.
@@ -7759,6 +8455,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object namespace_ = "";
       /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return The namespace.
        */
@@ -7775,6 +8475,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return The bytes for namespace.
        */
@@ -7792,6 +8496,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @param value The namespace to set.
        * @return This builder for chaining.
@@ -7805,6 +8513,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @return This builder for chaining.
        */
@@ -7815,6 +8527,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace of the session that owns this goal.
+       * </pre>
+       *
        * <code>string namespace = 2;</code>
        * @param value The bytes for namespace to set.
        * @return This builder for chaining.
@@ -7831,6 +8547,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object agent_ = "";
       /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
        * <code>string agent = 3;</code>
        * @return The agent.
        */
@@ -7847,6 +8567,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
        * <code>string agent = 3;</code>
        * @return The bytes for agent.
        */
@@ -7864,6 +8588,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
        * <code>string agent = 3;</code>
        * @param value The agent to set.
        * @return This builder for chaining.
@@ -7877,6 +8605,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
        * <code>string agent = 3;</code>
        * @return This builder for chaining.
        */
@@ -7887,6 +8619,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent that owns this goal.
+       * </pre>
+       *
        * <code>string agent = 3;</code>
        * @param value The bytes for agent to set.
        * @return This builder for chaining.
@@ -7903,6 +8639,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object sessionId_ = "";
       /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
        * <code>string session_id = 4;</code>
        * @return The sessionId.
        */
@@ -7919,6 +8659,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
        * <code>string session_id = 4;</code>
        * @return The bytes for sessionId.
        */
@@ -7936,6 +8680,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
        * <code>string session_id = 4;</code>
        * @param value The sessionId to set.
        * @return This builder for chaining.
@@ -7949,6 +8697,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
        * <code>string session_id = 4;</code>
        * @return This builder for chaining.
        */
@@ -7959,6 +8711,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that owns this goal.
+       * </pre>
+       *
        * <code>string session_id = 4;</code>
        * @param value The bytes for sessionId to set.
        * @return This builder for chaining.
@@ -7975,6 +8731,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object objective_ = "";
       /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
        * <code>string objective = 5;</code>
        * @return The objective.
        */
@@ -7991,6 +8751,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
        * <code>string objective = 5;</code>
        * @return The bytes for objective.
        */
@@ -8008,6 +8772,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
        * <code>string objective = 5;</code>
        * @param value The objective to set.
        * @return This builder for chaining.
@@ -8021,6 +8789,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
        * <code>string objective = 5;</code>
        * @return This builder for chaining.
        */
@@ -8031,6 +8803,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Natural-language objective the agent is trying to satisfy.
+       * </pre>
+       *
        * <code>string objective = 5;</code>
        * @param value The bytes for objective to set.
        * @return This builder for chaining.
@@ -8054,6 +8830,10 @@ java.lang.String defaultValue) {
         bitField0_ |= 0x00000020;
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @return A list containing the successCriteria.
        */
@@ -8063,6 +8843,10 @@ java.lang.String defaultValue) {
         return successCriteria_;
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @return The count of successCriteria.
        */
@@ -8070,6 +8854,10 @@ java.lang.String defaultValue) {
         return successCriteria_.size();
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @param index The index of the element to return.
        * @return The successCriteria at the given index.
@@ -8078,6 +8866,10 @@ java.lang.String defaultValue) {
         return successCriteria_.get(index);
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @param index The index of the value to return.
        * @return The bytes of the successCriteria at the given index.
@@ -8087,6 +8879,10 @@ java.lang.String defaultValue) {
         return successCriteria_.getByteString(index);
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @param index The index to set the value at.
        * @param value The successCriteria to set.
@@ -8102,6 +8898,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @param value The successCriteria to add.
        * @return This builder for chaining.
@@ -8116,6 +8916,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @param values The successCriteria to add.
        * @return This builder for chaining.
@@ -8130,6 +8934,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @return This builder for chaining.
        */
@@ -8141,6 +8949,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Concrete completion checks the agent should use before marking success.
+       * </pre>
+       *
        * <code>repeated string success_criteria = 6;</code>
        * @param value The bytes of the successCriteria to add.
        * @return This builder for chaining.
@@ -8158,6 +8970,10 @@ java.lang.String defaultValue) {
 
       private int phase_ = 0;
       /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 7;</code>
        * @return The enum numeric value on the wire for phase.
        */
@@ -8165,6 +8981,10 @@ java.lang.String defaultValue) {
         return phase_;
       }
       /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 7;</code>
        * @param value The enum numeric value on the wire for phase to set.
        * @throws IllegalArgumentException if UNRECOGNIZED is provided.
@@ -8177,6 +8997,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 7;</code>
        * @return The phase.
        */
@@ -8186,6 +9010,10 @@ java.lang.String defaultValue) {
         return result == null ? talon.data.Data.GoalPhase.UNRECOGNIZED : result;
       }
       /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 7;</code>
        * @param value The phase to set.
        * @return This builder for chaining.
@@ -8198,6 +9026,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Current lifecycle phase for scheduling and agent-loop decisions.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 7;</code>
        * @return This builder for chaining.
        */
@@ -8210,6 +9042,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object progressSummary_ = "";
       /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
        * <code>string progress_summary = 8;</code>
        * @return The progressSummary.
        */
@@ -8226,6 +9062,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
        * <code>string progress_summary = 8;</code>
        * @return The bytes for progressSummary.
        */
@@ -8243,6 +9083,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
        * <code>string progress_summary = 8;</code>
        * @param value The progressSummary to set.
        * @return This builder for chaining.
@@ -8256,6 +9100,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
        * <code>string progress_summary = 8;</code>
        * @return This builder for chaining.
        */
@@ -8266,6 +9114,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Rolling summary of completed work, current state, and next useful action.
+       * </pre>
+       *
        * <code>string progress_summary = 8;</code>
        * @param value The bytes for progressSummary to set.
        * @return This builder for chaining.
@@ -8282,6 +9134,10 @@ java.lang.String defaultValue) {
 
       private int iteration_ ;
       /**
+       * <pre>
+       * Number of completed agent-loop iterations for this goal.
+       * </pre>
+       *
        * <code>int32 iteration = 9;</code>
        * @return The iteration.
        */
@@ -8290,6 +9146,10 @@ java.lang.String defaultValue) {
         return iteration_;
       }
       /**
+       * <pre>
+       * Number of completed agent-loop iterations for this goal.
+       * </pre>
+       *
        * <code>int32 iteration = 9;</code>
        * @param value The iteration to set.
        * @return This builder for chaining.
@@ -8302,6 +9162,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Number of completed agent-loop iterations for this goal.
+       * </pre>
+       *
        * <code>int32 iteration = 9;</code>
        * @return This builder for chaining.
        */
@@ -8314,6 +9178,10 @@ java.lang.String defaultValue) {
 
       private int maxIterations_ ;
       /**
+       * <pre>
+       * Maximum iterations allowed before the runtime should stop or expire.
+       * </pre>
+       *
        * <code>int32 max_iterations = 10;</code>
        * @return The maxIterations.
        */
@@ -8322,6 +9190,10 @@ java.lang.String defaultValue) {
         return maxIterations_;
       }
       /**
+       * <pre>
+       * Maximum iterations allowed before the runtime should stop or expire.
+       * </pre>
+       *
        * <code>int32 max_iterations = 10;</code>
        * @param value The maxIterations to set.
        * @return This builder for chaining.
@@ -8334,6 +9206,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Maximum iterations allowed before the runtime should stop or expire.
+       * </pre>
+       *
        * <code>int32 max_iterations = 10;</code>
        * @return This builder for chaining.
        */
@@ -8357,6 +9233,10 @@ java.lang.String defaultValue) {
           talon.data.Data.GoalEvidenceRef, talon.data.Data.GoalEvidenceRef.Builder, talon.data.Data.GoalEvidenceRefOrBuilder> evidenceRefsBuilder_;
 
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public java.util.List<talon.data.Data.GoalEvidenceRef> getEvidenceRefsList() {
@@ -8367,6 +9247,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public int getEvidenceRefsCount() {
@@ -8377,6 +9261,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public talon.data.Data.GoalEvidenceRef getEvidenceRefs(int index) {
@@ -8387,6 +9275,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder setEvidenceRefs(
@@ -8404,6 +9296,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder setEvidenceRefs(
@@ -8418,6 +9314,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder addEvidenceRefs(talon.data.Data.GoalEvidenceRef value) {
@@ -8434,6 +9334,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder addEvidenceRefs(
@@ -8451,6 +9355,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder addEvidenceRefs(
@@ -8465,6 +9373,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder addEvidenceRefs(
@@ -8479,6 +9391,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder addAllEvidenceRefs(
@@ -8494,6 +9410,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder clearEvidenceRefs() {
@@ -8507,6 +9427,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public Builder removeEvidenceRefs(int index) {
@@ -8520,6 +9444,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public talon.data.Data.GoalEvidenceRef.Builder getEvidenceRefsBuilder(
@@ -8527,6 +9455,10 @@ java.lang.String defaultValue) {
         return internalGetEvidenceRefsFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public talon.data.Data.GoalEvidenceRefOrBuilder getEvidenceRefsOrBuilder(
@@ -8537,6 +9469,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public java.util.List<? extends talon.data.Data.GoalEvidenceRefOrBuilder>
@@ -8548,6 +9484,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public talon.data.Data.GoalEvidenceRef.Builder addEvidenceRefsBuilder() {
@@ -8555,6 +9495,10 @@ java.lang.String defaultValue) {
             talon.data.Data.GoalEvidenceRef.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public talon.data.Data.GoalEvidenceRef.Builder addEvidenceRefsBuilder(
@@ -8563,6 +9507,10 @@ java.lang.String defaultValue) {
             index, talon.data.Data.GoalEvidenceRef.getDefaultInstance());
       }
       /**
+       * <pre>
+       * Evidence accumulated while pursuing or evaluating the goal.
+       * </pre>
+       *
        * <code>repeated .talon.data.GoalEvidenceRef evidence_refs = 11;</code>
        */
       public java.util.List<talon.data.Data.GoalEvidenceRef.Builder>
@@ -8586,6 +9534,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was created.
+       * </pre>
+       *
        * <code>int64 created_at = 12;</code>
        * @return The createdAt.
        */
@@ -8594,6 +9546,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was created.
+       * </pre>
+       *
        * <code>int64 created_at = 12;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -8606,6 +9562,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was created.
+       * </pre>
+       *
        * <code>int64 created_at = 12;</code>
        * @return This builder for chaining.
        */
@@ -8618,6 +9578,10 @@ java.lang.String defaultValue) {
 
       private long updatedAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was last changed.
+       * </pre>
+       *
        * <code>int64 updated_at = 13;</code>
        * @return The updatedAt.
        */
@@ -8626,6 +9590,10 @@ java.lang.String defaultValue) {
         return updatedAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was last changed.
+       * </pre>
+       *
        * <code>int64 updated_at = 13;</code>
        * @param value The updatedAt to set.
        * @return This builder for chaining.
@@ -8638,6 +9606,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal was last changed.
+       * </pre>
+       *
        * <code>int64 updated_at = 13;</code>
        * @return This builder for chaining.
        */
@@ -8650,6 +9622,10 @@ java.lang.String defaultValue) {
 
       private long completedAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal reached a terminal phase.
+       * </pre>
+       *
        * <code>int64 completed_at = 14;</code>
        * @return The completedAt.
        */
@@ -8658,6 +9634,10 @@ java.lang.String defaultValue) {
         return completedAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal reached a terminal phase.
+       * </pre>
+       *
        * <code>int64 completed_at = 14;</code>
        * @param value The completedAt to set.
        * @return This builder for chaining.
@@ -8670,6 +9650,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds when the goal reached a terminal phase.
+       * </pre>
+       *
        * <code>int64 completed_at = 14;</code>
        * @return This builder for chaining.
        */
@@ -8682,6 +9666,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object blockedReason_ = "";
       /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
        * <code>string blocked_reason = 15;</code>
        * @return The blockedReason.
        */
@@ -8698,6 +9686,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
        * <code>string blocked_reason = 15;</code>
        * @return The bytes for blockedReason.
        */
@@ -8715,6 +9707,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
        * <code>string blocked_reason = 15;</code>
        * @param value The blockedReason to set.
        * @return This builder for chaining.
@@ -8728,6 +9724,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
        * <code>string blocked_reason = 15;</code>
        * @return This builder for chaining.
        */
@@ -8738,6 +9738,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+       * </pre>
+       *
        * <code>string blocked_reason = 15;</code>
        * @param value The bytes for blockedReason to set.
        * @return This builder for chaining.
@@ -8779,6 +9783,10 @@ java.lang.String defaultValue) {
         return internalGetLabels().getMap().size();
       }
       /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 16;</code>
        */
       @java.lang.Override
@@ -8796,6 +9804,10 @@ java.lang.String defaultValue) {
         return getLabelsMap();
       }
       /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 16;</code>
        */
       @java.lang.Override
@@ -8803,6 +9815,10 @@ java.lang.String defaultValue) {
         return internalGetLabels().getMap();
       }
       /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 16;</code>
        */
       @java.lang.Override
@@ -8817,6 +9833,10 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 16;</code>
        */
       @java.lang.Override
@@ -8837,6 +9857,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 16;</code>
        */
       public Builder removeLabels(
@@ -8856,6 +9880,10 @@ java.lang.String defaultValue) {
         return internalGetMutableLabels().getMutableMap();
       }
       /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 16;</code>
        */
       public Builder putLabels(
@@ -8869,6 +9897,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Query labels for grouping goals without changing runtime semantics.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; labels = 16;</code>
        */
       public Builder putAllLabels(
@@ -8906,6 +9938,10 @@ java.lang.String defaultValue) {
         return internalGetMetadata().getMap().size();
       }
       /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 17;</code>
        */
       @java.lang.Override
@@ -8923,6 +9959,10 @@ java.lang.String defaultValue) {
         return getMetadataMap();
       }
       /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 17;</code>
        */
       @java.lang.Override
@@ -8930,6 +9970,10 @@ java.lang.String defaultValue) {
         return internalGetMetadata().getMap();
       }
       /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 17;</code>
        */
       @java.lang.Override
@@ -8944,6 +9988,10 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 17;</code>
        */
       @java.lang.Override
@@ -8964,6 +10012,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 17;</code>
        */
       public Builder removeMetadata(
@@ -8983,6 +10035,10 @@ java.lang.String defaultValue) {
         return internalGetMutableMetadata().getMutableMap();
       }
       /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 17;</code>
        */
       public Builder putMetadata(
@@ -8996,6 +10052,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Caller-defined metadata that does not justify a first-class field.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; metadata = 17;</code>
        */
       public Builder putAllMetadata(
@@ -9062,11 +10122,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Namespace of the indexed goal.
+     * </pre>
+     *
      * <code>string namespace = 1;</code>
      * @return The namespace.
      */
     java.lang.String getNamespace();
     /**
+     * <pre>
+     * Namespace of the indexed goal.
+     * </pre>
+     *
      * <code>string namespace = 1;</code>
      * @return The bytes for namespace.
      */
@@ -9074,11 +10142,19 @@ java.lang.String defaultValue) {
         getNamespaceBytes();
 
     /**
+     * <pre>
+     * Agent that owns the indexed goal.
+     * </pre>
+     *
      * <code>string agent = 2;</code>
      * @return The agent.
      */
     java.lang.String getAgent();
     /**
+     * <pre>
+     * Agent that owns the indexed goal.
+     * </pre>
+     *
      * <code>string agent = 2;</code>
      * @return The bytes for agent.
      */
@@ -9086,11 +10162,19 @@ java.lang.String defaultValue) {
         getAgentBytes();
 
     /**
+     * <pre>
+     * Session that owns the indexed goal.
+     * </pre>
+     *
      * <code>string session_id = 3;</code>
      * @return The sessionId.
      */
     java.lang.String getSessionId();
     /**
+     * <pre>
+     * Session that owns the indexed goal.
+     * </pre>
+     *
      * <code>string session_id = 3;</code>
      * @return The bytes for sessionId.
      */
@@ -9098,11 +10182,19 @@ java.lang.String defaultValue) {
         getSessionIdBytes();
 
     /**
+     * <pre>
+     * Goal identifier under the owning session.
+     * </pre>
+     *
      * <code>string goal_id = 4;</code>
      * @return The goalId.
      */
     java.lang.String getGoalId();
     /**
+     * <pre>
+     * Goal identifier under the owning session.
+     * </pre>
+     *
      * <code>string goal_id = 4;</code>
      * @return The bytes for goalId.
      */
@@ -9110,22 +10202,38 @@ java.lang.String defaultValue) {
         getGoalIdBytes();
 
     /**
+     * <pre>
+     * Current indexed phase.
+     * </pre>
+     *
      * <code>.talon.data.GoalPhase phase = 5;</code>
      * @return The enum numeric value on the wire for phase.
      */
     int getPhaseValue();
     /**
+     * <pre>
+     * Current indexed phase.
+     * </pre>
+     *
      * <code>.talon.data.GoalPhase phase = 5;</code>
      * @return The phase.
      */
     talon.data.Data.GoalPhase getPhase();
 
     /**
+     * <pre>
+     * Coarse status bucket used for active/history listings.
+     * </pre>
+     *
      * <code>string status_group = 6;</code>
      * @return The statusGroup.
      */
     java.lang.String getStatusGroup();
     /**
+     * <pre>
+     * Coarse status bucket used for active/history listings.
+     * </pre>
+     *
      * <code>string status_group = 6;</code>
      * @return The bytes for statusGroup.
      */
@@ -9133,6 +10241,10 @@ java.lang.String defaultValue) {
         getStatusGroupBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds used for recency ordering.
+     * </pre>
+     *
      * <code>int64 updated_at = 7;</code>
      * @return The updatedAt.
      */
@@ -9190,6 +10302,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object namespace_ = "";
     /**
+     * <pre>
+     * Namespace of the indexed goal.
+     * </pre>
+     *
      * <code>string namespace = 1;</code>
      * @return The namespace.
      */
@@ -9207,6 +10323,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Namespace of the indexed goal.
+     * </pre>
+     *
      * <code>string namespace = 1;</code>
      * @return The bytes for namespace.
      */
@@ -9229,6 +10349,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object agent_ = "";
     /**
+     * <pre>
+     * Agent that owns the indexed goal.
+     * </pre>
+     *
      * <code>string agent = 2;</code>
      * @return The agent.
      */
@@ -9246,6 +10370,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Agent that owns the indexed goal.
+     * </pre>
+     *
      * <code>string agent = 2;</code>
      * @return The bytes for agent.
      */
@@ -9268,6 +10396,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object sessionId_ = "";
     /**
+     * <pre>
+     * Session that owns the indexed goal.
+     * </pre>
+     *
      * <code>string session_id = 3;</code>
      * @return The sessionId.
      */
@@ -9285,6 +10417,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Session that owns the indexed goal.
+     * </pre>
+     *
      * <code>string session_id = 3;</code>
      * @return The bytes for sessionId.
      */
@@ -9307,6 +10443,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object goalId_ = "";
     /**
+     * <pre>
+     * Goal identifier under the owning session.
+     * </pre>
+     *
      * <code>string goal_id = 4;</code>
      * @return The goalId.
      */
@@ -9324,6 +10464,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Goal identifier under the owning session.
+     * </pre>
+     *
      * <code>string goal_id = 4;</code>
      * @return The bytes for goalId.
      */
@@ -9345,6 +10489,10 @@ java.lang.String defaultValue) {
     public static final int PHASE_FIELD_NUMBER = 5;
     private int phase_ = 0;
     /**
+     * <pre>
+     * Current indexed phase.
+     * </pre>
+     *
      * <code>.talon.data.GoalPhase phase = 5;</code>
      * @return The enum numeric value on the wire for phase.
      */
@@ -9352,6 +10500,10 @@ java.lang.String defaultValue) {
       return phase_;
     }
     /**
+     * <pre>
+     * Current indexed phase.
+     * </pre>
+     *
      * <code>.talon.data.GoalPhase phase = 5;</code>
      * @return The phase.
      */
@@ -9364,6 +10516,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object statusGroup_ = "";
     /**
+     * <pre>
+     * Coarse status bucket used for active/history listings.
+     * </pre>
+     *
      * <code>string status_group = 6;</code>
      * @return The statusGroup.
      */
@@ -9381,6 +10537,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Coarse status bucket used for active/history listings.
+     * </pre>
+     *
      * <code>string status_group = 6;</code>
      * @return The bytes for statusGroup.
      */
@@ -9402,6 +10562,10 @@ java.lang.String defaultValue) {
     public static final int UPDATED_AT_FIELD_NUMBER = 7;
     private long updatedAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds used for recency ordering.
+     * </pre>
+     *
      * <code>int64 updated_at = 7;</code>
      * @return The updatedAt.
      */
@@ -9848,6 +11012,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object namespace_ = "";
       /**
+       * <pre>
+       * Namespace of the indexed goal.
+       * </pre>
+       *
        * <code>string namespace = 1;</code>
        * @return The namespace.
        */
@@ -9864,6 +11032,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace of the indexed goal.
+       * </pre>
+       *
        * <code>string namespace = 1;</code>
        * @return The bytes for namespace.
        */
@@ -9881,6 +11053,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Namespace of the indexed goal.
+       * </pre>
+       *
        * <code>string namespace = 1;</code>
        * @param value The namespace to set.
        * @return This builder for chaining.
@@ -9894,6 +11070,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace of the indexed goal.
+       * </pre>
+       *
        * <code>string namespace = 1;</code>
        * @return This builder for chaining.
        */
@@ -9904,6 +11084,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Namespace of the indexed goal.
+       * </pre>
+       *
        * <code>string namespace = 1;</code>
        * @param value The bytes for namespace to set.
        * @return This builder for chaining.
@@ -9920,6 +11104,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object agent_ = "";
       /**
+       * <pre>
+       * Agent that owns the indexed goal.
+       * </pre>
+       *
        * <code>string agent = 2;</code>
        * @return The agent.
        */
@@ -9936,6 +11124,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent that owns the indexed goal.
+       * </pre>
+       *
        * <code>string agent = 2;</code>
        * @return The bytes for agent.
        */
@@ -9953,6 +11145,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Agent that owns the indexed goal.
+       * </pre>
+       *
        * <code>string agent = 2;</code>
        * @param value The agent to set.
        * @return This builder for chaining.
@@ -9966,6 +11162,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent that owns the indexed goal.
+       * </pre>
+       *
        * <code>string agent = 2;</code>
        * @return This builder for chaining.
        */
@@ -9976,6 +11176,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Agent that owns the indexed goal.
+       * </pre>
+       *
        * <code>string agent = 2;</code>
        * @param value The bytes for agent to set.
        * @return This builder for chaining.
@@ -9992,6 +11196,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object sessionId_ = "";
       /**
+       * <pre>
+       * Session that owns the indexed goal.
+       * </pre>
+       *
        * <code>string session_id = 3;</code>
        * @return The sessionId.
        */
@@ -10008,6 +11216,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that owns the indexed goal.
+       * </pre>
+       *
        * <code>string session_id = 3;</code>
        * @return The bytes for sessionId.
        */
@@ -10025,6 +11237,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Session that owns the indexed goal.
+       * </pre>
+       *
        * <code>string session_id = 3;</code>
        * @param value The sessionId to set.
        * @return This builder for chaining.
@@ -10038,6 +11254,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that owns the indexed goal.
+       * </pre>
+       *
        * <code>string session_id = 3;</code>
        * @return This builder for chaining.
        */
@@ -10048,6 +11268,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Session that owns the indexed goal.
+       * </pre>
+       *
        * <code>string session_id = 3;</code>
        * @param value The bytes for sessionId to set.
        * @return This builder for chaining.
@@ -10064,6 +11288,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object goalId_ = "";
       /**
+       * <pre>
+       * Goal identifier under the owning session.
+       * </pre>
+       *
        * <code>string goal_id = 4;</code>
        * @return The goalId.
        */
@@ -10080,6 +11308,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Goal identifier under the owning session.
+       * </pre>
+       *
        * <code>string goal_id = 4;</code>
        * @return The bytes for goalId.
        */
@@ -10097,6 +11329,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Goal identifier under the owning session.
+       * </pre>
+       *
        * <code>string goal_id = 4;</code>
        * @param value The goalId to set.
        * @return This builder for chaining.
@@ -10110,6 +11346,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Goal identifier under the owning session.
+       * </pre>
+       *
        * <code>string goal_id = 4;</code>
        * @return This builder for chaining.
        */
@@ -10120,6 +11360,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Goal identifier under the owning session.
+       * </pre>
+       *
        * <code>string goal_id = 4;</code>
        * @param value The bytes for goalId to set.
        * @return This builder for chaining.
@@ -10136,6 +11380,10 @@ java.lang.String defaultValue) {
 
       private int phase_ = 0;
       /**
+       * <pre>
+       * Current indexed phase.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 5;</code>
        * @return The enum numeric value on the wire for phase.
        */
@@ -10143,6 +11391,10 @@ java.lang.String defaultValue) {
         return phase_;
       }
       /**
+       * <pre>
+       * Current indexed phase.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 5;</code>
        * @param value The enum numeric value on the wire for phase to set.
        * @throws IllegalArgumentException if UNRECOGNIZED is provided.
@@ -10155,6 +11407,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Current indexed phase.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 5;</code>
        * @return The phase.
        */
@@ -10164,6 +11420,10 @@ java.lang.String defaultValue) {
         return result == null ? talon.data.Data.GoalPhase.UNRECOGNIZED : result;
       }
       /**
+       * <pre>
+       * Current indexed phase.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 5;</code>
        * @param value The phase to set.
        * @return This builder for chaining.
@@ -10176,6 +11436,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Current indexed phase.
+       * </pre>
+       *
        * <code>.talon.data.GoalPhase phase = 5;</code>
        * @return This builder for chaining.
        */
@@ -10188,6 +11452,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object statusGroup_ = "";
       /**
+       * <pre>
+       * Coarse status bucket used for active/history listings.
+       * </pre>
+       *
        * <code>string status_group = 6;</code>
        * @return The statusGroup.
        */
@@ -10204,6 +11472,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Coarse status bucket used for active/history listings.
+       * </pre>
+       *
        * <code>string status_group = 6;</code>
        * @return The bytes for statusGroup.
        */
@@ -10221,6 +11493,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Coarse status bucket used for active/history listings.
+       * </pre>
+       *
        * <code>string status_group = 6;</code>
        * @param value The statusGroup to set.
        * @return This builder for chaining.
@@ -10234,6 +11510,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Coarse status bucket used for active/history listings.
+       * </pre>
+       *
        * <code>string status_group = 6;</code>
        * @return This builder for chaining.
        */
@@ -10244,6 +11524,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Coarse status bucket used for active/history listings.
+       * </pre>
+       *
        * <code>string status_group = 6;</code>
        * @param value The bytes for statusGroup to set.
        * @return This builder for chaining.
@@ -10260,6 +11544,10 @@ java.lang.String defaultValue) {
 
       private long updatedAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds used for recency ordering.
+       * </pre>
+       *
        * <code>int64 updated_at = 7;</code>
        * @return The updatedAt.
        */
@@ -10268,6 +11556,10 @@ java.lang.String defaultValue) {
         return updatedAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds used for recency ordering.
+       * </pre>
+       *
        * <code>int64 updated_at = 7;</code>
        * @param value The updatedAt to set.
        * @return This builder for chaining.
@@ -10280,6 +11572,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds used for recency ordering.
+       * </pre>
+       *
        * <code>int64 updated_at = 7;</code>
        * @return This builder for chaining.
        */

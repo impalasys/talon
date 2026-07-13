@@ -129,46 +129,66 @@ proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartTy
  */
 export enum GoalPhase {
   /**
+   * No phase has been set. Stored goals should move to a concrete phase before
+   * being used by the runtime.
+   *
    * @generated from enum value: GOAL_PHASE_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
+   * The agent should continue working toward the objective.
+   *
    * @generated from enum value: GOAL_PHASE_RUNNING = 1;
    */
   RUNNING = 1,
 
   /**
+   * The goal is intentionally stopped and should not advance automatically.
+   *
    * @generated from enum value: GOAL_PHASE_PAUSED = 2;
    */
   PAUSED = 2,
 
   /**
+   * The agent has produced work that needs an external review decision.
+   *
    * @generated from enum value: GOAL_PHASE_NEEDS_REVIEW = 3;
    */
   NEEDS_REVIEW = 3,
 
   /**
+   * The objective and success criteria have been satisfied.
+   *
    * @generated from enum value: GOAL_PHASE_SUCCEEDED = 4;
    */
   SUCCEEDED = 4,
 
   /**
+   * The goal ended unsuccessfully due to an execution or quality failure.
+   *
    * @generated from enum value: GOAL_PHASE_FAILED = 5;
    */
   FAILED = 5,
 
   /**
+   * The agent cannot make meaningful progress without outside input or a
+   * changed external condition.
+   *
    * @generated from enum value: GOAL_PHASE_BLOCKED = 6;
    */
   BLOCKED = 6,
 
   /**
+   * A caller explicitly stopped the goal before completion.
+   *
    * @generated from enum value: GOAL_PHASE_CANCELED = 7;
    */
   CANCELED = 7,
 
   /**
+   * The goal exceeded its configured time or iteration budget.
+   *
    * @generated from enum value: GOAL_PHASE_EXPIRED = 8;
    */
   EXPIRED = 8,
@@ -374,41 +394,57 @@ export class Artifact extends Message<Artifact> {
  */
 export class GoalEvidenceRef extends Message<GoalEvidenceRef> {
   /**
+   * Evidence type, such as artifact, file, message, or object.
+   *
    * @generated from field: string kind = 1;
    */
   kind = "";
 
   /**
+   * Namespace that owns the referenced evidence when it is a Talon resource.
+   *
    * @generated from field: string namespace = 2;
    */
   namespace = "";
 
   /**
+   * Resource name or provider-local identifier for the referenced evidence.
+   *
    * @generated from field: string name = 3;
    */
   name = "";
 
   /**
+   * Agent that owns the referenced session-scoped evidence, when applicable.
+   *
    * @generated from field: string agent = 4;
    */
   agent = "";
 
   /**
+   * Session that owns the referenced session-scoped evidence, when applicable.
+   *
    * @generated from field: string session_id = 5;
    */
   sessionId = "";
 
   /**
+   * Opaque or URI-style handle that can be passed back to tools.
+   *
    * @generated from field: string handle = 6;
    */
   handle = "";
 
   /**
+   * Object-store key for evidence backed directly by stored bytes.
+   *
    * @generated from field: string object_key = 7;
    */
   objectKey = "";
 
   /**
+   * Short human-readable description of why this evidence matters.
+   *
    * @generated from field: string summary = 8;
    */
   summary = "";
@@ -453,86 +489,120 @@ export class GoalEvidenceRef extends Message<GoalEvidenceRef> {
  */
 export class Goal extends Message<Goal> {
   /**
+   * Stable goal identifier unique under the owning session.
+   *
    * @generated from field: string id = 1;
    */
   id = "";
 
   /**
+   * Namespace of the session that owns this goal.
+   *
    * @generated from field: string namespace = 2;
    */
   namespace = "";
 
   /**
+   * Agent that owns this goal.
+   *
    * @generated from field: string agent = 3;
    */
   agent = "";
 
   /**
+   * Session that owns this goal.
+   *
    * @generated from field: string session_id = 4;
    */
   sessionId = "";
 
   /**
+   * Natural-language objective the agent is trying to satisfy.
+   *
    * @generated from field: string objective = 5;
    */
   objective = "";
 
   /**
+   * Concrete completion checks the agent should use before marking success.
+   *
    * @generated from field: repeated string success_criteria = 6;
    */
   successCriteria: string[] = [];
 
   /**
+   * Current lifecycle phase for scheduling and agent-loop decisions.
+   *
    * @generated from field: talon.data.GoalPhase phase = 7;
    */
   phase = GoalPhase.UNSPECIFIED;
 
   /**
+   * Rolling summary of completed work, current state, and next useful action.
+   *
    * @generated from field: string progress_summary = 8;
    */
   progressSummary = "";
 
   /**
+   * Number of completed agent-loop iterations for this goal.
+   *
    * @generated from field: int32 iteration = 9;
    */
   iteration = 0;
 
   /**
+   * Maximum iterations allowed before the runtime should stop or expire.
+   *
    * @generated from field: int32 max_iterations = 10;
    */
   maxIterations = 0;
 
   /**
+   * Evidence accumulated while pursuing or evaluating the goal.
+   *
    * @generated from field: repeated talon.data.GoalEvidenceRef evidence_refs = 11;
    */
   evidenceRefs: GoalEvidenceRef[] = [];
 
   /**
+   * Unix timestamp in microseconds when the goal was created.
+   *
    * @generated from field: int64 created_at = 12;
    */
   createdAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds when the goal was last changed.
+   *
    * @generated from field: int64 updated_at = 13;
    */
   updatedAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds when the goal reached a terminal phase.
+   *
    * @generated from field: int64 completed_at = 14;
    */
   completedAt = protoInt64.zero;
 
   /**
+   * Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+   *
    * @generated from field: string blocked_reason = 15;
    */
   blockedReason = "";
 
   /**
+   * Query labels for grouping goals without changing runtime semantics.
+   *
    * @generated from field: map<string, string> labels = 16;
    */
   labels: { [key: string]: string } = {};
 
   /**
+   * Caller-defined metadata that does not justify a first-class field.
+   *
    * @generated from field: map<string, string> metadata = 17;
    */
   metadata: { [key: string]: string } = {};
@@ -586,36 +656,50 @@ export class Goal extends Message<Goal> {
  */
 export class GoalIndexEntry extends Message<GoalIndexEntry> {
   /**
+   * Namespace of the indexed goal.
+   *
    * @generated from field: string namespace = 1;
    */
   namespace = "";
 
   /**
+   * Agent that owns the indexed goal.
+   *
    * @generated from field: string agent = 2;
    */
   agent = "";
 
   /**
+   * Session that owns the indexed goal.
+   *
    * @generated from field: string session_id = 3;
    */
   sessionId = "";
 
   /**
+   * Goal identifier under the owning session.
+   *
    * @generated from field: string goal_id = 4;
    */
   goalId = "";
 
   /**
+   * Current indexed phase.
+   *
    * @generated from field: talon.data.GoalPhase phase = 5;
    */
   phase = GoalPhase.UNSPECIFIED;
 
   /**
+   * Coarse status bucket used for active/history listings.
+   *
    * @generated from field: string status_group = 6;
    */
   statusGroup = "";
 
   /**
+   * Unix timestamp in microseconds used for recency ordering.
+   *
    * @generated from field: int64 updated_at = 7;
    */
   updatedAt = protoInt64.zero;
