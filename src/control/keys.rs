@@ -519,28 +519,6 @@ pub fn session_submission_prefix(namespace: &str, agent: &str, session_id: &str)
     )
 }
 
-pub fn async_a2a_wakeup(
-    namespace: &str,
-    agent: &str,
-    session_id: &str,
-    wakeup_id: &str,
-) -> ResourceKey {
-    resource_key(
-        namespace,
-        &[("Agent", agent), ("Session", session_id)],
-        "AsyncA2AWakeup",
-        wakeup_id,
-    )
-}
-
-pub fn async_a2a_wakeup_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
-    direct_child_prefix(
-        namespace,
-        &[("Agent", agent), ("Session", session_id)],
-        Some("AsyncA2AWakeup"),
-    )
-}
-
 pub fn session_journal_entry(
     namespace: &str,
     agent: &str,
