@@ -4,8 +4,8 @@ import {
   channelFromResource,
   channelSubscriptionDocumentFromResource,
   channelSubscriptionFromResource,
+  fileFromResource,
   isV2ResourceDocument,
-  knowledgeFromResource,
   namespaceLabel,
   parseJsonObject,
   resourceMetadata,
@@ -73,7 +73,7 @@ describe('resource mappers', () => {
     expect(channelSubscriptionDocumentFromResource(subscription).contextPolicy).toEqual({ window: 20 });
   });
 
-  it('maps schedules, knowledge, and metadata helpers', () => {
+  it('maps schedules, files, and metadata helpers', () => {
     const schedule = resource('schedule', { kind: 'cron', enabled: true }, { nextRunAt: 20n });
     expect(scheduleFromResource(schedule)).toEqual({
       name: 'name',
@@ -100,9 +100,9 @@ describe('resource mappers', () => {
       payload: bytes,
     });
 
-    expect(knowledgeFromResource(resource('knowledge', { path: '/docs', content: 'hello' })).spec).toEqual({
+    expect(fileFromResource(resource('file', { path: '/docs', mediaType: 'text/markdown' })).spec).toEqual({
       path: '/docs',
-      content: 'hello',
+      mediaType: 'text/markdown',
     });
     expect(resourceMetadata('demo', 'root').generation).toBe(0n);
     expect(namespaceLabel({ workspace: 'workspace', display_name: 'display', name: 'name' })).toBe('workspace');

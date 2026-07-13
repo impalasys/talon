@@ -306,7 +306,7 @@ pub fn resource_spec_status_from_json(
             kind: Some(SpecKind::Connector(serde_json::from_value(spec_value)?)),
         },
         "File" => resources_proto::ResourceSpec {
-            kind: Some(SpecKind::File(serde_json::from_value(spec_value)?)),
+            kind: Some(SpecKind::File(file_spec_from_value(spec_value)?)),
         },
         "Task" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Task(serde_json::from_value(spec_value)?)),
@@ -388,7 +388,7 @@ pub fn resource_spec_status_from_json(
             kind: Some(StatusKind::Connector(serde_json::from_value(status_value)?)),
         },
         "File" => resources_proto::ResourceStatus {
-            kind: Some(StatusKind::File(serde_json::from_value(status_value)?)),
+            kind: Some(StatusKind::File(file_status_from_value(status_value)?)),
         },
         "Task" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Task(serde_json::from_value(status_value)?)),
@@ -459,7 +459,7 @@ fn resource_spec_status_to_yaml_values(
         Some(SpecKind::UsagePolicy(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::ConnectorClass(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Connector(spec)) => serde_json::to_string(spec)?,
-        Some(SpecKind::File(spec)) => serde_json::to_string(spec)?,
+        Some(SpecKind::File(spec)) => serde_json::to_string(&FileSpecManifest::from_proto(spec))?,
         Some(SpecKind::Task(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::McpServer(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
@@ -618,6 +618,52 @@ fn json_string_to_json_value(value: &str) -> Result<serde_json::Value> {
         return Ok(serde_json::json!({}));
     }
     serde_json::from_str(value).context("Failed to parse embedded JSON")
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct FileSpecManifest {
+    path: String,
+    media_type: String,
+    #[serde(with = "crate::control::manifest::enum_serde::file_purpose")]
+    purpose: i32,
+    #[serde(with = "crate::control::manifest::enum_serde::file_index_policy")]
+    index_policy: i32,
+    #[serde(with = "crate::control::manifest::enum_serde::file_retention")]
+    retention: i32,
+}
+
+impl FileSpecManifest {
+    fn into_proto(self) -> resources_proto::FileSpec {
+        resources_proto::FileSpec {
+            path: self.path,
+            media_type: self.media_type,
+            purpose: self.purpose,
+            index_policy: self.index_policy,
+            retention: self.retention,
+        }
+    }
+
+    fn from_proto(spec: &resources_proto::FileSpec) -> Self {
+        Self {
+            path: spec.path.clone(),
+            media_type: spec.media_type.clone(),
+            purpose: spec.purpose,
+            index_policy: spec.index_policy,
+            retention: spec.retention,
+        }
+    }
+}
+
+fn file_spec_from_value(value: serde_json::Value) -> Result<resources_proto::FileSpec> {
+    Ok(serde_json::from_value::<FileSpecManifest>(value)?.into_proto())
+}
+
+fn file_status_from_value(value: serde_json::Value) -> Result<resources_proto::FileStatus> {
+    if value.as_object().map(|object| object.is_empty()).unwrap_or(false) {
+        return Ok(resources_proto::FileStatus::default());
+    }
+    serde_json::from_value(value).context("Failed to parse File status")
 }
 
 fn template_spec_from_value(value: serde_json::Value) -> Result<resources_proto::TemplateSpec> {

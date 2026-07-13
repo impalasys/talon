@@ -10,7 +10,7 @@ const STATIC_RESOURCE_KINDS = [
   'Agent',
   'Channel',
   'Schedule',
-  'Knowledge',
+  'File',
   ...RESOURCE_DESCRIPTORS.map((descriptor) => descriptor.kind),
 ];
 
