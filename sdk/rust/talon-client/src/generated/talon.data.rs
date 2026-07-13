@@ -201,60 +201,85 @@ pub struct Artifact {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GoalEvidenceRef {
+    /// Evidence type, such as artifact, file, message, or object.
     #[prost(string, tag = "1")]
     pub kind: ::prost::alloc::string::String,
+    /// Namespace that owns the referenced evidence when it is a Talon resource.
     #[prost(string, tag = "2")]
     pub namespace: ::prost::alloc::string::String,
+    /// Resource name or provider-local identifier for the referenced evidence.
     #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
+    /// Agent that owns the referenced session-scoped evidence, when applicable.
     #[prost(string, tag = "4")]
     pub agent: ::prost::alloc::string::String,
+    /// Session that owns the referenced session-scoped evidence, when applicable.
     #[prost(string, tag = "5")]
     pub session_id: ::prost::alloc::string::String,
+    /// Opaque or URI-style handle that can be passed back to tools.
     #[prost(string, tag = "6")]
     pub handle: ::prost::alloc::string::String,
+    /// Object-store key for evidence backed directly by stored bytes.
     #[prost(string, tag = "7")]
     pub object_key: ::prost::alloc::string::String,
+    /// Short human-readable description of why this evidence matters.
     #[prost(string, tag = "8")]
     pub summary: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Goal {
+    /// Stable goal identifier unique under the owning session.
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
+    /// Namespace of the session that owns this goal.
     #[prost(string, tag = "2")]
     pub namespace: ::prost::alloc::string::String,
+    /// Agent that owns this goal.
     #[prost(string, tag = "3")]
     pub agent: ::prost::alloc::string::String,
+    /// Session that owns this goal.
     #[prost(string, tag = "4")]
     pub session_id: ::prost::alloc::string::String,
+    /// Natural-language objective the agent is trying to satisfy.
     #[prost(string, tag = "5")]
     pub objective: ::prost::alloc::string::String,
+    /// Concrete completion checks the agent should use before marking success.
     #[prost(string, repeated, tag = "6")]
     pub success_criteria: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Current lifecycle phase for scheduling and agent-loop decisions.
     #[prost(enumeration = "GoalPhase", tag = "7")]
     pub phase: i32,
+    /// Rolling summary of completed work, current state, and next useful action.
     #[prost(string, tag = "8")]
     pub progress_summary: ::prost::alloc::string::String,
+    /// Number of completed agent-loop iterations for this goal.
     #[prost(int32, tag = "9")]
     pub iteration: i32,
+    /// Maximum iterations allowed before the runtime should stop or expire.
     #[prost(int32, tag = "10")]
     pub max_iterations: i32,
+    /// Evidence accumulated while pursuing or evaluating the goal.
     #[prost(message, repeated, tag = "11")]
     pub evidence_refs: ::prost::alloc::vec::Vec<GoalEvidenceRef>,
+    /// Unix timestamp in microseconds when the goal was created.
     #[prost(int64, tag = "12")]
     pub created_at: i64,
+    /// Unix timestamp in microseconds when the goal was last changed.
     #[prost(int64, tag = "13")]
     pub updated_at: i64,
+    /// Unix timestamp in microseconds when the goal reached a terminal phase.
     #[prost(int64, tag = "14")]
     pub completed_at: i64,
+    /// Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
     #[prost(string, tag = "15")]
     pub blocked_reason: ::prost::alloc::string::String,
+    /// Query labels for grouping goals without changing runtime semantics.
     #[prost(map = "string, string", tag = "16")]
     pub labels: ::std::collections::HashMap<
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// Caller-defined metadata that does not justify a first-class field.
     #[prost(map = "string, string", tag = "17")]
     pub metadata: ::std::collections::HashMap<
         ::prost::alloc::string::String,
@@ -263,18 +288,25 @@ pub struct Goal {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GoalIndexEntry {
+    /// Namespace of the indexed goal.
     #[prost(string, tag = "1")]
     pub namespace: ::prost::alloc::string::String,
+    /// Agent that owns the indexed goal.
     #[prost(string, tag = "2")]
     pub agent: ::prost::alloc::string::String,
+    /// Session that owns the indexed goal.
     #[prost(string, tag = "3")]
     pub session_id: ::prost::alloc::string::String,
+    /// Goal identifier under the owning session.
     #[prost(string, tag = "4")]
     pub goal_id: ::prost::alloc::string::String,
+    /// Current indexed phase.
     #[prost(enumeration = "GoalPhase", tag = "5")]
     pub phase: i32,
+    /// Coarse status bucket used for active/history listings.
     #[prost(string, tag = "6")]
     pub status_group: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds used for recency ordering.
     #[prost(int64, tag = "7")]
     pub updated_at: i64,
 }
@@ -651,14 +683,25 @@ impl SessionMessagePartType {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum GoalPhase {
+    /// No phase has been set. Stored goals should move to a concrete phase before
+    /// being used by the runtime.
     Unspecified = 0,
+    /// The agent should continue working toward the objective.
     Running = 1,
+    /// The goal is intentionally stopped and should not advance automatically.
     Paused = 2,
+    /// The agent has produced work that needs an external review decision.
     NeedsReview = 3,
+    /// The objective and success criteria have been satisfied.
     Succeeded = 4,
+    /// The goal ended unsuccessfully due to an execution or quality failure.
     Failed = 5,
+    /// The agent cannot make meaningful progress without outside input or a
+    /// changed external condition.
     Blocked = 6,
+    /// A caller explicitly stopped the goal before completion.
     Canceled = 7,
+    /// The goal exceeded its configured time or iteration budget.
     Expired = 8,
 }
 impl GoalPhase {

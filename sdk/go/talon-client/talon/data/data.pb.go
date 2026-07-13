@@ -155,15 +155,26 @@ func (SessionMessagePartType) EnumDescriptor() ([]byte, []int) {
 type GoalPhase int32
 
 const (
-	GoalPhase_GOAL_PHASE_UNSPECIFIED  GoalPhase = 0
-	GoalPhase_GOAL_PHASE_RUNNING      GoalPhase = 1
-	GoalPhase_GOAL_PHASE_PAUSED       GoalPhase = 2
+	// No phase has been set. Stored goals should move to a concrete phase before
+	// being used by the runtime.
+	GoalPhase_GOAL_PHASE_UNSPECIFIED GoalPhase = 0
+	// The agent should continue working toward the objective.
+	GoalPhase_GOAL_PHASE_RUNNING GoalPhase = 1
+	// The goal is intentionally stopped and should not advance automatically.
+	GoalPhase_GOAL_PHASE_PAUSED GoalPhase = 2
+	// The agent has produced work that needs an external review decision.
 	GoalPhase_GOAL_PHASE_NEEDS_REVIEW GoalPhase = 3
-	GoalPhase_GOAL_PHASE_SUCCEEDED    GoalPhase = 4
-	GoalPhase_GOAL_PHASE_FAILED       GoalPhase = 5
-	GoalPhase_GOAL_PHASE_BLOCKED      GoalPhase = 6
-	GoalPhase_GOAL_PHASE_CANCELED     GoalPhase = 7
-	GoalPhase_GOAL_PHASE_EXPIRED      GoalPhase = 8
+	// The objective and success criteria have been satisfied.
+	GoalPhase_GOAL_PHASE_SUCCEEDED GoalPhase = 4
+	// The goal ended unsuccessfully due to an execution or quality failure.
+	GoalPhase_GOAL_PHASE_FAILED GoalPhase = 5
+	// The agent cannot make meaningful progress without outside input or a
+	// changed external condition.
+	GoalPhase_GOAL_PHASE_BLOCKED GoalPhase = 6
+	// A caller explicitly stopped the goal before completion.
+	GoalPhase_GOAL_PHASE_CANCELED GoalPhase = 7
+	// The goal exceeded its configured time or iteration budget.
+	GoalPhase_GOAL_PHASE_EXPIRED GoalPhase = 8
 )
 
 // Enum value maps for GoalPhase.
@@ -435,15 +446,23 @@ func (x *Artifact) GetMetadata() map[string]string {
 }
 
 type GoalEvidenceRef struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
-	Namespace     string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Agent         string                 `protobuf:"bytes,4,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId     string                 `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Handle        string                 `protobuf:"bytes,6,opt,name=handle,proto3" json:"handle,omitempty"`
-	ObjectKey     string                 `protobuf:"bytes,7,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
-	Summary       string                 `protobuf:"bytes,8,opt,name=summary,proto3" json:"summary,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Evidence type, such as artifact, file, message, or object.
+	Kind string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Namespace that owns the referenced evidence when it is a Talon resource.
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Resource name or provider-local identifier for the referenced evidence.
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// Agent that owns the referenced session-scoped evidence, when applicable.
+	Agent string `protobuf:"bytes,4,opt,name=agent,proto3" json:"agent,omitempty"`
+	// Session that owns the referenced session-scoped evidence, when applicable.
+	SessionId string `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// Opaque or URI-style handle that can be passed back to tools.
+	Handle string `protobuf:"bytes,6,opt,name=handle,proto3" json:"handle,omitempty"`
+	// Object-store key for evidence backed directly by stored bytes.
+	ObjectKey string `protobuf:"bytes,7,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	// Short human-readable description of why this evidence matters.
+	Summary       string `protobuf:"bytes,8,opt,name=summary,proto3" json:"summary,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -535,26 +554,43 @@ func (x *GoalEvidenceRef) GetSummary() string {
 }
 
 type Goal struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Namespace       string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Agent           string                 `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId       string                 `protobuf:"bytes,4,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Objective       string                 `protobuf:"bytes,5,opt,name=objective,proto3" json:"objective,omitempty"`
-	SuccessCriteria []string               `protobuf:"bytes,6,rep,name=success_criteria,json=successCriteria,proto3" json:"success_criteria,omitempty"`
-	Phase           GoalPhase              `protobuf:"varint,7,opt,name=phase,proto3,enum=talon.data.GoalPhase" json:"phase,omitempty"`
-	ProgressSummary string                 `protobuf:"bytes,8,opt,name=progress_summary,json=progressSummary,proto3" json:"progress_summary,omitempty"`
-	Iteration       int32                  `protobuf:"varint,9,opt,name=iteration,proto3" json:"iteration,omitempty"`
-	MaxIterations   int32                  `protobuf:"varint,10,opt,name=max_iterations,json=maxIterations,proto3" json:"max_iterations,omitempty"`
-	EvidenceRefs    []*GoalEvidenceRef     `protobuf:"bytes,11,rep,name=evidence_refs,json=evidenceRefs,proto3" json:"evidence_refs,omitempty"`
-	CreatedAt       int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt       int64                  `protobuf:"varint,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	CompletedAt     int64                  `protobuf:"varint,14,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
-	BlockedReason   string                 `protobuf:"bytes,15,opt,name=blocked_reason,json=blockedReason,proto3" json:"blocked_reason,omitempty"`
-	Labels          map[string]string      `protobuf:"bytes,16,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Metadata        map[string]string      `protobuf:"bytes,17,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable goal identifier unique under the owning session.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Namespace of the session that owns this goal.
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Agent that owns this goal.
+	Agent string `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"`
+	// Session that owns this goal.
+	SessionId string `protobuf:"bytes,4,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// Natural-language objective the agent is trying to satisfy.
+	Objective string `protobuf:"bytes,5,opt,name=objective,proto3" json:"objective,omitempty"`
+	// Concrete completion checks the agent should use before marking success.
+	SuccessCriteria []string `protobuf:"bytes,6,rep,name=success_criteria,json=successCriteria,proto3" json:"success_criteria,omitempty"`
+	// Current lifecycle phase for scheduling and agent-loop decisions.
+	Phase GoalPhase `protobuf:"varint,7,opt,name=phase,proto3,enum=talon.data.GoalPhase" json:"phase,omitempty"`
+	// Rolling summary of completed work, current state, and next useful action.
+	ProgressSummary string `protobuf:"bytes,8,opt,name=progress_summary,json=progressSummary,proto3" json:"progress_summary,omitempty"`
+	// Number of completed agent-loop iterations for this goal.
+	Iteration int32 `protobuf:"varint,9,opt,name=iteration,proto3" json:"iteration,omitempty"`
+	// Maximum iterations allowed before the runtime should stop or expire.
+	MaxIterations int32 `protobuf:"varint,10,opt,name=max_iterations,json=maxIterations,proto3" json:"max_iterations,omitempty"`
+	// Evidence accumulated while pursuing or evaluating the goal.
+	EvidenceRefs []*GoalEvidenceRef `protobuf:"bytes,11,rep,name=evidence_refs,json=evidenceRefs,proto3" json:"evidence_refs,omitempty"`
+	// Unix timestamp in microseconds when the goal was created.
+	CreatedAt int64 `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Unix timestamp in microseconds when the goal was last changed.
+	UpdatedAt int64 `protobuf:"varint,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Unix timestamp in microseconds when the goal reached a terminal phase.
+	CompletedAt int64 `protobuf:"varint,14,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	// Explanation for GOAL_PHASE_BLOCKED or other externally actionable stops.
+	BlockedReason string `protobuf:"bytes,15,opt,name=blocked_reason,json=blockedReason,proto3" json:"blocked_reason,omitempty"`
+	// Query labels for grouping goals without changing runtime semantics.
+	Labels map[string]string `protobuf:"bytes,16,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Caller-defined metadata that does not justify a first-class field.
+	Metadata      map[string]string `protobuf:"bytes,17,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Goal) Reset() {
@@ -707,14 +743,21 @@ func (x *Goal) GetMetadata() map[string]string {
 }
 
 type GoalIndexEntry struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId     string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	GoalId        string                 `protobuf:"bytes,4,opt,name=goal_id,json=goalId,proto3" json:"goal_id,omitempty"`
-	Phase         GoalPhase              `protobuf:"varint,5,opt,name=phase,proto3,enum=talon.data.GoalPhase" json:"phase,omitempty"`
-	StatusGroup   string                 `protobuf:"bytes,6,opt,name=status_group,json=statusGroup,proto3" json:"status_group,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Namespace of the indexed goal.
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	// Agent that owns the indexed goal.
+	Agent string `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	// Session that owns the indexed goal.
+	SessionId string `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// Goal identifier under the owning session.
+	GoalId string `protobuf:"bytes,4,opt,name=goal_id,json=goalId,proto3" json:"goal_id,omitempty"`
+	// Current indexed phase.
+	Phase GoalPhase `protobuf:"varint,5,opt,name=phase,proto3,enum=talon.data.GoalPhase" json:"phase,omitempty"`
+	// Coarse status bucket used for active/history listings.
+	StatusGroup string `protobuf:"bytes,6,opt,name=status_group,json=statusGroup,proto3" json:"status_group,omitempty"`
+	// Unix timestamp in microseconds used for recency ordering.
+	UpdatedAt     int64 `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
