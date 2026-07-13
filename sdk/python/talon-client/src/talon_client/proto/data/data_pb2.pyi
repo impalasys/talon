@@ -72,6 +72,60 @@ class ObjectRef(_message.Message):
     content_encoding: str
     def __init__(self, key: _Optional[str] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ..., content_encoding: _Optional[str] = ...) -> None: ...
 
+class Artifact(_message.Message):
+    __slots__ = ("id", "session_id", "title", "media_type", "object_ref", "created_by_agent", "created_at", "labels", "metadata")
+    class LabelsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    class MetadataEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    ID_FIELD_NUMBER: _ClassVar[int]
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    TITLE_FIELD_NUMBER: _ClassVar[int]
+    MEDIA_TYPE_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_REF_FIELD_NUMBER: _ClassVar[int]
+    CREATED_BY_AGENT_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    LABELS_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    session_id: str
+    title: str
+    media_type: str
+    object_ref: ObjectRef
+    created_by_agent: str
+    created_at: int
+    labels: _containers.ScalarMap[str, str]
+    metadata: _containers.ScalarMap[str, str]
+    def __init__(self, id: _Optional[str] = ..., session_id: _Optional[str] = ..., title: _Optional[str] = ..., media_type: _Optional[str] = ..., object_ref: _Optional[_Union[ObjectRef, _Mapping]] = ..., created_by_agent: _Optional[str] = ..., created_at: _Optional[int] = ..., labels: _Optional[_Mapping[str, str]] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
+class ArtifactAccess(_message.Message):
+    __slots__ = ("target_agent", "target_session_id", "operations", "expires_at", "granted_by_agent", "granted_by_session_id", "created_at")
+    TARGET_AGENT_FIELD_NUMBER: _ClassVar[int]
+    TARGET_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    OPERATIONS_FIELD_NUMBER: _ClassVar[int]
+    EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
+    GRANTED_BY_AGENT_FIELD_NUMBER: _ClassVar[int]
+    GRANTED_BY_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    target_agent: str
+    target_session_id: str
+    operations: _containers.RepeatedScalarFieldContainer[str]
+    expires_at: int
+    granted_by_agent: str
+    granted_by_session_id: str
+    created_at: int
+    def __init__(self, target_agent: _Optional[str] = ..., target_session_id: _Optional[str] = ..., operations: _Optional[_Iterable[str]] = ..., expires_at: _Optional[int] = ..., granted_by_agent: _Optional[str] = ..., granted_by_session_id: _Optional[str] = ..., created_at: _Optional[int] = ...) -> None: ...
+
 class Principal(_message.Message):
     __slots__ = ("external_id", "address", "display_name", "kind", "metadata")
     class MetadataEntry(_message.Message):

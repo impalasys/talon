@@ -8,6 +8,8 @@ use crate::v1::{
     channel_service_client::ChannelServiceClient,
     workflow_service_client::WorkflowServiceClient,
     knowledge_service_client::KnowledgeServiceClient,
+    file_service_client::FileServiceClient,
+    artifact_service_client::ArtifactServiceClient,
     search_service_client::SearchServiceClient,
     auth_service_client::AuthServiceClient,
     connector_service_client::ConnectorServiceClient,
@@ -21,6 +23,8 @@ pub struct TalonClientset<T> {
     pub channels: ChannelServiceClient<T>,
     pub workflows: WorkflowServiceClient<T>,
     pub knowledge: KnowledgeServiceClient<T>,
+    pub files: FileServiceClient<T>,
+    pub artifacts: ArtifactServiceClient<T>,
     pub searches: SearchServiceClient<T>,
     pub auth: AuthServiceClient<T>,
     pub connectors: ConnectorServiceClient<T>,
@@ -41,6 +45,8 @@ where
             channels: ChannelServiceClient::new(service.clone()),
             workflows: WorkflowServiceClient::new(service.clone()),
             knowledge: KnowledgeServiceClient::new(service.clone()),
+            files: FileServiceClient::new(service.clone()),
+            artifacts: ArtifactServiceClient::new(service.clone()),
             searches: SearchServiceClient::new(service.clone()),
             auth: AuthServiceClient::new(service.clone()),
             connectors: ConnectorServiceClient::new(service.clone()),
@@ -314,6 +320,97 @@ impl crate::TalonClient {
         search,
         crate::v1::SearchKnowledgeRequest,
         crate::v1::SearchKnowledgeResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        create_file,
+        files,
+        create_file,
+        crate::v1::CreateFileRequest,
+        crate::v1::FileResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        prepare_file_upload,
+        files,
+        prepare_file_upload,
+        crate::v1::PrepareFileUploadRequest,
+        crate::v1::PrepareFileUploadResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        complete_file_upload,
+        files,
+        complete_file_upload,
+        crate::v1::CompleteFileUploadRequest,
+        crate::v1::FileResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        read_file,
+        files,
+        read_file,
+        crate::v1::ReadFileRequest,
+        crate::v1::ReadFileResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        update_file,
+        files,
+        update_file,
+        crate::v1::UpdateFileRequest,
+        crate::v1::FileResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        get_file_metadata,
+        files,
+        get_file_metadata,
+        crate::v1::GetFileMetadataRequest,
+        crate::v1::FileResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        list_files,
+        files,
+        list_files,
+        crate::v1::ListFilesRequest,
+        crate::v1::ListFilesResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        delete_file,
+        files,
+        delete_file,
+        crate::v1::DeleteFileRequest,
+        crate::v1::DeleteFileResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        promote_file_artifact,
+        files,
+        promote_artifact,
+        crate::v1::PromoteArtifactRequest,
+        crate::v1::FileResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        read_artifact,
+        artifacts,
+        read_artifact,
+        crate::v1::ReadArtifactRequest,
+        crate::v1::ReadArtifactResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        get_artifact_metadata,
+        artifacts,
+        get_artifact_metadata,
+        crate::v1::GetArtifactMetadataRequest,
+        crate::v1::ArtifactResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        list_artifacts,
+        artifacts,
+        list_artifacts,
+        crate::v1::ListArtifactsRequest,
+        crate::v1::ListArtifactsResponse,
+    );
+    delegate_dynamic_unary_rpc!(
+        grant_artifact,
+        artifacts,
+        grant_artifact,
+        crate::v1::GrantArtifactRequest,
+        crate::v1::ArtifactUriResponse,
     );
     delegate_dynamic_unary_rpc!(
         search,

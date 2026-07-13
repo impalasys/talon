@@ -12,6 +12,8 @@ type Clientset struct {
 	cas        talonv1.CasServiceClient
 	channels   talonv1.ChannelServiceClient
 	connectors talonv1.ConnectorServiceClient
+	files      talonv1.FileServiceClient
+	artifacts  talonv1.ArtifactServiceClient
 	knowledge  talonv1.KnowledgeServiceClient
 	namespaces talonv1.NamespaceServiceClient
 	resources  talonv1.ResourceServiceClient
@@ -35,6 +37,14 @@ func (c *Clientset) Channels() talonv1.ChannelServiceClient {
 
 func (c *Clientset) Connectors() talonv1.ConnectorServiceClient {
 	return c.connectors
+}
+
+func (c *Clientset) Files() talonv1.FileServiceClient {
+	return c.files
+}
+
+func (c *Clientset) Artifacts() talonv1.ArtifactServiceClient {
+	return c.artifacts
 }
 
 func (c *Clientset) Knowledge() talonv1.KnowledgeServiceClient {
@@ -67,6 +77,8 @@ func newClientset(conn grpc.ClientConnInterface, close func() error) *Clientset 
 		cas:        talonv1.NewCasServiceClient(conn),
 		channels:   talonv1.NewChannelServiceClient(conn),
 		connectors: talonv1.NewConnectorServiceClient(conn),
+		files:      talonv1.NewFileServiceClient(conn),
+		artifacts:  talonv1.NewArtifactServiceClient(conn),
 		knowledge:  talonv1.NewKnowledgeServiceClient(conn),
 		namespaces: talonv1.NewNamespaceServiceClient(conn),
 		resources:  talonv1.NewResourceServiceClient(conn),

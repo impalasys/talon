@@ -635,6 +635,116 @@ pub async fn send_message(
     send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now).await
 }
 
+pub async fn enqueue_message_without_dispatch(
+    kv: &dyn KeyValueStore,
+    pubsub: &dyn MessagePublisher,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    message: &str,
+    labels: HashMap<String, String>,
+    now: DateTime<Utc>,
+) -> Result<events::SessionMessageEvent> {
+    if message.trim().is_empty() {
+        return Err(EmptyMessageError.into());
+    }
+    let now_micros = now.timestamp_micros();
+    let user_msg = data_proto::SessionMessage {
+        id: crate::control::uuid::session_message_id(),
+        role: data_proto::MessageRole::RoleUser as i32,
+        created_at: now_micros,
+        labels,
+        parts: vec![data_proto::SessionMessagePart {
+            id: "000000".to_string(),
+            part_type: data_proto::SessionMessagePartType::Text as i32,
+            content: message.to_string(),
+            name: String::new(),
+            payload_json: String::new(),
+            created_at: now_micros,
+            object: None,
+        }],
+    };
+
+    enqueue_session_message_without_dispatch(kv, pubsub, ns, agent, session_id, user_msg, now).await
+}
+
+pub async fn enqueue_session_message_without_dispatch(
+    kv: &dyn KeyValueStore,
+    pubsub: &dyn MessagePublisher,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    mut user_msg: data_proto::SessionMessage,
+    now: DateTime<Utc>,
+) -> Result<events::SessionMessageEvent> {
+    if user_msg.parts.is_empty() {
+        return Err(EmptyMessageError.into());
+    }
+
+    let now_micros = now.timestamp_micros();
+    if user_msg.id.is_empty() {
+        user_msg.id = crate::control::uuid::session_message_id();
+    }
+    if user_msg.role == data_proto::MessageRole::RoleUnspecified as i32 {
+        user_msg.role = data_proto::MessageRole::RoleUser as i32;
+    }
+    if user_msg.created_at == 0 {
+        user_msg.created_at = now_micros;
+    }
+    for (index, part) in user_msg.parts.iter_mut().enumerate() {
+        if part.id.is_empty() {
+            part.id = format!("{index:06}");
+        }
+        if part.created_at == 0 {
+            part.created_at = user_msg.created_at;
+        }
+    }
+
+    let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
+    kv.set_msg(&message_key, &user_msg).await?;
+    let message_id = user_msg.id.clone();
+    if let Err(error) = crate::control::search::publish_index_event(
+        pubsub,
+        events::IndexEvent {
+            operation: events::IndexOperation::Upsert as i32,
+            key: message_key.canonical(),
+            ..Default::default()
+        },
+    )
+    .await
+    {
+        tracing::warn!(
+            error = %error,
+            namespace = %ns,
+            agent = %agent,
+            session_id = %session_id,
+            message_id = %message_id,
+            "failed to publish search index event for queued session message"
+        );
+    }
+
+    let submission_id = crate::control::uuid::session_submission_id();
+    let submission = crate::harness::sessions::pending_submission(
+        submission_id.clone(),
+        session_id.to_string(),
+        message_id.clone(),
+        now_micros,
+    );
+    crate::harness::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission)
+        .await?;
+
+    Ok(events::SessionMessageEvent {
+        session_id: session_id.to_string(),
+        message_id: message_id.clone(),
+        direction: events::MessageDirection::Inbound as i32,
+        timestamp: now_micros,
+        agent: agent.to_string(),
+        message: session_message_text_projection(&user_msg),
+        ns: ns.to_string(),
+        submission_id,
+    })
+}
+
 pub async fn send_session_message(
     kv: &dyn KeyValueStore,
     pubsub: &dyn MessagePublisher,

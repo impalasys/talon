@@ -40,6 +40,7 @@ pub struct StoredObject {
 pub struct SignedObjectUrl {
     pub url: String,
     pub expires_at_unix_seconds: i64,
+    pub required_headers: HashMap<String, String>,
 }
 
 #[async_trait]
@@ -56,6 +57,14 @@ pub trait ObjectStore: Send + Sync {
     async fn signed_get_url(
         &self,
         _key: &str,
+        _expires_in: Duration,
+    ) -> Result<Option<SignedObjectUrl>> {
+        Ok(None)
+    }
+    async fn signed_put_url(
+        &self,
+        _key: &str,
+        _metadata: ObjectMetadata,
         _expires_in: Duration,
     ) -> Result<Option<SignedObjectUrl>> {
         Ok(None)
@@ -550,6 +559,57 @@ impl ObjectStore for S3ObjectStore {
         Ok(Some(SignedObjectUrl {
             url: presigned.uri().to_string(),
             expires_at_unix_seconds: signed_url_expiry(expires_in),
+            required_headers: HashMap::new(),
+        }))
+    }
+
+    async fn signed_put_url(
+        &self,
+        key: &str,
+        metadata: ObjectMetadata,
+        expires_in: Duration,
+    ) -> Result<Option<SignedObjectUrl>> {
+        let metadata = normalize_object_metadata(metadata);
+        let object_key = self.object_key(key)?;
+        let mut s3_metadata = metadata.metadata.clone();
+        if !metadata.media_type.is_empty() {
+            s3_metadata.insert("talon-media-type".to_string(), metadata.media_type.clone());
+        }
+        if !metadata.sha256.is_empty() {
+            s3_metadata.insert("talon-sha256".to_string(), metadata.sha256.clone());
+        }
+        if !metadata.filename.is_empty() {
+            s3_metadata.insert("talon-filename".to_string(), metadata.filename.clone());
+        }
+        if !metadata.content_encoding.is_empty() {
+            s3_metadata.insert(
+                "talon-content-encoding".to_string(),
+                metadata.content_encoding.clone(),
+            );
+        }
+        let mut required_headers = HashMap::new();
+        let mut request = self
+            .client
+            .put_object()
+            .bucket(&self.bucket)
+            .key(object_key)
+            .set_metadata(Some(s3_metadata.clone()));
+        if !metadata.media_type.is_empty() {
+            request = request.content_type(metadata.media_type.clone());
+            required_headers.insert("content-type".to_string(), metadata.media_type.clone());
+        }
+        for (key, value) in s3_metadata {
+            required_headers.insert(format!("x-amz-meta-{key}"), value);
+        }
+        let presigned = request
+            .presigned(aws_sdk_s3::presigning::PresigningConfig::expires_in(
+                expires_in,
+            )?)
+            .await?;
+        Ok(Some(SignedObjectUrl {
+            url: presigned.uri().to_string(),
+            expires_at_unix_seconds: signed_url_expiry(expires_in),
+            required_headers,
         }))
     }
 }
@@ -806,8 +866,8 @@ fn safe_relative_path(key: &str) -> Result<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::{
-        object_store_from_config, prefixed_key, GcsObjectStore, LocalObjectStore, ObjectMetadata,
-        ObjectStore, S3ObjectStore,
+        object_store_from_config, prefixed_key, GcsObjectStore, InMemoryObjectStore,
+        LocalObjectStore, ObjectMetadata, ObjectStore, S3ObjectStore,
     };
     use crate::control::config::proto::{
         object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
@@ -854,6 +914,22 @@ mod tests {
             .await
             .unwrap_err();
         assert!(err.to_string().contains("cannot contain '..'"));
+    }
+
+    #[tokio::test]
+    async fn unsupported_object_stores_return_no_signed_put_url() {
+        let store = InMemoryObjectStore::default();
+
+        let signed = store
+            .signed_put_url(
+                "cas/Tenant%3Aacme/files/file-1/sha",
+                ObjectMetadata::default(),
+                std::time::Duration::from_secs(60),
+            )
+            .await
+            .unwrap();
+
+        assert!(signed.is_none());
     }
 
     #[tokio::test]

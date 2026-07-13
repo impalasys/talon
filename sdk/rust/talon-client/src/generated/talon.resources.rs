@@ -740,6 +740,185 @@ pub struct DeploymentReplicaStatus {
     pub owned_json_pointers: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct File {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<FileSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<FileStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileSpec {
+    #[prost(string, tag = "1")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(enumeration = "FilePurpose", tag = "3")]
+    pub purpose: i32,
+    #[prost(enumeration = "FileIndexPolicy", tag = "4")]
+    pub index_policy: i32,
+    #[prost(enumeration = "FileRetention", tag = "5")]
+    pub retention: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileStatus {
+    #[prost(uint64, tag = "1")]
+    pub observed_generation: u64,
+    #[prost(string, tag = "2")]
+    pub phase: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(message, optional, tag = "4")]
+    pub object_ref: ::core::option::Option<FileObjectRef>,
+    #[prost(int64, tag = "5")]
+    pub updated_at: i64,
+    #[prost(message, optional, tag = "6")]
+    pub pending_upload: ::core::option::Option<PendingFileUpload>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileObjectRef {
+    #[prost(string, tag = "1")]
+    pub key: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub size_bytes: u64,
+    #[prost(string, tag = "4")]
+    pub sha256: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub filename: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "6")]
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PendingFileUpload {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub object_key: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub expected_size_bytes: u64,
+    #[prost(string, tag = "4")]
+    pub expected_sha256: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "5")]
+    pub required_headers: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(string, tag = "6")]
+    pub created_by_agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub created_by_session_id: ::prost::alloc::string::String,
+    #[prost(int64, tag = "8")]
+    pub expires_at: i64,
+    #[prost(int64, tag = "9")]
+    pub created_at: i64,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum FilePurpose {
+    /// No purpose has been set. Writers should choose a concrete purpose before
+    /// creating namespace-visible File resources.
+    Unspecified = 0,
+    /// Durable memory used for retrieval by agents, replacing legacy Knowledge.
+    Memory = 1,
+    /// Durable namespace-level artifact, usually promoted from a session Artifact
+    /// or created by privileged file APIs.
+    Artifact = 2,
+}
+impl FilePurpose {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "FILE_PURPOSE_UNSPECIFIED",
+            Self::Memory => "FILE_PURPOSE_MEMORY",
+            Self::Artifact => "FILE_PURPOSE_ARTIFACT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "FILE_PURPOSE_UNSPECIFIED" => Some(Self::Unspecified),
+            "FILE_PURPOSE_MEMORY" => Some(Self::Memory),
+            "FILE_PURPOSE_ARTIFACT" => Some(Self::Artifact),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum FileIndexPolicy {
+    /// No index policy has been set. Writers should choose NONE, SEARCH, or
+    /// RETRIEVAL explicitly.
+    Unspecified = 0,
+    /// Do not index this File's content.
+    None = 1,
+    /// Index this File in generic search, but not memory retrieval.
+    Search = 2,
+    /// Index this File for agent memory retrieval.
+    Retrieval = 3,
+}
+impl FileIndexPolicy {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "FILE_INDEX_POLICY_UNSPECIFIED",
+            Self::None => "FILE_INDEX_POLICY_NONE",
+            Self::Search => "FILE_INDEX_POLICY_SEARCH",
+            Self::Retrieval => "FILE_INDEX_POLICY_RETRIEVAL",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "FILE_INDEX_POLICY_UNSPECIFIED" => Some(Self::Unspecified),
+            "FILE_INDEX_POLICY_NONE" => Some(Self::None),
+            "FILE_INDEX_POLICY_SEARCH" => Some(Self::Search),
+            "FILE_INDEX_POLICY_RETRIEVAL" => Some(Self::Retrieval),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum FileRetention {
+    /// No retention policy has been set. Writers should choose a concrete policy
+    /// before creating namespace-visible File resources.
+    Unspecified = 0,
+    /// Retain until an authorized caller updates or deletes the File.
+    Retained = 1,
+}
+impl FileRetention {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "FILE_RETENTION_UNSPECIFIED",
+            Self::Retained => "FILE_RETENTION_RETAINED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "FILE_RETENTION_UNSPECIFIED" => Some(Self::Unspecified),
+            "FILE_RETENTION_RETAINED" => Some(Self::Retained),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SandboxClassSpec {
     #[prost(string, tag = "1")]
     pub provider: ::prost::alloc::string::String,
@@ -1284,7 +1463,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1332,6 +1511,8 @@ pub mod resource_spec {
         Worker(super::WorkerSpec),
         #[prost(message, tag = "60")]
         UsagePolicy(super::UsagePolicySpec),
+        #[prost(message, tag = "70")]
+        File(super::FileSpec),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceSpec),
     }
@@ -1340,7 +1521,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1388,6 +1569,8 @@ pub mod resource_status {
         Worker(super::WorkerStatus),
         #[prost(message, tag = "60")]
         UsagePolicy(super::UsagePolicyStatus),
+        #[prost(message, tag = "70")]
+        File(super::FileStatus),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceStatus),
     }

@@ -19,6 +19,8 @@ pub const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
 // do not drift into almost-the-same string literals.
 pub const METADATA_KIND: &str = "kind";
 pub const METADATA_KIND_TOOL_RESULT: &str = "tool_result";
+pub const METADATA_KIND_ARTIFACT: &str = "artifact";
+pub const METADATA_KIND_FILE: &str = "file";
 pub const METADATA_AGENT: &str = "agent";
 pub const METADATA_TOOL_CALL_ID: &str = "tool_call_id";
 pub const METADATA_TOOL_NAME: &str = "tool_name";
@@ -92,6 +94,163 @@ impl CasStore {
         identity: &SessionObjectIdentity,
     ) -> String {
         session_object_key(scope, identity)
+    }
+
+    pub async fn put_file(
+        &self,
+        namespace: &str,
+        file_uid: &str,
+        path: &str,
+        bytes: &[u8],
+        media_type: &str,
+    ) -> Result<data_proto::ObjectRef> {
+        let sha = sha256_hex(bytes);
+        let key = file_object_key(namespace, file_uid, &sha);
+        let metadata = HashMap::from([
+            (METADATA_KIND.to_string(), METADATA_KIND_FILE.to_string()),
+            ("namespace".to_string(), namespace.to_string()),
+            ("file_uid".to_string(), file_uid.to_string()),
+            ("path".to_string(), path.to_string()),
+        ]);
+        self.objects
+            .put(
+                &key,
+                bytes,
+                ObjectMetadata {
+                    media_type: media_type.to_string(),
+                    size_bytes: bytes.len() as u64,
+                    sha256: sha,
+                    filename: filename_for_path(path),
+                    content_encoding: String::new(),
+                    metadata,
+                },
+            )
+            .await
+    }
+
+    pub fn signed_file_object_metadata(
+        namespace: &str,
+        file_uid: &str,
+        path: &str,
+        media_type: &str,
+        sha: &str,
+        size_bytes: u64,
+    ) -> ObjectMetadata {
+        let metadata = HashMap::from([
+            (METADATA_KIND.to_string(), METADATA_KIND_FILE.to_string()),
+            ("namespace".to_string(), namespace.to_string()),
+            ("file_uid".to_string(), file_uid.to_string()),
+            ("path".to_string(), path.to_string()),
+        ]);
+        ObjectMetadata {
+            media_type: media_type.to_string(),
+            size_bytes,
+            sha256: sha.to_string(),
+            filename: filename_for_path(path),
+            content_encoding: String::new(),
+            metadata,
+        }
+    }
+
+    pub async fn signed_put_file_url(
+        &self,
+        namespace: &str,
+        file_uid: &str,
+        path: &str,
+        media_type: &str,
+        object_key_suffix: &str,
+        sha: &str,
+        size_bytes: u64,
+        expires_in: Duration,
+    ) -> Result<Option<crate::control::object_store::SignedObjectUrl>> {
+        let key = file_object_key(namespace, file_uid, object_key_suffix);
+        let metadata = Self::signed_file_object_metadata(
+            namespace, file_uid, path, media_type, sha, size_bytes,
+        );
+        self.objects
+            .signed_put_url(&key, metadata, expires_in)
+            .await
+    }
+
+    pub async fn put_latest_file(
+        &self,
+        namespace: &str,
+        path: &str,
+        bytes: &[u8],
+        media_type: &str,
+    ) -> Result<data_proto::ObjectRef> {
+        let key = latest_file_object_key(namespace, path);
+        let metadata = HashMap::from([
+            (METADATA_KIND.to_string(), METADATA_KIND_FILE.to_string()),
+            ("namespace".to_string(), namespace.to_string()),
+            ("path".to_string(), path.to_string()),
+            ("latest".to_string(), "true".to_string()),
+        ]);
+        self.objects
+            .put(
+                &key,
+                bytes,
+                ObjectMetadata {
+                    media_type: media_type.to_string(),
+                    size_bytes: bytes.len() as u64,
+                    sha256: sha256_hex(bytes),
+                    filename: filename_for_path(path),
+                    content_encoding: String::new(),
+                    metadata,
+                },
+            )
+            .await
+    }
+
+    pub async fn put_artifact(
+        &self,
+        namespace: &str,
+        agent: &str,
+        session_id: &str,
+        artifact_uid: &str,
+        bytes: &[u8],
+        media_type: &str,
+        mut metadata: HashMap<String, String>,
+    ) -> Result<data_proto::ObjectRef> {
+        let sha = sha256_hex(bytes);
+        let key = artifact_object_key(namespace, artifact_uid, &sha);
+        metadata.insert(
+            METADATA_KIND.to_string(),
+            METADATA_KIND_ARTIFACT.to_string(),
+        );
+        metadata.insert("namespace".to_string(), namespace.to_string());
+        metadata.insert("artifact_id".to_string(), artifact_uid.to_string());
+        metadata.insert(METADATA_AGENT.to_string(), agent.to_string());
+        metadata.insert("session_id".to_string(), session_id.to_string());
+        self.objects
+            .put(
+                &key,
+                bytes,
+                ObjectMetadata {
+                    media_type: media_type.to_string(),
+                    size_bytes: bytes.len() as u64,
+                    sha256: sha,
+                    filename: String::new(),
+                    content_encoding: String::new(),
+                    metadata,
+                },
+            )
+            .await
+    }
+
+    /// Load caller-defined content as logical bytes.
+    ///
+    /// This decodes any CAS-managed content encoding for internal callers.
+    pub async fn get_object_decoded(&self, key: &str) -> Result<Option<StoredObject>> {
+        self.objects
+            .get(key)
+            .await?
+            .map(|object| decode_stored_object(object, key))
+            .transpose()
+    }
+
+    pub async fn delete_object(&self, key: &str) -> Result<()> {
+        self.objects.delete(key).await
     }
 
     /// Store a tool result under the canonical session/message/part CAS path.
@@ -260,6 +419,32 @@ pub fn session_object_key_prefix(scope: &SessionCasScope) -> String {
         "cas/{}/sessions/{}/",
         encoded_object_key_segment(&scope.ns),
         object_key_segment(&scope.session_id)
+    )
+}
+
+pub fn file_object_key(namespace: &str, file_uid: &str, sha: &str) -> String {
+    format!(
+        "cas/{}/files/{}/{}",
+        encoded_object_key_segment(namespace),
+        object_key_segment(file_uid),
+        object_key_segment(sha)
+    )
+}
+
+pub fn artifact_object_key(namespace: &str, artifact_uid: &str, sha: &str) -> String {
+    format!(
+        "cas/{}/artifacts/{}/{}",
+        encoded_object_key_segment(namespace),
+        object_key_segment(artifact_uid),
+        object_key_segment(sha)
+    )
+}
+
+pub fn latest_file_object_key(namespace: &str, path: &str) -> String {
+    format!(
+        "latest/{}/files/{}",
+        encoded_object_key_segment(namespace),
+        path.trim_start_matches('/')
     )
 }
 
@@ -437,10 +622,9 @@ fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static
     }
     let gzipped = gzip(raw_bytes)?;
     if compression_saves_meaningfully(raw_bytes.len(), gzipped.len()) {
-        Ok((gzipped, Some(CONTENT_ENCODING_GZIP)))
-    } else {
-        Ok((raw_bytes.to_vec(), None))
+        return Ok((gzipped, Some(CONTENT_ENCODING_GZIP)));
     }
+    Ok((raw_bytes.to_vec(), None))
 }
 
 fn tool_result_logical_bytes(raw_bytes: &[u8]) -> Cow<'_, [u8]> {
@@ -518,6 +702,25 @@ fn object_key_segment(value: &str) -> String {
         .collect()
 }
 
+fn filename_for_path(path: &str) -> String {
+    path.trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .filter(|value| !value.is_empty())
+        .map(|name| {
+            name.chars()
+                .map(|ch| {
+                    if ch.is_ascii_alphanumeric() || matches!(ch, '.' | '_' | '-') {
+                        ch.to_ascii_lowercase()
+                    } else {
+                        '_'
+                    }
+                })
+                .collect()
+        })
+        .unwrap_or_else(|| "file".to_string())
+}
+
 fn sha256_hex(bytes: &[u8]) -> String {
     use std::fmt::Write as _;
 
@@ -534,8 +737,9 @@ mod tests {
     use super::{
         parse_session_object_key, CasStore, SessionCasScope, SessionObjectIdentity,
         CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD, MAX_LOGICAL_OBJECT_BYTES,
-        MAX_TOOL_RESULT_LOGICAL_BYTES, METADATA_AGENT, METADATA_CONTENT_ENCODING,
-        METADATA_UNCOMPRESSED_SIZE_BYTES, TOOL_RESULT_TRUNCATION_MARKER,
+        MAX_TOOL_RESULT_LOGICAL_BYTES, METADATA_AGENT, METADATA_CONTENT_ENCODING, METADATA_KIND,
+        METADATA_KIND_ARTIFACT, METADATA_KIND_FILE, METADATA_UNCOMPRESSED_SIZE_BYTES,
+        TOOL_RESULT_TRUNCATION_MARKER,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use flate2::{write::GzEncoder, Compression};
@@ -646,6 +850,69 @@ mod tests {
             .unwrap();
         assert_eq!(scope, writer);
         assert_eq!(stored.bytes, b"hello");
+    }
+
+    #[tokio::test]
+    async fn stores_file_objects_with_canonical_key_and_metadata() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects);
+        let object = store
+            .put_file(
+                "Tenant:acme:Workspace:main",
+                "file-1",
+                "/memory/brand guide.md",
+                b"draft body",
+                "text/markdown",
+            )
+            .await
+            .unwrap();
+
+        assert!(object
+            .key
+            .starts_with("cas/Tenant%3Aacme%3AWorkspace%3Amain/files/file-1/"));
+        assert_eq!(object.media_type, "text/markdown");
+        assert_eq!(object.filename, "brand_guide.md");
+        assert_eq!(object.metadata[METADATA_KIND], METADATA_KIND_FILE);
+        assert_eq!(object.metadata["namespace"], "Tenant:acme:Workspace:main");
+        assert_eq!(object.metadata["file_uid"], "file-1");
+        assert_eq!(object.metadata["path"], "/memory/brand guide.md");
+
+        let stored = store
+            .get_object_decoded(&object.key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(stored.bytes, b"draft body");
+        assert_eq!(stored.metadata.sha256, object.sha256);
+    }
+
+    #[tokio::test]
+    async fn stores_artifact_objects_with_session_ownership_metadata() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects);
+        let object = store
+            .put_artifact(
+                "Tenant:acme:Workspace:main",
+                "writer",
+                "session-1",
+                "artifact-1",
+                b"draft body",
+                "text/markdown",
+                std::collections::HashMap::from([("source".to_string(), "tool".to_string())]),
+            )
+            .await
+            .unwrap();
+
+        assert!(object
+            .key
+            .starts_with("cas/Tenant%3Aacme%3AWorkspace%3Amain/artifacts/artifact-1/"));
+        assert_eq!(object.filename, "");
+        assert_eq!(object.metadata[METADATA_KIND], METADATA_KIND_ARTIFACT);
+        assert_eq!(object.metadata[METADATA_AGENT], "writer");
+        assert_eq!(object.metadata["namespace"], "Tenant:acme:Workspace:main");
+        assert_eq!(object.metadata["session_id"], "session-1");
+        assert_eq!(object.metadata["artifact_id"], "artifact-1");
+        assert_eq!(object.metadata["source"], "tool");
     }
 
     #[tokio::test]

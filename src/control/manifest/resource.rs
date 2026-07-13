@@ -197,7 +197,10 @@ pub fn parse_resource_manifest(yaml: &str) -> Result<resources_proto::ResourceMa
     })
 }
 
-fn validate_mcp_server_namespace(kind: &str, metadata: &resources_proto::ResourceMeta) -> Result<()> {
+fn validate_mcp_server_namespace(
+    kind: &str,
+    metadata: &resources_proto::ResourceMeta,
+) -> Result<()> {
     if kind == "McpServerBinding" {
         bail!("McpServerBinding manifests are unsupported; use namespaced McpServer");
     }
@@ -295,10 +298,15 @@ pub fn resource_spec_status_from_json(
             kind: Some(SpecKind::UsagePolicy(serde_json::from_value(spec_value)?)),
         },
         "ConnectorClass" => resources_proto::ResourceSpec {
-            kind: Some(SpecKind::ConnectorClass(serde_json::from_value(spec_value)?)),
+            kind: Some(SpecKind::ConnectorClass(serde_json::from_value(
+                spec_value,
+            )?)),
         },
         "Connector" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Connector(serde_json::from_value(spec_value)?)),
+        },
+        "File" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::File(serde_json::from_value(spec_value)?)),
         },
         "Skill" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Skill(skill_spec_from_value(spec_value)?)),
@@ -364,7 +372,9 @@ pub fn resource_spec_status_from_json(
             kind: Some(StatusKind::Skill(common_status_from_value(status_value)?)),
         },
         "UsagePolicy" => resources_proto::ResourceStatus {
-            kind: Some(StatusKind::UsagePolicy(serde_json::from_value(status_value)?)),
+            kind: Some(StatusKind::UsagePolicy(serde_json::from_value(
+                status_value,
+            )?)),
         },
         "ConnectorClass" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::ConnectorClass(serde_json::from_value(
@@ -373,6 +383,9 @@ pub fn resource_spec_status_from_json(
         },
         "Connector" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Connector(serde_json::from_value(status_value)?)),
+        },
+        "File" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::File(serde_json::from_value(status_value)?)),
         },
         "Worker" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::Worker(worker_status_from_value(status_value)?)),
@@ -406,7 +419,9 @@ fn resource_spec_status_to_yaml_values(
             "metadata": spec.metadata.as_ref().map(ObjectMetaManifest::from_resource_meta),
             "spec": json_string_to_json_value(&spec.spec_json)?,
         }))?,
-        Some(SpecKind::Workflow(spec)) => serde_json::to_string(&WorkflowSpecManifest::from_proto(spec)?)?,
+        Some(SpecKind::Workflow(spec)) => {
+            serde_json::to_string(&WorkflowSpecManifest::from_proto(spec)?)?
+        }
         Some(SpecKind::Deployment(spec)) => serde_json::to_string(&serde_json::json!({
             "placement": {
                 "namespaceSelector": spec.placement.as_ref().and_then(|p| p.namespace_selector.as_ref()).map(|selector| serde_json::json!({
@@ -438,6 +453,7 @@ fn resource_spec_status_to_yaml_values(
         Some(SpecKind::UsagePolicy(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::ConnectorClass(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Connector(spec)) => serde_json::to_string(spec)?,
+        Some(SpecKind::File(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::McpServer(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
             "description": spec.description,
@@ -578,6 +594,7 @@ fn resource_spec_status_to_yaml_values(
         Some(StatusKind::UsagePolicy(status)) => serde_json::to_string(status)?,
         Some(StatusKind::ConnectorClass(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Connector(status)) => serde_json::to_string(status)?,
+        Some(StatusKind::File(status)) => serde_json::to_string(status)?,
         Some(StatusKind::Raw(raw)) => raw.json.clone(),
         _ => "{}".to_string(),
     };
@@ -634,7 +651,9 @@ fn skill_spec_from_value(value: serde_json::Value) -> Result<resources_proto::Sk
 }
 
 fn worker_spec_from_value(value: serde_json::Value) -> Result<resources_proto::WorkerSpec> {
-    Ok(serde_json::from_value::<resources_proto::WorkerSpec>(value)?)
+    Ok(serde_json::from_value::<resources_proto::WorkerSpec>(
+        value,
+    )?)
 }
 
 fn validate_acp_permission_policy_manifest(spec: &resources_proto::AgentSpec) -> Result<()> {

@@ -7,6 +7,7 @@ import "proto/resources/channels.proto";
 import "proto/resources/common.proto";
 import "proto/resources/connectors.proto";
 import "proto/resources/deployments.proto";
+import "proto/resources/files.proto";
 import "proto/resources/knowledge.proto";
 import "proto/resources/mcp.proto";
 import "proto/resources/namespaces.proto";
@@ -66,6 +67,7 @@ message ResourceSpec {
     SandboxSpec sandbox = 42;
     WorkerSpec worker = 50;
     UsagePolicySpec usage_policy = 60;
+    FileSpec file = 70;
     RawResourceSpec raw = 1000;
   }
 }
@@ -95,6 +97,7 @@ message ResourceStatus {
     SandboxStatus sandbox = 42;
     WorkerStatus worker = 50;
     UsagePolicyStatus usage_policy = 60;
+    FileStatus file = 70;
     RawResourceStatus raw = 1000;
   }
 }

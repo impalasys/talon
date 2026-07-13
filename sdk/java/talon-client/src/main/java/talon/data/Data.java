@@ -1870,6 +1870,3986 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface ArtifactOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.Artifact)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Stable artifact id unique within the namespace/session artifact store.
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <pre>
+     * Stable artifact id unique within the namespace/session artifact store.
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <pre>
+     * Session that owns the artifact lifecycle and cleanup policy.
+     * </pre>
+     *
+     * <code>string session_id = 2;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <pre>
+     * Session that owns the artifact lifecycle and cleanup policy.
+     * </pre>
+     *
+     * <code>string session_id = 2;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <pre>
+     * Human-readable label suitable for UI display.
+     * </pre>
+     *
+     * <code>string title = 3;</code>
+     * @return The title.
+     */
+    java.lang.String getTitle();
+    /**
+     * <pre>
+     * Human-readable label suitable for UI display.
+     * </pre>
+     *
+     * <code>string title = 3;</code>
+     * @return The bytes for title.
+     */
+    com.google.protobuf.ByteString
+        getTitleBytes();
+
+    /**
+     * <pre>
+     * Media type of the artifact content, for example text/markdown.
+     * </pre>
+     *
+     * <code>string media_type = 5;</code>
+     * @return The mediaType.
+     */
+    java.lang.String getMediaType();
+    /**
+     * <pre>
+     * Media type of the artifact content, for example text/markdown.
+     * </pre>
+     *
+     * <code>string media_type = 5;</code>
+     * @return The bytes for mediaType.
+     */
+    com.google.protobuf.ByteString
+        getMediaTypeBytes();
+
+    /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object_ref = 6;</code>
+     * @return Whether the objectRef field is set.
+     */
+    boolean hasObjectRef();
+    /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object_ref = 6;</code>
+     * @return The objectRef.
+     */
+    talon.data.Data.ObjectRef getObjectRef();
+    /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object_ref = 6;</code>
+     */
+    talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder();
+
+    /**
+     * <pre>
+     * Agent name that created the artifact.
+     * </pre>
+     *
+     * <code>string created_by_agent = 7;</code>
+     * @return The createdByAgent.
+     */
+    java.lang.String getCreatedByAgent();
+    /**
+     * <pre>
+     * Agent name that created the artifact.
+     * </pre>
+     *
+     * <code>string created_by_agent = 7;</code>
+     * @return The bytes for createdByAgent.
+     */
+    com.google.protobuf.ByteString
+        getCreatedByAgentBytes();
+
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the artifact record was created.
+     * </pre>
+     *
+     * <code>int64 created_at = 8;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    int getLabelsCount();
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    boolean containsLabels(
+        java.lang.String key);
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabels();
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabelsMap();
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    java.lang.String getLabelsOrThrow(
+        java.lang.String key);
+
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    int getMetadataCount();
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    boolean containsMetadata(
+        java.lang.String key);
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadata();
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getMetadataMap();
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    java.lang.String getMetadataOrThrow(
+        java.lang.String key);
+  }
+  /**
+   * <pre>
+   * Session-scoped immutable output produced by an agent.
+   *
+   * Artifacts are not namespace-level File resources. They live under the
+   * owning session/run, are referenced by artifact:// URIs, and are not indexed
+   * directly. Promoting an Artifact to a durable File copies its bytes into
+   * File-owned CAS storage and creates or updates a File resource.
+   * </pre>
+   *
+   * Protobuf type {@code talon.data.Artifact}
+   */
+  public static final class Artifact extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.Artifact)
+      ArtifactOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Artifact");
+    }
+    // Use Artifact.newBuilder() to construct.
+    private Artifact(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Artifact() {
+      id_ = "";
+      sessionId_ = "";
+      title_ = "";
+      mediaType_ = "";
+      createdByAgent_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Data.internal_static_talon_data_Artifact_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Data.internal_static_talon_data_Artifact_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 9:
+          return internalGetLabels();
+        case 10:
+          return internalGetMetadata();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Data.internal_static_talon_data_Artifact_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Data.Artifact.class, talon.data.Data.Artifact.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <pre>
+     * Stable artifact id unique within the namespace/session artifact store.
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Stable artifact id unique within the namespace/session artifact store.
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <pre>
+     * Session that owns the artifact lifecycle and cleanup policy.
+     * </pre>
+     *
+     * <code>string session_id = 2;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Session that owns the artifact lifecycle and cleanup policy.
+     * </pre>
+     *
+     * <code>string session_id = 2;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TITLE_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object title_ = "";
+    /**
+     * <pre>
+     * Human-readable label suitable for UI display.
+     * </pre>
+     *
+     * <code>string title = 3;</code>
+     * @return The title.
+     */
+    @java.lang.Override
+    public java.lang.String getTitle() {
+      java.lang.Object ref = title_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        title_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Human-readable label suitable for UI display.
+     * </pre>
+     *
+     * <code>string title = 3;</code>
+     * @return The bytes for title.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTitleBytes() {
+      java.lang.Object ref = title_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        title_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MEDIA_TYPE_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object mediaType_ = "";
+    /**
+     * <pre>
+     * Media type of the artifact content, for example text/markdown.
+     * </pre>
+     *
+     * <code>string media_type = 5;</code>
+     * @return The mediaType.
+     */
+    @java.lang.Override
+    public java.lang.String getMediaType() {
+      java.lang.Object ref = mediaType_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        mediaType_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Media type of the artifact content, for example text/markdown.
+     * </pre>
+     *
+     * <code>string media_type = 5;</code>
+     * @return The bytes for mediaType.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMediaTypeBytes() {
+      java.lang.Object ref = mediaType_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        mediaType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OBJECT_REF_FIELD_NUMBER = 6;
+    private talon.data.Data.ObjectRef objectRef_;
+    /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object_ref = 6;</code>
+     * @return Whether the objectRef field is set.
+     */
+    @java.lang.Override
+    public boolean hasObjectRef() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object_ref = 6;</code>
+     * @return The objectRef.
+     */
+    @java.lang.Override
+    public talon.data.Data.ObjectRef getObjectRef() {
+      return objectRef_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : objectRef_;
+    }
+    /**
+     * <pre>
+     * Authoritative CAS/object reference for immutable artifact bytes.
+     * </pre>
+     *
+     * <code>.talon.data.ObjectRef object_ref = 6;</code>
+     */
+    @java.lang.Override
+    public talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder() {
+      return objectRef_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : objectRef_;
+    }
+
+    public static final int CREATED_BY_AGENT_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object createdByAgent_ = "";
+    /**
+     * <pre>
+     * Agent name that created the artifact.
+     * </pre>
+     *
+     * <code>string created_by_agent = 7;</code>
+     * @return The createdByAgent.
+     */
+    @java.lang.Override
+    public java.lang.String getCreatedByAgent() {
+      java.lang.Object ref = createdByAgent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        createdByAgent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Agent name that created the artifact.
+     * </pre>
+     *
+     * <code>string created_by_agent = 7;</code>
+     * @return The bytes for createdByAgent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getCreatedByAgentBytes() {
+      java.lang.Object ref = createdByAgent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        createdByAgent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 8;
+    private long createdAt_ = 0L;
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the artifact record was created.
+     * </pre>
+     *
+     * <code>int64 created_at = 8;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    public static final int LABELS_FIELD_NUMBER = 9;
+    private static final class LabelsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.data.Data.internal_static_talon_data_Artifact_LabelsEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> labels_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetLabels() {
+      if (labels_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            LabelsDefaultEntryHolder.defaultEntry);
+      }
+      return labels_;
+    }
+    public int getLabelsCount() {
+      return internalGetLabels().getMap().size();
+    }
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    @java.lang.Override
+    public boolean containsLabels(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetLabels().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+      return getLabelsMap();
+    }
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+      return internalGetLabels().getMap();
+    }
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Query/display labels copied from the creating tool or runtime.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; labels = 9;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getLabelsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int METADATA_FIELD_NUMBER = 10;
+    private static final class MetadataDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.data.Data.internal_static_talon_data_Artifact_MetadataEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> metadata_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetMetadata() {
+      if (metadata_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            MetadataDefaultEntryHolder.defaultEntry);
+      }
+      return metadata_;
+    }
+    public int getMetadataCount() {
+      return internalGetMetadata().getMap().size();
+    }
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    @java.lang.Override
+    public boolean containsMetadata(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetMetadata().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getMetadataMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+      return getMetadataMap();
+    }
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+      return internalGetMetadata().getMap();
+    }
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getMetadataOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     * Non-indexed, caller-defined metadata about the artifact.
+     * </pre>
+     *
+     * <code>map&lt;string, string&gt; metadata = 10;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getMetadataOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetMetadata().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(title_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, title_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, mediaType_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(6, getObjectRef());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(createdByAgent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, createdByAgent_);
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(8, createdAt_);
+      }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetLabels(),
+          LabelsDefaultEntryHolder.defaultEntry,
+          9);
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetMetadata(),
+          MetadataDefaultEntryHolder.defaultEntry,
+          10);
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(title_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, title_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, mediaType_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, getObjectRef());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(createdByAgent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, createdByAgent_);
+      }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(8, createdAt_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetLabels().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(9, labels__);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetMetadata().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        metadata__ = MetadataDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(10, metadata__);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Data.Artifact)) {
+        return super.equals(obj);
+      }
+      talon.data.Data.Artifact other = (talon.data.Data.Artifact) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getTitle()
+          .equals(other.getTitle())) return false;
+      if (!getMediaType()
+          .equals(other.getMediaType())) return false;
+      if (hasObjectRef() != other.hasObjectRef()) return false;
+      if (hasObjectRef()) {
+        if (!getObjectRef()
+            .equals(other.getObjectRef())) return false;
+      }
+      if (!getCreatedByAgent()
+          .equals(other.getCreatedByAgent())) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (!internalGetLabels().equals(
+          other.internalGetLabels())) return false;
+      if (!internalGetMetadata().equals(
+          other.internalGetMetadata())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + TITLE_FIELD_NUMBER;
+      hash = (53 * hash) + getTitle().hashCode();
+      hash = (37 * hash) + MEDIA_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getMediaType().hashCode();
+      if (hasObjectRef()) {
+        hash = (37 * hash) + OBJECT_REF_FIELD_NUMBER;
+        hash = (53 * hash) + getObjectRef().hashCode();
+      }
+      hash = (37 * hash) + CREATED_BY_AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getCreatedByAgent().hashCode();
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      if (!internalGetLabels().getMap().isEmpty()) {
+        hash = (37 * hash) + LABELS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetLabels().hashCode();
+      }
+      if (!internalGetMetadata().getMap().isEmpty()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetMetadata().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Data.Artifact parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Artifact parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Artifact parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Artifact parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Artifact parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.Artifact parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.Artifact parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.Artifact parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Data.Artifact parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Data.Artifact parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Data.Artifact parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.Artifact parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Data.Artifact prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Session-scoped immutable output produced by an agent.
+     *
+     * Artifacts are not namespace-level File resources. They live under the
+     * owning session/run, are referenced by artifact:// URIs, and are not indexed
+     * directly. Promoting an Artifact to a durable File copies its bytes into
+     * File-owned CAS storage and creates or updates a File resource.
+     * </pre>
+     *
+     * Protobuf type {@code talon.data.Artifact}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.Artifact)
+        talon.data.Data.ArtifactOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Data.internal_static_talon_data_Artifact_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 9:
+            return internalGetLabels();
+          case 10:
+            return internalGetMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 9:
+            return internalGetMutableLabels();
+          case 10:
+            return internalGetMutableMetadata();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Data.internal_static_talon_data_Artifact_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Data.Artifact.class, talon.data.Data.Artifact.Builder.class);
+      }
+
+      // Construct using talon.data.Data.Artifact.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetObjectRefFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        sessionId_ = "";
+        title_ = "";
+        mediaType_ = "";
+        objectRef_ = null;
+        if (objectRefBuilder_ != null) {
+          objectRefBuilder_.dispose();
+          objectRefBuilder_ = null;
+        }
+        createdByAgent_ = "";
+        createdAt_ = 0L;
+        internalGetMutableLabels().clear();
+        internalGetMutableMetadata().clear();
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Data.internal_static_talon_data_Artifact_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Artifact getDefaultInstanceForType() {
+        return talon.data.Data.Artifact.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Artifact build() {
+        talon.data.Data.Artifact result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.Artifact buildPartial() {
+        talon.data.Data.Artifact result = new talon.data.Data.Artifact(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Data.Artifact result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.title_ = title_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.mediaType_ = mediaType_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.objectRef_ = objectRefBuilder_ == null
+              ? objectRef_
+              : objectRefBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.createdByAgent_ = createdByAgent_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.labels_ = internalGetLabels();
+          result.labels_.makeImmutable();
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.metadata_ = internalGetMetadata();
+          result.metadata_.makeImmutable();
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Data.Artifact) {
+          return mergeFrom((talon.data.Data.Artifact)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Data.Artifact other) {
+        if (other == talon.data.Data.Artifact.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getTitle().isEmpty()) {
+          title_ = other.title_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getMediaType().isEmpty()) {
+          mediaType_ = other.mediaType_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (other.hasObjectRef()) {
+          mergeObjectRef(other.getObjectRef());
+        }
+        if (!other.getCreatedByAgent().isEmpty()) {
+          createdByAgent_ = other.createdByAgent_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        internalGetMutableLabels().mergeFrom(
+            other.internalGetLabels());
+        bitField0_ |= 0x00000080;
+        internalGetMutableMetadata().mergeFrom(
+            other.internalGetMetadata());
+        bitField0_ |= 0x00000100;
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                title_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 42: {
+                mediaType_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 42
+              case 50: {
+                input.readMessage(
+                    internalGetObjectRefFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 50
+              case 58: {
+                createdByAgent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 58
+              case 64: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 64
+              case 74: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                labels__ = input.readMessage(
+                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableLabels().getMutableMap().put(
+                    labels__.getKey(), labels__.getValue());
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 74
+              case 82: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                metadata__ = input.readMessage(
+                    MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableMetadata().getMutableMap().put(
+                    metadata__.getKey(), metadata__.getValue());
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 82
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Stable artifact id unique within the namespace/session artifact store.
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
+       * <code>string session_id = 2;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
+       * <code>string session_id = 2;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
+       * <code>string session_id = 2;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
+       * <code>string session_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session that owns the artifact lifecycle and cleanup policy.
+       * </pre>
+       *
+       * <code>string session_id = 2;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object title_ = "";
+      /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
+       * <code>string title = 3;</code>
+       * @return The title.
+       */
+      public java.lang.String getTitle() {
+        java.lang.Object ref = title_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          title_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
+       * <code>string title = 3;</code>
+       * @return The bytes for title.
+       */
+      public com.google.protobuf.ByteString
+          getTitleBytes() {
+        java.lang.Object ref = title_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          title_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
+       * <code>string title = 3;</code>
+       * @param value The title to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTitle(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        title_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
+       * <code>string title = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTitle() {
+        title_ = getDefaultInstance().getTitle();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Human-readable label suitable for UI display.
+       * </pre>
+       *
+       * <code>string title = 3;</code>
+       * @param value The bytes for title to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTitleBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        title_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object mediaType_ = "";
+      /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
+       * <code>string media_type = 5;</code>
+       * @return The mediaType.
+       */
+      public java.lang.String getMediaType() {
+        java.lang.Object ref = mediaType_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          mediaType_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
+       * <code>string media_type = 5;</code>
+       * @return The bytes for mediaType.
+       */
+      public com.google.protobuf.ByteString
+          getMediaTypeBytes() {
+        java.lang.Object ref = mediaType_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          mediaType_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
+       * <code>string media_type = 5;</code>
+       * @param value The mediaType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMediaType(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        mediaType_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
+       * <code>string media_type = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMediaType() {
+        mediaType_ = getDefaultInstance().getMediaType();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Media type of the artifact content, for example text/markdown.
+       * </pre>
+       *
+       * <code>string media_type = 5;</code>
+       * @param value The bytes for mediaType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMediaTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        mediaType_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private talon.data.Data.ObjectRef objectRef_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> objectRefBuilder_;
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       * @return Whether the objectRef field is set.
+       */
+      public boolean hasObjectRef() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       * @return The objectRef.
+       */
+      public talon.data.Data.ObjectRef getObjectRef() {
+        if (objectRefBuilder_ == null) {
+          return objectRef_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : objectRef_;
+        } else {
+          return objectRefBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       */
+      public Builder setObjectRef(talon.data.Data.ObjectRef value) {
+        if (objectRefBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          objectRef_ = value;
+        } else {
+          objectRefBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       */
+      public Builder setObjectRef(
+          talon.data.Data.ObjectRef.Builder builderForValue) {
+        if (objectRefBuilder_ == null) {
+          objectRef_ = builderForValue.build();
+        } else {
+          objectRefBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       */
+      public Builder mergeObjectRef(talon.data.Data.ObjectRef value) {
+        if (objectRefBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+            objectRef_ != null &&
+            objectRef_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
+            getObjectRefBuilder().mergeFrom(value);
+          } else {
+            objectRef_ = value;
+          }
+        } else {
+          objectRefBuilder_.mergeFrom(value);
+        }
+        if (objectRef_ != null) {
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       */
+      public Builder clearObjectRef() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        objectRef_ = null;
+        if (objectRefBuilder_ != null) {
+          objectRefBuilder_.dispose();
+          objectRefBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       */
+      public talon.data.Data.ObjectRef.Builder getObjectRefBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return internalGetObjectRefFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       */
+      public talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder() {
+        if (objectRefBuilder_ != null) {
+          return objectRefBuilder_.getMessageOrBuilder();
+        } else {
+          return objectRef_ == null ?
+              talon.data.Data.ObjectRef.getDefaultInstance() : objectRef_;
+        }
+      }
+      /**
+       * <pre>
+       * Authoritative CAS/object reference for immutable artifact bytes.
+       * </pre>
+       *
+       * <code>.talon.data.ObjectRef object_ref = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>
+          internalGetObjectRefFieldBuilder() {
+        if (objectRefBuilder_ == null) {
+          objectRefBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>(
+                  getObjectRef(),
+                  getParentForChildren(),
+                  isClean());
+          objectRef_ = null;
+        }
+        return objectRefBuilder_;
+      }
+
+      private java.lang.Object createdByAgent_ = "";
+      /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
+       * <code>string created_by_agent = 7;</code>
+       * @return The createdByAgent.
+       */
+      public java.lang.String getCreatedByAgent() {
+        java.lang.Object ref = createdByAgent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          createdByAgent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
+       * <code>string created_by_agent = 7;</code>
+       * @return The bytes for createdByAgent.
+       */
+      public com.google.protobuf.ByteString
+          getCreatedByAgentBytes() {
+        java.lang.Object ref = createdByAgent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          createdByAgent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
+       * <code>string created_by_agent = 7;</code>
+       * @param value The createdByAgent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedByAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        createdByAgent_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
+       * <code>string created_by_agent = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedByAgent() {
+        createdByAgent_ = getDefaultInstance().getCreatedByAgent();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Agent name that created the artifact.
+       * </pre>
+       *
+       * <code>string created_by_agent = 7;</code>
+       * @param value The bytes for createdByAgent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedByAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        createdByAgent_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the artifact record was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 8;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the artifact record was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 8;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the artifact record was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> labels_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetLabels() {
+        if (labels_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        return labels_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableLabels() {
+        if (labels_ == null) {
+          labels_ = com.google.protobuf.MapField.newMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        if (!labels_.isMutable()) {
+          labels_ = labels_.copy();
+        }
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return labels_;
+      }
+      public int getLabelsCount() {
+        return internalGetLabels().getMap().size();
+      }
+      /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 9;</code>
+       */
+      @java.lang.Override
+      public boolean containsLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetLabels().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getLabelsMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+        return getLabelsMap();
+      }
+      /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 9;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+        return internalGetLabels().getMap();
+      }
+      /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 9;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getLabelsOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 9;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getLabelsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearLabels() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        internalGetMutableLabels().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 9;</code>
+       */
+      public Builder removeLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableLabels().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableLabels() {
+        bitField0_ |= 0x00000080;
+        return internalGetMutableLabels().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 9;</code>
+       */
+      public Builder putLabels(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableLabels().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <pre>
+       * Query/display labels copied from the creating tool or runtime.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; labels = 9;</code>
+       */
+      public Builder putAllLabels(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableLabels().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> metadata_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMetadata() {
+        if (metadata_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        return metadata_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableMetadata() {
+        if (metadata_ == null) {
+          metadata_ = com.google.protobuf.MapField.newMapField(
+              MetadataDefaultEntryHolder.defaultEntry);
+        }
+        if (!metadata_.isMutable()) {
+          metadata_ = metadata_.copy();
+        }
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return metadata_;
+      }
+      public int getMetadataCount() {
+        return internalGetMetadata().getMap().size();
+      }
+      /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 10;</code>
+       */
+      @java.lang.Override
+      public boolean containsMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetMetadata().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getMetadataMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
+        return getMetadataMap();
+      }
+      /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 10;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
+        return internalGetMetadata().getMap();
+      }
+      /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 10;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getMetadataOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 10;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getMetadataOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetMetadata().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        internalGetMutableMetadata().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 10;</code>
+       */
+      public Builder removeMetadata(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableMetadata().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableMetadata() {
+        bitField0_ |= 0x00000100;
+        return internalGetMutableMetadata().getMutableMap();
+      }
+      /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 10;</code>
+       */
+      public Builder putMetadata(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableMetadata().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00000100;
+        return this;
+      }
+      /**
+       * <pre>
+       * Non-indexed, caller-defined metadata about the artifact.
+       * </pre>
+       *
+       * <code>map&lt;string, string&gt; metadata = 10;</code>
+       */
+      public Builder putAllMetadata(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableMetadata().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00000100;
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.Artifact)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.Artifact)
+    private static final talon.data.Data.Artifact DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Data.Artifact();
+    }
+
+    public static talon.data.Data.Artifact getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Artifact>
+        PARSER = new com.google.protobuf.AbstractParser<Artifact>() {
+      @java.lang.Override
+      public Artifact parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Artifact> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Artifact> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Data.Artifact getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ArtifactAccessOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.ArtifactAccess)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Agent that may access the artifact.
+     * </pre>
+     *
+     * <code>string target_agent = 1;</code>
+     * @return The targetAgent.
+     */
+    java.lang.String getTargetAgent();
+    /**
+     * <pre>
+     * Agent that may access the artifact.
+     * </pre>
+     *
+     * <code>string target_agent = 1;</code>
+     * @return The bytes for targetAgent.
+     */
+    com.google.protobuf.ByteString
+        getTargetAgentBytes();
+
+    /**
+     * <pre>
+     * Session that may access the artifact.
+     * </pre>
+     *
+     * <code>string target_session_id = 2;</code>
+     * @return The targetSessionId.
+     */
+    java.lang.String getTargetSessionId();
+    /**
+     * <pre>
+     * Session that may access the artifact.
+     * </pre>
+     *
+     * <code>string target_session_id = 2;</code>
+     * @return The bytes for targetSessionId.
+     */
+    com.google.protobuf.ByteString
+        getTargetSessionIdBytes();
+
+    /**
+     * <pre>
+     * Allowed operations, such as read, metadata, or promote.
+     * </pre>
+     *
+     * <code>repeated string operations = 3;</code>
+     * @return A list containing the operations.
+     */
+    java.util.List<java.lang.String>
+        getOperationsList();
+    /**
+     * <pre>
+     * Allowed operations, such as read, metadata, or promote.
+     * </pre>
+     *
+     * <code>repeated string operations = 3;</code>
+     * @return The count of operations.
+     */
+    int getOperationsCount();
+    /**
+     * <pre>
+     * Allowed operations, such as read, metadata, or promote.
+     * </pre>
+     *
+     * <code>repeated string operations = 3;</code>
+     * @param index The index of the element to return.
+     * @return The operations at the given index.
+     */
+    java.lang.String getOperations(int index);
+    /**
+     * <pre>
+     * Allowed operations, such as read, metadata, or promote.
+     * </pre>
+     *
+     * <code>repeated string operations = 3;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the operations at the given index.
+     */
+    com.google.protobuf.ByteString
+        getOperationsBytes(int index);
+
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when access expires. Zero means unset.
+     * </pre>
+     *
+     * <code>int64 expires_at = 4;</code>
+     * @return The expiresAt.
+     */
+    long getExpiresAt();
+
+    /**
+     * <pre>
+     * Agent that granted access.
+     * </pre>
+     *
+     * <code>string granted_by_agent = 5;</code>
+     * @return The grantedByAgent.
+     */
+    java.lang.String getGrantedByAgent();
+    /**
+     * <pre>
+     * Agent that granted access.
+     * </pre>
+     *
+     * <code>string granted_by_agent = 5;</code>
+     * @return The bytes for grantedByAgent.
+     */
+    com.google.protobuf.ByteString
+        getGrantedByAgentBytes();
+
+    /**
+     * <pre>
+     * Session that granted access.
+     * </pre>
+     *
+     * <code>string granted_by_session_id = 6;</code>
+     * @return The grantedBySessionId.
+     */
+    java.lang.String getGrantedBySessionId();
+    /**
+     * <pre>
+     * Session that granted access.
+     * </pre>
+     *
+     * <code>string granted_by_session_id = 6;</code>
+     * @return The bytes for grantedBySessionId.
+     */
+    com.google.protobuf.ByteString
+        getGrantedBySessionIdBytes();
+
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the access record was created.
+     * </pre>
+     *
+     * <code>int64 created_at = 7;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+  }
+  /**
+   * <pre>
+   * Target-local access record for an artifact URI.
+   *
+   * Artifact URIs are references, not bearer secrets. A caller can use an
+   * artifact:// URI only when it is the owning session or when an ArtifactAccess
+   * child record under that artifact grants the caller session the requested
+   * operation.
+   * </pre>
+   *
+   * Protobuf type {@code talon.data.ArtifactAccess}
+   */
+  public static final class ArtifactAccess extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.ArtifactAccess)
+      ArtifactAccessOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ArtifactAccess");
+    }
+    // Use ArtifactAccess.newBuilder() to construct.
+    private ArtifactAccess(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ArtifactAccess() {
+      targetAgent_ = "";
+      targetSessionId_ = "";
+      operations_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      grantedByAgent_ = "";
+      grantedBySessionId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Data.internal_static_talon_data_ArtifactAccess_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Data.internal_static_talon_data_ArtifactAccess_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Data.internal_static_talon_data_ArtifactAccess_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Data.ArtifactAccess.class, talon.data.Data.ArtifactAccess.Builder.class);
+    }
+
+    public static final int TARGET_AGENT_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object targetAgent_ = "";
+    /**
+     * <pre>
+     * Agent that may access the artifact.
+     * </pre>
+     *
+     * <code>string target_agent = 1;</code>
+     * @return The targetAgent.
+     */
+    @java.lang.Override
+    public java.lang.String getTargetAgent() {
+      java.lang.Object ref = targetAgent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        targetAgent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Agent that may access the artifact.
+     * </pre>
+     *
+     * <code>string target_agent = 1;</code>
+     * @return The bytes for targetAgent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTargetAgentBytes() {
+      java.lang.Object ref = targetAgent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        targetAgent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TARGET_SESSION_ID_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object targetSessionId_ = "";
+    /**
+     * <pre>
+     * Session that may access the artifact.
+     * </pre>
+     *
+     * <code>string target_session_id = 2;</code>
+     * @return The targetSessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getTargetSessionId() {
+      java.lang.Object ref = targetSessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        targetSessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Session that may access the artifact.
+     * </pre>
+     *
+     * <code>string target_session_id = 2;</code>
+     * @return The bytes for targetSessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTargetSessionIdBytes() {
+      java.lang.Object ref = targetSessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        targetSessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OPERATIONS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList operations_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <pre>
+     * Allowed operations, such as read, metadata, or promote.
+     * </pre>
+     *
+     * <code>repeated string operations = 3;</code>
+     * @return A list containing the operations.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getOperationsList() {
+      return operations_;
+    }
+    /**
+     * <pre>
+     * Allowed operations, such as read, metadata, or promote.
+     * </pre>
+     *
+     * <code>repeated string operations = 3;</code>
+     * @return The count of operations.
+     */
+    public int getOperationsCount() {
+      return operations_.size();
+    }
+    /**
+     * <pre>
+     * Allowed operations, such as read, metadata, or promote.
+     * </pre>
+     *
+     * <code>repeated string operations = 3;</code>
+     * @param index The index of the element to return.
+     * @return The operations at the given index.
+     */
+    public java.lang.String getOperations(int index) {
+      return operations_.get(index);
+    }
+    /**
+     * <pre>
+     * Allowed operations, such as read, metadata, or promote.
+     * </pre>
+     *
+     * <code>repeated string operations = 3;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the operations at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getOperationsBytes(int index) {
+      return operations_.getByteString(index);
+    }
+
+    public static final int EXPIRES_AT_FIELD_NUMBER = 4;
+    private long expiresAt_ = 0L;
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when access expires. Zero means unset.
+     * </pre>
+     *
+     * <code>int64 expires_at = 4;</code>
+     * @return The expiresAt.
+     */
+    @java.lang.Override
+    public long getExpiresAt() {
+      return expiresAt_;
+    }
+
+    public static final int GRANTED_BY_AGENT_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object grantedByAgent_ = "";
+    /**
+     * <pre>
+     * Agent that granted access.
+     * </pre>
+     *
+     * <code>string granted_by_agent = 5;</code>
+     * @return The grantedByAgent.
+     */
+    @java.lang.Override
+    public java.lang.String getGrantedByAgent() {
+      java.lang.Object ref = grantedByAgent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        grantedByAgent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Agent that granted access.
+     * </pre>
+     *
+     * <code>string granted_by_agent = 5;</code>
+     * @return The bytes for grantedByAgent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getGrantedByAgentBytes() {
+      java.lang.Object ref = grantedByAgent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        grantedByAgent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int GRANTED_BY_SESSION_ID_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object grantedBySessionId_ = "";
+    /**
+     * <pre>
+     * Session that granted access.
+     * </pre>
+     *
+     * <code>string granted_by_session_id = 6;</code>
+     * @return The grantedBySessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getGrantedBySessionId() {
+      java.lang.Object ref = grantedBySessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        grantedBySessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Session that granted access.
+     * </pre>
+     *
+     * <code>string granted_by_session_id = 6;</code>
+     * @return The bytes for grantedBySessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getGrantedBySessionIdBytes() {
+      java.lang.Object ref = grantedBySessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        grantedBySessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 7;
+    private long createdAt_ = 0L;
+    /**
+     * <pre>
+     * Unix timestamp in microseconds when the access record was created.
+     * </pre>
+     *
+     * <code>int64 created_at = 7;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(targetAgent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, targetAgent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(targetSessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, targetSessionId_);
+      }
+      for (int i = 0; i < operations_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, operations_.getRaw(i));
+      }
+      if (expiresAt_ != 0L) {
+        output.writeInt64(4, expiresAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(grantedByAgent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, grantedByAgent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(grantedBySessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, grantedBySessionId_);
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(7, createdAt_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(targetAgent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, targetAgent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(targetSessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, targetSessionId_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < operations_.size(); i++) {
+          dataSize += computeStringSizeNoTag(operations_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getOperationsList().size();
+      }
+      if (expiresAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, expiresAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(grantedByAgent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, grantedByAgent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(grantedBySessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, grantedBySessionId_);
+      }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(7, createdAt_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Data.ArtifactAccess)) {
+        return super.equals(obj);
+      }
+      talon.data.Data.ArtifactAccess other = (talon.data.Data.ArtifactAccess) obj;
+
+      if (!getTargetAgent()
+          .equals(other.getTargetAgent())) return false;
+      if (!getTargetSessionId()
+          .equals(other.getTargetSessionId())) return false;
+      if (!getOperationsList()
+          .equals(other.getOperationsList())) return false;
+      if (getExpiresAt()
+          != other.getExpiresAt()) return false;
+      if (!getGrantedByAgent()
+          .equals(other.getGrantedByAgent())) return false;
+      if (!getGrantedBySessionId()
+          .equals(other.getGrantedBySessionId())) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + TARGET_AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getTargetAgent().hashCode();
+      hash = (37 * hash) + TARGET_SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getTargetSessionId().hashCode();
+      if (getOperationsCount() > 0) {
+        hash = (37 * hash) + OPERATIONS_FIELD_NUMBER;
+        hash = (53 * hash) + getOperationsList().hashCode();
+      }
+      hash = (37 * hash) + EXPIRES_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getExpiresAt());
+      hash = (37 * hash) + GRANTED_BY_AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getGrantedByAgent().hashCode();
+      hash = (37 * hash) + GRANTED_BY_SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getGrantedBySessionId().hashCode();
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Data.ArtifactAccess parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Data.ArtifactAccess parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Data.ArtifactAccess parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.ArtifactAccess parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Data.ArtifactAccess prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Target-local access record for an artifact URI.
+     *
+     * Artifact URIs are references, not bearer secrets. A caller can use an
+     * artifact:// URI only when it is the owning session or when an ArtifactAccess
+     * child record under that artifact grants the caller session the requested
+     * operation.
+     * </pre>
+     *
+     * Protobuf type {@code talon.data.ArtifactAccess}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.ArtifactAccess)
+        talon.data.Data.ArtifactAccessOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Data.internal_static_talon_data_ArtifactAccess_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Data.internal_static_talon_data_ArtifactAccess_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Data.ArtifactAccess.class, talon.data.Data.ArtifactAccess.Builder.class);
+      }
+
+      // Construct using talon.data.Data.ArtifactAccess.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        targetAgent_ = "";
+        targetSessionId_ = "";
+        operations_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        expiresAt_ = 0L;
+        grantedByAgent_ = "";
+        grantedBySessionId_ = "";
+        createdAt_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Data.internal_static_talon_data_ArtifactAccess_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.ArtifactAccess getDefaultInstanceForType() {
+        return talon.data.Data.ArtifactAccess.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Data.ArtifactAccess build() {
+        talon.data.Data.ArtifactAccess result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.ArtifactAccess buildPartial() {
+        talon.data.Data.ArtifactAccess result = new talon.data.Data.ArtifactAccess(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Data.ArtifactAccess result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.targetAgent_ = targetAgent_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.targetSessionId_ = targetSessionId_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          operations_.makeImmutable();
+          result.operations_ = operations_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.expiresAt_ = expiresAt_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.grantedByAgent_ = grantedByAgent_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.grantedBySessionId_ = grantedBySessionId_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Data.ArtifactAccess) {
+          return mergeFrom((talon.data.Data.ArtifactAccess)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Data.ArtifactAccess other) {
+        if (other == talon.data.Data.ArtifactAccess.getDefaultInstance()) return this;
+        if (!other.getTargetAgent().isEmpty()) {
+          targetAgent_ = other.targetAgent_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getTargetSessionId().isEmpty()) {
+          targetSessionId_ = other.targetSessionId_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.operations_.isEmpty()) {
+          if (operations_.isEmpty()) {
+            operations_ = other.operations_;
+            bitField0_ |= 0x00000004;
+          } else {
+            ensureOperationsIsMutable();
+            operations_.addAll(other.operations_);
+          }
+          onChanged();
+        }
+        if (other.getExpiresAt() != 0L) {
+          setExpiresAt(other.getExpiresAt());
+        }
+        if (!other.getGrantedByAgent().isEmpty()) {
+          grantedByAgent_ = other.grantedByAgent_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.getGrantedBySessionId().isEmpty()) {
+          grantedBySessionId_ = other.grantedBySessionId_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                targetAgent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                targetSessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                ensureOperationsIsMutable();
+                operations_.add(input.readStringRequireUtf8());
+                break;
+              } // case 26
+              case 32: {
+                expiresAt_ = input.readInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 42: {
+                grantedByAgent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                grantedBySessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 56: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object targetAgent_ = "";
+      /**
+       * <pre>
+       * Agent that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_agent = 1;</code>
+       * @return The targetAgent.
+       */
+      public java.lang.String getTargetAgent() {
+        java.lang.Object ref = targetAgent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          targetAgent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Agent that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_agent = 1;</code>
+       * @return The bytes for targetAgent.
+       */
+      public com.google.protobuf.ByteString
+          getTargetAgentBytes() {
+        java.lang.Object ref = targetAgent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          targetAgent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Agent that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_agent = 1;</code>
+       * @param value The targetAgent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTargetAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        targetAgent_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Agent that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_agent = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTargetAgent() {
+        targetAgent_ = getDefaultInstance().getTargetAgent();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Agent that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_agent = 1;</code>
+       * @param value The bytes for targetAgent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTargetAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        targetAgent_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object targetSessionId_ = "";
+      /**
+       * <pre>
+       * Session that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_session_id = 2;</code>
+       * @return The targetSessionId.
+       */
+      public java.lang.String getTargetSessionId() {
+        java.lang.Object ref = targetSessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          targetSessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_session_id = 2;</code>
+       * @return The bytes for targetSessionId.
+       */
+      public com.google.protobuf.ByteString
+          getTargetSessionIdBytes() {
+        java.lang.Object ref = targetSessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          targetSessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_session_id = 2;</code>
+       * @param value The targetSessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTargetSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        targetSessionId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_session_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTargetSessionId() {
+        targetSessionId_ = getDefaultInstance().getTargetSessionId();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session that may access the artifact.
+       * </pre>
+       *
+       * <code>string target_session_id = 2;</code>
+       * @param value The bytes for targetSessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTargetSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        targetSessionId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList operations_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureOperationsIsMutable() {
+        if (!operations_.isModifiable()) {
+          operations_ = new com.google.protobuf.LazyStringArrayList(operations_);
+        }
+        bitField0_ |= 0x00000004;
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @return A list containing the operations.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getOperationsList() {
+        operations_.makeImmutable();
+        return operations_;
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @return The count of operations.
+       */
+      public int getOperationsCount() {
+        return operations_.size();
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @param index The index of the element to return.
+       * @return The operations at the given index.
+       */
+      public java.lang.String getOperations(int index) {
+        return operations_.get(index);
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the operations at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getOperationsBytes(int index) {
+        return operations_.getByteString(index);
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @param index The index to set the value at.
+       * @param value The operations to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOperations(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOperationsIsMutable();
+        operations_.set(index, value);
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @param value The operations to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOperations(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOperationsIsMutable();
+        operations_.add(value);
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @param values The operations to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllOperations(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureOperationsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, operations_);
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOperations() {
+        operations_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Allowed operations, such as read, metadata, or promote.
+       * </pre>
+       *
+       * <code>repeated string operations = 3;</code>
+       * @param value The bytes of the operations to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOperationsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureOperationsIsMutable();
+        operations_.add(value);
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private long expiresAt_ ;
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when access expires. Zero means unset.
+       * </pre>
+       *
+       * <code>int64 expires_at = 4;</code>
+       * @return The expiresAt.
+       */
+      @java.lang.Override
+      public long getExpiresAt() {
+        return expiresAt_;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when access expires. Zero means unset.
+       * </pre>
+       *
+       * <code>int64 expires_at = 4;</code>
+       * @param value The expiresAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExpiresAt(long value) {
+
+        expiresAt_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when access expires. Zero means unset.
+       * </pre>
+       *
+       * <code>int64 expires_at = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExpiresAt() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        expiresAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object grantedByAgent_ = "";
+      /**
+       * <pre>
+       * Agent that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_agent = 5;</code>
+       * @return The grantedByAgent.
+       */
+      public java.lang.String getGrantedByAgent() {
+        java.lang.Object ref = grantedByAgent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          grantedByAgent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Agent that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_agent = 5;</code>
+       * @return The bytes for grantedByAgent.
+       */
+      public com.google.protobuf.ByteString
+          getGrantedByAgentBytes() {
+        java.lang.Object ref = grantedByAgent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          grantedByAgent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Agent that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_agent = 5;</code>
+       * @param value The grantedByAgent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGrantedByAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        grantedByAgent_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Agent that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_agent = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearGrantedByAgent() {
+        grantedByAgent_ = getDefaultInstance().getGrantedByAgent();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Agent that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_agent = 5;</code>
+       * @param value The bytes for grantedByAgent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGrantedByAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        grantedByAgent_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object grantedBySessionId_ = "";
+      /**
+       * <pre>
+       * Session that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_session_id = 6;</code>
+       * @return The grantedBySessionId.
+       */
+      public java.lang.String getGrantedBySessionId() {
+        java.lang.Object ref = grantedBySessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          grantedBySessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_session_id = 6;</code>
+       * @return The bytes for grantedBySessionId.
+       */
+      public com.google.protobuf.ByteString
+          getGrantedBySessionIdBytes() {
+        java.lang.Object ref = grantedBySessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          grantedBySessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_session_id = 6;</code>
+       * @param value The grantedBySessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGrantedBySessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        grantedBySessionId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_session_id = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearGrantedBySessionId() {
+        grantedBySessionId_ = getDefaultInstance().getGrantedBySessionId();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session that granted access.
+       * </pre>
+       *
+       * <code>string granted_by_session_id = 6;</code>
+       * @param value The bytes for grantedBySessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGrantedBySessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        grantedBySessionId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the access record was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 7;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the access record was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 7;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Unix timestamp in microseconds when the access record was created.
+       * </pre>
+       *
+       * <code>int64 created_at = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.ArtifactAccess)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.ArtifactAccess)
+    private static final talon.data.Data.ArtifactAccess DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Data.ArtifactAccess();
+    }
+
+    public static talon.data.Data.ArtifactAccess getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ArtifactAccess>
+        PARSER = new com.google.protobuf.AbstractParser<ArtifactAccess>() {
+      @java.lang.Override
+      public ArtifactAccess parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ArtifactAccess> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ArtifactAccess> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Data.ArtifactAccess getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface PrincipalOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.Principal)
       com.google.protobuf.MessageOrBuilder {
@@ -18947,6 +22927,26 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_ObjectRef_MetadataEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Artifact_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Artifact_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Artifact_LabelsEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Artifact_LabelsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_Artifact_MetadataEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_Artifact_MetadataEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_ArtifactAccess_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_ArtifactAccess_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_Principal_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -19041,86 +23041,100 @@ java.lang.String defaultValue) {
       "\n\010filename\030\005 \001(\t\0225\n\010metadata\030\006 \003(\0132#.tal" +
       "on.data.ObjectRef.MetadataEntry\022\030\n\020conte" +
       "nt_encoding\030\007 \001(\t\032/\n\rMetadataEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\275\001\n\tPrincipal" +
-      "\022\023\n\013external_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022\024" +
-      "\n\014display_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010me" +
-      "tadata\030\005 \003(\0132#.talon.data.Principal.Meta" +
-      "dataEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessagePar" +
-      "t\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".talon" +
-      ".data.SessionMessagePartType\022\017\n\007content\030" +
-      "\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 \001(" +
-      "\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025." +
-      "talon.data.ObjectRef\"\363\001\n\016SessionMessage\022" +
-      "\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data.M" +
-      "essageRole\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006labels" +
-      "\030\005 \003(\0132&.talon.data.SessionMessage.Label" +
-      "sEntry\022-\n\005parts\030\006 \003(\0132\036.talon.data.Sessi" +
-      "onMessagePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002\n\007Session\022\n" +
-      "\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n" +
-      "\006status\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013las" +
-      "t_active\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.talon" +
-      ".data.Session.MetadataEntry\022/\n\006labels\030\010 " +
-      "\003(\0132\037.talon.data.Session.LabelsEntry\032/\n\r" +
-      "MetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
-      "ue\030\002 \001(\t:\0028\001\"\233\002\n\016ChannelMessage\022\n\n\002id\030\001 " +
-      "\001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013auth" +
-      "or_kind\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007content" +
-      "\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_age" +
-      "nt\030\010 \001(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n\006l" +
-      "abels\030\n \003(\0132&.talon.data.ChannelMessage." +
-      "LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030" +
-      "\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001" +
-      "(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025K" +
-      "nowledgeSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007sn" +
-      "ippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030" +
-      "\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowRun" +
-      "\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003 \001" +
-      "(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\022" +
-      "\n\nstate_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(\t\022" +
-      "\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\022" +
-      "3\n\006labels\030\n \003(\0132#.talon.data.WorkflowRun" +
-      ".LabelsEntry\022\035\n\020claim_expires_at\030\013 \001(\003H\000" +
-      "\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022\031\n" +
-      "\021workflow_revision\030\016 \001(\004\022\023\n\013claim_owner\030" +
-      "\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_dis" +
-      "patch_reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003key" +
-      "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_expi" +
-      "res_at\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t\022\017" +
-      "\n\007step_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006stat" +
-      "us\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output_j" +
-      "son\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_sessio" +
-      "n_id\030\010 \001(\t\022\035\n\025child_workflow_run_id\030\t \001(" +
-      "\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014suspend_json\030\013" +
-      " \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r" +
-      " \001(\003\022\032\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntime" +
-      "out_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handle\030" +
-      "\020 \001(\t\022\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_ne" +
-      "xt_retry_atB\r\n\013_timeout_atB\020\n\016_wait_unti" +
-      "l_at\"\245\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022\n\n" +
-      "\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030\004 " +
-      "\001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007me" +
-      "ssage\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\ttim" +
-      "estamp\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UNSP" +
-      "ECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSISTA" +
-      "NT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\244\004\n\026SessionMessage" +
-      "PartType\022)\n%SESSION_MESSAGE_PART_TYPE_UN" +
-      "SPECIFIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TYPE" +
-      "_TEXT\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_REA" +
-      "SONING\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_TO" +
-      "OL_CALL\020\003\022)\n%SESSION_MESSAGE_PART_TYPE_T" +
-      "OOL_RESULT\020\004\022#\n\037SESSION_MESSAGE_PART_TYP" +
-      "E_USAGE\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE_E" +
-      "RROR\020\006\022#\n\037SESSION_MESSAGE_PART_TYPE_IMAG" +
-      "E\020\007\022#\n\037SESSION_MESSAGE_PART_TYPE_AUDIO\020\010" +
-      "\022#\n\037SESSION_MESSAGE_PART_TYPE_VIDEO\020\t\022\"\n" +
-      "\036SESSION_MESSAGE_PART_TYPE_FILE\020\n\0220\n,SES" +
-      "SION_MESSAGE_PART_TYPE_REQUEST_PERMISSIO" +
-      "N\020\013\022/\n+SESSION_MESSAGE_PART_TYPE_PERMISS" +
-      "ION_RESULT\020\014b\006proto3"
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\356\002\n\010Artifact\022" +
+      "\n\n\002id\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(\t\022\r\n\005title" +
+      "\030\003 \001(\t\022\022\n\nmedia_type\030\005 \001(\t\022)\n\nobject_ref" +
+      "\030\006 \001(\0132\025.talon.data.ObjectRef\022\030\n\020created" +
+      "_by_agent\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\0220\n\006l" +
+      "abels\030\t \003(\0132 .talon.data.Artifact.Labels" +
+      "Entry\0224\n\010metadata\030\n \003(\0132\".talon.data.Art" +
+      "ifact.MetadataEntry\032-\n\013LabelsEntry\022\013\n\003ke" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEn" +
+      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\266\001\n\016" +
+      "ArtifactAccess\022\024\n\014target_agent\030\001 \001(\t\022\031\n\021" +
+      "target_session_id\030\002 \001(\t\022\022\n\noperations\030\003 " +
+      "\003(\t\022\022\n\nexpires_at\030\004 \001(\003\022\030\n\020granted_by_ag" +
+      "ent\030\005 \001(\t\022\035\n\025granted_by_session_id\030\006 \001(\t" +
+      "\022\022\n\ncreated_at\030\007 \001(\003\"\275\001\n\tPrincipal\022\023\n\013ex" +
+      "ternal_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022\024\n\014disp" +
+      "lay_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010metadata" +
+      "\030\005 \003(\0132#.talon.data.Principal.MetadataEn" +
+      "try\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
+      "ue\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessagePart\022\n\n\002i" +
+      "d\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".talon.data." +
+      "SessionMessagePartType\022\017\n\007content\030\003 \001(\t\022" +
+      "\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 \001(\t\022\022\n\nc" +
+      "reated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025.talon." +
+      "data.ObjectRef\"\363\001\n\016SessionMessage\022\n\n\002id\030" +
+      "\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data.Message" +
+      "Role\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006labels\030\005 \003(\013" +
+      "2&.talon.data.SessionMessage.LabelsEntry" +
+      "\022-\n\005parts\030\006 \003(\0132\036.talon.data.SessionMess" +
+      "agePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\257\002\n\007Session\022\n\n\002id\030\001" +
+      " \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006statu" +
+      "s\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013last_acti" +
+      "ve\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.talon.data." +
+      "Session.MetadataEntry\022/\n\006labels\030\010 \003(\0132\037." +
+      "talon.data.Session.LabelsEntry\032/\n\rMetada" +
+      "taEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032" +
+      "-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
+      "(\t:\0028\001\"\233\002\n\016ChannelMessage\022\n\n\002id\030\001 \001(\t\022\n\n" +
+      "\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013author_kin" +
+      "d\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007content\030\006 \001(\t" +
+      "\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_agent\030\010 \001" +
+      "(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n\006labels\030" +
+      "\n \003(\0132&.talon.data.ChannelMessage.Labels" +
+      "Entry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
+      "ue\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t\022" +
+      "\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\t" +
+      "namespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025Knowled" +
+      "geSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030" +
+      "\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022" +
+      "\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id" +
+      "\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006" +
+      "status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nstat" +
+      "e_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(\t\022\022\n\ncre" +
+      "ated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006lab" +
+      "els\030\n \003(\0132#.talon.data.WorkflowRun.Label" +
+      "sEntry\022\035\n\020claim_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n" +
+      "\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022\031\n\021workf" +
+      "low_revision\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t\022" +
+      "\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_dispatch_" +
+      "reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t" +
+      "\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_expires_at" +
+      "\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step" +
+      "_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006status\030\004 \001" +
+      "(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output_json\030\006 " +
+      "\001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_session_id\030\010" +
+      " \001(\t\022\035\n\025child_workflow_run_id\030\t \001(\t\022\023\n\013r" +
+      "esume_json\030\n \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022\022" +
+      "\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032" +
+      "\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at" +
+      "\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handle\030\020 \001(\t\022" +
+      "\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_ret" +
+      "ry_atB\r\n\013_timeout_atB\020\n\016_wait_until_at\"\245" +
+      "\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 " +
+      "\001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n" +
+      "\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007message\030" +
+      "\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\ttimestamp" +
+      "\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UNSPECIFIE" +
+      "D\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017" +
+      "\n\013ROLE_SYSTEM\020\003*\244\004\n\026SessionMessagePartTy" +
+      "pe\022)\n%SESSION_MESSAGE_PART_TYPE_UNSPECIF" +
+      "IED\020\000\022\"\n\036SESSION_MESSAGE_PART_TYPE_TEXT\020" +
+      "\001\022\'\n#SESSION_MESSAGE_PART_TYPE_REASONING" +
+      "\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_TOOL_CAL" +
+      "L\020\003\022)\n%SESSION_MESSAGE_PART_TYPE_TOOL_RE" +
+      "SULT\020\004\022#\n\037SESSION_MESSAGE_PART_TYPE_USAG" +
+      "E\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE_ERROR\020\006" +
+      "\022#\n\037SESSION_MESSAGE_PART_TYPE_IMAGE\020\007\022#\n" +
+      "\037SESSION_MESSAGE_PART_TYPE_AUDIO\020\010\022#\n\037SE" +
+      "SSION_MESSAGE_PART_TYPE_VIDEO\020\t\022\"\n\036SESSI" +
+      "ON_MESSAGE_PART_TYPE_FILE\020\n\0220\n,SESSION_M" +
+      "ESSAGE_PART_TYPE_REQUEST_PERMISSION\020\013\022/\n" +
+      "+SESSION_MESSAGE_PART_TYPE_PERMISSION_RE" +
+      "SULT\020\014b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -19138,8 +23152,32 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ObjectRef_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_data_Principal_descriptor =
+    internal_static_talon_data_Artifact_descriptor =
       getDescriptor().getMessageType(1);
+    internal_static_talon_data_Artifact_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Artifact_descriptor,
+        new java.lang.String[] { "Id", "SessionId", "Title", "MediaType", "ObjectRef", "CreatedByAgent", "CreatedAt", "Labels", "Metadata", });
+    internal_static_talon_data_Artifact_LabelsEntry_descriptor =
+      internal_static_talon_data_Artifact_descriptor.getNestedType(0);
+    internal_static_talon_data_Artifact_LabelsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Artifact_LabelsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_data_Artifact_MetadataEntry_descriptor =
+      internal_static_talon_data_Artifact_descriptor.getNestedType(1);
+    internal_static_talon_data_Artifact_MetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_Artifact_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_data_ArtifactAccess_descriptor =
+      getDescriptor().getMessageType(2);
+    internal_static_talon_data_ArtifactAccess_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_ArtifactAccess_descriptor,
+        new java.lang.String[] { "TargetAgent", "TargetSessionId", "Operations", "ExpiresAt", "GrantedByAgent", "GrantedBySessionId", "CreatedAt", });
+    internal_static_talon_data_Principal_descriptor =
+      getDescriptor().getMessageType(3);
     internal_static_talon_data_Principal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Principal_descriptor,
@@ -19151,13 +23189,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Principal_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_SessionMessagePart_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(4);
     internal_static_talon_data_SessionMessagePart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessagePart_descriptor,
         new java.lang.String[] { "Id", "PartType", "Content", "Name", "PayloadJson", "CreatedAt", "Object", });
     internal_static_talon_data_SessionMessage_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(5);
     internal_static_talon_data_SessionMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessage_descriptor,
@@ -19169,7 +23207,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_SessionMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Session_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(6);
     internal_static_talon_data_Session_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Session_descriptor,
@@ -19187,7 +23225,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Session_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_ChannelMessage_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(7);
     internal_static_talon_data_ChannelMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ChannelMessage_descriptor,
@@ -19199,19 +23237,19 @@ java.lang.String defaultValue) {
         internal_static_talon_data_ChannelMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Knowledge_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(8);
     internal_static_talon_data_Knowledge_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Knowledge_descriptor,
         new java.lang.String[] { "Path", "Content", "UpdatedAt", "Namespace", "Name", });
     internal_static_talon_data_KnowledgeSearchResult_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(9);
     internal_static_talon_data_KnowledgeSearchResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_KnowledgeSearchResult_descriptor,
         new java.lang.String[] { "Path", "Snippet", "Score", "Timestamp", "Namespace", });
     internal_static_talon_data_WorkflowRun_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(10);
     internal_static_talon_data_WorkflowRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRun_descriptor,
@@ -19223,13 +23261,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_WorkflowRun_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_WorkflowStepRun_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(11);
     internal_static_talon_data_WorkflowStepRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowStepRun_descriptor,
         new java.lang.String[] { "Id", "StepId", "Attempt", "Status", "InputJson", "OutputJson", "Error", "ChildSessionId", "ChildWorkflowRunId", "ResumeJson", "SuspendJson", "CreatedAt", "UpdatedAt", "NextRetryAt", "TimeoutAt", "WaitWakeupHandle", "WaitUntilAt", });
     internal_static_talon_data_WorkflowRunEvent_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(12);
     internal_static_talon_data_WorkflowRunEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRunEvent_descriptor,
