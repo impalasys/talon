@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { data, type TalonClient } from "@impalasys/talon-client";
+import { decompress as decompressZstd } from "fzstd";
 import { Activity, Check, ChevronRight, Copy, Pencil, X, Wrench } from "lucide-react";
 import {
   formatUsageSummary,
@@ -432,6 +433,19 @@ async function decompressCasObjectData(data: Uint8Array, encoding: string): Prom
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
+async function decompressZstdCasObjectData(data: Uint8Array): Promise<Uint8Array> {
+  if (typeof DecompressionStream !== "undefined") {
+    try {
+      return await decompressCasObjectData(data, "zstd");
+    } catch (err) {
+      if (!(err instanceof TypeError)) {
+        throw err;
+      }
+    }
+  }
+  return decompressZstd(data);
+}
+
 async function casObjectData(response: any): Promise<Uint8Array> {
   const signedUrl = typeof response?.signedUrl === "string"
     ? response.signedUrl
@@ -456,9 +470,9 @@ async function toolResultObjectData(response: any, fallbackObject?: TalonChatObj
     ?? response?.metadata?.contentEncoding;
   const encoding = typeof responseEncoding === "string" ? responseEncoding : objectRefContentEncoding(fallbackObject);
   const normalized = encoding.toLowerCase();
-  return normalized === "zstd" || normalized === "gzip"
-    ? decompressCasObjectData(bytes, normalized)
-    : bytes;
+  if (normalized === "zstd") return decompressZstdCasObjectData(bytes);
+  if (normalized === "gzip") return decompressCasObjectData(bytes, normalized);
+  return bytes;
 }
 
 async function hydrateCasToolResultObjects(
