@@ -32,6 +32,8 @@ use std::os::unix::fs::FileTypeExt;
 #[global_allocator]
 static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
+const DEFAULT_SESSION_DISPATCH_CONCURRENCY: usize = 16;
+
 fn gateway_addr() -> String {
     std::env::var("GRPC_ADDR").unwrap_or_else(|_| "0.0.0.0:50051".to_string())
 }
@@ -40,12 +42,14 @@ fn select_auth_config() -> AuthConfig {
     AuthConfig::jwt_platform()
 }
 
-fn worker_session_concurrency() -> usize {
-    std::env::var("TALON_WORKER_SESSION_CONCURRENCY")
-        .ok()
+fn worker_session_concurrency<F>(mut get: F) -> usize
+where
+    F: FnMut(&str) -> Option<String>,
+{
+    get("TALON_WORKER_SESSION_CONCURRENCY")
         .and_then(|value| value.parse::<usize>().ok())
         .filter(|value| *value > 0)
-        .unwrap_or(1)
+        .unwrap_or(DEFAULT_SESSION_DISPATCH_CONCURRENCY)
 }
 
 fn worker_handler(
@@ -238,7 +242,7 @@ async fn run() -> Result<()> {
         fanout_hub.clone(),
     );
     let shutdown = CancellationToken::new();
-    let session_concurrency = worker_session_concurrency();
+    let session_concurrency = worker_session_concurrency(|name| std::env::var(name).ok());
     let worker_socket_path = node_worker_socket_path(&worker_id)?;
     let worker_endpoint = node_worker_endpoint(&worker_socket_path);
     let worker_registration =
@@ -370,6 +374,28 @@ mod tests {
         let endpoint = node_worker_endpoint(Path::new("/tmp/talon-node-worker.sock"));
         assert_eq!(endpoint.url, "unix:///tmp/talon-node-worker.sock");
         assert_eq!(endpoint.protocol, "grpc");
+    }
+
+    #[test]
+    fn node_worker_session_concurrency_defaults_to_parallel_dispatch() {
+        assert_eq!(
+            worker_session_concurrency(|_| None),
+            DEFAULT_SESSION_DISPATCH_CONCURRENCY
+        );
+        assert_eq!(
+            worker_session_concurrency(|name| match name {
+                "TALON_WORKER_SESSION_CONCURRENCY" => Some("8".to_string()),
+                _ => None,
+            }),
+            8
+        );
+        assert_eq!(
+            worker_session_concurrency(|name| match name {
+                "TALON_WORKER_SESSION_CONCURRENCY" => Some("0".to_string()),
+                _ => None,
+            }),
+            DEFAULT_SESSION_DISPATCH_CONCURRENCY
+        );
     }
 
     #[tokio::test]

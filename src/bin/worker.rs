@@ -64,6 +64,7 @@ const SQS_RECEIVE_ERROR_INITIAL_BACKOFF: std::time::Duration =
 #[cfg(feature = "aws")]
 const SQS_RECEIVE_ERROR_MAX_BACKOFF: std::time::Duration = std::time::Duration::from_secs(10);
 const DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES: usize = 8 * 1024 * 1024;
+const DEFAULT_SESSION_DISPATCH_CONCURRENCY: usize = 16;
 
 fn worker_thread_stack_size<F>(mut get: F) -> usize
 where
@@ -193,7 +194,7 @@ where
     get("TALON_WORKER_SESSION_CONCURRENCY")
         .and_then(|value| value.parse::<usize>().ok())
         .filter(|value| *value > 0)
-        .unwrap_or(1)
+        .unwrap_or(DEFAULT_SESSION_DISPATCH_CONCURRENCY)
 }
 
 fn pubsub_project_id<F>(mut get: F) -> String
@@ -1599,7 +1600,10 @@ mod tests {
         assert_eq!(worker_port(|_| Some("9090".to_string())), "9090");
         assert!(!pull_mode_enabled(|_| None));
         assert!(pull_mode_enabled(|_| Some(String::new())));
-        assert_eq!(session_dispatch_concurrency(|_| None), 1);
+        assert_eq!(
+            session_dispatch_concurrency(|_| None),
+            super::DEFAULT_SESSION_DISPATCH_CONCURRENCY
+        );
         assert_eq!(
             session_dispatch_concurrency(|name| match name {
                 "TALON_WORKER_SESSION_CONCURRENCY" => Some("8".to_string()),
@@ -1612,14 +1616,14 @@ mod tests {
                 "TALON_WORKER_SESSION_CONCURRENCY" => Some("0".to_string()),
                 _ => None,
             }),
-            1
+            super::DEFAULT_SESSION_DISPATCH_CONCURRENCY
         );
         assert_eq!(
             session_dispatch_concurrency(|name| match name {
                 "TALON_WORKER_SESSION_CONCURRENCY" => Some("not-a-number".to_string()),
                 _ => None,
             }),
-            1
+            super::DEFAULT_SESSION_DISPATCH_CONCURRENCY
         );
         assert_eq!(
             super::worker_thread_stack_size(|_| None),
