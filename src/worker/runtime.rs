@@ -245,7 +245,7 @@ fn visible_tools_for_agent(
                 return match tool.name.as_str() {
                     "list_goals" | "get_goal" => has_capability_action(spec, "goals", "inspect"),
                     "create_goal" => has_capability_action(spec, "goals", "create"),
-                    "update_goal" | "attach_goal_evidence" | "complete_goal" | "block_goal" => {
+                    "update_goal" | "complete_goal" | "block_goal" => {
                         has_capability_action(spec, "goals", "update")
                     }
                     _ => true,
@@ -285,13 +285,7 @@ fn is_session_tool_name(name: &str) -> bool {
 fn is_goal_tool_name(name: &str) -> bool {
     matches!(
         name,
-        "list_goals"
-            | "get_goal"
-            | "create_goal"
-            | "update_goal"
-            | "attach_goal_evidence"
-            | "complete_goal"
-            | "block_goal"
+        "list_goals" | "get_goal" | "create_goal" | "update_goal" | "complete_goal" | "block_goal"
     )
 }
 
@@ -320,7 +314,6 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::GET_GOAL_TOOL,
         crate::harness::native_tools::LIST_GOALS_TOOL,
         crate::harness::native_tools::UPDATE_GOAL_TOOL,
-        crate::harness::native_tools::ATTACH_GOAL_EVIDENCE_TOOL,
         crate::harness::native_tools::COMPLETE_GOAL_TOOL,
         crate::harness::native_tools::BLOCK_GOAL_TOOL,
         crate::harness::native_tools::CHANNEL_PUBLISH_TOOL,

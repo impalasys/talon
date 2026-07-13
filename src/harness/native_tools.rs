@@ -33,7 +33,6 @@ pub const CREATE_GOAL_TOOL: &str = "create_goal";
 pub const GET_GOAL_TOOL: &str = "get_goal";
 pub const LIST_GOALS_TOOL: &str = "list_goals";
 pub const UPDATE_GOAL_TOOL: &str = "update_goal";
-pub const ATTACH_GOAL_EVIDENCE_TOOL: &str = "attach_goal_evidence";
 pub const COMPLETE_GOAL_TOOL: &str = "complete_goal";
 pub const BLOCK_GOAL_TOOL: &str = "block_goal";
 pub const CHANNEL_PUBLISH_TOOL: &str = "channel_publish";
@@ -404,11 +403,6 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
             }),
         );
         registry.register_builtin(
-            ATTACH_GOAL_EVIDENCE_TOOL,
-            "Attach evidence such as a Task, Artifact URI, File URI, Session, or CAS key to a Goal.",
-            goal_evidence_schema(),
-        );
-        registry.register_builtin(
             COMPLETE_GOAL_TOOL,
             "Mark a Goal as SUCCEEDED with an optional final progress summary.",
             json!({
@@ -628,26 +622,6 @@ fn put_schedule_schema() -> Value {
             "enabled": { "type": "boolean", "description": "Whether the schedule is enabled." }
         },
         "required": ["name", "kind", "input_message"]
-    })
-}
-
-fn goal_evidence_schema() -> Value {
-    json!({
-        "type": "object",
-        "properties": {
-            "namespace": { "type": "string", "description": "Goal namespace. Defaults to current namespace." },
-            "agent": { "type": "string", "description": "Owning agent. Defaults to current agent." },
-            "session_id": { "type": "string", "description": "Owning session id. Defaults to current session." },
-            "goal_id": { "type": "string", "description": "Goal id." },
-            "kind": { "type": "string", "description": "Evidence kind: TASK, ARTIFACT, FILE, SESSION, REFERENCE, CAS, or URL." },
-            "name": { "type": "string", "description": "Optional resource name." },
-            "handle": { "type": "string", "description": "Optional URI or external reference." },
-            "object_key": { "type": "string", "description": "Optional CAS object key." },
-            "evidence_agent": { "type": "string", "description": "Optional agent associated with the evidence." },
-            "evidence_session_id": { "type": "string", "description": "Optional session associated with the evidence." },
-            "summary": { "type": "string", "description": "Short note explaining why this evidence matters." }
-        },
-        "required": ["goal_id", "kind", "summary"]
     })
 }
 
@@ -1009,19 +983,6 @@ pub async fn execute_tool_for_session(
                 get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
                     .await?;
             update_goal_from_args(&mut goal, args)?;
-            upsert_goal(cp, goal.clone()).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "goal": goal_json(&goal)
-            }))?))
-        }
-        ATTACH_GOAL_EVIDENCE_TOOL => {
-            require_capability(spec, "goals", "update")?;
-            let mut goal =
-                get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
-                    .await?;
-            let evidence = goal_evidence_from_args(args)?;
-            goal.evidence_refs.push(evidence);
-            goal.updated_at = chrono::Utc::now().timestamp_micros();
             upsert_goal(cp, goal.clone()).await?;
             Ok(Some(serde_json::to_string_pretty(&json!({
                 "goal": goal_json(&goal)
@@ -2555,7 +2516,6 @@ async fn create_goal(
             .unwrap_or_default()
             .try_into()
             .unwrap_or_default(),
-        evidence_refs: Vec::new(),
         created_at: now,
         updated_at: now,
         completed_at: 0,
@@ -2671,28 +2631,6 @@ fn update_goal_from_args(goal: &mut data_proto::Goal, args: &Value) -> Result<()
     Ok(())
 }
 
-fn goal_evidence_from_args(args: &Value) -> Result<data_proto::GoalEvidenceRef> {
-    Ok(data_proto::GoalEvidenceRef {
-        kind: req_str(args, "kind")?.to_ascii_uppercase(),
-        namespace: opt_str(args, "evidence_namespace")
-            .or_else(|| opt_str(args, "namespace"))
-            .unwrap_or_default()
-            .to_string(),
-        name: opt_str(args, "name").unwrap_or_default().to_string(),
-        agent: opt_str(args, "evidence_agent")
-            .or_else(|| opt_str(args, "agent"))
-            .unwrap_or_default()
-            .to_string(),
-        session_id: opt_str(args, "evidence_session_id")
-            .or_else(|| opt_str(args, "session_id"))
-            .unwrap_or_default()
-            .to_string(),
-        handle: opt_str(args, "handle").unwrap_or_default().to_string(),
-        object_key: opt_str(args, "object_key").unwrap_or_default().to_string(),
-        summary: req_str(args, "summary")?.to_string(),
-    })
-}
-
 fn goal_json(goal: &data_proto::Goal) -> Value {
     json!({
         "id": goal.id,
@@ -2706,26 +2644,12 @@ fn goal_json(goal: &data_proto::Goal) -> Value {
         "progressSummary": goal.progress_summary,
         "iteration": goal.iteration,
         "maxIterations": goal.max_iterations,
-        "evidenceRefs": goal.evidence_refs.iter().map(goal_evidence_json).collect::<Vec<_>>(),
         "createdAt": goal.created_at,
         "updatedAt": goal.updated_at,
         "completedAt": goal.completed_at,
         "blockedReason": goal.blocked_reason,
         "labels": goal.labels,
         "metadata": goal.metadata,
-    })
-}
-
-fn goal_evidence_json(evidence: &data_proto::GoalEvidenceRef) -> Value {
-    json!({
-        "kind": evidence.kind,
-        "namespace": evidence.namespace,
-        "name": evidence.name,
-        "agent": evidence.agent,
-        "sessionId": evidence.session_id,
-        "handle": evidence.handle,
-        "objectKey": evidence.object_key,
-        "summary": evidence.summary,
     })
 }
 
@@ -2762,21 +2686,6 @@ pub async fn active_goals_context(
         }
         if !goal.blocked_reason.is_empty() {
             lines.push(format!("  Blocked reason: {}", goal.blocked_reason));
-        }
-        if !goal.evidence_refs.is_empty() {
-            let evidence = goal
-                .evidence_refs
-                .iter()
-                .map(|ref_| {
-                    if ref_.summary.is_empty() {
-                        ref_.kind.clone()
-                    } else {
-                        format!("{}: {}", ref_.kind, ref_.summary)
-                    }
-                })
-                .collect::<Vec<_>>()
-                .join("; ");
-            lines.push(format!("  Evidence: {}", evidence));
         }
     }
     Ok(Some(lines.join("\n")))
@@ -4057,7 +3966,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn goal_tools_create_update_list_and_attach_evidence() {
+    async fn goal_tools_create_update_list_and_complete() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
         let cp = control_plane(kv, scheduler);
@@ -4128,29 +4037,6 @@ mod tests {
         assert_eq!(listed_from_session.len(), 1);
         assert_eq!(listed_from_session[0].id, goal_id);
 
-        let with_evidence = execute_tool_for_session(
-            &cp,
-            "Tenant:acme:Workspace:main",
-            "ops-lead",
-            "session-1",
-            &spec,
-            ATTACH_GOAL_EVIDENCE_TOOL,
-            &json!({
-                "goal_id": goal_id,
-                "kind": "TASK",
-                "name": "onboarding-task-1",
-                "summary": "Support task produced the revised checklist."
-            }),
-        )
-        .await
-        .unwrap()
-        .unwrap();
-        let with_evidence: Value = serde_json::from_str(&with_evidence).unwrap();
-        assert_eq!(
-            with_evidence["goal"]["evidenceRefs"][0]["summary"],
-            "Support task produced the revised checklist."
-        );
-
         let updated = execute_tool_for_session(
             &cp,
             "Tenant:acme:Workspace:main",
@@ -4162,7 +4048,7 @@ mod tests {
                 "goal_id": goal_id,
                 "phase": "NEEDS_REVIEW",
                 "iteration": 2,
-                "progress_summary": "Draft is ready for critic review."
+                "progress_summary": "Support task produced the revised checklist; draft is ready for critic review."
             }),
         )
         .await
@@ -4171,6 +4057,10 @@ mod tests {
         let updated: Value = serde_json::from_str(&updated).unwrap();
         assert_eq!(updated["goal"]["phase"], "NEEDS_REVIEW");
         assert_eq!(updated["goal"]["iteration"], 2);
+        assert!(updated["goal"]["progressSummary"]
+            .as_str()
+            .unwrap()
+            .contains("revised checklist"));
 
         let completed = execute_tool_for_session(
             &cp,
