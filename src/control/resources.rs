@@ -6,7 +6,6 @@ use crate::control::{keys, topics, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::resources_proto;
 use anyhow::{anyhow, Context, Result};
 use prost::Message;
-use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 const API_VERSION: &str = "talon.impalasys.com/v1";
@@ -1279,7 +1278,7 @@ fn validate_file_resource_name(
     let Some(meta) = resource.metadata.as_ref() else {
         return Ok(());
     };
-    let expected = file_resource_name_for_path(&spec.path);
+    let expected = keys::file_name_for_path(&spec.path);
     if meta.name != expected {
         return Err(anyhow!(
             "File metadata.name '{}' must match path-derived name '{}'",
@@ -1288,35 +1287,6 @@ fn validate_file_resource_name(
         ));
     }
     Ok(())
-}
-
-pub fn file_resource_name_for_path(path: &str) -> String {
-    let slug = path
-        .trim_matches('/')
-        .chars()
-        .map(|ch| {
-            if ch.is_ascii_alphanumeric() {
-                ch.to_ascii_lowercase()
-            } else {
-                '-'
-            }
-        })
-        .collect::<String>()
-        .trim_matches('-')
-        .chars()
-        .take(48)
-        .collect::<String>();
-    let hash = sha256_hex(path.as_bytes());
-    format!(
-        "{}-{}",
-        if slug.is_empty() { "file" } else { &slug },
-        &hash[..12]
-    )
-}
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    let digest = Sha256::digest(bytes);
-    format!("{digest:x}")
 }
 
 fn default_status_for_resource(
@@ -1367,8 +1337,9 @@ fn resource_key(resource: &resources_proto::Resource) -> keys::ResourceKey {
 
 #[cfg(test)]
 mod tests {
-    use super::{file_resource_name_for_path, ResourceStore};
+    use super::ResourceStore;
     use crate::control::events;
+    use crate::control::keys;
     use crate::control::topics;
     use crate::control::KeyValueStore;
     use crate::gateway::rpc::resources_proto;
@@ -1476,7 +1447,7 @@ mod tests {
 
         assert!(store.upsert("customers", resource.clone()).await.is_err());
 
-        resource.metadata.as_mut().unwrap().name = file_resource_name_for_path(path);
+        resource.metadata.as_mut().unwrap().name = keys::file_name_for_path(path);
         assert!(store.upsert("customers", resource).await.is_ok());
     }
 
