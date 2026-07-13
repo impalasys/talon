@@ -85,25 +85,6 @@ enum GoalPhase {
   GOAL_PHASE_EXPIRED = 8;
 }
 
-message GoalEvidenceRef {
-  // Evidence type, such as artifact, file, message, or object.
-  string kind = 1;
-  // Namespace that owns the referenced evidence when it is a Talon resource.
-  string namespace = 2;
-  // Resource name or provider-local identifier for the referenced evidence.
-  string name = 3;
-  // Agent that owns the referenced session-scoped evidence, when applicable.
-  string agent = 4;
-  // Session that owns the referenced session-scoped evidence, when applicable.
-  string session_id = 5;
-  // Opaque or URI-style handle that can be passed back to tools.
-  string handle = 6;
-  // Object-store key for evidence backed directly by stored bytes.
-  string object_key = 7;
-  // Short human-readable description of why this evidence matters.
-  string summary = 8;
-}
-
 message Goal {
   // Stable goal identifier unique under the owning session.
   string id = 1;
@@ -125,8 +106,6 @@ message Goal {
   int32 iteration = 9;
   // Maximum iterations allowed before the runtime should stop or expire.
   int32 max_iterations = 10;
-  // Evidence accumulated while pursuing or evaluating the goal.
-  repeated GoalEvidenceRef evidence_refs = 11;
   // Unix timestamp in microseconds when the goal was created.
   int64 created_at = 12;
   // Unix timestamp in microseconds when the goal was last changed.
