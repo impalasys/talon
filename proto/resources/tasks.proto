@@ -24,7 +24,6 @@ message TaskSpec {
   ResourceRef requester = 4;
   // Agent resource intended to perform the work.
   ResourceRef assignee = 5;
-  string parent_task_name = 7;
 }
 
 // Runtime location of the work that is fulfilling the task. This may be absent

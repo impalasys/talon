@@ -197,7 +197,6 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                     "phase": { "type": "string", "description": "Optional phase filter such as RUNNING, NEEDS_REVIEW, SUCCEEDED, FAILED, or CANCELED." },
                     "requester_name": { "type": "string", "description": "Optional requester agent resource name filter." },
                     "assignee_name": { "type": "string", "description": "Optional assignee agent resource name filter." },
-                    "parent_task_name": { "type": "string", "description": "Optional parent task filter." },
                     "limit": { "type": "integer", "description": "Optional maximum number of results to return." }
                 }
             }),
@@ -303,8 +302,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                     "description": { "type": "string", "description": "Brief or acceptance criteria for the task." },
                     "type": { "type": "string", "description": "Optional caller-defined classifier such as agent_delegation or human_review. Talon does not interpret it." },
                     "assignee_namespace": { "type": "string", "description": "Namespace of the worker agent." },
-                    "assignee_name": { "type": "string", "description": "Worker agent resource name." },
-                    "parent_task_name": { "type": "string", "description": "Optional parent task name." }
+                    "assignee_name": { "type": "string", "description": "Worker agent resource name." }
                 },
                 "required": ["title", "description", "assignee_name"]
             }),
@@ -876,7 +874,6 @@ pub async fn execute_tool_for_session(
             let phase = opt_str(args, "phase");
             let requester_name = opt_str(args, "requester_name");
             let assignee_name = opt_str(args, "assignee_name");
-            let parent_task_name = opt_str(args, "parent_task_name");
             let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
             let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
             let mut resources = store.list(namespace, Some("Task")).await?;
@@ -886,14 +883,7 @@ pub async fn execute_tool_for_session(
                 let Some(task) = task_from_resource(resource) else {
                     continue;
                 };
-                if !task_matches(
-                    &task,
-                    status_group,
-                    phase,
-                    requester_name,
-                    assignee_name,
-                    parent_task_name,
-                ) {
+                if !task_matches(&task, status_group, phase, requester_name, assignee_name) {
                     continue;
                 }
                 tasks.push(task_json(&task));
@@ -2180,9 +2170,6 @@ async fn create_task(
                 namespace: assignee_namespace.clone(),
                 name: assignee_name.clone(),
             }),
-            parent_task_name: opt_str(args, "parent_task_name")
-                .unwrap_or_default()
-                .to_string(),
         },
         resources_proto::TaskStatus {
             observed_generation: 0,
@@ -2292,7 +2279,6 @@ fn task_matches(
     phase: Option<&str>,
     requester_name: Option<&str>,
     assignee_name: Option<&str>,
-    parent_task_name: Option<&str>,
 ) -> bool {
     let spec = task.spec.as_ref();
     let current_phase = task
@@ -2327,11 +2313,6 @@ fn task_matches(
             .map(|assignee| assignee.name.as_str())
             != Some(name)
     }) {
-        return false;
-    }
-    if parent_task_name
-        .is_some_and(|parent| spec.map(|spec| spec.parent_task_name.as_str()) != Some(parent))
-    {
         return false;
     }
     true
@@ -2369,7 +2350,6 @@ fn task_json(task: &resources_proto::Task) -> Value {
             "sessionId": execution.session_id,
             "runId": execution.run_id,
         })).unwrap_or_else(|| json!({})),
-        "parentTaskName": spec.map(|spec| spec.parent_task_name.clone()).unwrap_or_default(),
         "phase": status.map(|status| task_phase_name(status.phase)).unwrap_or("UNSPECIFIED"),
         "statusGroup": status.map(|status| {
             if is_active_phase(status.phase) {

@@ -1370,18 +1370,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
      * <code>.talon.resources.ResourceRef assignee = 5;</code>
      */
     talon.resources.Common.ResourceRefOrBuilder getAssigneeOrBuilder();
-
-    /**
-     * <code>string parent_task_name = 7;</code>
-     * @return The parentTaskName.
-     */
-    java.lang.String getParentTaskName();
-    /**
-     * <code>string parent_task_name = 7;</code>
-     * @return The bytes for parentTaskName.
-     */
-    com.google.protobuf.ByteString
-        getParentTaskNameBytes();
   }
   /**
    * Protobuf type {@code talon.resources.TaskSpec}
@@ -1408,7 +1396,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       title_ = "";
       description_ = "";
       type_ = "";
-      parentTaskName_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -1639,45 +1626,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       return assignee_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
     }
 
-    public static final int PARENT_TASK_NAME_FIELD_NUMBER = 7;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object parentTaskName_ = "";
-    /**
-     * <code>string parent_task_name = 7;</code>
-     * @return The parentTaskName.
-     */
-    @java.lang.Override
-    public java.lang.String getParentTaskName() {
-      java.lang.Object ref = parentTaskName_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        parentTaskName_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string parent_task_name = 7;</code>
-     * @return The bytes for parentTaskName.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getParentTaskNameBytes() {
-      java.lang.Object ref = parentTaskName_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        parentTaskName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1707,9 +1655,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000002) != 0)) {
         output.writeMessage(5, getAssignee());
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentTaskName_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 7, parentTaskName_);
-      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1735,9 +1680,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, getAssignee());
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentTaskName_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, parentTaskName_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1770,8 +1712,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         if (!getAssignee()
             .equals(other.getAssignee())) return false;
       }
-      if (!getParentTaskName()
-          .equals(other.getParentTaskName())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1797,8 +1737,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         hash = (37 * hash) + ASSIGNEE_FIELD_NUMBER;
         hash = (53 * hash) + getAssignee().hashCode();
       }
-      hash = (37 * hash) + PARENT_TASK_NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getParentTaskName().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1950,7 +1888,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           assigneeBuilder_.dispose();
           assigneeBuilder_ = null;
         }
-        parentTaskName_ = "";
         return this;
       }
 
@@ -2006,9 +1943,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
               : assigneeBuilder_.build();
           to_bitField0_ |= 0x00000002;
         }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.parentTaskName_ = parentTaskName_;
-        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -2044,11 +1978,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         }
         if (other.hasAssignee()) {
           mergeAssignee(other.getAssignee());
-        }
-        if (!other.getParentTaskName().isEmpty()) {
-          parentTaskName_ = other.parentTaskName_;
-          bitField0_ |= 0x00000020;
-          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -2105,11 +2034,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 42
-              case 58: {
-                parentTaskName_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000020;
-                break;
-              } // case 58
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2695,78 +2619,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           assignee_ = null;
         }
         return assigneeBuilder_;
-      }
-
-      private java.lang.Object parentTaskName_ = "";
-      /**
-       * <code>string parent_task_name = 7;</code>
-       * @return The parentTaskName.
-       */
-      public java.lang.String getParentTaskName() {
-        java.lang.Object ref = parentTaskName_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          parentTaskName_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string parent_task_name = 7;</code>
-       * @return The bytes for parentTaskName.
-       */
-      public com.google.protobuf.ByteString
-          getParentTaskNameBytes() {
-        java.lang.Object ref = parentTaskName_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          parentTaskName_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string parent_task_name = 7;</code>
-       * @param value The parentTaskName to set.
-       * @return This builder for chaining.
-       */
-      public Builder setParentTaskName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        parentTaskName_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string parent_task_name = 7;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearParentTaskName() {
-        parentTaskName_ = getDefaultInstance().getParentTaskName();
-        bitField0_ = (bitField0_ & ~0x00000020);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string parent_task_name = 7;</code>
-       * @param value The bytes for parentTaskName to set.
-       * @return This builder for chaining.
-       */
-      public Builder setParentTaskNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        parentTaskName_ = value;
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.TaskSpec)
@@ -5988,29 +5840,29 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       "tadata\030\001 \001(\0132\035.talon.resources.ResourceM" +
       "eta\022\'\n\004spec\030\002 \001(\0132\031.talon.resources.Task" +
       "Spec\022+\n\006status\030\003 \001(\0132\033.talon.resources.T" +
-      "askStatus\"\267\001\n\010TaskSpec\022\r\n\005title\030\001 \001(\t\022\023\n" +
+      "askStatus\"\235\001\n\010TaskSpec\022\r\n\005title\030\001 \001(\t\022\023\n" +
       "\013description\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\022/\n\trequ" +
       "ester\030\004 \001(\0132\034.talon.resources.ResourceRe" +
       "f\022.\n\010assignee\030\005 \001(\0132\034.talon.resources.Re" +
-      "sourceRef\022\030\n\020parent_task_name\030\007 \001(\t\"e\n\020T" +
-      "askExecutionRef\022\014\n\004kind\030\001 \001(\t\022\021\n\tnamespa" +
-      "ce\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\022\n\nsession_id\030\004 \001" +
-      "(\t\022\016\n\006run_id\030\005 \001(\t\"\354\002\n\nTaskStatus\022\033\n\023obs" +
-      "erved_generation\030\001 \001(\004\022)\n\005phase\030\002 \001(\0162\032." +
-      "talon.resources.TaskPhase\0226\n\nconditions\030" +
-      "\003 \003(\0132\".talon.resources.ResourceConditio" +
-      "n\022\030\n\020progress_summary\030\004 \001(\t\0228\n\020result_ar" +
-      "tifacts\030\005 \003(\0132\036.talon.resources.FileObje" +
-      "ctRef\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_at\030" +
-      "\007 \001(\003\022\024\n\014completed_at\030\010 \001(\003\022\022\n\nexpires_a" +
-      "t\030\t \001(\003\0228\n\rexecution_ref\030\n \001(\0132!.talon.r" +
-      "esources.TaskExecutionRef*\355\001\n\tTaskPhase\022" +
-      "\032\n\026TASK_PHASE_UNSPECIFIED\020\000\022\025\n\021TASK_PHAS" +
-      "E_QUEUED\020\001\022\026\n\022TASK_PHASE_RUNNING\020\002\022\026\n\022TA" +
-      "SK_PHASE_BLOCKED\020\003\022\033\n\027TASK_PHASE_NEEDS_R" +
-      "EVIEW\020\004\022\030\n\024TASK_PHASE_SUCCEEDED\020\005\022\025\n\021TAS" +
-      "K_PHASE_FAILED\020\006\022\027\n\023TASK_PHASE_CANCELED\020" +
-      "\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b\006proto3"
+      "sourceRef\"e\n\020TaskExecutionRef\022\014\n\004kind\030\001 " +
+      "\001(\t\022\021\n\tnamespace\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\022\n\n" +
+      "session_id\030\004 \001(\t\022\016\n\006run_id\030\005 \001(\t\"\354\002\n\nTas" +
+      "kStatus\022\033\n\023observed_generation\030\001 \001(\004\022)\n\005" +
+      "phase\030\002 \001(\0162\032.talon.resources.TaskPhase\022" +
+      "6\n\nconditions\030\003 \003(\0132\".talon.resources.Re" +
+      "sourceCondition\022\030\n\020progress_summary\030\004 \001(" +
+      "\t\0228\n\020result_artifacts\030\005 \003(\0132\036.talon.reso" +
+      "urces.FileObjectRef\022\022\n\ncreated_at\030\006 \001(\003\022" +
+      "\022\n\nupdated_at\030\007 \001(\003\022\024\n\014completed_at\030\010 \001(" +
+      "\003\022\022\n\nexpires_at\030\t \001(\003\0228\n\rexecution_ref\030\n" +
+      " \001(\0132!.talon.resources.TaskExecutionRef*" +
+      "\355\001\n\tTaskPhase\022\032\n\026TASK_PHASE_UNSPECIFIED\020" +
+      "\000\022\025\n\021TASK_PHASE_QUEUED\020\001\022\026\n\022TASK_PHASE_R" +
+      "UNNING\020\002\022\026\n\022TASK_PHASE_BLOCKED\020\003\022\033\n\027TASK" +
+      "_PHASE_NEEDS_REVIEW\020\004\022\030\n\024TASK_PHASE_SUCC" +
+      "EEDED\020\005\022\025\n\021TASK_PHASE_FAILED\020\006\022\027\n\023TASK_P" +
+      "HASE_CANCELED\020\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b" +
+      "\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6029,7 +5881,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_TaskSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_TaskSpec_descriptor,
-        new java.lang.String[] { "Title", "Description", "Type", "Requester", "Assignee", "ParentTaskName", });
+        new java.lang.String[] { "Title", "Description", "Type", "Requester", "Assignee", });
     internal_static_talon_resources_TaskExecutionRef_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_resources_TaskExecutionRef_fieldAccessorTable = new

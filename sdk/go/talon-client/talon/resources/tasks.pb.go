@@ -173,10 +173,9 @@ type TaskSpec struct {
 	// Agent resource that created and owns follow-up responsibility for the task.
 	Requester *ResourceRef `protobuf:"bytes,4,opt,name=requester,proto3" json:"requester,omitempty"`
 	// Agent resource intended to perform the work.
-	Assignee       *ResourceRef `protobuf:"bytes,5,opt,name=assignee,proto3" json:"assignee,omitempty"`
-	ParentTaskName string       `protobuf:"bytes,7,opt,name=parent_task_name,json=parentTaskName,proto3" json:"parent_task_name,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	Assignee      *ResourceRef `protobuf:"bytes,5,opt,name=assignee,proto3" json:"assignee,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TaskSpec) Reset() {
@@ -242,13 +241,6 @@ func (x *TaskSpec) GetAssignee() *ResourceRef {
 		return x.Assignee
 	}
 	return nil
-}
-
-func (x *TaskSpec) GetParentTaskName() string {
-	if x != nil {
-		return x.ParentTaskName
-	}
-	return ""
 }
 
 // Runtime location of the work that is fulfilling the task. This may be absent
@@ -454,14 +446,13 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\x04Task\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12-\n" +
 	"\x04spec\x18\x02 \x01(\v2\x19.talon.resources.TaskSpecR\x04spec\x123\n" +
-	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\xf6\x01\n" +
+	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\xcc\x01\n" +
 	"\bTaskSpec\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x12\n" +
 	"\x04type\x18\x03 \x01(\tR\x04type\x12:\n" +
 	"\trequester\x18\x04 \x01(\v2\x1c.talon.resources.ResourceRefR\trequester\x128\n" +
-	"\bassignee\x18\x05 \x01(\v2\x1c.talon.resources.ResourceRefR\bassignee\x12(\n" +
-	"\x10parent_task_name\x18\a \x01(\tR\x0eparentTaskName\"\x8e\x01\n" +
+	"\bassignee\x18\x05 \x01(\v2\x1c.talon.resources.ResourceRefR\bassignee\"\x8e\x01\n" +
 	"\x10TaskExecutionRef\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1c\n" +
 	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +

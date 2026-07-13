@@ -1154,8 +1154,6 @@ pub struct TaskSpec {
     /// Agent resource intended to perform the work.
     #[prost(message, optional, tag = "5")]
     pub assignee: ::core::option::Option<ResourceRef>,
-    #[prost(string, tag = "7")]
-    pub parent_task_name: ::prost::alloc::string::String,
 }
 /// Runtime location of the work that is fulfilling the task. This may be absent
 /// while queued and filled in after async delegation starts.

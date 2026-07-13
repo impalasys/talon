@@ -180,11 +180,6 @@ export class TaskSpec extends Message<TaskSpec> {
    */
   assignee?: ResourceRef;
 
-  /**
-   * @generated from field: string parent_task_name = 7;
-   */
-  parentTaskName = "";
-
   constructor(data?: PartialMessage<TaskSpec>) {
     super();
     proto3.util.initPartial(data, this);
@@ -198,7 +193,6 @@ export class TaskSpec extends Message<TaskSpec> {
     { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "requester", kind: "message", T: ResourceRef },
     { no: 5, name: "assignee", kind: "message", T: ResourceRef },
-    { no: 7, name: "parent_task_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TaskSpec {
