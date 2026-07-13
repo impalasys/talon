@@ -41,49 +41,37 @@ class Task(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[TaskSpec, _Mapping]] = ..., status: _Optional[_Union[TaskStatus, _Mapping]] = ...) -> None: ...
 
 class TaskSpec(_message.Message):
-    __slots__ = ("title", "description", "type", "requester", "assignee", "execution_ref", "parent_task_name")
+    __slots__ = ("title", "description", "type", "requester", "assignee", "parent_task_name")
     TITLE_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     REQUESTER_FIELD_NUMBER: _ClassVar[int]
     ASSIGNEE_FIELD_NUMBER: _ClassVar[int]
-    EXECUTION_REF_FIELD_NUMBER: _ClassVar[int]
     PARENT_TASK_NAME_FIELD_NUMBER: _ClassVar[int]
     title: str
     description: str
     type: str
-    requester: TaskParticipant
-    assignee: TaskParticipant
-    execution_ref: TaskExecutionRef
+    requester: _common_pb2.ResourceRef
+    assignee: _common_pb2.ResourceRef
     parent_task_name: str
-    def __init__(self, title: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[str] = ..., requester: _Optional[_Union[TaskParticipant, _Mapping]] = ..., assignee: _Optional[_Union[TaskParticipant, _Mapping]] = ..., execution_ref: _Optional[_Union[TaskExecutionRef, _Mapping]] = ..., parent_task_name: _Optional[str] = ...) -> None: ...
-
-class TaskParticipant(_message.Message):
-    __slots__ = ("namespace", "agent", "session_id")
-    NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    namespace: str
-    agent: str
-    session_id: str
-    def __init__(self, namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, title: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[str] = ..., requester: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., assignee: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., parent_task_name: _Optional[str] = ...) -> None: ...
 
 class TaskExecutionRef(_message.Message):
-    __slots__ = ("kind", "namespace", "agent", "session_id", "run_id")
+    __slots__ = ("kind", "namespace", "name", "session_id", "run_id")
     KIND_FIELD_NUMBER: _ClassVar[int]
     NAMESPACE_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     RUN_ID_FIELD_NUMBER: _ClassVar[int]
     kind: str
     namespace: str
-    agent: str
+    name: str
     session_id: str
     run_id: str
-    def __init__(self, kind: _Optional[str] = ..., namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., run_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, kind: _Optional[str] = ..., namespace: _Optional[str] = ..., name: _Optional[str] = ..., session_id: _Optional[str] = ..., run_id: _Optional[str] = ...) -> None: ...
 
 class TaskStatus(_message.Message):
-    __slots__ = ("observed_generation", "phase", "conditions", "progress_summary", "result_artifacts", "created_at", "updated_at", "completed_at", "expires_at")
+    __slots__ = ("observed_generation", "phase", "conditions", "progress_summary", "result_artifacts", "created_at", "updated_at", "completed_at", "expires_at", "execution_ref")
     OBSERVED_GENERATION_FIELD_NUMBER: _ClassVar[int]
     PHASE_FIELD_NUMBER: _ClassVar[int]
     CONDITIONS_FIELD_NUMBER: _ClassVar[int]
@@ -93,6 +81,7 @@ class TaskStatus(_message.Message):
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
     COMPLETED_AT_FIELD_NUMBER: _ClassVar[int]
     EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
+    EXECUTION_REF_FIELD_NUMBER: _ClassVar[int]
     observed_generation: int
     phase: TaskPhase
     conditions: _containers.RepeatedCompositeFieldContainer[_common_pb2.ResourceCondition]
@@ -102,4 +91,5 @@ class TaskStatus(_message.Message):
     updated_at: int
     completed_at: int
     expires_at: int
-    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[_Union[TaskPhase, str]] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., progress_summary: _Optional[str] = ..., result_artifacts: _Optional[_Iterable[_Union[_files_pb2.FileObjectRef, _Mapping]]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., completed_at: _Optional[int] = ..., expires_at: _Optional[int] = ...) -> None: ...
+    execution_ref: TaskExecutionRef
+    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[_Union[TaskPhase, str]] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., progress_summary: _Optional[str] = ..., result_artifacts: _Optional[_Iterable[_Union[_files_pb2.FileObjectRef, _Mapping]]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., completed_at: _Optional[int] = ..., expires_at: _Optional[int] = ..., execution_ref: _Optional[_Union[TaskExecutionRef, _Mapping]] = ...) -> None: ...

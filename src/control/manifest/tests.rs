@@ -726,6 +726,12 @@ spec:
   title: Launch copy
   description: Draft launch copy.
   type: agent_delegation
+  requester:
+    namespace: Tenant:acme:Workspace:main
+    name: cmo
+  assignee:
+    namespace: Tenant:acme:Workspace:main
+    name: writer
 "#,
         )
         .expect("task manifest should parse string type");
@@ -735,6 +741,8 @@ spec:
             panic!("expected Task spec");
         };
         assert_eq!(spec.r#type, "agent_delegation");
+        assert_eq!(spec.requester.as_ref().unwrap().name, "cmo");
+        assert_eq!(spec.assignee.as_ref().unwrap().name, "writer");
 
         let rendered = render_resource_yaml(&resources_proto::Resource {
             api_version: manifest.api_version,
@@ -753,6 +761,8 @@ spec:
         .expect("task resource should render");
 
         assert!(rendered.contains("type: agent_delegation"));
+        assert!(rendered.contains("name: cmo"));
+        assert!(rendered.contains("name: writer"));
         assert!(rendered.contains("phase: NEEDS_REVIEW"));
     }
 

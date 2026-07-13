@@ -20,23 +20,11 @@ message TaskSpec {
   // lifecycle. Use values such as "agent_delegation", "human_review", or an
   // application-specific string when the caller needs a stable category.
   string type = 3;
-  // Agent/session that created and owns follow-up responsibility for the task.
-  TaskParticipant requester = 4;
-  // Intended worker agent/session, if the caller already delegated the work.
-  TaskParticipant assignee = 5;
-  // Concrete runtime execution once an assignee session or run is known.
-  TaskExecutionRef execution_ref = 6;
+  // Agent resource that created and owns follow-up responsibility for the task.
+  ResourceRef requester = 4;
+  // Agent resource intended to perform the work.
+  ResourceRef assignee = 5;
   string parent_task_name = 7;
-}
-
-// Participant identity copied from the caller or delegate context at creation
-// time. Talon does not infer ownership from resource ancestry; callers set the
-// requester and assignee explicitly so tasks can be queried by namespace,
-// requester agent, assignee agent, or parent task.
-message TaskParticipant {
-  string namespace = 1;
-  string agent = 2;
-  string session_id = 3;
 }
 
 // Runtime location of the work that is fulfilling the task. This may be absent
@@ -44,7 +32,7 @@ message TaskParticipant {
 message TaskExecutionRef {
   string kind = 1;
   string namespace = 2;
-  string agent = 3;
+  string name = 3;
   string session_id = 4;
   string run_id = 5;
 }
@@ -83,4 +71,6 @@ message TaskStatus {
   int64 updated_at = 7;
   int64 completed_at = 8;
   int64 expires_at = 9;
+  // Concrete runtime execution once an assignee session or run is known.
+  TaskExecutionRef execution_ref = 10;
 }

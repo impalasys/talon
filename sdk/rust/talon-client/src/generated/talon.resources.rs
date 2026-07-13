@@ -1148,30 +1148,14 @@ pub struct TaskSpec {
     /// application-specific string when the caller needs a stable category.
     #[prost(string, tag = "3")]
     pub r#type: ::prost::alloc::string::String,
-    /// Agent/session that created and owns follow-up responsibility for the task.
+    /// Agent resource that created and owns follow-up responsibility for the task.
     #[prost(message, optional, tag = "4")]
-    pub requester: ::core::option::Option<TaskParticipant>,
-    /// Intended worker agent/session, if the caller already delegated the work.
+    pub requester: ::core::option::Option<ResourceRef>,
+    /// Agent resource intended to perform the work.
     #[prost(message, optional, tag = "5")]
-    pub assignee: ::core::option::Option<TaskParticipant>,
-    /// Concrete runtime execution once an assignee session or run is known.
-    #[prost(message, optional, tag = "6")]
-    pub execution_ref: ::core::option::Option<TaskExecutionRef>,
+    pub assignee: ::core::option::Option<ResourceRef>,
     #[prost(string, tag = "7")]
     pub parent_task_name: ::prost::alloc::string::String,
-}
-/// Participant identity copied from the caller or delegate context at creation
-/// time. Talon does not infer ownership from resource ancestry; callers set the
-/// requester and assignee explicitly so tasks can be queried by namespace,
-/// requester agent, assignee agent, or parent task.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TaskParticipant {
-    #[prost(string, tag = "1")]
-    pub namespace: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub agent: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub session_id: ::prost::alloc::string::String,
 }
 /// Runtime location of the work that is fulfilling the task. This may be absent
 /// while queued and filled in after async delegation starts.
@@ -1182,7 +1166,7 @@ pub struct TaskExecutionRef {
     #[prost(string, tag = "2")]
     pub namespace: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
-    pub agent: ::prost::alloc::string::String,
+    pub name: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
     pub session_id: ::prost::alloc::string::String,
     #[prost(string, tag = "5")]
@@ -1208,6 +1192,9 @@ pub struct TaskStatus {
     pub completed_at: i64,
     #[prost(int64, tag = "9")]
     pub expires_at: i64,
+    /// Concrete runtime execution once an assignee session or run is known.
+    #[prost(message, optional, tag = "10")]
+    pub execution_ref: ::core::option::Option<TaskExecutionRef>,
 }
 /// Lifecycle phase for a Task.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]

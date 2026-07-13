@@ -105,7 +105,6 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.TemplateSpec",
         ".talon.resources.Task",
         ".talon.resources.TaskExecutionRef",
-        ".talon.resources.TaskParticipant",
         ".talon.resources.TaskSpec",
         ".talon.resources.TaskStatus",
         ".talon.resources.ThinkingConfig",

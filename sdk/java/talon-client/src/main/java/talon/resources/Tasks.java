@@ -1319,84 +1319,57 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
 
     /**
      * <pre>
-     * Agent/session that created and owns follow-up responsibility for the task.
+     * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant requester = 4;</code>
+     * <code>.talon.resources.ResourceRef requester = 4;</code>
      * @return Whether the requester field is set.
      */
     boolean hasRequester();
     /**
      * <pre>
-     * Agent/session that created and owns follow-up responsibility for the task.
+     * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant requester = 4;</code>
+     * <code>.talon.resources.ResourceRef requester = 4;</code>
      * @return The requester.
      */
-    talon.resources.Tasks.TaskParticipant getRequester();
+    talon.resources.Common.ResourceRef getRequester();
     /**
      * <pre>
-     * Agent/session that created and owns follow-up responsibility for the task.
+     * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant requester = 4;</code>
+     * <code>.talon.resources.ResourceRef requester = 4;</code>
      */
-    talon.resources.Tasks.TaskParticipantOrBuilder getRequesterOrBuilder();
+    talon.resources.Common.ResourceRefOrBuilder getRequesterOrBuilder();
 
     /**
      * <pre>
-     * Intended worker agent/session, if the caller already delegated the work.
+     * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+     * <code>.talon.resources.ResourceRef assignee = 5;</code>
      * @return Whether the assignee field is set.
      */
     boolean hasAssignee();
     /**
      * <pre>
-     * Intended worker agent/session, if the caller already delegated the work.
+     * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+     * <code>.talon.resources.ResourceRef assignee = 5;</code>
      * @return The assignee.
      */
-    talon.resources.Tasks.TaskParticipant getAssignee();
+    talon.resources.Common.ResourceRef getAssignee();
     /**
      * <pre>
-     * Intended worker agent/session, if the caller already delegated the work.
+     * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+     * <code>.talon.resources.ResourceRef assignee = 5;</code>
      */
-    talon.resources.Tasks.TaskParticipantOrBuilder getAssigneeOrBuilder();
-
-    /**
-     * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
-     * </pre>
-     *
-     * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-     * @return Whether the executionRef field is set.
-     */
-    boolean hasExecutionRef();
-    /**
-     * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
-     * </pre>
-     *
-     * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-     * @return The executionRef.
-     */
-    talon.resources.Tasks.TaskExecutionRef getExecutionRef();
-    /**
-     * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
-     * </pre>
-     *
-     * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-     */
-    talon.resources.Tasks.TaskExecutionRefOrBuilder getExecutionRefOrBuilder();
+    talon.resources.Common.ResourceRefOrBuilder getAssigneeOrBuilder();
 
     /**
      * <code>string parent_task_name = 7;</code>
@@ -1591,13 +1564,13 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int REQUESTER_FIELD_NUMBER = 4;
-    private talon.resources.Tasks.TaskParticipant requester_;
+    private talon.resources.Common.ResourceRef requester_;
     /**
      * <pre>
-     * Agent/session that created and owns follow-up responsibility for the task.
+     * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant requester = 4;</code>
+     * <code>.talon.resources.ResourceRef requester = 4;</code>
      * @return Whether the requester field is set.
      */
     @java.lang.Override
@@ -1606,36 +1579,36 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Agent/session that created and owns follow-up responsibility for the task.
+     * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant requester = 4;</code>
+     * <code>.talon.resources.ResourceRef requester = 4;</code>
      * @return The requester.
      */
     @java.lang.Override
-    public talon.resources.Tasks.TaskParticipant getRequester() {
-      return requester_ == null ? talon.resources.Tasks.TaskParticipant.getDefaultInstance() : requester_;
+    public talon.resources.Common.ResourceRef getRequester() {
+      return requester_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : requester_;
     }
     /**
      * <pre>
-     * Agent/session that created and owns follow-up responsibility for the task.
+     * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant requester = 4;</code>
+     * <code>.talon.resources.ResourceRef requester = 4;</code>
      */
     @java.lang.Override
-    public talon.resources.Tasks.TaskParticipantOrBuilder getRequesterOrBuilder() {
-      return requester_ == null ? talon.resources.Tasks.TaskParticipant.getDefaultInstance() : requester_;
+    public talon.resources.Common.ResourceRefOrBuilder getRequesterOrBuilder() {
+      return requester_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : requester_;
     }
 
     public static final int ASSIGNEE_FIELD_NUMBER = 5;
-    private talon.resources.Tasks.TaskParticipant assignee_;
+    private talon.resources.Common.ResourceRef assignee_;
     /**
      * <pre>
-     * Intended worker agent/session, if the caller already delegated the work.
+     * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+     * <code>.talon.resources.ResourceRef assignee = 5;</code>
      * @return Whether the assignee field is set.
      */
     @java.lang.Override
@@ -1644,64 +1617,26 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Intended worker agent/session, if the caller already delegated the work.
+     * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+     * <code>.talon.resources.ResourceRef assignee = 5;</code>
      * @return The assignee.
      */
     @java.lang.Override
-    public talon.resources.Tasks.TaskParticipant getAssignee() {
-      return assignee_ == null ? talon.resources.Tasks.TaskParticipant.getDefaultInstance() : assignee_;
+    public talon.resources.Common.ResourceRef getAssignee() {
+      return assignee_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
     }
     /**
      * <pre>
-     * Intended worker agent/session, if the caller already delegated the work.
+     * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+     * <code>.talon.resources.ResourceRef assignee = 5;</code>
      */
     @java.lang.Override
-    public talon.resources.Tasks.TaskParticipantOrBuilder getAssigneeOrBuilder() {
-      return assignee_ == null ? talon.resources.Tasks.TaskParticipant.getDefaultInstance() : assignee_;
-    }
-
-    public static final int EXECUTION_REF_FIELD_NUMBER = 6;
-    private talon.resources.Tasks.TaskExecutionRef executionRef_;
-    /**
-     * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
-     * </pre>
-     *
-     * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-     * @return Whether the executionRef field is set.
-     */
-    @java.lang.Override
-    public boolean hasExecutionRef() {
-      return ((bitField0_ & 0x00000004) != 0);
-    }
-    /**
-     * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
-     * </pre>
-     *
-     * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-     * @return The executionRef.
-     */
-    @java.lang.Override
-    public talon.resources.Tasks.TaskExecutionRef getExecutionRef() {
-      return executionRef_ == null ? talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
-    }
-    /**
-     * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
-     * </pre>
-     *
-     * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-     */
-    @java.lang.Override
-    public talon.resources.Tasks.TaskExecutionRefOrBuilder getExecutionRefOrBuilder() {
-      return executionRef_ == null ? talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
+    public talon.resources.Common.ResourceRefOrBuilder getAssigneeOrBuilder() {
+      return assignee_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
     }
 
     public static final int PARENT_TASK_NAME_FIELD_NUMBER = 7;
@@ -1772,9 +1707,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000002) != 0)) {
         output.writeMessage(5, getAssignee());
       }
-      if (((bitField0_ & 0x00000004) != 0)) {
-        output.writeMessage(6, getExecutionRef());
-      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentTaskName_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 7, parentTaskName_);
       }
@@ -1803,10 +1735,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, getAssignee());
-      }
-      if (((bitField0_ & 0x00000004) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, getExecutionRef());
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parentTaskName_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(7, parentTaskName_);
@@ -1842,11 +1770,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         if (!getAssignee()
             .equals(other.getAssignee())) return false;
       }
-      if (hasExecutionRef() != other.hasExecutionRef()) return false;
-      if (hasExecutionRef()) {
-        if (!getExecutionRef()
-            .equals(other.getExecutionRef())) return false;
-      }
       if (!getParentTaskName()
           .equals(other.getParentTaskName())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
@@ -1873,10 +1796,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (hasAssignee()) {
         hash = (37 * hash) + ASSIGNEE_FIELD_NUMBER;
         hash = (53 * hash) + getAssignee().hashCode();
-      }
-      if (hasExecutionRef()) {
-        hash = (37 * hash) + EXECUTION_REF_FIELD_NUMBER;
-        hash = (53 * hash) + getExecutionRef().hashCode();
       }
       hash = (37 * hash) + PARENT_TASK_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getParentTaskName().hashCode();
@@ -2012,7 +1931,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
                 .alwaysUseFieldBuilders) {
           internalGetRequesterFieldBuilder();
           internalGetAssigneeFieldBuilder();
-          internalGetExecutionRefFieldBuilder();
         }
       }
       @java.lang.Override
@@ -2031,11 +1949,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         if (assigneeBuilder_ != null) {
           assigneeBuilder_.dispose();
           assigneeBuilder_ = null;
-        }
-        executionRef_ = null;
-        if (executionRefBuilder_ != null) {
-          executionRefBuilder_.dispose();
-          executionRefBuilder_ = null;
         }
         parentTaskName_ = "";
         return this;
@@ -2094,12 +2007,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           to_bitField0_ |= 0x00000002;
         }
         if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.executionRef_ = executionRefBuilder_ == null
-              ? executionRef_
-              : executionRefBuilder_.build();
-          to_bitField0_ |= 0x00000004;
-        }
-        if (((from_bitField0_ & 0x00000040) != 0)) {
           result.parentTaskName_ = parentTaskName_;
         }
         result.bitField0_ |= to_bitField0_;
@@ -2138,12 +2045,9 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         if (other.hasAssignee()) {
           mergeAssignee(other.getAssignee());
         }
-        if (other.hasExecutionRef()) {
-          mergeExecutionRef(other.getExecutionRef());
-        }
         if (!other.getParentTaskName().isEmpty()) {
           parentTaskName_ = other.parentTaskName_;
-          bitField0_ |= 0x00000040;
+          bitField0_ |= 0x00000020;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -2201,16 +2105,9 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 42
-              case 50: {
-                input.readMessage(
-                    internalGetExecutionRefFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000020;
-                break;
-              } // case 50
               case 58: {
                 parentTaskName_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000040;
+                bitField0_ |= 0x00000020;
                 break;
               } // case 58
               default: {
@@ -2486,15 +2383,15 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private talon.resources.Tasks.TaskParticipant requester_;
+      private talon.resources.Common.ResourceRef requester_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Tasks.TaskParticipant, talon.resources.Tasks.TaskParticipant.Builder, talon.resources.Tasks.TaskParticipantOrBuilder> requesterBuilder_;
+          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> requesterBuilder_;
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        * @return Whether the requester field is set.
        */
       public boolean hasRequester() {
@@ -2502,27 +2399,27 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        * @return The requester.
        */
-      public talon.resources.Tasks.TaskParticipant getRequester() {
+      public talon.resources.Common.ResourceRef getRequester() {
         if (requesterBuilder_ == null) {
-          return requester_ == null ? talon.resources.Tasks.TaskParticipant.getDefaultInstance() : requester_;
+          return requester_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : requester_;
         } else {
           return requesterBuilder_.getMessage();
         }
       }
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        */
-      public Builder setRequester(talon.resources.Tasks.TaskParticipant value) {
+      public Builder setRequester(talon.resources.Common.ResourceRef value) {
         if (requesterBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -2537,13 +2434,13 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        */
       public Builder setRequester(
-          talon.resources.Tasks.TaskParticipant.Builder builderForValue) {
+          talon.resources.Common.ResourceRef.Builder builderForValue) {
         if (requesterBuilder_ == null) {
           requester_ = builderForValue.build();
         } else {
@@ -2555,16 +2452,16 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        */
-      public Builder mergeRequester(talon.resources.Tasks.TaskParticipant value) {
+      public Builder mergeRequester(talon.resources.Common.ResourceRef value) {
         if (requesterBuilder_ == null) {
           if (((bitField0_ & 0x00000008) != 0) &&
             requester_ != null &&
-            requester_ != talon.resources.Tasks.TaskParticipant.getDefaultInstance()) {
+            requester_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
             getRequesterBuilder().mergeFrom(value);
           } else {
             requester_ = value;
@@ -2580,10 +2477,10 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        */
       public Builder clearRequester() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -2597,44 +2494,44 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        */
-      public talon.resources.Tasks.TaskParticipant.Builder getRequesterBuilder() {
+      public talon.resources.Common.ResourceRef.Builder getRequesterBuilder() {
         bitField0_ |= 0x00000008;
         onChanged();
         return internalGetRequesterFieldBuilder().getBuilder();
       }
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        */
-      public talon.resources.Tasks.TaskParticipantOrBuilder getRequesterOrBuilder() {
+      public talon.resources.Common.ResourceRefOrBuilder getRequesterOrBuilder() {
         if (requesterBuilder_ != null) {
           return requesterBuilder_.getMessageOrBuilder();
         } else {
           return requester_ == null ?
-              talon.resources.Tasks.TaskParticipant.getDefaultInstance() : requester_;
+              talon.resources.Common.ResourceRef.getDefaultInstance() : requester_;
         }
       }
       /**
        * <pre>
-       * Agent/session that created and owns follow-up responsibility for the task.
+       * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant requester = 4;</code>
+       * <code>.talon.resources.ResourceRef requester = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Tasks.TaskParticipant, talon.resources.Tasks.TaskParticipant.Builder, talon.resources.Tasks.TaskParticipantOrBuilder>
+          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>
           internalGetRequesterFieldBuilder() {
         if (requesterBuilder_ == null) {
           requesterBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Tasks.TaskParticipant, talon.resources.Tasks.TaskParticipant.Builder, talon.resources.Tasks.TaskParticipantOrBuilder>(
+              talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>(
                   getRequester(),
                   getParentForChildren(),
                   isClean());
@@ -2643,15 +2540,15 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         return requesterBuilder_;
       }
 
-      private talon.resources.Tasks.TaskParticipant assignee_;
+      private talon.resources.Common.ResourceRef assignee_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Tasks.TaskParticipant, talon.resources.Tasks.TaskParticipant.Builder, talon.resources.Tasks.TaskParticipantOrBuilder> assigneeBuilder_;
+          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> assigneeBuilder_;
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        * @return Whether the assignee field is set.
        */
       public boolean hasAssignee() {
@@ -2659,27 +2556,27 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        * @return The assignee.
        */
-      public talon.resources.Tasks.TaskParticipant getAssignee() {
+      public talon.resources.Common.ResourceRef getAssignee() {
         if (assigneeBuilder_ == null) {
-          return assignee_ == null ? talon.resources.Tasks.TaskParticipant.getDefaultInstance() : assignee_;
+          return assignee_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
         } else {
           return assigneeBuilder_.getMessage();
         }
       }
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        */
-      public Builder setAssignee(talon.resources.Tasks.TaskParticipant value) {
+      public Builder setAssignee(talon.resources.Common.ResourceRef value) {
         if (assigneeBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -2694,13 +2591,13 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        */
       public Builder setAssignee(
-          talon.resources.Tasks.TaskParticipant.Builder builderForValue) {
+          talon.resources.Common.ResourceRef.Builder builderForValue) {
         if (assigneeBuilder_ == null) {
           assignee_ = builderForValue.build();
         } else {
@@ -2712,16 +2609,16 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        */
-      public Builder mergeAssignee(talon.resources.Tasks.TaskParticipant value) {
+      public Builder mergeAssignee(talon.resources.Common.ResourceRef value) {
         if (assigneeBuilder_ == null) {
           if (((bitField0_ & 0x00000010) != 0) &&
             assignee_ != null &&
-            assignee_ != talon.resources.Tasks.TaskParticipant.getDefaultInstance()) {
+            assignee_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
             getAssigneeBuilder().mergeFrom(value);
           } else {
             assignee_ = value;
@@ -2737,10 +2634,10 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        */
       public Builder clearAssignee() {
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -2754,207 +2651,50 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        */
-      public talon.resources.Tasks.TaskParticipant.Builder getAssigneeBuilder() {
+      public talon.resources.Common.ResourceRef.Builder getAssigneeBuilder() {
         bitField0_ |= 0x00000010;
         onChanged();
         return internalGetAssigneeFieldBuilder().getBuilder();
       }
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        */
-      public talon.resources.Tasks.TaskParticipantOrBuilder getAssigneeOrBuilder() {
+      public talon.resources.Common.ResourceRefOrBuilder getAssigneeOrBuilder() {
         if (assigneeBuilder_ != null) {
           return assigneeBuilder_.getMessageOrBuilder();
         } else {
           return assignee_ == null ?
-              talon.resources.Tasks.TaskParticipant.getDefaultInstance() : assignee_;
+              talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
         }
       }
       /**
        * <pre>
-       * Intended worker agent/session, if the caller already delegated the work.
+       * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.TaskParticipant assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef assignee = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Tasks.TaskParticipant, talon.resources.Tasks.TaskParticipant.Builder, talon.resources.Tasks.TaskParticipantOrBuilder>
+          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>
           internalGetAssigneeFieldBuilder() {
         if (assigneeBuilder_ == null) {
           assigneeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Tasks.TaskParticipant, talon.resources.Tasks.TaskParticipant.Builder, talon.resources.Tasks.TaskParticipantOrBuilder>(
+              talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>(
                   getAssignee(),
                   getParentForChildren(),
                   isClean());
           assignee_ = null;
         }
         return assigneeBuilder_;
-      }
-
-      private talon.resources.Tasks.TaskExecutionRef executionRef_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Tasks.TaskExecutionRef, talon.resources.Tasks.TaskExecutionRef.Builder, talon.resources.Tasks.TaskExecutionRefOrBuilder> executionRefBuilder_;
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       * @return Whether the executionRef field is set.
-       */
-      public boolean hasExecutionRef() {
-        return ((bitField0_ & 0x00000020) != 0);
-      }
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       * @return The executionRef.
-       */
-      public talon.resources.Tasks.TaskExecutionRef getExecutionRef() {
-        if (executionRefBuilder_ == null) {
-          return executionRef_ == null ? talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
-        } else {
-          return executionRefBuilder_.getMessage();
-        }
-      }
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       */
-      public Builder setExecutionRef(talon.resources.Tasks.TaskExecutionRef value) {
-        if (executionRefBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          executionRef_ = value;
-        } else {
-          executionRefBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       */
-      public Builder setExecutionRef(
-          talon.resources.Tasks.TaskExecutionRef.Builder builderForValue) {
-        if (executionRefBuilder_ == null) {
-          executionRef_ = builderForValue.build();
-        } else {
-          executionRefBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       */
-      public Builder mergeExecutionRef(talon.resources.Tasks.TaskExecutionRef value) {
-        if (executionRefBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) != 0) &&
-            executionRef_ != null &&
-            executionRef_ != talon.resources.Tasks.TaskExecutionRef.getDefaultInstance()) {
-            getExecutionRefBuilder().mergeFrom(value);
-          } else {
-            executionRef_ = value;
-          }
-        } else {
-          executionRefBuilder_.mergeFrom(value);
-        }
-        if (executionRef_ != null) {
-          bitField0_ |= 0x00000020;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       */
-      public Builder clearExecutionRef() {
-        bitField0_ = (bitField0_ & ~0x00000020);
-        executionRef_ = null;
-        if (executionRefBuilder_ != null) {
-          executionRefBuilder_.dispose();
-          executionRefBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       */
-      public talon.resources.Tasks.TaskExecutionRef.Builder getExecutionRefBuilder() {
-        bitField0_ |= 0x00000020;
-        onChanged();
-        return internalGetExecutionRefFieldBuilder().getBuilder();
-      }
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       */
-      public talon.resources.Tasks.TaskExecutionRefOrBuilder getExecutionRefOrBuilder() {
-        if (executionRefBuilder_ != null) {
-          return executionRefBuilder_.getMessageOrBuilder();
-        } else {
-          return executionRef_ == null ?
-              talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
-        }
-      }
-      /**
-       * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
-       * </pre>
-       *
-       * <code>.talon.resources.TaskExecutionRef execution_ref = 6;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Tasks.TaskExecutionRef, talon.resources.Tasks.TaskExecutionRef.Builder, talon.resources.Tasks.TaskExecutionRefOrBuilder>
-          internalGetExecutionRefFieldBuilder() {
-        if (executionRefBuilder_ == null) {
-          executionRefBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.Tasks.TaskExecutionRef, talon.resources.Tasks.TaskExecutionRef.Builder, talon.resources.Tasks.TaskExecutionRefOrBuilder>(
-                  getExecutionRef(),
-                  getParentForChildren(),
-                  isClean());
-          executionRef_ = null;
-        }
-        return executionRefBuilder_;
       }
 
       private java.lang.Object parentTaskName_ = "";
@@ -3000,7 +2740,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         parentTaskName_ = value;
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
@@ -3010,7 +2750,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        */
       public Builder clearParentTaskName() {
         parentTaskName_ = getDefaultInstance().getParentTaskName();
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         onChanged();
         return this;
       }
@@ -3024,7 +2764,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         parentTaskName_ = value;
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
@@ -3080,831 +2820,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
 
   }
 
-  public interface TaskParticipantOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.resources.TaskParticipant)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string namespace = 1;</code>
-     * @return The namespace.
-     */
-    java.lang.String getNamespace();
-    /**
-     * <code>string namespace = 1;</code>
-     * @return The bytes for namespace.
-     */
-    com.google.protobuf.ByteString
-        getNamespaceBytes();
-
-    /**
-     * <code>string agent = 2;</code>
-     * @return The agent.
-     */
-    java.lang.String getAgent();
-    /**
-     * <code>string agent = 2;</code>
-     * @return The bytes for agent.
-     */
-    com.google.protobuf.ByteString
-        getAgentBytes();
-
-    /**
-     * <code>string session_id = 3;</code>
-     * @return The sessionId.
-     */
-    java.lang.String getSessionId();
-    /**
-     * <code>string session_id = 3;</code>
-     * @return The bytes for sessionId.
-     */
-    com.google.protobuf.ByteString
-        getSessionIdBytes();
-  }
-  /**
-   * <pre>
-   * Participant identity copied from the caller or delegate context at creation
-   * time. Talon does not infer ownership from resource ancestry; callers set the
-   * requester and assignee explicitly so tasks can be queried by namespace,
-   * requester agent, assignee agent, or parent task.
-   * </pre>
-   *
-   * Protobuf type {@code talon.resources.TaskParticipant}
-   */
-  public static final class TaskParticipant extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.resources.TaskParticipant)
-      TaskParticipantOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "TaskParticipant");
-    }
-    // Use TaskParticipant.newBuilder() to construct.
-    private TaskParticipant(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private TaskParticipant() {
-      namespace_ = "";
-      agent_ = "";
-      sessionId_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.resources.Tasks.internal_static_talon_resources_TaskParticipant_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.resources.Tasks.internal_static_talon_resources_TaskParticipant_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.resources.Tasks.internal_static_talon_resources_TaskParticipant_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.resources.Tasks.TaskParticipant.class, talon.resources.Tasks.TaskParticipant.Builder.class);
-    }
-
-    public static final int NAMESPACE_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object namespace_ = "";
-    /**
-     * <code>string namespace = 1;</code>
-     * @return The namespace.
-     */
-    @java.lang.Override
-    public java.lang.String getNamespace() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        namespace_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string namespace = 1;</code>
-     * @return The bytes for namespace.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNamespaceBytes() {
-      java.lang.Object ref = namespace_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        namespace_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int AGENT_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object agent_ = "";
-    /**
-     * <code>string agent = 2;</code>
-     * @return The agent.
-     */
-    @java.lang.Override
-    public java.lang.String getAgent() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        agent_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string agent = 2;</code>
-     * @return The bytes for agent.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getAgentBytes() {
-      java.lang.Object ref = agent_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        agent_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SESSION_ID_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object sessionId_ = "";
-    /**
-     * <code>string session_id = 3;</code>
-     * @return The sessionId.
-     */
-    @java.lang.Override
-    public java.lang.String getSessionId() {
-      java.lang.Object ref = sessionId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        sessionId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string session_id = 3;</code>
-     * @return The bytes for sessionId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getSessionIdBytes() {
-      java.lang.Object ref = sessionId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        sessionId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, sessionId_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, sessionId_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.resources.Tasks.TaskParticipant)) {
-        return super.equals(obj);
-      }
-      talon.resources.Tasks.TaskParticipant other = (talon.resources.Tasks.TaskParticipant) obj;
-
-      if (!getNamespace()
-          .equals(other.getNamespace())) return false;
-      if (!getAgent()
-          .equals(other.getAgent())) return false;
-      if (!getSessionId()
-          .equals(other.getSessionId())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
-      hash = (53 * hash) + getNamespace().hashCode();
-      hash = (37 * hash) + AGENT_FIELD_NUMBER;
-      hash = (53 * hash) + getAgent().hashCode();
-      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getSessionId().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.resources.Tasks.TaskParticipant parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.resources.Tasks.TaskParticipant parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.resources.Tasks.TaskParticipant parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.resources.Tasks.TaskParticipant parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.resources.Tasks.TaskParticipant prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * <pre>
-     * Participant identity copied from the caller or delegate context at creation
-     * time. Talon does not infer ownership from resource ancestry; callers set the
-     * requester and assignee explicitly so tasks can be queried by namespace,
-     * requester agent, assignee agent, or parent task.
-     * </pre>
-     *
-     * Protobuf type {@code talon.resources.TaskParticipant}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.resources.TaskParticipant)
-        talon.resources.Tasks.TaskParticipantOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.resources.Tasks.internal_static_talon_resources_TaskParticipant_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.resources.Tasks.internal_static_talon_resources_TaskParticipant_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.resources.Tasks.TaskParticipant.class, talon.resources.Tasks.TaskParticipant.Builder.class);
-      }
-
-      // Construct using talon.resources.Tasks.TaskParticipant.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        namespace_ = "";
-        agent_ = "";
-        sessionId_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.resources.Tasks.internal_static_talon_resources_TaskParticipant_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.resources.Tasks.TaskParticipant getDefaultInstanceForType() {
-        return talon.resources.Tasks.TaskParticipant.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.resources.Tasks.TaskParticipant build() {
-        talon.resources.Tasks.TaskParticipant result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.resources.Tasks.TaskParticipant buildPartial() {
-        talon.resources.Tasks.TaskParticipant result = new talon.resources.Tasks.TaskParticipant(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.resources.Tasks.TaskParticipant result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.namespace_ = namespace_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.agent_ = agent_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.sessionId_ = sessionId_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.resources.Tasks.TaskParticipant) {
-          return mergeFrom((talon.resources.Tasks.TaskParticipant)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.resources.Tasks.TaskParticipant other) {
-        if (other == talon.resources.Tasks.TaskParticipant.getDefaultInstance()) return this;
-        if (!other.getNamespace().isEmpty()) {
-          namespace_ = other.namespace_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getAgent().isEmpty()) {
-          agent_ = other.agent_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (!other.getSessionId().isEmpty()) {
-          sessionId_ = other.sessionId_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                namespace_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                agent_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                sessionId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object namespace_ = "";
-      /**
-       * <code>string namespace = 1;</code>
-       * @return The namespace.
-       */
-      public java.lang.String getNamespace() {
-        java.lang.Object ref = namespace_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          namespace_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string namespace = 1;</code>
-       * @return The bytes for namespace.
-       */
-      public com.google.protobuf.ByteString
-          getNamespaceBytes() {
-        java.lang.Object ref = namespace_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          namespace_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string namespace = 1;</code>
-       * @param value The namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespace(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        namespace_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string namespace = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNamespace() {
-        namespace_ = getDefaultInstance().getNamespace();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string namespace = 1;</code>
-       * @param value The bytes for namespace to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNamespaceBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        namespace_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object agent_ = "";
-      /**
-       * <code>string agent = 2;</code>
-       * @return The agent.
-       */
-      public java.lang.String getAgent() {
-        java.lang.Object ref = agent_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          agent_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string agent = 2;</code>
-       * @return The bytes for agent.
-       */
-      public com.google.protobuf.ByteString
-          getAgentBytes() {
-        java.lang.Object ref = agent_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          agent_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string agent = 2;</code>
-       * @param value The agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgent(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        agent_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string agent = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAgent() {
-        agent_ = getDefaultInstance().getAgent();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string agent = 2;</code>
-       * @param value The bytes for agent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAgentBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        agent_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object sessionId_ = "";
-      /**
-       * <code>string session_id = 3;</code>
-       * @return The sessionId.
-       */
-      public java.lang.String getSessionId() {
-        java.lang.Object ref = sessionId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          sessionId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string session_id = 3;</code>
-       * @return The bytes for sessionId.
-       */
-      public com.google.protobuf.ByteString
-          getSessionIdBytes() {
-        java.lang.Object ref = sessionId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          sessionId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string session_id = 3;</code>
-       * @param value The sessionId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSessionId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        sessionId_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string session_id = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearSessionId() {
-        sessionId_ = getDefaultInstance().getSessionId();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string session_id = 3;</code>
-       * @param value The bytes for sessionId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSessionIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        sessionId_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.resources.TaskParticipant)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.resources.TaskParticipant)
-    private static final talon.resources.Tasks.TaskParticipant DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.resources.Tasks.TaskParticipant();
-    }
-
-    public static talon.resources.Tasks.TaskParticipant getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<TaskParticipant>
-        PARSER = new com.google.protobuf.AbstractParser<TaskParticipant>() {
-      @java.lang.Override
-      public TaskParticipant parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<TaskParticipant> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<TaskParticipant> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.resources.Tasks.TaskParticipant getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
   public interface TaskExecutionRefOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.resources.TaskExecutionRef)
       com.google.protobuf.MessageOrBuilder {
@@ -3934,16 +2849,16 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         getNamespaceBytes();
 
     /**
-     * <code>string agent = 3;</code>
-     * @return The agent.
+     * <code>string name = 3;</code>
+     * @return The name.
      */
-    java.lang.String getAgent();
+    java.lang.String getName();
     /**
-     * <code>string agent = 3;</code>
-     * @return The bytes for agent.
+     * <code>string name = 3;</code>
+     * @return The bytes for name.
      */
     com.google.protobuf.ByteString
-        getAgentBytes();
+        getNameBytes();
 
     /**
      * <code>string session_id = 4;</code>
@@ -3998,7 +2913,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     private TaskExecutionRef() {
       kind_ = "";
       namespace_ = "";
-      agent_ = "";
+      name_ = "";
       sessionId_ = "";
       runId_ = "";
     }
@@ -4099,39 +3014,39 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int AGENT_FIELD_NUMBER = 3;
+    public static final int NAME_FIELD_NUMBER = 3;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object agent_ = "";
+    private volatile java.lang.Object name_ = "";
     /**
-     * <code>string agent = 3;</code>
-     * @return The agent.
+     * <code>string name = 3;</code>
+     * @return The name.
      */
     @java.lang.Override
-    public java.lang.String getAgent() {
-      java.lang.Object ref = agent_;
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        agent_ = s;
+        name_ = s;
         return s;
       }
     }
     /**
-     * <code>string agent = 3;</code>
-     * @return The bytes for agent.
+     * <code>string name = 3;</code>
+     * @return The bytes for name.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getAgentBytes() {
-      java.lang.Object ref = agent_;
+        getNameBytes() {
+      java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        agent_ = b;
+        name_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -4236,8 +3151,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, namespace_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, agent_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, name_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 4, sessionId_);
@@ -4260,8 +3175,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, namespace_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, agent_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, name_);
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(4, sessionId_);
@@ -4288,8 +3203,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           .equals(other.getKind())) return false;
       if (!getNamespace()
           .equals(other.getNamespace())) return false;
-      if (!getAgent()
-          .equals(other.getAgent())) return false;
+      if (!getName()
+          .equals(other.getName())) return false;
       if (!getSessionId()
           .equals(other.getSessionId())) return false;
       if (!getRunId()
@@ -4309,8 +3224,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       hash = (53 * hash) + getKind().hashCode();
       hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
       hash = (53 * hash) + getNamespace().hashCode();
-      hash = (37 * hash) + AGENT_FIELD_NUMBER;
-      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
       hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
       hash = (53 * hash) + getSessionId().hashCode();
       hash = (37 * hash) + RUN_ID_FIELD_NUMBER;
@@ -4453,7 +3368,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         bitField0_ = 0;
         kind_ = "";
         namespace_ = "";
-        agent_ = "";
+        name_ = "";
         sessionId_ = "";
         runId_ = "";
         return this;
@@ -4496,7 +3411,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           result.namespace_ = namespace_;
         }
         if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.agent_ = agent_;
+          result.name_ = name_;
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
           result.sessionId_ = sessionId_;
@@ -4528,8 +3443,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000002;
           onChanged();
         }
-        if (!other.getAgent().isEmpty()) {
-          agent_ = other.agent_;
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
           bitField0_ |= 0x00000004;
           onChanged();
         }
@@ -4580,7 +3495,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
                 break;
               } // case 18
               case 26: {
-                agent_ = input.readStringRequireUtf8();
+                name_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
@@ -4755,73 +3670,73 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private java.lang.Object agent_ = "";
+      private java.lang.Object name_ = "";
       /**
-       * <code>string agent = 3;</code>
-       * @return The agent.
+       * <code>string name = 3;</code>
+       * @return The name.
        */
-      public java.lang.String getAgent() {
-        java.lang.Object ref = agent_;
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          agent_ = s;
+          name_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string agent = 3;</code>
-       * @return The bytes for agent.
+       * <code>string name = 3;</code>
+       * @return The bytes for name.
        */
       public com.google.protobuf.ByteString
-          getAgentBytes() {
-        java.lang.Object ref = agent_;
+          getNameBytes() {
+        java.lang.Object ref = name_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          agent_ = b;
+          name_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string agent = 3;</code>
-       * @param value The agent to set.
+       * <code>string name = 3;</code>
+       * @param value The name to set.
        * @return This builder for chaining.
        */
-      public Builder setAgent(
+      public Builder setName(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        agent_ = value;
+        name_ = value;
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>string agent = 3;</code>
+       * <code>string name = 3;</code>
        * @return This builder for chaining.
        */
-      public Builder clearAgent() {
-        agent_ = getDefaultInstance().getAgent();
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
         bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
         return this;
       }
       /**
-       * <code>string agent = 3;</code>
-       * @param value The bytes for agent to set.
+       * <code>string name = 3;</code>
+       * @param value The bytes for name to set.
        * @return This builder for chaining.
        */
-      public Builder setAgentBytes(
+      public Builder setNameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        agent_ = value;
+        name_ = value;
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
@@ -5126,6 +4041,33 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
      * @return The expiresAt.
      */
     long getExpiresAt();
+
+    /**
+     * <pre>
+     * Concrete runtime execution once an assignee session or run is known.
+     * </pre>
+     *
+     * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+     * @return Whether the executionRef field is set.
+     */
+    boolean hasExecutionRef();
+    /**
+     * <pre>
+     * Concrete runtime execution once an assignee session or run is known.
+     * </pre>
+     *
+     * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+     * @return The executionRef.
+     */
+    talon.resources.Tasks.TaskExecutionRef getExecutionRef();
+    /**
+     * <pre>
+     * Concrete runtime execution once an assignee session or run is known.
+     * </pre>
+     *
+     * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+     */
+    talon.resources.Tasks.TaskExecutionRefOrBuilder getExecutionRefOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.TaskStatus}
@@ -5173,6 +4115,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
               talon.resources.Tasks.TaskStatus.class, talon.resources.Tasks.TaskStatus.Builder.class);
     }
 
+    private int bitField0_;
     public static final int OBSERVED_GENERATION_FIELD_NUMBER = 1;
     private long observedGeneration_ = 0L;
     /**
@@ -5367,6 +4310,44 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       return expiresAt_;
     }
 
+    public static final int EXECUTION_REF_FIELD_NUMBER = 10;
+    private talon.resources.Tasks.TaskExecutionRef executionRef_;
+    /**
+     * <pre>
+     * Concrete runtime execution once an assignee session or run is known.
+     * </pre>
+     *
+     * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+     * @return Whether the executionRef field is set.
+     */
+    @java.lang.Override
+    public boolean hasExecutionRef() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Concrete runtime execution once an assignee session or run is known.
+     * </pre>
+     *
+     * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+     * @return The executionRef.
+     */
+    @java.lang.Override
+    public talon.resources.Tasks.TaskExecutionRef getExecutionRef() {
+      return executionRef_ == null ? talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
+    }
+    /**
+     * <pre>
+     * Concrete runtime execution once an assignee session or run is known.
+     * </pre>
+     *
+     * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Tasks.TaskExecutionRefOrBuilder getExecutionRefOrBuilder() {
+      return executionRef_ == null ? talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -5407,6 +4388,9 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       if (expiresAt_ != 0L) {
         output.writeInt64(9, expiresAt_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(10, getExecutionRef());
       }
       getUnknownFields().writeTo(output);
     }
@@ -5462,6 +4446,10 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(9, expiresAt_);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(10, getExecutionRef());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -5494,6 +4482,11 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           != other.getCompletedAt()) return false;
       if (getExpiresAt()
           != other.getExpiresAt()) return false;
+      if (hasExecutionRef() != other.hasExecutionRef()) return false;
+      if (hasExecutionRef()) {
+        if (!getExecutionRef()
+            .equals(other.getExecutionRef())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -5532,6 +4525,10 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       hash = (37 * hash) + EXPIRES_AT_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getExpiresAt());
+      if (hasExecutionRef()) {
+        hash = (37 * hash) + EXECUTION_REF_FIELD_NUMBER;
+        hash = (53 * hash) + getExecutionRef().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -5651,13 +4648,21 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
 
       // Construct using talon.resources.Tasks.TaskStatus.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetConditionsFieldBuilder();
+          internalGetResultArtifactsFieldBuilder();
+          internalGetExecutionRefFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -5684,6 +4689,11 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         updatedAt_ = 0L;
         completedAt_ = 0L;
         expiresAt_ = 0L;
+        executionRef_ = null;
+        if (executionRefBuilder_ != null) {
+          executionRefBuilder_.dispose();
+          executionRefBuilder_ = null;
+        }
         return this;
       }
 
@@ -5760,6 +4770,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000100) != 0)) {
           result.expiresAt_ = expiresAt_;
         }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.executionRef_ = executionRefBuilder_ == null
+              ? executionRef_
+              : executionRefBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -5849,6 +4867,9 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         if (other.getExpiresAt() != 0L) {
           setExpiresAt(other.getExpiresAt());
         }
+        if (other.hasExecutionRef()) {
+          mergeExecutionRef(other.getExecutionRef());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -5936,6 +4957,13 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000100;
                 break;
               } // case 72
+              case 82: {
+                input.readMessage(
+                    internalGetExecutionRefFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 82
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -6717,6 +5745,163 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
+      private talon.resources.Tasks.TaskExecutionRef executionRef_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Tasks.TaskExecutionRef, talon.resources.Tasks.TaskExecutionRef.Builder, talon.resources.Tasks.TaskExecutionRefOrBuilder> executionRefBuilder_;
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       * @return Whether the executionRef field is set.
+       */
+      public boolean hasExecutionRef() {
+        return ((bitField0_ & 0x00000200) != 0);
+      }
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       * @return The executionRef.
+       */
+      public talon.resources.Tasks.TaskExecutionRef getExecutionRef() {
+        if (executionRefBuilder_ == null) {
+          return executionRef_ == null ? talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
+        } else {
+          return executionRefBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       */
+      public Builder setExecutionRef(talon.resources.Tasks.TaskExecutionRef value) {
+        if (executionRefBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          executionRef_ = value;
+        } else {
+          executionRefBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       */
+      public Builder setExecutionRef(
+          talon.resources.Tasks.TaskExecutionRef.Builder builderForValue) {
+        if (executionRefBuilder_ == null) {
+          executionRef_ = builderForValue.build();
+        } else {
+          executionRefBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       */
+      public Builder mergeExecutionRef(talon.resources.Tasks.TaskExecutionRef value) {
+        if (executionRefBuilder_ == null) {
+          if (((bitField0_ & 0x00000200) != 0) &&
+            executionRef_ != null &&
+            executionRef_ != talon.resources.Tasks.TaskExecutionRef.getDefaultInstance()) {
+            getExecutionRefBuilder().mergeFrom(value);
+          } else {
+            executionRef_ = value;
+          }
+        } else {
+          executionRefBuilder_.mergeFrom(value);
+        }
+        if (executionRef_ != null) {
+          bitField0_ |= 0x00000200;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       */
+      public Builder clearExecutionRef() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        executionRef_ = null;
+        if (executionRefBuilder_ != null) {
+          executionRefBuilder_.dispose();
+          executionRefBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       */
+      public talon.resources.Tasks.TaskExecutionRef.Builder getExecutionRefBuilder() {
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return internalGetExecutionRefFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       */
+      public talon.resources.Tasks.TaskExecutionRefOrBuilder getExecutionRefOrBuilder() {
+        if (executionRefBuilder_ != null) {
+          return executionRefBuilder_.getMessageOrBuilder();
+        } else {
+          return executionRef_ == null ?
+              talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
+        }
+      }
+      /**
+       * <pre>
+       * Concrete runtime execution once an assignee session or run is known.
+       * </pre>
+       *
+       * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Tasks.TaskExecutionRef, talon.resources.Tasks.TaskExecutionRef.Builder, talon.resources.Tasks.TaskExecutionRefOrBuilder>
+          internalGetExecutionRefFieldBuilder() {
+        if (executionRefBuilder_ == null) {
+          executionRefBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Tasks.TaskExecutionRef, talon.resources.Tasks.TaskExecutionRef.Builder, talon.resources.Tasks.TaskExecutionRefOrBuilder>(
+                  getExecutionRef(),
+                  getParentForChildren(),
+                  isClean());
+          executionRef_ = null;
+        }
+        return executionRefBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.resources.TaskStatus)
     }
 
@@ -6779,11 +5964,6 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_TaskSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_TaskParticipant_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_TaskParticipant_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_TaskExecutionRef_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -6808,31 +5988,29 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       "tadata\030\001 \001(\0132\035.talon.resources.ResourceM" +
       "eta\022\'\n\004spec\030\002 \001(\0132\031.talon.resources.Task" +
       "Spec\022+\n\006status\030\003 \001(\0132\033.talon.resources.T" +
-      "askStatus\"\371\001\n\010TaskSpec\022\r\n\005title\030\001 \001(\t\022\023\n" +
-      "\013description\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\0223\n\trequ" +
-      "ester\030\004 \001(\0132 .talon.resources.TaskPartic" +
-      "ipant\0222\n\010assignee\030\005 \001(\0132 .talon.resource" +
-      "s.TaskParticipant\0228\n\rexecution_ref\030\006 \001(\013" +
-      "2!.talon.resources.TaskExecutionRef\022\030\n\020p" +
-      "arent_task_name\030\007 \001(\t\"G\n\017TaskParticipant" +
-      "\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nse" +
-      "ssion_id\030\003 \001(\t\"f\n\020TaskExecutionRef\022\014\n\004ki" +
-      "nd\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005agent\030\003 \001" +
-      "(\t\022\022\n\nsession_id\030\004 \001(\t\022\016\n\006run_id\030\005 \001(\t\"\262" +
-      "\002\n\nTaskStatus\022\033\n\023observed_generation\030\001 \001" +
-      "(\004\022)\n\005phase\030\002 \001(\0162\032.talon.resources.Task" +
-      "Phase\0226\n\nconditions\030\003 \003(\0132\".talon.resour" +
-      "ces.ResourceCondition\022\030\n\020progress_summar" +
-      "y\030\004 \001(\t\0228\n\020result_artifacts\030\005 \003(\0132\036.talo" +
-      "n.resources.FileObjectRef\022\022\n\ncreated_at\030" +
-      "\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003\022\024\n\014completed_a" +
-      "t\030\010 \001(\003\022\022\n\nexpires_at\030\t \001(\003*\355\001\n\tTaskPhas" +
-      "e\022\032\n\026TASK_PHASE_UNSPECIFIED\020\000\022\025\n\021TASK_PH" +
-      "ASE_QUEUED\020\001\022\026\n\022TASK_PHASE_RUNNING\020\002\022\026\n\022" +
-      "TASK_PHASE_BLOCKED\020\003\022\033\n\027TASK_PHASE_NEEDS" +
-      "_REVIEW\020\004\022\030\n\024TASK_PHASE_SUCCEEDED\020\005\022\025\n\021T" +
-      "ASK_PHASE_FAILED\020\006\022\027\n\023TASK_PHASE_CANCELE" +
-      "D\020\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b\006proto3"
+      "askStatus\"\267\001\n\010TaskSpec\022\r\n\005title\030\001 \001(\t\022\023\n" +
+      "\013description\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\022/\n\trequ" +
+      "ester\030\004 \001(\0132\034.talon.resources.ResourceRe" +
+      "f\022.\n\010assignee\030\005 \001(\0132\034.talon.resources.Re" +
+      "sourceRef\022\030\n\020parent_task_name\030\007 \001(\t\"e\n\020T" +
+      "askExecutionRef\022\014\n\004kind\030\001 \001(\t\022\021\n\tnamespa" +
+      "ce\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\022\n\nsession_id\030\004 \001" +
+      "(\t\022\016\n\006run_id\030\005 \001(\t\"\354\002\n\nTaskStatus\022\033\n\023obs" +
+      "erved_generation\030\001 \001(\004\022)\n\005phase\030\002 \001(\0162\032." +
+      "talon.resources.TaskPhase\0226\n\nconditions\030" +
+      "\003 \003(\0132\".talon.resources.ResourceConditio" +
+      "n\022\030\n\020progress_summary\030\004 \001(\t\0228\n\020result_ar" +
+      "tifacts\030\005 \003(\0132\036.talon.resources.FileObje" +
+      "ctRef\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_at\030" +
+      "\007 \001(\003\022\024\n\014completed_at\030\010 \001(\003\022\022\n\nexpires_a" +
+      "t\030\t \001(\003\0228\n\rexecution_ref\030\n \001(\0132!.talon.r" +
+      "esources.TaskExecutionRef*\355\001\n\tTaskPhase\022" +
+      "\032\n\026TASK_PHASE_UNSPECIFIED\020\000\022\025\n\021TASK_PHAS" +
+      "E_QUEUED\020\001\022\026\n\022TASK_PHASE_RUNNING\020\002\022\026\n\022TA" +
+      "SK_PHASE_BLOCKED\020\003\022\033\n\027TASK_PHASE_NEEDS_R" +
+      "EVIEW\020\004\022\030\n\024TASK_PHASE_SUCCEEDED\020\005\022\025\n\021TAS" +
+      "K_PHASE_FAILED\020\006\022\027\n\023TASK_PHASE_CANCELED\020" +
+      "\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6851,25 +6029,19 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_TaskSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_TaskSpec_descriptor,
-        new java.lang.String[] { "Title", "Description", "Type", "Requester", "Assignee", "ExecutionRef", "ParentTaskName", });
-    internal_static_talon_resources_TaskParticipant_descriptor =
-      getDescriptor().getMessageType(2);
-    internal_static_talon_resources_TaskParticipant_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_TaskParticipant_descriptor,
-        new java.lang.String[] { "Namespace", "Agent", "SessionId", });
+        new java.lang.String[] { "Title", "Description", "Type", "Requester", "Assignee", "ParentTaskName", });
     internal_static_talon_resources_TaskExecutionRef_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(2);
     internal_static_talon_resources_TaskExecutionRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_TaskExecutionRef_descriptor,
-        new java.lang.String[] { "Kind", "Namespace", "Agent", "SessionId", "RunId", });
+        new java.lang.String[] { "Kind", "Namespace", "Name", "SessionId", "RunId", });
     internal_static_talon_resources_TaskStatus_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(3);
     internal_static_talon_resources_TaskStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_TaskStatus_descriptor,
-        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "ProgressSummary", "ResultArtifacts", "CreatedAt", "UpdatedAt", "CompletedAt", "ExpiresAt", });
+        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "ProgressSummary", "ResultArtifacts", "CreatedAt", "UpdatedAt", "CompletedAt", "ExpiresAt", "ExecutionRef", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Common.getDescriptor();
     talon.resources.Files.getDescriptor();

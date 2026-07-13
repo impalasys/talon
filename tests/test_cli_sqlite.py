@@ -373,12 +373,10 @@ spec:
   type: agent_delegation
   requester:
     namespace: {namespace}
-    agent: cmo
-    sessionId: session-{suffix}
+    name: cmo
   assignee:
     namespace: {namespace}
-    agent: writer
-    sessionId: writer-session-{suffix}
+    name: writer
 """
     )
 

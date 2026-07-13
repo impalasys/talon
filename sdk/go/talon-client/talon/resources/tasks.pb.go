@@ -170,13 +170,11 @@ type TaskSpec struct {
 	// lifecycle. Use values such as "agent_delegation", "human_review", or an
 	// application-specific string when the caller needs a stable category.
 	Type string `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
-	// Agent/session that created and owns follow-up responsibility for the task.
-	Requester *TaskParticipant `protobuf:"bytes,4,opt,name=requester,proto3" json:"requester,omitempty"`
-	// Intended worker agent/session, if the caller already delegated the work.
-	Assignee *TaskParticipant `protobuf:"bytes,5,opt,name=assignee,proto3" json:"assignee,omitempty"`
-	// Concrete runtime execution once an assignee session or run is known.
-	ExecutionRef   *TaskExecutionRef `protobuf:"bytes,6,opt,name=execution_ref,json=executionRef,proto3" json:"execution_ref,omitempty"`
-	ParentTaskName string            `protobuf:"bytes,7,opt,name=parent_task_name,json=parentTaskName,proto3" json:"parent_task_name,omitempty"`
+	// Agent resource that created and owns follow-up responsibility for the task.
+	Requester *ResourceRef `protobuf:"bytes,4,opt,name=requester,proto3" json:"requester,omitempty"`
+	// Agent resource intended to perform the work.
+	Assignee       *ResourceRef `protobuf:"bytes,5,opt,name=assignee,proto3" json:"assignee,omitempty"`
+	ParentTaskName string       `protobuf:"bytes,7,opt,name=parent_task_name,json=parentTaskName,proto3" json:"parent_task_name,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -232,23 +230,16 @@ func (x *TaskSpec) GetType() string {
 	return ""
 }
 
-func (x *TaskSpec) GetRequester() *TaskParticipant {
+func (x *TaskSpec) GetRequester() *ResourceRef {
 	if x != nil {
 		return x.Requester
 	}
 	return nil
 }
 
-func (x *TaskSpec) GetAssignee() *TaskParticipant {
+func (x *TaskSpec) GetAssignee() *ResourceRef {
 	if x != nil {
 		return x.Assignee
-	}
-	return nil
-}
-
-func (x *TaskSpec) GetExecutionRef() *TaskExecutionRef {
-	if x != nil {
-		return x.ExecutionRef
 	}
 	return nil
 }
@@ -260,77 +251,13 @@ func (x *TaskSpec) GetParentTaskName() string {
 	return ""
 }
 
-// Participant identity copied from the caller or delegate context at creation
-// time. Talon does not infer ownership from resource ancestry; callers set the
-// requester and assignee explicitly so tasks can be queried by namespace,
-// requester agent, assignee agent, or parent task.
-type TaskParticipant struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
-	SessionId     string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TaskParticipant) Reset() {
-	*x = TaskParticipant{}
-	mi := &file_proto_resources_tasks_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TaskParticipant) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TaskParticipant) ProtoMessage() {}
-
-func (x *TaskParticipant) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_tasks_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TaskParticipant.ProtoReflect.Descriptor instead.
-func (*TaskParticipant) Descriptor() ([]byte, []int) {
-	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *TaskParticipant) GetNamespace() string {
-	if x != nil {
-		return x.Namespace
-	}
-	return ""
-}
-
-func (x *TaskParticipant) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *TaskParticipant) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
 // Runtime location of the work that is fulfilling the task. This may be absent
 // while queued and filled in after async delegation starts.
 type TaskExecutionRef struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
 	Namespace     string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Agent         string                 `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	SessionId     string                 `protobuf:"bytes,4,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	RunId         string                 `protobuf:"bytes,5,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -339,7 +266,7 @@ type TaskExecutionRef struct {
 
 func (x *TaskExecutionRef) Reset() {
 	*x = TaskExecutionRef{}
-	mi := &file_proto_resources_tasks_proto_msgTypes[3]
+	mi := &file_proto_resources_tasks_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -351,7 +278,7 @@ func (x *TaskExecutionRef) String() string {
 func (*TaskExecutionRef) ProtoMessage() {}
 
 func (x *TaskExecutionRef) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_tasks_proto_msgTypes[3]
+	mi := &file_proto_resources_tasks_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -364,7 +291,7 @@ func (x *TaskExecutionRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaskExecutionRef.ProtoReflect.Descriptor instead.
 func (*TaskExecutionRef) Descriptor() ([]byte, []int) {
-	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{3}
+	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *TaskExecutionRef) GetKind() string {
@@ -381,9 +308,9 @@ func (x *TaskExecutionRef) GetNamespace() string {
 	return ""
 }
 
-func (x *TaskExecutionRef) GetAgent() string {
+func (x *TaskExecutionRef) GetName() string {
 	if x != nil {
-		return x.Agent
+		return x.Name
 	}
 	return ""
 }
@@ -413,13 +340,15 @@ type TaskStatus struct {
 	UpdatedAt          int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	CompletedAt        int64                  `protobuf:"varint,8,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
 	ExpiresAt          int64                  `protobuf:"varint,9,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Concrete runtime execution once an assignee session or run is known.
+	ExecutionRef  *TaskExecutionRef `protobuf:"bytes,10,opt,name=execution_ref,json=executionRef,proto3" json:"execution_ref,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TaskStatus) Reset() {
 	*x = TaskStatus{}
-	mi := &file_proto_resources_tasks_proto_msgTypes[4]
+	mi := &file_proto_resources_tasks_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -431,7 +360,7 @@ func (x *TaskStatus) String() string {
 func (*TaskStatus) ProtoMessage() {}
 
 func (x *TaskStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_tasks_proto_msgTypes[4]
+	mi := &file_proto_resources_tasks_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -444,7 +373,7 @@ func (x *TaskStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaskStatus.ProtoReflect.Descriptor instead.
 func (*TaskStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{4}
+	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *TaskStatus) GetObservedGeneration() uint64 {
@@ -510,6 +439,13 @@ func (x *TaskStatus) GetExpiresAt() int64 {
 	return 0
 }
 
+func (x *TaskStatus) GetExecutionRef() *TaskExecutionRef {
+	if x != nil {
+		return x.ExecutionRef
+	}
+	return nil
+}
+
 var File_proto_resources_tasks_proto protoreflect.FileDescriptor
 
 const file_proto_resources_tasks_proto_rawDesc = "" +
@@ -518,27 +454,21 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\x04Task\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12-\n" +
 	"\x04spec\x18\x02 \x01(\v2\x19.talon.resources.TaskSpecR\x04spec\x123\n" +
-	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\xc6\x02\n" +
+	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\xf6\x01\n" +
 	"\bTaskSpec\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x12\n" +
-	"\x04type\x18\x03 \x01(\tR\x04type\x12>\n" +
-	"\trequester\x18\x04 \x01(\v2 .talon.resources.TaskParticipantR\trequester\x12<\n" +
-	"\bassignee\x18\x05 \x01(\v2 .talon.resources.TaskParticipantR\bassignee\x12F\n" +
-	"\rexecution_ref\x18\x06 \x01(\v2!.talon.resources.TaskExecutionRefR\fexecutionRef\x12(\n" +
-	"\x10parent_task_name\x18\a \x01(\tR\x0eparentTaskName\"d\n" +
-	"\x0fTaskParticipant\x12\x1c\n" +
-	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
-	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x03 \x01(\tR\tsessionId\"\x90\x01\n" +
+	"\x04type\x18\x03 \x01(\tR\x04type\x12:\n" +
+	"\trequester\x18\x04 \x01(\v2\x1c.talon.resources.ResourceRefR\trequester\x128\n" +
+	"\bassignee\x18\x05 \x01(\v2\x1c.talon.resources.ResourceRefR\bassignee\x12(\n" +
+	"\x10parent_task_name\x18\a \x01(\tR\x0eparentTaskName\"\x8e\x01\n" +
 	"\x10TaskExecutionRef\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1c\n" +
-	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x14\n" +
-	"\x05agent\x18\x03 \x01(\tR\x05agent\x12\x1d\n" +
+	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x04 \x01(\tR\tsessionId\x12\x15\n" +
-	"\x06run_id\x18\x05 \x01(\tR\x05runId\"\xa9\x03\n" +
+	"\x06run_id\x18\x05 \x01(\tR\x05runId\"\xf1\x03\n" +
 	"\n" +
 	"TaskStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x120\n" +
@@ -554,7 +484,9 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"updated_at\x18\a \x01(\x03R\tupdatedAt\x12!\n" +
 	"\fcompleted_at\x18\b \x01(\x03R\vcompletedAt\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\t \x01(\x03R\texpiresAt*\xed\x01\n" +
+	"expires_at\x18\t \x01(\x03R\texpiresAt\x12F\n" +
+	"\rexecution_ref\x18\n" +
+	" \x01(\v2!.talon.resources.TaskExecutionRefR\fexecutionRef*\xed\x01\n" +
 	"\tTaskPhase\x12\x1a\n" +
 	"\x16TASK_PHASE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11TASK_PHASE_QUEUED\x10\x01\x12\x16\n" +
@@ -579,28 +511,28 @@ func file_proto_resources_tasks_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_resources_tasks_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_resources_tasks_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_resources_tasks_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_resources_tasks_proto_goTypes = []any{
 	(TaskPhase)(0),            // 0: talon.resources.TaskPhase
 	(*Task)(nil),              // 1: talon.resources.Task
 	(*TaskSpec)(nil),          // 2: talon.resources.TaskSpec
-	(*TaskParticipant)(nil),   // 3: talon.resources.TaskParticipant
-	(*TaskExecutionRef)(nil),  // 4: talon.resources.TaskExecutionRef
-	(*TaskStatus)(nil),        // 5: talon.resources.TaskStatus
-	(*ResourceMeta)(nil),      // 6: talon.resources.ResourceMeta
+	(*TaskExecutionRef)(nil),  // 3: talon.resources.TaskExecutionRef
+	(*TaskStatus)(nil),        // 4: talon.resources.TaskStatus
+	(*ResourceMeta)(nil),      // 5: talon.resources.ResourceMeta
+	(*ResourceRef)(nil),       // 6: talon.resources.ResourceRef
 	(*ResourceCondition)(nil), // 7: talon.resources.ResourceCondition
 	(*FileObjectRef)(nil),     // 8: talon.resources.FileObjectRef
 }
 var file_proto_resources_tasks_proto_depIdxs = []int32{
-	6, // 0: talon.resources.Task.metadata:type_name -> talon.resources.ResourceMeta
+	5, // 0: talon.resources.Task.metadata:type_name -> talon.resources.ResourceMeta
 	2, // 1: talon.resources.Task.spec:type_name -> talon.resources.TaskSpec
-	5, // 2: talon.resources.Task.status:type_name -> talon.resources.TaskStatus
-	3, // 3: talon.resources.TaskSpec.requester:type_name -> talon.resources.TaskParticipant
-	3, // 4: talon.resources.TaskSpec.assignee:type_name -> talon.resources.TaskParticipant
-	4, // 5: talon.resources.TaskSpec.execution_ref:type_name -> talon.resources.TaskExecutionRef
-	0, // 6: talon.resources.TaskStatus.phase:type_name -> talon.resources.TaskPhase
-	7, // 7: talon.resources.TaskStatus.conditions:type_name -> talon.resources.ResourceCondition
-	8, // 8: talon.resources.TaskStatus.result_artifacts:type_name -> talon.resources.FileObjectRef
+	4, // 2: talon.resources.Task.status:type_name -> talon.resources.TaskStatus
+	6, // 3: talon.resources.TaskSpec.requester:type_name -> talon.resources.ResourceRef
+	6, // 4: talon.resources.TaskSpec.assignee:type_name -> talon.resources.ResourceRef
+	0, // 5: talon.resources.TaskStatus.phase:type_name -> talon.resources.TaskPhase
+	7, // 6: talon.resources.TaskStatus.conditions:type_name -> talon.resources.ResourceCondition
+	8, // 7: talon.resources.TaskStatus.result_artifacts:type_name -> talon.resources.FileObjectRef
+	3, // 8: talon.resources.TaskStatus.execution_ref:type_name -> talon.resources.TaskExecutionRef
 	9, // [9:9] is the sub-list for method output_type
 	9, // [9:9] is the sub-list for method input_type
 	9, // [9:9] is the sub-list for extension type_name
@@ -621,7 +553,7 @@ func file_proto_resources_tasks_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_tasks_proto_rawDesc), len(file_proto_resources_tasks_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   5,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

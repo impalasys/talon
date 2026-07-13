@@ -195,8 +195,8 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                     "namespace": { "type": "string", "description": "Namespace to inspect. Defaults to the current agent namespace if omitted." },
                     "status_group": { "type": "string", "description": "Optional group: active or terminal." },
                     "phase": { "type": "string", "description": "Optional phase filter such as RUNNING, NEEDS_REVIEW, SUCCEEDED, FAILED, or CANCELED." },
-                    "requester_agent": { "type": "string", "description": "Optional requester agent filter." },
-                    "assignee_agent": { "type": "string", "description": "Optional assignee agent filter." },
+                    "requester_name": { "type": "string", "description": "Optional requester agent resource name filter." },
+                    "assignee_name": { "type": "string", "description": "Optional assignee agent resource name filter." },
                     "parent_task_name": { "type": "string", "description": "Optional parent task filter." },
                     "limit": { "type": "integer", "description": "Optional maximum number of results to return." }
                 }
@@ -303,10 +303,10 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                     "description": { "type": "string", "description": "Brief or acceptance criteria for the task." },
                     "type": { "type": "string", "description": "Optional caller-defined classifier such as agent_delegation or human_review. Talon does not interpret it." },
                     "assignee_namespace": { "type": "string", "description": "Namespace of the worker agent." },
-                    "assignee_agent": { "type": "string", "description": "Worker agent name." },
+                    "assignee_name": { "type": "string", "description": "Worker agent resource name." },
                     "parent_task_name": { "type": "string", "description": "Optional parent task name." }
                 },
-                "required": ["title", "description", "assignee_agent"]
+                "required": ["title", "description", "assignee_name"]
             }),
         );
     }
@@ -323,7 +323,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                     "phase": { "type": "string", "description": "Optional phase: QUEUED, RUNNING, BLOCKED, NEEDS_REVIEW, SUCCEEDED, FAILED, CANCELED, or EXPIRED." },
                     "progress_summary": { "type": "string", "description": "Short current state or result summary." },
                     "execution_namespace": { "type": "string", "description": "Optional execution namespace." },
-                    "execution_agent": { "type": "string", "description": "Optional execution agent." },
+                    "execution_name": { "type": "string", "description": "Optional execution agent resource name." },
                     "execution_session_id": { "type": "string", "description": "Optional child session id." },
                     "run_id": { "type": "string", "description": "Optional workflow or run id." }
                 },
@@ -874,8 +874,8 @@ pub async fn execute_tool_for_session(
             let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
             let status_group = opt_str(args, "status_group");
             let phase = opt_str(args, "phase");
-            let requester_agent = opt_str(args, "requester_agent");
-            let assignee_agent = opt_str(args, "assignee_agent");
+            let requester_name = opt_str(args, "requester_name");
+            let assignee_name = opt_str(args, "assignee_name");
             let parent_task_name = opt_str(args, "parent_task_name");
             let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
             let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
@@ -890,8 +890,8 @@ pub async fn execute_tool_for_session(
                     &task,
                     status_group,
                     phase,
-                    requester_agent,
-                    assignee_agent,
+                    requester_name,
+                    assignee_name,
                     parent_task_name,
                 ) {
                     continue;
@@ -2137,7 +2137,7 @@ async fn create_task(
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
-    current_session: &str,
+    _current_session: &str,
     args: &Value,
 ) -> Result<resources_proto::Task> {
     let namespace = opt_str(args, "namespace")
@@ -2145,7 +2145,7 @@ async fn create_task(
         .to_string();
     let title = req_str(args, "title")?.to_string();
     let description = req_str(args, "description")?.to_string();
-    let assignee_agent = req_str(args, "assignee_agent")?.to_string();
+    let assignee_name = req_str(args, "assignee_name")?.to_string();
     let assignee_namespace = opt_str(args, "assignee_namespace")
         .unwrap_or(current_namespace)
         .to_string();
@@ -2157,12 +2157,12 @@ async fn create_task(
     let name = unique_task_name(&title);
     let labels = HashMap::from([
         (
-            "talon.impalasys.com/requester-agent".to_string(),
+            "talon.impalasys.com/requester-name".to_string(),
             current_agent.to_string(),
         ),
         (
-            "talon.impalasys.com/assignee-agent".to_string(),
-            assignee_agent.clone(),
+            "talon.impalasys.com/assignee-name".to_string(),
+            assignee_name.clone(),
         ),
     ]);
     let task = resource_model::task_resource(
@@ -2172,22 +2172,13 @@ async fn create_task(
             title,
             description,
             r#type: task_type,
-            requester: Some(resources_proto::TaskParticipant {
+            requester: Some(resources_proto::ResourceRef {
                 namespace: current_namespace.to_string(),
-                agent: current_agent.to_string(),
-                session_id: current_session.to_string(),
+                name: current_agent.to_string(),
             }),
-            assignee: Some(resources_proto::TaskParticipant {
+            assignee: Some(resources_proto::ResourceRef {
                 namespace: assignee_namespace.clone(),
-                agent: assignee_agent.clone(),
-                session_id: String::new(),
-            }),
-            execution_ref: Some(resources_proto::TaskExecutionRef {
-                kind: "AGENT_SESSION".to_string(),
-                namespace: assignee_namespace,
-                agent: assignee_agent,
-                session_id: String::new(),
-                run_id: String::new(),
+                name: assignee_name.clone(),
             }),
             parent_task_name: opt_str(args, "parent_task_name")
                 .unwrap_or_default()
@@ -2203,6 +2194,13 @@ async fn create_task(
             updated_at: now,
             completed_at: 0,
             expires_at: 0,
+            execution_ref: Some(resources_proto::TaskExecutionRef {
+                kind: "AGENT_SESSION".to_string(),
+                namespace: assignee_namespace,
+                name: assignee_name,
+                session_id: String::new(),
+                run_id: String::new(),
+            }),
         },
         labels,
     );
@@ -2213,36 +2211,6 @@ async fn create_task(
 
 fn update_task_resource(resource: &mut resources_proto::Resource, args: &Value) -> Result<()> {
     let now = chrono::Utc::now().timestamp_micros();
-    if let Some(resources_proto::ResourceSpec {
-        kind: Some(resources_proto::resource_spec::Kind::Task(spec)),
-    }) = resource.spec.as_mut()
-    {
-        if let Some(namespace) = opt_str(args, "execution_namespace") {
-            spec.execution_ref
-                .get_or_insert_with(Default::default)
-                .namespace = namespace.to_string();
-        }
-        if let Some(agent) = opt_str(args, "execution_agent") {
-            let execution = spec.execution_ref.get_or_insert_with(Default::default);
-            execution.agent = agent.to_string();
-            if let Some(assignee) = spec.assignee.as_mut() {
-                assignee.agent = agent.to_string();
-            }
-        }
-        if let Some(session_id) = opt_str(args, "execution_session_id") {
-            let execution = spec.execution_ref.get_or_insert_with(Default::default);
-            execution.kind = "AGENT_SESSION".to_string();
-            execution.session_id = session_id.to_string();
-            if let Some(assignee) = spec.assignee.as_mut() {
-                assignee.session_id = session_id.to_string();
-            }
-        }
-        if let Some(run_id) = opt_str(args, "run_id") {
-            spec.execution_ref
-                .get_or_insert_with(Default::default)
-                .run_id = run_id.to_string();
-        }
-    }
     let status = match resource
         .status
         .as_mut()
@@ -2265,6 +2233,29 @@ fn update_task_resource(resource: &mut resources_proto::Resource, args: &Value) 
             }
         }
     };
+    if let Some(namespace) = opt_str(args, "execution_namespace") {
+        status
+            .execution_ref
+            .get_or_insert_with(Default::default)
+            .namespace = namespace.to_string();
+    }
+    if let Some(name) = opt_str(args, "execution_name") {
+        status
+            .execution_ref
+            .get_or_insert_with(Default::default)
+            .name = name.to_string();
+    }
+    if let Some(session_id) = opt_str(args, "execution_session_id") {
+        let execution = status.execution_ref.get_or_insert_with(Default::default);
+        execution.kind = "AGENT_SESSION".to_string();
+        execution.session_id = session_id.to_string();
+    }
+    if let Some(run_id) = opt_str(args, "run_id") {
+        status
+            .execution_ref
+            .get_or_insert_with(Default::default)
+            .run_id = run_id.to_string();
+    }
     if let Some(phase) = opt_str(args, "phase") {
         status.phase = parse_task_phase(phase)?;
     }
@@ -2299,8 +2290,8 @@ fn task_matches(
     task: &resources_proto::Task,
     status_group: Option<&str>,
     phase: Option<&str>,
-    requester_agent: Option<&str>,
-    assignee_agent: Option<&str>,
+    requester_name: Option<&str>,
+    assignee_name: Option<&str>,
     parent_task_name: Option<&str>,
 ) -> bool {
     let spec = task.spec.as_ref();
@@ -2324,17 +2315,17 @@ fn task_matches(
             return false;
         }
     }
-    if requester_agent.is_some_and(|agent| {
+    if requester_name.is_some_and(|name| {
         spec.and_then(|spec| spec.requester.as_ref())
-            .map(|requester| requester.agent.as_str())
-            != Some(agent)
+            .map(|requester| requester.name.as_str())
+            != Some(name)
     }) {
         return false;
     }
-    if assignee_agent.is_some_and(|agent| {
+    if assignee_name.is_some_and(|name| {
         spec.and_then(|spec| spec.assignee.as_ref())
-            .map(|assignee| assignee.agent.as_str())
-            != Some(agent)
+            .map(|assignee| assignee.name.as_str())
+            != Some(name)
     }) {
         return false;
     }
@@ -2362,19 +2353,19 @@ fn task_json(task: &resources_proto::Task) -> Value {
     let status = task.status.as_ref();
     let requester = spec.and_then(|spec| spec.requester.as_ref());
     let assignee = spec.and_then(|spec| spec.assignee.as_ref());
-    let execution = spec.and_then(|spec| spec.execution_ref.as_ref());
+    let execution = status.and_then(|status| status.execution_ref.as_ref());
     json!({
         "name": task.name(),
         "namespace": task.namespace(),
         "title": spec.map(|spec| spec.title.clone()).unwrap_or_default(),
         "description": spec.map(|spec| spec.description.clone()).unwrap_or_default(),
         "type": spec.map(|spec| spec.r#type.clone()).unwrap_or_default(),
-        "requester": participant_json(requester),
-        "assignee": participant_json(assignee),
+        "requester": resource_ref_json(requester),
+        "assignee": resource_ref_json(assignee),
         "executionRef": execution.map(|execution| json!({
             "kind": execution.kind,
             "namespace": execution.namespace,
-            "agent": execution.agent,
+            "name": execution.name,
             "sessionId": execution.session_id,
             "runId": execution.run_id,
         })).unwrap_or_else(|| json!({})),
@@ -2398,13 +2389,12 @@ fn task_json(task: &resources_proto::Task) -> Value {
     })
 }
 
-fn participant_json(participant: Option<&resources_proto::TaskParticipant>) -> Value {
-    participant
-        .map(|participant| {
+fn resource_ref_json(reference: Option<&resources_proto::ResourceRef>) -> Value {
+    reference
+        .map(|reference| {
             json!({
-                "namespace": participant.namespace,
-                "agent": participant.agent,
-                "sessionId": participant.session_id,
+                "namespace": reference.namespace,
+                "name": reference.name,
             })
         })
         .unwrap_or_else(|| json!({}))
@@ -3901,7 +3891,7 @@ mod tests {
                 "description": "Create a reviewed onboarding checklist.",
                 "type": "OPERATIONS",
                 "assignee_namespace": "Tenant:acme:Operations",
-                "assignee_agent": "support-agent"
+                "assignee_name": "support-agent"
             }),
         )
         .await
@@ -3911,8 +3901,8 @@ mod tests {
         let name = created["task"]["name"].as_str().unwrap();
         assert_eq!(created["task"]["phase"], "QUEUED");
         assert_eq!(created["task"]["statusGroup"], "ACTIVE");
-        assert_eq!(created["task"]["requester"]["agent"], "ops-lead");
-        assert_eq!(created["task"]["assignee"]["agent"], "support-agent");
+        assert_eq!(created["task"]["requester"]["name"], "ops-lead");
+        assert_eq!(created["task"]["assignee"]["name"], "support-agent");
 
         let updated = execute_tool_for_session(
             &cp,
@@ -3926,7 +3916,7 @@ mod tests {
                 "phase": "RUNNING",
                 "progress_summary": "Support agent is preparing the checklist.",
                 "execution_namespace": "Tenant:acme:Operations",
-                "execution_agent": "support-agent",
+                "execution_name": "support-agent",
                 "execution_session_id": "support-session-1"
             }),
         )
@@ -3935,6 +3925,7 @@ mod tests {
         .unwrap();
         let updated: Value = serde_json::from_str(&updated).unwrap();
         assert_eq!(updated["task"]["phase"], "RUNNING");
+        assert_eq!(updated["task"]["executionRef"]["name"], "support-agent");
         assert_eq!(
             updated["task"]["executionRef"]["sessionId"],
             "support-session-1"
@@ -3949,7 +3940,7 @@ mod tests {
             LIST_TASKS_TOOL,
             &json!({
                 "status_group": "active",
-                "requester_agent": "ops-lead"
+                "requester_name": "ops-lead"
             }),
         )
         .await

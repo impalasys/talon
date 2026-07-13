@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ResourceCondition, ResourceMeta } from "./common_pb.js";
+import { ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb.js";
 import { FileObjectRef } from "./files_pb.js";
 
 /**
@@ -167,25 +167,18 @@ export class TaskSpec extends Message<TaskSpec> {
   type = "";
 
   /**
-   * Agent/session that created and owns follow-up responsibility for the task.
+   * Agent resource that created and owns follow-up responsibility for the task.
    *
-   * @generated from field: talon.resources.TaskParticipant requester = 4;
+   * @generated from field: talon.resources.ResourceRef requester = 4;
    */
-  requester?: TaskParticipant;
+  requester?: ResourceRef;
 
   /**
-   * Intended worker agent/session, if the caller already delegated the work.
+   * Agent resource intended to perform the work.
    *
-   * @generated from field: talon.resources.TaskParticipant assignee = 5;
+   * @generated from field: talon.resources.ResourceRef assignee = 5;
    */
-  assignee?: TaskParticipant;
-
-  /**
-   * Concrete runtime execution once an assignee session or run is known.
-   *
-   * @generated from field: talon.resources.TaskExecutionRef execution_ref = 6;
-   */
-  executionRef?: TaskExecutionRef;
+  assignee?: ResourceRef;
 
   /**
    * @generated from field: string parent_task_name = 7;
@@ -203,9 +196,8 @@ export class TaskSpec extends Message<TaskSpec> {
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "requester", kind: "message", T: TaskParticipant },
-    { no: 5, name: "assignee", kind: "message", T: TaskParticipant },
-    { no: 6, name: "execution_ref", kind: "message", T: TaskExecutionRef },
+    { no: 4, name: "requester", kind: "message", T: ResourceRef },
+    { no: 5, name: "assignee", kind: "message", T: ResourceRef },
     { no: 7, name: "parent_task_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
@@ -227,60 +219,6 @@ export class TaskSpec extends Message<TaskSpec> {
 }
 
 /**
- * Participant identity copied from the caller or delegate context at creation
- * time. Talon does not infer ownership from resource ancestry; callers set the
- * requester and assignee explicitly so tasks can be queried by namespace,
- * requester agent, assignee agent, or parent task.
- *
- * @generated from message talon.resources.TaskParticipant
- */
-export class TaskParticipant extends Message<TaskParticipant> {
-  /**
-   * @generated from field: string namespace = 1;
-   */
-  namespace = "";
-
-  /**
-   * @generated from field: string agent = 2;
-   */
-  agent = "";
-
-  /**
-   * @generated from field: string session_id = 3;
-   */
-  sessionId = "";
-
-  constructor(data?: PartialMessage<TaskParticipant>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.TaskParticipant";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TaskParticipant {
-    return new TaskParticipant().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TaskParticipant {
-    return new TaskParticipant().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TaskParticipant {
-    return new TaskParticipant().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: TaskParticipant | PlainMessage<TaskParticipant> | undefined, b: TaskParticipant | PlainMessage<TaskParticipant> | undefined): boolean {
-    return proto3.util.equals(TaskParticipant, a, b);
-  }
-}
-
-/**
  * Runtime location of the work that is fulfilling the task. This may be absent
  * while queued and filled in after async delegation starts.
  *
@@ -298,9 +236,9 @@ export class TaskExecutionRef extends Message<TaskExecutionRef> {
   namespace = "";
 
   /**
-   * @generated from field: string agent = 3;
+   * @generated from field: string name = 3;
    */
-  agent = "";
+  name = "";
 
   /**
    * @generated from field: string session_id = 4;
@@ -322,7 +260,7 @@ export class TaskExecutionRef extends Message<TaskExecutionRef> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
@@ -393,6 +331,13 @@ export class TaskStatus extends Message<TaskStatus> {
    */
   expiresAt = protoInt64.zero;
 
+  /**
+   * Concrete runtime execution once an assignee session or run is known.
+   *
+   * @generated from field: talon.resources.TaskExecutionRef execution_ref = 10;
+   */
+  executionRef?: TaskExecutionRef;
+
   constructor(data?: PartialMessage<TaskStatus>) {
     super();
     proto3.util.initPartial(data, this);
@@ -410,6 +355,7 @@ export class TaskStatus extends Message<TaskStatus> {
     { no: 7, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 8, name: "completed_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 9, name: "expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 10, name: "execution_ref", kind: "message", T: TaskExecutionRef },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TaskStatus {
