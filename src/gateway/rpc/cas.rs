@@ -5,9 +5,36 @@ use super::{proto, GrpcGatewayHandler};
 use crate::control::cas::{
     object_ref_from_metadata, object_ref_from_stored_object, parse_session_object_key, CasStore,
 };
+use crate::control::object_store::ObjectMetadata;
 use std::time::Duration;
 
 const CAS_SIGNED_URL_TTL: Duration = Duration::from_secs(5 * 60);
+
+fn parse_file_object_namespace(key: &str) -> anyhow::Result<Option<String>> {
+    let parts: Vec<&str> = key.split('/').collect();
+    let ["cas", encoded_ns, "files", file_uid, sha] = parts.as_slice() else {
+        return Ok(None);
+    };
+    let ns = urlencoding::decode(encoded_ns)
+        .map_err(|err| {
+            anyhow::anyhow!("CAS file object namespace is not valid percent-encoding: {err}")
+        })?
+        .into_owned();
+    if urlencoding::encode(&ns) != *encoded_ns {
+        anyhow::bail!("CAS file object namespace is not canonical");
+    }
+    for (field, value) in [("file_uid", *file_uid), ("sha", *sha)] {
+        if value.is_empty() || value.contains('/') || value.contains("..") {
+            anyhow::bail!("CAS file object field '{field}' contains unsafe characters");
+        }
+    }
+    Ok(Some(ns))
+}
+
+fn is_file_object_metadata(metadata: &ObjectMetadata, ns: &str) -> bool {
+    metadata.metadata.get("kind").map(String::as_str) == Some("file")
+        && metadata.metadata.get("namespace").map(String::as_str) == Some(ns)
+}
 
 impl GrpcGatewayHandler {
     #[allow(deprecated)]
@@ -19,6 +46,74 @@ impl GrpcGatewayHandler {
 
         if body.key.trim().is_empty() {
             return Err(tonic::Status::invalid_argument("key is required"));
+        }
+        if let Some(ns) = parse_file_object_namespace(&body.key)
+            .map_err(|err| tonic::Status::invalid_argument(format!("Invalid CAS key: {err}")))?
+        {
+            crate::require_auth!(read, self, req, &ns);
+            let metadata = self
+                .gateway
+                .objects
+                .head(&body.key)
+                .await
+                .map_err(|err| {
+                    tonic::Status::internal(format!("Failed to load CAS object metadata: {err}"))
+                })?
+                .ok_or_else(|| tonic::Status::not_found("CAS object not found"))?;
+            if !is_file_object_metadata(&metadata, &ns) {
+                return Err(tonic::Status::permission_denied(
+                    "CAS object is outside the authorized file namespace",
+                ));
+            }
+            let signed = self
+                .gateway
+                .objects
+                .signed_get_url(&body.key, CAS_SIGNED_URL_TTL)
+                .await
+                .map_err(|err| {
+                    tonic::Status::internal(format!("Failed to sign CAS object URL: {err}"))
+                })?;
+            let (data, signed_url, signed_url_expires_at_unix_seconds, object_ref) =
+                if let Some(signed) = signed {
+                    (
+                        Vec::new(),
+                        signed.url,
+                        signed.expires_at_unix_seconds,
+                        object_ref_from_metadata(&body.key, &metadata),
+                    )
+                } else {
+                    let object = self
+                        .gateway
+                        .objects
+                        .get(&body.key)
+                        .await
+                        .map_err(|err| {
+                            tonic::Status::internal(format!("Failed to load CAS object: {err}"))
+                        })?
+                        .ok_or_else(|| tonic::Status::not_found("CAS object not found"))?;
+                    if !is_file_object_metadata(&object.metadata, &ns) {
+                        return Err(tonic::Status::permission_denied(
+                            "CAS object is outside the authorized file namespace",
+                        ));
+                    }
+                    (
+                        object.bytes.clone(),
+                        String::new(),
+                        0,
+                        object_ref_from_stored_object(&body.key, &object),
+                    )
+                };
+            return Ok(tonic::Response::new(proto::GetCasObjectResponse {
+                data,
+                signed_url,
+                signed_url_expires_at_unix_seconds,
+                metadata: object_ref.metadata,
+                media_type: object_ref.media_type,
+                size_bytes: object_ref.size_bytes,
+                sha256: object_ref.sha256,
+                filename: object_ref.filename,
+                content_encoding: object_ref.content_encoding,
+            }));
         }
         parse_session_object_key(&body.key)
             .map_err(|err| tonic::Status::invalid_argument(format!("Invalid CAS key: {err}")))?;
