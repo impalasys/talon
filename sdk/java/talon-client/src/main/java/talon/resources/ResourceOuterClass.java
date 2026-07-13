@@ -3703,6 +3703,21 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Usage.UsagePolicySpecOrBuilder getUsagePolicyOrBuilder();
 
     /**
+     * <code>.talon.resources.FileSpec file = 70;</code>
+     * @return Whether the file field is set.
+     */
+    boolean hasFile();
+    /**
+     * <code>.talon.resources.FileSpec file = 70;</code>
+     * @return The file.
+     */
+    talon.resources.Files.FileSpec getFile();
+    /**
+     * <code>.talon.resources.FileSpec file = 70;</code>
+     */
+    talon.resources.Files.FileSpecOrBuilder getFileOrBuilder();
+
+    /**
      * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
      * @return Whether the raw field is set.
      */
@@ -3787,6 +3802,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       SANDBOX(42),
       WORKER(50),
       USAGE_POLICY(60),
+      FILE(70),
       RAW(1000),
       KIND_NOT_SET(0);
       private final int value;
@@ -3825,6 +3841,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 42: return SANDBOX;
           case 50: return WORKER;
           case 60: return USAGE_POLICY;
+          case 70: return FILE;
           case 1000: return RAW;
           case 0: return KIND_NOT_SET;
           default: return null;
@@ -4461,6 +4478,37 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Usage.UsagePolicySpec.getDefaultInstance();
     }
 
+    public static final int FILE_FIELD_NUMBER = 70;
+    /**
+     * <code>.talon.resources.FileSpec file = 70;</code>
+     * @return Whether the file field is set.
+     */
+    @java.lang.Override
+    public boolean hasFile() {
+      return kindCase_ == 70;
+    }
+    /**
+     * <code>.talon.resources.FileSpec file = 70;</code>
+     * @return The file.
+     */
+    @java.lang.Override
+    public talon.resources.Files.FileSpec getFile() {
+      if (kindCase_ == 70) {
+         return (talon.resources.Files.FileSpec) kind_;
+      }
+      return talon.resources.Files.FileSpec.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.FileSpec file = 70;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Files.FileSpecOrBuilder getFileOrBuilder() {
+      if (kindCase_ == 70) {
+         return (talon.resources.Files.FileSpec) kind_;
+      }
+      return talon.resources.Files.FileSpec.getDefaultInstance();
+    }
+
     public static final int RAW_FIELD_NUMBER = 1000;
     /**
      * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
@@ -4566,6 +4614,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 60) {
         output.writeMessage(60, (talon.resources.Usage.UsagePolicySpec) kind_);
       }
+      if (kindCase_ == 70) {
+        output.writeMessage(70, (talon.resources.Files.FileSpec) kind_);
+      }
       if (kindCase_ == 1000) {
         output.writeMessage(1000, (talon.resources.ResourceOuterClass.RawResourceSpec) kind_);
       }
@@ -4657,6 +4708,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 60) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(60, (talon.resources.Usage.UsagePolicySpec) kind_);
+      }
+      if (kindCase_ == 70) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(70, (talon.resources.Files.FileSpec) kind_);
       }
       if (kindCase_ == 1000) {
         size += com.google.protobuf.CodedOutputStream
@@ -4759,6 +4814,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getUsagePolicy()
               .equals(other.getUsagePolicy())) return false;
           break;
+        case 70:
+          if (!getFile()
+              .equals(other.getFile())) return false;
+          break;
         case 1000:
           if (!getRaw()
               .equals(other.getRaw())) return false;
@@ -4857,6 +4916,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 60:
           hash = (37 * hash) + USAGE_POLICY_FIELD_NUMBER;
           hash = (53 * hash) + getUsagePolicy().hashCode();
+          break;
+        case 70:
+          hash = (37 * hash) + FILE_FIELD_NUMBER;
+          hash = (53 * hash) + getFile().hashCode();
           break;
         case 1000:
           hash = (37 * hash) + RAW_FIELD_NUMBER;
@@ -5056,6 +5119,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (usagePolicyBuilder_ != null) {
           usagePolicyBuilder_.clear();
         }
+        if (fileBuilder_ != null) {
+          fileBuilder_.clear();
+        }
         if (rawBuilder_ != null) {
           rawBuilder_.clear();
         }
@@ -5180,6 +5246,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             usagePolicyBuilder_ != null) {
           result.kind_ = usagePolicyBuilder_.build();
         }
+        if (kindCase_ == 70 &&
+            fileBuilder_ != null) {
+          result.kind_ = fileBuilder_.build();
+        }
         if (kindCase_ == 1000 &&
             rawBuilder_ != null) {
           result.kind_ = rawBuilder_.build();
@@ -5277,6 +5347,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case USAGE_POLICY: {
             mergeUsagePolicy(other.getUsagePolicy());
+            break;
+          }
+          case FILE: {
+            mergeFile(other.getFile());
             break;
           }
           case RAW: {
@@ -5453,6 +5527,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 60;
                 break;
               } // case 482
+              case 562: {
+                input.readMessage(
+                    internalGetFileFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 70;
+                break;
+              } // case 562
               case 8002: {
                 input.readMessage(
                     internalGetRawFieldBuilder().getBuilder(),
@@ -8333,6 +8414,148 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Files.FileSpec, talon.resources.Files.FileSpec.Builder, talon.resources.Files.FileSpecOrBuilder> fileBuilder_;
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       * @return Whether the file field is set.
+       */
+      @java.lang.Override
+      public boolean hasFile() {
+        return kindCase_ == 70;
+      }
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       * @return The file.
+       */
+      @java.lang.Override
+      public talon.resources.Files.FileSpec getFile() {
+        if (fileBuilder_ == null) {
+          if (kindCase_ == 70) {
+            return (talon.resources.Files.FileSpec) kind_;
+          }
+          return talon.resources.Files.FileSpec.getDefaultInstance();
+        } else {
+          if (kindCase_ == 70) {
+            return fileBuilder_.getMessage();
+          }
+          return talon.resources.Files.FileSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       */
+      public Builder setFile(talon.resources.Files.FileSpec value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          fileBuilder_.setMessage(value);
+        }
+        kindCase_ = 70;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       */
+      public Builder setFile(
+          talon.resources.Files.FileSpec.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          fileBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 70;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       */
+      public Builder mergeFile(talon.resources.Files.FileSpec value) {
+        if (fileBuilder_ == null) {
+          if (kindCase_ == 70 &&
+              kind_ != talon.resources.Files.FileSpec.getDefaultInstance()) {
+            kind_ = talon.resources.Files.FileSpec.newBuilder((talon.resources.Files.FileSpec) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 70) {
+            fileBuilder_.mergeFrom(value);
+          } else {
+            fileBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 70;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       */
+      public Builder clearFile() {
+        if (fileBuilder_ == null) {
+          if (kindCase_ == 70) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 70) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          fileBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       */
+      public talon.resources.Files.FileSpec.Builder getFileBuilder() {
+        return internalGetFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Files.FileSpecOrBuilder getFileOrBuilder() {
+        if ((kindCase_ == 70) && (fileBuilder_ != null)) {
+          return fileBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 70) {
+            return (talon.resources.Files.FileSpec) kind_;
+          }
+          return talon.resources.Files.FileSpec.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.FileSpec file = 70;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Files.FileSpec, talon.resources.Files.FileSpec.Builder, talon.resources.Files.FileSpecOrBuilder>
+          internalGetFileFieldBuilder() {
+        if (fileBuilder_ == null) {
+          if (!(kindCase_ == 70)) {
+            kind_ = talon.resources.Files.FileSpec.getDefaultInstance();
+          }
+          fileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Files.FileSpec, talon.resources.Files.FileSpec.Builder, talon.resources.Files.FileSpecOrBuilder>(
+                  (talon.resources.Files.FileSpec) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 70;
+        onChanged();
+        return fileBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.ResourceOuterClass.RawResourceSpec, talon.resources.ResourceOuterClass.RawResourceSpec.Builder, talon.resources.ResourceOuterClass.RawResourceSpecOrBuilder> rawBuilder_;
       /**
        * <code>.talon.resources.RawResourceSpec raw = 1000;</code>
@@ -8830,6 +9053,21 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     talon.resources.Usage.UsagePolicyStatusOrBuilder getUsagePolicyOrBuilder();
 
     /**
+     * <code>.talon.resources.FileStatus file = 70;</code>
+     * @return Whether the file field is set.
+     */
+    boolean hasFile();
+    /**
+     * <code>.talon.resources.FileStatus file = 70;</code>
+     * @return The file.
+     */
+    talon.resources.Files.FileStatus getFile();
+    /**
+     * <code>.talon.resources.FileStatus file = 70;</code>
+     */
+    talon.resources.Files.FileStatusOrBuilder getFileOrBuilder();
+
+    /**
      * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
      * @return Whether the raw field is set.
      */
@@ -8914,6 +9152,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       SANDBOX(42),
       WORKER(50),
       USAGE_POLICY(60),
+      FILE(70),
       RAW(1000),
       KIND_NOT_SET(0);
       private final int value;
@@ -8952,6 +9191,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           case 42: return SANDBOX;
           case 50: return WORKER;
           case 60: return USAGE_POLICY;
+          case 70: return FILE;
           case 1000: return RAW;
           case 0: return KIND_NOT_SET;
           default: return null;
@@ -9588,6 +9828,37 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       return talon.resources.Usage.UsagePolicyStatus.getDefaultInstance();
     }
 
+    public static final int FILE_FIELD_NUMBER = 70;
+    /**
+     * <code>.talon.resources.FileStatus file = 70;</code>
+     * @return Whether the file field is set.
+     */
+    @java.lang.Override
+    public boolean hasFile() {
+      return kindCase_ == 70;
+    }
+    /**
+     * <code>.talon.resources.FileStatus file = 70;</code>
+     * @return The file.
+     */
+    @java.lang.Override
+    public talon.resources.Files.FileStatus getFile() {
+      if (kindCase_ == 70) {
+         return (talon.resources.Files.FileStatus) kind_;
+      }
+      return talon.resources.Files.FileStatus.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.resources.FileStatus file = 70;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Files.FileStatusOrBuilder getFileOrBuilder() {
+      if (kindCase_ == 70) {
+         return (talon.resources.Files.FileStatus) kind_;
+      }
+      return talon.resources.Files.FileStatus.getDefaultInstance();
+    }
+
     public static final int RAW_FIELD_NUMBER = 1000;
     /**
      * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
@@ -9693,6 +9964,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 60) {
         output.writeMessage(60, (talon.resources.Usage.UsagePolicyStatus) kind_);
       }
+      if (kindCase_ == 70) {
+        output.writeMessage(70, (talon.resources.Files.FileStatus) kind_);
+      }
       if (kindCase_ == 1000) {
         output.writeMessage(1000, (talon.resources.ResourceOuterClass.RawResourceStatus) kind_);
       }
@@ -9784,6 +10058,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       if (kindCase_ == 60) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(60, (talon.resources.Usage.UsagePolicyStatus) kind_);
+      }
+      if (kindCase_ == 70) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(70, (talon.resources.Files.FileStatus) kind_);
       }
       if (kindCase_ == 1000) {
         size += com.google.protobuf.CodedOutputStream
@@ -9886,6 +10164,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           if (!getUsagePolicy()
               .equals(other.getUsagePolicy())) return false;
           break;
+        case 70:
+          if (!getFile()
+              .equals(other.getFile())) return false;
+          break;
         case 1000:
           if (!getRaw()
               .equals(other.getRaw())) return false;
@@ -9984,6 +10266,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         case 60:
           hash = (37 * hash) + USAGE_POLICY_FIELD_NUMBER;
           hash = (53 * hash) + getUsagePolicy().hashCode();
+          break;
+        case 70:
+          hash = (37 * hash) + FILE_FIELD_NUMBER;
+          hash = (53 * hash) + getFile().hashCode();
           break;
         case 1000:
           hash = (37 * hash) + RAW_FIELD_NUMBER;
@@ -10183,6 +10469,9 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
         if (usagePolicyBuilder_ != null) {
           usagePolicyBuilder_.clear();
         }
+        if (fileBuilder_ != null) {
+          fileBuilder_.clear();
+        }
         if (rawBuilder_ != null) {
           rawBuilder_.clear();
         }
@@ -10307,6 +10596,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
             usagePolicyBuilder_ != null) {
           result.kind_ = usagePolicyBuilder_.build();
         }
+        if (kindCase_ == 70 &&
+            fileBuilder_ != null) {
+          result.kind_ = fileBuilder_.build();
+        }
         if (kindCase_ == 1000 &&
             rawBuilder_ != null) {
           result.kind_ = rawBuilder_.build();
@@ -10404,6 +10697,10 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           }
           case USAGE_POLICY: {
             mergeUsagePolicy(other.getUsagePolicy());
+            break;
+          }
+          case FILE: {
+            mergeFile(other.getFile());
             break;
           }
           case RAW: {
@@ -10580,6 +10877,13 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
                 kindCase_ = 60;
                 break;
               } // case 482
+              case 562: {
+                input.readMessage(
+                    internalGetFileFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                kindCase_ = 70;
+                break;
+              } // case 562
               case 8002: {
                 input.readMessage(
                     internalGetRawFieldBuilder().getBuilder(),
@@ -13460,6 +13764,148 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       }
 
       private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Files.FileStatus, talon.resources.Files.FileStatus.Builder, talon.resources.Files.FileStatusOrBuilder> fileBuilder_;
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       * @return Whether the file field is set.
+       */
+      @java.lang.Override
+      public boolean hasFile() {
+        return kindCase_ == 70;
+      }
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       * @return The file.
+       */
+      @java.lang.Override
+      public talon.resources.Files.FileStatus getFile() {
+        if (fileBuilder_ == null) {
+          if (kindCase_ == 70) {
+            return (talon.resources.Files.FileStatus) kind_;
+          }
+          return talon.resources.Files.FileStatus.getDefaultInstance();
+        } else {
+          if (kindCase_ == 70) {
+            return fileBuilder_.getMessage();
+          }
+          return talon.resources.Files.FileStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       */
+      public Builder setFile(talon.resources.Files.FileStatus value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          kind_ = value;
+          onChanged();
+        } else {
+          fileBuilder_.setMessage(value);
+        }
+        kindCase_ = 70;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       */
+      public Builder setFile(
+          talon.resources.Files.FileStatus.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          kind_ = builderForValue.build();
+          onChanged();
+        } else {
+          fileBuilder_.setMessage(builderForValue.build());
+        }
+        kindCase_ = 70;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       */
+      public Builder mergeFile(talon.resources.Files.FileStatus value) {
+        if (fileBuilder_ == null) {
+          if (kindCase_ == 70 &&
+              kind_ != talon.resources.Files.FileStatus.getDefaultInstance()) {
+            kind_ = talon.resources.Files.FileStatus.newBuilder((talon.resources.Files.FileStatus) kind_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            kind_ = value;
+          }
+          onChanged();
+        } else {
+          if (kindCase_ == 70) {
+            fileBuilder_.mergeFrom(value);
+          } else {
+            fileBuilder_.setMessage(value);
+          }
+        }
+        kindCase_ = 70;
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       */
+      public Builder clearFile() {
+        if (fileBuilder_ == null) {
+          if (kindCase_ == 70) {
+            kindCase_ = 0;
+            kind_ = null;
+            onChanged();
+          }
+        } else {
+          if (kindCase_ == 70) {
+            kindCase_ = 0;
+            kind_ = null;
+          }
+          fileBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       */
+      public talon.resources.Files.FileStatus.Builder getFileBuilder() {
+        return internalGetFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       */
+      @java.lang.Override
+      public talon.resources.Files.FileStatusOrBuilder getFileOrBuilder() {
+        if ((kindCase_ == 70) && (fileBuilder_ != null)) {
+          return fileBuilder_.getMessageOrBuilder();
+        } else {
+          if (kindCase_ == 70) {
+            return (talon.resources.Files.FileStatus) kind_;
+          }
+          return talon.resources.Files.FileStatus.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.resources.FileStatus file = 70;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Files.FileStatus, talon.resources.Files.FileStatus.Builder, talon.resources.Files.FileStatusOrBuilder>
+          internalGetFileFieldBuilder() {
+        if (fileBuilder_ == null) {
+          if (!(kindCase_ == 70)) {
+            kind_ = talon.resources.Files.FileStatus.getDefaultInstance();
+          }
+          fileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Files.FileStatus, talon.resources.Files.FileStatus.Builder, talon.resources.Files.FileStatusOrBuilder>(
+                  (talon.resources.Files.FileStatus) kind_,
+                  getParentForChildren(),
+                  isClean());
+          kind_ = null;
+        }
+        kindCase_ = 70;
+        onChanged();
+        return fileBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
           talon.resources.ResourceOuterClass.RawResourceStatus, talon.resources.ResourceOuterClass.RawResourceStatus.Builder, talon.resources.ResourceOuterClass.RawResourceStatusOrBuilder> rawBuilder_;
       /**
        * <code>.talon.resources.RawResourceStatus raw = 1000;</code>
@@ -13696,86 +14142,89 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
       "\036proto/resources/channels.proto\032\034proto/r" +
       "esources/common.proto\032 proto/resources/c" +
       "onnectors.proto\032!proto/resources/deploym" +
-      "ents.proto\032\037proto/resources/knowledge.pr" +
-      "oto\032\031proto/resources/mcp.proto\032 proto/re" +
-      "sources/namespaces.proto\032\037proto/resource" +
-      "s/sandboxes.proto\032\037proto/resources/sched" +
-      "ules.proto\032\036proto/resources/sessions.pro" +
-      "to\032\034proto/resources/skills.proto\032\033proto/" +
-      "resources/usage.proto\032\035proto/resources/w" +
-      "orkers.proto\032\037proto/resources/workflows." +
-      "proto\"\274\001\n\010Resource\022\023\n\013api_version\030\001 \001(\t\022" +
-      "\014\n\004kind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.talon." +
-      "resources.ResourceMeta\022+\n\004spec\030\004 \001(\0132\035.t" +
-      "alon.resources.ResourceSpec\022/\n\006status\030\005 " +
-      "\001(\0132\037.talon.resources.ResourceStatus\"\223\001\n" +
-      "\020ResourceManifest\022\023\n\013api_version\030\001 \001(\t\022\014" +
-      "\n\004kind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.talon.r" +
-      "esources.ResourceMeta\022+\n\004spec\030\004 \001(\0132\035.ta" +
-      "lon.resources.ResourceSpec\"\037\n\017RawResourc" +
-      "eSpec\022\014\n\004json\030\001 \001(\t\"!\n\021RawResourceStatus" +
-      "\022\014\n\004json\030\001 \001(\t\"\247\t\n\014ResourceSpec\022+\n\005agent" +
-      "\030\001 \001(\0132\032.talon.resources.AgentSpecH\000\0221\n\010" +
-      "workflow\030\002 \001(\0132\035.talon.resources.Workflo" +
-      "wSpecH\000\0221\n\010schedule\030\003 \001(\0132\035.talon.resour" +
-      "ces.ScheduleSpecH\000\022/\n\007channel\030\004 \001(\0132\034.ta" +
-      "lon.resources.ChannelSpecH\000\022H\n\024channel_s" +
-      "ubscription\030\005 \001(\0132(.talon.resources.Chan" +
-      "nelSubscriptionSpecH\000\022>\n\017connector_class" +
-      "\030\014 \001(\0132#.talon.resources.ConnectorClassS" +
-      "pecH\000\0223\n\tconnector\030\r \001(\0132\036.talon.resourc" +
-      "es.ConnectorSpecH\000\0224\n\nmcp_server\030\006 \001(\0132\036" +
-      ".talon.resources.McpServerSpecH\000\0223\n\tknow" +
-      "ledge\030\010 \001(\0132\036.talon.resources.KnowledgeS" +
-      "pecH\000\0223\n\tnamespace\030\t \001(\0132\036.talon.resourc" +
-      "es.NamespaceSpecH\000\022/\n\007session\030\n \001(\0132\034.ta" +
-      "lon.resources.SessionSpecH\000\022+\n\005skill\030\013 \001" +
-      "(\0132\032.talon.resources.SkillSpecH\000\0221\n\010temp" +
-      "late\030\024 \001(\0132\035.talon.resources.TemplateSpe" +
-      "cH\000\0225\n\ndeployment\030\025 \001(\0132\037.talon.resource" +
-      "s.DeploymentSpecH\000\022D\n\022deployment_replica" +
-      "\030\026 \001(\0132&.talon.resources.DeploymentRepli" +
-      "caSpecH\000\022:\n\rsandbox_class\030( \001(\0132!.talon." +
-      "resources.SandboxClassSpecH\000\022<\n\016sandbox_" +
-      "policy\030) \001(\0132\".talon.resources.SandboxPo" +
-      "licySpecH\000\022/\n\007sandbox\030* \001(\0132\034.talon.reso" +
-      "urces.SandboxSpecH\000\022-\n\006worker\0302 \001(\0132\033.ta" +
-      "lon.resources.WorkerSpecH\000\0228\n\014usage_poli" +
-      "cy\030< \001(\0132 .talon.resources.UsagePolicySp" +
-      "ecH\000\0220\n\003raw\030\350\007 \001(\0132 .talon.resources.Raw" +
-      "ResourceSpecH\000B\006\n\004kindJ\004\010\007\020\010R\022mcp_server" +
-      "_binding\"\352\t\n\016ResourceStatus\022-\n\005agent\030\001 \001" +
-      "(\0132\034.talon.resources.AgentStatusH\000\0223\n\010wo" +
-      "rkflow\030\002 \001(\0132\037.talon.resources.WorkflowS" +
-      "tatusH\000\0223\n\010schedule\030\003 \001(\0132\037.talon.resour" +
-      "ces.ScheduleStatusH\000\0221\n\007channel\030\004 \001(\0132\036." +
-      "talon.resources.ChannelStatusH\000\022E\n\024chann" +
-      "el_subscription\030\005 \001(\0132%.talon.resources." +
-      "CommonResourceStatusH\000\022@\n\017connector_clas" +
-      "s\030\014 \001(\0132%.talon.resources.ConnectorClass" +
-      "StatusH\000\0225\n\tconnector\030\r \001(\0132 .talon.reso" +
-      "urces.ConnectorStatusH\000\022;\n\nmcp_server\030\006 " +
-      "\001(\0132%.talon.resources.CommonResourceStat" +
-      "usH\000\022:\n\tknowledge\030\010 \001(\0132%.talon.resource" +
-      "s.CommonResourceStatusH\000\0225\n\tnamespace\030\t " +
-      "\001(\0132 .talon.resources.NamespaceStatusH\000\022" +
-      "1\n\007session\030\n \001(\0132\036.talon.resources.Sessi" +
-      "onStatusH\000\0226\n\005skill\030\013 \001(\0132%.talon.resour" +
-      "ces.CommonResourceStatusH\000\0229\n\010template\030\024" +
-      " \001(\0132%.talon.resources.CommonResourceSta" +
-      "tusH\000\0227\n\ndeployment\030\025 \001(\0132!.talon.resour" +
-      "ces.DeploymentStatusH\000\022F\n\022deployment_rep" +
-      "lica\030\026 \001(\0132(.talon.resources.DeploymentR" +
-      "eplicaStatusH\000\022>\n\rsandbox_class\030( \001(\0132%." +
-      "talon.resources.CommonResourceStatusH\000\022?" +
-      "\n\016sandbox_policy\030) \001(\0132%.talon.resources" +
-      ".CommonResourceStatusH\000\0221\n\007sandbox\030* \001(\013" +
-      "2\036.talon.resources.SandboxStatusH\000\022/\n\006wo" +
-      "rker\0302 \001(\0132\035.talon.resources.WorkerStatu" +
-      "sH\000\022:\n\014usage_policy\030< \001(\0132\".talon.resour" +
-      "ces.UsagePolicyStatusH\000\0222\n\003raw\030\350\007 \001(\0132\"." +
-      "talon.resources.RawResourceStatusH\000B\006\n\004k" +
-      "indJ\004\010\007\020\010R\022mcp_server_bindingb\006proto3"
+      "ents.proto\032\033proto/resources/files.proto\032" +
+      "\037proto/resources/knowledge.proto\032\031proto/" +
+      "resources/mcp.proto\032 proto/resources/nam" +
+      "espaces.proto\032\037proto/resources/sandboxes" +
+      ".proto\032\037proto/resources/schedules.proto\032" +
+      "\036proto/resources/sessions.proto\032\034proto/r" +
+      "esources/skills.proto\032\033proto/resources/u" +
+      "sage.proto\032\035proto/resources/workers.prot" +
+      "o\032\037proto/resources/workflows.proto\"\274\001\n\010R" +
+      "esource\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001" +
+      "(\t\022/\n\010metadata\030\003 \001(\0132\035.talon.resources.R" +
+      "esourceMeta\022+\n\004spec\030\004 \001(\0132\035.talon.resour" +
+      "ces.ResourceSpec\022/\n\006status\030\005 \001(\0132\037.talon" +
+      ".resources.ResourceStatus\"\223\001\n\020ResourceMa" +
+      "nifest\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(" +
+      "\t\022/\n\010metadata\030\003 \001(\0132\035.talon.resources.Re" +
+      "sourceMeta\022+\n\004spec\030\004 \001(\0132\035.talon.resourc" +
+      "es.ResourceSpec\"\037\n\017RawResourceSpec\022\014\n\004js" +
+      "on\030\001 \001(\t\"!\n\021RawResourceStatus\022\014\n\004json\030\001 " +
+      "\001(\t\"\322\t\n\014ResourceSpec\022+\n\005agent\030\001 \001(\0132\032.ta" +
+      "lon.resources.AgentSpecH\000\0221\n\010workflow\030\002 " +
+      "\001(\0132\035.talon.resources.WorkflowSpecH\000\0221\n\010" +
+      "schedule\030\003 \001(\0132\035.talon.resources.Schedul" +
+      "eSpecH\000\022/\n\007channel\030\004 \001(\0132\034.talon.resourc" +
+      "es.ChannelSpecH\000\022H\n\024channel_subscription" +
+      "\030\005 \001(\0132(.talon.resources.ChannelSubscrip" +
+      "tionSpecH\000\022>\n\017connector_class\030\014 \001(\0132#.ta" +
+      "lon.resources.ConnectorClassSpecH\000\0223\n\tco" +
+      "nnector\030\r \001(\0132\036.talon.resources.Connecto" +
+      "rSpecH\000\0224\n\nmcp_server\030\006 \001(\0132\036.talon.reso" +
+      "urces.McpServerSpecH\000\0223\n\tknowledge\030\010 \001(\013" +
+      "2\036.talon.resources.KnowledgeSpecH\000\0223\n\tna" +
+      "mespace\030\t \001(\0132\036.talon.resources.Namespac" +
+      "eSpecH\000\022/\n\007session\030\n \001(\0132\034.talon.resourc" +
+      "es.SessionSpecH\000\022+\n\005skill\030\013 \001(\0132\032.talon." +
+      "resources.SkillSpecH\000\0221\n\010template\030\024 \001(\0132" +
+      "\035.talon.resources.TemplateSpecH\000\0225\n\ndepl" +
+      "oyment\030\025 \001(\0132\037.talon.resources.Deploymen" +
+      "tSpecH\000\022D\n\022deployment_replica\030\026 \001(\0132&.ta" +
+      "lon.resources.DeploymentReplicaSpecH\000\022:\n" +
+      "\rsandbox_class\030( \001(\0132!.talon.resources.S" +
+      "andboxClassSpecH\000\022<\n\016sandbox_policy\030) \001(" +
+      "\0132\".talon.resources.SandboxPolicySpecH\000\022" +
+      "/\n\007sandbox\030* \001(\0132\034.talon.resources.Sandb" +
+      "oxSpecH\000\022-\n\006worker\0302 \001(\0132\033.talon.resourc" +
+      "es.WorkerSpecH\000\0228\n\014usage_policy\030< \001(\0132 ." +
+      "talon.resources.UsagePolicySpecH\000\022)\n\004fil" +
+      "e\030F \001(\0132\031.talon.resources.FileSpecH\000\0220\n\003" +
+      "raw\030\350\007 \001(\0132 .talon.resources.RawResource" +
+      "SpecH\000B\006\n\004kindJ\004\010\007\020\010R\022mcp_server_binding" +
+      "\"\227\n\n\016ResourceStatus\022-\n\005agent\030\001 \001(\0132\034.tal" +
+      "on.resources.AgentStatusH\000\0223\n\010workflow\030\002" +
+      " \001(\0132\037.talon.resources.WorkflowStatusH\000\022" +
+      "3\n\010schedule\030\003 \001(\0132\037.talon.resources.Sche" +
+      "duleStatusH\000\0221\n\007channel\030\004 \001(\0132\036.talon.re" +
+      "sources.ChannelStatusH\000\022E\n\024channel_subsc" +
+      "ription\030\005 \001(\0132%.talon.resources.CommonRe" +
+      "sourceStatusH\000\022@\n\017connector_class\030\014 \001(\0132" +
+      "%.talon.resources.ConnectorClassStatusH\000" +
+      "\0225\n\tconnector\030\r \001(\0132 .talon.resources.Co" +
+      "nnectorStatusH\000\022;\n\nmcp_server\030\006 \001(\0132%.ta" +
+      "lon.resources.CommonResourceStatusH\000\022:\n\t" +
+      "knowledge\030\010 \001(\0132%.talon.resources.Common" +
+      "ResourceStatusH\000\0225\n\tnamespace\030\t \001(\0132 .ta" +
+      "lon.resources.NamespaceStatusH\000\0221\n\007sessi" +
+      "on\030\n \001(\0132\036.talon.resources.SessionStatus" +
+      "H\000\0226\n\005skill\030\013 \001(\0132%.talon.resources.Comm" +
+      "onResourceStatusH\000\0229\n\010template\030\024 \001(\0132%.t" +
+      "alon.resources.CommonResourceStatusH\000\0227\n" +
+      "\ndeployment\030\025 \001(\0132!.talon.resources.Depl" +
+      "oymentStatusH\000\022F\n\022deployment_replica\030\026 \001" +
+      "(\0132(.talon.resources.DeploymentReplicaSt" +
+      "atusH\000\022>\n\rsandbox_class\030( \001(\0132%.talon.re" +
+      "sources.CommonResourceStatusH\000\022?\n\016sandbo" +
+      "x_policy\030) \001(\0132%.talon.resources.CommonR" +
+      "esourceStatusH\000\0221\n\007sandbox\030* \001(\0132\036.talon" +
+      ".resources.SandboxStatusH\000\022/\n\006worker\0302 \001" +
+      "(\0132\035.talon.resources.WorkerStatusH\000\022:\n\014u" +
+      "sage_policy\030< \001(\0132\".talon.resources.Usag" +
+      "ePolicyStatusH\000\022+\n\004file\030F \001(\0132\033.talon.re" +
+      "sources.FileStatusH\000\0222\n\003raw\030\350\007 \001(\0132\".tal" +
+      "on.resources.RawResourceStatusH\000B\006\n\004kind" +
+      "J\004\010\007\020\010R\022mcp_server_bindingb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -13785,6 +14234,7 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
           talon.resources.Common.getDescriptor(),
           talon.resources.Connectors.getDescriptor(),
           talon.resources.Deployments.getDescriptor(),
+          talon.resources.Files.getDescriptor(),
           talon.resources.KnowledgeOuterClass.getDescriptor(),
           talon.resources.Mcp.getDescriptor(),
           talon.resources.Namespaces.getDescriptor(),
@@ -13825,19 +14275,20 @@ public final class ResourceOuterClass extends com.google.protobuf.GeneratedFile 
     internal_static_talon_resources_ResourceSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceSpec_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "File", "Raw", "Kind", });
     internal_static_talon_resources_ResourceStatus_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_resources_ResourceStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_ResourceStatus_descriptor,
-        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "Raw", "Kind", });
+        new java.lang.String[] { "Agent", "Workflow", "Schedule", "Channel", "ChannelSubscription", "ConnectorClass", "Connector", "McpServer", "Knowledge", "Namespace", "Session", "Skill", "Template", "Deployment", "DeploymentReplica", "SandboxClass", "SandboxPolicy", "Sandbox", "Worker", "UsagePolicy", "File", "Raw", "Kind", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Agents.getDescriptor();
     talon.resources.Channels.getDescriptor();
     talon.resources.Common.getDescriptor();
     talon.resources.Connectors.getDescriptor();
     talon.resources.Deployments.getDescriptor();
+    talon.resources.Files.getDescriptor();
     talon.resources.KnowledgeOuterClass.getDescriptor();
     talon.resources.Mcp.getDescriptor();
     talon.resources.Namespaces.getDescriptor();

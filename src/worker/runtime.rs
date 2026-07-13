@@ -15,7 +15,6 @@ use crate::harness::executor::{
     session_message_to_loop_messages, AgentExecutor, ContextAssembler, ExecutionContext,
     RegisteredMcpTool,
 };
-use crate::harness::knowledge::KvKnowledgeBook;
 use crate::harness::sessions::{
     SESSION_LABEL_PROJECTION_STATE, SESSION_PROJECTION_STATE_COMMITTED,
 };
@@ -186,7 +185,6 @@ impl AgentRuntime {
             ContextAssembler::new("."),
             registry,
             Arc::new(config.clone()),
-            Arc::new(KvKnowledgeBook::new(cp.kv.clone())),
             ns.to_string(),
             agent_id.to_string(),
             session_id.to_string(),

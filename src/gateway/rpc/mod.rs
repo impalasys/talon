@@ -10,6 +10,7 @@ pub mod auth;
 pub mod cas;
 pub mod channels;
 pub mod connectors;
+pub mod files;
 pub mod knowledge;
 pub mod namespaces;
 pub mod resources;

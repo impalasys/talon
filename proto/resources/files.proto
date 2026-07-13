@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message File {
+  ResourceMeta metadata = 1;
+  FileSpec spec = 2;
+  FileStatus status = 3;
+}
+
+message FileSpec {
+  string path = 1;
+  string media_type = 2;
+  FilePurpose purpose = 3;
+  FileIndexPolicy index_policy = 4;
+  FileRetention retention = 5;
+}
+
+enum FilePurpose {
+  // No purpose has been set. Writers should choose a concrete purpose before
+  // creating namespace-visible File resources.
+  FILE_PURPOSE_UNSPECIFIED = 0;
+  // Durable memory used for retrieval by agents, replacing legacy Knowledge.
+  FILE_PURPOSE_MEMORY = 1;
+  // Durable namespace-level artifact, usually promoted from a session Artifact
+  // or created by privileged file APIs.
+  FILE_PURPOSE_ARTIFACT = 2;
+}
+
+enum FileIndexPolicy {
+  // No index policy has been set. Writers should choose NONE, SEARCH, or
+  // RETRIEVAL explicitly.
+  FILE_INDEX_POLICY_UNSPECIFIED = 0;
+  // Do not index this File's content.
+  FILE_INDEX_POLICY_NONE = 1;
+  // Index this File in generic search, but not memory retrieval.
+  FILE_INDEX_POLICY_SEARCH = 2;
+  // Index this File for agent memory retrieval.
+  FILE_INDEX_POLICY_RETRIEVAL = 3;
+}
+
+enum FileRetention {
+  // No retention policy has been set. Writers should choose a concrete policy
+  // before creating namespace-visible File resources.
+  FILE_RETENTION_UNSPECIFIED = 0;
+  // Retain until an authorized caller updates or deletes the File.
+  FILE_RETENTION_RETAINED = 1;
+}
+
+message FileStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  FileObjectRef object_ref = 4;
+  int64 updated_at = 5;
+  PendingFileUpload pending_upload = 6;
+}
+
+message FileObjectRef {
+  string key = 1;
+  string media_type = 2;
+  uint64 size_bytes = 3;
+  string sha256 = 4;
+  string filename = 5;
+  map<string, string> metadata = 6;
+}
+
+message PendingFileUpload {
+  string id = 1;
+  string object_key = 2;
+  uint64 expected_size_bytes = 3;
+  string expected_sha256 = 4;
+  map<string, string> required_headers = 5;
+  string created_by_agent = 6;
+  string created_by_session_id = 7;
+  int64 expires_at = 8;
+  int64 created_at = 9;
+}
