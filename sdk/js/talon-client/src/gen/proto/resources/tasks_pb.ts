@@ -192,11 +192,6 @@ export class TaskSpec extends Message<TaskSpec> {
    */
   parentTaskName = "";
 
-  /**
-   * @generated from field: talon.resources.TaskRetention retention = 8;
-   */
-  retention?: TaskRetention;
-
   constructor(data?: PartialMessage<TaskSpec>) {
     super();
     proto3.util.initPartial(data, this);
@@ -212,7 +207,6 @@ export class TaskSpec extends Message<TaskSpec> {
     { no: 5, name: "assignee", kind: "message", T: TaskParticipant },
     { no: 6, name: "execution_ref", kind: "message", T: TaskExecutionRef },
     { no: 7, name: "parent_task_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "retention", kind: "message", T: TaskRetention },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TaskSpec {
@@ -347,55 +341,6 @@ export class TaskExecutionRef extends Message<TaskExecutionRef> {
 
   static equals(a: TaskExecutionRef | PlainMessage<TaskExecutionRef> | undefined, b: TaskExecutionRef | PlainMessage<TaskExecutionRef> | undefined): boolean {
     return proto3.util.equals(TaskExecutionRef, a, b);
-  }
-}
-
-/**
- * @generated from message talon.resources.TaskRetention
- */
-export class TaskRetention extends Message<TaskRetention> {
-  /**
-   * @generated from field: string task_record = 1;
-   */
-  taskRecord = "";
-
-  /**
-   * @generated from field: string events = 2;
-   */
-  events = "";
-
-  /**
-   * @generated from field: string artifacts = 3;
-   */
-  artifacts = "";
-
-  constructor(data?: PartialMessage<TaskRetention>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.resources.TaskRetention";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "task_record", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "events", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "artifacts", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TaskRetention {
-    return new TaskRetention().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TaskRetention {
-    return new TaskRetention().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TaskRetention {
-    return new TaskRetention().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: TaskRetention | PlainMessage<TaskRetention> | undefined, b: TaskRetention | PlainMessage<TaskRetention> | undefined): boolean {
-    return proto3.util.equals(TaskRetention, a, b);
   }
 }
 

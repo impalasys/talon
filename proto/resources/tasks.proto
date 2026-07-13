@@ -27,7 +27,6 @@ message TaskSpec {
   // Concrete runtime execution once an assignee session or run is known.
   TaskExecutionRef execution_ref = 6;
   string parent_task_name = 7;
-  TaskRetention retention = 8;
 }
 
 // Participant identity copied from the caller or delegate context at creation
@@ -48,12 +47,6 @@ message TaskExecutionRef {
   string agent = 3;
   string session_id = 4;
   string run_id = 5;
-}
-
-message TaskRetention {
-  string task_record = 1;
-  string events = 2;
-  string artifacts = 3;
 }
 
 // Lifecycle phase for a Task.

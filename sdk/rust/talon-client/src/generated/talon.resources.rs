@@ -1159,8 +1159,6 @@ pub struct TaskSpec {
     pub execution_ref: ::core::option::Option<TaskExecutionRef>,
     #[prost(string, tag = "7")]
     pub parent_task_name: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "8")]
-    pub retention: ::core::option::Option<TaskRetention>,
 }
 /// Participant identity copied from the caller or delegate context at creation
 /// time. Talon does not infer ownership from resource ancestry; callers set the
@@ -1189,15 +1187,6 @@ pub struct TaskExecutionRef {
     pub session_id: ::prost::alloc::string::String,
     #[prost(string, tag = "5")]
     pub run_id: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TaskRetention {
-    #[prost(string, tag = "1")]
-    pub task_record: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub events: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub artifacts: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TaskStatus {

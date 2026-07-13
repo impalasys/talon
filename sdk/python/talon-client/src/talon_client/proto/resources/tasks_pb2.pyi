@@ -41,7 +41,7 @@ class Task(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[TaskSpec, _Mapping]] = ..., status: _Optional[_Union[TaskStatus, _Mapping]] = ...) -> None: ...
 
 class TaskSpec(_message.Message):
-    __slots__ = ("title", "description", "type", "requester", "assignee", "execution_ref", "parent_task_name", "retention")
+    __slots__ = ("title", "description", "type", "requester", "assignee", "execution_ref", "parent_task_name")
     TITLE_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -49,7 +49,6 @@ class TaskSpec(_message.Message):
     ASSIGNEE_FIELD_NUMBER: _ClassVar[int]
     EXECUTION_REF_FIELD_NUMBER: _ClassVar[int]
     PARENT_TASK_NAME_FIELD_NUMBER: _ClassVar[int]
-    RETENTION_FIELD_NUMBER: _ClassVar[int]
     title: str
     description: str
     type: str
@@ -57,8 +56,7 @@ class TaskSpec(_message.Message):
     assignee: TaskParticipant
     execution_ref: TaskExecutionRef
     parent_task_name: str
-    retention: TaskRetention
-    def __init__(self, title: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[str] = ..., requester: _Optional[_Union[TaskParticipant, _Mapping]] = ..., assignee: _Optional[_Union[TaskParticipant, _Mapping]] = ..., execution_ref: _Optional[_Union[TaskExecutionRef, _Mapping]] = ..., parent_task_name: _Optional[str] = ..., retention: _Optional[_Union[TaskRetention, _Mapping]] = ...) -> None: ...
+    def __init__(self, title: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[str] = ..., requester: _Optional[_Union[TaskParticipant, _Mapping]] = ..., assignee: _Optional[_Union[TaskParticipant, _Mapping]] = ..., execution_ref: _Optional[_Union[TaskExecutionRef, _Mapping]] = ..., parent_task_name: _Optional[str] = ...) -> None: ...
 
 class TaskParticipant(_message.Message):
     __slots__ = ("namespace", "agent", "session_id")
@@ -83,16 +81,6 @@ class TaskExecutionRef(_message.Message):
     session_id: str
     run_id: str
     def __init__(self, kind: _Optional[str] = ..., namespace: _Optional[str] = ..., agent: _Optional[str] = ..., session_id: _Optional[str] = ..., run_id: _Optional[str] = ...) -> None: ...
-
-class TaskRetention(_message.Message):
-    __slots__ = ("task_record", "events", "artifacts")
-    TASK_RECORD_FIELD_NUMBER: _ClassVar[int]
-    EVENTS_FIELD_NUMBER: _ClassVar[int]
-    ARTIFACTS_FIELD_NUMBER: _ClassVar[int]
-    task_record: str
-    events: str
-    artifacts: str
-    def __init__(self, task_record: _Optional[str] = ..., events: _Optional[str] = ..., artifacts: _Optional[str] = ...) -> None: ...
 
 class TaskStatus(_message.Message):
     __slots__ = ("observed_generation", "phase", "conditions", "progress_summary", "result_artifacts", "created_at", "updated_at", "completed_at", "expires_at")

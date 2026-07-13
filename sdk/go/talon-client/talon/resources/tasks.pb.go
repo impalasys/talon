@@ -177,7 +177,6 @@ type TaskSpec struct {
 	// Concrete runtime execution once an assignee session or run is known.
 	ExecutionRef   *TaskExecutionRef `protobuf:"bytes,6,opt,name=execution_ref,json=executionRef,proto3" json:"execution_ref,omitempty"`
 	ParentTaskName string            `protobuf:"bytes,7,opt,name=parent_task_name,json=parentTaskName,proto3" json:"parent_task_name,omitempty"`
-	Retention      *TaskRetention    `protobuf:"bytes,8,opt,name=retention,proto3" json:"retention,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -259,13 +258,6 @@ func (x *TaskSpec) GetParentTaskName() string {
 		return x.ParentTaskName
 	}
 	return ""
-}
-
-func (x *TaskSpec) GetRetention() *TaskRetention {
-	if x != nil {
-		return x.Retention
-	}
-	return nil
 }
 
 // Participant identity copied from the caller or delegate context at creation
@@ -410,66 +402,6 @@ func (x *TaskExecutionRef) GetRunId() string {
 	return ""
 }
 
-type TaskRetention struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TaskRecord    string                 `protobuf:"bytes,1,opt,name=task_record,json=taskRecord,proto3" json:"task_record,omitempty"`
-	Events        string                 `protobuf:"bytes,2,opt,name=events,proto3" json:"events,omitempty"`
-	Artifacts     string                 `protobuf:"bytes,3,opt,name=artifacts,proto3" json:"artifacts,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TaskRetention) Reset() {
-	*x = TaskRetention{}
-	mi := &file_proto_resources_tasks_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TaskRetention) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TaskRetention) ProtoMessage() {}
-
-func (x *TaskRetention) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_tasks_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TaskRetention.ProtoReflect.Descriptor instead.
-func (*TaskRetention) Descriptor() ([]byte, []int) {
-	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *TaskRetention) GetTaskRecord() string {
-	if x != nil {
-		return x.TaskRecord
-	}
-	return ""
-}
-
-func (x *TaskRetention) GetEvents() string {
-	if x != nil {
-		return x.Events
-	}
-	return ""
-}
-
-func (x *TaskRetention) GetArtifacts() string {
-	if x != nil {
-		return x.Artifacts
-	}
-	return ""
-}
-
 type TaskStatus struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
@@ -487,7 +419,7 @@ type TaskStatus struct {
 
 func (x *TaskStatus) Reset() {
 	*x = TaskStatus{}
-	mi := &file_proto_resources_tasks_proto_msgTypes[5]
+	mi := &file_proto_resources_tasks_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -499,7 +431,7 @@ func (x *TaskStatus) String() string {
 func (*TaskStatus) ProtoMessage() {}
 
 func (x *TaskStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_tasks_proto_msgTypes[5]
+	mi := &file_proto_resources_tasks_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -512,7 +444,7 @@ func (x *TaskStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaskStatus.ProtoReflect.Descriptor instead.
 func (*TaskStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{5}
+	return file_proto_resources_tasks_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *TaskStatus) GetObservedGeneration() uint64 {
@@ -586,7 +518,7 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\x04Task\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12-\n" +
 	"\x04spec\x18\x02 \x01(\v2\x19.talon.resources.TaskSpecR\x04spec\x123\n" +
-	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\x84\x03\n" +
+	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\xc6\x02\n" +
 	"\bTaskSpec\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x12\n" +
@@ -594,8 +526,7 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\trequester\x18\x04 \x01(\v2 .talon.resources.TaskParticipantR\trequester\x12<\n" +
 	"\bassignee\x18\x05 \x01(\v2 .talon.resources.TaskParticipantR\bassignee\x12F\n" +
 	"\rexecution_ref\x18\x06 \x01(\v2!.talon.resources.TaskExecutionRefR\fexecutionRef\x12(\n" +
-	"\x10parent_task_name\x18\a \x01(\tR\x0eparentTaskName\x12<\n" +
-	"\tretention\x18\b \x01(\v2\x1e.talon.resources.TaskRetentionR\tretention\"d\n" +
+	"\x10parent_task_name\x18\a \x01(\tR\x0eparentTaskName\"d\n" +
 	"\x0fTaskParticipant\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x1d\n" +
@@ -607,12 +538,7 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\x05agent\x18\x03 \x01(\tR\x05agent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x04 \x01(\tR\tsessionId\x12\x15\n" +
-	"\x06run_id\x18\x05 \x01(\tR\x05runId\"f\n" +
-	"\rTaskRetention\x12\x1f\n" +
-	"\vtask_record\x18\x01 \x01(\tR\n" +
-	"taskRecord\x12\x16\n" +
-	"\x06events\x18\x02 \x01(\tR\x06events\x12\x1c\n" +
-	"\tartifacts\x18\x03 \x01(\tR\tartifacts\"\xa9\x03\n" +
+	"\x06run_id\x18\x05 \x01(\tR\x05runId\"\xa9\x03\n" +
 	"\n" +
 	"TaskStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x120\n" +
@@ -653,35 +579,33 @@ func file_proto_resources_tasks_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_resources_tasks_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_resources_tasks_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_resources_tasks_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_resources_tasks_proto_goTypes = []any{
 	(TaskPhase)(0),            // 0: talon.resources.TaskPhase
 	(*Task)(nil),              // 1: talon.resources.Task
 	(*TaskSpec)(nil),          // 2: talon.resources.TaskSpec
 	(*TaskParticipant)(nil),   // 3: talon.resources.TaskParticipant
 	(*TaskExecutionRef)(nil),  // 4: talon.resources.TaskExecutionRef
-	(*TaskRetention)(nil),     // 5: talon.resources.TaskRetention
-	(*TaskStatus)(nil),        // 6: talon.resources.TaskStatus
-	(*ResourceMeta)(nil),      // 7: talon.resources.ResourceMeta
-	(*ResourceCondition)(nil), // 8: talon.resources.ResourceCondition
-	(*FileObjectRef)(nil),     // 9: talon.resources.FileObjectRef
+	(*TaskStatus)(nil),        // 5: talon.resources.TaskStatus
+	(*ResourceMeta)(nil),      // 6: talon.resources.ResourceMeta
+	(*ResourceCondition)(nil), // 7: talon.resources.ResourceCondition
+	(*FileObjectRef)(nil),     // 8: talon.resources.FileObjectRef
 }
 var file_proto_resources_tasks_proto_depIdxs = []int32{
-	7,  // 0: talon.resources.Task.metadata:type_name -> talon.resources.ResourceMeta
-	2,  // 1: talon.resources.Task.spec:type_name -> talon.resources.TaskSpec
-	6,  // 2: talon.resources.Task.status:type_name -> talon.resources.TaskStatus
-	3,  // 3: talon.resources.TaskSpec.requester:type_name -> talon.resources.TaskParticipant
-	3,  // 4: talon.resources.TaskSpec.assignee:type_name -> talon.resources.TaskParticipant
-	4,  // 5: talon.resources.TaskSpec.execution_ref:type_name -> talon.resources.TaskExecutionRef
-	5,  // 6: talon.resources.TaskSpec.retention:type_name -> talon.resources.TaskRetention
-	0,  // 7: talon.resources.TaskStatus.phase:type_name -> talon.resources.TaskPhase
-	8,  // 8: talon.resources.TaskStatus.conditions:type_name -> talon.resources.ResourceCondition
-	9,  // 9: talon.resources.TaskStatus.result_artifacts:type_name -> talon.resources.FileObjectRef
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	6, // 0: talon.resources.Task.metadata:type_name -> talon.resources.ResourceMeta
+	2, // 1: talon.resources.Task.spec:type_name -> talon.resources.TaskSpec
+	5, // 2: talon.resources.Task.status:type_name -> talon.resources.TaskStatus
+	3, // 3: talon.resources.TaskSpec.requester:type_name -> talon.resources.TaskParticipant
+	3, // 4: talon.resources.TaskSpec.assignee:type_name -> talon.resources.TaskParticipant
+	4, // 5: talon.resources.TaskSpec.execution_ref:type_name -> talon.resources.TaskExecutionRef
+	0, // 6: talon.resources.TaskStatus.phase:type_name -> talon.resources.TaskPhase
+	7, // 7: talon.resources.TaskStatus.conditions:type_name -> talon.resources.ResourceCondition
+	8, // 8: talon.resources.TaskStatus.result_artifacts:type_name -> talon.resources.FileObjectRef
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_tasks_proto_init() }
@@ -697,7 +621,7 @@ func file_proto_resources_tasks_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_tasks_proto_rawDesc), len(file_proto_resources_tasks_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

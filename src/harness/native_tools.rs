@@ -2192,11 +2192,6 @@ async fn create_task(
             parent_task_name: opt_str(args, "parent_task_name")
                 .unwrap_or_default()
                 .to_string(),
-            retention: Some(resources_proto::TaskRetention {
-                task_record: "P90D".to_string(),
-                events: "P30D".to_string(),
-                artifacts: "TASK_POLICY".to_string(),
-            }),
         },
         resources_proto::TaskStatus {
             observed_generation: 0,
