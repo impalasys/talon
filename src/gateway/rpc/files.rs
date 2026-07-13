@@ -4,7 +4,7 @@
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::cas::{latest_file_object_key, CasStore};
 use crate::control::resource_model;
-use crate::control::resources::{file_resource_name_for_path, ResourceStore};
+use crate::control::resources::ResourceStore;
 use crate::control::{keys, ProtoKeyValueStoreExt};
 use crate::gateway::auth::Claims;
 use crate::require_auth;
@@ -131,7 +131,7 @@ impl GrpcGatewayHandler {
         let name = existing
             .as_ref()
             .map(|file| file.name().to_string())
-            .unwrap_or_else(|| file_resource_name_for_path(&path));
+            .unwrap_or_else(|| keys::file_name_for_path(&path));
         let status = existing
             .as_ref()
             .and_then(|file| file.status.clone())
@@ -342,7 +342,7 @@ impl GrpcGatewayHandler {
         let name = existing
             .as_ref()
             .map(|file| file.name().to_string())
-            .unwrap_or_else(|| file_resource_name_for_path(&path));
+            .unwrap_or_else(|| keys::file_name_for_path(&path));
         let status = existing
             .as_ref()
             .and_then(|file| file.status.clone())
@@ -636,7 +636,7 @@ impl GrpcGatewayHandler {
         namespace: &str,
         path: &str,
     ) -> Result<Option<resources_proto::File>> {
-        let name = file_resource_name_for_path(path);
+        let name = keys::file_name_for_path(path);
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
         if let Some(resource) = store.get(namespace, FILE_RESOURCE_KIND, &name).await? {
             let file = file_from_resource(resource)?;
