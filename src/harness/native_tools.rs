@@ -336,13 +336,13 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
     if has_capability_action(spec, "goals", "inspect") {
         registry.register_builtin(
             LIST_GOALS_TOOL,
-            "List Talon Goals. Use this to rediscover active long-running objectives across sessions.",
+            "List Talon Goals for one session.",
             json!({
                 "type": "object",
                 "properties": {
                     "namespace": { "type": "string", "description": "Namespace to inspect. Defaults to the current namespace." },
-                    "agent": { "type": "string", "description": "Optional owning agent filter." },
-                    "session_id": { "type": "string", "description": "Optional owning session filter." },
+                    "agent": { "type": "string", "description": "Owning agent. Defaults to the current agent." },
+                    "session_id": { "type": "string", "description": "Owning session id. Defaults to the current session." },
                     "status_group": { "type": "string", "description": "Optional group: active or terminal." },
                     "phase": { "type": "string", "description": "Optional phase such as RUNNING, NEEDS_REVIEW, SUCCEEDED, FAILED, BLOCKED, or CANCELED." },
                     "limit": { "type": "integer", "description": "Optional maximum number of goals to return." }
@@ -972,8 +972,8 @@ pub async fn execute_tool_for_session(
         LIST_GOALS_TOOL => {
             require_capability(spec, "goals", "inspect")?;
             let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
-            let agent = opt_str(args, "agent");
-            let session_id = opt_str(args, "session_id");
+            let agent = opt_str(args, "agent").unwrap_or(current_agent);
+            let session_id = opt_str(args, "session_id").unwrap_or(current_session);
             let status_group = opt_str(args, "status_group");
             let phase = opt_str(args, "phase");
             let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
@@ -2596,143 +2596,24 @@ async fn load_goal(
 }
 
 async fn upsert_goal(cp: &ControlPlane, goal: data_proto::Goal) -> Result<()> {
-    let index_name = goal_index_name(&goal);
-    let entry = data_proto::GoalIndexEntry {
-        namespace: goal.namespace.clone(),
-        agent: goal.agent.clone(),
-        session_id: goal.session_id.clone(),
-        goal_id: goal.id.clone(),
-        phase: goal.phase,
-        status_group: goal_status_group(goal.phase).to_string(),
-        updated_at: goal.updated_at,
-    };
     cp.kv
         .set_msg(
             &keys::goal(&goal.namespace, &goal.agent, &goal.session_id, &goal.id),
             &goal,
         )
-        .await?;
-    cp.kv
-        .set_msg(&keys::goal_index(&goal.namespace, &index_name), &entry)
-        .await?;
-    if let Err(error) = delete_goal_index_entries(
-        cp.kv.as_ref(),
-        &goal.namespace,
-        &goal.agent,
-        &goal.session_id,
-        &goal.id,
-        Some(&index_name),
-    )
-    .await
-    {
-        tracing::warn!(
-            error = %error,
-            namespace = %goal.namespace,
-            agent = %goal.agent,
-            session_id = %goal.session_id,
-            goal_id = %goal.id,
-            "failed to clean up stale Goal indexes after upsert"
-        );
-    }
-    Ok(())
-}
-
-pub async fn delete_goal_index_entries(
-    kv: &dyn crate::control::KeyValueStore,
-    namespace: &str,
-    agent: &str,
-    session_id: &str,
-    goal_id: &str,
-    keep_index_name: Option<&str>,
-) -> Result<()> {
-    let entries = kv.list_entries(&keys::goal_index_prefix(namespace)).await?;
-    for (key, value) in entries {
-        let Ok(entry) = data_proto::GoalIndexEntry::decode(value.as_slice()) else {
-            continue;
-        };
-        if entry.agent == agent && entry.session_id == session_id && entry.goal_id == goal_id {
-            if keep_index_name.is_some_and(|name| key.name == name) {
-                continue;
-            }
-            kv.delete(&key).await?;
-        }
-    }
-    Ok(())
-}
-
-pub async fn delete_goal_indexes_for_session(
-    kv: &dyn crate::control::KeyValueStore,
-    namespace: &str,
-    agent: &str,
-    session_id: &str,
-) -> Result<()> {
-    let entries = kv.list_entries(&keys::goal_index_prefix(namespace)).await?;
-    for (key, value) in entries {
-        let Ok(entry) = data_proto::GoalIndexEntry::decode(value.as_slice()) else {
-            continue;
-        };
-        if entry.agent == agent && entry.session_id == session_id {
-            kv.delete(&key).await?;
-        }
-    }
-    Ok(())
+        .await
 }
 
 async fn list_goals(
     cp: &ControlPlane,
     namespace: &str,
-    agent: Option<&str>,
-    session_id: Option<&str>,
+    agent: &str,
+    session_id: &str,
     status_group: Option<&str>,
     phase: Option<&str>,
     limit: usize,
 ) -> Result<Vec<data_proto::Goal>> {
-    if let (Some(agent), Some(session_id)) = (agent, session_id) {
-        return list_session_goals(cp, namespace, agent, session_id, status_group, phase, limit)
-            .await;
-    }
-    let mut entries = cp
-        .kv
-        .list_entries(&keys::goal_index_prefix(namespace))
-        .await?
-        .into_iter()
-        .filter_map(|(_, value)| data_proto::GoalIndexEntry::decode(value.as_slice()).ok())
-        .collect::<Vec<_>>();
-    entries.sort_by(|left, right| right.updated_at.cmp(&left.updated_at));
-
-    let mut goals = Vec::new();
-    for entry in entries {
-        if agent.is_some_and(|current| entry.agent != current) {
-            continue;
-        }
-        if session_id.is_some_and(|current| entry.session_id != current) {
-            continue;
-        }
-        if status_group.is_some_and(|current| !entry.status_group.eq_ignore_ascii_case(current)) {
-            continue;
-        }
-        if phase.is_some_and(|current| parse_goal_phase(current).ok() != Some(entry.phase)) {
-            continue;
-        }
-        let Some(goal) = load_goal(
-            cp,
-            namespace,
-            &entry.agent,
-            &entry.session_id,
-            &entry.goal_id,
-        )
-        .await?
-        else {
-            continue;
-        };
-        if goal_matches(&goal, status_group, phase) {
-            goals.push(goal);
-        }
-        if goals.len() >= limit {
-            break;
-        }
-    }
-    Ok(goals)
+    list_session_goals(cp, namespace, agent, session_id, status_group, phase, limit).await
 }
 
 async fn list_session_goals(
@@ -2854,16 +2735,7 @@ pub async fn active_goals_context(
     agent: &str,
     session_id: &str,
 ) -> Result<Option<String>> {
-    let goals = list_goals(
-        cp,
-        namespace,
-        Some(agent),
-        Some(session_id),
-        Some("active"),
-        None,
-        20,
-    )
-    .await?;
+    let goals = list_goals(cp, namespace, agent, session_id, Some("active"), None, 20).await?;
     if goals.is_empty() {
         return Ok(None);
     }
@@ -2968,38 +2840,6 @@ fn is_terminal_goal_phase(value: i32) -> bool {
             | Some(data_proto::GoalPhase::Canceled)
             | Some(data_proto::GoalPhase::Expired)
     )
-}
-
-fn goal_index_name(goal: &data_proto::Goal) -> String {
-    format!(
-        "{}-{}-{}-{}",
-        goal_status_group(goal.phase).to_ascii_lowercase(),
-        slug_component(&goal.agent),
-        slug_component(&goal.session_id),
-        goal.id
-    )
-}
-
-fn slug_component(value: &str) -> String {
-    let mut slug = value
-        .chars()
-        .map(|ch| {
-            if ch.is_ascii_alphanumeric() {
-                ch.to_ascii_lowercase()
-            } else {
-                '-'
-            }
-        })
-        .collect::<String>();
-    while slug.contains("--") {
-        slug = slug.replace("--", "-");
-    }
-    let slug = slug.trim_matches('-');
-    if slug.is_empty() {
-        "item".to_string()
-    } else {
-        slug.chars().take(40).collect()
-    }
 }
 
 fn req_str<'a>(args: &'a Value, key: &str) -> Result<&'a str> {
@@ -4263,7 +4103,8 @@ mod tests {
             LIST_GOALS_TOOL,
             &json!({
                 "status_group": "active",
-                "agent": "ops-lead"
+                "agent": "ops-lead",
+                "session_id": "session-1"
             }),
         )
         .await
@@ -4273,29 +4114,19 @@ mod tests {
         assert_eq!(listed["goals"].as_array().unwrap().len(), 1);
         assert_eq!(listed["goals"][0]["id"], goal_id);
 
-        delete_goal_index_entries(
-            cp.kv.as_ref(),
+        let listed_from_session = list_goals(
+            &cp,
             "Tenant:acme:Workspace:main",
             "ops-lead",
             "session-1",
-            goal_id,
-            None,
-        )
-        .await
-        .unwrap();
-        let listed_from_primary = list_goals(
-            &cp,
-            "Tenant:acme:Workspace:main",
-            Some("ops-lead"),
-            Some("session-1"),
             Some("active"),
             None,
             10,
         )
         .await
         .unwrap();
-        assert_eq!(listed_from_primary.len(), 1);
-        assert_eq!(listed_from_primary[0].id, goal_id);
+        assert_eq!(listed_from_session.len(), 1);
+        assert_eq!(listed_from_session[0].id, goal_id);
 
         let with_evidence = execute_tool_for_session(
             &cp,
