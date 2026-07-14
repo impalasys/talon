@@ -1,0 +1,82 @@
+{
+  "rules": [
+    {
+      "id": "legal_coordinator_delegates_refinement",
+      "system_contains": "legal coordinator",
+      "last_message_contains": "delegate legal document refinement task",
+      "tool_name": "delegate_task",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_delegate_legal_refinement_1",
+        "tool_name": "delegate_task",
+        "content": "Let me assign the legal review. ",
+        "arguments": {
+          "title": "Refine mutual NDA fallback clause",
+          "description": "Review the mutual NDA fallback clause, tighten the obligation language, and return a markdown redline artifact with a short rationale.",
+          "type": "legal_document_refinement",
+          "connection": "legal-reviewer"
+        }
+      }
+    },
+    {
+      "id": "legal_reviewer_creates_redline_artifact",
+      "system_contains": "legal reviewer",
+      "last_message_contains": "you have been assigned a talon task",
+      "tool_name": "create_artifact",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_create_legal_redline_artifact_1",
+        "tool_name": "create_artifact",
+        "content": "I will prepare the redline artifact. ",
+        "arguments": {
+          "title": "Mutual NDA fallback clause redline",
+          "content": "## Mutual NDA fallback clause redline\n\nOriginal: The Receiving Party will try to protect Confidential Information using reasonable efforts.\n\nRevised: The Receiving Party must protect Confidential Information using at least the same degree of care it uses for its own similar confidential information, and never less than reasonable care.\n\nRationale: The revision replaces aspirational language with a concrete obligation and adds a fallback standard if internal practices are weak.",
+          "media_type": "text/markdown",
+          "metadata": {
+            "source": "legal-reviewer",
+            "content_type": "legal_redline"
+          }
+        }
+      }
+    },
+    {
+      "id": "coordinator_reads_granted_redline",
+      "system_contains": "legal coordinator",
+      "last_message_contains": "read this delegated artifact",
+      "tool_name": "read_artifact",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_read_legal_redline_artifact_1",
+        "tool_name": "read_artifact",
+        "content": "I will inspect the delegated redline. ",
+        "arguments": {
+          "artifact_uri": "{{artifact_uri}}"
+        }
+      }
+    },
+    {
+      "id": "legal_delegate_followup",
+      "tool_call_id": "call_delegate_legal_refinement_1",
+      "response": {
+        "type": "text",
+        "content": "I delegated the legal document refinement task."
+      }
+    },
+    {
+      "id": "legal_artifact_followup",
+      "tool_call_id": "call_create_legal_redline_artifact_1",
+      "response": {
+        "type": "text",
+        "content": "I created the legal redline artifact."
+      }
+    },
+    {
+      "id": "legal_read_followup",
+      "tool_call_id": "call_read_legal_redline_artifact_1",
+      "response": {
+        "type": "text",
+        "content": "I read the delegated legal redline artifact."
+      }
+    }
+  ]
+}

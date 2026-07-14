@@ -21,9 +21,9 @@ message TaskSpec {
   // application-specific string when the caller needs a stable category.
   string type = 3;
   // Agent resource that created and owns follow-up responsibility for the task.
-  ResourceRef requester = 4;
+  ResourceRef owner = 4;
   // Agent resource intended to perform the work.
-  ResourceRef assignee = 5;
+  ResourceRef delegate = 5;
 }
 
 // Runtime location of the work that is fulfilling the task. This may be absent
@@ -41,14 +41,14 @@ enum TaskPhase {
   // No phase has been set. Writers should avoid persisting this outside
   // partially initialized records.
   TASK_PHASE_UNSPECIFIED = 0;
-  // The task exists but no assignee execution has started.
+  // The task exists but no delegate execution has started.
   TASK_PHASE_QUEUED = 1;
-  // The assignee is actively working on the task.
+  // The delegate is actively working on the task.
   TASK_PHASE_RUNNING = 2;
   // Progress is blocked on user input, permissions, dependencies, or another
   // external condition.
   TASK_PHASE_BLOCKED = 3;
-  // Work is complete enough for the requester or another reviewer to inspect.
+  // Work is complete enough for the owner or another reviewer to inspect.
   TASK_PHASE_NEEDS_REVIEW = 4;
   // The task completed successfully.
   TASK_PHASE_SUCCEEDED = 5;
@@ -70,6 +70,6 @@ message TaskStatus {
   int64 updated_at = 7;
   int64 completed_at = 8;
   int64 expires_at = 9;
-  // Concrete runtime execution once an assignee session or run is known.
+  // Concrete runtime execution once a delegate session or run is known.
   TaskExecutionRef execution_ref = 10;
 }

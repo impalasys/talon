@@ -115,6 +115,12 @@ fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {
         if name.is_empty() {
             bail!("A2A connection name is required");
         }
+        if connection.name != name {
+            bail!(
+                "A2A connection name {:?} must not contain leading or trailing whitespace",
+                connection.name
+            );
+        }
         if !seen_connections.insert(name.to_string()) {
             bail!("Duplicate A2A connection '{}'", name);
         }
@@ -432,6 +438,24 @@ mod tests {
         });
         let err = validate_agent_spec(&invalid_url).unwrap_err();
         assert!(err.to_string().contains("http(s) URL"));
+
+        let mut padded_name = valid_agent_spec();
+        padded_name.a2a = Some(manifests::A2a {
+            connections: vec![manifests::Connection {
+                name: " policy ".to_string(),
+                target: Some(manifests::ConnectionRef {
+                    internal: Some(manifests::InternalConnectionRef {
+                        namespace: "customers".to_string(),
+                        agent: "policy-agent".to_string(),
+                    }),
+                    external: None,
+                }),
+                ..Default::default()
+            }],
+            agent_card: None,
+        });
+        let err = validate_agent_spec(&padded_name).unwrap_err();
+        assert!(err.to_string().contains("leading or trailing whitespace"));
     }
 
     #[test]

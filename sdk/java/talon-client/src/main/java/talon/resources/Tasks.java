@@ -46,7 +46,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     TASK_PHASE_UNSPECIFIED(0),
     /**
      * <pre>
-     * The task exists but no assignee execution has started.
+     * The task exists but no delegate execution has started.
      * </pre>
      *
      * <code>TASK_PHASE_QUEUED = 1;</code>
@@ -54,7 +54,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     TASK_PHASE_QUEUED(1),
     /**
      * <pre>
-     * The assignee is actively working on the task.
+     * The delegate is actively working on the task.
      * </pre>
      *
      * <code>TASK_PHASE_RUNNING = 2;</code>
@@ -71,7 +71,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     TASK_PHASE_BLOCKED(3),
     /**
      * <pre>
-     * Work is complete enough for the requester or another reviewer to inspect.
+     * Work is complete enough for the owner or another reviewer to inspect.
      * </pre>
      *
      * <code>TASK_PHASE_NEEDS_REVIEW = 4;</code>
@@ -132,7 +132,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     public static final int TASK_PHASE_UNSPECIFIED_VALUE = 0;
     /**
      * <pre>
-     * The task exists but no assignee execution has started.
+     * The task exists but no delegate execution has started.
      * </pre>
      *
      * <code>TASK_PHASE_QUEUED = 1;</code>
@@ -140,7 +140,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     public static final int TASK_PHASE_QUEUED_VALUE = 1;
     /**
      * <pre>
-     * The assignee is actively working on the task.
+     * The delegate is actively working on the task.
      * </pre>
      *
      * <code>TASK_PHASE_RUNNING = 2;</code>
@@ -157,7 +157,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     public static final int TASK_PHASE_BLOCKED_VALUE = 3;
     /**
      * <pre>
-     * Work is complete enough for the requester or another reviewer to inspect.
+     * Work is complete enough for the owner or another reviewer to inspect.
      * </pre>
      *
      * <code>TASK_PHASE_NEEDS_REVIEW = 4;</code>
@@ -1322,54 +1322,54 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
      * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef requester = 4;</code>
-     * @return Whether the requester field is set.
+     * <code>.talon.resources.ResourceRef owner = 4;</code>
+     * @return Whether the owner field is set.
      */
-    boolean hasRequester();
+    boolean hasOwner();
     /**
      * <pre>
      * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef requester = 4;</code>
-     * @return The requester.
+     * <code>.talon.resources.ResourceRef owner = 4;</code>
+     * @return The owner.
      */
-    talon.resources.Common.ResourceRef getRequester();
+    talon.resources.Common.ResourceRef getOwner();
     /**
      * <pre>
      * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef requester = 4;</code>
+     * <code>.talon.resources.ResourceRef owner = 4;</code>
      */
-    talon.resources.Common.ResourceRefOrBuilder getRequesterOrBuilder();
+    talon.resources.Common.ResourceRefOrBuilder getOwnerOrBuilder();
 
     /**
      * <pre>
      * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef assignee = 5;</code>
-     * @return Whether the assignee field is set.
+     * <code>.talon.resources.ResourceRef delegate = 5;</code>
+     * @return Whether the delegate field is set.
      */
-    boolean hasAssignee();
+    boolean hasDelegate();
     /**
      * <pre>
      * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef assignee = 5;</code>
-     * @return The assignee.
+     * <code>.talon.resources.ResourceRef delegate = 5;</code>
+     * @return The delegate.
      */
-    talon.resources.Common.ResourceRef getAssignee();
+    talon.resources.Common.ResourceRef getDelegate();
     /**
      * <pre>
      * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef assignee = 5;</code>
+     * <code>.talon.resources.ResourceRef delegate = 5;</code>
      */
-    talon.resources.Common.ResourceRefOrBuilder getAssigneeOrBuilder();
+    talon.resources.Common.ResourceRefOrBuilder getDelegateOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.TaskSpec}
@@ -1550,18 +1550,18 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int REQUESTER_FIELD_NUMBER = 4;
-    private talon.resources.Common.ResourceRef requester_;
+    public static final int OWNER_FIELD_NUMBER = 4;
+    private talon.resources.Common.ResourceRef owner_;
     /**
      * <pre>
      * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef requester = 4;</code>
-     * @return Whether the requester field is set.
+     * <code>.talon.resources.ResourceRef owner = 4;</code>
+     * @return Whether the owner field is set.
      */
     @java.lang.Override
-    public boolean hasRequester() {
+    public boolean hasOwner() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
@@ -1569,37 +1569,37 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
      * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef requester = 4;</code>
-     * @return The requester.
+     * <code>.talon.resources.ResourceRef owner = 4;</code>
+     * @return The owner.
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRef getRequester() {
-      return requester_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : requester_;
+    public talon.resources.Common.ResourceRef getOwner() {
+      return owner_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : owner_;
     }
     /**
      * <pre>
      * Agent resource that created and owns follow-up responsibility for the task.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef requester = 4;</code>
+     * <code>.talon.resources.ResourceRef owner = 4;</code>
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRefOrBuilder getRequesterOrBuilder() {
-      return requester_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : requester_;
+    public talon.resources.Common.ResourceRefOrBuilder getOwnerOrBuilder() {
+      return owner_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : owner_;
     }
 
-    public static final int ASSIGNEE_FIELD_NUMBER = 5;
-    private talon.resources.Common.ResourceRef assignee_;
+    public static final int DELEGATE_FIELD_NUMBER = 5;
+    private talon.resources.Common.ResourceRef delegate_;
     /**
      * <pre>
      * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef assignee = 5;</code>
-     * @return Whether the assignee field is set.
+     * <code>.talon.resources.ResourceRef delegate = 5;</code>
+     * @return Whether the delegate field is set.
      */
     @java.lang.Override
-    public boolean hasAssignee() {
+    public boolean hasDelegate() {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
@@ -1607,23 +1607,23 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
      * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef assignee = 5;</code>
-     * @return The assignee.
+     * <code>.talon.resources.ResourceRef delegate = 5;</code>
+     * @return The delegate.
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRef getAssignee() {
-      return assignee_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
+    public talon.resources.Common.ResourceRef getDelegate() {
+      return delegate_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : delegate_;
     }
     /**
      * <pre>
      * Agent resource intended to perform the work.
      * </pre>
      *
-     * <code>.talon.resources.ResourceRef assignee = 5;</code>
+     * <code>.talon.resources.ResourceRef delegate = 5;</code>
      */
     @java.lang.Override
-    public talon.resources.Common.ResourceRefOrBuilder getAssigneeOrBuilder() {
-      return assignee_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
+    public talon.resources.Common.ResourceRefOrBuilder getDelegateOrBuilder() {
+      return delegate_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : delegate_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -1650,10 +1650,10 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, type_);
       }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(4, getRequester());
+        output.writeMessage(4, getOwner());
       }
       if (((bitField0_ & 0x00000002) != 0)) {
-        output.writeMessage(5, getAssignee());
+        output.writeMessage(5, getDelegate());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1675,11 +1675,11 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, getRequester());
+          .computeMessageSize(4, getOwner());
       }
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(5, getAssignee());
+          .computeMessageSize(5, getDelegate());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1702,15 +1702,15 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           .equals(other.getDescription())) return false;
       if (!getType()
           .equals(other.getType())) return false;
-      if (hasRequester() != other.hasRequester()) return false;
-      if (hasRequester()) {
-        if (!getRequester()
-            .equals(other.getRequester())) return false;
+      if (hasOwner() != other.hasOwner()) return false;
+      if (hasOwner()) {
+        if (!getOwner()
+            .equals(other.getOwner())) return false;
       }
-      if (hasAssignee() != other.hasAssignee()) return false;
-      if (hasAssignee()) {
-        if (!getAssignee()
-            .equals(other.getAssignee())) return false;
+      if (hasDelegate() != other.hasDelegate()) return false;
+      if (hasDelegate()) {
+        if (!getDelegate()
+            .equals(other.getDelegate())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -1729,13 +1729,13 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       hash = (53 * hash) + getDescription().hashCode();
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
       hash = (53 * hash) + getType().hashCode();
-      if (hasRequester()) {
-        hash = (37 * hash) + REQUESTER_FIELD_NUMBER;
-        hash = (53 * hash) + getRequester().hashCode();
+      if (hasOwner()) {
+        hash = (37 * hash) + OWNER_FIELD_NUMBER;
+        hash = (53 * hash) + getOwner().hashCode();
       }
-      if (hasAssignee()) {
-        hash = (37 * hash) + ASSIGNEE_FIELD_NUMBER;
-        hash = (53 * hash) + getAssignee().hashCode();
+      if (hasDelegate()) {
+        hash = (37 * hash) + DELEGATE_FIELD_NUMBER;
+        hash = (53 * hash) + getDelegate().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -1867,8 +1867,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
-          internalGetRequesterFieldBuilder();
-          internalGetAssigneeFieldBuilder();
+          internalGetOwnerFieldBuilder();
+          internalGetDelegateFieldBuilder();
         }
       }
       @java.lang.Override
@@ -1878,15 +1878,15 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         title_ = "";
         description_ = "";
         type_ = "";
-        requester_ = null;
-        if (requesterBuilder_ != null) {
-          requesterBuilder_.dispose();
-          requesterBuilder_ = null;
+        owner_ = null;
+        if (ownerBuilder_ != null) {
+          ownerBuilder_.dispose();
+          ownerBuilder_ = null;
         }
-        assignee_ = null;
-        if (assigneeBuilder_ != null) {
-          assigneeBuilder_.dispose();
-          assigneeBuilder_ = null;
+        delegate_ = null;
+        if (delegateBuilder_ != null) {
+          delegateBuilder_.dispose();
+          delegateBuilder_ = null;
         }
         return this;
       }
@@ -1932,15 +1932,15 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         }
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.requester_ = requesterBuilder_ == null
-              ? requester_
-              : requesterBuilder_.build();
+          result.owner_ = ownerBuilder_ == null
+              ? owner_
+              : ownerBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.assignee_ = assigneeBuilder_ == null
-              ? assignee_
-              : assigneeBuilder_.build();
+          result.delegate_ = delegateBuilder_ == null
+              ? delegate_
+              : delegateBuilder_.build();
           to_bitField0_ |= 0x00000002;
         }
         result.bitField0_ |= to_bitField0_;
@@ -1973,11 +1973,11 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000004;
           onChanged();
         }
-        if (other.hasRequester()) {
-          mergeRequester(other.getRequester());
+        if (other.hasOwner()) {
+          mergeOwner(other.getOwner());
         }
-        if (other.hasAssignee()) {
-          mergeAssignee(other.getAssignee());
+        if (other.hasDelegate()) {
+          mergeDelegate(other.getDelegate());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -2022,14 +2022,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
               } // case 26
               case 34: {
                 input.readMessage(
-                    internalGetRequesterFieldBuilder().getBuilder(),
+                    internalGetOwnerFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
               case 42: {
                 input.readMessage(
-                    internalGetAssigneeFieldBuilder().getBuilder(),
+                    internalGetDelegateFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000010;
                 break;
@@ -2307,18 +2307,18 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private talon.resources.Common.ResourceRef requester_;
+      private talon.resources.Common.ResourceRef owner_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> requesterBuilder_;
+          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> ownerBuilder_;
       /**
        * <pre>
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
-       * @return Whether the requester field is set.
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
+       * @return Whether the owner field is set.
        */
-      public boolean hasRequester() {
+      public boolean hasOwner() {
         return ((bitField0_ & 0x00000008) != 0);
       }
       /**
@@ -2326,14 +2326,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
-       * @return The requester.
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
+       * @return The owner.
        */
-      public talon.resources.Common.ResourceRef getRequester() {
-        if (requesterBuilder_ == null) {
-          return requester_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : requester_;
+      public talon.resources.Common.ResourceRef getOwner() {
+        if (ownerBuilder_ == null) {
+          return owner_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : owner_;
         } else {
-          return requesterBuilder_.getMessage();
+          return ownerBuilder_.getMessage();
         }
       }
       /**
@@ -2341,16 +2341,16 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
        */
-      public Builder setRequester(talon.resources.Common.ResourceRef value) {
-        if (requesterBuilder_ == null) {
+      public Builder setOwner(talon.resources.Common.ResourceRef value) {
+        if (ownerBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          requester_ = value;
+          owner_ = value;
         } else {
-          requesterBuilder_.setMessage(value);
+          ownerBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000008;
         onChanged();
@@ -2361,14 +2361,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
        */
-      public Builder setRequester(
+      public Builder setOwner(
           talon.resources.Common.ResourceRef.Builder builderForValue) {
-        if (requesterBuilder_ == null) {
-          requester_ = builderForValue.build();
+        if (ownerBuilder_ == null) {
+          owner_ = builderForValue.build();
         } else {
-          requesterBuilder_.setMessage(builderForValue.build());
+          ownerBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000008;
         onChanged();
@@ -2379,21 +2379,21 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
        */
-      public Builder mergeRequester(talon.resources.Common.ResourceRef value) {
-        if (requesterBuilder_ == null) {
+      public Builder mergeOwner(talon.resources.Common.ResourceRef value) {
+        if (ownerBuilder_ == null) {
           if (((bitField0_ & 0x00000008) != 0) &&
-            requester_ != null &&
-            requester_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
-            getRequesterBuilder().mergeFrom(value);
+            owner_ != null &&
+            owner_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
+            getOwnerBuilder().mergeFrom(value);
           } else {
-            requester_ = value;
+            owner_ = value;
           }
         } else {
-          requesterBuilder_.mergeFrom(value);
+          ownerBuilder_.mergeFrom(value);
         }
-        if (requester_ != null) {
+        if (owner_ != null) {
           bitField0_ |= 0x00000008;
           onChanged();
         }
@@ -2404,14 +2404,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
        */
-      public Builder clearRequester() {
+      public Builder clearOwner() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        requester_ = null;
-        if (requesterBuilder_ != null) {
-          requesterBuilder_.dispose();
-          requesterBuilder_ = null;
+        owner_ = null;
+        if (ownerBuilder_ != null) {
+          ownerBuilder_.dispose();
+          ownerBuilder_ = null;
         }
         onChanged();
         return this;
@@ -2421,26 +2421,26 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
        */
-      public talon.resources.Common.ResourceRef.Builder getRequesterBuilder() {
+      public talon.resources.Common.ResourceRef.Builder getOwnerBuilder() {
         bitField0_ |= 0x00000008;
         onChanged();
-        return internalGetRequesterFieldBuilder().getBuilder();
+        return internalGetOwnerFieldBuilder().getBuilder();
       }
       /**
        * <pre>
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
        */
-      public talon.resources.Common.ResourceRefOrBuilder getRequesterOrBuilder() {
-        if (requesterBuilder_ != null) {
-          return requesterBuilder_.getMessageOrBuilder();
+      public talon.resources.Common.ResourceRefOrBuilder getOwnerOrBuilder() {
+        if (ownerBuilder_ != null) {
+          return ownerBuilder_.getMessageOrBuilder();
         } else {
-          return requester_ == null ?
-              talon.resources.Common.ResourceRef.getDefaultInstance() : requester_;
+          return owner_ == null ?
+              talon.resources.Common.ResourceRef.getDefaultInstance() : owner_;
         }
       }
       /**
@@ -2448,34 +2448,34 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource that created and owns follow-up responsibility for the task.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef requester = 4;</code>
+       * <code>.talon.resources.ResourceRef owner = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>
-          internalGetRequesterFieldBuilder() {
-        if (requesterBuilder_ == null) {
-          requesterBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+          internalGetOwnerFieldBuilder() {
+        if (ownerBuilder_ == null) {
+          ownerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>(
-                  getRequester(),
+                  getOwner(),
                   getParentForChildren(),
                   isClean());
-          requester_ = null;
+          owner_ = null;
         }
-        return requesterBuilder_;
+        return ownerBuilder_;
       }
 
-      private talon.resources.Common.ResourceRef assignee_;
+      private talon.resources.Common.ResourceRef delegate_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> assigneeBuilder_;
+          talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder> delegateBuilder_;
       /**
        * <pre>
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
-       * @return Whether the assignee field is set.
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
+       * @return Whether the delegate field is set.
        */
-      public boolean hasAssignee() {
+      public boolean hasDelegate() {
         return ((bitField0_ & 0x00000010) != 0);
       }
       /**
@@ -2483,14 +2483,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
-       * @return The assignee.
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
+       * @return The delegate.
        */
-      public talon.resources.Common.ResourceRef getAssignee() {
-        if (assigneeBuilder_ == null) {
-          return assignee_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
+      public talon.resources.Common.ResourceRef getDelegate() {
+        if (delegateBuilder_ == null) {
+          return delegate_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : delegate_;
         } else {
-          return assigneeBuilder_.getMessage();
+          return delegateBuilder_.getMessage();
         }
       }
       /**
@@ -2498,16 +2498,16 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
        */
-      public Builder setAssignee(talon.resources.Common.ResourceRef value) {
-        if (assigneeBuilder_ == null) {
+      public Builder setDelegate(talon.resources.Common.ResourceRef value) {
+        if (delegateBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          assignee_ = value;
+          delegate_ = value;
         } else {
-          assigneeBuilder_.setMessage(value);
+          delegateBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000010;
         onChanged();
@@ -2518,14 +2518,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
        */
-      public Builder setAssignee(
+      public Builder setDelegate(
           talon.resources.Common.ResourceRef.Builder builderForValue) {
-        if (assigneeBuilder_ == null) {
-          assignee_ = builderForValue.build();
+        if (delegateBuilder_ == null) {
+          delegate_ = builderForValue.build();
         } else {
-          assigneeBuilder_.setMessage(builderForValue.build());
+          delegateBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000010;
         onChanged();
@@ -2536,21 +2536,21 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
        */
-      public Builder mergeAssignee(talon.resources.Common.ResourceRef value) {
-        if (assigneeBuilder_ == null) {
+      public Builder mergeDelegate(talon.resources.Common.ResourceRef value) {
+        if (delegateBuilder_ == null) {
           if (((bitField0_ & 0x00000010) != 0) &&
-            assignee_ != null &&
-            assignee_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
-            getAssigneeBuilder().mergeFrom(value);
+            delegate_ != null &&
+            delegate_ != talon.resources.Common.ResourceRef.getDefaultInstance()) {
+            getDelegateBuilder().mergeFrom(value);
           } else {
-            assignee_ = value;
+            delegate_ = value;
           }
         } else {
-          assigneeBuilder_.mergeFrom(value);
+          delegateBuilder_.mergeFrom(value);
         }
-        if (assignee_ != null) {
+        if (delegate_ != null) {
           bitField0_ |= 0x00000010;
           onChanged();
         }
@@ -2561,14 +2561,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
        */
-      public Builder clearAssignee() {
+      public Builder clearDelegate() {
         bitField0_ = (bitField0_ & ~0x00000010);
-        assignee_ = null;
-        if (assigneeBuilder_ != null) {
-          assigneeBuilder_.dispose();
-          assigneeBuilder_ = null;
+        delegate_ = null;
+        if (delegateBuilder_ != null) {
+          delegateBuilder_.dispose();
+          delegateBuilder_ = null;
         }
         onChanged();
         return this;
@@ -2578,26 +2578,26 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
        */
-      public talon.resources.Common.ResourceRef.Builder getAssigneeBuilder() {
+      public talon.resources.Common.ResourceRef.Builder getDelegateBuilder() {
         bitField0_ |= 0x00000010;
         onChanged();
-        return internalGetAssigneeFieldBuilder().getBuilder();
+        return internalGetDelegateFieldBuilder().getBuilder();
       }
       /**
        * <pre>
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
        */
-      public talon.resources.Common.ResourceRefOrBuilder getAssigneeOrBuilder() {
-        if (assigneeBuilder_ != null) {
-          return assigneeBuilder_.getMessageOrBuilder();
+      public talon.resources.Common.ResourceRefOrBuilder getDelegateOrBuilder() {
+        if (delegateBuilder_ != null) {
+          return delegateBuilder_.getMessageOrBuilder();
         } else {
-          return assignee_ == null ?
-              talon.resources.Common.ResourceRef.getDefaultInstance() : assignee_;
+          return delegate_ == null ?
+              talon.resources.Common.ResourceRef.getDefaultInstance() : delegate_;
         }
       }
       /**
@@ -2605,20 +2605,20 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
        * Agent resource intended to perform the work.
        * </pre>
        *
-       * <code>.talon.resources.ResourceRef assignee = 5;</code>
+       * <code>.talon.resources.ResourceRef delegate = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>
-          internalGetAssigneeFieldBuilder() {
-        if (assigneeBuilder_ == null) {
-          assigneeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+          internalGetDelegateFieldBuilder() {
+        if (delegateBuilder_ == null) {
+          delegateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               talon.resources.Common.ResourceRef, talon.resources.Common.ResourceRef.Builder, talon.resources.Common.ResourceRefOrBuilder>(
-                  getAssignee(),
+                  getDelegate(),
                   getParentForChildren(),
                   isClean());
-          assignee_ = null;
+          delegate_ = null;
         }
-        return assigneeBuilder_;
+        return delegateBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.TaskSpec)
@@ -3896,7 +3896,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
 
     /**
      * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
+     * Concrete runtime execution once a delegate session or run is known.
      * </pre>
      *
      * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -3905,7 +3905,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     boolean hasExecutionRef();
     /**
      * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
+     * Concrete runtime execution once a delegate session or run is known.
      * </pre>
      *
      * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -3914,7 +3914,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     talon.resources.Tasks.TaskExecutionRef getExecutionRef();
     /**
      * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
+     * Concrete runtime execution once a delegate session or run is known.
      * </pre>
      *
      * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -4166,7 +4166,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     private talon.resources.Tasks.TaskExecutionRef executionRef_;
     /**
      * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
+     * Concrete runtime execution once a delegate session or run is known.
      * </pre>
      *
      * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -4178,7 +4178,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
+     * Concrete runtime execution once a delegate session or run is known.
      * </pre>
      *
      * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -4190,7 +4190,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     }
     /**
      * <pre>
-     * Concrete runtime execution once an assignee session or run is known.
+     * Concrete runtime execution once a delegate session or run is known.
      * </pre>
      *
      * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5602,7 +5602,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           talon.resources.Tasks.TaskExecutionRef, talon.resources.Tasks.TaskExecutionRef.Builder, talon.resources.Tasks.TaskExecutionRefOrBuilder> executionRefBuilder_;
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5613,7 +5613,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5628,7 +5628,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5648,7 +5648,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5666,7 +5666,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5691,7 +5691,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5708,7 +5708,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5720,7 +5720,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5735,7 +5735,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       /**
        * <pre>
-       * Concrete runtime execution once an assignee session or run is known.
+       * Concrete runtime execution once a delegate session or run is known.
        * </pre>
        *
        * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
@@ -5840,29 +5840,29 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       "tadata\030\001 \001(\0132\035.talon.resources.ResourceM" +
       "eta\022\'\n\004spec\030\002 \001(\0132\031.talon.resources.Task" +
       "Spec\022+\n\006status\030\003 \001(\0132\033.talon.resources.T" +
-      "askStatus\"\235\001\n\010TaskSpec\022\r\n\005title\030\001 \001(\t\022\023\n" +
-      "\013description\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\022/\n\trequ" +
-      "ester\030\004 \001(\0132\034.talon.resources.ResourceRe" +
-      "f\022.\n\010assignee\030\005 \001(\0132\034.talon.resources.Re" +
-      "sourceRef\"e\n\020TaskExecutionRef\022\014\n\004kind\030\001 " +
-      "\001(\t\022\021\n\tnamespace\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\022\n\n" +
-      "session_id\030\004 \001(\t\022\016\n\006run_id\030\005 \001(\t\"\354\002\n\nTas" +
-      "kStatus\022\033\n\023observed_generation\030\001 \001(\004\022)\n\005" +
-      "phase\030\002 \001(\0162\032.talon.resources.TaskPhase\022" +
-      "6\n\nconditions\030\003 \003(\0132\".talon.resources.Re" +
-      "sourceCondition\022\030\n\020progress_summary\030\004 \001(" +
-      "\t\0228\n\020result_artifacts\030\005 \003(\0132\036.talon.reso" +
-      "urces.FileObjectRef\022\022\n\ncreated_at\030\006 \001(\003\022" +
-      "\022\n\nupdated_at\030\007 \001(\003\022\024\n\014completed_at\030\010 \001(" +
-      "\003\022\022\n\nexpires_at\030\t \001(\003\0228\n\rexecution_ref\030\n" +
-      " \001(\0132!.talon.resources.TaskExecutionRef*" +
-      "\355\001\n\tTaskPhase\022\032\n\026TASK_PHASE_UNSPECIFIED\020" +
-      "\000\022\025\n\021TASK_PHASE_QUEUED\020\001\022\026\n\022TASK_PHASE_R" +
-      "UNNING\020\002\022\026\n\022TASK_PHASE_BLOCKED\020\003\022\033\n\027TASK" +
-      "_PHASE_NEEDS_REVIEW\020\004\022\030\n\024TASK_PHASE_SUCC" +
-      "EEDED\020\005\022\025\n\021TASK_PHASE_FAILED\020\006\022\027\n\023TASK_P" +
-      "HASE_CANCELED\020\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b" +
-      "\006proto3"
+      "askStatus\"\231\001\n\010TaskSpec\022\r\n\005title\030\001 \001(\t\022\023\n" +
+      "\013description\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\022+\n\005owne" +
+      "r\030\004 \001(\0132\034.talon.resources.ResourceRef\022.\n" +
+      "\010delegate\030\005 \001(\0132\034.talon.resources.Resour" +
+      "ceRef\"e\n\020TaskExecutionRef\022\014\n\004kind\030\001 \001(\t\022" +
+      "\021\n\tnamespace\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\022\n\nsess" +
+      "ion_id\030\004 \001(\t\022\016\n\006run_id\030\005 \001(\t\"\354\002\n\nTaskSta" +
+      "tus\022\033\n\023observed_generation\030\001 \001(\004\022)\n\005phas" +
+      "e\030\002 \001(\0162\032.talon.resources.TaskPhase\0226\n\nc" +
+      "onditions\030\003 \003(\0132\".talon.resources.Resour" +
+      "ceCondition\022\030\n\020progress_summary\030\004 \001(\t\0228\n" +
+      "\020result_artifacts\030\005 \003(\0132\036.talon.resource" +
+      "s.FileObjectRef\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nu" +
+      "pdated_at\030\007 \001(\003\022\024\n\014completed_at\030\010 \001(\003\022\022\n" +
+      "\nexpires_at\030\t \001(\003\0228\n\rexecution_ref\030\n \001(\013" +
+      "2!.talon.resources.TaskExecutionRef*\355\001\n\t" +
+      "TaskPhase\022\032\n\026TASK_PHASE_UNSPECIFIED\020\000\022\025\n" +
+      "\021TASK_PHASE_QUEUED\020\001\022\026\n\022TASK_PHASE_RUNNI" +
+      "NG\020\002\022\026\n\022TASK_PHASE_BLOCKED\020\003\022\033\n\027TASK_PHA" +
+      "SE_NEEDS_REVIEW\020\004\022\030\n\024TASK_PHASE_SUCCEEDE" +
+      "D\020\005\022\025\n\021TASK_PHASE_FAILED\020\006\022\027\n\023TASK_PHASE" +
+      "_CANCELED\020\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b\006pro" +
+      "to3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5881,7 +5881,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_TaskSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_TaskSpec_descriptor,
-        new java.lang.String[] { "Title", "Description", "Type", "Requester", "Assignee", });
+        new java.lang.String[] { "Title", "Description", "Type", "Owner", "Delegate", });
     internal_static_talon_resources_TaskExecutionRef_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_resources_TaskExecutionRef_fieldAccessorTable = new

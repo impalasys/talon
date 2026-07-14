@@ -726,10 +726,10 @@ spec:
   title: Launch copy
   description: Draft launch copy.
   type: agent_delegation
-  requester:
+  owner:
     namespace: Tenant:acme:Workspace:main
     name: cmo
-  assignee:
+  delegate:
     namespace: Tenant:acme:Workspace:main
     name: writer
 "#,
@@ -741,8 +741,8 @@ spec:
             panic!("expected Task spec");
         };
         assert_eq!(spec.r#type, "agent_delegation");
-        assert_eq!(spec.requester.as_ref().unwrap().name, "cmo");
-        assert_eq!(spec.assignee.as_ref().unwrap().name, "writer");
+        assert_eq!(spec.owner.as_ref().unwrap().name, "cmo");
+        assert_eq!(spec.delegate.as_ref().unwrap().name, "writer");
 
         let rendered = render_resource_yaml(&resources_proto::Resource {
             api_version: manifest.api_version,

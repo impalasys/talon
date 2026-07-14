@@ -34,6 +34,64 @@ def test_mock_llm_helper_functions_cover_message_and_tool_detection() -> None:
     assert json.loads(tool_call["function"]["arguments"]) == {"query": "docs.example.com"}
 
 
+def test_mock_llm_json_scenario_rules_emit_legal_delegate_tool_call() -> None:
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a legal coordinator.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Please delegate legal document refinement task to the legal "
+                "reviewer connection."
+            ),
+        },
+    ]
+    response = mock_llm.scenario_response_for(
+        messages,
+        [{"type": "function", "function": {"name": "delegate_task"}}],
+    )
+
+    assert response is not None
+    assert response["type"] == "tool_call"
+    assert response["tool_name"] == "delegate_task"
+    assert response["arguments"]["connection"] == "legal-reviewer"
+    assert response["arguments"]["type"] == "legal_document_refinement"
+
+    payload = mock_llm.scenario_tool_call_payload("mock-model", response)
+    assert payload["choices"][0]["message"]["content"] == "Let me assign the legal review. "
+
+
+@pytest.mark.anyio
+async def test_mock_llm_non_streaming_blocking_lookup_honors_super_large_query() -> None:
+    transport = httpx.ASGITransport(app=mock_llm.app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.post(
+            "/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "blocking lookup docs.example.com with super large result",
+                    }
+                ],
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {"name": mock_llm.BLOCKING_TOOL_NAME},
+                    }
+                ],
+            },
+        )
+
+    assert response.status_code == 200
+    tool_call = response.json()["choices"][0]["message"]["tool_calls"][0]
+    arguments = json.loads(tool_call["function"]["arguments"])
+    assert arguments == {"query": "super-large-docs.example.com"}
+
+
 @pytest.mark.anyio
 async def test_mock_llm_stream_helpers_cover_text_and_tool_chunks() -> None:
     # Verify the mock LLM stream helpers produce the expected chunk structure for

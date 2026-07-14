@@ -4,12 +4,22 @@ import uuid
 import time
 import json
 import asyncio
+from pathlib import Path
+import re
 
 app = FastAPI()
 
 TOOL_TRIGGER = "lookup docs.example.com"
 TOOL_CALL_ID = "call_knowledge_search_1"
 TOOL_NAME = "knowledge_search"
+DELEGATE_TASK_TRIGGER = "delegate onboarding task"
+DELEGATE_TASK_CALL_ID = "call_delegate_task_1"
+DELEGATE_TASK_NAME = "delegate_task"
+CREATE_ARTIFACT_CALL_ID = "call_create_artifact_1"
+CREATE_ARTIFACT_NAME = "create_artifact"
+READ_ARTIFACT_CALL_ID = "call_read_artifact_1"
+READ_ARTIFACT_NAME = "read_artifact"
+SCENARIO_DIR = Path(__file__).resolve().parent / "fixtures" / "mock_llm_scenarios"
 BLOCKING_TOOL_TRIGGER = "blocking lookup docs.example.com"
 BLOCKING_TOOL_CALL_ID = "call_blocking_lookup_1"
 BLOCKING_TOOL_NAME = "mcp_durable_slow_blocking_lookup"
@@ -48,6 +58,21 @@ CONTROL_STATE = {
 }
 
 
+def load_mock_scenarios():
+    scenarios = []
+    if not SCENARIO_DIR.exists():
+        return scenarios
+    for path in sorted(SCENARIO_DIR.glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for rule in data.get("rules", []):
+            rule["_source"] = path.name
+            scenarios.append(rule)
+    return scenarios
+
+
+MOCK_SCENARIO_RULES = load_mock_scenarios()
+
+
 def reset_control_state():
     CONTROL_STATE.update(
         {
@@ -75,8 +100,126 @@ def last_message_text(messages):
     return content if isinstance(content, str) else ""
 
 
+def system_message_text(messages):
+    return "\n".join(
+        message.get("content", "")
+        for message in messages
+        if message.get("role") == "system" and isinstance(message.get("content"), str)
+    )
+
+
+def available_tool_names(tools):
+    return {
+        tool.get("function", {}).get("name")
+        for tool in tools
+        if isinstance(tool, dict)
+    }
+
+
 def should_emit_tool_call(messages, tools):
     return bool(tools) and TOOL_TRIGGER in last_message_text(messages).lower()
+
+
+def collect_scenario_vars(rule, messages):
+    text = last_message_text(messages)
+    values = {"artifact_uri": artifact_uri_from_text(text)}
+    for capture in rule.get("captures", []):
+        match = re.search(capture["pattern"], text, re.IGNORECASE)
+        if match:
+            values[capture["name"]] = match.group(1)
+    return values
+
+
+def render_scenario_value(value, variables):
+    if isinstance(value, str):
+        rendered = value
+        for key, replacement in variables.items():
+            rendered = rendered.replace(f"{{{{{key}}}}}", replacement)
+        return rendered
+    if isinstance(value, list):
+        return [render_scenario_value(item, variables) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: render_scenario_value(item, variables)
+            for key, item in value.items()
+        }
+    return value
+
+
+def scenario_response_for(messages, tools):
+    system_text = system_message_text(messages).lower()
+    last_text = last_message_text(messages).lower()
+    tool_names = available_tool_names(tools)
+    last = last_message(messages)
+    for rule in MOCK_SCENARIO_RULES:
+        expected_tool_call_id = rule.get("tool_call_id")
+        if expected_tool_call_id:
+            if last.get("role") != "tool" or last.get("tool_call_id") != expected_tool_call_id:
+                continue
+        elif last.get("role") == "tool":
+            continue
+
+        system_contains = rule.get("system_contains")
+        if system_contains and system_contains.lower() not in system_text:
+            continue
+        last_contains = rule.get("last_message_contains")
+        if last_contains and last_contains.lower() not in last_text:
+            continue
+        tool_name = rule.get("tool_name")
+        if tool_name and tool_name not in tool_names:
+            continue
+
+        response = dict(rule["response"])
+        variables = collect_scenario_vars(rule, messages)
+        response["arguments"] = render_scenario_value(
+            response.get("arguments", {}),
+            variables,
+        )
+        return response
+    return None
+
+
+def should_emit_delegate_task_call(messages, tools):
+    tool_names = {
+        tool.get("function", {}).get("name")
+        for tool in tools
+        if isinstance(tool, dict)
+    }
+    return (
+        DELEGATE_TASK_NAME in tool_names
+        and DELEGATE_TASK_TRIGGER in last_message_text(messages).lower()
+    )
+
+
+def should_emit_delegated_artifact_call(messages, tools):
+    tool_names = {
+        tool.get("function", {}).get("name")
+        for tool in tools
+        if isinstance(tool, dict)
+    }
+    return (
+        CREATE_ARTIFACT_NAME in tool_names
+        and "you have been assigned a talon task" in last_message_text(messages).lower()
+    )
+
+
+def artifact_uri_from_text(text):
+    match = re.search(r"artifact://[^\s'\")]+", text)
+    return match.group(0).strip(".,;)") if match else ""
+
+
+def should_emit_read_artifact_call(messages, tools):
+    tool_names = {
+        tool.get("function", {}).get("name")
+        for tool in tools
+        if isinstance(tool, dict)
+    }
+    text = last_message_text(messages).lower()
+    return (
+        READ_ARTIFACT_NAME in tool_names
+        and ("read this" in text or "read artifact" in text)
+        and artifact_uri_from_text(text)
+    )
 
 
 def should_emit_blocking_tool_call(messages, tools):
@@ -96,10 +239,20 @@ def is_tool_followup(messages):
     return message.get("role") == "tool" and message.get("tool_call_id") in {
         TOOL_CALL_ID,
         BLOCKING_TOOL_CALL_ID,
+        DELEGATE_TASK_CALL_ID,
+        CREATE_ARTIFACT_CALL_ID,
+        READ_ARTIFACT_CALL_ID,
     }
 
 
-def tool_call_response_payload(model, *, tool_call_id, tool_name, arguments):
+def tool_call_response_payload(
+    model,
+    *,
+    tool_call_id,
+    tool_name,
+    arguments,
+    content=TOOL_PREFACE,
+):
     return {
         "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
         "object": "chat.completion",
@@ -110,7 +263,7 @@ def tool_call_response_payload(model, *, tool_call_id, tool_name, arguments):
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": TOOL_PREFACE,
+                    "content": content,
                     "tool_calls": [
                         {
                             "id": tool_call_id,
@@ -133,6 +286,16 @@ def tool_call_response_payload(model, *, tool_call_id, tool_name, arguments):
     }
 
 
+def scenario_tool_call_payload(model, response):
+    return tool_call_response_payload(
+        model,
+        tool_call_id=response["tool_call_id"],
+        tool_name=response["tool_name"],
+        arguments=response.get("arguments", {}),
+        content=response.get("content", TOOL_PREFACE),
+    )
+
+
 def build_tool_call_response(model):
     return tool_call_response_payload(
         model,
@@ -142,17 +305,67 @@ def build_tool_call_response(model):
     )
 
 
-def build_blocking_tool_call_response(model):
+def build_blocking_tool_call_response(model, query="docs.example.com"):
     return tool_call_response_payload(
         model,
         tool_call_id=BLOCKING_TOOL_CALL_ID,
         tool_name=BLOCKING_TOOL_NAME,
-        arguments={"query": "docs.example.com"},
+        arguments={"query": query},
+    )
+
+
+def delegate_task_arguments(text):
+    return {
+        "title": "Prepare customer onboarding checklist",
+        "description": "Create a reviewed onboarding checklist.",
+        "type": "OPERATIONS",
+        "connection": "worker",
+    }
+
+
+def build_delegate_task_call_response(model, messages):
+    return tool_call_response_payload(
+        model,
+        tool_call_id=DELEGATE_TASK_CALL_ID,
+        tool_name=DELEGATE_TASK_NAME,
+        arguments=delegate_task_arguments(last_message_text(messages)),
+    )
+
+
+def artifact_arguments_for_task(text):
+    return {
+        "title": "Onboarding checklist artifact",
+        "content": "# Onboarding checklist\n\n- Confirm kickoff owner\n- Prepare success plan",
+        "media_type": "text/markdown",
+        "metadata": {"source": "delegated-worker"},
+    }
+
+
+def build_create_artifact_call_response(model, messages):
+    return tool_call_response_payload(
+        model,
+        tool_call_id=CREATE_ARTIFACT_CALL_ID,
+        tool_name=CREATE_ARTIFACT_NAME,
+        arguments=artifact_arguments_for_task(last_message_text(messages)),
+    )
+
+
+def build_read_artifact_call_response(model, artifact_uri):
+    return tool_call_response_payload(
+        model,
+        tool_call_id=READ_ARTIFACT_CALL_ID,
+        tool_name=READ_ARTIFACT_NAME,
+        arguments={"artifact_uri": artifact_uri},
     )
 
 
 async def stream_tool_call_response(
-    model, *, tool_call_id=TOOL_CALL_ID, tool_name=TOOL_NAME, arguments=None
+    model,
+    *,
+    tool_call_id=TOOL_CALL_ID,
+    tool_name=TOOL_NAME,
+    arguments=None,
+    content=TOOL_PREFACE,
 ):
     arguments = arguments or {"query": "docs.example.com"}
     preface_chunk = {
@@ -163,7 +376,7 @@ async def stream_tool_call_response(
         "choices": [
             {
                 "index": 0,
-                "delta": {"content": TOOL_PREFACE},
+                "delta": {"content": content},
                 "finish_reason": None,
             }
         ],
@@ -220,6 +433,22 @@ async def stream_tool_call_response(
     }
     yield f"data: {json.dumps(final_chunk)}\n\n"
     yield "data: [DONE]\n\n"
+
+
+async def stream_scenario_response(model, response):
+    if response.get("type") == "tool_call":
+        async for chunk in stream_tool_call_response(
+            model,
+            tool_call_id=response["tool_call_id"],
+            tool_name=response["tool_name"],
+            arguments=response.get("arguments", {}),
+            content=response.get("content", TOOL_PREFACE),
+        ):
+            yield chunk
+        return
+
+    async for chunk in stream_text_response(model, response.get("content", "")):
+        yield chunk
 
 
 async def stream_text_response(model, reply):
@@ -311,34 +540,53 @@ async def chat_completions(request: Request):
             ],
         }
     )
-    last_message = last_message_text(messages)
+    last_text = last_message_text(messages)
     model = data.get("model", "minimax-m2.7")
+    scenario_response = scenario_response_for(messages, tools)
 
     # Generate a deterministic reply based on input or just static
-    if should_emit_blocking_tool_call(messages, tools):
+    if scenario_response is not None:
+        reply = None
+    elif should_emit_blocking_tool_call(messages, tools):
+        reply = None
+    elif should_emit_delegate_task_call(messages, tools):
+        reply = None
+    elif should_emit_delegated_artifact_call(messages, tools):
+        reply = None
+    elif should_emit_read_artifact_call(messages, tools):
         reply = None
     elif should_emit_tool_call(messages, tools):
         reply = None
     elif is_tool_followup(messages):
-        if any(
-            message.get("tool_call_id") == BLOCKING_TOOL_CALL_ID for message in messages
-        ):
+        tool_call_id = last_message(messages).get("tool_call_id")
+        if tool_call_id == DELEGATE_TASK_CALL_ID:
+            reply = "I delegated the onboarding task."
+        elif tool_call_id == CREATE_ARTIFACT_CALL_ID:
+            reply = "I created the onboarding checklist artifact."
+        elif tool_call_id == READ_ARTIFACT_CALL_ID:
+            reply = "I read the delegated artifact."
+        elif tool_call_id == BLOCKING_TOOL_CALL_ID:
             reply = "I checked blocking_lookup for docs.example.com."
         else:
             reply = "I checked knowledge_search for docs.example.com."
-    elif "square root of 144" in last_message.lower():
+    elif "square root of 144" in last_text.lower():
         reply = "The square root of 144 is 12."
-    elif "hello" in last_message.lower():
+    elif "hello" in last_text.lower():
         reply = "Hello! I am a mock LLM. How can I assist you today?"
     else:
-        reply = "I received your message: " + last_message
+        reply = "I received your message: " + last_text
 
     if data.get("stream", False):
         async def stream_generator():
+            if scenario_response is not None:
+                async for chunk in stream_scenario_response(model, scenario_response):
+                    yield chunk
+                return
+
             if should_emit_blocking_tool_call(messages, tools):
                 query = (
                     "super-large-docs.example.com"
-                    if "super large" in last_message.lower()
+                    if "super large" in last_text.lower()
                     else "docs.example.com"
                 )
                 async for chunk in stream_tool_call_response(
@@ -346,6 +594,38 @@ async def chat_completions(request: Request):
                     tool_call_id=BLOCKING_TOOL_CALL_ID,
                     tool_name=BLOCKING_TOOL_NAME,
                     arguments={"query": query},
+                ):
+                    yield chunk
+                return
+
+            if should_emit_delegate_task_call(messages, tools):
+                async for chunk in stream_tool_call_response(
+                    model,
+                    tool_call_id=DELEGATE_TASK_CALL_ID,
+                    tool_name=DELEGATE_TASK_NAME,
+                    arguments=delegate_task_arguments(last_message_text(messages)),
+                ):
+                    yield chunk
+                return
+
+            if should_emit_delegated_artifact_call(messages, tools):
+                async for chunk in stream_tool_call_response(
+                    model,
+                    tool_call_id=CREATE_ARTIFACT_CALL_ID,
+                    tool_name=CREATE_ARTIFACT_NAME,
+                    arguments=artifact_arguments_for_task(last_message_text(messages)),
+                ):
+                    yield chunk
+                return
+
+            if should_emit_read_artifact_call(messages, tools):
+                async for chunk in stream_tool_call_response(
+                    model,
+                    tool_call_id=READ_ARTIFACT_CALL_ID,
+                    tool_name=READ_ARTIFACT_NAME,
+                    arguments={
+                        "artifact_uri": artifact_uri_from_text(last_text),
+                    },
                 ):
                     yield chunk
                 return
@@ -360,8 +640,54 @@ async def chat_completions(request: Request):
             
         return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
+    if scenario_response is not None:
+        if scenario_response.get("type") == "tool_call":
+            return JSONResponse(content=scenario_tool_call_payload(model, scenario_response))
+        response_json = {
+            "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": model,
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": scenario_response.get("content", ""),
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 10,
+                "reasoning_tokens": 6,
+                "total_tokens": 26,
+            },
+        }
+        return JSONResponse(content=response_json)
+
     if should_emit_blocking_tool_call(messages, tools):
-        return JSONResponse(content=build_blocking_tool_call_response(model))
+        query = (
+            "super-large-docs.example.com"
+            if "super large" in last_text.lower()
+            else "docs.example.com"
+        )
+        return JSONResponse(content=build_blocking_tool_call_response(model, query))
+
+    if should_emit_delegate_task_call(messages, tools):
+        return JSONResponse(content=build_delegate_task_call_response(model, messages))
+
+    if should_emit_delegated_artifact_call(messages, tools):
+        return JSONResponse(content=build_create_artifact_call_response(model, messages))
+
+    if should_emit_read_artifact_call(messages, tools):
+        return JSONResponse(
+            content=build_read_artifact_call_response(
+                model,
+                artifact_uri_from_text(last_text),
+            )
+        )
 
     if should_emit_tool_call(messages, tools):
         return JSONResponse(content=build_tool_call_response(model))
