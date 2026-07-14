@@ -1,0 +1,4 @@
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: default

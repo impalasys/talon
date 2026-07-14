@@ -323,6 +323,7 @@ async fn run() -> Result<()> {
         Shutdown,
     }
 
+    let mut fanout_completed = false;
     let exit = tokio::select! {
         result = &mut rpc_task => Exit::Rpc(match result {
             Ok(inner) => inner,
@@ -341,10 +342,15 @@ async fn run() -> Result<()> {
     shutdown.cancel();
     let result = match exit {
         Exit::Rpc(result) => result,
-        Exit::Fanout(result) => result,
+        Exit::Fanout(result) => {
+            fanout_completed = true;
+            result
+        }
         Exit::Shutdown => join_with_grace(&mut rpc_task).await,
     };
-    let _ = join_with_grace(&mut fanout_task).await;
+    if !fanout_completed {
+        let _ = join_with_grace(&mut fanout_task).await;
+    }
     join_unit_with_grace(&mut heartbeat_task).await;
     for task in &mut subscription_tasks {
         let _ = join_with_grace(task).await;

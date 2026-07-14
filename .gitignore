@@ -1,4 +1,5 @@
 .env
+.talon/
 .tools/
 .pytest_cache/
 __pycache__/

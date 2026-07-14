@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const talonRoot = path.resolve(__dirname, "..", "..");
 const docsRoot = path.resolve(talonRoot, "docs");
-const generatedRoot = path.resolve(docsRoot, "reference", "generated");
+const generatedRoot = path.resolve(docsRoot, "05-reference", "generated");
 const protoRoot = path.resolve(talonRoot, "proto");
 
 const apiProtos = [
@@ -32,12 +32,14 @@ const resourceProtos = [
   "resources/namespaces.proto",
   "resources/channels.proto",
   "resources/connectors.proto",
+  "resources/files.proto",
   "resources/schedules.proto",
   "resources/workflows.proto",
   "resources/deployments.proto",
   "resources/sandboxes.proto",
   "resources/sessions.proto",
   "resources/skills.proto",
+  "resources/tasks.proto",
   "resources/usage.proto",
   "resources/workers.proto",
   "resources/resource.proto",
@@ -91,7 +93,7 @@ await generateSchemaReference({
   title: "Resource Schemas",
   slug: "resource-schemas",
   intro:
-    "This page summarizes the control-plane resource messages that drive Talon agents, deployments, sandbox orchestration, MCP servers, schedules, workflows, and knowledge resources.",
+    "This page summarizes the control-plane resource messages that drive Talon agents, files, deployments, sandbox orchestration, MCP servers, schedules, workflows, and knowledge resources.",
 });
 
 async function generateGatewayReference() {
