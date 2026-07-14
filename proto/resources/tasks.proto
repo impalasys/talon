@@ -36,6 +36,13 @@ message TaskExecutionRef {
   string run_id = 5;
 }
 
+message TaskOutput {
+  // Caller-defined slot name, such as "final" or "critic_report".
+  string name = 1;
+  // Artifact/object ref selected as the current value for this slot.
+  FileObjectRef artifact = 2;
+}
+
 // Lifecycle phase for a Task.
 enum TaskPhase {
   // No phase has been set. Writers should avoid persisting this outside
@@ -72,4 +79,6 @@ message TaskStatus {
   int64 expires_at = 9;
   // Concrete runtime execution once a delegate session or run is known.
   TaskExecutionRef execution_ref = 10;
+  // Named outputs explicitly attached by the delegate or an authorized worker.
+  repeated TaskOutput outputs = 11;
 }

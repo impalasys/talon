@@ -106,6 +106,8 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
                     "name": { "type": "string", "description": "Task resource name." },
                     "phase": { "type": "string", "description": "Optional phase: QUEUED, RUNNING, BLOCKED, NEEDS_REVIEW, SUCCEEDED, FAILED, CANCELED, or EXPIRED." },
                     "progress_summary": { "type": "string", "description": "Short current state or result summary." },
+                    "output_name": { "type": "string", "description": "Optional named output slot to set, such as final or critic_report." },
+                    "output_artifact_uri": { "type": "string", "description": "Artifact URI to store in output_name." },
                     "execution_namespace": { "type": "string", "description": "Optional execution namespace." },
                     "execution_name": { "type": "string", "description": "Optional execution agent resource name." },
                     "execution_session_id": { "type": "string", "description": "Optional child session id." },
@@ -205,6 +207,8 @@ pub(super) async fn execute(
             super::require_capability(spec, "tasks", "update")?;
             let namespace = task_namespace(args, current_namespace)?;
             let name = super::req_str(args, "name")?;
+            let output =
+                super::task_output_from_args(cp, current_agent, current_session, args).await?;
             let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
             let resource = store
                 .patch_status_with(namespace, "Task", name, None, |_, status| {
@@ -212,7 +216,7 @@ pub(super) async fn execute(
                         Some(resources_proto::resource_status::Kind::Task(status)) => status,
                         _ => resources_proto::TaskStatus::default(),
                     };
-                    super::update_task_status(&mut task_status, args)?;
+                    super::update_task_status(&mut task_status, args, output.clone())?;
                     status.kind = Some(resources_proto::resource_status::Kind::Task(task_status));
                     Ok(())
                 })

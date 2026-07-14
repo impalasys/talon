@@ -1171,6 +1171,13 @@ pub struct TaskExecutionRef {
     pub run_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TaskOutput {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub artifact: ::core::option::Option<FileObjectRef>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TaskStatus {
     #[prost(uint64, tag = "1")]
     pub observed_generation: u64,
@@ -1193,6 +1200,8 @@ pub struct TaskStatus {
     /// Concrete runtime execution once a delegate session or run is known.
     #[prost(message, optional, tag = "10")]
     pub execution_ref: ::core::option::Option<TaskExecutionRef>,
+    #[prost(message, repeated, tag = "11")]
+    pub outputs: ::prost::alloc::vec::Vec<TaskOutput>,
 }
 /// Lifecycle phase for a Task.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, scheduling, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{keys, scheduling, ControlPlane};
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 // Task resource label: marks a Task as created through agent delegation.
@@ -103,6 +103,7 @@ pub async fn create_delegated_task(
                 session_id: String::new(),
                 run_id: String::new(),
             }),
+            outputs: Vec::new(),
         },
         task_resource_labels(&req),
     );
@@ -191,28 +192,18 @@ pub async fn complete_delegated_task_from_session(
     }
 
     let now = chrono::Utc::now().timestamp_micros();
-    let (result_artifacts, progress_summary) = match completion_status {
+    let progress_summary = match completion_status {
         DelegatedSessionCompletion::Completed => {
-            let result_artifacts = grant_child_artifacts_to_owner(cp, session).await?;
-            let mut progress_summary =
-                latest_assistant_text(cp, &session.ns, &session.agent, &session.id)
-                    .await?
-                    .map(|text| text_preview(&text, 1200))
-                    .unwrap_or_else(|| {
-                        "Delegated execution completed; no assistant text was produced.".to_string()
-                    });
-            let granted_artifacts = result_artifacts.len();
-            if granted_artifacts > 0 {
-                progress_summary = format!(
-                    "{progress_summary}\n\nGranted owner access to {granted_artifacts} artifact(s)."
-                );
-            }
-            (result_artifacts, progress_summary)
+            latest_assistant_text(cp, &session.ns, &session.agent, &session.id)
+                .await?
+                .map(|text| text_preview(&text, 1200))
+                .unwrap_or_else(|| {
+                    "Delegated execution completed; no assistant text was produced.".to_string()
+                })
         }
-        DelegatedSessionCompletion::Failed => (
-            Vec::new(),
-            "Delegated session failed before completing the Task.".to_string(),
-        ),
+        DelegatedSessionCompletion::Failed => {
+            "Delegated session failed before completing the Task.".to_string()
+        }
     };
 
     let mut skipped_stale = false;
@@ -246,7 +237,6 @@ pub async fn complete_delegated_task_from_session(
             match completion_status {
                 DelegatedSessionCompletion::Completed => {
                     status.phase = resources_proto::TaskPhase::NeedsReview as i32;
-                    status.result_artifacts = result_artifacts.clone();
                     status.progress_summary = progress_summary.clone();
                     set_condition(
                         status,
@@ -558,98 +548,6 @@ async fn latest_assistant_text(
     Ok(None)
 }
 
-async fn grant_child_artifacts_to_owner(
-    cp: &ControlPlane,
-    session: &data_proto::Session,
-) -> Result<Vec<resources_proto::FileObjectRef>> {
-    let Some(owner_agent) = session.labels.get(LABEL_OWNER_NAME) else {
-        return Ok(Vec::new());
-    };
-    let owner_namespace = session
-        .labels
-        .get(LABEL_OWNER_NAMESPACE)
-        .map(String::as_str)
-        .unwrap_or(session.ns.as_str());
-    let Some(owner_session_id) = session.labels.get(LABEL_OWNER_SESSION_ID) else {
-        return Ok(Vec::new());
-    };
-    if owner_namespace.trim().is_empty()
-        || owner_agent.trim().is_empty()
-        || owner_session_id.trim().is_empty()
-    {
-        return Ok(Vec::new());
-    }
-
-    let entries = cp
-        .kv
-        .list_entries(&keys::artifact_prefix(
-            &session.ns,
-            &session.agent,
-            &session.id,
-        ))
-        .await?;
-    let mut result_artifacts = Vec::new();
-    let now = chrono::Utc::now().timestamp_micros();
-    for (_, bytes) in entries {
-        let artifact = data_proto::Artifact::decode(bytes.as_slice())?;
-        let Some(object_ref) = artifact.object_ref.as_ref() else {
-            continue;
-        };
-        cp.kv
-            .set_msg(
-                &keys::artifact_access(
-                    &session.ns,
-                    &session.agent,
-                    &session.id,
-                    &artifact.id,
-                    owner_agent,
-                    owner_session_id,
-                ),
-                &data_proto::ArtifactAccess {
-                    target_agent: owner_agent.clone(),
-                    target_session_id: owner_session_id.clone(),
-                    operations: vec![
-                        "read".to_string(),
-                        "metadata".to_string(),
-                        "promote".to_string(),
-                    ],
-                    expires_at: 0,
-                    granted_by_agent: session.agent.clone(),
-                    granted_by_session_id: session.id.clone(),
-                    created_at: now,
-                },
-            )
-            .await?;
-        result_artifacts.push(file_object_ref_for_artifact(session, &artifact, object_ref));
-    }
-    Ok(result_artifacts)
-}
-
-fn file_object_ref_for_artifact(
-    session: &data_proto::Session,
-    artifact: &data_proto::Artifact,
-    object_ref: &data_proto::ObjectRef,
-) -> resources_proto::FileObjectRef {
-    let artifact_uri = format!(
-        "artifact://{}/{}/{}/{}",
-        session.ns, session.agent, session.id, artifact.id
-    );
-    let mut metadata = object_ref.metadata.clone();
-    metadata.insert("artifact_uri".to_string(), artifact_uri);
-    metadata.insert("artifact_id".to_string(), artifact.id.clone());
-    metadata.insert("session_id".to_string(), session.id.clone());
-    metadata.insert("agent".to_string(), session.agent.clone());
-    metadata.insert("title".to_string(), artifact.title.clone());
-    resources_proto::FileObjectRef {
-        key: object_ref.key.clone(),
-        media_type: object_ref.media_type.clone(),
-        size_bytes: object_ref.size_bytes,
-        sha256: object_ref.sha256.clone(),
-        filename: object_ref.filename.clone(),
-        metadata,
-    }
-}
-
 async fn wake_owner_for_task_review(
     cp: &ControlPlane,
     store: &ResourceStore,
@@ -879,8 +777,9 @@ fn task_review_message(task: &resources_proto::Task) -> String {
         .as_ref()
         .map(|status| {
             status
-                .result_artifacts
+                .outputs
                 .iter()
+                .filter_map(|output| output.artifact.as_ref())
                 .filter_map(|artifact| artifact.metadata.get("artifact_uri"))
                 .filter(|uri| !uri.trim().is_empty())
                 .cloned()
