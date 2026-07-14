@@ -169,7 +169,7 @@ async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> a
     let mut stack = vec![parent];
     while let Some(parent) = stack.pop() {
         let list = parent.list(None);
-        let children = kv.list_keys(&list, Order::Asc).await?;
+        let children = kv.list_keys(&list, Order::Asc.into()).await?;
         for child in children {
             stack.push(child.as_parent());
             kv.delete(&child).await?;
@@ -189,7 +189,7 @@ async fn collect_session_tool_result_object_keys(
     for key in kv
         .list_keys(
             &keys::session_message_prefix(ns, agent, session_id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await?
     {
@@ -223,14 +223,14 @@ async fn collect_session_tool_result_object_keys(
     for submission_key in kv
         .list_keys(
             &keys::session_submission_prefix(ns, agent, session_id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await?
     {
         for (_, bytes) in kv
             .list_entries(
                 &keys::session_journal_entry_prefix(ns, agent, session_id, &submission_key.name),
-                Order::Asc,
+                Order::Asc.into(),
             )
             .await?
         {
@@ -387,9 +387,12 @@ async fn find_request_permission_message_id(
     request_id: &str,
 ) -> std::result::Result<Option<String>, tonic::Status> {
     let prefix = keys::session_message_prefix(ns, agent, session_id);
-    let message_keys = kv.list_keys(&prefix, Order::Asc).await.map_err(|err| {
-        tonic::Status::internal(format!("Failed to list session messages: {err}"))
-    })?;
+    let message_keys = kv
+        .list_keys(&prefix, Order::Asc.into())
+        .await
+        .map_err(|err| {
+            tonic::Status::internal(format!("Failed to list session messages: {err}"))
+        })?;
     for key in message_keys {
         let Some(bytes) = kv.get(&key).await.map_err(|err| {
             tonic::Status::internal(format!("Failed to fetch session message: {err}"))
@@ -726,7 +729,7 @@ impl GrpcGatewayHandler {
                 let keys = self
                     .gateway
                     .kv
-                    .list_keys(&msg_prefix, Order::Asc)
+                    .list_keys(&msg_prefix, Order::Asc.into())
                     .await
                     .map_err(|e| {
                         tracing::error!(
@@ -961,7 +964,7 @@ impl GrpcGatewayHandler {
         let keys = self
             .gateway
             .kv
-            .list_keys(&session_prefix, Order::Asc)
+            .list_keys(&session_prefix, Order::Asc.into())
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to list sessions: {}", e)))?;
 
@@ -2839,7 +2842,7 @@ mod tests {
         assert_eq!(err.code(), tonic::Code::Internal);
 
         let session_keys = kv
-            .list_keys(&keys::session_prefix(ns, "assistant"), Order::Asc)
+            .list_keys(&keys::session_prefix(ns, "assistant"), Order::Asc.into())
             .await
             .unwrap();
         assert!(session_keys.is_empty());

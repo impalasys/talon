@@ -308,7 +308,7 @@ impl GrpcGatewayHandler {
         let keys = self
             .gateway
             .kv
-            .list_keys(&edge_prefix, Order::Asc)
+            .list_keys(&edge_prefix, Order::Asc.into())
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to list namespace references: {}", e))

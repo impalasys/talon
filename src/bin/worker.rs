@@ -1794,7 +1794,7 @@ mod tests {
             .unwrap());
 
         let keys = kv
-            .list_keys(&list, talon::control::Order::Asc)
+            .list_keys(&list, talon::control::Order::Asc.into())
             .await
             .unwrap();
         assert_eq!(keys, vec![a.clone(), b.clone(), new.clone()]);

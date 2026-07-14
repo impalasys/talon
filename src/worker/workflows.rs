@@ -1396,7 +1396,7 @@ pub async fn load_step_runs(
     for (_, bytes) in kv
         .list_entries(
             &keys::workflow_step_run_prefix(&run.ns, &run.workflow, &run.id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await?
     {
@@ -2610,7 +2610,7 @@ mod tests {
         let events = kv
             .list_entries(
                 &keys::workflow_run_event_prefix("default", "dispatch-only", &run.id),
-                Order::Asc,
+                Order::Asc.into(),
             )
             .await
             .unwrap();
@@ -2678,7 +2678,7 @@ mod tests {
     ) -> Vec<String> {
         kv.list_entries(
             &keys::workflow_run_event_prefix(ns, workflow, run_id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await
         .expect("events should list")

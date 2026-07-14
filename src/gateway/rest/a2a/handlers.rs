@@ -435,7 +435,7 @@ pub async fn list_tasks(
         Err(response) => return response,
     };
     let prefix = keys::session_prefix(&route.ns, &route.agent);
-    let session_keys = match gateway.kv.list_keys(&prefix, Order::Asc).await {
+    let session_keys = match gateway.kv.list_keys(&prefix, Order::Asc.into()).await {
         Ok(keys) => keys,
         Err(err) => {
             tracing::error!(%err, "Failed to list A2A sessions");

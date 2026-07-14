@@ -64,9 +64,12 @@ async fn list_namespace_knowledge(
         }
 
         let prefix = keys::knowledge_prefix(&candidate_ns);
-        let keys = kv.list_keys(&prefix, Order::Asc).await.map_err(|e| {
-            tonic::Status::internal(format!("Failed to list knowledge artifacts: {}", e))
-        })?;
+        let keys = kv
+            .list_keys(&prefix, Order::Asc.into())
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to list knowledge artifacts: {}", e))
+            })?;
 
         for key in keys {
             let path = keys::direct_child_name(&prefix, &key).unwrap_or_else(|| key.name.clone());

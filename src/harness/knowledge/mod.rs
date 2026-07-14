@@ -263,7 +263,7 @@ impl KvKnowledgeBook {
         let path_lower = path.to_lowercase();
         let matches = self
             .kv
-            .list_keys(&prefix, Order::Asc)
+            .list_keys(&prefix, Order::Asc.into())
             .await?
             .into_iter()
             .filter(|candidate| {
@@ -467,7 +467,7 @@ impl KnowledgeBook for KvKnowledgeBook {
 
         for (depth, candidate_ns) in crate::control::ns::ancestry(ns).into_iter().enumerate() {
             let prefix = crate::control::keys::knowledge_prefix(&candidate_ns);
-            let keys = self.kv.list_keys(&prefix, Order::Asc).await?;
+            let keys = self.kv.list_keys(&prefix, Order::Asc.into()).await?;
 
             for key in keys {
                 if let Some(bytes) = self.kv.get(&key).await.unwrap_or(None) {
@@ -556,7 +556,7 @@ impl KnowledgeBook for KvKnowledgeBook {
 
         for candidate_ns in namespaces {
             let prefix = crate::control::keys::knowledge_prefix(&candidate_ns);
-            let keys = self.kv.list_keys(&prefix, Order::Asc).await?;
+            let keys = self.kv.list_keys(&prefix, Order::Asc.into()).await?;
 
             for key in keys {
                 let artifact_path =

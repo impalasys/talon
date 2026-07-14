@@ -590,7 +590,7 @@ async fn grant_child_artifacts_to_owner(
         .kv
         .list_entries(
             &keys::artifact_prefix(&session.ns, &session.agent, &session.id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await?;
     let mut result_artifacts = Vec::new();

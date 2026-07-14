@@ -576,7 +576,7 @@ pub async fn execute_tool_for_session(
             let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
             let entries = cp
                 .kv
-                .list_entries(&keys::schedule_prefix(namespace), Order::Asc)
+                .list_entries(&keys::schedule_prefix(namespace), Order::Asc.into())
                 .await?;
             let mut schedules = Vec::new();
             for (_key, value) in entries {
@@ -2152,7 +2152,10 @@ async fn list_session_goals(
 ) -> Result<Vec<data_proto::Goal>> {
     let mut goals = cp
         .kv
-        .list_entries(&keys::goal_prefix(namespace, agent, session_id), Order::Asc)
+        .list_entries(
+            &keys::goal_prefix(namespace, agent, session_id),
+            Order::Asc.into(),
+        )
         .await?
         .into_iter()
         .filter_map(|(_, value)| data_proto::Goal::decode(value.as_slice()).ok())
@@ -3026,7 +3029,7 @@ mod tests {
         let entries = kv
             .list_entries(
                 &keys::session_message_prefix(ns, agent, session_id),
-                Order::Asc,
+                Order::Asc.into(),
             )
             .await
             .unwrap();
@@ -4033,7 +4036,7 @@ mod tests {
                     "support-agent",
                     child_session_id,
                 ),
-                Order::Asc,
+                Order::Asc.into(),
             )
             .await
             .unwrap();

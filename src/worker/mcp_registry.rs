@@ -179,7 +179,7 @@ mod tests {
         async fn list_keys(
             &self,
             list: &ResourceList,
-            _order: crate::control::Order,
+            _options: crate::control::ListOptions<'_>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
