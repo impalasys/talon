@@ -15,7 +15,7 @@ use uuid::Uuid;
 use crate::control::{
     events,
     keys::{self, ResourceKey},
-    topics, ProtoKeyValueStoreExt,
+    topics, Order, ProtoKeyValueStoreExt,
 };
 use crate::gateway::server::Gateway;
 
@@ -300,13 +300,12 @@ pub(super) async fn list_a2a_session_task_ids(
     session_id: &str,
     session: &crate::gateway::rpc::data_proto::Session,
 ) -> Result<Vec<String>, Response> {
-    let mut message_keys = gateway
+    let message_keys = gateway
         .kv
-        .list_keys(&keys::session_message_prefix(
-            &route.ns,
-            &route.agent,
-            session_id,
-        ))
+        .list_keys(
+            &keys::session_message_prefix(&route.ns, &route.agent, session_id),
+            Order::Asc,
+        )
         .await
         .map_err(|err| {
             tracing::error!(%err, "Failed to list A2A task messages");
@@ -315,7 +314,6 @@ pub(super) async fn list_a2a_session_task_ids(
                 "failed to load task messages",
             )
         })?;
-    message_keys.sort();
 
     let mut task_ids = Vec::new();
     for key in message_keys {
@@ -404,10 +402,14 @@ pub(super) async fn find_a2a_task_session(
     }
 
     let prefix = keys::session_prefix(&route.ns, &route.agent);
-    let session_keys = gateway.kv.list_keys(&prefix).await.map_err(|err| {
-        tracing::error!(%err, "Failed to list A2A sessions");
-        a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to load task")
-    })?;
+    let session_keys = gateway
+        .kv
+        .list_keys(&prefix, Order::Asc)
+        .await
+        .map_err(|err| {
+            tracing::error!(%err, "Failed to list A2A sessions");
+            a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to load task")
+        })?;
 
     let mut fallback = None;
     for key in session_keys {
@@ -464,11 +466,10 @@ async fn session_contains_a2a_task_message(
 ) -> Result<bool, Response> {
     let message_keys = gateway
         .kv
-        .list_keys(&keys::session_message_prefix(
-            &route.ns,
-            &route.agent,
-            session_id,
-        ))
+        .list_keys(
+            &keys::session_message_prefix(&route.ns, &route.agent, session_id),
+            Order::Asc,
+        )
         .await
         .map_err(|err| {
             tracing::error!(%err, "Failed to list A2A task messages");
@@ -545,13 +546,12 @@ pub(super) async fn load_a2a_task_from_session(
     task_id: &str,
 ) -> Result<A2aTaskJson, Response> {
     let session = &task_ref.session;
-    let mut message_keys = gateway
+    let message_keys = gateway
         .kv
-        .list_keys(&keys::session_message_prefix(
-            &route.ns,
-            &route.agent,
-            &task_ref.session_id,
-        ))
+        .list_keys(
+            &keys::session_message_prefix(&route.ns, &route.agent, &task_ref.session_id),
+            Order::Asc,
+        )
         .await
         .map_err(|err| {
             tracing::error!(%err, "Failed to list A2A task messages");
@@ -560,7 +560,6 @@ pub(super) async fn load_a2a_task_from_session(
                 "failed to load task messages",
             )
         })?;
-    message_keys.sort();
 
     let mut messages = Vec::new();
     for key in message_keys {

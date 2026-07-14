@@ -176,7 +176,11 @@ mod tests {
             Ok(())
         }
 
-        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            list: &ResourceList,
+            _order: crate::control::Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()

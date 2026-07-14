@@ -6,7 +6,7 @@ use crate::control::cas::{session_object_key_prefix, SessionCasScope, METADATA_A
 use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
+use crate::control::{events, keys, keys::ResourceParent, KeyValueStore, Order};
 use prost::Message;
 use serde_json::{json, Value};
 use std::collections::HashSet;
@@ -169,7 +169,7 @@ async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> a
     let mut stack = vec![parent];
     while let Some(parent) = stack.pop() {
         let list = parent.list(None);
-        let children = kv.list_keys(&list).await?;
+        let children = kv.list_keys(&list, Order::Asc).await?;
         for child in children {
             stack.push(child.as_parent());
             kv.delete(&child).await?;
@@ -187,7 +187,10 @@ async fn collect_session_tool_result_object_keys(
     let expected_prefix = session_object_key_prefix(&SessionCasScope::new(ns, agent, session_id));
     let mut keys_to_delete = HashSet::new();
     for key in kv
-        .list_keys(&keys::session_message_prefix(ns, agent, session_id))
+        .list_keys(
+            &keys::session_message_prefix(ns, agent, session_id),
+            Order::Asc,
+        )
         .await?
     {
         let message = match kv.get_msg::<data_proto::SessionMessage>(&key).await {
@@ -218,16 +221,17 @@ async fn collect_session_tool_result_object_keys(
     }
 
     for submission_key in kv
-        .list_keys(&keys::session_submission_prefix(ns, agent, session_id))
+        .list_keys(
+            &keys::session_submission_prefix(ns, agent, session_id),
+            Order::Asc,
+        )
         .await?
     {
         for (_, bytes) in kv
-            .list_entries(&keys::session_journal_entry_prefix(
-                ns,
-                agent,
-                session_id,
-                &submission_key.name,
-            ))
+            .list_entries(
+                &keys::session_journal_entry_prefix(ns, agent, session_id, &submission_key.name),
+                Order::Asc,
+            )
             .await?
         {
             let entry = match data_proto::SessionJournalEntry::decode(bytes.as_slice()) {
@@ -383,10 +387,9 @@ async fn find_request_permission_message_id(
     request_id: &str,
 ) -> std::result::Result<Option<String>, tonic::Status> {
     let prefix = keys::session_message_prefix(ns, agent, session_id);
-    let mut message_keys = kv.list_keys(&prefix).await.map_err(|err| {
+    let message_keys = kv.list_keys(&prefix, Order::Asc).await.map_err(|err| {
         tonic::Status::internal(format!("Failed to list session messages: {err}"))
     })?;
-    message_keys.sort();
     for key in message_keys {
         let Some(bytes) = kv.get(&key).await.map_err(|err| {
             tonic::Status::internal(format!("Failed to fetch session message: {err}"))
@@ -720,18 +723,22 @@ impl GrpcGatewayHandler {
                 keys.sort();
                 keys
             } else {
-                let mut keys = self.gateway.kv.list_keys(&msg_prefix).await.map_err(|e| {
-                    tracing::error!(
-                        ns = %req.ns,
-                        agent = %req.agent,
-                        session_id = %req.session_id,
-                        prefix = %msg_prefix,
-                        error = %e,
-                        "failed to list session messages"
-                    );
-                    tonic::Status::internal(format!("Failed to list session messages: {}", e))
-                })?;
-                keys.sort();
+                let keys = self
+                    .gateway
+                    .kv
+                    .list_keys(&msg_prefix, Order::Asc)
+                    .await
+                    .map_err(|e| {
+                        tracing::error!(
+                            ns = %req.ns,
+                            agent = %req.agent,
+                            session_id = %req.session_id,
+                            prefix = %msg_prefix,
+                            error = %e,
+                            "failed to list session messages"
+                        );
+                        tonic::Status::internal(format!("Failed to list session messages: {}", e))
+                    })?;
                 keys
             };
             tracing::info!(
@@ -954,7 +961,7 @@ impl GrpcGatewayHandler {
         let keys = self
             .gateway
             .kv
-            .list_keys(&session_prefix)
+            .list_keys(&session_prefix, Order::Asc)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to list sessions: {}", e)))?;
 
@@ -2832,7 +2839,7 @@ mod tests {
         assert_eq!(err.code(), tonic::Code::Internal);
 
         let session_keys = kv
-            .list_keys(&keys::session_prefix(ns, "assistant"))
+            .list_keys(&keys::session_prefix(ns, "assistant"), Order::Asc)
             .await
             .unwrap();
         assert!(session_keys.is_empty());

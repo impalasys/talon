@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::shared::quoted_identifier;
+use crate::control::Order;
 
 pub(crate) fn create_table_statement(table: &str) -> String {
     let table = quoted_identifier(table);
@@ -63,22 +64,32 @@ pub(crate) fn delete_query(table: &str) -> String {
     )
 }
 
-pub(crate) fn list_keys_query(table: &str, has_kind: bool) -> String {
+fn list_order_sql(order: Order) -> &'static str {
+    if order == Order::Desc {
+        "DESC"
+    } else {
+        "ASC"
+    }
+}
+
+pub(crate) fn list_keys_query(table: &str, has_kind: bool, order: Order) -> String {
     let kind_clause = if has_kind { "AND kind = ?3" } else { "" };
+    let direction = list_order_sql(order);
     format!(
         "SELECT namespace, parent_path, kind, name FROM {}
          WHERE namespace = ?1 AND parent_path = ?2 {kind_clause}
-         ORDER BY kind ASC, name ASC",
+         ORDER BY kind {direction}, name {direction}",
         quoted_identifier(table)
     )
 }
 
-pub(crate) fn list_entries_query(table: &str, has_kind: bool) -> String {
+pub(crate) fn list_entries_query(table: &str, has_kind: bool, order: Order) -> String {
     let kind_clause = if has_kind { "AND kind = ?3" } else { "" };
+    let direction = list_order_sql(order);
     format!(
         "SELECT namespace, parent_path, kind, name, value FROM {}
          WHERE namespace = ?1 AND parent_path = ?2 {kind_clause}
-         ORDER BY kind ASC, name ASC",
+         ORDER BY kind {direction}, name {direction}",
         quoted_identifier(table)
     )
 }

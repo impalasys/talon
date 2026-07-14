@@ -7,7 +7,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::control::resources::ResourceStore;
 use crate::control::security::platform_jwt;
-use crate::control::{keys, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
+use crate::control::{keys, ControlPlane, KeyValueStore, Order, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, external_proto, resources_proto};
 
 const CONNECTOR_INDEX_FIELD_SEP: &str = "\x1f";
@@ -73,7 +73,11 @@ impl ConnectorController {
             )
             .await?;
         // Reconcile Connectors that may have been waiting for this class.
-        for namespace_key in cp.kv.list_keys(&keys::namespace_metadata_prefix()).await? {
+        for namespace_key in cp
+            .kv
+            .list_keys(&keys::namespace_metadata_prefix(), Order::Asc)
+            .await?
+        {
             let namespace = namespace_key.name;
             for connector in self.store.list(&namespace, Some("Connector")).await? {
                 if connector_references_class(&connector, &meta.namespace, &meta.name) {
@@ -342,7 +346,10 @@ pub async fn delete_route_entries_for_uid(
         return Ok(());
     }
     for (key, bytes) in kv
-        .list_entries(&keys::connector_route_prefix(class_namespace, class_name))
+        .list_entries(
+            &keys::connector_route_prefix(class_namespace, class_name),
+            Order::Asc,
+        )
         .await?
     {
         let Ok(route) = data_proto::Route::decode(bytes.as_slice()) else {
@@ -395,7 +402,7 @@ pub async fn delete_connector_class_entries(
 }
 
 async fn delete_entries(kv: &dyn KeyValueStore, prefix: &keys::ResourceList) -> Result<()> {
-    for key in kv.list_keys(prefix).await? {
+    for key in kv.list_keys(prefix, Order::Asc).await? {
         kv.delete(&key).await?;
     }
     Ok(())

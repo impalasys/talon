@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::keys;
+use crate::control::{keys, Order};
 use crate::gateway::rpc::resources_proto;
 use anyhow::Result;
 use prost::Message;
@@ -25,8 +25,7 @@ pub async fn load_effective_skills(
 
     for candidate_ns in crate::control::ns::ancestry(namespace) {
         let prefix = keys::skill_prefix(&candidate_ns);
-        let mut skill_keys = kv.list_keys(&prefix).await?;
-        skill_keys.sort();
+        let skill_keys = kv.list_keys(&prefix, Order::Asc).await?;
 
         for key in skill_keys {
             let name = key.name.clone();

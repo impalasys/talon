@@ -1591,7 +1591,11 @@ mod tests {
             Ok(())
         }
 
-        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            list: &ResourceList,
+            _order: crate::control::Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
@@ -1965,11 +1969,14 @@ mod tests {
         assert_eq!(session.status, "ERROR");
 
         let message_keys = kv
-            .list_keys(&crate::control::keys::session_message_prefix(
-                "conic:test",
-                "assistant",
-                "session-1",
-            ))
+            .list_keys(
+                &crate::control::keys::session_message_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         let mut user_message = None;
@@ -2941,11 +2948,14 @@ mod tests {
             .unwrap();
         assert_eq!(session.status, "ERROR");
         let message_keys = kv
-            .list_keys(&crate::control::keys::session_message_prefix(
-                "conic:test",
-                "assistant",
-                "session-1",
-            ))
+            .list_keys(
+                &crate::control::keys::session_message_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         let error_message_id = message_keys
@@ -3065,11 +3075,14 @@ mod tests {
             .is_none());
 
         let message_keys = kv
-            .list_keys(&crate::control::keys::session_message_prefix(
-                "conic:test",
-                "assistant",
-                "session-1",
-            ))
+            .list_keys(
+                &crate::control::keys::session_message_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         let prefix =
@@ -3152,11 +3165,14 @@ mod tests {
         );
 
         let before_duplicate_keys = kv
-            .list_keys(&crate::control::keys::session_message_prefix(
-                "conic:test",
-                "assistant",
-                "session-1",
-            ))
+            .list_keys(
+                &crate::control::keys::session_message_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         handler
@@ -3173,11 +3189,14 @@ mod tests {
             .await
             .unwrap();
         let after_duplicate_keys = kv
-            .list_keys(&crate::control::keys::session_message_prefix(
-                "conic:test",
-                "assistant",
-                "session-1",
-            ))
+            .list_keys(
+                &crate::control::keys::session_message_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         assert_eq!(after_duplicate_keys.len(), before_duplicate_keys.len());
@@ -3406,11 +3425,14 @@ mod tests {
             .unwrap();
 
         let messages = kv
-            .list_keys(&crate::control::keys::session_message_prefix(
-                "conic:test",
-                "assistant",
-                "session-1",
-            ))
+            .list_keys(
+                &crate::control::keys::session_message_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         assert_eq!(messages.len(), 1);

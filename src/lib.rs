@@ -17,7 +17,7 @@ pub mod test_support {
     use crate::control::keys::{ResourceKey, ResourceList};
     #[cfg(test)]
     use crate::control::security::platform_jwt;
-    use crate::control::{KeyValueStore, MessagePublisher};
+    use crate::control::{KeyValueStore, MessagePublisher, Order};
     use futures::stream;
     use std::collections::HashMap;
     #[cfg(test)]
@@ -182,7 +182,11 @@ pub mod test_support {
             Ok(())
         }
 
-        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            list: &ResourceList,
+            order: Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
@@ -190,7 +194,11 @@ pub mod test_support {
                 .keys()
                 .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
-            keys.sort();
+            if order == Order::Desc {
+                keys.sort_by(|left, right| right.cmp(left));
+            } else {
+                keys.sort();
+            }
             Ok(keys)
         }
 
@@ -201,7 +209,7 @@ pub mod test_support {
             limit: usize,
         ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(crate::control::page_keys_desc(
-                self.list_keys(list).await?,
+                self.list_keys(list, Order::Asc).await?,
                 before_name,
                 limit,
             ))
@@ -214,7 +222,7 @@ pub mod test_support {
             limit: usize,
         ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
             Ok(crate::control::page_entries_desc(
-                self.list_entries(list).await?,
+                self.list_entries(list, Order::Asc).await?,
                 before_name,
                 limit,
             ))

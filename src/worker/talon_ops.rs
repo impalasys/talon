@@ -36,7 +36,7 @@ use crate::{
         resource_model::{self, ChannelResourceExt, NamespaceResourceExt, TypedResource},
         scheduling,
         security::platform_jwt,
-        ProtoKeyValueStoreExt,
+        Order, ProtoKeyValueStoreExt,
     },
     gateway::rpc::{data_proto, manifests, resources_proto},
 };
@@ -178,11 +178,10 @@ impl TalonOpsServer {
     }
 
     async fn list_all_namespaces(&self) -> Result<Vec<resources_proto::Namespace>> {
-        let mut keys = self
+        let keys = self
             .kv()
-            .list_keys(&keys::namespace_metadata_prefix())
+            .list_keys(&keys::namespace_metadata_prefix(), Order::Asc)
             .await?;
-        keys.sort();
         let namespaces = self
             .load_messages::<resources_proto::Namespace>(keys, 32)
             .await?;
@@ -228,11 +227,10 @@ impl TalonOpsServer {
     }
 
     async fn list_channel_models(&self, namespace: &str) -> Result<Vec<resources_proto::Channel>> {
-        let mut keys = self
+        let keys = self
             .kv()
-            .list_keys(&keys::channel_prefix(namespace))
+            .list_keys(&keys::channel_prefix(namespace), Order::Asc)
             .await?;
-        keys.sort();
         self.load_messages::<resources_proto::Channel>(keys, 32)
             .await
     }
@@ -306,8 +304,7 @@ impl TalonOpsServer {
         agent: &str,
     ) -> Result<Vec<data_proto::Session>> {
         let prefix = keys::session_prefix(namespace, agent);
-        let mut keys = self.kv().list_keys(&prefix).await?;
-        keys.sort();
+        let keys = self.kv().list_keys(&prefix, Order::Asc).await?;
         self.load_messages::<data_proto::Session>(keys, 32).await
     }
 
@@ -318,8 +315,7 @@ impl TalonOpsServer {
         session_id: &str,
     ) -> Result<Vec<data_proto::SessionMessage>> {
         let prefix = keys::session_message_prefix(namespace, agent, session_id);
-        let mut keys = self.kv().list_keys(&prefix).await?;
-        keys.sort();
+        let keys = self.kv().list_keys(&prefix, Order::Asc).await?;
         self.load_messages::<data_proto::SessionMessage>(keys, 32)
             .await
     }
@@ -328,11 +324,10 @@ impl TalonOpsServer {
         &self,
         namespace: &str,
     ) -> Result<Vec<resources_proto::Schedule>> {
-        let mut keys = self
+        let keys = self
             .kv()
-            .list_keys(&keys::schedule_prefix(namespace))
+            .list_keys(&keys::schedule_prefix(namespace), Order::Asc)
             .await?;
-        keys.sort();
         self.load_messages::<resources_proto::Schedule>(keys, 32)
             .await
     }
@@ -883,12 +878,11 @@ impl TalonOpsServer {
         let access = talon_ops_access_from_parts(&parts)?;
         require_namespace_access(&access, &args.namespace)?;
         let limit = bounded_limit(&access, args.limit);
-        let mut keys = self
+        let keys = self
             .kv()
-            .list_keys(&keys::mcp_server_prefix(&args.namespace))
+            .list_keys(&keys::mcp_server_prefix(&args.namespace), Order::Asc)
             .await
             .map_err(internal_mcp_error)?;
-        keys.sort();
         let mut servers = Vec::new();
         for key in keys.into_iter().take(limit) {
             if let Some(server) = self
@@ -1599,7 +1593,11 @@ mod tests {
             Ok(())
         }
 
-        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            list: &ResourceList,
+            _order: crate::control::Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(self
                 .entries
                 .read()
@@ -1617,7 +1615,7 @@ mod tests {
             limit: usize,
         ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
             Ok(crate::control::page_entries_desc(
-                self.list_entries(list).await?,
+                self.list_entries(list, crate::control::Order::Asc).await?,
                 before_name,
                 limit,
             ))

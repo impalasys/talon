@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{data_proto, proto, GrpcGatewayHandler};
-use crate::control::keys;
 use crate::control::ns;
 use crate::control::resources::ResourceStore;
 use crate::control::search::{DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
+use crate::control::{keys, Order};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::knowledge::KnowledgeEntry;
 use std::collections::HashMap;
@@ -64,7 +64,7 @@ async fn list_namespace_knowledge(
         }
 
         let prefix = keys::knowledge_prefix(&candidate_ns);
-        let keys = kv.list_keys(&prefix).await.map_err(|e| {
+        let keys = kv.list_keys(&prefix, Order::Asc).await.map_err(|e| {
             tonic::Status::internal(format!("Failed to list knowledge artifacts: {}", e))
         })?;
 
@@ -356,7 +356,11 @@ mod tests {
             Ok(())
         }
 
-        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            list: &ResourceList,
+            _order: crate::control::Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()

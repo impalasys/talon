@@ -11,7 +11,8 @@ use std::sync::Arc;
 
 use crate::control::resource_model::TypedResource;
 use crate::control::{
-    events, keys, topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+    events, keys, topics, ControlPlane, KeyValueStore, MessagePublisher, Order,
+    ProtoKeyValueStoreExt,
 };
 use crate::gateway::rpc::{data_proto, resources_proto};
 use crate::harness::knowledge::KvKnowledgeBook;
@@ -1393,11 +1394,10 @@ pub async fn load_step_runs(
 ) -> Result<HashMap<String, data_proto::WorkflowStepRun>> {
     let mut map = HashMap::new();
     for (_, bytes) in kv
-        .list_entries(&keys::workflow_step_run_prefix(
-            &run.ns,
-            &run.workflow,
-            &run.id,
-        ))
+        .list_entries(
+            &keys::workflow_step_run_prefix(&run.ns, &run.workflow, &run.id),
+            Order::Asc,
+        )
         .await?
     {
         let step_run = data_proto::WorkflowStepRun::decode(bytes.as_slice())?;
@@ -2175,25 +2175,33 @@ async fn latest_assistant_text(
     agent: &str,
     session_id: &str,
 ) -> Result<String> {
-    let mut entries = kv
-        .list_entries(&keys::session_message_prefix(ns, agent, session_id))
-        .await?;
-    entries.sort_by(|left, right| right.0.cmp(&left.0));
-    for (_, bytes) in entries {
-        let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
-        if message.role == data_proto::MessageRole::RoleAssistant as i32 {
-            let text = message
-                .parts
-                .iter()
-                .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
-                .map(|part| part.content.as_str())
-                .collect::<String>();
-            if !text.is_empty() {
-                return Ok(text);
+    let prefix = keys::session_message_prefix(ns, agent, session_id);
+    let mut before_name = None;
+    loop {
+        let entries = kv
+            .list_entries_page(&prefix, before_name.as_deref(), 64)
+            .await?;
+        if entries.is_empty() {
+            return Ok(String::new());
+        }
+        before_name = entries.last().map(|(key, _)| key.name.clone());
+        for (_, bytes) in entries {
+            let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
+            if message.role == data_proto::MessageRole::RoleAssistant as i32 {
+                let text = message
+                    .parts
+                    .iter()
+                    .filter(|part| {
+                        part.part_type == data_proto::SessionMessagePartType::Text as i32
+                    })
+                    .map(|part| part.content.as_str())
+                    .collect::<String>();
+                if !text.is_empty() {
+                    return Ok(text);
+                }
             }
         }
     }
-    Ok(String::new())
 }
 
 fn parse_json_or(input: &str, default: Value) -> Result<Value> {
@@ -2600,11 +2608,10 @@ mod tests {
         drop(published);
 
         let events = kv
-            .list_entries(&keys::workflow_run_event_prefix(
-                "default",
-                "dispatch-only",
-                &run.id,
-            ))
+            .list_entries(
+                &keys::workflow_run_event_prefix("default", "dispatch-only", &run.id),
+                Order::Asc,
+            )
             .await
             .unwrap();
         assert_eq!(events.len(), 1);
@@ -2669,16 +2676,19 @@ mod tests {
         workflow: &str,
         run_id: &str,
     ) -> Vec<String> {
-        kv.list_entries(&keys::workflow_run_event_prefix(ns, workflow, run_id))
-            .await
-            .expect("events should list")
-            .into_iter()
-            .map(|(_, bytes)| {
-                data_proto::WorkflowRunEvent::decode(bytes.as_slice())
-                    .expect("event should decode")
-                    .r#type
-            })
-            .collect()
+        kv.list_entries(
+            &keys::workflow_run_event_prefix(ns, workflow, run_id),
+            Order::Asc,
+        )
+        .await
+        .expect("events should list")
+        .into_iter()
+        .map(|(_, bytes)| {
+            data_proto::WorkflowRunEvent::decode(bytes.as_slice())
+                .expect("event should decode")
+                .r#type
+        })
+        .collect()
     }
 
     async fn event_type_count(
