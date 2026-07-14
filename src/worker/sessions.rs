@@ -1057,6 +1057,42 @@ impl WorkerEventHandler {
                 "failed to dispatch workflow from completed child session"
             );
         }
+        let delegated_completion = match completion_status {
+            SessionCompletionStatus::Completed => {
+                crate::control::delegation::DelegatedSessionCompletion::Completed
+            }
+            SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => {
+                crate::control::delegation::DelegatedSessionCompletion::Failed
+            }
+        };
+        if let Err(err) = crate::control::delegation::complete_delegated_task_from_session(
+            &self.cp,
+            &session,
+            delegated_completion,
+        )
+        .await
+        {
+            tracing::warn!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                error = %err,
+                "failed to update delegated Task from completed child session"
+            );
+        }
+        // Stopgap for the missing durable session inbox: a busy owner may
+        // have rejected a delegation wake, so retry pending wakes on release.
+        if let Err(err) =
+            crate::control::delegation::retry_owner_wakes_for_session(&self.cp, &session).await
+        {
+            tracing::warn!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                error = %err,
+                "failed to retry delegated Task owner wakeups after session release"
+            );
+        }
     }
 }
 

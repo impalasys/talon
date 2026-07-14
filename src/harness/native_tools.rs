@@ -12,12 +12,17 @@ use std::time::Duration;
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
-use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{delegation, keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{
     data_proto, manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
 };
 use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
+
+#[path = "tools/artifacts.rs"]
+mod artifact_tools;
+#[path = "tools/tasks.rs"]
+mod task_tools;
 
 pub const CREATE_SCHEDULE_TOOL: &str = "create_schedule";
 pub const GET_SCHEDULE_TOOL: &str = "get_schedule";
@@ -25,6 +30,7 @@ pub const LIST_SCHEDULES_TOOL: &str = "list_schedules";
 pub const UPDATE_SCHEDULE_TOOL: &str = "update_schedule";
 pub const DELETE_SCHEDULE_TOOL: &str = "delete_schedule";
 pub const CREATE_TASK_TOOL: &str = "create_task";
+pub const DELEGATE_TASK_TOOL: &str = "delegate_task";
 pub const GET_TASK_TOOL: &str = "get_task";
 pub const LIST_TASKS_TOOL: &str = "list_tasks";
 pub const UPDATE_TASK_TOOL: &str = "update_task";
@@ -103,7 +109,7 @@ pub fn register_channel_tools(registry: &mut ToolRegistry) {
 }
 
 pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
-    register_artifact_tools(registry);
+    artifact_tools::register(registry);
     register_research_tools(registry, spec);
 
     if !has_capability_action(spec, "schedules", "inspect")
@@ -176,36 +182,6 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                 "properties": {
                     "namespace": { "type": "string", "description": "Namespace containing the schedule. Defaults to the current agent namespace if omitted." },
                     "name": { "type": "string", "description": "Schedule name." }
-                },
-                "required": ["name"]
-            }),
-        );
-    }
-
-    if has_capability_action(spec, "tasks", "inspect") {
-        registry.register_builtin(
-            LIST_TASKS_TOOL,
-            "List durable Talon Tasks in a namespace. Use this to rediscover delegated work across sessions.",
-            json!({
-                "type": "object",
-                "properties": {
-                    "namespace": { "type": "string", "description": "Namespace to inspect. Defaults to the current agent namespace if omitted." },
-                    "status_group": { "type": "string", "description": "Optional group: active or terminal." },
-                    "phase": { "type": "string", "description": "Optional phase filter such as RUNNING, NEEDS_REVIEW, SUCCEEDED, FAILED, or CANCELED." },
-                    "requester_name": { "type": "string", "description": "Optional requester agent resource name filter." },
-                    "assignee_name": { "type": "string", "description": "Optional assignee agent resource name filter." },
-                    "limit": { "type": "integer", "description": "Optional maximum number of results to return." }
-                }
-            }),
-        );
-        registry.register_builtin(
-            GET_TASK_TOOL,
-            "Get one durable Talon Task by name.",
-            json!({
-                "type": "object",
-                "properties": {
-                    "namespace": { "type": "string", "description": "Namespace containing the task. Defaults to the current agent namespace if omitted." },
-                    "name": { "type": "string", "description": "Task resource name." }
                 },
                 "required": ["name"]
             }),
@@ -287,45 +263,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         );
     }
 
-    if has_capability_action(spec, "tasks", "create") {
-        registry.register_builtin(
-            CREATE_TASK_TOOL,
-            "Create a durable caller-owned Task before delegating work to another agent.",
-            json!({
-                "type": "object",
-                "properties": {
-                    "namespace": { "type": "string", "description": "Namespace that owns the task. Defaults to the current agent namespace if omitted." },
-                    "title": { "type": "string", "description": "Short human-readable task title." },
-                    "description": { "type": "string", "description": "Brief or acceptance criteria for the task." },
-                    "type": { "type": "string", "description": "Optional caller-defined classifier such as agent_delegation or human_review. Talon does not interpret it." },
-                    "assignee_namespace": { "type": "string", "description": "Namespace of the worker agent." },
-                    "assignee_name": { "type": "string", "description": "Worker agent resource name." }
-                },
-                "required": ["title", "description", "assignee_name"]
-            }),
-        );
-    }
-
-    if has_capability_action(spec, "tasks", "update") {
-        registry.register_builtin(
-            UPDATE_TASK_TOOL,
-            "Update Task status after delegation progress, review, completion, or failure.",
-            json!({
-                "type": "object",
-                "properties": {
-                    "namespace": { "type": "string", "description": "Namespace containing the task. Defaults to the current agent namespace if omitted." },
-                    "name": { "type": "string", "description": "Task resource name." },
-                    "phase": { "type": "string", "description": "Optional phase: QUEUED, RUNNING, BLOCKED, NEEDS_REVIEW, SUCCEEDED, FAILED, CANCELED, or EXPIRED." },
-                    "progress_summary": { "type": "string", "description": "Short current state or result summary." },
-                    "execution_namespace": { "type": "string", "description": "Optional execution namespace." },
-                    "execution_name": { "type": "string", "description": "Optional execution agent resource name." },
-                    "execution_session_id": { "type": "string", "description": "Optional child session id." },
-                    "run_id": { "type": "string", "description": "Optional workflow or run id." }
-                },
-                "required": ["name"]
-            }),
-        );
-    }
+    task_tools::register(registry, spec);
 
     if has_capability_action(spec, "goals", "inspect") {
         registry.register_builtin(
@@ -431,65 +369,6 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
     }
 }
 
-fn register_artifact_tools(registry: &mut ToolRegistry) {
-    registry.register_builtin(
-        CREATE_ARTIFACT_TOOL,
-        "Create a session-scoped artifact and return an artifact:// URI that can be read or granted to another agent.",
-        json!({
-            "type": "object",
-            "properties": {
-                "title": { "type": "string", "description": "Human-readable artifact title." },
-                "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
-                "content": { "type": "string", "description": "Text content to store." },
-                "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." },
-                "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-                "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
-            },
-            "required": ["title"]
-        }),
-    );
-    registry.register_builtin(
-        READ_ARTIFACT_TOOL,
-        "Read an artifact by artifact:// URI.",
-        json!({
-            "type": "object",
-            "properties": {
-                "artifact_uri": { "type": "string" }
-            },
-            "required": ["artifact_uri"]
-        }),
-    );
-    registry.register_builtin(
-        GET_ARTIFACT_METADATA_TOOL,
-        "Return artifact metadata for an artifact:// URI without reading bytes.",
-        json!({
-            "type": "object",
-            "properties": {
-                "artifact_uri": { "type": "string" }
-            },
-            "required": ["artifact_uri"]
-        }),
-    );
-    registry.register_builtin(
-        GRANT_ARTIFACT_TOOL,
-        "Grant another agent or session access to an artifact:// URI.",
-        json!({
-            "type": "object",
-            "properties": {
-                "artifact_uri": { "type": "string" },
-                "target_agent": { "type": "string" },
-                "target_session_id": { "type": "string" },
-                "operations": {
-                    "type": "array",
-                    "items": { "type": "string", "enum": ["read", "metadata", "promote"] }
-                },
-                "ttl_seconds": { "type": "integer" }
-            },
-            "required": ["artifact_uri"]
-        }),
-    );
-}
-
 fn register_research_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
     if has_capability_action(spec, "research", "fetch_url") {
         registry.register_builtin(
@@ -587,27 +466,33 @@ pub async fn execute_tool_for_session(
     name: &str,
     args: &Value,
 ) -> Result<Option<String>> {
+    if let Some(result) = artifact_tools::execute(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        name,
+        args,
+    )
+    .await?
+    {
+        return Ok(Some(result));
+    }
+    if let Some(result) = task_tools::execute(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        name,
+        args,
+    )
+    .await?
+    {
+        return Ok(Some(result));
+    }
+
     match name {
-        CREATE_ARTIFACT_TOOL => {
-            create_artifact(cp, current_namespace, current_agent, current_session, args)
-                .await
-                .map(Some)
-        }
-        READ_ARTIFACT_TOOL => {
-            read_artifact(cp, current_namespace, current_agent, current_session, args)
-                .await
-                .map(Some)
-        }
-        GET_ARTIFACT_METADATA_TOOL => {
-            get_artifact_metadata(cp, current_namespace, current_agent, current_session, args)
-                .await
-                .map(Some)
-        }
-        GRANT_ARTIFACT_TOOL => {
-            grant_artifact(cp, current_namespace, current_agent, current_session, args)
-                .await
-                .map(Some)
-        }
         READ_SESSION_MESSAGES_TOOL => {
             require_capability(spec, "sessions", "read:messages")?;
             read_session_messages(cp, current_namespace, current_agent, args)
@@ -777,72 +662,6 @@ pub async fn execute_tool_for_session(
             Ok(Some(serde_json::to_string_pretty(
                 &json!({ "success": true }),
             )?))
-        }
-        LIST_TASKS_TOOL => {
-            require_capability(spec, "tasks", "inspect")?;
-            let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
-            let status_group = opt_str(args, "status_group");
-            let phase = opt_str(args, "phase");
-            let requester_name = opt_str(args, "requester_name");
-            let assignee_name = opt_str(args, "assignee_name");
-            let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
-            let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
-            let mut resources = store.list(namespace, Some("Task")).await?;
-            resources.sort_by(|a, b| task_updated_at(b).cmp(&task_updated_at(a)));
-            let mut tasks = Vec::new();
-            for resource in resources {
-                let Some(task) = task_from_resource(resource) else {
-                    continue;
-                };
-                if !task_matches(&task, status_group, phase, requester_name, assignee_name) {
-                    continue;
-                }
-                tasks.push(task_json(&task));
-                if tasks.len() >= limit {
-                    break;
-                }
-            }
-            Ok(Some(serde_json::to_string_pretty(
-                &json!({ "tasks": tasks }),
-            )?))
-        }
-        GET_TASK_TOOL => {
-            require_capability(spec, "tasks", "inspect")?;
-            let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
-            let name = req_str(args, "name")?;
-            let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
-            let resource = store
-                .get(namespace, "Task", name)
-                .await?
-                .ok_or_else(|| anyhow!("task '{}' not found", name))?;
-            let task = task_from_resource(resource).ok_or_else(|| anyhow!("invalid Task"))?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "task": task_json(&task)
-            }))?))
-        }
-        CREATE_TASK_TOOL => {
-            require_capability(spec, "tasks", "create")?;
-            let task =
-                create_task(cp, current_namespace, current_agent, current_session, args).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "task": task_json(&task)
-            }))?))
-        }
-        UPDATE_TASK_TOOL => {
-            require_capability(spec, "tasks", "update")?;
-            let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
-            let name = req_str(args, "name")?;
-            let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
-            let mut resource = store
-                .get(namespace, "Task", name)
-                .await?
-                .ok_or_else(|| anyhow!("task '{}' not found", name))?;
-            update_task_resource(&mut resource, args)?;
-            let resource = store.upsert(namespace, resource).await?;
-            let task = task_from_resource(resource).ok_or_else(|| anyhow!("invalid Task"))?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "task": task_json(&task)
-            }))?))
         }
         LIST_GOALS_TOOL => {
             require_capability(spec, "goals", "inspect")?;
@@ -1757,11 +1576,9 @@ fn schedule_json(schedule: &resources_proto::Schedule) -> Value {
     })
 }
 
-async fn create_task(
-    cp: &ControlPlane,
+fn create_task(
     current_namespace: &str,
     current_agent: &str,
-    _current_session: &str,
     args: &Value,
 ) -> Result<resources_proto::Task> {
     let namespace = opt_str(args, "namespace")
@@ -1769,8 +1586,8 @@ async fn create_task(
         .to_string();
     let title = req_str(args, "title")?.to_string();
     let description = req_str(args, "description")?.to_string();
-    let assignee_name = req_str(args, "assignee_name")?.to_string();
-    let assignee_namespace = opt_str(args, "assignee_namespace")
+    let delegate_name = req_str(args, "delegate_name")?.to_string();
+    let delegate_namespace = opt_str(args, "delegate_namespace")
         .unwrap_or(current_namespace)
         .to_string();
     let task_type = opt_str(args, "type")
@@ -1781,28 +1598,28 @@ async fn create_task(
     let name = unique_task_name(&title);
     let labels = HashMap::from([
         (
-            "talon.impalasys.com/requester-name".to_string(),
+            delegation::LABEL_OWNER_NAME.to_string(),
             current_agent.to_string(),
         ),
         (
-            "talon.impalasys.com/assignee-name".to_string(),
-            assignee_name.clone(),
+            delegation::LABEL_DELEGATE_NAME.to_string(),
+            delegate_name.clone(),
         ),
     ]);
-    let task = resource_model::task_resource(
-        namespace.clone(),
+    let resource = resource_model::task_resource(
+        namespace,
         name,
         resources_proto::TaskSpec {
             title,
             description,
             r#type: task_type,
-            requester: Some(resources_proto::ResourceRef {
+            owner: Some(resources_proto::ResourceRef {
                 namespace: current_namespace.to_string(),
                 name: current_agent.to_string(),
             }),
-            assignee: Some(resources_proto::ResourceRef {
-                namespace: assignee_namespace.clone(),
-                name: assignee_name.clone(),
+            delegate: Some(resources_proto::ResourceRef {
+                namespace: delegate_namespace.clone(),
+                name: delegate_name.clone(),
             }),
         },
         resources_proto::TaskStatus {
@@ -1817,43 +1634,76 @@ async fn create_task(
             expires_at: 0,
             execution_ref: Some(resources_proto::TaskExecutionRef {
                 kind: "AGENT_SESSION".to_string(),
-                namespace: assignee_namespace,
-                name: assignee_name,
+                namespace: delegate_namespace,
+                name: delegate_name,
                 session_id: String::new(),
                 run_id: String::new(),
             }),
         },
         labels,
     );
-    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
-    let resource = store.upsert(&namespace, task).await?;
     task_from_resource(resource).ok_or_else(|| anyhow!("invalid Task after create"))
 }
 
-fn update_task_resource(resource: &mut resources_proto::Resource, args: &Value) -> Result<()> {
+async fn delegate_task(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+    spec: &manifests::AgentSpec,
+) -> Result<resources_proto::Task> {
+    let namespace = opt_str(args, "namespace")
+        .unwrap_or(current_namespace)
+        .to_string();
+    let title = req_str(args, "title")?.to_string();
+    let description = req_str(args, "description")?.to_string();
+    if args.get("delegate_name").is_some() || args.get("delegate_namespace").is_some() {
+        return Err(anyhow!(
+            "delegate_task requires a declared A2A connection; delegate_name and delegate_namespace are not accepted"
+        ));
+    }
+    let connection_name = req_str(args, "connection")?;
+    let target = crate::harness::a2a::resolve_internal_connection(spec, connection_name)?;
+    let task_type = opt_str(args, "type")
+        .unwrap_or("agent_delegation")
+        .trim()
+        .to_string();
+    let name = unique_task_name(&title);
+    delegation::create_delegated_task(
+        cp,
+        delegation::TaskDelegationRequest {
+            namespace,
+            name,
+            title,
+            description,
+            task_type,
+            owner_namespace: current_namespace.to_string(),
+            owner_name: current_agent.to_string(),
+            owner_session_id: current_session.to_string(),
+            connection_name: target.connection_name,
+            delegate_namespace: target.target_namespace,
+            delegate_name: target.target_agent,
+        },
+    )
+    .await
+}
+
+fn task_resource_from_task(task: resources_proto::Task) -> resources_proto::Resource {
+    let namespace = task.namespace().to_string();
+    let name = task.name().to_string();
+    let labels = task.labels().clone();
+    resource_model::task_resource(
+        namespace,
+        name,
+        task.spec.unwrap_or_default(),
+        task.status.unwrap_or_default(),
+        labels,
+    )
+}
+
+fn update_task_status(status: &mut resources_proto::TaskStatus, args: &Value) -> Result<()> {
     let now = chrono::Utc::now().timestamp_micros();
-    let status = match resource
-        .status
-        .as_mut()
-        .and_then(|status| status.kind.as_mut())
-    {
-        Some(resources_proto::resource_status::Kind::Task(status)) => status,
-        _ => {
-            resource.status = Some(resources_proto::ResourceStatus {
-                kind: Some(resources_proto::resource_status::Kind::Task(
-                    Default::default(),
-                )),
-            });
-            match resource
-                .status
-                .as_mut()
-                .and_then(|status| status.kind.as_mut())
-            {
-                Some(resources_proto::resource_status::Kind::Task(status)) => status,
-                _ => return Err(anyhow!("failed to initialize Task status")),
-            }
-        }
-    };
     if let Some(namespace) = opt_str(args, "execution_namespace") {
         status
             .execution_ref
@@ -1911,8 +1761,8 @@ fn task_matches(
     task: &resources_proto::Task,
     status_group: Option<&str>,
     phase: Option<&str>,
-    requester_name: Option<&str>,
-    assignee_name: Option<&str>,
+    owner_name: Option<&str>,
+    delegate_name: Option<&str>,
 ) -> bool {
     let spec = task.spec.as_ref();
     let current_phase = task
@@ -1935,16 +1785,16 @@ fn task_matches(
             return false;
         }
     }
-    if requester_name.is_some_and(|name| {
-        spec.and_then(|spec| spec.requester.as_ref())
-            .map(|requester| requester.name.as_str())
+    if owner_name.is_some_and(|name| {
+        spec.and_then(|spec| spec.owner.as_ref())
+            .map(|owner| owner.name.as_str())
             != Some(name)
     }) {
         return false;
     }
-    if assignee_name.is_some_and(|name| {
-        spec.and_then(|spec| spec.assignee.as_ref())
-            .map(|assignee| assignee.name.as_str())
+    if delegate_name.is_some_and(|name| {
+        spec.and_then(|spec| spec.delegate.as_ref())
+            .map(|delegate| delegate.name.as_str())
             != Some(name)
     }) {
         return false;
@@ -1966,8 +1816,8 @@ fn task_updated_at(resource: &resources_proto::Resource) -> i64 {
 fn task_json(task: &resources_proto::Task) -> Value {
     let spec = task.spec.as_ref();
     let status = task.status.as_ref();
-    let requester = spec.and_then(|spec| spec.requester.as_ref());
-    let assignee = spec.and_then(|spec| spec.assignee.as_ref());
+    let owner = spec.and_then(|spec| spec.owner.as_ref());
+    let delegate = spec.and_then(|spec| spec.delegate.as_ref());
     let execution = status.and_then(|status| status.execution_ref.as_ref());
     json!({
         "name": task.name(),
@@ -1975,8 +1825,8 @@ fn task_json(task: &resources_proto::Task) -> Value {
         "title": spec.map(|spec| spec.title.clone()).unwrap_or_default(),
         "description": spec.map(|spec| spec.description.clone()).unwrap_or_default(),
         "type": spec.map(|spec| spec.r#type.clone()).unwrap_or_default(),
-        "requester": resource_ref_json(requester),
-        "assignee": resource_ref_json(assignee),
+        "owner": resource_ref_json(owner),
+        "delegate": resource_ref_json(delegate),
         "executionRef": execution.map(|execution| json!({
             "kind": execution.kind,
             "namespace": execution.namespace,
@@ -1995,11 +1845,25 @@ fn task_json(task: &resources_proto::Task) -> Value {
             }
         }).unwrap_or("UNKNOWN"),
         "progressSummary": status.map(|status| status.progress_summary.clone()).unwrap_or_default(),
+        "resultArtifacts": status.map(|status| {
+            status.result_artifacts.iter().map(file_object_ref_json).collect::<Vec<_>>()
+        }).unwrap_or_default(),
         "createdAt": status.map(|status| status.created_at).unwrap_or_default(),
         "updatedAt": status.map(|status| status.updated_at).unwrap_or_default(),
         "completedAt": status.map(|status| status.completed_at).unwrap_or_default(),
         "expiresAt": status.map(|status| status.expires_at).unwrap_or_default(),
         "labels": task.labels(),
+    })
+}
+
+fn file_object_ref_json(reference: &resources_proto::FileObjectRef) -> Value {
+    json!({
+        "key": reference.key,
+        "mediaType": reference.media_type,
+        "sizeBytes": reference.size_bytes,
+        "sha256": reference.sha256,
+        "filename": reference.filename,
+        "metadata": reference.metadata,
     })
 }
 
@@ -2015,6 +1879,11 @@ fn resource_ref_json(reference: Option<&resources_proto::ResourceRef>) -> Value 
 }
 
 fn unique_task_name(title: &str) -> String {
+    let slug = task_name_slug(title, 48);
+    format!("{slug}-{}", crate::control::uuid::unique_name("tsk"))
+}
+
+fn task_name_slug(title: &str, max_chars: usize) -> String {
     let mut slug = title
         .chars()
         .map(|ch| {
@@ -2030,12 +1899,8 @@ fn unique_task_name(title: &str) -> String {
     }
     let slug = slug.trim_matches('-');
     let slug = if slug.is_empty() { "task" } else { slug };
-    let trimmed = slug.chars().take(48).collect::<String>();
-    format!(
-        "{}-{}",
-        trimmed.trim_matches('-'),
-        crate::control::uuid::unique_name("tsk")
-    )
+    let trimmed = slug.chars().take(max_chars).collect::<String>();
+    trimmed.trim_matches('-').to_string()
 }
 
 fn parse_task_phase(value: &str) -> Result<i32> {
@@ -2933,6 +2798,51 @@ mod tests {
         }
     }
 
+    fn task_spec_with_internal_connection(
+        capabilities: &[&str],
+        connection: &str,
+        namespace: &str,
+        agent: &str,
+    ) -> manifests::AgentSpec {
+        let mut spec = task_spec(capabilities);
+        spec.a2a = Some(manifests::A2a {
+            connections: vec![manifests::Connection {
+                name: connection.to_string(),
+                target: Some(manifests::ConnectionRef {
+                    internal: Some(manifests::InternalConnectionRef {
+                        namespace: namespace.to_string(),
+                        agent: agent.to_string(),
+                    }),
+                    external: None,
+                }),
+                ..Default::default()
+            }],
+            agent_card: None,
+        });
+        spec
+    }
+
+    fn task_spec_with_external_connection(
+        capabilities: &[&str],
+        connection: &str,
+    ) -> manifests::AgentSpec {
+        let mut spec = task_spec(capabilities);
+        spec.a2a = Some(manifests::A2a {
+            connections: vec![manifests::Connection {
+                name: connection.to_string(),
+                target: Some(manifests::ConnectionRef {
+                    internal: None,
+                    external: Some(manifests::ExternalConnectionRef {
+                        agent_card_url: "https://example.com/agent-card.json".to_string(),
+                    }),
+                }),
+                ..Default::default()
+            }],
+            agent_card: None,
+        });
+        spec
+    }
+
     fn goal_spec(capabilities: &[&str]) -> manifests::AgentSpec {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
@@ -2963,6 +2873,61 @@ mod tests {
         )
         .await
         .unwrap();
+    }
+
+    async fn seed_session(kv: &MockKvStore, ns: &str, agent: &str, session_id: &str) {
+        let now = chrono::Utc::now().timestamp_micros();
+        kv.set_msg(
+            &keys::session(ns, agent, session_id),
+            &data_proto::Session {
+                id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                status: "IDLE".to_string(),
+                created_at: now,
+                last_active: now,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    async fn set_session_status(
+        kv: &MockKvStore,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        status: &str,
+    ) {
+        let key = keys::session(ns, agent, session_id);
+        let mut session = kv
+            .get_msg::<data_proto::Session>(&key)
+            .await
+            .unwrap()
+            .unwrap();
+        session.status = status.to_string();
+        kv.set_msg(&key, &session).await.unwrap();
+    }
+
+    async fn session_text_messages(
+        kv: &MockKvStore,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+    ) -> Vec<String> {
+        let entries = kv
+            .list_entries(&keys::session_message_prefix(ns, agent, session_id))
+            .await
+            .unwrap();
+        entries
+            .into_iter()
+            .filter_map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).ok())
+            .flat_map(|message| message.parts.into_iter())
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .map(|part| part.content)
+            .collect()
     }
 
     fn skill(ns: &str, name: &str, description: &str, instructions: &str) -> NamespaceSkill {
@@ -3002,6 +2967,54 @@ mod tests {
 
         assert!(registry.get_tool(FETCH_URL_TOOL).is_some());
         assert!(registry.get_tool(WEB_SEARCH_TOOL).is_none());
+    }
+
+    #[test]
+    fn delegate_task_schema_uses_internal_a2a_connection_enum() {
+        let mut registry = ToolRegistry::new();
+        register_tools(
+            &mut registry,
+            &task_spec_with_internal_connection(
+                &["create"],
+                "worker",
+                "Tenant:acme:Operations",
+                "support-agent",
+            ),
+        );
+
+        let tool = registry
+            .get_tool(DELEGATE_TASK_TOOL)
+            .expect("delegate_task should be registered");
+        assert_eq!(
+            tool.input_schema["properties"]["connection"]["enum"],
+            json!(["worker"])
+        );
+        assert!(tool.input_schema["properties"]
+            .as_object()
+            .unwrap()
+            .get("delegate_name")
+            .is_none());
+        assert!(tool.input_schema["properties"]
+            .as_object()
+            .unwrap()
+            .get("delegate_namespace")
+            .is_none());
+    }
+
+    #[test]
+    fn delegate_task_not_registered_without_internal_a2a_connection() {
+        let mut no_connection_registry = ToolRegistry::new();
+        register_tools(&mut no_connection_registry, &task_spec(&["create"]));
+        assert!(no_connection_registry
+            .get_tool(DELEGATE_TASK_TOOL)
+            .is_none());
+
+        let mut external_registry = ToolRegistry::new();
+        register_tools(
+            &mut external_registry,
+            &task_spec_with_external_connection(&["create"], "remote"),
+        );
+        assert!(external_registry.get_tool(DELEGATE_TASK_TOOL).is_none());
     }
 
     #[test]
@@ -3504,8 +3517,8 @@ mod tests {
                 "title": "Prepare customer onboarding checklist",
                 "description": "Create a reviewed onboarding checklist.",
                 "type": "OPERATIONS",
-                "assignee_namespace": "Tenant:acme:Operations",
-                "assignee_name": "support-agent"
+                "delegate_namespace": "Tenant:acme:Operations",
+                "delegate_name": "support-agent"
             }),
         )
         .await
@@ -3515,8 +3528,8 @@ mod tests {
         let name = created["task"]["name"].as_str().unwrap();
         assert_eq!(created["task"]["phase"], "QUEUED");
         assert_eq!(created["task"]["statusGroup"], "ACTIVE");
-        assert_eq!(created["task"]["requester"]["name"], "ops-lead");
-        assert_eq!(created["task"]["assignee"]["name"], "support-agent");
+        assert_eq!(created["task"]["owner"]["name"], "ops-lead");
+        assert_eq!(created["task"]["delegate"]["name"], "support-agent");
 
         let updated = execute_tool_for_session(
             &cp,
@@ -3554,7 +3567,7 @@ mod tests {
             LIST_TASKS_TOOL,
             &json!({
                 "status_group": "active",
-                "requester_name": "ops-lead"
+                "owner_name": "ops-lead"
             }),
         )
         .await
@@ -3563,6 +3576,446 @@ mod tests {
         let listed: Value = serde_json::from_str(&listed).unwrap();
         assert_eq!(listed["tasks"].as_array().unwrap().len(), 1);
         assert_eq!(listed["tasks"][0]["name"], name);
+    }
+
+    #[tokio::test]
+    async fn task_tools_reject_cross_namespace_overrides() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let spec = task_spec_with_internal_connection(
+            &["inspect", "create"],
+            "support",
+            "Tenant:acme:Operations",
+            "support-agent",
+        );
+
+        let create_err = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            CREATE_TASK_TOOL,
+            &json!({
+                "namespace": "Tenant:other:Workspace:main",
+                "title": "Prepare checklist",
+                "description": "Create a reviewed checklist."
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(create_err.to_string().contains("cannot target namespace"));
+
+        let delegate_err = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "namespace": "Tenant:other:Workspace:main",
+                "title": "Prepare checklist",
+                "description": "Create a reviewed checklist.",
+                "connection": "support"
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(delegate_err.to_string().contains("cannot target namespace"));
+    }
+
+    #[tokio::test]
+    async fn delegate_task_starts_delegate_session() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        seed_agent(kv.as_ref(), "Tenant:acme:Operations", "support-agent").await;
+        let cp = control_plane(kv.clone(), scheduler);
+        let spec = task_spec_with_internal_connection(
+            &["inspect", "create"],
+            "support",
+            "Tenant:acme:Operations",
+            "support-agent",
+        );
+
+        let created = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Prepare customer onboarding checklist",
+                "description": "Create a reviewed onboarding checklist.",
+                "type": "OPERATIONS",
+                "connection": "support"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let created: Value = serde_json::from_str(&created).unwrap();
+        let task = &created["task"];
+        let task_name = task["name"].as_str().unwrap();
+        let child_session_id = task["executionRef"]["sessionId"].as_str().unwrap();
+        assert_eq!(task["phase"], "RUNNING");
+        assert_eq!(task["executionRef"]["namespace"], "Tenant:acme:Operations");
+        assert_eq!(task["executionRef"]["name"], "support-agent");
+        assert!(!child_session_id.is_empty());
+        assert!(!task["executionRef"]["runId"].as_str().unwrap().is_empty());
+
+        let child_session = kv
+            .get_msg::<data_proto::Session>(&keys::session(
+                "Tenant:acme:Operations",
+                "support-agent",
+                child_session_id,
+            ))
+            .await
+            .unwrap()
+            .expect("child session should exist");
+        assert_eq!(
+            child_session.labels.get(delegation::LABEL_TASK_NAME),
+            Some(&task_name.to_string())
+        );
+        assert_eq!(
+            child_session.labels.get(delegation::LABEL_OWNER_NAMESPACE),
+            Some(&"Tenant:acme:Workspace:main".to_string())
+        );
+        assert_eq!(
+            child_session.labels.get(delegation::LABEL_OWNER_SESSION_ID),
+            Some(&"session-1".to_string())
+        );
+        assert_eq!(
+            child_session.labels.get(delegation::LABEL_A2A_CONNECTION),
+            Some(&"support".to_string())
+        );
+
+        let store = ResourceStore::new(kv.clone(), Arc::new(EmptyPubSub));
+        let task_resource = store
+            .get("Tenant:acme:Workspace:main", "Task", task_name)
+            .await
+            .unwrap()
+            .expect("delegated task resource should exist");
+        assert_eq!(
+            task_resource
+                .metadata
+                .as_ref()
+                .unwrap()
+                .labels
+                .get(delegation::LABEL_A2A_CONNECTION),
+            Some(&"support".to_string())
+        );
+        assert_eq!(
+            task_resource.metadata.as_ref().unwrap().generation,
+            1,
+            "delegated status updates must not bump resource generation"
+        );
+
+        let entries = kv
+            .list_entries(&keys::session_message_prefix(
+                "Tenant:acme:Operations",
+                "support-agent",
+                child_session_id,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(entries.len(), 1);
+        let message = data_proto::SessionMessage::decode(entries[0].1.as_slice()).unwrap();
+        assert_eq!(
+            message.labels.get(delegation::LABEL_TASK_NAME),
+            Some(&task_name.to_string())
+        );
+        assert_eq!(
+            message.labels.get(delegation::LABEL_A2A_CONNECTION),
+            Some(&"support".to_string())
+        );
+        assert!(message
+            .parts
+            .first()
+            .unwrap()
+            .content
+            .contains("Create a reviewed onboarding checklist."));
+
+        let listed = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            LIST_TASKS_TOOL,
+            &json!({
+                "status_group": "active",
+                "owner_name": "ops-lead"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let listed: Value = serde_json::from_str(&listed).unwrap();
+        assert_eq!(listed["tasks"].as_array().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn delegate_task_completion_ignores_stale_child_sessions() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        seed_agent(kv.as_ref(), "Tenant:acme:Operations", "support-agent").await;
+        seed_session(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+        )
+        .await;
+        let cp = control_plane(kv.clone(), scheduler);
+        let spec = task_spec_with_internal_connection(
+            &["create"],
+            "support",
+            "Tenant:acme:Operations",
+            "support-agent",
+        );
+
+        let created = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Prepare checklist",
+                "description": "Create a reviewed checklist.",
+                "connection": "support"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let created: Value = serde_json::from_str(&created).unwrap();
+        let task_name = created["task"]["name"].as_str().unwrap();
+        let child_session_id = created["task"]["executionRef"]["sessionId"]
+            .as_str()
+            .unwrap();
+        let mut stale_session = kv
+            .get_msg::<data_proto::Session>(&keys::session(
+                "Tenant:acme:Operations",
+                "support-agent",
+                child_session_id,
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        stale_session.id = "stale-session".to_string();
+
+        delegation::complete_delegated_task_from_session(
+            &cp,
+            &stale_session,
+            delegation::DelegatedSessionCompletion::Completed,
+        )
+        .await
+        .unwrap();
+
+        let store = ResourceStore::new(kv.clone(), Arc::new(EmptyPubSub));
+        let task_resource = store
+            .get("Tenant:acme:Workspace:main", "Task", task_name)
+            .await
+            .unwrap()
+            .unwrap();
+        let phase = match task_resource.status.unwrap().kind.unwrap() {
+            resources_proto::resource_status::Kind::Task(status) => status.phase,
+            _ => panic!("expected Task status"),
+        };
+        assert_eq!(phase, resources_proto::TaskPhase::Running as i32);
+        assert!(session_text_messages(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+        )
+        .await
+        .is_empty());
+    }
+
+    #[tokio::test]
+    async fn delegate_task_failure_wakes_owner_session() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        seed_agent(kv.as_ref(), "Tenant:acme:Operations", "support-agent").await;
+        seed_session(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+        )
+        .await;
+        let cp = control_plane(kv.clone(), scheduler);
+        let spec = task_spec_with_internal_connection(
+            &["create"],
+            "support",
+            "Tenant:acme:Operations",
+            "support-agent",
+        );
+
+        let created = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Prepare checklist",
+                "description": "Create a reviewed checklist.",
+                "connection": "support"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let created: Value = serde_json::from_str(&created).unwrap();
+        let task_name = created["task"]["name"].as_str().unwrap();
+        let child_session_id = created["task"]["executionRef"]["sessionId"]
+            .as_str()
+            .unwrap();
+        let child_session = kv
+            .get_msg::<data_proto::Session>(&keys::session(
+                "Tenant:acme:Operations",
+                "support-agent",
+                child_session_id,
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+
+        set_session_status(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            "PROCESSING",
+        )
+        .await;
+        let task = delegation::complete_delegated_task_from_session(
+            &cp,
+            &child_session,
+            delegation::DelegatedSessionCompletion::Failed,
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(
+            task.status.as_ref().unwrap().phase,
+            resources_proto::TaskPhase::Failed as i32
+        );
+        assert_eq!(task.name(), task_name);
+        assert!(session_text_messages(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+        )
+        .await
+        .is_empty());
+
+        set_session_status(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            "IDLE",
+        )
+        .await;
+        let owner_session = kv
+            .get_msg::<data_proto::Session>(&keys::session(
+                "Tenant:acme:Workspace:main",
+                "ops-lead",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        delegation::retry_owner_wakes_for_session(&cp, &owner_session)
+            .await
+            .unwrap();
+
+        let owner_messages = session_text_messages(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+        )
+        .await;
+        assert!(owner_messages
+            .iter()
+            .any(|message| message.contains("Delegated Task failed.")));
+    }
+
+    #[tokio::test]
+    async fn delegate_task_rejects_unknown_external_and_raw_delegate_targets() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let spec = task_spec_with_internal_connection(
+            &["create"],
+            "support",
+            "Tenant:acme:Operations",
+            "support-agent",
+        );
+
+        let unknown = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "connection": "missing",
+                "title": "Prepare checklist",
+                "description": "Create a reviewed checklist."
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(unknown.to_string().contains("valid connections: support"));
+
+        let raw = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "connection": "support",
+                "title": "Prepare checklist",
+                "description": "Create a reviewed checklist.",
+                "delegate_name": "support-agent"
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(raw.to_string().contains("delegate_name"));
+
+        let external_spec = task_spec_with_external_connection(&["create"], "remote");
+        let external = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &external_spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "connection": "remote",
+                "title": "Prepare checklist",
+                "description": "Create a reviewed checklist."
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(external.to_string().contains("external A2A connection"));
     }
 
     #[tokio::test]

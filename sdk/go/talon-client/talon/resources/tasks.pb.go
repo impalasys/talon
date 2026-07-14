@@ -28,14 +28,14 @@ const (
 	// No phase has been set. Writers should avoid persisting this outside
 	// partially initialized records.
 	TaskPhase_TASK_PHASE_UNSPECIFIED TaskPhase = 0
-	// The task exists but no assignee execution has started.
+	// The task exists but no delegate execution has started.
 	TaskPhase_TASK_PHASE_QUEUED TaskPhase = 1
-	// The assignee is actively working on the task.
+	// The delegate is actively working on the task.
 	TaskPhase_TASK_PHASE_RUNNING TaskPhase = 2
 	// Progress is blocked on user input, permissions, dependencies, or another
 	// external condition.
 	TaskPhase_TASK_PHASE_BLOCKED TaskPhase = 3
-	// Work is complete enough for the requester or another reviewer to inspect.
+	// Work is complete enough for the owner or another reviewer to inspect.
 	TaskPhase_TASK_PHASE_NEEDS_REVIEW TaskPhase = 4
 	// The task completed successfully.
 	TaskPhase_TASK_PHASE_SUCCEEDED TaskPhase = 5
@@ -171,9 +171,9 @@ type TaskSpec struct {
 	// application-specific string when the caller needs a stable category.
 	Type string `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
 	// Agent resource that created and owns follow-up responsibility for the task.
-	Requester *ResourceRef `protobuf:"bytes,4,opt,name=requester,proto3" json:"requester,omitempty"`
+	Owner *ResourceRef `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
 	// Agent resource intended to perform the work.
-	Assignee      *ResourceRef `protobuf:"bytes,5,opt,name=assignee,proto3" json:"assignee,omitempty"`
+	Delegate      *ResourceRef `protobuf:"bytes,5,opt,name=delegate,proto3" json:"delegate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -229,16 +229,16 @@ func (x *TaskSpec) GetType() string {
 	return ""
 }
 
-func (x *TaskSpec) GetRequester() *ResourceRef {
+func (x *TaskSpec) GetOwner() *ResourceRef {
 	if x != nil {
-		return x.Requester
+		return x.Owner
 	}
 	return nil
 }
 
-func (x *TaskSpec) GetAssignee() *ResourceRef {
+func (x *TaskSpec) GetDelegate() *ResourceRef {
 	if x != nil {
-		return x.Assignee
+		return x.Delegate
 	}
 	return nil
 }
@@ -332,7 +332,7 @@ type TaskStatus struct {
 	UpdatedAt          int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	CompletedAt        int64                  `protobuf:"varint,8,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
 	ExpiresAt          int64                  `protobuf:"varint,9,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	// Concrete runtime execution once an assignee session or run is known.
+	// Concrete runtime execution once a delegate session or run is known.
 	ExecutionRef  *TaskExecutionRef `protobuf:"bytes,10,opt,name=execution_ref,json=executionRef,proto3" json:"execution_ref,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -446,13 +446,13 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\x04Task\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12-\n" +
 	"\x04spec\x18\x02 \x01(\v2\x19.talon.resources.TaskSpecR\x04spec\x123\n" +
-	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\xcc\x01\n" +
+	"\x06status\x18\x03 \x01(\v2\x1b.talon.resources.TaskStatusR\x06status\"\xc4\x01\n" +
 	"\bTaskSpec\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x12\n" +
-	"\x04type\x18\x03 \x01(\tR\x04type\x12:\n" +
-	"\trequester\x18\x04 \x01(\v2\x1c.talon.resources.ResourceRefR\trequester\x128\n" +
-	"\bassignee\x18\x05 \x01(\v2\x1c.talon.resources.ResourceRefR\bassignee\"\x8e\x01\n" +
+	"\x04type\x18\x03 \x01(\tR\x04type\x122\n" +
+	"\x05owner\x18\x04 \x01(\v2\x1c.talon.resources.ResourceRefR\x05owner\x128\n" +
+	"\bdelegate\x18\x05 \x01(\v2\x1c.talon.resources.ResourceRefR\bdelegate\"\x8e\x01\n" +
 	"\x10TaskExecutionRef\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1c\n" +
 	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12\x12\n" +
@@ -518,8 +518,8 @@ var file_proto_resources_tasks_proto_depIdxs = []int32{
 	5, // 0: talon.resources.Task.metadata:type_name -> talon.resources.ResourceMeta
 	2, // 1: talon.resources.Task.spec:type_name -> talon.resources.TaskSpec
 	4, // 2: talon.resources.Task.status:type_name -> talon.resources.TaskStatus
-	6, // 3: talon.resources.TaskSpec.requester:type_name -> talon.resources.ResourceRef
-	6, // 4: talon.resources.TaskSpec.assignee:type_name -> talon.resources.ResourceRef
+	6, // 3: talon.resources.TaskSpec.owner:type_name -> talon.resources.ResourceRef
+	6, // 4: talon.resources.TaskSpec.delegate:type_name -> talon.resources.ResourceRef
 	0, // 5: talon.resources.TaskStatus.phase:type_name -> talon.resources.TaskPhase
 	7, // 6: talon.resources.TaskStatus.conditions:type_name -> talon.resources.ResourceCondition
 	8, // 7: talon.resources.TaskStatus.result_artifacts:type_name -> talon.resources.FileObjectRef

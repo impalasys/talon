@@ -23,14 +23,14 @@ export enum TaskPhase {
   UNSPECIFIED = 0,
 
   /**
-   * The task exists but no assignee execution has started.
+   * The task exists but no delegate execution has started.
    *
    * @generated from enum value: TASK_PHASE_QUEUED = 1;
    */
   QUEUED = 1,
 
   /**
-   * The assignee is actively working on the task.
+   * The delegate is actively working on the task.
    *
    * @generated from enum value: TASK_PHASE_RUNNING = 2;
    */
@@ -45,7 +45,7 @@ export enum TaskPhase {
   BLOCKED = 3,
 
   /**
-   * Work is complete enough for the requester or another reviewer to inspect.
+   * Work is complete enough for the owner or another reviewer to inspect.
    *
    * @generated from enum value: TASK_PHASE_NEEDS_REVIEW = 4;
    */
@@ -169,16 +169,16 @@ export class TaskSpec extends Message<TaskSpec> {
   /**
    * Agent resource that created and owns follow-up responsibility for the task.
    *
-   * @generated from field: talon.resources.ResourceRef requester = 4;
+   * @generated from field: talon.resources.ResourceRef owner = 4;
    */
-  requester?: ResourceRef;
+  owner?: ResourceRef;
 
   /**
    * Agent resource intended to perform the work.
    *
-   * @generated from field: talon.resources.ResourceRef assignee = 5;
+   * @generated from field: talon.resources.ResourceRef delegate = 5;
    */
-  assignee?: ResourceRef;
+  delegate?: ResourceRef;
 
   constructor(data?: PartialMessage<TaskSpec>) {
     super();
@@ -191,8 +191,8 @@ export class TaskSpec extends Message<TaskSpec> {
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "requester", kind: "message", T: ResourceRef },
-    { no: 5, name: "assignee", kind: "message", T: ResourceRef },
+    { no: 4, name: "owner", kind: "message", T: ResourceRef },
+    { no: 5, name: "delegate", kind: "message", T: ResourceRef },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TaskSpec {
@@ -326,7 +326,7 @@ export class TaskStatus extends Message<TaskStatus> {
   expiresAt = protoInt64.zero;
 
   /**
-   * Concrete runtime execution once an assignee session or run is known.
+   * Concrete runtime execution once a delegate session or run is known.
    *
    * @generated from field: talon.resources.TaskExecutionRef execution_ref = 10;
    */

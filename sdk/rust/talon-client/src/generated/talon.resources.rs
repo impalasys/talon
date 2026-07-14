@@ -1150,10 +1150,10 @@ pub struct TaskSpec {
     pub r#type: ::prost::alloc::string::String,
     /// Agent resource that created and owns follow-up responsibility for the task.
     #[prost(message, optional, tag = "4")]
-    pub requester: ::core::option::Option<ResourceRef>,
+    pub owner: ::core::option::Option<ResourceRef>,
     /// Agent resource intended to perform the work.
     #[prost(message, optional, tag = "5")]
-    pub assignee: ::core::option::Option<ResourceRef>,
+    pub delegate: ::core::option::Option<ResourceRef>,
 }
 /// Runtime location of the work that is fulfilling the task. This may be absent
 /// while queued and filled in after async delegation starts.
@@ -1190,7 +1190,7 @@ pub struct TaskStatus {
     pub completed_at: i64,
     #[prost(int64, tag = "9")]
     pub expires_at: i64,
-    /// Concrete runtime execution once an assignee session or run is known.
+    /// Concrete runtime execution once a delegate session or run is known.
     #[prost(message, optional, tag = "10")]
     pub execution_ref: ::core::option::Option<TaskExecutionRef>,
 }
@@ -1201,14 +1201,14 @@ pub enum TaskPhase {
     /// No phase has been set. Writers should avoid persisting this outside
     /// partially initialized records.
     Unspecified = 0,
-    /// The task exists but no assignee execution has started.
+    /// The task exists but no delegate execution has started.
     Queued = 1,
-    /// The assignee is actively working on the task.
+    /// The delegate is actively working on the task.
     Running = 2,
     /// Progress is blocked on user input, permissions, dependencies, or another
     /// external condition.
     Blocked = 3,
-    /// Work is complete enough for the requester or another reviewer to inspect.
+    /// Work is complete enough for the owner or another reviewer to inspect.
     NeedsReview = 4,
     /// The task completed successfully.
     Succeeded = 5,

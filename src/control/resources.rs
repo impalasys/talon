@@ -310,6 +310,35 @@ impl ResourceStore {
         .await
     }
 
+    pub async fn patch_status_with<F>(
+        &self,
+        namespace: &str,
+        kind: &str,
+        name: &str,
+        expected_resource_version: Option<&str>,
+        mut update: F,
+    ) -> Result<resources_proto::Resource>
+    where
+        F: FnMut(
+            Option<&resources_proto::ResourceMeta>,
+            &mut resources_proto::ResourceStatus,
+        ) -> Result<()>,
+    {
+        self.patch_resource(
+            namespace,
+            kind,
+            name,
+            expected_resource_version,
+            |resource| {
+                let mut status = resource.status.take().unwrap_or_default();
+                update(resource.metadata.as_ref(), &mut status)?;
+                resource.status = Some(status);
+                Ok(vec!["metadata", "status"])
+            },
+        )
+        .await
+    }
+
     async fn patch_resource<F>(
         &self,
         namespace: &str,

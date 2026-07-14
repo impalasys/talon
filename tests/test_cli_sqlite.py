@@ -371,10 +371,10 @@ spec:
   title: Launch copy
   description: Draft launch copy.
   type: agent_delegation
-  requester:
+  owner:
     namespace: {namespace}
     name: cmo
-  assignee:
+  delegate:
     namespace: {namespace}
     name: writer
 """

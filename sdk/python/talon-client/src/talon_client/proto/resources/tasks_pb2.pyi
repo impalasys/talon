@@ -41,18 +41,18 @@ class Task(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_common_pb2.ResourceMeta, _Mapping]] = ..., spec: _Optional[_Union[TaskSpec, _Mapping]] = ..., status: _Optional[_Union[TaskStatus, _Mapping]] = ...) -> None: ...
 
 class TaskSpec(_message.Message):
-    __slots__ = ("title", "description", "type", "requester", "assignee")
+    __slots__ = ("title", "description", "type", "owner", "delegate")
     TITLE_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
-    REQUESTER_FIELD_NUMBER: _ClassVar[int]
-    ASSIGNEE_FIELD_NUMBER: _ClassVar[int]
+    OWNER_FIELD_NUMBER: _ClassVar[int]
+    DELEGATE_FIELD_NUMBER: _ClassVar[int]
     title: str
     description: str
     type: str
-    requester: _common_pb2.ResourceRef
-    assignee: _common_pb2.ResourceRef
-    def __init__(self, title: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[str] = ..., requester: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., assignee: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ...) -> None: ...
+    owner: _common_pb2.ResourceRef
+    delegate: _common_pb2.ResourceRef
+    def __init__(self, title: _Optional[str] = ..., description: _Optional[str] = ..., type: _Optional[str] = ..., owner: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ..., delegate: _Optional[_Union[_common_pb2.ResourceRef, _Mapping]] = ...) -> None: ...
 
 class TaskExecutionRef(_message.Message):
     __slots__ = ("kind", "namespace", "name", "session_id", "run_id")
