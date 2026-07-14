@@ -310,10 +310,8 @@ def test_delegate_task_creates_durable_child_session(
     assert reviewed_task.status.task.phase == 4
     assert "onboarding" in reviewed_task.status.task.progress_summary.lower()
     assert "artifact" in reviewed_task.status.task.progress_summary.lower()
-    assert reviewed_task.status.task.result_artifacts
-    artifact_uri = (
-        reviewed_task.status.task.result_artifacts[0].metadata.get("artifact_uri", "")
-    )
+    assert reviewed_task.status.task.output_artifact_uris
+    artifact_uri = reviewed_task.status.task.output_artifact_uris[0]
     assert artifact_uri.startswith(f"artifact://{worker_namespace}/worker-agent/")
 
     worker_tool_results = [
@@ -553,17 +551,10 @@ def test_legal_document_refinement_delegation_returns_redline_artifact(
 
     assert reviewed_task is not None
     assert reviewed_task.status.task.phase == 4
-    assert reviewed_task.status.task.result_artifacts
-    artifact_uri = reviewed_task.status.task.result_artifacts[0].metadata.get(
-        "artifact_uri",
-        "",
-    )
+    assert reviewed_task.status.task.output_artifact_uris
+    artifact_uri = reviewed_task.status.task.output_artifact_uris[0]
     assert artifact_uri.startswith(
         f"artifact://{reviewer_namespace}/legal-reviewer-agent/"
-    )
-    assert (
-        reviewed_task.status.task.result_artifacts[0].metadata.get("content_type")
-        == "legal_redline"
     )
 
     for _ in range(45):

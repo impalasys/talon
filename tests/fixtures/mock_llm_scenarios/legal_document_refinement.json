@@ -66,8 +66,25 @@
       "id": "legal_artifact_followup",
       "tool_call_id": "call_create_legal_redline_artifact_1",
       "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_update_legal_redline_task_1",
+        "tool_name": "update_task",
+        "content": "I will attach the redline artifact to the task. ",
+        "arguments": {
+          "namespace": "{{task_namespace}}",
+          "name": "{{task_name}}",
+          "phase": "NEEDS_REVIEW",
+          "progress_summary": "Created legal redline artifact for review.",
+          "output_artifact_uri": "{{artifact_uri}}"
+        }
+      }
+    },
+    {
+      "id": "legal_update_followup",
+      "tool_call_id": "call_update_legal_redline_task_1",
+      "response": {
         "type": "text",
-        "content": "I created the legal redline artifact."
+        "content": "I attached the legal redline artifact to the task."
       }
     },
     {

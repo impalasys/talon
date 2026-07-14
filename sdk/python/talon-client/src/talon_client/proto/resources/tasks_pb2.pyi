@@ -69,7 +69,7 @@ class TaskExecutionRef(_message.Message):
     def __init__(self, kind: _Optional[str] = ..., namespace: _Optional[str] = ..., name: _Optional[str] = ..., session_id: _Optional[str] = ..., run_id: _Optional[str] = ...) -> None: ...
 
 class TaskStatus(_message.Message):
-    __slots__ = ("observed_generation", "phase", "conditions", "progress_summary", "result_artifacts", "created_at", "updated_at", "completed_at", "expires_at", "execution_ref")
+    __slots__ = ("observed_generation", "phase", "conditions", "progress_summary", "result_artifacts", "created_at", "updated_at", "completed_at", "expires_at", "execution_ref", "output_artifact_uris")
     OBSERVED_GENERATION_FIELD_NUMBER: _ClassVar[int]
     PHASE_FIELD_NUMBER: _ClassVar[int]
     CONDITIONS_FIELD_NUMBER: _ClassVar[int]
@@ -80,6 +80,7 @@ class TaskStatus(_message.Message):
     COMPLETED_AT_FIELD_NUMBER: _ClassVar[int]
     EXPIRES_AT_FIELD_NUMBER: _ClassVar[int]
     EXECUTION_REF_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_ARTIFACT_URIS_FIELD_NUMBER: _ClassVar[int]
     observed_generation: int
     phase: TaskPhase
     conditions: _containers.RepeatedCompositeFieldContainer[_common_pb2.ResourceCondition]
@@ -90,4 +91,5 @@ class TaskStatus(_message.Message):
     completed_at: int
     expires_at: int
     execution_ref: TaskExecutionRef
-    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[_Union[TaskPhase, str]] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., progress_summary: _Optional[str] = ..., result_artifacts: _Optional[_Iterable[_Union[_files_pb2.FileObjectRef, _Mapping]]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., completed_at: _Optional[int] = ..., expires_at: _Optional[int] = ..., execution_ref: _Optional[_Union[TaskExecutionRef, _Mapping]] = ...) -> None: ...
+    output_artifact_uris: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, observed_generation: _Optional[int] = ..., phase: _Optional[_Union[TaskPhase, str]] = ..., conditions: _Optional[_Iterable[_Union[_common_pb2.ResourceCondition, _Mapping]]] = ..., progress_summary: _Optional[str] = ..., result_artifacts: _Optional[_Iterable[_Union[_files_pb2.FileObjectRef, _Mapping]]] = ..., created_at: _Optional[int] = ..., updated_at: _Optional[int] = ..., completed_at: _Optional[int] = ..., expires_at: _Optional[int] = ..., execution_ref: _Optional[_Union[TaskExecutionRef, _Mapping]] = ..., output_artifact_uris: _Optional[_Iterable[str]] = ...) -> None: ...
