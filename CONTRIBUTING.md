@@ -36,10 +36,20 @@ tests/                Python end-to-end tests
 
 ## Validation
 
+To enable the repository pre-push hook in a worktree, run:
+
+```bash
+cargo install-hooks
+```
+
+This sets `core.hooksPath` to `.githooks`. After that, `git push` runs the Rust
+validation checks below before sending commits to the remote.
+
 Before opening a pull request, run:
 
 ```bash
 cargo metadata --locked
+cargo fmt --all --check
 cargo build --locked --bins
 cargo test --locked
 ```

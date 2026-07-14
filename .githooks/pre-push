@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+set -eu
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+run() {
+  printf '\n==> %s\n' "$*"
+  "$@"
+}
+
+printf '\n==> cargo metadata --locked\n'
+cargo metadata --locked >/dev/null
+run cargo fmt --all --check
+run cargo build --locked --bins
+run cargo test --locked
