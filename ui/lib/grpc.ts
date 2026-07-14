@@ -90,12 +90,10 @@ export function isExpiredSignatureAuthError(error: unknown) {
   };
   const message = `${candidate?.rawMessage || candidate?.message || candidate?.cause?.message || ""}`.toLowerCase();
   const code = `${candidate?.codeName || candidate?.code || ""}`.toLowerCase();
-  const normalizedMessage = message.replace(/[\s_-]+/g, "");
-  const authText = `${message} ${code}`;
   return (
+    message.includes("expired signature") ||
     message.includes("signature has expired") ||
-    normalizedMessage.includes("expiredsignature") ||
-    (authText.includes("unauthenticated") && message.includes("expired"))
+    (code.includes("unauthenticated") && message.includes("expired"))
   );
 }
 
