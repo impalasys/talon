@@ -57,7 +57,7 @@ impl AgentRuntime {
         config: &Config,
         mcp_registry: &McpRegistry,
     ) -> Result<Self> {
-        let spec = agent
+        let mut spec = agent
             .spec
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' has no spec", agent_id))?;
         let session = cp
@@ -66,6 +66,13 @@ impl AgentRuntime {
                 ns, agent_id, session_id,
             ))
             .await?;
+        let mut is_delegated_task_session = session.as_ref().is_some_and(|session| {
+            session
+                .labels
+                .get(crate::control::delegation::LABEL_TASK_ROLE)
+                .map(String::as_str)
+                == Some("delegate")
+        });
         let allow_channel_reply_tools = session
             .as_ref()
             .map(|session| {
@@ -87,6 +94,14 @@ impl AgentRuntime {
         let mut history = Vec::new();
         for (_, value) in msg_entries {
             if let Ok(msg) = data_proto::SessionMessage::decode(value.as_slice()) {
+                if msg
+                    .labels
+                    .get(crate::control::delegation::LABEL_TASK_ROLE)
+                    .map(String::as_str)
+                    == Some("delegate")
+                {
+                    is_delegated_task_session = true;
+                }
                 if msg.role == data_proto::MessageRole::RoleAssistant as i32
                     && !assistant_projection_is_replayable(&msg)
                 {
@@ -94,6 +109,9 @@ impl AgentRuntime {
                 }
                 history.extend(session_message_to_loop_messages(&msg, cp.objects.as_ref()).await?);
             }
+        }
+        if is_delegated_task_session {
+            add_capability_action(&mut spec, "tasks", "update");
         }
         if let Some(goal_context) =
             crate::harness::native_tools::active_goals_context(cp, ns, agent_id, session_id).await?
@@ -302,6 +320,23 @@ fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: 
         .unwrap_or(false)
 }
 
+fn add_capability_action(spec: &mut manifests::AgentSpec, capability: &str, action: &str) {
+    let actions = spec.capabilities.entry(capability.to_string()).or_default();
+    if actions.values.iter().any(|value| {
+        matches!(
+            value.kind.as_ref(),
+            Some(ProtoValueKind::StringValue(current)) if current == action
+        )
+    }) {
+        return;
+    }
+    actions
+        .values
+        .push(crate::gateway::rpc::protobuf_value::Value {
+            kind: Some(ProtoValueKind::StringValue(action.to_string())),
+        });
+}
+
 fn builtin_tool_names() -> &'static [&'static str] {
     &[
         crate::harness::native_tools::CREATE_SCHEDULE_TOOL,
@@ -311,6 +346,7 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::DELETE_SCHEDULE_TOOL,
         crate::harness::native_tools::CREATE_GOAL_TOOL,
         crate::harness::native_tools::DELEGATE_TASK_TOOL,
+        crate::harness::native_tools::UPDATE_TASK_TOOL,
         crate::harness::native_tools::GET_GOAL_TOOL,
         crate::harness::native_tools::LIST_GOALS_TOOL,
         crate::harness::native_tools::UPDATE_GOAL_TOOL,
@@ -846,6 +882,57 @@ mod tests {
         assert!(!no_reply_registry
             .tools
             .contains_key(crate::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL));
+    }
+
+    #[tokio::test]
+    async fn delegated_task_session_gets_update_task_tool() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            post_history_prompt: String::new(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+            a2a: None,
+            runtime: None,
+        };
+
+        put_agent_resource(kv.clone(), "delegate-ns", "writer", Some(spec)).await;
+        kv.set_msg(
+            &crate::control::keys::session("delegate-ns", "writer", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "writer".to_string(),
+                ns: "delegate-ns".to_string(),
+                status: "active".to_string(),
+                labels: HashMap::from([(
+                    crate::control::delegation::LABEL_TASK_ROLE.to_string(),
+                    "delegate".to_string(),
+                )]),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+
+        let runtime = AgentRuntime::build(
+            "delegate-ns",
+            "writer",
+            "session-1",
+            &cp,
+            &config,
+            &registry,
+        )
+        .await
+        .unwrap();
+        let runtime_registry = runtime.executor.registry.read().await;
+        assert!(runtime_registry
+            .tools
+            .contains_key(crate::harness::native_tools::UPDATE_TASK_TOOL));
     }
 
     #[tokio::test]

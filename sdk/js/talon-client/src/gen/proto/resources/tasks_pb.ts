@@ -332,6 +332,13 @@ export class TaskStatus extends Message<TaskStatus> {
    */
   executionRef?: TaskExecutionRef;
 
+  /**
+   * Artifact URI outputs explicitly attached by the task executor.
+   *
+   * @generated from field: repeated string output_artifact_uris = 11;
+   */
+  outputArtifactUris: string[] = [];
+
   constructor(data?: PartialMessage<TaskStatus>) {
     super();
     proto3.util.initPartial(data, this);
@@ -350,6 +357,7 @@ export class TaskStatus extends Message<TaskStatus> {
     { no: 8, name: "completed_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 9, name: "expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 10, name: "execution_ref", kind: "message", T: TaskExecutionRef },
+    { no: 11, name: "output_artifact_uris", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TaskStatus {

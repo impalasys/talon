@@ -3920,6 +3920,47 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
      * <code>.talon.resources.TaskExecutionRef execution_ref = 10;</code>
      */
     talon.resources.Tasks.TaskExecutionRefOrBuilder getExecutionRefOrBuilder();
+
+    /**
+     * <pre>
+     * Artifact URI outputs explicitly attached by the task executor.
+     * </pre>
+     *
+     * <code>repeated string output_artifact_uris = 11;</code>
+     * @return A list containing the outputArtifactUris.
+     */
+    java.util.List<java.lang.String>
+        getOutputArtifactUrisList();
+    /**
+     * <pre>
+     * Artifact URI outputs explicitly attached by the task executor.
+     * </pre>
+     *
+     * <code>repeated string output_artifact_uris = 11;</code>
+     * @return The count of outputArtifactUris.
+     */
+    int getOutputArtifactUrisCount();
+    /**
+     * <pre>
+     * Artifact URI outputs explicitly attached by the task executor.
+     * </pre>
+     *
+     * <code>repeated string output_artifact_uris = 11;</code>
+     * @param index The index of the element to return.
+     * @return The outputArtifactUris at the given index.
+     */
+    java.lang.String getOutputArtifactUris(int index);
+    /**
+     * <pre>
+     * Artifact URI outputs explicitly attached by the task executor.
+     * </pre>
+     *
+     * <code>repeated string output_artifact_uris = 11;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the outputArtifactUris at the given index.
+     */
+    com.google.protobuf.ByteString
+        getOutputArtifactUrisBytes(int index);
   }
   /**
    * Protobuf type {@code talon.resources.TaskStatus}
@@ -3947,6 +3988,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       conditions_ = java.util.Collections.emptyList();
       progressSummary_ = "";
       resultArtifacts_ = java.util.Collections.emptyList();
+      outputArtifactUris_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -4200,6 +4243,59 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       return executionRef_ == null ? talon.resources.Tasks.TaskExecutionRef.getDefaultInstance() : executionRef_;
     }
 
+    public static final int OUTPUT_ARTIFACT_URIS_FIELD_NUMBER = 11;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList outputArtifactUris_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <pre>
+     * Artifact URI outputs explicitly attached by the task executor.
+     * </pre>
+     *
+     * <code>repeated string output_artifact_uris = 11;</code>
+     * @return A list containing the outputArtifactUris.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getOutputArtifactUrisList() {
+      return outputArtifactUris_;
+    }
+    /**
+     * <pre>
+     * Artifact URI outputs explicitly attached by the task executor.
+     * </pre>
+     *
+     * <code>repeated string output_artifact_uris = 11;</code>
+     * @return The count of outputArtifactUris.
+     */
+    public int getOutputArtifactUrisCount() {
+      return outputArtifactUris_.size();
+    }
+    /**
+     * <pre>
+     * Artifact URI outputs explicitly attached by the task executor.
+     * </pre>
+     *
+     * <code>repeated string output_artifact_uris = 11;</code>
+     * @param index The index of the element to return.
+     * @return The outputArtifactUris at the given index.
+     */
+    public java.lang.String getOutputArtifactUris(int index) {
+      return outputArtifactUris_.get(index);
+    }
+    /**
+     * <pre>
+     * Artifact URI outputs explicitly attached by the task executor.
+     * </pre>
+     *
+     * <code>repeated string output_artifact_uris = 11;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the outputArtifactUris at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getOutputArtifactUrisBytes(int index) {
+      return outputArtifactUris_.getByteString(index);
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -4243,6 +4339,9 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(10, getExecutionRef());
+      }
+      for (int i = 0; i < outputArtifactUris_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 11, outputArtifactUris_.getRaw(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -4302,6 +4401,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(10, getExecutionRef());
       }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < outputArtifactUris_.size(); i++) {
+          dataSize += computeStringSizeNoTag(outputArtifactUris_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getOutputArtifactUrisList().size();
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -4339,6 +4446,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         if (!getExecutionRef()
             .equals(other.getExecutionRef())) return false;
       }
+      if (!getOutputArtifactUrisList()
+          .equals(other.getOutputArtifactUrisList())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -4380,6 +4489,10 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       if (hasExecutionRef()) {
         hash = (37 * hash) + EXECUTION_REF_FIELD_NUMBER;
         hash = (53 * hash) + getExecutionRef().hashCode();
+      }
+      if (getOutputArtifactUrisCount() > 0) {
+        hash = (37 * hash) + OUTPUT_ARTIFACT_URIS_FIELD_NUMBER;
+        hash = (53 * hash) + getOutputArtifactUrisList().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -4546,6 +4659,8 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
           executionRefBuilder_.dispose();
           executionRefBuilder_ = null;
         }
+        outputArtifactUris_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
         return this;
       }
 
@@ -4628,6 +4743,10 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
               ? executionRef_
               : executionRefBuilder_.build();
           to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000400) != 0)) {
+          outputArtifactUris_.makeImmutable();
+          result.outputArtifactUris_ = outputArtifactUris_;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -4721,6 +4840,16 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         }
         if (other.hasExecutionRef()) {
           mergeExecutionRef(other.getExecutionRef());
+        }
+        if (!other.outputArtifactUris_.isEmpty()) {
+          if (outputArtifactUris_.isEmpty()) {
+            outputArtifactUris_ = other.outputArtifactUris_;
+            bitField0_ |= 0x00000400;
+          } else {
+            ensureOutputArtifactUrisIsMutable();
+            outputArtifactUris_.addAll(other.outputArtifactUris_);
+          }
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -4816,6 +4945,11 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000200;
                 break;
               } // case 82
+              case 90: {
+                ensureOutputArtifactUrisIsMutable();
+                outputArtifactUris_.add(input.readStringRequireUtf8());
+                break;
+              } // case 90
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -5754,6 +5888,153 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
         return executionRefBuilder_;
       }
 
+      private com.google.protobuf.LazyStringArrayList outputArtifactUris_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureOutputArtifactUrisIsMutable() {
+        if (!outputArtifactUris_.isModifiable()) {
+          outputArtifactUris_ = new com.google.protobuf.LazyStringArrayList(outputArtifactUris_);
+        }
+        bitField0_ |= 0x00000400;
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @return A list containing the outputArtifactUris.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getOutputArtifactUrisList() {
+        outputArtifactUris_.makeImmutable();
+        return outputArtifactUris_;
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @return The count of outputArtifactUris.
+       */
+      public int getOutputArtifactUrisCount() {
+        return outputArtifactUris_.size();
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @param index The index of the element to return.
+       * @return The outputArtifactUris at the given index.
+       */
+      public java.lang.String getOutputArtifactUris(int index) {
+        return outputArtifactUris_.get(index);
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the outputArtifactUris at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getOutputArtifactUrisBytes(int index) {
+        return outputArtifactUris_.getByteString(index);
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @param index The index to set the value at.
+       * @param value The outputArtifactUris to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputArtifactUris(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOutputArtifactUrisIsMutable();
+        outputArtifactUris_.set(index, value);
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @param value The outputArtifactUris to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOutputArtifactUris(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOutputArtifactUrisIsMutable();
+        outputArtifactUris_.add(value);
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @param values The outputArtifactUris to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllOutputArtifactUris(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureOutputArtifactUrisIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, outputArtifactUris_);
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputArtifactUris() {
+        outputArtifactUris_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000400);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Artifact URI outputs explicitly attached by the task executor.
+       * </pre>
+       *
+       * <code>repeated string output_artifact_uris = 11;</code>
+       * @param value The bytes of the outputArtifactUris to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOutputArtifactUrisBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureOutputArtifactUrisIsMutable();
+        outputArtifactUris_.add(value);
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.resources.TaskStatus)
     }
 
@@ -5846,7 +6127,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       "\010delegate\030\005 \001(\0132\034.talon.resources.Resour" +
       "ceRef\"e\n\020TaskExecutionRef\022\014\n\004kind\030\001 \001(\t\022" +
       "\021\n\tnamespace\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\022\n\nsess" +
-      "ion_id\030\004 \001(\t\022\016\n\006run_id\030\005 \001(\t\"\354\002\n\nTaskSta" +
+      "ion_id\030\004 \001(\t\022\016\n\006run_id\030\005 \001(\t\"\212\003\n\nTaskSta" +
       "tus\022\033\n\023observed_generation\030\001 \001(\004\022)\n\005phas" +
       "e\030\002 \001(\0162\032.talon.resources.TaskPhase\0226\n\nc" +
       "onditions\030\003 \003(\0132\".talon.resources.Resour" +
@@ -5855,14 +6136,14 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
       "s.FileObjectRef\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nu" +
       "pdated_at\030\007 \001(\003\022\024\n\014completed_at\030\010 \001(\003\022\022\n" +
       "\nexpires_at\030\t \001(\003\0228\n\rexecution_ref\030\n \001(\013" +
-      "2!.talon.resources.TaskExecutionRef*\355\001\n\t" +
-      "TaskPhase\022\032\n\026TASK_PHASE_UNSPECIFIED\020\000\022\025\n" +
-      "\021TASK_PHASE_QUEUED\020\001\022\026\n\022TASK_PHASE_RUNNI" +
-      "NG\020\002\022\026\n\022TASK_PHASE_BLOCKED\020\003\022\033\n\027TASK_PHA" +
-      "SE_NEEDS_REVIEW\020\004\022\030\n\024TASK_PHASE_SUCCEEDE" +
-      "D\020\005\022\025\n\021TASK_PHASE_FAILED\020\006\022\027\n\023TASK_PHASE" +
-      "_CANCELED\020\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b\006pro" +
-      "to3"
+      "2!.talon.resources.TaskExecutionRef\022\034\n\024o" +
+      "utput_artifact_uris\030\013 \003(\t*\355\001\n\tTaskPhase\022" +
+      "\032\n\026TASK_PHASE_UNSPECIFIED\020\000\022\025\n\021TASK_PHAS" +
+      "E_QUEUED\020\001\022\026\n\022TASK_PHASE_RUNNING\020\002\022\026\n\022TA" +
+      "SK_PHASE_BLOCKED\020\003\022\033\n\027TASK_PHASE_NEEDS_R" +
+      "EVIEW\020\004\022\030\n\024TASK_PHASE_SUCCEEDED\020\005\022\025\n\021TAS" +
+      "K_PHASE_FAILED\020\006\022\027\n\023TASK_PHASE_CANCELED\020" +
+      "\007\022\026\n\022TASK_PHASE_EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5893,7 +6174,7 @@ public final class Tasks extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_TaskStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_TaskStatus_descriptor,
-        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "ProgressSummary", "ResultArtifacts", "CreatedAt", "UpdatedAt", "CompletedAt", "ExpiresAt", "ExecutionRef", });
+        new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "ProgressSummary", "ResultArtifacts", "CreatedAt", "UpdatedAt", "CompletedAt", "ExpiresAt", "ExecutionRef", "OutputArtifactUris", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Common.getDescriptor();
     talon.resources.Files.getDescriptor();
