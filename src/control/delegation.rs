@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, scheduling, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{keys, scheduling, ControlPlane, Order, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 // Task resource label: marks a Task as created through agent delegation.
@@ -532,30 +532,36 @@ async fn latest_assistant_text(
     agent: &str,
     session_id: &str,
 ) -> Result<Option<String>> {
-    let mut entries = cp
-        .kv
-        .list_entries(&keys::session_message_prefix(ns, agent, session_id))
-        .await?;
-    entries.sort_by(|left, right| right.0.name.cmp(&left.0.name));
-    for (_, bytes) in entries {
-        let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
-        if message.role != data_proto::MessageRole::RoleAssistant as i32 {
-            continue;
+    let prefix = keys::session_message_prefix(ns, agent, session_id);
+    let mut before_name = None;
+    loop {
+        let entries = cp
+            .kv
+            .list_entries_page(&prefix, before_name.as_deref(), 64)
+            .await?;
+        if entries.is_empty() {
+            return Ok(None);
         }
-        let text = message
-            .parts
-            .iter()
-            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
-            .map(|part| part.content.as_str())
-            .collect::<Vec<_>>()
-            .join("\n")
-            .trim()
-            .to_string();
-        if !text.is_empty() {
-            return Ok(Some(text));
+        before_name = entries.last().map(|(key, _)| key.name.clone());
+        for (_, bytes) in entries {
+            let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
+            if message.role != data_proto::MessageRole::RoleAssistant as i32 {
+                continue;
+            }
+            let text = message
+                .parts
+                .iter()
+                .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+                .map(|part| part.content.as_str())
+                .collect::<Vec<_>>()
+                .join("\n")
+                .trim()
+                .to_string();
+            if !text.is_empty() {
+                return Ok(Some(text));
+            }
         }
     }
-    Ok(None)
 }
 
 async fn grant_child_artifacts_to_owner(
@@ -582,11 +588,10 @@ async fn grant_child_artifacts_to_owner(
 
     let entries = cp
         .kv
-        .list_entries(&keys::artifact_prefix(
-            &session.ns,
-            &session.agent,
-            &session.id,
-        ))
+        .list_entries(
+            &keys::artifact_prefix(&session.ns, &session.agent, &session.id),
+            Order::Asc,
+        )
         .await?;
     let mut result_artifacts = Vec::new();
     let now = chrono::Utc::now().timestamp_micros();

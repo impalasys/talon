@@ -1449,7 +1449,11 @@ mod tests {
         async fn delete(&self, _k: &ResourceKey) -> anyhow::Result<()> {
             Ok(())
         }
-        async fn list_keys(&self, _list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            _list: &ResourceList,
+            _order: crate::control::Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
         async fn list_keys_page(
@@ -2320,12 +2324,10 @@ mod tests {
         sink.on_done().await;
 
         let entry_keys = kv
-            .list_keys(&keys::session_journal_entry_prefix(
-                "conic",
-                "infra",
-                "session-1",
-                "submission-1",
-            ))
+            .list_keys(
+                &keys::session_journal_entry_prefix("conic", "infra", "session-1", "submission-1"),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         let mut entries = Vec::new();

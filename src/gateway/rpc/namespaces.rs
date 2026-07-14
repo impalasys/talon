@@ -3,7 +3,7 @@
 
 use crate::control::resource_model::{self, NamespaceResourceExt, TypedResource};
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys, topics};
+use crate::control::{events, keys, topics, Order};
 use crate::gateway::rpc::{proto, resources_proto, GrpcGatewayHandler};
 use prost::Message;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -305,9 +305,14 @@ impl GrpcGatewayHandler {
         let edge_prefix =
             keys::namespace_ref_prefix((!parent.is_empty()).then_some(parent.as_str()));
 
-        let keys = self.gateway.kv.list_keys(&edge_prefix).await.map_err(|e| {
-            tonic::Status::internal(format!("Failed to list namespace references: {}", e))
-        })?;
+        let keys = self
+            .gateway
+            .kv
+            .list_keys(&edge_prefix, Order::Asc)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to list namespace references: {}", e))
+            })?;
 
         for k in keys {
             if let Ok(Some(bytes)) = self.gateway.kv.get(&k).await {
@@ -457,7 +462,11 @@ mod tests {
             Ok(())
         }
 
-        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            list: &ResourceList,
+            _order: crate::control::Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             let map = self.store.lock().await;
             let mut results = Vec::new();
             for k in map.keys() {

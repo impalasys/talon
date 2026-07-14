@@ -3,7 +3,7 @@
 
 use crate::control::{
     keys::{ResourceKey, ResourceList},
-    KeyValueStore,
+    KeyValueStore, Order,
 };
 use anyhow::{bail, Result};
 use sqlx::{pool::PoolConnection, postgres::PgPoolOptions, PgConnection, PgPool, Postgres, Row};
@@ -72,22 +72,32 @@ fn delete_query(table: &str) -> String {
     )
 }
 
-fn list_keys_query(table: &str, has_kind: bool) -> String {
+fn list_order_sql(order: Order) -> &'static str {
+    if order == Order::Desc {
+        "DESC"
+    } else {
+        "ASC"
+    }
+}
+
+fn list_keys_query(table: &str, has_kind: bool, order: Order) -> String {
     let kind_clause = if has_kind { "AND kind = $3" } else { "" };
+    let direction = list_order_sql(order);
     format!(
         "SELECT namespace, parent_path, kind, name FROM {}
          WHERE namespace = $1 AND parent_path = $2 {kind_clause}
-         ORDER BY kind ASC, name ASC",
+         ORDER BY kind {direction}, name {direction}",
         quoted_identifier(table)
     )
 }
 
-fn list_entries_query(table: &str, has_kind: bool) -> String {
+fn list_entries_query(table: &str, has_kind: bool, order: Order) -> String {
     let kind_clause = if has_kind { "AND kind = $3" } else { "" };
+    let direction = list_order_sql(order);
     format!(
         "SELECT namespace, parent_path, kind, name, value FROM {}
          WHERE namespace = $1 AND parent_path = $2 {kind_clause}
-         ORDER BY kind ASC, name ASC",
+         ORDER BY kind {direction}, name {direction}",
         quoted_identifier(table)
     )
 }
@@ -539,8 +549,8 @@ impl KeyValueStore for PostgresKvStore {
         Ok(())
     }
 
-    async fn list_keys(&self, list: &ResourceList) -> Result<Vec<ResourceKey>> {
-        let query = list_keys_query(&self.table, list.kind.is_some());
+    async fn list_keys(&self, list: &ResourceList, order: Order) -> Result<Vec<ResourceKey>> {
+        let query = list_keys_query(&self.table, list.kind.is_some(), order);
         let span = tracing::debug_span!(
             "PostgresKvStore.list_keys",
             "db.system" = "postgresql",
@@ -585,8 +595,12 @@ impl KeyValueStore for PostgresKvStore {
         Ok(keys)
     }
 
-    async fn list_entries(&self, list: &ResourceList) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        let query = list_entries_query(&self.table, list.kind.is_some());
+    async fn list_entries(
+        &self,
+        list: &ResourceList,
+        order: Order,
+    ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
+        let query = list_entries_query(&self.table, list.kind.is_some(), order);
         let span = tracing::debug_span!(
             "PostgresKvStore.list_entries",
             "db.system" = "postgresql",
@@ -769,7 +783,7 @@ mod tests {
         list_entries_page_query, list_entries_query, list_keys_page_query, list_keys_query,
         rename_migration_index_statement, set_query, PostgresKvStore,
     };
-    use crate::control::{keys, KeyValueStore};
+    use crate::control::{keys, KeyValueStore, Order};
     use crate::test_support::{docker_test_guard, PostgresContainer};
     use std::time::Duration;
 
@@ -784,11 +798,14 @@ mod tests {
         assert!(compare_and_swap_query("talon_kv", true).contains("AND value = $6"));
         assert!(compare_and_swap_query("talon_kv", false).contains("DO NOTHING"));
         assert!(delete_query("talon_kv").contains("WHERE namespace = $1"));
-        assert!(list_keys_query("talon_kv", true).contains("AND kind = $3"));
+        assert!(list_keys_query("talon_kv", true, Order::Asc).contains("AND kind = $3"));
+        assert!(list_keys_query("talon_kv", true, Order::Desc)
+            .contains("ORDER BY kind DESC, name DESC"));
         assert!(list_keys_page_query("talon_kv").contains("ORDER BY name DESC"));
         assert!(list_entries_page_query("talon_kv")
             .contains("SELECT namespace, parent_path, kind, name, value"));
-        assert!(list_entries_query("talon_kv", false).contains("ORDER BY kind ASC, name ASC"));
+        assert!(list_entries_query("talon_kv", false, Order::Asc)
+            .contains("ORDER BY kind ASC, name ASC"));
         assert_eq!(
             rename_migration_index_statement("talon_kv", "talon_kv_structured_key_migration"),
             "ALTER INDEX IF EXISTS \"talon_kv_structured_key_migration_pkey\" RENAME TO \"talon_kv_pkey\""
@@ -848,9 +865,12 @@ mod tests {
         store.set(&other, b"three").await.unwrap();
         assert_eq!(store.get(&a).await.unwrap(), Some(b"one".to_vec()));
 
-        let mut listed = store.list_keys(&list).await.unwrap();
-        listed.sort_by(|left, right| left.name.cmp(&right.name));
+        let listed = store.list_keys(&list, Order::Asc).await.unwrap();
         assert_eq!(listed, vec![a.clone(), b.clone()]);
+        assert_eq!(
+            store.list_keys(&list, Order::Desc).await.unwrap(),
+            vec![b.clone(), a.clone()]
+        );
 
         assert_eq!(
             store.list_keys_page(&list, None, 10).await.unwrap(),
@@ -865,10 +885,13 @@ mod tests {
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
 
-        let mut entries = store.list_entries(&list).await.unwrap();
-        entries.sort_by(|left, right| left.0.name.cmp(&right.0.name));
+        let entries = store.list_entries(&list, Order::Asc).await.unwrap();
         assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
         assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
+        assert_eq!(
+            store.list_entries(&list, Order::Desc).await.unwrap(),
+            vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
+        );
 
         assert!(store
             .compare_and_swap(&a, Some(b"one"), b"updated")

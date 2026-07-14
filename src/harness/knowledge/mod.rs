@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use crate::control::resources::ResourceStore;
 use crate::control::search::{DocumentStore, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE};
-use crate::control::MessagePublisher;
+use crate::control::{MessagePublisher, Order};
 use crate::gateway::rpc::{proto, resources_proto};
 
 #[derive(Default, serde::Serialize, serde::Deserialize)]
@@ -263,7 +263,7 @@ impl KvKnowledgeBook {
         let path_lower = path.to_lowercase();
         let matches = self
             .kv
-            .list_keys(&prefix)
+            .list_keys(&prefix, Order::Asc)
             .await?
             .into_iter()
             .filter(|candidate| {
@@ -467,7 +467,7 @@ impl KnowledgeBook for KvKnowledgeBook {
 
         for (depth, candidate_ns) in crate::control::ns::ancestry(ns).into_iter().enumerate() {
             let prefix = crate::control::keys::knowledge_prefix(&candidate_ns);
-            let keys = self.kv.list_keys(&prefix).await?;
+            let keys = self.kv.list_keys(&prefix, Order::Asc).await?;
 
             for key in keys {
                 if let Some(bytes) = self.kv.get(&key).await.unwrap_or(None) {
@@ -556,8 +556,7 @@ impl KnowledgeBook for KvKnowledgeBook {
 
         for candidate_ns in namespaces {
             let prefix = crate::control::keys::knowledge_prefix(&candidate_ns);
-            let mut keys = self.kv.list_keys(&prefix).await?;
-            keys.sort();
+            let keys = self.kv.list_keys(&prefix, Order::Asc).await?;
 
             for key in keys {
                 let artifact_path =
@@ -774,13 +773,22 @@ mod tests {
             Ok(())
         }
 
-        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            list: &ResourceList,
+            order: crate::control::Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             let map = self.store.lock().await;
             let mut results = Vec::new();
             for key in map.keys() {
                 if list.matches(key) {
                     results.push(key.clone());
                 }
+            }
+            if order == crate::control::Order::Desc {
+                results.sort_by(|left, right| right.cmp(left));
+            } else {
+                results.sort();
             }
             Ok(results)
         }

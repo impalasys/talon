@@ -3,7 +3,7 @@
 
 use super::{data_proto, proto, resources_proto, worker_proto, GrpcGatewayHandler};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, KeyValueStore, ProtoKeyValueStoreExt};
+use crate::control::{keys, KeyValueStore, Order, ProtoKeyValueStoreExt};
 use crate::gateway::worker_conn::WorkerConnectionPool;
 use crate::worker::workflows;
 use futures::StreamExt;
@@ -455,11 +455,13 @@ async fn load_sorted_workflow_run_events(
     workflow: &str,
     run_id: &str,
 ) -> Result<Vec<data_proto::WorkflowRunEvent>, tonic::Status> {
-    let mut entries = kv
-        .list_entries(&keys::workflow_run_event_prefix(ns, workflow, run_id))
+    let entries = kv
+        .list_entries(
+            &keys::workflow_run_event_prefix(ns, workflow, run_id),
+            Order::Asc,
+        )
         .await
         .map_err(|err| tonic::Status::internal(err.to_string()))?;
-    entries.sort_by(|left, right| left.0.cmp(&right.0));
 
     let mut events = Vec::new();
     for (key, bytes) in entries {

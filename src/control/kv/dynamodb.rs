@@ -3,7 +3,7 @@
 
 use crate::control::{
     keys::{ResourceKey, ResourceList},
-    KeyValueStore,
+    KeyValueStore, Order,
 };
 use anyhow::{anyhow, Result};
 use aws_config::meta::region::RegionProviderChain;
@@ -68,6 +68,7 @@ impl DynamoDbKvStore {
         list: &ResourceList,
         before_name: Option<&str>,
         limit: Option<usize>,
+        order: Order,
         include_values: bool,
     ) -> Result<Vec<(ResourceKey, Option<Vec<u8>>)>> {
         if limit == Some(0) {
@@ -86,8 +87,6 @@ impl DynamoDbKvStore {
             );
             key_condition = "#pk = :pk AND begins_with(#sk, :sk_prefix)".to_string();
         }
-        let descending_page = before_name.is_some() || limit.is_some();
-
         if let (Some(kind), Some(before_name)) = (list.kind.as_deref(), before_name) {
             key_condition = "#pk = :pk AND #sk BETWEEN :sk_prefix AND :before_sk".to_string();
             values.insert(
@@ -120,7 +119,7 @@ impl DynamoDbKvStore {
                 .query()
                 .table_name(&self.table)
                 .consistent_read(true)
-                .scan_index_forward(!descending_page)
+                .scan_index_forward(order != Order::Desc)
                 .key_condition_expression(key_condition.clone())
                 .set_expression_attribute_names(Some(names.clone()))
                 .set_expression_attribute_values(Some(values.clone()))
@@ -234,18 +233,24 @@ impl KeyValueStore for DynamoDbKvStore {
         Ok(())
     }
 
-    async fn list_keys(&self, list: &ResourceList) -> Result<Vec<ResourceKey>> {
-        self.query_list(list, None, None, false)
+    async fn list_keys(&self, list: &ResourceList, order: Order) -> Result<Vec<ResourceKey>> {
+        self.query_list(list, None, None, order, false)
             .await
             .map(|rows| rows.into_iter().map(|(key, _)| key).collect())
     }
 
-    async fn list_entries(&self, list: &ResourceList) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        self.query_list(list, None, None, true).await.map(|rows| {
-            rows.into_iter()
-                .filter_map(|(key, value)| value.map(|value| (key, value)))
-                .collect()
-        })
+    async fn list_entries(
+        &self,
+        list: &ResourceList,
+        order: Order,
+    ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
+        self.query_list(list, None, None, order, true)
+            .await
+            .map(|rows| {
+                rows.into_iter()
+                    .filter_map(|(key, value)| value.map(|value| (key, value)))
+                    .collect()
+            })
     }
 
     async fn list_keys_page(
@@ -258,7 +263,7 @@ impl KeyValueStore for DynamoDbKvStore {
             .kind
             .as_ref()
             .ok_or_else(|| anyhow!("dynamodb list_keys_page requires a resource kind"))?;
-        self.query_list(list, before_name, Some(limit), false)
+        self.query_list(list, before_name, Some(limit), Order::Desc, false)
             .await
             .map(|rows| rows.into_iter().map(|(key, _)| key).collect())
     }
@@ -273,7 +278,7 @@ impl KeyValueStore for DynamoDbKvStore {
             .kind
             .as_ref()
             .ok_or_else(|| anyhow!("dynamodb list_entries_page requires a resource kind"))?;
-        self.query_list(list, before_name, Some(limit), true)
+        self.query_list(list, before_name, Some(limit), Order::Desc, true)
             .await
             .map(|rows| {
                 rows.into_iter()

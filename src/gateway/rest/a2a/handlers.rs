@@ -19,7 +19,7 @@ use crate::control::scheduling;
 use crate::control::{
     events::SessionMessagePartEventKind,
     keys::{self},
-    ProtoKeyValueStoreExt,
+    Order, ProtoKeyValueStoreExt,
 };
 use crate::gateway::auth::{self, AuthConfig};
 use crate::gateway::rpc::data_proto;
@@ -435,7 +435,7 @@ pub async fn list_tasks(
         Err(response) => return response,
     };
     let prefix = keys::session_prefix(&route.ns, &route.agent);
-    let session_keys = match gateway.kv.list_keys(&prefix).await {
+    let session_keys = match gateway.kv.list_keys(&prefix, Order::Asc).await {
         Ok(keys) => keys,
         Err(err) => {
             tracing::error!(%err, "Failed to list A2A sessions");

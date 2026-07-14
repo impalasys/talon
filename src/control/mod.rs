@@ -28,6 +28,12 @@ use std::path::PathBuf;
 
 use keys::{ResourceKey, ResourceList};
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Order {
+    Asc,
+    Desc,
+}
+
 pub fn page_keys_desc(
     mut keys: Vec<ResourceKey>,
     before_name: Option<&str>,
@@ -78,44 +84,53 @@ pub trait KeyValueStore: Send + Sync {
     async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()>;
 
     /// List direct children matching a resource parent and optional kind.
-    async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>>;
+    async fn list_keys(
+        &self,
+        list: &ResourceList,
+        order: Order,
+    ) -> anyhow::Result<Vec<ResourceKey>>;
 
     /// List direct children, ordered by resource name descending.
     ///
     /// `before_name` is an exclusive resource-name cursor. Production backends
-    /// should override this with a storage-level page read. The default
-    /// implementation fails rather than silently materializing an unbounded list.
+    /// should override this with a storage-level page read.
     async fn list_keys_page(
         &self,
         list: &ResourceList,
         before_name: Option<&str>,
         limit: usize,
     ) -> anyhow::Result<Vec<ResourceKey>> {
-        let _ = (list, before_name, limit);
-        anyhow::bail!("list_keys_page is not implemented for this KeyValueStore")
+        Ok(page_keys_desc(
+            self.list_keys(list, Order::Asc).await?,
+            before_name,
+            limit,
+        ))
     }
 
     /// List direct child key/value pairs, ordered by resource name descending.
     ///
     /// `before_name` is an exclusive resource-name cursor. Production backends
-    /// should override this with a storage-level page read. The default
-    /// implementation fails rather than silently materializing an unbounded list.
+    /// should override this with a storage-level page read.
     async fn list_entries_page(
         &self,
         list: &ResourceList,
         before_name: Option<&str>,
         limit: usize,
     ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
-        let _ = (list, before_name, limit);
-        anyhow::bail!("list_entries_page is not implemented for this KeyValueStore")
+        Ok(page_entries_desc(
+            self.list_entries(list, Order::Asc).await?,
+            before_name,
+            limit,
+        ))
     }
 
     /// List all matching direct child key/value pairs.
     async fn list_entries(
         &self,
         list: &ResourceList,
+        order: Order,
     ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
-        let keys = self.list_keys(list).await?;
+        let keys = self.list_keys(list, order).await?;
         let mut entries = Vec::with_capacity(keys.len());
         for key in keys {
             if let Some(value) = self.get(&key).await? {
@@ -288,7 +303,11 @@ impl KeyValueStore for NoopKeyValueStore {
         Ok(())
     }
 
-    async fn list_keys(&self, _list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+    async fn list_keys(
+        &self,
+        _list: &ResourceList,
+        _order: Order,
+    ) -> anyhow::Result<Vec<ResourceKey>> {
         Ok(Vec::new())
     }
 
@@ -806,7 +825,7 @@ mod tests {
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
         ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
-        ProtoKeyValueStoreExt,
+        Order, ProtoKeyValueStoreExt,
     };
     use crate::control::config::proto;
     use crate::control::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
@@ -1035,11 +1054,14 @@ mod tests {
         kv.set(&b, b"two").await.unwrap();
         kv.set(&other, b"three").await.unwrap();
 
-        let mut entries = kv.list_entries(&list).await.unwrap();
-        entries.sort_by(|a, b| a.0.name.cmp(&b.0.name));
+        let entries = kv.list_entries(&list, Order::Asc).await.unwrap();
         assert_eq!(entries.len(), 2);
         assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
         assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
+        assert_eq!(
+            kv.list_entries(&list, Order::Desc).await.unwrap(),
+            vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
+        );
 
         kv.delete(&a).await.unwrap();
         kv.delete(&b).await.unwrap();

@@ -7,7 +7,7 @@ use prost::Message;
 use super::submission::{ensure_submission_attempt_current, update_submission_from_entry};
 use super::SessionJournalEntry;
 use crate::control::cas::CasStore;
-use crate::control::{keys, KeyValueStore};
+use crate::control::{keys, KeyValueStore, Order};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
     SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadLlmResponse,
@@ -213,13 +213,12 @@ pub async fn list_journal_entries(
     submission_id: &str,
 ) -> Result<Vec<SessionJournalEntry>> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
-    let mut entries = kv
-        .list_entries(&prefix)
+    let entries = kv
+        .list_entries(&prefix, Order::Asc)
         .await?
         .into_iter()
         .map(|(_, bytes)| SessionJournalEntry::decode(bytes.as_slice()).map_err(Into::into))
         .collect::<Result<Vec<_>>>()?;
-    entries.sort_by_key(|entry| entry.journal_entry_id.parse::<u64>().unwrap_or(0));
     Ok(entries)
 }
 
@@ -316,11 +315,11 @@ async fn next_journal_entry_id(
 ) -> Result<String> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
     let max_id = kv
-        .list_keys(&prefix)
+        .list_keys_page(&prefix, None, 1)
         .await?
         .into_iter()
-        .filter_map(|key| key.name.parse::<u64>().ok())
-        .max()
+        .next()
+        .and_then(|key| key.name.parse::<u64>().ok())
         .unwrap_or(0);
     Ok(format!("{:06}", max_id.saturating_add(1)))
 }
@@ -334,10 +333,10 @@ async fn latest_journal_entry(
 ) -> Result<Option<SessionJournalEntry>> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
     let Some(key) = kv
-        .list_keys(&prefix)
+        .list_keys_page(&prefix, None, 1)
         .await?
         .into_iter()
-        .max_by_key(|key| key.name.parse::<u64>().unwrap_or(0))
+        .next()
     else {
         return Ok(None);
     };
@@ -357,7 +356,7 @@ async fn committed_journal_entry(
 ) -> Result<Option<SessionJournalEntry>> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
     let mut found: Option<SessionJournalEntry> = None;
-    for (_, bytes) in kv.list_entries(&prefix).await? {
+    for (_, bytes) in kv.list_entries(&prefix, Order::Asc).await? {
         let entry = SessionJournalEntry::decode(bytes.as_slice())?;
         if entry.phase == SessionExecutionPhase::Committed as i32
             && entry.committed_message_id.as_deref() == Some(committed_message_id)

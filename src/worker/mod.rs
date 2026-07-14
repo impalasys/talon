@@ -476,7 +476,11 @@ mod tests {
             Ok(())
         }
 
-        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
+        async fn list_keys(
+            &self,
+            list: &ResourceList,
+            _order: crate::control::Order,
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
@@ -871,11 +875,14 @@ mod tests {
         assert_eq!(session.status, "PROCESSING");
 
         let message_keys = kv
-            .list_keys(&crate::control::keys::session_message_prefix(
-                "conic:test",
-                "assistant",
-                "session-1",
-            ))
+            .list_keys(
+                &crate::control::keys::session_message_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         assert_eq!(message_keys.len(), 1);
@@ -982,11 +989,14 @@ mod tests {
             .any(|event| event.phase == "dispatch" && event.outcome == "success"));
 
         let message_keys = kv
-            .list_keys(&crate::control::keys::session_message_prefix(
-                "conic:test",
-                "assistant",
-                "session-1",
-            ))
+            .list_keys(
+                &crate::control::keys::session_message_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                crate::control::Order::Asc,
+            )
             .await
             .unwrap();
         assert_eq!(message_keys.len(), 1);

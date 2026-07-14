@@ -12,7 +12,7 @@ use std::time::Duration;
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
-use crate::control::{delegation, keys, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{delegation, keys, ControlPlane, Order, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{
     data_proto, manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
 };
@@ -573,11 +573,10 @@ pub async fn execute_tool_for_session(
             let agent = opt_str(args, "agent");
             let enabled = args.get("enabled").and_then(Value::as_bool);
             let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
-            let mut entries = cp
+            let entries = cp
                 .kv
-                .list_entries(&keys::schedule_prefix(namespace))
+                .list_entries(&keys::schedule_prefix(namespace), Order::Asc)
                 .await?;
-            entries.sort_by(|a, b| a.0.cmp(&b.0));
             let mut schedules = Vec::new();
             for (_key, value) in entries {
                 let schedule = resources_proto::Schedule::decode(value.as_slice())?;
@@ -758,11 +757,15 @@ async fn read_session_messages(
     let limit = opt_usize(args, "limit").unwrap_or(20).clamp(1, 100);
     let mut entries = cp
         .kv
-        .list_entries(&keys::session_message_prefix(namespace, agent, session_id))
+        .list_entries_page(
+            &keys::session_message_prefix(namespace, agent, session_id),
+            None,
+            limit,
+        )
         .await?;
-    entries.sort_by(|left, right| left.0.name.cmp(&right.0.name));
     let mut messages = Vec::new();
-    for (_, bytes) in entries.into_iter().rev().take(limit).rev() {
+    entries.reverse();
+    for (_, bytes) in entries {
         let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
         let role = data_proto::MessageRole::try_from(message.role)
             .map(|role| format!("{role:?}"))
@@ -2051,7 +2054,7 @@ async fn list_session_goals(
 ) -> Result<Vec<data_proto::Goal>> {
     let mut goals = cp
         .kv
-        .list_entries(&keys::goal_prefix(namespace, agent, session_id))
+        .list_entries(&keys::goal_prefix(namespace, agent, session_id), Order::Asc)
         .await?
         .into_iter()
         .filter_map(|(_, value)| data_proto::Goal::decode(value.as_slice()).ok())
@@ -2918,7 +2921,10 @@ mod tests {
         session_id: &str,
     ) -> Vec<String> {
         let entries = kv
-            .list_entries(&keys::session_message_prefix(ns, agent, session_id))
+            .list_entries(
+                &keys::session_message_prefix(ns, agent, session_id),
+                Order::Asc,
+            )
             .await
             .unwrap();
         entries
@@ -3714,11 +3720,14 @@ mod tests {
         );
 
         let entries = kv
-            .list_entries(&keys::session_message_prefix(
-                "Tenant:acme:Operations",
-                "support-agent",
-                child_session_id,
-            ))
+            .list_entries(
+                &keys::session_message_prefix(
+                    "Tenant:acme:Operations",
+                    "support-agent",
+                    child_session_id,
+                ),
+                Order::Asc,
+            )
             .await
             .unwrap();
         assert_eq!(entries.len(), 1);

@@ -3,7 +3,7 @@
 
 use crate::control::{
     keys::{ResourceKey, ResourceList},
-    KeyValueStore,
+    KeyValueStore, Order,
 };
 use anyhow::{anyhow, bail, Result};
 use rocksdb::{
@@ -39,6 +39,12 @@ fn page_seek_bytes(prefix: &[u8], cursor: Option<&[u8]>) -> Vec<u8> {
             seek
         }
     }
+}
+
+fn reverse_seek_bytes(prefix: &[u8]) -> Vec<u8> {
+    let mut seek = prefix.to_vec();
+    seek.push(0xff);
+    seek
 }
 
 fn parse_key(bytes: &[u8]) -> Result<ResourceKey> {
@@ -313,8 +319,9 @@ impl KeyValueStore for RocksDbKvStore {
         .await
     }
 
-    async fn list_keys(&self, list: &ResourceList) -> Result<Vec<ResourceKey>> {
+    async fn list_keys(&self, list: &ResourceList, order: Order) -> Result<Vec<ResourceKey>> {
         let prefix = prefix_bytes(list);
+        let seek_key = (order == Order::Desc).then(|| reverse_seek_bytes(&prefix));
         let span = tracing::debug_span!(
             "RocksDbKvStore.list_keys",
             "db.system" = "rocksdb",
@@ -330,14 +337,26 @@ impl KeyValueStore for RocksDbKvStore {
             let mut keys = self
                 .spawn_blocking("list_keys", move |db| {
                     let mut keys = Vec::new();
-                    for item in
-                        db.iterator(IteratorMode::From(&prefix, rocksdb::Direction::Forward))
-                    {
-                        let (raw_key, _) = item?;
-                        if !raw_key.starts_with(&prefix) {
-                            break;
+                    if let Some(seek_key) = seek_key {
+                        for item in
+                            db.iterator(IteratorMode::From(&seek_key, rocksdb::Direction::Reverse))
+                        {
+                            let (raw_key, _) = item?;
+                            if !raw_key.starts_with(&prefix) {
+                                break;
+                            }
+                            keys.push(parse_key(&raw_key)?);
                         }
-                        keys.push(parse_key(&raw_key)?);
+                    } else {
+                        for item in
+                            db.iterator(IteratorMode::From(&prefix, rocksdb::Direction::Forward))
+                        {
+                            let (raw_key, _) = item?;
+                            if !raw_key.starts_with(&prefix) {
+                                break;
+                            }
+                            keys.push(parse_key(&raw_key)?);
+                        }
                     }
                     Ok(keys)
                 })
@@ -350,8 +369,13 @@ impl KeyValueStore for RocksDbKvStore {
         .await
     }
 
-    async fn list_entries(&self, list: &ResourceList) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
+    async fn list_entries(
+        &self,
+        list: &ResourceList,
+        order: Order,
+    ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
         let prefix = prefix_bytes(list);
+        let seek_key = (order == Order::Desc).then(|| reverse_seek_bytes(&prefix));
         let span = tracing::debug_span!(
             "RocksDbKvStore.list_entries",
             "db.system" = "rocksdb",
@@ -369,15 +393,28 @@ impl KeyValueStore for RocksDbKvStore {
                 .spawn_blocking("list_entries", move |db| {
                     let mut entries = Vec::new();
                     let mut value_bytes = 0usize;
-                    for item in
-                        db.iterator(IteratorMode::From(&prefix, rocksdb::Direction::Forward))
-                    {
-                        let (raw_key, value) = item?;
-                        if !raw_key.starts_with(&prefix) {
-                            break;
+                    if let Some(seek_key) = seek_key {
+                        for item in
+                            db.iterator(IteratorMode::From(&seek_key, rocksdb::Direction::Reverse))
+                        {
+                            let (raw_key, value) = item?;
+                            if !raw_key.starts_with(&prefix) {
+                                break;
+                            }
+                            value_bytes += value.len();
+                            entries.push((parse_key(&raw_key)?, value.to_vec()));
                         }
-                        value_bytes += value.len();
-                        entries.push((parse_key(&raw_key)?, value.to_vec()));
+                    } else {
+                        for item in
+                            db.iterator(IteratorMode::From(&prefix, rocksdb::Direction::Forward))
+                        {
+                            let (raw_key, value) = item?;
+                            if !raw_key.starts_with(&prefix) {
+                                break;
+                            }
+                            value_bytes += value.len();
+                            entries.push((parse_key(&raw_key)?, value.to_vec()));
+                        }
                     }
                     Ok((entries, value_bytes))
                 })
@@ -518,7 +555,7 @@ impl KeyValueStore for RocksDbKvStore {
 #[cfg(test)]
 mod tests {
     use super::RocksDbKvStore;
-    use crate::control::{keys, KeyValueStore};
+    use crate::control::{keys, KeyValueStore, Order};
     use tempfile::{tempdir, TempDir};
 
     async fn test_store() -> (TempDir, RocksDbKvStore) {
@@ -572,10 +609,26 @@ mod tests {
         store.set(&other, b"o").await.unwrap();
 
         let list = keys::session_prefix("default", "agent-a");
-        let keys = store.list_keys(&list).await.unwrap();
+        let keys = store.list_keys(&list, Order::Asc).await.unwrap();
         assert_eq!(
             keys.iter().map(|key| key.name.as_str()).collect::<Vec<_>>(),
             vec!["alpha", "beta", "gamma"]
+        );
+        let desc_keys = store.list_keys(&list, Order::Desc).await.unwrap();
+        assert_eq!(
+            desc_keys
+                .iter()
+                .map(|key| key.name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["gamma", "beta", "alpha"]
+        );
+        let desc_entries = store.list_entries(&list, Order::Desc).await.unwrap();
+        assert_eq!(
+            desc_entries
+                .iter()
+                .map(|(key, _)| key.name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["gamma", "beta", "alpha"]
         );
 
         let page = store.list_keys_page(&list, None, 2).await.unwrap();
