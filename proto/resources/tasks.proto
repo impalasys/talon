@@ -72,4 +72,6 @@ message TaskStatus {
   int64 expires_at = 9;
   // Concrete runtime execution once a delegate session or run is known.
   TaskExecutionRef execution_ref = 10;
+  // Artifact URI outputs explicitly attached by the task executor.
+  repeated string output_artifact_uris = 11;
 }
