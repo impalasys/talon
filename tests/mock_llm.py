@@ -124,9 +124,9 @@ def all_message_text(messages):
 
 def system_message_text(messages):
     return "\n".join(
-        message.get("content", "")
+        message_text(message)
         for message in messages
-        if message.get("role") == "system" and isinstance(message.get("content"), str)
+        if message.get("role") == "system"
     )
 
 
