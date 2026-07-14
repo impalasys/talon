@@ -1531,11 +1531,10 @@ mod tests {
     };
     use crate::control::config::Config;
     use crate::control::{
-        keys::{self, ResourceKey, ResourceList},
-        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        keys, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
-    use crate::test_support::{PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
+    use crate::test_support::{MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
@@ -1552,75 +1551,6 @@ mod tests {
     use serde_json::json;
     use std::{collections::HashMap, pin::Pin, sync::Arc};
     use tokio::sync::Mutex as AsyncMutex;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        entries: Arc<tokio::sync::RwLock<HashMap<ResourceKey, Vec<u8>>>>,
-    }
-
-    #[async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self.entries.read().await.get(key).cloned())
-        }
-
-        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
-            self.entries
-                .write()
-                .await
-                .insert(key.clone(), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            key: &ResourceKey,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut entries = self.entries.write().await;
-            let current = entries.get(key).cloned();
-            if current.as_deref() == expected {
-                entries.insert(key.clone(), value.to_vec());
-                Ok(true)
-            } else {
-                Ok(false)
-            }
-        }
-
-        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
-            self.entries.write().await.remove(key);
-            Ok(())
-        }
-
-        async fn list_keys(
-            &self,
-            list: &ResourceList,
-            _order: crate::control::Order,
-        ) -> anyhow::Result<Vec<ResourceKey>> {
-            Ok(self
-                .entries
-                .read()
-                .await
-                .keys()
-                .filter(|key| list.matches(key))
-                .cloned()
-                .collect())
-        }
-
-        async fn list_entries_page(
-            &self,
-            list: &ResourceList,
-            before_name: Option<&str>,
-            limit: usize,
-        ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
-            Ok(crate::control::page_entries_desc(
-                self.list_entries(list, crate::control::Order::Asc).await?,
-                before_name,
-                limit,
-            ))
-        }
-    }
 
     #[derive(Default)]
     struct MockPubSub;

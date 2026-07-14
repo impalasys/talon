@@ -616,23 +616,13 @@ mod tests {
         execute_tool, KnowledgeBook, KnowledgeEntry, KvKnowledgeBook, KNOWLEDGE_GET_TOOL,
         KNOWLEDGE_LIST_TOOL, KNOWLEDGE_SEARCH_TOOL, KNOWLEDGE_WRITE_TOOL,
     };
-    use crate::control::{
-        keys::{ResourceKey, ResourceList},
-        search::{
-            document_ref, document_source, ephemeral_document_store, Document, DocumentRef,
-            DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
-        },
-        KeyValueStore,
+    use crate::control::search::{
+        document_ref, document_source, ephemeral_document_store, Document, DocumentRef,
+        DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
     };
-    use async_trait::async_trait;
+    use crate::test_support::MockKvStore;
     use serde_json::json;
-    use std::collections::HashMap;
     use std::sync::Arc;
-    use tokio::sync::Mutex;
-
-    struct MockKvStore {
-        store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
-    }
 
     fn knowledge_document(
         id: &str,
@@ -666,7 +656,7 @@ mod tests {
 
     #[tokio::test]
     async fn list_inherits_namespace_and_respects_prefix_modes() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let book = KvKnowledgeBook::new(kv.clone());
 
         for (ns, path, content) in [
@@ -726,77 +716,9 @@ mod tests {
         assert!(!local_only[0].inherited);
     }
 
-    impl MockKvStore {
-        fn new() -> Self {
-            Self {
-                store: Mutex::new(HashMap::new()),
-            }
-        }
-    }
-
-    #[async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
-            let map = self.store.lock().await;
-            Ok(map.get(key).cloned())
-        }
-
-        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
-            let mut map = self.store.lock().await;
-            map.insert(key.clone(), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            key: &ResourceKey,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut map = self.store.lock().await;
-            let current = map.get(key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if !matches {
-                return Ok(false);
-            }
-            map.insert(key.clone(), value.to_vec());
-            Ok(true)
-        }
-
-        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
-            let mut map = self.store.lock().await;
-            map.remove(key);
-            Ok(())
-        }
-
-        async fn list_keys(
-            &self,
-            list: &ResourceList,
-            order: crate::control::Order,
-        ) -> anyhow::Result<Vec<ResourceKey>> {
-            let map = self.store.lock().await;
-            let mut results = Vec::new();
-            for key in map.keys() {
-                if list.matches(key) {
-                    results.push(key.clone());
-                }
-            }
-            if order == crate::control::Order::Desc {
-                results.sort_by(|left, right| right.cmp(left));
-            } else {
-                results.sort();
-            }
-            Ok(results)
-        }
-    }
-
     #[tokio::test]
     async fn search_handles_unicode_content_without_panicking() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let book = KvKnowledgeBook::new(kv.clone());
 
         let entry = KnowledgeEntry {
@@ -823,7 +745,7 @@ mod tests {
 
     #[tokio::test]
     async fn search_uses_document_store_when_enabled() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let documents = ephemeral_document_store();
         documents
             .upsert_documents(&[knowledge_document(
@@ -864,7 +786,7 @@ mod tests {
 
     #[tokio::test]
     async fn document_store_search_prefers_child_namespace_for_shadowed_paths() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let documents = ephemeral_document_store();
         documents
             .upsert_documents(&[
@@ -906,7 +828,7 @@ mod tests {
 
     #[tokio::test]
     async fn get_inherits_from_ancestor_namespace() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let book = KvKnowledgeBook::new(kv.clone());
 
         let entry = KnowledgeEntry {
@@ -932,7 +854,7 @@ mod tests {
 
     #[tokio::test]
     async fn search_prefers_local_override_over_ancestor() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let book = KvKnowledgeBook::new(kv.clone());
 
         for (ns, content) in [
@@ -962,7 +884,7 @@ mod tests {
 
     #[tokio::test]
     async fn normalize_entry_and_find_entry_cover_fallback_and_ambiguous_matches() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let book = KvKnowledgeBook::new(kv.clone());
 
         kv.set(
@@ -988,7 +910,7 @@ mod tests {
 
     #[tokio::test]
     async fn search_scores_path_matches_and_respects_limit_ordering() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let book = KvKnowledgeBook::new(kv.clone());
 
         for (path, content) in [
@@ -1022,7 +944,7 @@ mod tests {
 
     #[tokio::test]
     async fn execute_tool_covers_write_get_search_and_unknown_paths() {
-        let kv = Arc::new(MockKvStore::new());
+        let kv = Arc::new(MockKvStore::default());
         let book = KvKnowledgeBook::new(kv.clone());
 
         let wrote = execute_tool(

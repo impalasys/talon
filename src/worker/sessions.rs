@@ -1107,13 +1107,13 @@ mod tests {
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
-        keys::{ResourceKey, ResourceList},
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::connectors::session_message_final_response;
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
     use crate::harness::executor::ExecutionSink;
     use crate::harness::sessions;
+    use crate::test_support::MockKvStore;
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
@@ -1548,63 +1548,6 @@ mod tests {
             max,
             window: "1h".to_string(),
             subject_scope: String::new(),
-        }
-    }
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: AsyncMutex<HashMap<ResourceKey, Vec<u8>>>,
-    }
-
-    #[async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self.data.lock().await.get(key).cloned())
-        }
-
-        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
-            self.data.lock().await.insert(key.clone(), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            key: &ResourceKey,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let current = data.get(key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert(key.clone(), value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
-            self.data.lock().await.remove(key);
-            Ok(())
-        }
-
-        async fn list_keys(
-            &self,
-            list: &ResourceList,
-            _order: crate::control::Order,
-        ) -> anyhow::Result<Vec<ResourceKey>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|key| list.matches(key).then(|| key.clone()))
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
         }
     }
 

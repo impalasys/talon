@@ -305,73 +305,14 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::{decode_entry, list_namespace_knowledge};
-    use crate::control::keys::{self, ResourceKey, ResourceList};
-    use crate::control::KeyValueStore;
+    use crate::control::{keys, KeyValueStore};
     use crate::gateway::rpc::{proto, GrpcGatewayHandler};
     use crate::gateway::server::Gateway;
+    use crate::test_support::MockKvStore;
     use async_trait::async_trait;
     use futures::stream;
-    use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
-    use tokio::sync::Mutex;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
-    }
-
-    #[async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self.data.lock().await.get(k).cloned())
-        }
-
-        async fn set(&self, k: &ResourceKey, v: &[u8]) -> anyhow::Result<()> {
-            self.data.lock().await.insert(k.clone(), v.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            k: &ResourceKey,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let current = data.get(k).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert(k.clone(), value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, k: &ResourceKey) -> anyhow::Result<()> {
-            self.data.lock().await.remove(k);
-            Ok(())
-        }
-
-        async fn list_keys(
-            &self,
-            list: &ResourceList,
-            _order: crate::control::Order,
-        ) -> anyhow::Result<Vec<ResourceKey>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|key| list.matches(key).then(|| key.clone()))
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
 
     #[derive(Default)]
     struct MockPubSub;

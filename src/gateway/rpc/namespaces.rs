@@ -400,83 +400,11 @@ impl GrpcGatewayHandler {
 mod tests {
     use super::*;
     use crate::control::security::platform_jwt;
-    use crate::control::{
-        keys::{ResourceKey, ResourceList},
-        ControlPlane, KeyValueStore, MessagePublisher,
-    };
+    use crate::control::{ControlPlane, MessagePublisher};
     use crate::gateway::auth::{AuthConfig, Claims};
     use crate::gateway::server::Gateway;
-    use crate::test_support::{PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
-    use std::collections::HashMap;
+    use crate::test_support::{MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use std::sync::Arc;
-    use tokio::sync::Mutex;
-
-    struct MockKvStore {
-        store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
-    }
-
-    impl MockKvStore {
-        fn new() -> Self {
-            Self {
-                store: Mutex::new(HashMap::new()),
-            }
-        }
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
-            let map = self.store.lock().await;
-            Ok(map.get(key).cloned())
-        }
-
-        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
-            let mut map = self.store.lock().await;
-            map.insert(key.clone(), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            key: &ResourceKey,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut map = self.store.lock().await;
-            let current = map.get(key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if !matches {
-                return Ok(false);
-            }
-            map.insert(key.clone(), value.to_vec());
-            Ok(true)
-        }
-
-        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
-            let mut map = self.store.lock().await;
-            map.remove(key);
-            Ok(())
-        }
-
-        async fn list_keys(
-            &self,
-            list: &ResourceList,
-            _order: crate::control::Order,
-        ) -> anyhow::Result<Vec<ResourceKey>> {
-            let map = self.store.lock().await;
-            let mut results = Vec::new();
-            for k in map.keys() {
-                if list.matches(k) {
-                    results.push(k.clone());
-                }
-            }
-            Ok(results)
-        }
-    }
 
     struct MockPubSub;
     #[async_trait::async_trait]
@@ -499,7 +427,7 @@ mod tests {
 
     fn setup_mock_gateway_handler_with_auth(auth_config: Option<AuthConfig>) -> GrpcGatewayHandler {
         let pubsub = Arc::new(MockPubSub);
-        let control_plane = ControlPlane::builder(Arc::new(MockKvStore::new()), pubsub).build();
+        let control_plane = ControlPlane::builder(Arc::new(MockKvStore::default()), pubsub).build();
         let gateway = Arc::new(Gateway::from_control_plane(auth_config, control_plane));
         GrpcGatewayHandler { gateway }
     }
