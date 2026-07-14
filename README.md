@@ -1,6 +1,6 @@
 <p align="center">
   <a href="#logo-attribution">
-    <img src="./docs-site/static/img/talon-title.svg" alt="Talon" width="260">
+    <img src="./docs-site/public/talon-title.svg" alt="Talon" width="260">
   </a>
 </p>
 
