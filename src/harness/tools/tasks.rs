@@ -7,6 +7,8 @@ use serde_json::{json, Value};
 use crate::control::resource_model::TypedResource;
 use crate::control::resources::ResourceStore;
 use crate::control::ControlPlane;
+use crate::control::{keys, ProtoKeyValueStoreExt};
+use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::{manifests, resources_proto};
 use crate::harness::skills::registry::ToolRegistry;
 
@@ -20,6 +22,59 @@ fn task_namespace<'a>(args: &'a Value, current_namespace: &'a str) -> Result<&'a
         ));
     }
     Ok(namespace)
+}
+
+async fn update_task_namespace(
+    cp: &ControlPlane,
+    args: &Value,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+) -> Result<String> {
+    let namespace = super::opt_str(args, "namespace").unwrap_or(current_namespace);
+    if namespace == current_namespace {
+        return Ok(namespace.to_string());
+    }
+
+    let name = super::req_str(args, "name")?;
+    let session = cp
+        .kv
+        .get_msg::<data_proto::Session>(&keys::session(
+            current_namespace,
+            current_agent,
+            current_session,
+        ))
+        .await?;
+    let Some(session) = session else {
+        return Err(anyhow!(
+            "task tools cannot target namespace '{}' from agent namespace '{}'",
+            namespace,
+            current_namespace
+        ));
+    };
+
+    let is_delegate = session
+        .labels
+        .get(crate::control::delegation::LABEL_TASK_ROLE)
+        .map(String::as_str)
+        == Some("delegate");
+    let assigned_namespace = session
+        .labels
+        .get(crate::control::delegation::LABEL_TASK_NAMESPACE)
+        .map(String::as_str);
+    let assigned_name = session
+        .labels
+        .get(crate::control::delegation::LABEL_TASK_NAME)
+        .map(String::as_str);
+    if is_delegate && assigned_namespace == Some(namespace) && assigned_name == Some(name) {
+        return Ok(namespace.to_string());
+    }
+
+    Err(anyhow!(
+        "task tools cannot target namespace '{}' from agent namespace '{}'",
+        namespace,
+        current_namespace
+    ))
 }
 
 pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
@@ -209,7 +264,9 @@ pub(super) async fn execute(
         }
         super::UPDATE_TASK_TOOL => {
             super::require_capability(spec, "tasks", "update")?;
-            let namespace = task_namespace(args, current_namespace)?;
+            let namespace =
+                update_task_namespace(cp, args, current_namespace, current_agent, current_session)
+                    .await?;
             let name = super::req_str(args, "name")?;
             let output_artifact_uris = super::task_output_artifact_uris_from_args(
                 cp,
@@ -220,7 +277,7 @@ pub(super) async fn execute(
             .await?;
             let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
             let resource = store
-                .patch_status_with(namespace, "Task", name, None, |_, status| {
+                .patch_status_with(&namespace, "Task", name, None, |_, status| {
                     let mut task_status = match status.kind.take() {
                         Some(resources_proto::resource_status::Kind::Task(status)) => status,
                         _ => resources_proto::TaskStatus::default(),

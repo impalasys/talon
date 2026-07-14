@@ -4557,6 +4557,101 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn delegated_session_can_update_its_owner_namespace_task_only() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let owner_namespace = "Tenant:acme:Workspace:main";
+        let delegate_namespace = "Tenant:acme:Nexus:copywriter";
+        seed_agent(kv.as_ref(), owner_namespace, "cmo").await;
+        seed_agent(kv.as_ref(), delegate_namespace, "copywriter").await;
+        seed_session(kv.as_ref(), owner_namespace, "cmo", "owner-session").await;
+        let cp = control_plane(kv.clone(), scheduler);
+
+        let owner_spec = task_spec_with_internal_connection(
+            &["create"],
+            "copywriter",
+            delegate_namespace,
+            "copywriter",
+        );
+        let task = execute_tool_for_session(
+            &cp,
+            owner_namespace,
+            "cmo",
+            "owner-session",
+            &owner_spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Draft announcement",
+                "description": "Create an announcement artifact and attach it to this task.",
+                "connection": "copywriter"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let task: Value = serde_json::from_str(&task).unwrap();
+        let task_name = task["task"]["name"].as_str().unwrap();
+        let delegate_session_id = task["task"]["executionRef"]["sessionId"].as_str().unwrap();
+
+        let artifact = execute_tool_for_session(
+            &cp,
+            delegate_namespace,
+            "copywriter",
+            delegate_session_id,
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "Announcement",
+                "content": "# Announcement\n\nThe draft is ready.",
+                "media_type": "text/markdown"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let artifact: Value = serde_json::from_str(&artifact).unwrap();
+        let artifact_uri = artifact["artifactUri"].as_str().unwrap();
+
+        let updated = execute_tool_for_session(
+            &cp,
+            delegate_namespace,
+            "copywriter",
+            delegate_session_id,
+            &task_spec(&["update"]),
+            UPDATE_TASK_TOOL,
+            &json!({
+                "namespace": owner_namespace,
+                "name": task_name,
+                "phase": "NEEDS_REVIEW",
+                "progress_summary": "Draft announcement is ready.",
+                "output_artifact_uri": artifact_uri
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let updated: Value = serde_json::from_str(&updated).unwrap();
+        assert_eq!(updated["task"]["outputArtifactUris"][0], artifact_uri);
+
+        let rejected = execute_tool_for_session(
+            &cp,
+            delegate_namespace,
+            "copywriter",
+            delegate_session_id,
+            &task_spec(&["update"]),
+            UPDATE_TASK_TOOL,
+            &json!({
+                "namespace": owner_namespace,
+                "name": "different-task",
+                "phase": "NEEDS_REVIEW"
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(rejected.to_string().contains("cannot target namespace"));
+    }
+
+    #[tokio::test]
     async fn goal_tools_create_update_list_and_complete() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());

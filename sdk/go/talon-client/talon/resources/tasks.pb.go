@@ -333,9 +333,11 @@ type TaskStatus struct {
 	CompletedAt        int64                  `protobuf:"varint,8,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
 	ExpiresAt          int64                  `protobuf:"varint,9,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	// Concrete runtime execution once a delegate session or run is known.
-	ExecutionRef  *TaskExecutionRef `protobuf:"bytes,10,opt,name=execution_ref,json=executionRef,proto3" json:"execution_ref,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ExecutionRef *TaskExecutionRef `protobuf:"bytes,10,opt,name=execution_ref,json=executionRef,proto3" json:"execution_ref,omitempty"`
+	// Artifact URI outputs explicitly attached by the task executor.
+	OutputArtifactUris []string `protobuf:"bytes,11,rep,name=output_artifact_uris,json=outputArtifactUris,proto3" json:"output_artifact_uris,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *TaskStatus) Reset() {
@@ -438,6 +440,13 @@ func (x *TaskStatus) GetExecutionRef() *TaskExecutionRef {
 	return nil
 }
 
+func (x *TaskStatus) GetOutputArtifactUris() []string {
+	if x != nil {
+		return x.OutputArtifactUris
+	}
+	return nil
+}
+
 var File_proto_resources_tasks_proto protoreflect.FileDescriptor
 
 const file_proto_resources_tasks_proto_rawDesc = "" +
@@ -459,7 +468,7 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x04 \x01(\tR\tsessionId\x12\x15\n" +
-	"\x06run_id\x18\x05 \x01(\tR\x05runId\"\xf1\x03\n" +
+	"\x06run_id\x18\x05 \x01(\tR\x05runId\"\xa3\x04\n" +
 	"\n" +
 	"TaskStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x120\n" +
@@ -477,7 +486,8 @@ const file_proto_resources_tasks_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\t \x01(\x03R\texpiresAt\x12F\n" +
 	"\rexecution_ref\x18\n" +
-	" \x01(\v2!.talon.resources.TaskExecutionRefR\fexecutionRef*\xed\x01\n" +
+	" \x01(\v2!.talon.resources.TaskExecutionRefR\fexecutionRef\x120\n" +
+	"\x14output_artifact_uris\x18\v \x03(\tR\x12outputArtifactUris*\xed\x01\n" +
 	"\tTaskPhase\x12\x1a\n" +
 	"\x16TASK_PHASE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11TASK_PHASE_QUEUED\x10\x01\x12\x16\n" +
