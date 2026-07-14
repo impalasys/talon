@@ -3,7 +3,7 @@
 
 use super::{data_proto, proto, resources_proto, worker_proto, GrpcGatewayHandler};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, KeyValueStore, ProtoKeyValueStoreExt};
+use crate::control::{keys, KeyValueStore, ListOptions, ProtoKeyValueStoreExt};
 use crate::gateway::worker_conn::WorkerConnectionPool;
 use crate::worker::workflows;
 use futures::StreamExt;
@@ -131,10 +131,13 @@ impl GrpcGatewayHandler {
             let entries = self
                 .gateway
                 .kv
-                .list_entries_page(
+                .list_entries(
                     &prefix,
-                    scan_before_name.as_deref(),
-                    WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE,
+                    Some(
+                        ListOptions::desc()
+                            .before_name(scan_before_name.as_deref())
+                            .limit(WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE),
+                    ),
                 )
                 .await
                 .map_err(|err| tonic::Status::internal(err.to_string()))?;

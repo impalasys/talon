@@ -6,7 +6,7 @@ use crate::control::cas::{session_object_key_prefix, SessionCasScope, METADATA_A
 use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
+use crate::control::{events, keys, keys::ResourceParent, KeyValueStore, ListOptions};
 use prost::Message;
 use serde_json::{json, Value};
 use std::collections::HashSet;
@@ -686,10 +686,13 @@ impl GrpcGatewayHandler {
                     let page = self
                         .gateway
                         .kv
-                        .list_keys_page(
+                        .list_keys(
                             &msg_prefix,
-                            page_before_name.as_deref(),
-                            SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE,
+                            Some(
+                                ListOptions::desc()
+                                    .before_name(page_before_name.as_deref())
+                                    .limit(SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE),
+                            ),
                         )
                         .await
                         .map_err(|e| {
@@ -859,10 +862,13 @@ impl GrpcGatewayHandler {
             let entries = self
                 .gateway
                 .kv
-                .list_entries_page(
+                .list_entries(
                     &msg_prefix,
-                    scan_before_name.as_deref(),
-                    SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE,
+                    Some(
+                        ListOptions::desc()
+                            .before_name(scan_before_name.as_deref())
+                            .limit(SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE),
+                    ),
                 )
                 .await
                 .map_err(|e| {

@@ -1456,14 +1456,6 @@ mod tests {
         ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
-        async fn list_keys_page(
-            &self,
-            _list: &ResourceList,
-            _before_key: Option<&str>,
-            _limit: usize,
-        ) -> anyhow::Result<Vec<ResourceKey>> {
-            Ok(vec![])
-        }
     }
 
     struct MockPubSub {

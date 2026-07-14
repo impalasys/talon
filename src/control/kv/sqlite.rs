@@ -20,8 +20,7 @@ use tracing::{field, Instrument, Span};
 use super::shared::{quoted_identifier, validate_identifier};
 use super::sqlite_sql::{
     compare_and_swap_query, create_migration_table_statement, create_table_statement, delete_query,
-    get_query, list_entries_page_query, list_entries_query, list_keys_page_query, list_keys_query,
-    set_query,
+    get_query, list_entries_query, list_keys_query, set_query,
 };
 
 fn key_from_row(row: &sqlx::sqlite::SqliteRow) -> Result<ResourceKey> {
@@ -553,139 +552,13 @@ impl KeyValueStore for SqliteKvStore {
         span.record("value_bytes", total_value_bytes as u64);
         Ok(entries)
     }
-
-    async fn list_keys_page(
-        &self,
-        list: &ResourceList,
-        before_name: Option<&str>,
-        limit: usize,
-    ) -> Result<Vec<ResourceKey>> {
-        if limit == 0 {
-            return Ok(Vec::new());
-        }
-        let Some(kind) = &list.kind else {
-            bail!("paged resource listing requires an explicit resource kind");
-        };
-
-        let query = list_keys_page_query(&self.table);
-        let span = tracing::debug_span!(
-            "SqliteKvStore.list_keys_page",
-            "db.system" = "sqlite",
-            "db.operation" = "list_keys_page",
-            "talon.kv.table" = %self.table,
-            "talon.resource.kind" = %kind,
-            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
-            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
-            "sqlite.pool.size_before" = field::Empty,
-            "sqlite.pool.idle_before" = field::Empty,
-            "sqlite.pool.size_after" = field::Empty,
-            "sqlite.pool.idle_after" = field::Empty,
-            pool_wait_us = field::Empty,
-            query_elapsed_us = field::Empty,
-            rows_returned = field::Empty,
-            limit,
-        );
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::debug_span!(
-            parent: &span,
-            "SqliteKvStore.query",
-            query_elapsed_us = field::Empty,
-            rows_returned = field::Empty,
-        );
-        let query_started_at = Instant::now();
-        let rows = sqlx::query(&query)
-            .bind(&list.parent.namespace)
-            .bind(&list.parent.parent_path)
-            .bind(kind)
-            .bind(before_name)
-            .bind(limit as i64)
-            .fetch_all(&mut *conn)
-            .instrument(query_span.clone())
-            .instrument(span.clone())
-            .await?;
-        record_query_elapsed(&query_span, &span, query_started_at);
-        record_rows(&query_span, &span, rows.len());
-
-        let mut keys = Vec::with_capacity(rows.len());
-        for row in rows {
-            keys.push(key_from_row(&row)?);
-        }
-        Ok(keys)
-    }
-
-    async fn list_entries_page(
-        &self,
-        list: &ResourceList,
-        before_name: Option<&str>,
-        limit: usize,
-    ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        if limit == 0 {
-            return Ok(Vec::new());
-        }
-        let Some(kind) = &list.kind else {
-            bail!("paged resource listing requires an explicit resource kind");
-        };
-
-        let query = list_entries_page_query(&self.table);
-        let span = tracing::debug_span!(
-            "SqliteKvStore.list_entries_page",
-            "db.system" = "sqlite",
-            "db.operation" = "list_entries_page",
-            "talon.kv.table" = %self.table,
-            "talon.resource.kind" = %kind,
-            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
-            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
-            "sqlite.pool.size_before" = field::Empty,
-            "sqlite.pool.idle_before" = field::Empty,
-            "sqlite.pool.size_after" = field::Empty,
-            "sqlite.pool.idle_after" = field::Empty,
-            pool_wait_us = field::Empty,
-            query_elapsed_us = field::Empty,
-            rows_returned = field::Empty,
-            value_bytes = field::Empty,
-            limit,
-        );
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::debug_span!(
-            parent: &span,
-            "SqliteKvStore.query",
-            query_elapsed_us = field::Empty,
-            rows_returned = field::Empty,
-            value_bytes = field::Empty,
-        );
-        let query_started_at = Instant::now();
-        let rows = sqlx::query(&query)
-            .bind(&list.parent.namespace)
-            .bind(&list.parent.parent_path)
-            .bind(kind)
-            .bind(before_name)
-            .bind(limit as i64)
-            .fetch_all(&mut *conn)
-            .instrument(query_span.clone())
-            .instrument(span.clone())
-            .await?;
-        record_query_elapsed(&query_span, &span, query_started_at);
-        record_rows(&query_span, &span, rows.len());
-
-        let mut entries = Vec::with_capacity(rows.len());
-        let mut total_value_bytes = 0usize;
-        for row in rows {
-            let value: Vec<u8> = row.try_get("value")?;
-            total_value_bytes += value.len();
-            entries.push((key_from_row(&row)?, value));
-        }
-        query_span.record("value_bytes", total_value_bytes as u64);
-        span.record("value_bytes", total_value_bytes as u64);
-        Ok(entries)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
         compare_and_swap_query, create_table_statement, delete_query, get_query,
-        list_entries_page_query, list_entries_query, list_keys_page_query, list_keys_query,
-        set_query, sqlite_pool, SqliteKvStore,
+        list_entries_query, list_keys_query, set_query, sqlite_pool, SqliteKvStore,
     };
     use crate::control::kv::sqlite_url_for_path;
     use crate::control::{keys, KeyValueStore, ListOptions, Order};
@@ -706,9 +579,12 @@ mod tests {
         assert!(list_keys_query("talon_kv", true, Order::Asc.into()).contains("AND kind = ?3"));
         assert!(list_keys_query("talon_kv", true, Order::Desc.into())
             .contains("ORDER BY kind DESC, name DESC"));
-        assert!(list_keys_page_query("talon_kv").contains("ORDER BY name DESC"));
-        assert!(list_entries_page_query("talon_kv")
-            .contains("SELECT namespace, parent_path, kind, name, value"));
+        assert!(list_keys_query(
+            "talon_kv",
+            true,
+            ListOptions::desc().before_name(Some("b")).limit(10)
+        )
+        .contains("AND name < ?4"));
         assert!(list_entries_query("talon_kv", false, Order::Asc.into())
             .contains("ORDER BY kind ASC, name ASC"));
     }
@@ -840,15 +716,27 @@ mod tests {
         );
 
         assert_eq!(
-            store.list_keys_page(&list, None, 10).await.unwrap(),
+            store
+                .list_keys(&list, Some(ListOptions::desc().limit(10)))
+                .await
+                .unwrap(),
             vec![b.clone(), a.clone()]
         );
         assert_eq!(
-            store.list_keys_page(&list, Some("b"), 10).await.unwrap(),
+            store
+                .list_keys(
+                    &list,
+                    Some(ListOptions::desc().before_name(Some("b")).limit(10)),
+                )
+                .await
+                .unwrap(),
             vec![a.clone()]
         );
         assert_eq!(
-            store.list_entries_page(&list, None, 10).await.unwrap(),
+            store
+                .list_entries(&list, Some(ListOptions::desc().limit(10)))
+                .await
+                .unwrap(),
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
 

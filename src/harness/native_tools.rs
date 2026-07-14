@@ -12,7 +12,7 @@ use std::time::Duration;
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
-use crate::control::{delegation, keys, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{delegation, keys, ControlPlane, ListOptions, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{
     data_proto, manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
 };
@@ -758,10 +758,9 @@ async fn read_session_messages(
     let limit = opt_usize(args, "limit").unwrap_or(20).clamp(1, 100);
     let mut entries = cp
         .kv
-        .list_entries_page(
+        .list_entries(
             &keys::session_message_prefix(namespace, agent, session_id),
-            None,
-            limit,
+            Some(ListOptions::desc().limit(limit)),
         )
         .await?;
     let mut messages = Vec::new();

@@ -252,48 +252,6 @@ impl KeyValueStore for DynamoDbKvStore {
                     .collect()
             })
     }
-
-    async fn list_keys_page(
-        &self,
-        list: &ResourceList,
-        before_name: Option<&str>,
-        limit: usize,
-    ) -> Result<Vec<ResourceKey>> {
-        let _ = list
-            .kind
-            .as_ref()
-            .ok_or_else(|| anyhow!("dynamodb list_keys_page requires a resource kind"))?;
-        self.query_list(
-            list,
-            ListOptions::desc().before_name(before_name).limit(limit),
-            false,
-        )
-        .await
-        .map(|rows| rows.into_iter().map(|(key, _)| key).collect())
-    }
-
-    async fn list_entries_page(
-        &self,
-        list: &ResourceList,
-        before_name: Option<&str>,
-        limit: usize,
-    ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        let _ = list
-            .kind
-            .as_ref()
-            .ok_or_else(|| anyhow!("dynamodb list_entries_page requires a resource kind"))?;
-        self.query_list(
-            list,
-            ListOptions::desc().before_name(before_name).limit(limit),
-            true,
-        )
-        .await
-        .map(|rows| {
-            rows.into_iter()
-                .filter_map(|(key, value)| value.map(|value| (key, value)))
-                .collect()
-        })
-    }
 }
 
 fn pk_for_key(key: &ResourceKey) -> String {

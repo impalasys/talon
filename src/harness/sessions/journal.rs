@@ -7,7 +7,7 @@ use prost::Message;
 use super::submission::{ensure_submission_attempt_current, update_submission_from_entry};
 use super::SessionJournalEntry;
 use crate::control::cas::CasStore;
-use crate::control::{keys, KeyValueStore};
+use crate::control::{keys, KeyValueStore, ListOptions};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
     SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadLlmResponse,
@@ -315,7 +315,7 @@ async fn next_journal_entry_id(
 ) -> Result<String> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
     let max_id = kv
-        .list_keys_page(&prefix, None, 1)
+        .list_keys(&prefix, Some(ListOptions::desc().limit(1)))
         .await?
         .into_iter()
         .next()
@@ -333,7 +333,7 @@ async fn latest_journal_entry(
 ) -> Result<Option<SessionJournalEntry>> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
     let Some(key) = kv
-        .list_keys_page(&prefix, None, 1)
+        .list_keys(&prefix, Some(ListOptions::desc().limit(1)))
         .await?
         .into_iter()
         .next()
