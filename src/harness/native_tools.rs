@@ -45,6 +45,7 @@ pub const CHANNEL_PUBLISH_TOOL: &str = "channel_publish";
 pub const CHANNEL_SKIP_REPLY_TOOL: &str = "channel_skip_reply";
 pub const ACTIVATE_SKILL_TOOL: &str = "activate_skill";
 pub const CREATE_ARTIFACT_TOOL: &str = "create_artifact";
+pub const UPDATE_ARTIFACT_TOOL: &str = "update_artifact";
 pub const READ_ARTIFACT_TOOL: &str = "read_artifact";
 pub const GET_ARTIFACT_METADATA_TOOL: &str = "get_artifact_metadata";
 pub const GRANT_ARTIFACT_TOOL: &str = "grant_artifact";
@@ -1261,6 +1262,81 @@ async fn read_artifact(
         } else {
             None
         }
+    }))?)
+}
+
+async fn update_artifact(
+    cp: &ControlPlane,
+    _current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<String> {
+    let artifact_uri = req_str(args, "artifact_uri")?;
+    let uri = parse_artifact_uri(artifact_uri)?;
+    if current_agent != uri.agent || current_session != uri.session_id {
+        return Err(anyhow!(
+            "only the owning artifact agent/session may update '{artifact_uri}'"
+        ));
+    }
+    let mut artifact = cp
+        .kv
+        .get_msg::<crate::gateway::rpc::data_proto::Artifact>(&keys::artifact(
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
+        ))
+        .await?
+        .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
+    let previous_object_key = artifact
+        .object_ref
+        .as_ref()
+        .map(|object_ref| object_ref.key.clone());
+    let media_type = opt_str(args, "media_type").unwrap_or(&artifact.media_type);
+    if opt_str(args, "content").is_none() && opt_str(args, "content_base64").is_none() {
+        return Err(anyhow!(
+            "update_artifact requires content or content_base64"
+        ));
+    }
+    let content = artifact_content_bytes(args)?;
+    let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+    let object_ref = cas
+        .put_artifact(
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
+            &content,
+            media_type,
+            artifact.metadata.clone(),
+        )
+        .await?;
+    artifact.media_type = media_type.to_string();
+    artifact.object_ref = Some(object_ref);
+    cp.kv
+        .set_msg(
+            &keys::artifact(
+                &uri.namespace,
+                &uri.agent,
+                &uri.session_id,
+                &uri.artifact_id,
+            ),
+            &artifact,
+        )
+        .await?;
+    if let Some(previous_object_key) = previous_object_key {
+        if artifact
+            .object_ref
+            .as_ref()
+            .is_none_or(|object_ref| object_ref.key != previous_object_key)
+        {
+            cas.delete_object(&previous_object_key).await?;
+        }
+    }
+    Ok(serde_json::to_string_pretty(&json!({
+        "artifact": artifact_json(&artifact),
+        "artifactUri": uri.encode()
     }))?)
 }
 
@@ -3221,6 +3297,67 @@ mod tests {
         let read_value: Value = serde_json::from_str(&read_output).unwrap();
         assert_eq!(read_value["content"], "draft body");
 
+        let update_output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "content": "revised body",
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let update_value: Value = serde_json::from_str(&update_output).unwrap();
+        assert_eq!(update_value["artifactUri"], artifact_uri);
+        let updated_object_key = update_value["artifact"]["objectRef"]["key"]
+            .as_str()
+            .unwrap();
+        assert_ne!(updated_object_key, object_key);
+        assert!(crate::control::cas::CasStore::new(cp.objects.clone())
+            .get_object_decoded(object_key)
+            .await
+            .unwrap()
+            .is_none());
+
+        let read_updated_output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let read_updated_value: Value = serde_json::from_str(&read_updated_output).unwrap();
+        assert_eq!(read_updated_value["content"], "revised body");
+
+        let empty_update = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(empty_update
+            .to_string()
+            .contains("requires content or content_base64"));
+
         execute_tool_for_session(
             &cp,
             "Tenant:acme:Workspace:main",
@@ -3253,6 +3390,22 @@ mod tests {
         assert_eq!(stored_access.target_agent, "critic");
         assert_eq!(stored_access.target_session_id, "session-2");
         assert_eq!(stored_access.operations, vec!["read", "metadata"]);
+
+        let update_denied = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "critic",
+            "session-2",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "content": "critic overwrite",
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(update_denied.to_string().contains("only the owning"));
     }
 
     #[tokio::test]
