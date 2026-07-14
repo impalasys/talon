@@ -1,6 +1,7 @@
 ---
 title: How Talon Works
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 Talon is easiest to understand as a control plane plus a worker runtime.
@@ -63,6 +64,6 @@ This design gives Talon a durable operational surface:
 
 ## Read next
 
-- [Runtime Topology](./02-runtime-topology.md)
-- [Resource Model](./03-resource-model.md)
-- [Sessions and Streaming](./05-sessions-and-streaming.md)
+- [Runtime Topology](./runtime-topology)
+- [Resource Model](./resource-model)
+- [Sessions and Streaming](./sessions-and-streaming)

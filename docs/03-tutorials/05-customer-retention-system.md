@@ -1,6 +1,7 @@
 ---
 title: Build a Customer Retention System
-sidebar_position: 5
+sidebar:
+  order: 5
 ---
 
 This tutorial makes Talon’s scheduler concrete by pairing a real agent with a real schedule managed as a Talon resource.
@@ -116,5 +117,5 @@ This is where Talon stops looking like “chat with memory” and starts looking
 
 ## Read next
 
-- [Build an Internal Ops Copilot](./04-internal-ops-copilot.md)
-- [Scheduling and Background Work](../04-operations/05-scheduling-and-background-work.md)
+- [Build an Internal Ops Copilot](./internal-ops-copilot)
+- [Scheduling and Background Work](../operations/scheduling-and-background-work)

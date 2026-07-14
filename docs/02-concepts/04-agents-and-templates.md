@@ -1,6 +1,7 @@
 ---
 title: Agents and Templates
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 Talon separates reusable agent design from runtime instances so behavior can be standardized without losing runtime flexibility.
@@ -56,9 +57,9 @@ This gives Talon a real control-plane model rather than “just prompt text”:
 - agents are created inside namespaces
 - sessions are always created against an agent, never directly against a template
 
-See the generated [resource schema reference](../05-reference/generated/resource-schemas.md) for the exact message shapes.
+See the generated [resource schema reference](../reference/generated/resource-schemas) for the exact message shapes.
 
 ## Read next
 
-- [Resource Model](./03-resource-model.md)
-- [Sessions and Streaming](./05-sessions-and-streaming.md)
+- [Resource Model](./resource-model)
+- [Sessions and Streaming](./sessions-and-streaming)

@@ -1,6 +1,7 @@
 ---
 title: Deployment Model
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 Talon’s deployment surface in this repo is intentionally split:
@@ -59,5 +60,5 @@ Production deployments that place the gateway behind a reverse proxy or edge ser
 
 ## Read next
 
-- [Runtime Topology](../02-concepts/02-runtime-topology.md)
-- [Runtime Surfaces](../05-reference/02-runtime-surfaces.md)
+- [Runtime Topology](../concepts/runtime-topology)
+- [Runtime Surfaces](../reference/runtime-surfaces)

@@ -1,6 +1,7 @@
 ---
 title: Build a ChatGPT-Style App
-sidebar_position: 3
+sidebar:
+  order: 3
 ---
 
 This tutorial uses the repository’s example assets plus Talon’s gRPC-Web client path to build a real product-docs chat app.
@@ -138,6 +139,6 @@ Add those after the basic chat loop works.
 
 ## Read next
 
-- [Build a Marketing Agency](./06-marketing-agency.md)
-- [Build a Client Against the Gateway](./02-build-a-client.md)
-- [Authentication and Access](../04-operations/04-authentication-and-access.md)
+- [Build a Marketing Agency](./marketing-agency)
+- [Build a Client Against the Gateway](./build-a-client)
+- [Authentication and Access](../operations/authentication-and-access)

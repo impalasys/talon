@@ -1,6 +1,7 @@
 ---
 title: CLI
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 `talon-cli` is the administrative entry point for common control-plane tasks.

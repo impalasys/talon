@@ -1,6 +1,7 @@
 ---
 title: Namespaces, Knowledge, and MCP
-sidebar_position: 3
+sidebar:
+  order: 3
 ---
 
 These three concepts define how Talon organizes data and tool access.
@@ -41,5 +42,5 @@ Lifecycle changes to MCP servers also affect the worker’s runtime registry, so
 
 ## Read next
 
-- [Authentication and Access](../04-operations/04-authentication-and-access.md)
-- [Resource Model](./03-resource-model.md)
+- [Authentication and Access](../operations/authentication-and-access)
+- [Resource Model](./resource-model)

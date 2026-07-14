@@ -1,6 +1,7 @@
 ---
 title: Configuration
-sidebar_position: 4
+sidebar:
+  order: 4
 ---
 
 Talon configuration covers providers, the control plane, and scheduler behavior.
@@ -232,5 +233,5 @@ auth.
 
 ## Read next
 
-- [Local Development](./01-local-development.md)
-- [Config Schema](../05-reference/generated/config-schema.md)
+- [Local Development](./local-development)
+- [Config Schema](../reference/generated/config-schema)

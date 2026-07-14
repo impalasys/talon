@@ -1,6 +1,7 @@
 ---
 title: Events and Models
-sidebar_position: 3
+sidebar:
+  order: 3
 ---
 
 This page summarizes the most important runtime events and stored models.
@@ -48,5 +49,5 @@ Generated schema pages are useful for exact fields, but these event and model ty
 
 ## Read next
 
-- [Runtime Surfaces](./02-runtime-surfaces.md)
-- [Gateway API](./generated/gateway-service.md)
+- [Runtime Surfaces](./runtime-surfaces)
+- [Gateway API](./generated/gateway-service)

@@ -1,0 +1,7 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "moduleResolution": "bundler"
+  },
+  "include": [".blume/.astro/types.d.ts", ".blume/src/env.d.ts", "**/*"]
+}

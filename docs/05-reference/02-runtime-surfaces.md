@@ -1,6 +1,7 @@
 ---
 title: Runtime Surfaces
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 Talon exposes one public gateway surface over the runtime system.
@@ -23,4 +24,4 @@ Use it when you want:
 
 ## Read next
 
-- [Events and Models](./03-events-and-models.md)
+- [Events and Models](./events-and-models)

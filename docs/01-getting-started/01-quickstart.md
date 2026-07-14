@@ -1,6 +1,7 @@
 ---
 title: Quickstart
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 Use this quickstart to run Talon locally with one `talon-node` process and send one prompt to the default agent.
@@ -153,7 +154,7 @@ talon get agent main --namespace default
 
 ## Next steps
 
-- [Create your first agent](../03-tutorials/01-first-agent.md)
-- [Learn the resource model](../02-concepts/03-resource-model.md)
-- [Use the CLI](../05-reference/01-cli.md)
-- [Configure providers and runtime settings](../04-operations/03-configuration.md)
+- [Create your first agent](../tutorials/first-agent)
+- [Learn the resource model](../concepts/resource-model)
+- [Use the CLI](../reference/cli)
+- [Configure providers and runtime settings](../operations/configuration)

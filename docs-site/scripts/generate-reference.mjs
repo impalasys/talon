@@ -50,15 +50,11 @@ await rm(generatedRoot, {recursive: true, force: true});
 await mkdir(generatedRoot, {recursive: true});
 
 await writeFile(
-  path.join(generatedRoot, "_category_.json"),
-  JSON.stringify({label: "Generated reference", position: 99}, null, 2) + "\n",
-);
-
-await writeFile(
   path.join(generatedRoot, "index.md"),
   `---
 title: Generated Reference
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 This section is generated from Talon's canonical source files in the monorepo:
@@ -95,6 +91,13 @@ await generateSchemaReference({
   intro:
     "This page summarizes the control-plane resource messages that drive Talon agents, files, deployments, sandbox orchestration, MCP servers, schedules, workflows, and knowledge resources.",
 });
+await generateSchemaReference({
+  sourcePaths: resourceProtos,
+  title: "Manifest Schema",
+  slug: "manifests-schema",
+  intro:
+    "This page summarizes the control-plane resource messages used by Talon manifests. The YAML manifests in `talon/manifests/**` compile into these durable resource shapes.",
+});
 
 async function generateGatewayReference() {
   const proto = (await Promise.all(apiProtos.map((file) => readFile(file, "utf8")))).join("\n");
@@ -118,7 +121,8 @@ async function generateGatewayReference() {
   const lines = [
     "---",
     "title: Talon v1 Services",
-    "sidebar_position: 2",
+    "sidebar:",
+    "  order: 2",
     "---",
     "",
     "The Talon gateway API is defined by the domain service files in `proto/talon/v1/*.proto`. They are the canonical first-class gRPC and gRPC-Web contract exposed directly by the gateway.",
@@ -369,18 +373,6 @@ function extractBlock(proto, kind, name) {
   }
 
   return blockLines.join("\n");
-}
-
-function classifyMethod(method) {
-  const path = method.http?.path || "";
-  if (path.includes("/schedules")) return "Schedules";
-  if (path.includes("/knowledge")) return "Knowledge";
-  if (path.includes("/sessions")) return "Sessions";
-  if (path.includes("/templates")) return "Templates";
-  if (path.includes("/mcp-servers")) return "MCP";
-  if (path.includes("/namespaces") && !path.includes("/agents")) return "Namespaces";
-  if (path.includes("/agents")) return "Agents";
-  return "Other";
 }
 
 function isSectionLabel(value) {

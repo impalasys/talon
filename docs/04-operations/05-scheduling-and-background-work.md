@@ -1,6 +1,7 @@
 ---
 title: Scheduling and Background Work
-sidebar_position: 3
+sidebar:
+  order: 3
 ---
 
 Schedules let Talon trigger agent work later or repeatedly.
@@ -57,5 +58,5 @@ Schedules are part of the same durable control plane as sessions and agents. The
 
 ## Read next
 
-- [Configuration](./03-configuration.md)
-- [Deployment Model](./06-deployment-model.md)
+- [Configuration](./configuration)
+- [Deployment Model](./deployment-model)

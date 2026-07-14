@@ -1,6 +1,7 @@
 ---
 title: Build Your First Agent
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 This tutorial gets you to a working Talon agent with real commands and a real local inspection loop.
@@ -138,6 +139,6 @@ There is no separate JSON-transcoded gateway route in the local stack.
 
 ## Read next
 
-- [Build a Client Against the Gateway](./02-build-a-client.md)
-- [Build a ChatGPT-Style App](./03-chatgpt-app.md)
-- [Using Sightline](../02-concepts/07-using-sightline.md)
+- [Build a Client Against the Gateway](./build-a-client)
+- [Build a ChatGPT-Style App](./chatgpt-app)
+- [Using Sightline](../concepts/using-sightline)

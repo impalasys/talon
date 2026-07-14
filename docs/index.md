@@ -1,7 +1,7 @@
 ---
-slug: /
 title: Introduction
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 Talon is an agent control plane. It gives you durable runtime state, operational APIs, worker execution, schedules, knowledge, namespace-scoped MCP tools, and a browser UI for inspection.
@@ -15,9 +15,9 @@ If you are new to Talon, the fastest way to build the right mental model is:
 
 ## Start here
 
-- [How Talon Works](./02-concepts/01-how-talon-works.md) for the end-to-end runtime flow
-- [Runtime Topology](./02-concepts/02-runtime-topology.md) for the concrete local stack
-- [Quickstart](./01-getting-started/01-quickstart.md) for the fastest local loop
+- [How Talon Works](./concepts/how-talon-works) for the end-to-end runtime flow
+- [Runtime Topology](./concepts/runtime-topology) for the concrete local stack
+- [Quickstart](./getting-started/quickstart) for the fastest local loop
 
 ## What Talon manages
 
@@ -31,14 +31,14 @@ If you are new to Talon, the fastest way to build the right mental model is:
 
 ## Reading order
 
-1. [How Talon Works](./02-concepts/01-how-talon-works.md)
-2. [Runtime Topology](./02-concepts/02-runtime-topology.md)
-3. [Resource Model](./02-concepts/03-resource-model.md)
-4. [Quickstart](./01-getting-started/01-quickstart.md)
-5. [Build Your First Agent](./03-tutorials/01-first-agent.md)
+1. [How Talon Works](./concepts/how-talon-works)
+2. [Runtime Topology](./concepts/runtime-topology)
+3. [Resource Model](./concepts/resource-model)
+4. [Quickstart](./getting-started/quickstart)
+5. [Build Your First Agent](./tutorials/first-agent)
 
 ## Choose your next path
 
-- Building against Talon from code: [Build a Client](./03-tutorials/02-build-a-client.md)
-- Operating Talon locally or in deployment: [Operate](./04-operations/01-local-development.md)
-- Looking for exact request/response shapes: [Reference](./05-reference/00-overview.md)
+- Building against Talon from code: [Build a Client](./tutorials/build-a-client)
+- Operating Talon locally or in deployment: [Operate](./operations/local-development)
+- Looking for exact request/response shapes: [Reference](./reference)

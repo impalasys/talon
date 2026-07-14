@@ -1,6 +1,7 @@
 ---
 title: Using Sightline
-sidebar_position: 6
+sidebar:
+  order: 6
 ---
 
 Sightline is Talon’s browser-native operator UI.
@@ -35,5 +36,5 @@ Talon is designed to be observable. Sightline is the fastest way to see:
 
 ## Read next
 
-- [Quickstart](../01-getting-started/01-quickstart.md)
-- [Runtime Surfaces](../05-reference/02-runtime-surfaces.md)
+- [Quickstart](../getting-started/quickstart)
+- [Runtime Surfaces](../reference/runtime-surfaces)

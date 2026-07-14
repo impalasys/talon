@@ -1,6 +1,7 @@
 ---
 title: Talon v1 Services
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 The Talon gateway API is defined by the domain service files in `proto/talon/v1/*.proto`. They are the canonical first-class gRPC and gRPC-Web contract exposed directly by the gateway.

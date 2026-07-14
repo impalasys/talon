@@ -1,6 +1,7 @@
 ---
 title: Architecture
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 Talon splits its runtime into a few clear roles.
@@ -47,7 +48,7 @@ The most important Talon resources are:
 - namespace knowledge
 - MCP servers
 
-Read [Resource Model](../02-concepts/03-resource-model.md) for the durable control-plane view.
+Read [Resource Model](../concepts/resource-model) for the durable control-plane view.
 
 Talon is organized around a few resource types:
 
@@ -67,5 +68,5 @@ Talon is organized around a few resource types:
 
 ## Where to go next
 
-- [Agents and templates](../02-concepts/04-agents-and-templates.md)
-- [Sessions and streaming](../02-concepts/05-sessions-and-streaming.md)
+- [Agents and templates](../concepts/agents-and-templates)
+- [Sessions and streaming](../concepts/sessions-and-streaming)

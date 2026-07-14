@@ -1,6 +1,7 @@
 ---
 title: Local Development
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 ## Docker Compose variant
@@ -92,7 +93,7 @@ Use the API key from the bootstrap step when the auth modal asks for credentials
 
 ## SQLite and `talon-node` development
 
-The Docker Compose stack uses Postgres and the Pub/Sub emulator. For the smallest local runtime, use `talon-node` with SQLite and a local Unix socket broker, as shown in the [quickstart](../01-getting-started/01-quickstart.md).
+The Docker Compose stack uses Postgres and the Pub/Sub emulator. For the smallest local runtime, use `talon-node` with SQLite and a local Unix socket broker, as shown in the [quickstart](../getting-started/quickstart).
 
 If you want to run Talon directly on a single machine without Postgres, configure:
 
@@ -105,7 +106,7 @@ If you want to run Talon directly on a single machine without Postgres, configur
 Keep the SQLite database on a local filesystem and run the gateway and worker on the same host.
 
 For a complete command-by-command walkthrough, see the draft wiki note
-[Local Single-Host Development Without Docker](./02-single-host-development.md).
+[Local Single-Host Development Without Docker](./single-host-development).
 
 ## Useful endpoints
 
@@ -115,7 +116,7 @@ For a complete command-by-command walkthrough, see the draft wiki note
 
 ## Common tasks
 
-- Inspect the [gateway service reference](../05-reference/generated/gateway-service.md) when adding or consuming API surface
+- Inspect the [gateway service reference](../reference/generated/gateway-service) when adding or consuming API surface
 - Use Sightline to verify sessions, schedules, namespaces, and tool activity
 - Use the CLI for admin flows that are easier from the terminal than the UI
 

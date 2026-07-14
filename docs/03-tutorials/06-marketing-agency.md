@@ -1,6 +1,7 @@
 ---
 title: Build a Marketing Agency
-sidebar_position: 4
+sidebar:
+  order: 4
 ---
 
 This tutorial shows how to model a multi-role workspace around shared knowledge and distinct agents.
@@ -103,5 +104,5 @@ That is easier to operate than one giant all-purpose marketing agent.
 
 ## Read next
 
-- [Build a Customer Retention System](./05-customer-retention-system.md)
-- [Namespaces, Knowledge, and MCP](../02-concepts/06-namespaces-knowledge-and-mcp.md)
+- [Build a Customer Retention System](./customer-retention-system)
+- [Namespaces, Knowledge, and MCP](../concepts/namespaces-knowledge-and-mcp)

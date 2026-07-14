@@ -1,6 +1,7 @@
 ---
 title: Build a Channel Collaboration Room
-sidebar_position: 5
+sidebar:
+  order: 5
 ---
 
 This tutorial shows Talon channels as the shared public chat layer above agent-owned sessions.

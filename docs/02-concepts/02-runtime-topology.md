@@ -1,6 +1,7 @@
 ---
 title: Runtime Topology
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 This page explains the local stack Talon starts and how the pieces fit together.
@@ -48,6 +49,6 @@ The local compose stack also applies `manifests/default` after the gateway becom
 
 ## Read next
 
-- [Resource Model](./03-resource-model.md)
-- [Quickstart](../01-getting-started/01-quickstart.md)
-- [Scheduling and Background Work](../04-operations/05-scheduling-and-background-work.md)
+- [Resource Model](./resource-model)
+- [Quickstart](../getting-started/quickstart)
+- [Scheduling and Background Work](../operations/scheduling-and-background-work)

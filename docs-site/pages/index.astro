@@ -1,0 +1,23 @@
+---
+const docsHref = "/talon/docs";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content={`0; url=${docsHref}`} http-equiv="refresh" />
+    <link href={docsHref} rel="canonical" />
+    <title>Talon Docs</title>
+    <script is:inline>
+      window.location.replace("/talon/docs");
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Talon Docs</h1>
+      <p><a href={docsHref}>Continue to the documentation</a></p>
+    </main>
+  </body>
+</html>

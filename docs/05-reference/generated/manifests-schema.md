@@ -1,8 +1,8 @@
 ---
-title: Resource Schemas
+title: Manifest Schema
 ---
 
-This page summarizes the control-plane resource messages that drive Talon agents, files, deployments, sandbox orchestration, MCP servers, schedules, workflows, and knowledge resources.
+This page summarizes the control-plane resource messages used by Talon manifests. The YAML manifests in `talon/manifests/**` compile into these durable resource shapes.
 
 ## `OwnerReference`
 

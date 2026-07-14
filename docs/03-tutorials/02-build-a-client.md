@@ -1,6 +1,7 @@
 ---
 title: Build a Client Against the Gateway
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 This tutorial maps Talon’s three client surfaces to concrete code paths in this repository.
@@ -142,6 +143,6 @@ The minimal package usage is documented in `packages/talon-chat/README.md`.
 
 ## Read next
 
-- [Build a ChatGPT-Style App](./03-chatgpt-app.md)
-- [Runtime Surfaces](../05-reference/02-runtime-surfaces.md)
-- [Sessions and execution](../02-concepts/05-sessions-and-streaming.md)
+- [Build a ChatGPT-Style App](./chatgpt-app)
+- [Runtime Surfaces](../reference/runtime-surfaces)
+- [Sessions and execution](../concepts/sessions-and-streaming)

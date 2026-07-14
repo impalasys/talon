@@ -1,6 +1,7 @@
 ---
 title: Authentication and Access
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 Talon gateway authentication is based on Talon-issued platform JWTs.
@@ -177,5 +178,5 @@ client secret for CLI login.
 
 ## Read next
 
-- [Runtime Surfaces](../05-reference/02-runtime-surfaces.md)
-- [CLI](../05-reference/01-cli.md)
+- [Runtime Surfaces](../reference/runtime-surfaces)
+- [CLI](../reference/cli)

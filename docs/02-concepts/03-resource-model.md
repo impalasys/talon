@@ -1,6 +1,7 @@
 ---
 title: Resource Model
-sidebar_position: 3
+sidebar:
+  order: 3
 ---
 
 Talon manages durable resources, not just prompts and chat turns.
@@ -81,6 +82,6 @@ Agents reference MCP servers by simple name. Resolution follows namespace ancest
 
 ## Read next
 
-- [Agents and Templates](./04-agents-and-templates.md)
-- [Namespaces, Knowledge, and MCP](./06-namespaces-knowledge-and-mcp.md)
-- [Runtime Surfaces](../05-reference/02-runtime-surfaces.md)
+- [Agents and Templates](./agents-and-templates)
+- [Namespaces, Knowledge, and MCP](./namespaces-knowledge-and-mcp)
+- [Runtime Surfaces](../reference/runtime-surfaces)

@@ -1,6 +1,7 @@
 ---
 title: Build an Internal Ops Copilot
-sidebar_position: 6
+sidebar:
+  order: 6
 ---
 
 This tutorial shows a narrower, safer Talon pattern: an internal agent with bounded operational tools.
@@ -97,5 +98,5 @@ Internal assistants get risky when every tool is globally available. Talon’s n
 
 ## Read next
 
-- [Runtime Surfaces](../05-reference/02-runtime-surfaces.md)
-- [Authentication and Access](../04-operations/04-authentication-and-access.md)
+- [Runtime Surfaces](../reference/runtime-surfaces)
+- [Authentication and Access](../operations/authentication-and-access)

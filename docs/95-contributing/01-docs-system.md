@@ -1,6 +1,7 @@
 ---
 title: Docs System
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 Talon’s docs are canonical in the monorepo.

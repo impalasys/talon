@@ -1,6 +1,7 @@
 ---
 title: Generated Reference
-sidebar_position: 1
+sidebar:
+  order: 1
 ---
 
 This section is generated from Talon's canonical source files in the monorepo:

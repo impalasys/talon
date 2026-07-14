@@ -1,6 +1,7 @@
 ---
 title: Tutorials
-sidebar_position: 0
+sidebar:
+  order: 0
 ---
 
 Talon has two tutorial tracks:
@@ -12,8 +13,8 @@ Talon has two tutorial tracks:
 
 Start here if you have not run Talon locally before:
 
-- [Build Your First Agent](./01-first-agent.md)
-- [Build a Client Against the Gateway](./02-build-a-client.md)
+- [Build Your First Agent](./first-agent)
+- [Build a Client Against the Gateway](./build-a-client)
 
 These pages teach the basic runtime loop:
 
@@ -26,11 +27,11 @@ These pages teach the basic runtime loop:
 
 Use these guides when you want a fuller product narrative:
 
-- [Build a ChatGPT-Style App](./03-chatgpt-app.md)
-- [Build a Channel Collaboration Room](./07-channel-collaboration.md)
-- [Build a Marketing Agency](./06-marketing-agency.md)
-- [Build a Customer Retention System](./05-customer-retention-system.md)
-- [Build an Internal Ops Copilot](./04-internal-ops-copilot.md)
+- [Build a ChatGPT-Style App](./chatgpt-app)
+- [Build a Channel Collaboration Room](./channel-collaboration)
+- [Build a Marketing Agency](./marketing-agency)
+- [Build a Customer Retention System](./customer-retention-system)
+- [Build an Internal Ops Copilot](./internal-ops-copilot)
 
 Each system tutorial includes:
 
@@ -41,5 +42,5 @@ Each system tutorial includes:
 
 ## Read next
 
-- [How Talon Works](../02-concepts/01-how-talon-works.md)
-- [Runtime Topology](../02-concepts/02-runtime-topology.md)
+- [How Talon Works](../concepts/how-talon-works)
+- [Runtime Topology](../concepts/runtime-topology)

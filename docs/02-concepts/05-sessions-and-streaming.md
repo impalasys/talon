@@ -1,6 +1,7 @@
 ---
 title: Sessions and Execution
-sidebar_position: 2
+sidebar:
+  order: 2
 ---
 
 Sessions are the durable runtime unit for interaction with an agent.
@@ -61,6 +62,6 @@ Talon gives you both because durable auditability and live UX are different need
 
 ## Read next
 
-- [Using Sightline](./07-using-sightline.md)
-- [Runtime Surfaces](../05-reference/02-runtime-surfaces.md)
-- [Events and Models](../05-reference/03-events-and-models.md)
+- [Using Sightline](./using-sightline)
+- [Runtime Surfaces](../reference/runtime-surfaces)
+- [Events and Models](../reference/events-and-models)
