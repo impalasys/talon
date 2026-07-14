@@ -159,10 +159,7 @@ services:
         GRPC_GATEWAY=http://gateway:50051
         TALON_API_KEY=$$(cat /data/talon/auth/api-key)
         export TALON_API_KEY
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/default_agent.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" --grpc-web apply -f /manifests/examples/chatgpt-app/namespace.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-template.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-agent.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/default
 
   init-tutorial-channels:
     profiles: ["tutorial-channels"]

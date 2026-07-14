@@ -1,0 +1,17 @@
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: default
+spec:
+  kind: Agent
+  metadata:
+    name: default
+  spec:
+    systemPrompt: "You are Talon, an autonomous system executing robust actions."
+    modelPolicy:
+      profiles:
+        - name: default
+          model:
+            provider: openai
+            name: gpt-5.4-nano
+            temperature: 0.0
