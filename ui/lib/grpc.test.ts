@@ -119,10 +119,14 @@ describe("isExpiredSignatureAuthError", () => {
   it("detects expired signature messages", () => {
     expect(isExpiredSignatureAuthError({ rawMessage: "JWT expired signature" })).toBe(true);
     expect(isExpiredSignatureAuthError({ message: "signature has expired" })).toBe(true);
+    expect(isExpiredSignatureAuthError({ message: "Invalid token: invalid platform JWT: ExpiredSignature" })).toBe(true);
   });
 
   it("detects unauthenticated expired errors", () => {
     expect(isExpiredSignatureAuthError({ codeName: "Unauthenticated", message: "token expired" })).toBe(true);
+    expect(isExpiredSignatureAuthError({
+      message: "[unauthenticated] Invalid token: invalid platform JWT: ExpiredSignature",
+    })).toBe(true);
   });
 
   it("ignores unrelated auth errors", () => {
