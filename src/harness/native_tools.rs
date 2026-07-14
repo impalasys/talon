@@ -1729,6 +1729,7 @@ fn create_task(
             conditions: Vec::new(),
             progress_summary: "Task created; waiting for delegated execution.".to_string(),
             result_artifacts: Vec::new(),
+            output_artifact_uris: Vec::new(),
             created_at: now,
             updated_at: now,
             completed_at: 0,
@@ -1803,7 +1804,40 @@ fn task_resource_from_task(task: resources_proto::Task) -> resources_proto::Reso
     )
 }
 
-fn update_task_status(status: &mut resources_proto::TaskStatus, args: &Value) -> Result<()> {
+async fn task_output_artifact_uris_from_args(
+    cp: &ControlPlane,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<Vec<String>> {
+    let mut output_artifact_uris = Vec::new();
+    if let Some(uri) = opt_str(args, "output_artifact_uri") {
+        output_artifact_uris.push(uri.to_string());
+    }
+    if let Some(values) = args.get("output_artifact_uris") {
+        let Some(values) = values.as_array() else {
+            return Err(anyhow!("output_artifact_uris must be an array"));
+        };
+        for value in values {
+            let Some(uri) = value.as_str() else {
+                return Err(anyhow!("output_artifact_uris must contain strings"));
+            };
+            output_artifact_uris.push(uri.to_string());
+        }
+    }
+    for uri in &output_artifact_uris {
+        resolve_artifact_uri(cp, current_agent, current_session, uri, OP_READ).await?;
+    }
+    output_artifact_uris.sort();
+    output_artifact_uris.dedup();
+    Ok(output_artifact_uris)
+}
+
+fn update_task_status(
+    status: &mut resources_proto::TaskStatus,
+    args: &Value,
+    output_artifact_uris: &[String],
+) -> Result<()> {
     let now = chrono::Utc::now().timestamp_micros();
     if let Some(namespace) = opt_str(args, "execution_namespace") {
         status
@@ -1838,6 +1872,11 @@ fn update_task_status(status: &mut resources_proto::TaskStatus, args: &Value) ->
     if is_terminal_phase(status.phase) && status.completed_at == 0 {
         status.completed_at = now;
         status.expires_at = now + 90 * 24 * 60 * 60 * 1_000_000;
+    }
+    for uri in output_artifact_uris {
+        if !status.output_artifact_uris.contains(uri) {
+            status.output_artifact_uris.push(uri.clone());
+        }
     }
     Ok(())
 }
@@ -1948,6 +1987,9 @@ fn task_json(task: &resources_proto::Task) -> Value {
         "progressSummary": status.map(|status| status.progress_summary.clone()).unwrap_or_default(),
         "resultArtifacts": status.map(|status| {
             status.result_artifacts.iter().map(file_object_ref_json).collect::<Vec<_>>()
+        }).unwrap_or_default(),
+        "outputArtifactUris": status.map(|status| {
+            status.output_artifact_uris.clone()
         }).unwrap_or_default(),
         "createdAt": status.map(|status| status.created_at).unwrap_or_default(),
         "updatedAt": status.map(|status| status.updated_at).unwrap_or_default(),
@@ -4332,6 +4374,233 @@ mod tests {
         .await
         .unwrap_err();
         assert!(external.to_string().contains("external A2A connection"));
+    }
+
+    #[tokio::test]
+    async fn nested_delegation_propagates_explicit_artifact_uri_outputs() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let namespace = "Tenant:acme:Workspace:main";
+        seed_agent(kv.as_ref(), namespace, "router").await;
+        seed_agent(kv.as_ref(), namespace, "writer").await;
+        seed_session(kv.as_ref(), namespace, "owner", "owner-session").await;
+        let cp = control_plane(kv.clone(), scheduler);
+
+        let owner_spec =
+            task_spec_with_internal_connection(&["create"], "router", namespace, "router");
+        let parent = execute_tool_for_session(
+            &cp,
+            namespace,
+            "owner",
+            "owner-session",
+            &owner_spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Review legal memo",
+                "description": "Route the memo to a writing delegate and return the final artifact.",
+                "connection": "router"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let parent: Value = serde_json::from_str(&parent).unwrap();
+        let parent_task_name = parent["task"]["name"].as_str().unwrap();
+        let router_session_id = parent["task"]["executionRef"]["sessionId"]
+            .as_str()
+            .unwrap();
+
+        let router_spec = task_spec_with_internal_connection(
+            &["create", "update"],
+            "writer",
+            namespace,
+            "writer",
+        );
+        let child = execute_tool_for_session(
+            &cp,
+            namespace,
+            "router",
+            router_session_id,
+            &router_spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Draft legal memo",
+                "description": "Prepare the final legal memo artifact.",
+                "connection": "writer"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let child: Value = serde_json::from_str(&child).unwrap();
+        let child_task_name = child["task"]["name"].as_str().unwrap();
+        let writer_session_id = child["task"]["executionRef"]["sessionId"].as_str().unwrap();
+
+        let writer_artifact = execute_tool_for_session(
+            &cp,
+            namespace,
+            "writer",
+            writer_session_id,
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "Final memo",
+                "content": "# Final Memo\n\nThe agreement should be revised.",
+                "media_type": "text/markdown"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let writer_artifact: Value = serde_json::from_str(&writer_artifact).unwrap();
+        let artifact_uri = writer_artifact["artifactUri"].as_str().unwrap();
+        let artifact_id = writer_artifact["artifact"]["id"].as_str().unwrap();
+
+        let writer_update = execute_tool_for_session(
+            &cp,
+            namespace,
+            "writer",
+            writer_session_id,
+            &task_spec(&["update"]),
+            UPDATE_TASK_TOOL,
+            &json!({
+                "name": child_task_name,
+                "phase": "NEEDS_REVIEW",
+                "progress_summary": "Final memo is ready.",
+                "output_artifact_uri": artifact_uri
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let writer_update: Value = serde_json::from_str(&writer_update).unwrap();
+        assert_eq!(writer_update["task"]["outputArtifactUris"][0], artifact_uri);
+
+        let writer_session = kv
+            .get_msg::<data_proto::Session>(&keys::session(namespace, "writer", writer_session_id))
+            .await
+            .unwrap()
+            .unwrap();
+        let child_task = delegation::complete_delegated_task_from_session(
+            &cp,
+            &writer_session,
+            delegation::DelegatedSessionCompletion::Completed,
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let child_status = child_task.status.as_ref().unwrap();
+        assert!(child_status.result_artifacts.is_empty());
+        assert_eq!(child_status.output_artifact_uris, vec![artifact_uri]);
+
+        let router_access = kv
+            .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
+                namespace,
+                "writer",
+                writer_session_id,
+                artifact_id,
+                "router",
+                router_session_id,
+            ))
+            .await
+            .unwrap()
+            .expect("writer output should be granted to router on child completion");
+        assert_eq!(
+            router_access.operations,
+            vec!["read", "metadata", "promote"]
+        );
+
+        let router_artifact = execute_tool_for_session(
+            &cp,
+            namespace,
+            "router",
+            router_session_id,
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "Router notes",
+                "content": "This should not be propagated.",
+                "media_type": "text/plain"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let router_artifact: Value = serde_json::from_str(&router_artifact).unwrap();
+        let router_artifact_id = router_artifact["artifact"]["id"].as_str().unwrap();
+
+        let parent_update = execute_tool_for_session(
+            &cp,
+            namespace,
+            "router",
+            router_session_id,
+            &task_spec(&["update"]),
+            UPDATE_TASK_TOOL,
+            &json!({
+                "name": parent_task_name,
+                "phase": "NEEDS_REVIEW",
+                "progress_summary": "Final memo is ready for owner review.",
+                "output_artifact_uris": [artifact_uri]
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let parent_update: Value = serde_json::from_str(&parent_update).unwrap();
+        assert_eq!(parent_update["task"]["outputArtifactUris"][0], artifact_uri);
+
+        let router_session = kv
+            .get_msg::<data_proto::Session>(&keys::session(namespace, "router", router_session_id))
+            .await
+            .unwrap()
+            .unwrap();
+        let parent_task = delegation::complete_delegated_task_from_session(
+            &cp,
+            &router_session,
+            delegation::DelegatedSessionCompletion::Completed,
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let parent_status = parent_task.status.as_ref().unwrap();
+        assert!(parent_status.result_artifacts.is_empty());
+        assert_eq!(parent_status.output_artifact_uris, vec![artifact_uri]);
+
+        let owner_access = kv
+            .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
+                namespace,
+                "writer",
+                writer_session_id,
+                artifact_id,
+                "owner",
+                "owner-session",
+            ))
+            .await
+            .unwrap()
+            .expect("forwarded output should be granted to owner on parent completion");
+        assert_eq!(owner_access.operations, vec!["read", "metadata", "promote"]);
+
+        let unrelated_owner_access = kv
+            .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
+                namespace,
+                "router",
+                router_session_id,
+                router_artifact_id,
+                "owner",
+                "owner-session",
+            ))
+            .await
+            .unwrap();
+        assert!(
+            unrelated_owner_access.is_none(),
+            "completion must not scan and propagate unrelated session artifacts"
+        );
+
+        let owner_messages =
+            session_text_messages(kv.as_ref(), namespace, "owner", "owner-session").await;
+        assert!(owner_messages
+            .iter()
+            .any(|message| message.contains(artifact_uri)));
     }
 
     #[tokio::test]

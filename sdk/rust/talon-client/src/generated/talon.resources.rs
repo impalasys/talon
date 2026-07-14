@@ -1193,6 +1193,9 @@ pub struct TaskStatus {
     /// Concrete runtime execution once a delegate session or run is known.
     #[prost(message, optional, tag = "10")]
     pub execution_ref: ::core::option::Option<TaskExecutionRef>,
+    /// Artifact URI outputs explicitly attached by the task executor.
+    #[prost(string, repeated, tag = "11")]
+    pub output_artifact_uris: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Lifecycle phase for a Task.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
