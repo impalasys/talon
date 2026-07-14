@@ -619,6 +619,160 @@ def test_legal_document_refinement_delegation_returns_redline_artifact(
     ), "coordinator could not read the delegated legal redline artifact"
 
 
+def test_nested_policy_document_delegation_forwards_artifact_uri(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    namespace_suffix = f"{stack.name}-{uuid.uuid4().hex[:8]}"
+    coordinator_namespace = f"talon-policy-coordinator-{namespace_suffix}"
+    editor_namespace = f"talon-policy-editor-{namespace_suffix}"
+    drafter_namespace = f"talon-policy-drafter-{namespace_suffix}"
+    ensure_namespace(client, coordinator_namespace)
+    ensure_namespace(client, editor_namespace)
+    ensure_namespace(client, drafter_namespace)
+
+    create_agent_resource(
+        client,
+        drafter_namespace,
+        "policy-drafter-agent",
+        AgentSpec(
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="mock",
+                            name="minimax-m2.7",
+                            temperature=0.7,
+                        ),
+                    }
+                ]
+            },
+            system_prompt="You are a policy drafter. Produce markdown artifacts.",
+        ),
+    )
+    create_agent_resource(
+        client,
+        editor_namespace,
+        "policy-editor-agent",
+        AgentSpec(
+            capabilities={"tasks": _capability_values("create", "inspect")},
+            a2a=_internal_a2a(
+                "policy-drafter",
+                drafter_namespace,
+                "policy-drafter-agent",
+            ),
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="mock",
+                            name="minimax-m2.7",
+                            temperature=0.7,
+                        ),
+                    }
+                ]
+            },
+            system_prompt=(
+                "You are a policy editor. Delegate drafting work and forward "
+                "review-ready artifact URIs to your owner task."
+            ),
+        ),
+    )
+    create_agent_resource(
+        client,
+        coordinator_namespace,
+        "policy-coordinator-agent",
+        AgentSpec(
+            capabilities={
+                "tasks": _capability_values("create", "inspect"),
+                "sessions": _capability_values("read:messages"),
+            },
+            a2a=_internal_a2a(
+                "policy-editor",
+                editor_namespace,
+                "policy-editor-agent",
+            ),
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="mock",
+                            name="minimax-m2.7",
+                            temperature=0.7,
+                        ),
+                    }
+                ]
+            },
+            system_prompt=(
+                "You are a policy coordinator. Delegate policy refinement work "
+                "with delegate_task, then inspect delegated artifacts."
+            ),
+        ),
+    )
+
+    coordinator_session_id = client.sessions.Create(
+        CreateSessionRequest(
+            agent="policy-coordinator-agent",
+            ns=coordinator_namespace,
+        )
+    ).session_id
+    client.sessions.SendMessage(
+        SendMessageRequest(
+            agent="policy-coordinator-agent",
+            session_id=coordinator_session_id,
+            ns=coordinator_namespace,
+            message=(
+                "Please delegate policy document refinement task to the "
+                "policy-editor connection."
+            ),
+        )
+    )
+
+    parent_task = None
+    for _ in range(60):
+        time.sleep(1)
+        parent_tasks = list(
+            client.resources.List(
+                ListResourcesRequest(ns=coordinator_namespace, kind="Task")
+            ).resources
+        )
+        if parent_tasks:
+            parent_task = client.resources.Get(
+                GetResourceRequest(
+                    ns=coordinator_namespace,
+                    kind="Task",
+                    name=parent_tasks[0].metadata.name,
+                )
+            ).resource
+            if parent_task.status.task.phase == 4:
+                break
+    assert parent_task is not None, "coordinator did not create parent task"
+    assert parent_task.status.task.phase == 4
+    assert parent_task.status.task.output_artifact_uris
+    artifact_uri = parent_task.status.task.output_artifact_uris[0]
+    assert artifact_uri.startswith(
+        f"artifact://{drafter_namespace}/policy-drafter-agent/"
+    )
+
+    editor_tasks = list(
+        client.resources.List(
+            ListResourcesRequest(ns=editor_namespace, kind="Task")
+        ).resources
+    )
+    assert len(editor_tasks) == 1
+    child_task = client.resources.Get(
+        GetResourceRequest(
+            ns=editor_namespace,
+            kind="Task",
+            name=editor_tasks[0].metadata.name,
+        )
+    ).resource
+    assert child_task.status.task.phase == 4
+    assert child_task.status.task.output_artifact_uris == [artifact_uri]
+
 def test_streaming_chat(
     stack: E2EStack,
     client: TalonClient,
