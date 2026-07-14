@@ -376,7 +376,7 @@ impl DeploymentController {
             .kv
             .list_entries(
                 &keys::namespace_ref_prefix(Some(&selector.parent)),
-                Order::Asc,
+                Order::Asc.into(),
             )
             .await?;
         let mut namespaces = Vec::new();

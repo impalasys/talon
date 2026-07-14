@@ -82,7 +82,7 @@ impl AgentRuntime {
 
         // 2. Load session history from KV
         let msg_prefix = crate::control::keys::session_message_prefix(ns, agent_id, session_id);
-        let msg_entries = cp.kv.list_entries(&msg_prefix, Order::Asc).await?;
+        let msg_entries = cp.kv.list_entries(&msg_prefix, Order::Asc.into()).await?;
 
         let mut history = Vec::new();
         for (_, value) in msg_entries {
@@ -394,7 +394,6 @@ mod tests {
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
-    use tokio::sync::Mutex;
 
     #[derive(Default)]
     struct MockPubSub;

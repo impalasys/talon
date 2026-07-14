@@ -425,7 +425,7 @@ impl ResourceStore {
             .kv
             .list_entries(
                 &keys::ResourceParent::root(namespace).list(kind),
-                Order::Asc,
+                Order::Asc.into(),
             )
             .await?;
         let mut status_fetches = Vec::with_capacity(entries.len());

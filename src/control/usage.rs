@@ -336,7 +336,7 @@ async fn usage_status_used(
             let prefix = format!("{rule_id}:subject=");
             let suffix = format!(":{window_start}");
             let mut max_used = 0;
-            for (key, value) in kv.list_entries(&parent, Order::Asc).await? {
+            for (key, value) in kv.list_entries(&parent, Order::Asc.into()).await? {
                 if key.name.starts_with(&prefix) && key.name.ends_with(&suffix) {
                     max_used = max_used.max(
                         decode_counter(&value)
@@ -515,7 +515,7 @@ async fn matched_limits(
         .into_iter()
         .map(|namespace| {
             let list_key = keys::ResourceParent::root(&namespace).list(Some("UsagePolicy"));
-            async move { kv.list_entries(&list_key, Order::Asc).await }
+            async move { kv.list_entries(&list_key, Order::Asc.into()).await }
         });
     for entries in futures::future::try_join_all(ancestor_fetches).await? {
         for (key, value) in entries {

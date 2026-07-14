@@ -221,7 +221,7 @@ impl GrpcGatewayHandler {
         let entries = self
             .gateway
             .kv
-            .list_entries(&api_key_list(), Order::Asc)
+            .list_entries(&api_key_list(), Order::Asc.into())
             .await
             .map_err(|err| tonic::Status::internal(format!("failed to list API keys: {err}")))?;
         let mut api_keys = Vec::with_capacity(entries.len());

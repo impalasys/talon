@@ -3,7 +3,7 @@
 
 use crate::control::{
     keys::{ResourceKey, ResourceList},
-    KeyValueStore, Order,
+    KeyValueStore, ListOptions, Order,
 };
 use anyhow::{anyhow, bail, Result};
 use rocksdb::{
@@ -45,6 +45,15 @@ fn reverse_seek_bytes(prefix: &[u8]) -> Vec<u8> {
     let mut seek = prefix.to_vec();
     seek.push(0xff);
     seek
+}
+
+fn key_matches_options(key: &ResourceKey, options: ListOptions<'_>) -> bool {
+    options
+        .before_name
+        .map_or(true, |cursor| key.name.as_str() < cursor)
+        && options
+            .after_name
+            .map_or(true, |cursor| key.name.as_str() > cursor)
 }
 
 fn parse_key(bytes: &[u8]) -> Result<ResourceKey> {
@@ -319,9 +328,16 @@ impl KeyValueStore for RocksDbKvStore {
         .await
     }
 
-    async fn list_keys(&self, list: &ResourceList, order: Order) -> Result<Vec<ResourceKey>> {
+    async fn list_keys(
+        &self,
+        list: &ResourceList,
+        options: ListOptions<'_>,
+    ) -> Result<Vec<ResourceKey>> {
+        if options.limit == Some(0) {
+            return Ok(Vec::new());
+        }
         let prefix = prefix_bytes(list);
-        let seek_key = (order == Order::Desc).then(|| reverse_seek_bytes(&prefix));
+        let seek_key = (options.order == Order::Desc).then(|| reverse_seek_bytes(&prefix));
         let span = tracing::debug_span!(
             "RocksDbKvStore.list_keys",
             "db.system" = "rocksdb",
@@ -345,7 +361,14 @@ impl KeyValueStore for RocksDbKvStore {
                             if !raw_key.starts_with(&prefix) {
                                 break;
                             }
-                            keys.push(parse_key(&raw_key)?);
+                            let key = parse_key(&raw_key)?;
+                            if !key_matches_options(&key, options) {
+                                continue;
+                            }
+                            keys.push(key);
+                            if options.limit.is_some_and(|limit| keys.len() >= limit) {
+                                break;
+                            }
                         }
                     } else {
                         for item in
@@ -355,7 +378,14 @@ impl KeyValueStore for RocksDbKvStore {
                             if !raw_key.starts_with(&prefix) {
                                 break;
                             }
-                            keys.push(parse_key(&raw_key)?);
+                            let key = parse_key(&raw_key)?;
+                            if !key_matches_options(&key, options) {
+                                continue;
+                            }
+                            keys.push(key);
+                            if options.limit.is_some_and(|limit| keys.len() >= limit) {
+                                break;
+                            }
                         }
                     }
                     Ok(keys)
@@ -372,10 +402,13 @@ impl KeyValueStore for RocksDbKvStore {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        order: Order,
+        options: ListOptions<'_>,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
+        if options.limit == Some(0) {
+            return Ok(Vec::new());
+        }
         let prefix = prefix_bytes(list);
-        let seek_key = (order == Order::Desc).then(|| reverse_seek_bytes(&prefix));
+        let seek_key = (options.order == Order::Desc).then(|| reverse_seek_bytes(&prefix));
         let span = tracing::debug_span!(
             "RocksDbKvStore.list_entries",
             "db.system" = "rocksdb",
@@ -401,8 +434,15 @@ impl KeyValueStore for RocksDbKvStore {
                             if !raw_key.starts_with(&prefix) {
                                 break;
                             }
+                            let key = parse_key(&raw_key)?;
+                            if !key_matches_options(&key, options) {
+                                continue;
+                            }
                             value_bytes += value.len();
-                            entries.push((parse_key(&raw_key)?, value.to_vec()));
+                            entries.push((key, value.to_vec()));
+                            if options.limit.is_some_and(|limit| entries.len() >= limit) {
+                                break;
+                            }
                         }
                     } else {
                         for item in
@@ -412,8 +452,15 @@ impl KeyValueStore for RocksDbKvStore {
                             if !raw_key.starts_with(&prefix) {
                                 break;
                             }
+                            let key = parse_key(&raw_key)?;
+                            if !key_matches_options(&key, options) {
+                                continue;
+                            }
                             value_bytes += value.len();
-                            entries.push((parse_key(&raw_key)?, value.to_vec()));
+                            entries.push((key, value.to_vec()));
+                            if options.limit.is_some_and(|limit| entries.len() >= limit) {
+                                break;
+                            }
                         }
                     }
                     Ok((entries, value_bytes))
@@ -609,12 +656,12 @@ mod tests {
         store.set(&other, b"o").await.unwrap();
 
         let list = keys::session_prefix("default", "agent-a");
-        let keys = store.list_keys(&list, Order::Asc).await.unwrap();
+        let keys = store.list_keys(&list, Order::Asc.into()).await.unwrap();
         assert_eq!(
             keys.iter().map(|key| key.name.as_str()).collect::<Vec<_>>(),
             vec!["alpha", "beta", "gamma"]
         );
-        let desc_keys = store.list_keys(&list, Order::Desc).await.unwrap();
+        let desc_keys = store.list_keys(&list, Order::Desc.into()).await.unwrap();
         assert_eq!(
             desc_keys
                 .iter()
@@ -622,7 +669,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec!["gamma", "beta", "alpha"]
         );
-        let desc_entries = store.list_entries(&list, Order::Desc).await.unwrap();
+        let desc_entries = store.list_entries(&list, Order::Desc.into()).await.unwrap();
         assert_eq!(
             desc_entries
                 .iter()

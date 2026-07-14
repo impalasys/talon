@@ -75,7 +75,7 @@ impl ConnectorController {
         // Reconcile Connectors that may have been waiting for this class.
         for namespace_key in cp
             .kv
-            .list_keys(&keys::namespace_metadata_prefix(), Order::Asc)
+            .list_keys(&keys::namespace_metadata_prefix(), Order::Asc.into())
             .await?
         {
             let namespace = namespace_key.name;
@@ -348,7 +348,7 @@ pub async fn delete_route_entries_for_uid(
     for (key, bytes) in kv
         .list_entries(
             &keys::connector_route_prefix(class_namespace, class_name),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await?
     {
@@ -402,7 +402,7 @@ pub async fn delete_connector_class_entries(
 }
 
 async fn delete_entries(kv: &dyn KeyValueStore, prefix: &keys::ResourceList) -> Result<()> {
-    for key in kv.list_keys(prefix, Order::Asc).await? {
+    for key in kv.list_keys(prefix, Order::Asc.into()).await? {
         kv.delete(&key).await?;
     }
     Ok(())

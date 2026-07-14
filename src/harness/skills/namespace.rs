@@ -25,7 +25,7 @@ pub async fn load_effective_skills(
 
     for candidate_ns in crate::control::ns::ancestry(namespace) {
         let prefix = keys::skill_prefix(&candidate_ns);
-        let skill_keys = kv.list_keys(&prefix, Order::Asc).await?;
+        let skill_keys = kv.list_keys(&prefix, Order::Asc.into()).await?;
 
         for key in skill_keys {
             let name = key.name.clone();

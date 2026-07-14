@@ -676,7 +676,7 @@ async fn latest_nonterminal_submission(
 ) -> std::result::Result<Option<data_proto::SessionSubmission>, tonic::Status> {
     let prefix = keys::session_submission_prefix(&target.ns, &target.agent, &target.session_id);
     let entries = kv
-        .list_entries(&prefix, Order::Asc)
+        .list_entries(&prefix, Order::Asc.into())
         .await
         .map_err(|err| tonic::Status::internal(format!("Failed to list submissions: {err}")))?;
     let mut submissions = Vec::new();
@@ -700,7 +700,7 @@ async fn latest_submission(
 ) -> std::result::Result<Option<data_proto::SessionSubmission>, tonic::Status> {
     let prefix = keys::session_submission_prefix(&target.ns, &target.agent, &target.session_id);
     let entries = kv
-        .list_entries(&prefix, Order::Asc)
+        .list_entries(&prefix, Order::Asc.into())
         .await
         .map_err(|err| tonic::Status::internal(format!("Failed to list submissions: {err}")))?;
     let mut submissions = Vec::new();

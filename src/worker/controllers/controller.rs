@@ -142,7 +142,7 @@ impl ControllerHost {
                                 .kv
                                 .list_keys(
                                     &crate::control::keys::namespace_metadata_prefix(),
-                                    Order::Asc,
+                                    Order::Asc.into(),
                                 )
                                 .await?
                             {

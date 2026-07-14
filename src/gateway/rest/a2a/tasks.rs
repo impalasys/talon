@@ -304,7 +304,7 @@ pub(super) async fn list_a2a_session_task_ids(
         .kv
         .list_keys(
             &keys::session_message_prefix(&route.ns, &route.agent, session_id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await
         .map_err(|err| {
@@ -404,7 +404,7 @@ pub(super) async fn find_a2a_task_session(
     let prefix = keys::session_prefix(&route.ns, &route.agent);
     let session_keys = gateway
         .kv
-        .list_keys(&prefix, Order::Asc)
+        .list_keys(&prefix, Order::Asc.into())
         .await
         .map_err(|err| {
             tracing::error!(%err, "Failed to list A2A sessions");
@@ -468,7 +468,7 @@ async fn session_contains_a2a_task_message(
         .kv
         .list_keys(
             &keys::session_message_prefix(&route.ns, &route.agent, session_id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await
         .map_err(|err| {
@@ -550,7 +550,7 @@ pub(super) async fn load_a2a_task_from_session(
         .kv
         .list_keys(
             &keys::session_message_prefix(&route.ns, &route.agent, &task_ref.session_id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await
         .map_err(|err| {

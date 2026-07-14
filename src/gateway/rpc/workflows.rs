@@ -458,7 +458,7 @@ async fn load_sorted_workflow_run_events(
     let entries = kv
         .list_entries(
             &keys::workflow_run_event_prefix(ns, workflow, run_id),
-            Order::Asc,
+            Order::Asc.into(),
         )
         .await
         .map_err(|err| tonic::Status::internal(err.to_string()))?;

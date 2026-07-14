@@ -1086,7 +1086,7 @@ pub fn append_schedule_event(
 mod tests {
     use super::*;
     use crate::control::{
-        scheduler::NoopSchedulerBackend, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        scheduler::NoopSchedulerBackend, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
     use crate::test_support::MockKvStore;
