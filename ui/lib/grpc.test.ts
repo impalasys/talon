@@ -3,6 +3,7 @@ import {
   buildGatewayHeaders,
   getDefaultGatewayUrl,
   getGatewayClient,
+  getSightlineRefreshUrl,
   isExpiredSignatureAuthError,
   normalizeGatewayUrl,
   updateGatewayClient,
@@ -37,6 +38,24 @@ describe("getDefaultGatewayUrl", () => {
     process.env.NEXT_PUBLIC_GATEWAY_URL = "  https://gateway.example.com///  ";
 
     expect(getDefaultGatewayUrl()).toBe("https://gateway.example.com");
+  });
+});
+
+describe("getSightlineRefreshUrl", () => {
+  afterEach(() => {
+    document.cookie = "sightline_refresh_url=; Max-Age=0; path=/";
+  });
+
+  it("uses the Osprey refresh URL cookie when present", () => {
+    document.cookie = "sightline_refresh_url=https%3A%2F%2Fosprey.test%2Finternal%2Fv1%2Fsightline%2Frefresh; path=/";
+
+    expect(getSightlineRefreshUrl()).toBe("https://osprey.test/internal/v1/sightline/refresh");
+  });
+
+  it("returns null when the Osprey refresh URL cookie is absent", () => {
+    document.cookie = "other_cookie=value; path=/";
+
+    expect(getSightlineRefreshUrl()).toBeNull();
   });
 });
 

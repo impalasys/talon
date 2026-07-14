@@ -62,6 +62,23 @@ export function applyGatewayAuthorizationHeader(
 }
 
 export const TALON_AUTH_EXPIRED_EVENT = "talon-auth-expired";
+const RUNTIME_AUTH_TOKEN_STORAGE_KEY = "talon_auth_token";
+const SIGHTLINE_REFRESH_URL_COOKIE_NAME = "sightline_refresh_url";
+
+type SightlineRefreshResponse = {
+  accessToken?: string;
+  tokenType?: string;
+  expiresIn?: number;
+  expiresAt?: number;
+  gatewayUrl?: string;
+  namespace?: string;
+};
+
+let sightlineRefreshPromise: Promise<string | null> | null = null;
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+}
 
 export function isExpiredSignatureAuthError(error: unknown) {
   const candidate = error as {
@@ -80,14 +97,77 @@ export function isExpiredSignatureAuthError(error: unknown) {
   );
 }
 
+export function getSightlineRefreshUrl() {
+  if (typeof document === "undefined") return null;
+  for (const cookie of document.cookie.split(";")) {
+    const [rawName, ...rawValueParts] = cookie.split("=");
+    if (rawName?.trim() !== SIGHTLINE_REFRESH_URL_COOKIE_NAME) continue;
+    const rawValue = rawValueParts.join("=").trim();
+    if (!rawValue) return null;
+    try {
+      return decodeURIComponent(rawValue);
+    } catch {
+      return rawValue;
+    }
+  }
+  return null;
+}
+
+async function refreshSightlineAuthToken() {
+  if (typeof window === "undefined") return null;
+  const refreshUrl = getSightlineRefreshUrl();
+  if (!refreshUrl) return null;
+  sightlineRefreshPromise ??= (async () => {
+    try {
+      const response = await fetch(refreshUrl, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        return null;
+      }
+      const payload = await response.json().catch(() => ({})) as SightlineRefreshResponse;
+      const nextToken = payload.accessToken?.trim();
+      if (!nextToken) return null;
+      try {
+        localStorage.setItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY, nextToken);
+      } catch {
+        // Keep the fresh token usable for the retry even when storage is unavailable.
+      }
+      return nextToken;
+    } catch {
+      return null;
+    }
+  })().finally(() => {
+    sightlineRefreshPromise = null;
+  });
+  return sightlineRefreshPromise;
+}
+
 const authInterceptor: Interceptor = (next) => async (req) => {
+  let attemptedToken: string | null = null;
   if (typeof window !== 'undefined') {
-    applyGatewayAuthorizationHeader(req.header, localStorage.getItem('talon_auth_token'));
+    attemptedToken = localStorage.getItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
+    applyGatewayAuthorizationHeader(req.header, attemptedToken);
   }
   try {
     return await next(req);
   } catch (error) {
     if (typeof window !== 'undefined' && isExpiredSignatureAuthError(error)) {
+      const refreshedToken = await refreshSightlineAuthToken();
+      if (refreshedToken) {
+        applyGatewayAuthorizationHeader(req.header, refreshedToken);
+        return await next(req);
+      }
+      await delay(500);
+      const currentToken = localStorage.getItem(RUNTIME_AUTH_TOKEN_STORAGE_KEY);
+      if (currentToken && currentToken !== attemptedToken) {
+        applyGatewayAuthorizationHeader(req.header, currentToken);
+        return await next(req);
+      }
       window.dispatchEvent(new CustomEvent(TALON_AUTH_EXPIRED_EVENT));
     }
     throw error;
