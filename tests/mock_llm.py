@@ -102,7 +102,7 @@ def last_message_text(messages):
 
 
 def message_text(message):
-    content = message.get("content", "")
+    content = message.get("content", message.get("parts", ""))
     if isinstance(content, str):
         return content
     if isinstance(content, list):

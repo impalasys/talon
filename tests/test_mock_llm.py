@@ -24,8 +24,11 @@ def test_mock_llm_helper_functions_cover_message_and_tool_detection() -> None:
     assert mock_llm.last_message_text(
         [{"content": [{"type": "text", "text": "structured text"}]}]
     ) == "structured text"
+    assert mock_llm.last_message_text(
+        [{"parts": [{"type": "text", "content": "talon text"}]}]
+    ) == "talon text"
     assert mock_llm.system_message_text(
-        [{"role": "system", "content": [{"type": "text", "text": "system text"}]}]
+        [{"role": "system", "parts": [{"type": "text", "content": "system text"}]}]
     ) == "system text"
     assert mock_llm.should_emit_tool_call(messages, [{"type": "function"}]) is True
     assert mock_llm.should_emit_tool_call(messages, []) is False
