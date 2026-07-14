@@ -36,6 +36,20 @@ pub(super) fn register(registry: &mut ToolRegistry) {
         }),
     );
     registry.register_builtin(
+        super::UPDATE_ARTIFACT_TOOL,
+        "Update an artifact owned by the current agent/session. Writes a new immutable object and keeps the same artifact:// URI.",
+        json!({
+            "type": "object",
+            "properties": {
+                "artifact_uri": { "type": "string" },
+                "media_type": { "type": "string", "description": "Media type. Defaults to the artifact's current media type." },
+                "content": { "type": "string", "description": "Text content to store." },
+                "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." }
+            },
+            "required": ["artifact_uri"]
+        }),
+    );
+    registry.register_builtin(
         super::GET_ARTIFACT_METADATA_TOOL,
         "Return artifact metadata for an artifact:// URI without reading bytes.",
         json!({
@@ -82,6 +96,11 @@ pub(super) async fn execute(
         }
         super::READ_ARTIFACT_TOOL => {
             super::read_artifact(cp, current_namespace, current_agent, current_session, args)
+                .await
+                .map(Some)
+        }
+        super::UPDATE_ARTIFACT_TOOL => {
+            super::update_artifact(cp, current_namespace, current_agent, current_session, args)
                 .await
                 .map(Some)
         }
