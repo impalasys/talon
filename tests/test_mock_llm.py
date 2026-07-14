@@ -18,7 +18,12 @@ def test_mock_llm_helper_functions_cover_message_and_tool_detection() -> None:
     assert mock_llm.last_message(messages) == messages[-1]
     assert mock_llm.last_message([]) == {}
     assert mock_llm.last_message_text(messages) == "please lookup docs.example.com"
-    assert mock_llm.last_message_text([{"content": ["not", "a", "string"]}]) == ""
+    assert mock_llm.last_message_text([{"content": ["not", "a", "string"]}]) == (
+        "not\na\nstring"
+    )
+    assert mock_llm.last_message_text(
+        [{"content": [{"type": "text", "text": "structured text"}]}]
+    ) == "structured text"
     assert mock_llm.should_emit_tool_call(messages, [{"type": "function"}]) is True
     assert mock_llm.should_emit_tool_call(messages, []) is False
     assert mock_llm.is_tool_followup(
