@@ -1,0 +1,62 @@
+{
+  "rules": [
+    {
+      "id": "inline_artifact_coordinator_delegates",
+      "system_contains": "inline artifact coordinator",
+      "last_message_contains": "delegate inline artifact drafting task",
+      "tool_name": "delegate_task",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_delegate_inline_artifact_1",
+        "tool_name": "delegate_task",
+        "content": "I will delegate the drafting work. ",
+        "arguments": {
+          "title": "Draft board memo",
+          "description": "Draft a concise board memo and return it as a markdown artifact.",
+          "type": "drafting",
+          "connection": "inline-writer"
+        }
+      }
+    },
+    {
+      "id": "inline_artifact_writer_returns_tagged_final_text",
+      "system_contains": "inline artifact writer",
+      "last_message_contains": "you have been assigned a talon task",
+      "response": {
+        "type": "text",
+        "content": "Draft complete.\n\n<artifact name=\"Board memo\" type=\"text/markdown\">\n## Board memo\n\nDirectors should approve the operating plan because it preserves cash while funding the highest-confidence customer work.\n</artifact>"
+      }
+    },
+    {
+      "id": "inline_artifact_coordinator_reads_output",
+      "system_contains": "inline artifact coordinator",
+      "last_message_contains": "read this delegated artifact",
+      "tool_name": "read_artifact",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_read_inline_artifact_1",
+        "tool_name": "read_artifact",
+        "content": "I will read the generated artifact. ",
+        "arguments": {
+          "artifact_uri": "{{artifact_uri}}"
+        }
+      }
+    },
+    {
+      "id": "inline_delegate_followup",
+      "tool_call_id": "call_delegate_inline_artifact_1",
+      "response": {
+        "type": "text",
+        "content": "I delegated the inline artifact drafting task."
+      }
+    },
+    {
+      "id": "inline_read_followup",
+      "tool_call_id": "call_read_inline_artifact_1",
+      "response": {
+        "type": "text",
+        "content": "I read the delegated board memo artifact."
+      }
+    }
+  ]
+}

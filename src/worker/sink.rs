@@ -1,18 +1,25 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use async_trait::async_trait;
 use serde_json::Value;
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
 
 use crate::control::cas::CasStore;
+use crate::control::delegation;
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::object_store::{default_object_store, ObjectStore};
-use crate::control::{keys::ResourceKey, KeyValueStore, MessagePublisher};
+use crate::control::resources::ResourceStore;
+use crate::control::{
+    keys::{self, ResourceKey},
+    KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+};
 use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
+use crate::gateway::rpc::resources_proto;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
 use crate::harness::llm::{ChatResponse, ChatUsage};
 use crate::harness::sessions::{self, SessionSubmission};
@@ -36,6 +43,139 @@ struct RecordedToolResult {
     part_id: String,
     output: String,
     object: Option<data_proto::ObjectRef>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct InlineArtifactTag {
+    start: usize,
+    end: usize,
+    title: String,
+    media_type: String,
+    content: String,
+}
+
+fn extract_inline_artifact_tags(text: &str) -> Vec<InlineArtifactTag> {
+    const OPEN_TAG: &str = "<artifact";
+    const CLOSE_TAG: &str = "</artifact>";
+
+    let mut tags = Vec::new();
+    let mut cursor = 0;
+    while let Some(open) = find_ascii_case_insensitive(text, OPEN_TAG, cursor) {
+        let after_name = open + OPEN_TAG.len();
+        let valid_name_boundary = text[after_name..]
+            .chars()
+            .next()
+            .is_some_and(|ch| ch.is_whitespace() || ch == '>');
+        if !valid_name_boundary {
+            cursor = after_name;
+            continue;
+        }
+
+        let Some(open_end_rel) = text[open..].find('>') else {
+            break;
+        };
+        let open_end = open + open_end_rel + 1;
+        if text[open + 1..open_end - 1].contains('<') {
+            cursor = after_name;
+            continue;
+        }
+        let Some(close) = find_ascii_case_insensitive(text, CLOSE_TAG, open_end) else {
+            break;
+        };
+        if let Some(next_open) = find_ascii_case_insensitive(text, OPEN_TAG, open_end) {
+            if next_open < close {
+                cursor = open_end;
+                continue;
+            }
+        }
+        let end = close + CLOSE_TAG.len();
+        let attrs = artifact_tag_attrs(&text[after_name..open_end - 1]);
+        let content = text[open_end..close].trim().to_string();
+        if !content.is_empty() {
+            tags.push(InlineArtifactTag {
+                start: open,
+                end,
+                title: attrs
+                    .get("name")
+                    .or_else(|| attrs.get("title"))
+                    .cloned()
+                    .unwrap_or_else(|| "Artifact".to_string()),
+                media_type: attrs
+                    .get("type")
+                    .or_else(|| attrs.get("media_type"))
+                    .cloned()
+                    .unwrap_or_else(|| "text/markdown".to_string()),
+                content,
+            });
+        }
+        cursor = end;
+    }
+    tags
+}
+
+fn find_ascii_case_insensitive(haystack: &str, needle: &str, start: usize) -> Option<usize> {
+    let haystack = haystack.as_bytes();
+    let needle = needle.as_bytes();
+    if needle.is_empty() || start > haystack.len() || needle.len() > haystack.len() {
+        return None;
+    }
+    haystack[start..]
+        .windows(needle.len())
+        .position(|window| window.eq_ignore_ascii_case(needle))
+        .map(|index| start + index)
+}
+
+fn artifact_tag_attrs(input: &str) -> HashMap<String, String> {
+    let chars = input.chars().collect::<Vec<_>>();
+    let mut attrs = HashMap::new();
+    let mut cursor = 0;
+    while cursor < chars.len() {
+        while cursor < chars.len() && chars[cursor].is_whitespace() {
+            cursor += 1;
+        }
+        let key_start = cursor;
+        while cursor < chars.len()
+            && (chars[cursor].is_ascii_alphanumeric()
+                || chars[cursor] == '_'
+                || chars[cursor] == '-')
+        {
+            cursor += 1;
+        }
+        if cursor == key_start {
+            cursor += 1;
+            continue;
+        }
+        let key = chars[key_start..cursor]
+            .iter()
+            .collect::<String>()
+            .to_ascii_lowercase();
+        while cursor < chars.len() && chars[cursor].is_whitespace() {
+            cursor += 1;
+        }
+        if cursor >= chars.len() || chars[cursor] != '=' {
+            continue;
+        }
+        cursor += 1;
+        while cursor < chars.len() && chars[cursor].is_whitespace() {
+            cursor += 1;
+        }
+        if cursor >= chars.len() || (chars[cursor] != '"' && chars[cursor] != '\'') {
+            continue;
+        }
+        let quote = chars[cursor];
+        cursor += 1;
+        let value_start = cursor;
+        while cursor < chars.len() && chars[cursor] != quote {
+            cursor += 1;
+        }
+        if cursor >= chars.len() {
+            break;
+        }
+        let value = chars[value_start..cursor].iter().collect::<String>();
+        cursor += 1;
+        attrs.insert(key, value);
+    }
+    attrs
 }
 
 /// Shared buffering state for append-only streamed message parts.
@@ -557,6 +697,139 @@ impl PubSubSessionSink {
             }
         }
         Ok(parts)
+    }
+
+    async fn materialize_inline_artifact_tags(
+        &self,
+        parts: &mut [data_proto::SessionMessagePart],
+    ) -> anyhow::Result<Vec<String>> {
+        let mut uris = Vec::new();
+        for part in parts.iter_mut() {
+            if part.part_type != data_proto::SessionMessagePartType::Text as i32 {
+                continue;
+            }
+            let tags = extract_inline_artifact_tags(&part.content);
+            if tags.is_empty() {
+                continue;
+            }
+
+            let mut rewritten = String::with_capacity(part.content.len());
+            let mut cursor = 0;
+            for tag in tags {
+                rewritten.push_str(&part.content[cursor..tag.start]);
+                let artifact_uri = self.create_inline_artifact(&tag, uris.len()).await?;
+                rewritten.push_str(&artifact_uri);
+                cursor = tag.end;
+                uris.push(artifact_uri);
+            }
+            rewritten.push_str(&part.content[cursor..]);
+            part.content = rewritten;
+        }
+        Ok(uris)
+    }
+
+    async fn create_inline_artifact(
+        &self,
+        tag: &InlineArtifactTag,
+        index: usize,
+    ) -> anyhow::Result<String> {
+        let artifact_id = format!("artifact-{}-inline-{index:03}", self.reply_msg_id);
+        let mut metadata = HashMap::new();
+        metadata.insert(
+            "source".to_string(),
+            "assistant-inline-artifact".to_string(),
+        );
+        let object_ref = CasStore::new(self.objects.clone())
+            .put_artifact(
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+                &artifact_id,
+                tag.content.as_bytes(),
+                &tag.media_type,
+                metadata.clone(),
+            )
+            .await?;
+        let artifact = data_proto::Artifact {
+            id: artifact_id.clone(),
+            session_id: self.session_id.clone(),
+            title: tag.title.clone(),
+            media_type: tag.media_type.clone(),
+            object_ref: Some(object_ref),
+            created_by_agent: self.agent_id.clone(),
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: HashMap::new(),
+            metadata,
+        };
+        self.kv
+            .set_msg(
+                &keys::artifact(&self.ns, &self.agent_id, &self.session_id, &artifact_id),
+                &artifact,
+            )
+            .await?;
+        Ok(format!(
+            "artifact://{}/{}/{}/{}",
+            self.ns, self.agent_id, self.session_id, artifact_id
+        ))
+    }
+
+    async fn attach_inline_artifacts_to_delegated_task(
+        &self,
+        artifact_uris: &[String],
+    ) -> anyhow::Result<()> {
+        if artifact_uris.is_empty() {
+            return Ok(());
+        }
+        let Some(session) = self
+            .kv
+            .get_msg::<data_proto::Session>(&keys::session(
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+            ))
+            .await?
+        else {
+            return Ok(());
+        };
+        let is_delegate = session
+            .labels
+            .get(delegation::LABEL_TASK_ROLE)
+            .map(String::as_str)
+            == Some("delegate");
+        if !is_delegate {
+            return Ok(());
+        }
+        let Some(task_namespace) = session.labels.get(delegation::LABEL_TASK_NAMESPACE) else {
+            return Ok(());
+        };
+        let Some(task_name) = session.labels.get(delegation::LABEL_TASK_NAME) else {
+            return Ok(());
+        };
+
+        let now = chrono::Utc::now().timestamp_micros();
+        let store = ResourceStore::new(self.kv.clone(), self.pubsub.clone());
+        store
+            .patch_status_with(task_namespace, "Task", task_name, None, |_, status| {
+                let mut task_status = match status.kind.take() {
+                    Some(resources_proto::resource_status::Kind::Task(task_status)) => task_status,
+                    _ => resources_proto::TaskStatus::default(),
+                };
+                for uri in artifact_uris {
+                    if !task_status.output_artifact_uris.contains(uri) {
+                        task_status.output_artifact_uris.push(uri.clone());
+                    }
+                }
+                task_status.updated_at = now;
+                status.kind = Some(resources_proto::resource_status::Kind::Task(task_status));
+                Ok(())
+            })
+            .await
+            .with_context(|| {
+                format!(
+                    "failed to attach inline artifact outputs to Task {task_namespace}/{task_name}"
+                )
+            })?;
+        Ok(())
     }
 
     fn close_active_stream_part(&self) {
@@ -1236,7 +1509,7 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_done(&self) {
         self.flush_active_stream_event_buffer().await;
         // Final KV write (complete message)
-        let parts = match self.final_message_parts() {
+        let mut parts = match self.final_message_parts() {
             Ok(parts) => parts,
             Err(err) => {
                 tracing::error!(error = %err, "Failed to assemble final assistant message parts");
@@ -1247,6 +1520,28 @@ impl ExecutionSink for PubSubSessionSink {
                 return;
             }
         };
+        let inline_artifact_uris = match self.materialize_inline_artifact_tags(&mut parts).await {
+            Ok(uris) => uris,
+            Err(err) => {
+                tracing::error!(error = %err, "Failed to materialize inline artifact tags");
+                self.publish_event(AgentEvent::Error(
+                    "Error: failed to create inline artifact".to_string(),
+                ))
+                .await;
+                return;
+            }
+        };
+        if let Err(err) = self
+            .attach_inline_artifacts_to_delegated_task(&inline_artifact_uris)
+            .await
+        {
+            tracing::error!(error = %err, "Failed to attach inline artifacts to delegated Task");
+            self.publish_event(AgentEvent::Error(
+                "Error: failed to attach inline artifact to task".to_string(),
+            ))
+            .await;
+            return;
+        }
         let msg = data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
             role: data_proto::MessageRole::RoleAssistant as i32,
@@ -1380,11 +1675,15 @@ fn token_publish_interval() -> Duration {
 
 #[cfg(test)]
 mod tests {
-    use super::{token_publish_interval, PubSubSessionSink, StreamingPartBuffer};
+    use super::{
+        extract_inline_artifact_tags, token_publish_interval, PubSubSessionSink,
+        StreamingPartBuffer,
+    };
     use crate::control::events::{
         IndexEvent, SessionMessagePartEvent, SessionMessagePartEventKind,
     };
     use crate::control::keys::{self, ResourceKey, ResourceList};
+    use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::ExecutionSink;
@@ -1490,6 +1789,17 @@ mod tests {
             .expect("reply message should be persisted")
     }
 
+    async fn latest_artifact(kv: &MockKvStore) -> data_proto::Artifact {
+        kv.entries
+            .lock()
+            .await
+            .iter()
+            .filter_map(|(_, value)| data_proto::Artifact::decode(value.as_slice()).ok())
+            .rev()
+            .next()
+            .expect("artifact should be persisted")
+    }
+
     type TestFanoutStream = std::pin::Pin<
         Box<
             dyn futures::Stream<
@@ -1575,6 +1885,92 @@ mod tests {
         {
             Ok(Box::pin(futures::stream::empty()))
         }
+    }
+
+    #[test]
+    fn inline_artifact_parser_extracts_multiple_tags_and_large_content() {
+        let large_body = "a".repeat(10_500);
+        let text = format!(
+            "before <artifact name=\"Redline\" type=\"text/markdown\"># Draft\n{large_body}</artifact> middle <artifact title='Summary' media_type='text/plain'>done</artifact> after"
+        );
+
+        let tags = extract_inline_artifact_tags(&text);
+
+        assert_eq!(tags.len(), 2);
+        assert_eq!(tags[0].title, "Redline");
+        assert_eq!(tags[0].media_type, "text/markdown");
+        assert!(tags[0].content.ends_with(&large_body));
+        assert_eq!(tags[1].title, "Summary");
+        assert_eq!(tags[1].media_type, "text/plain");
+        assert_eq!(tags[1].content, "done");
+    }
+
+    #[test]
+    fn inline_artifact_parser_skips_malformed_tags_without_crossing_boundaries() {
+        let text = concat!(
+            "bad <artifact name=\"Broken\" ",
+            "middle <artifact name=\"Valid\" type=\"text/plain\">done</artifact> after"
+        );
+
+        let tags = extract_inline_artifact_tags(text);
+
+        assert_eq!(tags.len(), 1);
+        assert_eq!(tags[0].title, "Valid");
+        assert_eq!(tags[0].media_type, "text/plain");
+        assert_eq!(tags[0].content, "done");
+    }
+
+    #[tokio::test]
+    async fn final_message_materializes_inline_artifact_tags() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let sink = PubSubSessionSink::new_inner(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            objects.clone(),
+            None,
+            None,
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_token(
+            "Review complete: <artifact name=\"Redline\" type=\"text/markdown\"># Redline\n\n- edit</artifact>",
+        )
+        .await;
+        sink.on_done().await;
+
+        let final_message = latest_reply_message(kv.as_ref()).await;
+        let text = final_message
+            .parts
+            .iter()
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+            .map(|part| part.content.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert_eq!(
+            text,
+            "Review complete: artifact://conic/infra/session-1/artifact-reply-1-inline-000"
+        );
+
+        let artifact = latest_artifact(kv.as_ref()).await;
+        assert_eq!(artifact.id, "artifact-reply-1-inline-000");
+        assert_eq!(artifact.title, "Redline");
+        assert_eq!(artifact.media_type, "text/markdown");
+        let object_ref = artifact.object_ref.expect("artifact object ref");
+        let object = objects
+            .get(&object_ref.key)
+            .await
+            .unwrap()
+            .expect("artifact object");
+        assert_eq!(object.bytes, b"# Redline\n\n- edit");
     }
 
     #[tokio::test]

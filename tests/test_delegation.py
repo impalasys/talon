@@ -511,6 +511,195 @@ def test_legal_document_refinement_delegation_returns_redline_artifact(
     ), "coordinator could not read the delegated legal redline artifact"
 
 
+def test_delegated_final_text_artifact_tag_becomes_readable_task_output(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    namespace_suffix = f"{stack.name}-{uuid.uuid4().hex[:8]}"
+    coordinator_namespace = f"talon-inline-coordinator-{namespace_suffix}"
+    writer_namespace = f"talon-inline-writer-{namespace_suffix}"
+    ensure_namespace(client, coordinator_namespace)
+    ensure_namespace(client, writer_namespace)
+    create_agent_resource(
+        client,
+        writer_namespace,
+        "inline-writer-agent",
+        AgentSpec(
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="mock",
+                            name="minimax-m2.7",
+                            temperature=0.7,
+                        ),
+                    }
+                ]
+            },
+            system_prompt=(
+                "You are an inline artifact writer. Return final markdown "
+                "artifacts with <artifact> tags when assigned a Talon Task."
+            ),
+        ),
+    )
+    create_agent_resource(
+        client,
+        coordinator_namespace,
+        "inline-coordinator-agent",
+        AgentSpec(
+            capabilities={
+                "tasks": _capability_values("create", "inspect"),
+                "sessions": _capability_values("read:messages"),
+            },
+            a2a=_internal_a2a(
+                "inline-writer",
+                writer_namespace,
+                "inline-writer-agent",
+            ),
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="mock",
+                            name="minimax-m2.7",
+                            temperature=0.7,
+                        ),
+                    }
+                ]
+            },
+            system_prompt=(
+                "You are an inline artifact coordinator. Delegate drafting work "
+                "with delegate_task, then inspect delegated artifacts."
+            ),
+        ),
+    )
+
+    coordinator_session_id = client.sessions.Create(
+        CreateSessionRequest(
+            agent="inline-coordinator-agent",
+            ns=coordinator_namespace,
+        )
+    ).session_id
+    client.sessions.SendMessage(
+        SendMessageRequest(
+            agent="inline-coordinator-agent",
+            session_id=coordinator_session_id,
+            ns=coordinator_namespace,
+            message=(
+                "Please delegate inline artifact drafting task to the "
+                "inline-writer connection."
+            ),
+        )
+    )
+
+    task = None
+    for _ in range(60):
+        time.sleep(1)
+        task_resources = list(
+            client.resources.List(
+                ListResourcesRequest(ns=coordinator_namespace, kind="Task")
+            ).resources
+        )
+        if not task_resources:
+            continue
+        task = client.resources.Get(
+            GetResourceRequest(
+                ns=coordinator_namespace,
+                kind="Task",
+                name=task_resources[0].metadata.name,
+            )
+        ).resource
+        if task.status.task.phase == 4 and task.status.task.output_artifact_uris:
+            break
+    assert task is not None, "coordinator did not create inline artifact task"
+    assert task.status.task.phase == 4
+    assert task.status.task.output_artifact_uris
+    artifact_uri = task.status.task.output_artifact_uris[0]
+    assert artifact_uri.startswith(f"artifact://{writer_namespace}/inline-writer-agent/")
+
+    child_session_id = task.status.task.execution_ref.session_id
+    assert child_session_id
+    writer = client.sessions.Get(
+        GetSessionRequest(
+            agent="inline-writer-agent",
+            session_id=child_session_id,
+            ns=writer_namespace,
+        )
+    )
+    writer_text = "\n".join(message_text(message) for message in writer.messages)
+    assert "<artifact" not in writer_text
+    assert artifact_uri in writer_text
+    writer_tool_results = [
+        part
+        for message in writer.messages
+        for part in message.parts
+        if part.part_type == PART_TYPE_TOOL_RESULT
+    ]
+    assert not writer_tool_results, "writer should not need create_artifact"
+
+    for _ in range(45):
+        time.sleep(1)
+        coordinator = client.sessions.Get(
+            GetSessionRequest(
+                agent="inline-coordinator-agent",
+                session_id=coordinator_session_id,
+                ns=coordinator_namespace,
+            )
+        )
+        coordinator_text = "\n".join(
+            message_text(message) for message in coordinator.messages
+        )
+        if (
+            coordinator.state == "IDLE"
+            and "Delegated Task is ready for review." in coordinator_text
+            and artifact_uri in coordinator_text
+        ):
+            break
+    else:
+        raise AssertionError("coordinator was not woken with inline artifact URI")
+
+    client.sessions.SendMessage(
+        SendMessageRequest(
+            agent="inline-coordinator-agent",
+            session_id=coordinator_session_id,
+            ns=coordinator_namespace,
+            message=f"Please read this delegated artifact {artifact_uri}",
+        )
+    )
+
+    read_outputs = []
+    for _ in range(45):
+        time.sleep(1)
+        coordinator = client.sessions.Get(
+            GetSessionRequest(
+                agent="inline-coordinator-agent",
+                session_id=coordinator_session_id,
+                ns=coordinator_namespace,
+            )
+        )
+        read_outputs = []
+        for message in coordinator.messages:
+            for part in message.parts:
+                if part.part_type != PART_TYPE_TOOL_RESULT:
+                    continue
+                payload = json.loads(part.payload_json or "{}")
+                output = payload.get("output", "")
+                if output:
+                    read_outputs.append(json.loads(output))
+        if coordinator.state == "IDLE" and any(
+            "Directors should approve" in output.get("content", "")
+            for output in read_outputs
+        ):
+            break
+
+    assert any(
+        "Directors should approve the operating plan" in output.get("content", "")
+        for output in read_outputs
+    ), "coordinator could not read the inline delegated artifact"
+
+
 def test_nested_policy_document_delegation_forwards_artifact_uri(
     stack: E2EStack,
     client: TalonClient,
