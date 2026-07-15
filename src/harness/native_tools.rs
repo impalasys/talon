@@ -1824,11 +1824,11 @@ async fn task_output_artifact_uris_from_args(
             output_artifact_uris.push(uri.to_string());
         }
     }
+    output_artifact_uris.sort();
+    output_artifact_uris.dedup();
     for uri in &output_artifact_uris {
         resolve_artifact_uri(cp, current_agent, current_session, uri, OP_READ).await?;
     }
-    output_artifact_uris.sort();
-    output_artifact_uris.dedup();
     Ok(output_artifact_uris)
 }
 
@@ -4472,6 +4472,55 @@ mod tests {
         let writer_update: Value = serde_json::from_str(&writer_update).unwrap();
         assert_eq!(writer_update["task"]["outputArtifactUris"][0], artifact_uri);
 
+        let wrong_task_update = execute_tool_for_session(
+            &cp,
+            namespace,
+            "writer",
+            writer_session_id,
+            &task_spec(&["update"]),
+            UPDATE_TASK_TOOL,
+            &json!({
+                "name": parent_task_name,
+                "phase": "NEEDS_REVIEW",
+                "progress_summary": "Writer should not be able to update the parent task."
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(wrong_task_update.to_string().contains("cannot target task"));
+
+        let writer_session = kv
+            .get_msg::<data_proto::Session>(&keys::session(namespace, "writer", writer_session_id))
+            .await
+            .unwrap()
+            .unwrap();
+        let mut stale_writer_session = writer_session.clone();
+        stale_writer_session.id = "stale-writer-session".to_string();
+        kv.set_msg(
+            &keys::session(namespace, "writer", &stale_writer_session.id),
+            &stale_writer_session,
+        )
+        .await
+        .unwrap();
+        let stale_update = execute_tool_for_session(
+            &cp,
+            namespace,
+            "writer",
+            &stale_writer_session.id,
+            &task_spec(&["update"]),
+            UPDATE_TASK_TOOL,
+            &json!({
+                "name": child_task_name,
+                "phase": "NEEDS_REVIEW",
+                "progress_summary": "Stale writer session should not be active."
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(stale_update
+            .to_string()
+            .contains("not the active execution session"));
+
         let writer_session = kv
             .get_msg::<data_proto::Session>(&keys::session(namespace, "writer", writer_session_id))
             .await
@@ -4691,7 +4740,7 @@ mod tests {
         )
         .await
         .unwrap_err();
-        assert!(rejected.to_string().contains("cannot target namespace"));
+        assert!(rejected.to_string().contains("cannot target task"));
     }
 
     #[tokio::test]

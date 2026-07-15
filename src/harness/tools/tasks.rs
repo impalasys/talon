@@ -24,18 +24,19 @@ fn task_namespace<'a>(args: &'a Value, current_namespace: &'a str) -> Result<&'a
     Ok(namespace)
 }
 
-async fn update_task_namespace(
+struct AuthorizedTaskUpdate {
+    namespace: String,
+    delegated: bool,
+}
+
+async fn authorized_update_task_namespace(
     cp: &ControlPlane,
     args: &Value,
     current_namespace: &str,
     current_agent: &str,
     current_session: &str,
-) -> Result<String> {
+) -> Result<AuthorizedTaskUpdate> {
     let namespace = super::opt_str(args, "namespace").unwrap_or(current_namespace);
-    if namespace == current_namespace {
-        return Ok(namespace.to_string());
-    }
-
     let name = super::req_str(args, "name")?;
     let session = cp
         .kv
@@ -45,29 +46,41 @@ async fn update_task_namespace(
             current_session,
         ))
         .await?;
-    let Some(session) = session else {
-        return Err(anyhow!(
-            "task tools cannot target namespace '{}' from agent namespace '{}'",
-            namespace,
-            current_namespace
-        ));
-    };
+    if let Some(session) = session {
+        let delegated = session
+            .labels
+            .get(crate::control::delegation::LABEL_TASK_ROLE)
+            .map(String::as_str)
+            == Some("delegate");
+        let assigned_namespace = session
+            .labels
+            .get(crate::control::delegation::LABEL_TASK_NAMESPACE)
+            .map(String::as_str);
+        let assigned_name = session
+            .labels
+            .get(crate::control::delegation::LABEL_TASK_NAME)
+            .map(String::as_str);
+        if delegated {
+            if assigned_namespace == Some(namespace) && assigned_name == Some(name) {
+                return Ok(AuthorizedTaskUpdate {
+                    namespace: namespace.to_string(),
+                    delegated: true,
+                });
+            }
+            return Err(anyhow!(
+                "task tools cannot target task '{}' in namespace '{}' from delegated session '{}'",
+                name,
+                namespace,
+                current_session
+            ));
+        }
+    }
 
-    let is_delegate = session
-        .labels
-        .get(crate::control::delegation::LABEL_TASK_ROLE)
-        .map(String::as_str)
-        == Some("delegate");
-    let assigned_namespace = session
-        .labels
-        .get(crate::control::delegation::LABEL_TASK_NAMESPACE)
-        .map(String::as_str);
-    let assigned_name = session
-        .labels
-        .get(crate::control::delegation::LABEL_TASK_NAME)
-        .map(String::as_str);
-    if is_delegate && assigned_namespace == Some(namespace) && assigned_name == Some(name) {
-        return Ok(namespace.to_string());
+    if namespace == current_namespace {
+        return Ok(AuthorizedTaskUpdate {
+            namespace: namespace.to_string(),
+            delegated: false,
+        });
     }
 
     Err(anyhow!(
@@ -264,9 +277,14 @@ pub(super) async fn execute(
         }
         super::UPDATE_TASK_TOOL => {
             super::require_capability(spec, "tasks", "update")?;
-            let namespace =
-                update_task_namespace(cp, args, current_namespace, current_agent, current_session)
-                    .await?;
+            let authorized = authorized_update_task_namespace(
+                cp,
+                args,
+                current_namespace,
+                current_agent,
+                current_session,
+            )
+            .await?;
             let name = super::req_str(args, "name")?;
             let output_artifact_uris = super::task_output_artifact_uris_from_args(
                 cp,
@@ -277,11 +295,24 @@ pub(super) async fn execute(
             .await?;
             let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
             let resource = store
-                .patch_status_with(&namespace, "Task", name, None, |_, status| {
+                .patch_status_with(&authorized.namespace, "Task", name, None, |_, status| {
                     let mut task_status = match status.kind.take() {
                         Some(resources_proto::resource_status::Kind::Task(status)) => status,
                         _ => resources_proto::TaskStatus::default(),
                     };
+                    if authorized.delegated {
+                        let active_session = task_status
+                            .execution_ref
+                            .as_ref()
+                            .map(|execution| execution.session_id.as_str());
+                        if active_session != Some(current_session) {
+                            return Err(anyhow!(
+                                "delegated session '{}' cannot update task '{}' because it is not the active execution session",
+                                current_session,
+                                name
+                            ));
+                        }
+                    }
                     super::update_task_status(&mut task_status, args, &output_artifact_uris)?;
                     status.kind = Some(resources_proto::resource_status::Kind::Task(task_status));
                     Ok(())
