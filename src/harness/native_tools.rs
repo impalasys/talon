@@ -1267,16 +1267,19 @@ async fn read_artifact(
 
 async fn update_artifact(
     cp: &ControlPlane,
-    _current_namespace: &str,
+    current_namespace: &str,
     current_agent: &str,
     current_session: &str,
     args: &Value,
 ) -> Result<String> {
     let artifact_uri = req_str(args, "artifact_uri")?;
     let uri = parse_artifact_uri(artifact_uri)?;
-    if current_agent != uri.agent || current_session != uri.session_id {
+    if current_namespace != uri.namespace
+        || current_agent != uri.agent
+        || current_session != uri.session_id
+    {
         return Err(anyhow!(
-            "only the owning artifact agent/session may update '{artifact_uri}'"
+            "only the owning artifact namespace/agent/session may update '{artifact_uri}'"
         ));
     }
     let mut artifact = cp
@@ -3413,6 +3416,24 @@ mod tests {
         .await
         .unwrap_err();
         assert!(update_denied.to_string().contains("only the owning"));
+
+        let cross_namespace_update_denied = execute_tool_for_session(
+            &cp,
+            "Tenant:other:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "content": "cross-tenant overwrite",
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(cross_namespace_update_denied
+            .to_string()
+            .contains("only the owning artifact namespace/agent/session"));
     }
 
     #[tokio::test]
