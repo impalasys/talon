@@ -1319,24 +1319,41 @@ async fn update_artifact(
         .await?;
     artifact.media_type = media_type.to_string();
     artifact.object_ref = Some(object_ref);
-    cp.kv
-        .set_msg(
-            &keys::artifact(
-                &uri.namespace,
-                &uri.agent,
-                &uri.session_id,
-                &uri.artifact_id,
-            ),
-            &artifact,
-        )
-        .await?;
+    let artifact_key = keys::artifact(
+        &uri.namespace,
+        &uri.agent,
+        &uri.session_id,
+        &uri.artifact_id,
+    );
+    if let Err(error) = cp.kv.set_msg(&artifact_key, &artifact).await {
+        if let Some(new_object_key) = artifact
+            .object_ref
+            .as_ref()
+            .map(|object_ref| &object_ref.key)
+        {
+            if let Err(cleanup_error) = cas.delete_object(new_object_key).await {
+                tracing::warn!(
+                    error = %cleanup_error,
+                    object_key = %new_object_key,
+                    "failed to delete uncommitted artifact CAS object after update failure"
+                );
+            }
+        }
+        return Err(error);
+    }
     if let Some(previous_object_key) = previous_object_key {
         if artifact
             .object_ref
             .as_ref()
             .is_none_or(|object_ref| object_ref.key != previous_object_key)
         {
-            cas.delete_object(&previous_object_key).await?;
+            if let Err(error) = cas.delete_object(&previous_object_key).await {
+                tracing::warn!(
+                    error = %error,
+                    object_key = %previous_object_key,
+                    "failed to delete superseded artifact CAS object"
+                );
+            }
         }
     }
     Ok(serde_json::to_string_pretty(&json!({
