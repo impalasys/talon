@@ -3,7 +3,7 @@
 
 use crate::control::{
     keys::{ResourceKey, ResourceList},
-    KeyValueStore, Order,
+    KeyValueStore, ListOptions, Order,
 };
 use anyhow::{bail, Result};
 use sqlx::{pool::PoolConnection, postgres::PgPoolOptions, PgConnection, PgPool, Postgres, Row};
@@ -80,24 +80,57 @@ fn list_order_sql(order: Order) -> &'static str {
     }
 }
 
-fn list_keys_query(table: &str, has_kind: bool, order: Order) -> String {
-    let kind_clause = if has_kind { "AND kind = $3" } else { "" };
-    let direction = list_order_sql(order);
+fn list_filter_clause(has_kind: bool, options: ListOptions<'_>) -> String {
+    let mut next_bind = if has_kind { 4 } else { 3 };
+    let mut clauses = Vec::new();
+    if has_kind {
+        clauses.push("AND kind = $3".to_string());
+    }
+    if options.before_name.is_some() {
+        clauses.push(format!("AND name < ${next_bind}"));
+        next_bind += 1;
+    }
+    if options.after_name.is_some() {
+        clauses.push(format!("AND name > ${next_bind}"));
+    }
+    clauses.join(" ")
+}
+
+fn list_limit_clause(has_kind: bool, options: ListOptions<'_>) -> String {
+    let mut next_bind = if has_kind { 4 } else { 3 };
+    if options.before_name.is_some() {
+        next_bind += 1;
+    }
+    if options.after_name.is_some() {
+        next_bind += 1;
+    }
+    if options.limit.is_some() {
+        format!(" LIMIT ${next_bind}")
+    } else {
+        String::new()
+    }
+}
+
+fn list_keys_query(table: &str, has_kind: bool, options: ListOptions<'_>) -> String {
+    let filter_clause = list_filter_clause(has_kind, options);
+    let limit_clause = list_limit_clause(has_kind, options);
+    let direction = list_order_sql(options.order);
     format!(
         "SELECT namespace, parent_path, kind, name FROM {}
-         WHERE namespace = $1 AND parent_path = $2 {kind_clause}
-         ORDER BY kind {direction}, name {direction}",
+         WHERE namespace = $1 AND parent_path = $2 {filter_clause}
+         ORDER BY kind {direction}, name {direction}{limit_clause}",
         quoted_identifier(table)
     )
 }
 
-fn list_entries_query(table: &str, has_kind: bool, order: Order) -> String {
-    let kind_clause = if has_kind { "AND kind = $3" } else { "" };
-    let direction = list_order_sql(order);
+fn list_entries_query(table: &str, has_kind: bool, options: ListOptions<'_>) -> String {
+    let filter_clause = list_filter_clause(has_kind, options);
+    let limit_clause = list_limit_clause(has_kind, options);
+    let direction = list_order_sql(options.order);
     format!(
         "SELECT namespace, parent_path, kind, name, value FROM {}
-         WHERE namespace = $1 AND parent_path = $2 {kind_clause}
-         ORDER BY kind {direction}, name {direction}",
+         WHERE namespace = $1 AND parent_path = $2 {filter_clause}
+         ORDER BY kind {direction}, name {direction}{limit_clause}",
         quoted_identifier(table)
     )
 }
@@ -549,8 +582,13 @@ impl KeyValueStore for PostgresKvStore {
         Ok(())
     }
 
-    async fn list_keys(&self, list: &ResourceList, order: Order) -> Result<Vec<ResourceKey>> {
-        let query = list_keys_query(&self.table, list.kind.is_some(), order);
+    async fn list_keys(
+        &self,
+        list: &ResourceList,
+        options: Option<ListOptions<'_>>,
+    ) -> Result<Vec<ResourceKey>> {
+        let options = options.unwrap_or_default();
+        let query = list_keys_query(&self.table, list.kind.is_some(), options);
         let span = tracing::debug_span!(
             "PostgresKvStore.list_keys",
             "db.system" = "postgresql",
@@ -571,6 +609,15 @@ impl KeyValueStore for PostgresKvStore {
             .bind(&list.parent.parent_path);
         if let Some(kind) = &list.kind {
             query = query.bind(kind);
+        }
+        if let Some(before_name) = options.before_name {
+            query = query.bind(before_name);
+        }
+        if let Some(after_name) = options.after_name {
+            query = query.bind(after_name);
+        }
+        if let Some(limit) = options.limit {
+            query = query.bind(limit as i64);
         }
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
         let query_span = tracing::debug_span!(
@@ -598,9 +645,10 @@ impl KeyValueStore for PostgresKvStore {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        order: Order,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        let query = list_entries_query(&self.table, list.kind.is_some(), order);
+        let options = options.unwrap_or_default();
+        let query = list_entries_query(&self.table, list.kind.is_some(), options);
         let span = tracing::debug_span!(
             "PostgresKvStore.list_entries",
             "db.system" = "postgresql",
@@ -622,6 +670,15 @@ impl KeyValueStore for PostgresKvStore {
             .bind(&list.parent.parent_path);
         if let Some(kind) = &list.kind {
             query = query.bind(kind);
+        }
+        if let Some(before_name) = options.before_name {
+            query = query.bind(before_name);
+        }
+        if let Some(after_name) = options.after_name {
+            query = query.bind(after_name);
+        }
+        if let Some(limit) = options.limit {
+            query = query.bind(limit as i64);
         }
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
         let query_span = tracing::debug_span!(
@@ -783,7 +840,7 @@ mod tests {
         list_entries_page_query, list_entries_query, list_keys_page_query, list_keys_query,
         rename_migration_index_statement, set_query, PostgresKvStore,
     };
-    use crate::control::{keys, KeyValueStore, Order};
+    use crate::control::{keys, KeyValueStore, ListOptions, Order};
     use crate::test_support::{docker_test_guard, PostgresContainer};
     use std::time::Duration;
 
@@ -798,13 +855,13 @@ mod tests {
         assert!(compare_and_swap_query("talon_kv", true).contains("AND value = $6"));
         assert!(compare_and_swap_query("talon_kv", false).contains("DO NOTHING"));
         assert!(delete_query("talon_kv").contains("WHERE namespace = $1"));
-        assert!(list_keys_query("talon_kv", true, Order::Asc).contains("AND kind = $3"));
-        assert!(list_keys_query("talon_kv", true, Order::Desc)
+        assert!(list_keys_query("talon_kv", true, Order::Asc.into()).contains("AND kind = $3"));
+        assert!(list_keys_query("talon_kv", true, Order::Desc.into())
             .contains("ORDER BY kind DESC, name DESC"));
         assert!(list_keys_page_query("talon_kv").contains("ORDER BY name DESC"));
         assert!(list_entries_page_query("talon_kv")
             .contains("SELECT namespace, parent_path, kind, name, value"));
-        assert!(list_entries_query("talon_kv", false, Order::Asc)
+        assert!(list_entries_query("talon_kv", false, Order::Asc.into())
             .contains("ORDER BY kind ASC, name ASC"));
         assert_eq!(
             rename_migration_index_statement("talon_kv", "talon_kv_structured_key_migration"),
@@ -865,10 +922,13 @@ mod tests {
         store.set(&other, b"three").await.unwrap();
         assert_eq!(store.get(&a).await.unwrap(), Some(b"one".to_vec()));
 
-        let listed = store.list_keys(&list, Order::Asc).await.unwrap();
+        let listed = store.list_keys(&list, None).await.unwrap();
         assert_eq!(listed, vec![a.clone(), b.clone()]);
         assert_eq!(
-            store.list_keys(&list, Order::Desc).await.unwrap(),
+            store
+                .list_keys(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![b.clone(), a.clone()]
         );
 
@@ -885,11 +945,14 @@ mod tests {
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
 
-        let entries = store.list_entries(&list, Order::Asc).await.unwrap();
+        let entries = store.list_entries(&list, None).await.unwrap();
         assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
         assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
         assert_eq!(
-            store.list_entries(&list, Order::Desc).await.unwrap(),
+            store
+                .list_entries(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
 

@@ -17,7 +17,7 @@ pub mod test_support {
     use crate::control::keys::{ResourceKey, ResourceList};
     #[cfg(test)]
     use crate::control::security::platform_jwt;
-    use crate::control::{KeyValueStore, MessagePublisher, Order};
+    use crate::control::{KeyValueStore, ListOptions, MessagePublisher};
     use futures::stream;
     use std::collections::HashMap;
     #[cfg(test)]
@@ -185,21 +185,19 @@ pub mod test_support {
         async fn list_keys(
             &self,
             list: &ResourceList,
-            order: Order,
+            options: Option<ListOptions<'_>>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
-            let mut keys = self
+            let keys = self
                 .data
                 .lock()
                 .await
                 .keys()
                 .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
-            if order == Order::Desc {
-                keys.sort_by(|left, right| right.cmp(left));
-            } else {
-                keys.sort();
-            }
-            Ok(keys)
+            Ok(crate::control::apply_list_options_to_keys(
+                keys,
+                options.unwrap_or_default(),
+            ))
         }
 
         async fn list_keys_page(
@@ -208,11 +206,11 @@ pub mod test_support {
             before_name: Option<&str>,
             limit: usize,
         ) -> anyhow::Result<Vec<ResourceKey>> {
-            Ok(crate::control::page_keys_desc(
-                self.list_keys(list, Order::Asc).await?,
-                before_name,
-                limit,
-            ))
+            self.list_keys(
+                list,
+                Some(ListOptions::desc().before_name(before_name).limit(limit)),
+            )
+            .await
         }
 
         async fn list_entries_page(
@@ -221,11 +219,11 @@ pub mod test_support {
             before_name: Option<&str>,
             limit: usize,
         ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
-            Ok(crate::control::page_entries_desc(
-                self.list_entries(list, Order::Asc).await?,
-                before_name,
-                limit,
-            ))
+            self.list_entries(
+                list,
+                Some(ListOptions::desc().before_name(before_name).limit(limit)),
+            )
+            .await
         }
     }
 

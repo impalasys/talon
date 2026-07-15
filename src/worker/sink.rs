@@ -1452,7 +1452,7 @@ mod tests {
         async fn list_keys(
             &self,
             _list: &ResourceList,
-            _order: crate::control::Order,
+            _options: Option<crate::control::ListOptions<'_>>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
@@ -2326,7 +2326,7 @@ mod tests {
         let entry_keys = kv
             .list_keys(
                 &keys::session_journal_entry_prefix("conic", "infra", "session-1", "submission-1"),
-                crate::control::Order::Asc,
+                None,
             )
             .await
             .unwrap();

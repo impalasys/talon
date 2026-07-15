@@ -7,7 +7,7 @@ use crate::control::resource_model::{
 };
 use crate::control::scheduling;
 use crate::control::topics;
-use crate::control::{events, keys, ControlPlane, KeyValueStore, Order};
+use crate::control::{events, keys, ControlPlane, KeyValueStore};
 use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
 use anyhow::Context;
 use futures::StreamExt;
@@ -735,7 +735,7 @@ async fn matching_subscriptions(
         .kv
         .list_entries(
             &keys::channel_subscription_prefix(&message.ns, &message.channel),
-            Order::Asc,
+            None,
         )
         .await?;
     let mut subscriptions = Vec::new();
@@ -1012,7 +1012,7 @@ async fn delete_routed_session(
     let mut stack = vec![keys::session_parent(ns, agent, session_id)];
     while let Some(parent) = stack.pop() {
         let list = parent.list(None);
-        let children = kv.list_keys(&list, Order::Asc).await?;
+        let children = kv.list_keys(&list, None).await?;
         for child in children {
             stack.push(child.as_parent());
             kv.delete(&child).await?;

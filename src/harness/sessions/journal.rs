@@ -7,7 +7,7 @@ use prost::Message;
 use super::submission::{ensure_submission_attempt_current, update_submission_from_entry};
 use super::SessionJournalEntry;
 use crate::control::cas::CasStore;
-use crate::control::{keys, KeyValueStore, Order};
+use crate::control::{keys, KeyValueStore};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
     SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadLlmResponse,
@@ -214,7 +214,7 @@ pub async fn list_journal_entries(
 ) -> Result<Vec<SessionJournalEntry>> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
     let entries = kv
-        .list_entries(&prefix, Order::Asc)
+        .list_entries(&prefix, None)
         .await?
         .into_iter()
         .map(|(_, bytes)| SessionJournalEntry::decode(bytes.as_slice()).map_err(Into::into))
@@ -356,7 +356,7 @@ async fn committed_journal_entry(
 ) -> Result<Option<SessionJournalEntry>> {
     let prefix = keys::session_journal_entry_prefix(ns, agent, session_id, submission_id);
     let mut found: Option<SessionJournalEntry> = None;
-    for (_, bytes) in kv.list_entries(&prefix, Order::Asc).await? {
+    for (_, bytes) in kv.list_entries(&prefix, None).await? {
         let entry = SessionJournalEntry::decode(bytes.as_slice())?;
         if entry.phase == SessionExecutionPhase::Committed as i32
             && entry.committed_message_id.as_deref() == Some(committed_message_id)

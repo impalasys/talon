@@ -3,7 +3,7 @@
 
 use crate::control::resource_model::{self, NamespaceResourceExt, TypedResource};
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys, topics, Order};
+use crate::control::{events, keys, topics};
 use crate::gateway::rpc::{proto, resources_proto, GrpcGatewayHandler};
 use prost::Message;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -308,7 +308,7 @@ impl GrpcGatewayHandler {
         let keys = self
             .gateway
             .kv
-            .list_keys(&edge_prefix, Order::Asc)
+            .list_keys(&edge_prefix, None)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to list namespace references: {}", e))

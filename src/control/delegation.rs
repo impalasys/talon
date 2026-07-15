@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, scheduling, ControlPlane, Order, ProtoKeyValueStoreExt};
+use crate::control::{keys, scheduling, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 // Task resource label: marks a Task as created through agent delegation.
@@ -590,7 +590,7 @@ async fn grant_child_artifacts_to_owner(
         .kv
         .list_entries(
             &keys::artifact_prefix(&session.ns, &session.agent, &session.id),
-            Order::Asc,
+            None,
         )
         .await?;
     let mut result_artifacts = Vec::new();

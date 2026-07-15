@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::events;
-use crate::control::{keys, topics, KeyValueStore, MessagePublisher, Order};
+use crate::control::{keys, topics, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::resources_proto;
 use anyhow::{anyhow, Context, Result};
 use prost::Message;
@@ -423,10 +423,7 @@ impl ResourceStore {
     ) -> Result<Vec<resources_proto::Resource>> {
         let entries = self
             .kv
-            .list_entries(
-                &keys::ResourceParent::root(namespace).list(kind),
-                Order::Asc,
-            )
+            .list_entries(&keys::ResourceParent::root(namespace).list(kind), None)
             .await?;
         let mut status_fetches = Vec::with_capacity(entries.len());
         for (key, value) in entries {

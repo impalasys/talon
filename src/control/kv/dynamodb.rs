@@ -3,7 +3,7 @@
 
 use crate::control::{
     keys::{ResourceKey, ResourceList},
-    KeyValueStore, Order,
+    KeyValueStore, ListOptions, Order,
 };
 use anyhow::{anyhow, Result};
 use aws_config::meta::region::RegionProviderChain;
@@ -66,12 +66,10 @@ impl DynamoDbKvStore {
     async fn query_list(
         &self,
         list: &ResourceList,
-        before_name: Option<&str>,
-        limit: Option<usize>,
-        order: Order,
+        options: ListOptions<'_>,
         include_values: bool,
     ) -> Result<Vec<(ResourceKey, Option<Vec<u8>>)>> {
-        if limit == Some(0) {
+        if options.limit == Some(0) {
             return Ok(Vec::new());
         }
 
@@ -87,29 +85,18 @@ impl DynamoDbKvStore {
             );
             key_condition = "#pk = :pk AND begins_with(#sk, :sk_prefix)".to_string();
         }
-        if let (Some(kind), Some(before_name)) = (list.kind.as_deref(), before_name) {
-            key_condition = "#pk = :pk AND #sk BETWEEN :sk_prefix AND :before_sk".to_string();
-            values.insert(
-                ":before_sk".to_string(),
-                AttributeValue::S(sk_for_kind_name(kind, before_name)),
-            );
-        } else if before_name.is_some() {
-            return Err(anyhow!(
-                "dynamodb list pagination requires a resource kind when before_name is set"
-            ));
-        }
-
         let mut start_key = None;
         let mut rows = Vec::new();
         loop {
-            let remaining_limit = limit
+            let remaining_limit = options
+                .limit
                 .and_then(|limit| limit.checked_sub(rows.len()))
                 .unwrap_or(usize::MAX);
             if remaining_limit == 0 {
                 break;
             }
 
-            let page_limit = if limit.is_some() {
+            let page_limit = if options.limit.is_some() {
                 Some(i32::try_from(remaining_limit.min(1000))?)
             } else {
                 None
@@ -119,7 +106,7 @@ impl DynamoDbKvStore {
                 .query()
                 .table_name(&self.table)
                 .consistent_read(true)
-                .scan_index_forward(order != Order::Desc)
+                .scan_index_forward(options.order != Order::Desc)
                 .key_condition_expression(key_condition.clone())
                 .set_expression_attribute_names(Some(names.clone()))
                 .set_expression_attribute_values(Some(values.clone()))
@@ -131,7 +118,16 @@ impl DynamoDbKvStore {
             let output = request.send().await?;
             for item in output.items() {
                 let key = key_from_item(item)?;
-                if before_name.is_some_and(|before| key.name.as_str() >= before) {
+                if options
+                    .before_name
+                    .is_some_and(|before| key.name.as_str() >= before)
+                {
+                    continue;
+                }
+                if options
+                    .after_name
+                    .is_some_and(|after| key.name.as_str() <= after)
+                {
                     continue;
                 }
                 let value = if include_values {
@@ -140,7 +136,7 @@ impl DynamoDbKvStore {
                     None
                 };
                 rows.push((key, value));
-                if limit.is_some_and(|limit| rows.len() >= limit) {
+                if options.limit.is_some_and(|limit| rows.len() >= limit) {
                     return Ok(rows);
                 }
             }
@@ -233,8 +229,12 @@ impl KeyValueStore for DynamoDbKvStore {
         Ok(())
     }
 
-    async fn list_keys(&self, list: &ResourceList, order: Order) -> Result<Vec<ResourceKey>> {
-        self.query_list(list, None, None, order, false)
+    async fn list_keys(
+        &self,
+        list: &ResourceList,
+        options: Option<ListOptions<'_>>,
+    ) -> Result<Vec<ResourceKey>> {
+        self.query_list(list, options.unwrap_or_default(), false)
             .await
             .map(|rows| rows.into_iter().map(|(key, _)| key).collect())
     }
@@ -242,9 +242,9 @@ impl KeyValueStore for DynamoDbKvStore {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        order: Order,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        self.query_list(list, None, None, order, true)
+        self.query_list(list, options.unwrap_or_default(), true)
             .await
             .map(|rows| {
                 rows.into_iter()
@@ -263,9 +263,13 @@ impl KeyValueStore for DynamoDbKvStore {
             .kind
             .as_ref()
             .ok_or_else(|| anyhow!("dynamodb list_keys_page requires a resource kind"))?;
-        self.query_list(list, before_name, Some(limit), Order::Desc, false)
-            .await
-            .map(|rows| rows.into_iter().map(|(key, _)| key).collect())
+        self.query_list(
+            list,
+            ListOptions::desc().before_name(before_name).limit(limit),
+            false,
+        )
+        .await
+        .map(|rows| rows.into_iter().map(|(key, _)| key).collect())
     }
 
     async fn list_entries_page(
@@ -278,13 +282,17 @@ impl KeyValueStore for DynamoDbKvStore {
             .kind
             .as_ref()
             .ok_or_else(|| anyhow!("dynamodb list_entries_page requires a resource kind"))?;
-        self.query_list(list, before_name, Some(limit), Order::Desc, true)
-            .await
-            .map(|rows| {
-                rows.into_iter()
-                    .filter_map(|(key, value)| value.map(|value| (key, value)))
-                    .collect()
-            })
+        self.query_list(
+            list,
+            ListOptions::desc().before_name(before_name).limit(limit),
+            true,
+        )
+        .await
+        .map(|rows| {
+            rows.into_iter()
+                .filter_map(|(key, value)| value.map(|value| (key, value)))
+                .collect()
+        })
     }
 }
 

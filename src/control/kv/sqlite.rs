@@ -3,7 +3,7 @@
 
 use crate::control::{
     keys::{ResourceKey, ResourceList},
-    KeyValueStore, Order,
+    KeyValueStore, ListOptions,
 };
 use anyhow::{bail, Result};
 use sqlx::{
@@ -425,8 +425,13 @@ impl KeyValueStore for SqliteKvStore {
         Ok(())
     }
 
-    async fn list_keys(&self, list: &ResourceList, order: Order) -> Result<Vec<ResourceKey>> {
-        let query = list_keys_query(&self.table, list.kind.is_some(), order);
+    async fn list_keys(
+        &self,
+        list: &ResourceList,
+        options: Option<ListOptions<'_>>,
+    ) -> Result<Vec<ResourceKey>> {
+        let options = options.unwrap_or_default();
+        let query = list_keys_query(&self.table, list.kind.is_some(), options);
         let span = tracing::debug_span!(
             "SqliteKvStore.list_keys",
             "db.system" = "sqlite",
@@ -448,6 +453,15 @@ impl KeyValueStore for SqliteKvStore {
             .bind(&list.parent.parent_path);
         if let Some(kind) = &list.kind {
             query = query.bind(kind);
+        }
+        if let Some(before_name) = options.before_name {
+            query = query.bind(before_name);
+        }
+        if let Some(after_name) = options.after_name {
+            query = query.bind(after_name);
+        }
+        if let Some(limit) = options.limit {
+            query = query.bind(limit as i64);
         }
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
         let query_span = tracing::debug_span!(
@@ -475,9 +489,10 @@ impl KeyValueStore for SqliteKvStore {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        order: Order,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        let query = list_entries_query(&self.table, list.kind.is_some(), order);
+        let options = options.unwrap_or_default();
+        let query = list_entries_query(&self.table, list.kind.is_some(), options);
         let span = tracing::debug_span!(
             "SqliteKvStore.list_entries",
             "db.system" = "sqlite",
@@ -500,6 +515,15 @@ impl KeyValueStore for SqliteKvStore {
             .bind(&list.parent.parent_path);
         if let Some(kind) = &list.kind {
             query = query.bind(kind);
+        }
+        if let Some(before_name) = options.before_name {
+            query = query.bind(before_name);
+        }
+        if let Some(after_name) = options.after_name {
+            query = query.bind(after_name);
+        }
+        if let Some(limit) = options.limit {
+            query = query.bind(limit as i64);
         }
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
         let query_span = tracing::debug_span!(
@@ -664,7 +688,7 @@ mod tests {
         set_query, sqlite_pool, SqliteKvStore,
     };
     use crate::control::kv::sqlite_url_for_path;
-    use crate::control::{keys, KeyValueStore, Order};
+    use crate::control::{keys, KeyValueStore, ListOptions, Order};
     use tempfile::tempdir;
 
     #[test]
@@ -679,13 +703,13 @@ mod tests {
         assert!(compare_and_swap_query("talon_kv", true).contains("AND value = ?6"));
         assert!(compare_and_swap_query("talon_kv", false).contains("DO NOTHING"));
         assert!(delete_query("talon_kv").contains("WHERE namespace = ?1"));
-        assert!(list_keys_query("talon_kv", true, Order::Asc).contains("AND kind = ?3"));
-        assert!(list_keys_query("talon_kv", true, Order::Desc)
+        assert!(list_keys_query("talon_kv", true, Order::Asc.into()).contains("AND kind = ?3"));
+        assert!(list_keys_query("talon_kv", true, Order::Desc.into())
             .contains("ORDER BY kind DESC, name DESC"));
         assert!(list_keys_page_query("talon_kv").contains("ORDER BY name DESC"));
         assert!(list_entries_page_query("talon_kv")
             .contains("SELECT namespace, parent_path, kind, name, value"));
-        assert!(list_entries_query("talon_kv", false, Order::Asc)
+        assert!(list_entries_query("talon_kv", false, Order::Asc.into())
             .contains("ORDER BY kind ASC, name ASC"));
     }
 
@@ -788,11 +812,31 @@ mod tests {
         store.set(&other, b"three").await.unwrap();
         assert_eq!(store.get(&a).await.unwrap(), Some(b"one".to_vec()));
 
-        let listed = store.list_keys(&list, Order::Asc).await.unwrap();
+        let listed = store.list_keys(&list, None).await.unwrap();
         assert_eq!(listed, vec![a.clone(), b.clone()]);
         assert_eq!(
-            store.list_keys(&list, Order::Desc).await.unwrap(),
+            store
+                .list_keys(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![b.clone(), a.clone()]
+        );
+        assert_eq!(
+            store
+                .list_keys(&list, Some(ListOptions::default().after_name(Some("a"))))
+                .await
+                .unwrap(),
+            vec![b.clone()]
+        );
+        assert_eq!(
+            store
+                .list_keys(
+                    &list,
+                    Some(ListOptions::desc().before_name(Some("b")).limit(1)),
+                )
+                .await
+                .unwrap(),
+            vec![a.clone()]
         );
 
         assert_eq!(
@@ -808,12 +852,22 @@ mod tests {
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
 
-        let entries = store.list_entries(&list, Order::Asc).await.unwrap();
+        let entries = store.list_entries(&list, None).await.unwrap();
         assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
         assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
         assert_eq!(
-            store.list_entries(&list, Order::Desc).await.unwrap(),
+            store
+                .list_entries(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
+        );
+        assert_eq!(
+            store
+                .list_entries(&list, Some(ListOptions::desc().limit(1)))
+                .await
+                .unwrap(),
+            vec![(b.clone(), b"two".to_vec())]
         );
 
         assert!(store

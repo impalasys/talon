@@ -824,7 +824,7 @@ mod tests {
                     "assistant",
                     "session-1",
                 ),
-                crate::control::Order::Asc,
+                None,
             )
             .await
             .unwrap();
@@ -938,7 +938,7 @@ mod tests {
                     "assistant",
                     "session-1",
                 ),
-                crate::control::Order::Asc,
+                None,
             )
             .await
             .unwrap();

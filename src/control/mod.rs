@@ -34,6 +34,120 @@ pub enum Order {
     Desc,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ListOptions<'a> {
+    pub order: Order,
+    pub limit: Option<usize>,
+    pub before_name: Option<&'a str>,
+    pub after_name: Option<&'a str>,
+}
+
+impl Default for ListOptions<'_> {
+    fn default() -> Self {
+        Self {
+            order: Order::Asc,
+            limit: None,
+            before_name: None,
+            after_name: None,
+        }
+    }
+}
+
+impl<'a> ListOptions<'a> {
+    pub fn asc() -> Self {
+        Self::default()
+    }
+
+    pub fn desc() -> Self {
+        Self {
+            order: Order::Desc,
+            ..Self::default()
+        }
+    }
+
+    pub fn ordered(order: Order) -> Self {
+        Self {
+            order,
+            ..Self::default()
+        }
+    }
+
+    pub fn limit(mut self, limit: usize) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+
+    pub fn before_name(mut self, before_name: Option<&'a str>) -> Self {
+        self.before_name = before_name;
+        self
+    }
+
+    pub fn after_name(mut self, after_name: Option<&'a str>) -> Self {
+        self.after_name = after_name;
+        self
+    }
+}
+
+impl From<Order> for ListOptions<'static> {
+    fn from(order: Order) -> Self {
+        Self::ordered(order)
+    }
+}
+
+pub fn apply_list_options_to_keys(
+    mut keys: Vec<ResourceKey>,
+    options: ListOptions<'_>,
+) -> Vec<ResourceKey> {
+    if options.limit == Some(0) {
+        return Vec::new();
+    }
+
+    keys.retain(|key| {
+        options
+            .before_name
+            .map_or(true, |cursor| key.name.as_str() < cursor)
+            && options
+                .after_name
+                .map_or(true, |cursor| key.name.as_str() > cursor)
+    });
+    if options.order == Order::Desc {
+        keys.sort_by(|left, right| right.cmp(left));
+    } else {
+        keys.sort();
+    }
+    if let Some(limit) = options.limit {
+        keys.truncate(limit);
+    }
+    keys
+}
+
+pub fn apply_list_options_to_entries(
+    mut entries: Vec<(ResourceKey, Vec<u8>)>,
+    options: ListOptions<'_>,
+) -> Vec<(ResourceKey, Vec<u8>)> {
+    if options.limit == Some(0) {
+        return Vec::new();
+    }
+
+    entries.retain(|(key, _)| {
+        options
+            .before_name
+            .map_or(true, |cursor| key.name.as_str() < cursor)
+            && options
+                .after_name
+                .map_or(true, |cursor| key.name.as_str() > cursor)
+    });
+    if options.order == Order::Desc {
+        entries.sort_by(|left, right| right.0.cmp(&left.0));
+    } else {
+        entries.sort_by(|left, right| left.0.cmp(&right.0));
+    }
+    if let Some(limit) = options.limit {
+        entries.truncate(limit);
+    }
+    entries
+}
+
 pub fn page_keys_desc(
     mut keys: Vec<ResourceKey>,
     before_name: Option<&str>,
@@ -87,7 +201,7 @@ pub trait KeyValueStore: Send + Sync {
     async fn list_keys(
         &self,
         list: &ResourceList,
-        order: Order,
+        options: Option<ListOptions<'_>>,
     ) -> anyhow::Result<Vec<ResourceKey>>;
 
     /// List direct children, ordered by resource name descending.
@@ -100,11 +214,11 @@ pub trait KeyValueStore: Send + Sync {
         before_name: Option<&str>,
         limit: usize,
     ) -> anyhow::Result<Vec<ResourceKey>> {
-        Ok(page_keys_desc(
-            self.list_keys(list, Order::Asc).await?,
-            before_name,
-            limit,
-        ))
+        self.list_keys(
+            list,
+            Some(ListOptions::desc().before_name(before_name).limit(limit)),
+        )
+        .await
     }
 
     /// List direct child key/value pairs, ordered by resource name descending.
@@ -117,20 +231,20 @@ pub trait KeyValueStore: Send + Sync {
         before_name: Option<&str>,
         limit: usize,
     ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
-        Ok(page_entries_desc(
-            self.list_entries(list, Order::Asc).await?,
-            before_name,
-            limit,
-        ))
+        self.list_entries(
+            list,
+            Some(ListOptions::desc().before_name(before_name).limit(limit)),
+        )
+        .await
     }
 
     /// List all matching direct child key/value pairs.
     async fn list_entries(
         &self,
         list: &ResourceList,
-        order: Order,
+        options: Option<ListOptions<'_>>,
     ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
-        let keys = self.list_keys(list, order).await?;
+        let keys = self.list_keys(list, options).await?;
         let mut entries = Vec::with_capacity(keys.len());
         for key in keys {
             if let Some(value) = self.get(&key).await? {
@@ -306,7 +420,7 @@ impl KeyValueStore for NoopKeyValueStore {
     async fn list_keys(
         &self,
         _list: &ResourceList,
-        _order: Order,
+        _options: Option<ListOptions<'_>>,
     ) -> anyhow::Result<Vec<ResourceKey>> {
         Ok(Vec::new())
     }
@@ -825,7 +939,7 @@ mod tests {
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
         ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
-        Order, ProtoKeyValueStoreExt,
+        ListOptions, ProtoKeyValueStoreExt,
     };
     use crate::control::config::proto;
     use crate::control::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
@@ -1054,13 +1168,33 @@ mod tests {
         kv.set(&b, b"two").await.unwrap();
         kv.set(&other, b"three").await.unwrap();
 
-        let entries = kv.list_entries(&list, Order::Asc).await.unwrap();
+        let entries = kv.list_entries(&list, None).await.unwrap();
         assert_eq!(entries.len(), 2);
         assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
         assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
         assert_eq!(
-            kv.list_entries(&list, Order::Desc).await.unwrap(),
+            kv.list_entries(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
+        );
+        assert_eq!(
+            kv.list_entries(&list, Some(ListOptions::desc().limit(1)))
+                .await
+                .unwrap(),
+            vec![(b.clone(), b"two".to_vec())]
+        );
+        assert_eq!(
+            kv.list_entries(&list, Some(ListOptions::default().after_name(Some("a"))))
+                .await
+                .unwrap(),
+            vec![(b.clone(), b"two".to_vec())]
+        );
+        assert_eq!(
+            kv.list_entries(&list, Some(ListOptions::desc().before_name(Some("b"))))
+                .await
+                .unwrap(),
+            vec![(a.clone(), b"one".to_vec())]
         );
 
         kv.delete(&a).await.unwrap();
