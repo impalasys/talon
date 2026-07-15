@@ -639,7 +639,10 @@ def test_nested_policy_document_delegation_forwards_artifact_uri(
                     name=parent_tasks[0].metadata.name,
                 )
             ).resource
-            if parent_task.status.task.phase == 4:
+            if (
+                parent_task.status.task.phase == 4
+                and parent_task.status.task.output_artifact_uris
+            ):
                 break
     assert parent_task is not None, "coordinator did not create parent task"
     assert parent_task.status.task.phase == 4
