@@ -24,35 +24,7 @@ fn task_namespace<'a>(args: &'a Value, current_namespace: &'a str) -> Result<&'a
     Ok(namespace)
 }
 
-fn has_task_output_artifact_args(args: &Value) -> bool {
-    args.get("output_artifact_uri").is_some() || args.get("output_artifact_uris").is_some()
-}
-
-fn reject_cross_namespace_status_fields(args: &Value) -> Result<()> {
-    for field in [
-        "phase",
-        "progress_summary",
-        "execution_namespace",
-        "execution_name",
-        "execution_session_id",
-        "run_id",
-    ] {
-        if args.get(field).is_some() {
-            return Err(anyhow!(
-                "delegated task sessions cannot update cross-namespace Task field '{}'",
-                field
-            ));
-        }
-    }
-    if !has_task_output_artifact_args(args) {
-        return Err(anyhow!(
-            "delegated task sessions can only attach output artifact URIs across namespaces"
-        ));
-    }
-    Ok(())
-}
-
-async fn resolve_task_update_namespace(
+async fn update_task_namespace(
     cp: &ControlPlane,
     args: &Value,
     current_namespace: &str,
@@ -95,7 +67,6 @@ async fn resolve_task_update_namespace(
         .get(crate::control::delegation::LABEL_TASK_NAME)
         .map(String::as_str);
     if is_delegate && assigned_namespace == Some(namespace) && assigned_name == Some(name) {
-        reject_cross_namespace_status_fields(args)?;
         return Ok(namespace.to_string());
     }
 
@@ -293,14 +264,9 @@ pub(super) async fn execute(
         }
         super::UPDATE_TASK_TOOL => {
             super::require_capability(spec, "tasks", "update")?;
-            let namespace = resolve_task_update_namespace(
-                cp,
-                args,
-                current_namespace,
-                current_agent,
-                current_session,
-            )
-            .await?;
+            let namespace =
+                update_task_namespace(cp, args, current_namespace, current_agent, current_session)
+                    .await?;
             let name = super::req_str(args, "name")?;
             let output_artifact_uris = super::task_output_artifact_uris_from_args(
                 cp,
