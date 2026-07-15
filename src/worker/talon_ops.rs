@@ -1530,9 +1530,7 @@ mod tests {
         DEFAULT_MAX_LIST_LIMIT,
     };
     use crate::control::config::Config;
-    use crate::control::{
-        keys, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
-    };
+    use crate::control::{keys, ControlPlane, MessagePublisher, ProtoKeyValueStoreExt};
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
     use crate::test_support::{MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use crate::worker::{

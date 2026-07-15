@@ -620,6 +620,7 @@ mod tests {
         document_ref, document_source, ephemeral_document_store, Document, DocumentRef,
         DOCUMENT_KIND_CONTENT, KIND_KNOWLEDGE,
     };
+    use crate::control::KeyValueStore;
     use crate::test_support::MockKvStore;
     use serde_json::json;
     use std::sync::Arc;

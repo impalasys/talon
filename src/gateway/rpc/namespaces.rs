@@ -404,6 +404,7 @@ mod tests {
     use crate::gateway::auth::{AuthConfig, Claims};
     use crate::gateway::server::Gateway;
     use crate::test_support::{MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
+    use std::collections::HashMap;
     use std::sync::Arc;
 
     struct MockPubSub;

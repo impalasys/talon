@@ -394,7 +394,6 @@ mod tests {
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
-    use tokio::sync::Mutex;
 
     #[derive(Default)]
     struct MockPubSub;
