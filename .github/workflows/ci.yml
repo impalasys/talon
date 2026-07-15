@@ -526,6 +526,7 @@ jobs:
             tests/test_mock_llm.py \
             tests/test_workers.py \
             tests/test_chat.py \
+            tests/test_delegation.py \
             tests/test_search.py \
             tests/test_resources.py \
             tests/test_workflows.py \
