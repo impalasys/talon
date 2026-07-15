@@ -101,6 +101,18 @@ def last_message_text(messages):
     return message_text(message)
 
 
+def message_tool_call_id(message):
+    tool_call_id = message.get("tool_call_id")
+    if isinstance(tool_call_id, str):
+        return tool_call_id
+    content = message.get("content", message.get("parts", ""))
+    if isinstance(content, list):
+        for part in content:
+            if isinstance(part, dict) and isinstance(part.get("id"), str):
+                return part["id"]
+    return ""
+
+
 def message_text(message):
     content = message.get("content", message.get("parts", ""))
     if isinstance(content, str):
@@ -111,7 +123,7 @@ def message_text(message):
             if isinstance(part, str):
                 parts.append(part)
             elif isinstance(part, dict):
-                text = part.get("text") or part.get("content")
+                text = part.get("text") or part.get("content") or part.get("result")
                 if isinstance(text, str):
                     parts.append(text)
         return "\n".join(parts)
@@ -180,7 +192,7 @@ def scenario_response_for(messages, tools):
     for rule in MOCK_SCENARIO_RULES:
         expected_tool_call_id = rule.get("tool_call_id")
         if expected_tool_call_id:
-            if last.get("role") != "tool" or last.get("tool_call_id") != expected_tool_call_id:
+            if last.get("role") != "tool" or message_tool_call_id(last) != expected_tool_call_id:
                 continue
         elif last.get("role") == "tool":
             continue
@@ -248,7 +260,7 @@ def should_emit_update_task_output_call(messages, tools):
     return (
         UPDATE_TASK_NAME in tool_names
         and last_message(messages).get("role") == "tool"
-        and last_message(messages).get("tool_call_id") == CREATE_ARTIFACT_CALL_ID
+        and message_tool_call_id(last_message(messages)) == CREATE_ARTIFACT_CALL_ID
         and bool(task_ref_from_messages(messages))
         and bool(artifact_uri_from_text(last_message_text(messages)))
     )
@@ -282,7 +294,7 @@ def should_emit_blocking_tool_call(messages, tools):
 
 def is_tool_followup(messages):
     message = last_message(messages)
-    return message.get("role") == "tool" and message.get("tool_call_id") in {
+    return message.get("role") == "tool" and message_tool_call_id(message) in {
         TOOL_CALL_ID,
         BLOCKING_TOOL_CALL_ID,
         DELEGATE_TASK_CALL_ID,
@@ -623,7 +635,7 @@ async def chat_completions(request: Request):
     elif should_emit_tool_call(messages, tools):
         reply = None
     elif is_tool_followup(messages):
-        tool_call_id = last_message(messages).get("tool_call_id")
+        tool_call_id = message_tool_call_id(last_message(messages))
         if tool_call_id == DELEGATE_TASK_CALL_ID:
             reply = "I delegated the onboarding task."
         elif tool_call_id == CREATE_ARTIFACT_CALL_ID:
