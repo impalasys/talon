@@ -3,7 +3,7 @@
 
 use crate::control::resource_model::{NamespaceResourceExt, TypedResource};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, ControlPlane, Order, ProtoKeyValueStoreExt};
+use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::resources_proto;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -374,10 +374,7 @@ impl DeploymentController {
     ) -> Result<Vec<resources_proto::Namespace>> {
         let refs = cp
             .kv
-            .list_entries(
-                &keys::namespace_ref_prefix(Some(&selector.parent)),
-                Order::Asc.into(),
-            )
+            .list_entries(&keys::namespace_ref_prefix(Some(&selector.parent)), None)
             .await?;
         let mut namespaces = Vec::new();
         for (_, value) in refs {

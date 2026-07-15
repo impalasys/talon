@@ -585,8 +585,9 @@ impl KeyValueStore for PostgresKvStore {
     async fn list_keys(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<ResourceKey>> {
+        let options = options.unwrap_or_default();
         let query = list_keys_query(&self.table, list.kind.is_some(), options);
         let span = tracing::debug_span!(
             "PostgresKvStore.list_keys",
@@ -644,8 +645,9 @@ impl KeyValueStore for PostgresKvStore {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
+        let options = options.unwrap_or_default();
         let query = list_entries_query(&self.table, list.kind.is_some(), options);
         let span = tracing::debug_span!(
             "PostgresKvStore.list_entries",
@@ -838,7 +840,7 @@ mod tests {
         list_entries_page_query, list_entries_query, list_keys_page_query, list_keys_query,
         rename_migration_index_statement, set_query, PostgresKvStore,
     };
-    use crate::control::{keys, KeyValueStore, Order};
+    use crate::control::{keys, KeyValueStore, ListOptions, Order};
     use crate::test_support::{docker_test_guard, PostgresContainer};
     use std::time::Duration;
 
@@ -920,10 +922,13 @@ mod tests {
         store.set(&other, b"three").await.unwrap();
         assert_eq!(store.get(&a).await.unwrap(), Some(b"one".to_vec()));
 
-        let listed = store.list_keys(&list, Order::Asc.into()).await.unwrap();
+        let listed = store.list_keys(&list, None).await.unwrap();
         assert_eq!(listed, vec![a.clone(), b.clone()]);
         assert_eq!(
-            store.list_keys(&list, Order::Desc.into()).await.unwrap(),
+            store
+                .list_keys(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![b.clone(), a.clone()]
         );
 
@@ -940,11 +945,14 @@ mod tests {
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
 
-        let entries = store.list_entries(&list, Order::Asc.into()).await.unwrap();
+        let entries = store.list_entries(&list, None).await.unwrap();
         assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
         assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
         assert_eq!(
-            store.list_entries(&list, Order::Desc.into()).await.unwrap(),
+            store
+                .list_entries(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
 

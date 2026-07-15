@@ -9,7 +9,7 @@ use crate::control::config::Config;
 use crate::control::events::ResourceChangedEvent;
 use crate::control::resource_model::{NamespaceResourceExt, TypedResource};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, ControlPlane, Order, ProtoKeyValueStoreExt};
+use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::resources_proto;
 
 #[derive(Clone)]
@@ -140,10 +140,7 @@ impl ControllerHost {
                             for namespace_key in self
                                 .cp
                                 .kv
-                                .list_keys(
-                                    &crate::control::keys::namespace_metadata_prefix(),
-                                    Order::Asc.into(),
-                                )
+                                .list_keys(&crate::control::keys::namespace_metadata_prefix(), None)
                                 .await?
                             {
                                 for class in store

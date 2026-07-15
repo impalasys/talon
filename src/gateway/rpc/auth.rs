@@ -4,7 +4,7 @@
 use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::config::proto as config_proto;
 use crate::control::security::platform_jwt;
-use crate::control::{keys, ns, Order};
+use crate::control::{keys, ns};
 use crate::gateway::auth::{
     self as gateway_auth, AuthConfig, AuthMode, AuthzOperation, Claims, TalonGrantClaim,
 };
@@ -221,7 +221,7 @@ impl GrpcGatewayHandler {
         let entries = self
             .gateway
             .kv
-            .list_entries(&api_key_list(), Order::Asc.into())
+            .list_entries(&api_key_list(), None)
             .await
             .map_err(|err| tonic::Status::internal(format!("failed to list API keys: {err}")))?;
         let mut api_keys = Vec::with_capacity(entries.len());

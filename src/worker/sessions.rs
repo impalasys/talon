@@ -1918,7 +1918,7 @@ mod tests {
                     "assistant",
                     "session-1",
                 ),
-                crate::control::Order::Asc.into(),
+                None,
             )
             .await
             .unwrap();
@@ -2897,7 +2897,7 @@ mod tests {
                     "assistant",
                     "session-1",
                 ),
-                crate::control::Order::Asc.into(),
+                None,
             )
             .await
             .unwrap();
@@ -3024,7 +3024,7 @@ mod tests {
                     "assistant",
                     "session-1",
                 ),
-                crate::control::Order::Asc.into(),
+                None,
             )
             .await
             .unwrap();
@@ -3114,7 +3114,7 @@ mod tests {
                     "assistant",
                     "session-1",
                 ),
-                crate::control::Order::Asc.into(),
+                None,
             )
             .await
             .unwrap();
@@ -3138,7 +3138,7 @@ mod tests {
                     "assistant",
                     "session-1",
                 ),
-                crate::control::Order::Asc.into(),
+                None,
             )
             .await
             .unwrap();
@@ -3374,7 +3374,7 @@ mod tests {
                     "assistant",
                     "session-1",
                 ),
-                crate::control::Order::Asc.into(),
+                None,
             )
             .await
             .unwrap();

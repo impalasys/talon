@@ -1793,10 +1793,7 @@ mod tests {
             .await
             .unwrap());
 
-        let keys = kv
-            .list_keys(&list, talon::control::Order::Asc.into())
-            .await
-            .unwrap();
+        let keys = kv.list_keys(&list, None).await.unwrap();
         assert_eq!(keys, vec![a.clone(), b.clone(), new.clone()]);
 
         kv.delete(&b).await.unwrap();

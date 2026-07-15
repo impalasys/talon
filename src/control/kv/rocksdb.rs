@@ -331,8 +331,9 @@ impl KeyValueStore for RocksDbKvStore {
     async fn list_keys(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<ResourceKey>> {
+        let options = options.unwrap_or_default();
         if options.limit == Some(0) {
             return Ok(Vec::new());
         }
@@ -413,8 +414,9 @@ impl KeyValueStore for RocksDbKvStore {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
+        let options = options.unwrap_or_default();
         if options.limit == Some(0) {
             return Ok(Vec::new());
         }
@@ -678,12 +680,15 @@ mod tests {
         store.set(&other, b"o").await.unwrap();
 
         let list = keys::session_prefix("default", "agent-a");
-        let keys = store.list_keys(&list, Order::Asc.into()).await.unwrap();
+        let keys = store.list_keys(&list, None).await.unwrap();
         assert_eq!(
             keys.iter().map(|key| key.name.as_str()).collect::<Vec<_>>(),
             vec!["alpha", "beta", "gamma"]
         );
-        let desc_keys = store.list_keys(&list, Order::Desc.into()).await.unwrap();
+        let desc_keys = store
+            .list_keys(&list, Some(ListOptions::desc()))
+            .await
+            .unwrap();
         assert_eq!(
             desc_keys
                 .iter()
@@ -691,7 +696,10 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec!["gamma", "beta", "alpha"]
         );
-        let desc_entries = store.list_entries(&list, Order::Desc.into()).await.unwrap();
+        let desc_entries = store
+            .list_entries(&list, Some(ListOptions::desc()))
+            .await
+            .unwrap();
         assert_eq!(
             desc_entries
                 .iter()

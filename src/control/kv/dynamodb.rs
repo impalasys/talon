@@ -232,9 +232,9 @@ impl KeyValueStore for DynamoDbKvStore {
     async fn list_keys(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<ResourceKey>> {
-        self.query_list(list, options, false)
+        self.query_list(list, options.unwrap_or_default(), false)
             .await
             .map(|rows| rows.into_iter().map(|(key, _)| key).collect())
     }
@@ -242,13 +242,15 @@ impl KeyValueStore for DynamoDbKvStore {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        self.query_list(list, options, true).await.map(|rows| {
-            rows.into_iter()
-                .filter_map(|(key, value)| value.map(|value| (key, value)))
-                .collect()
-        })
+        self.query_list(list, options.unwrap_or_default(), true)
+            .await
+            .map(|rows| {
+                rows.into_iter()
+                    .filter_map(|(key, value)| value.map(|value| (key, value)))
+                    .collect()
+            })
     }
 
     async fn list_keys_page(

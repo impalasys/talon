@@ -4,7 +4,7 @@
 use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys, KeyValueStore, MessagePublisher, Order};
+use crate::control::{events, keys, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::{data_proto, resources_proto, worker_proto};
 use crate::gateway::worker_conn::WorkerConnectionPool;
 use futures::{stream::SelectAll, Stream, StreamExt};
@@ -676,7 +676,7 @@ async fn latest_nonterminal_submission(
 ) -> std::result::Result<Option<data_proto::SessionSubmission>, tonic::Status> {
     let prefix = keys::session_submission_prefix(&target.ns, &target.agent, &target.session_id);
     let entries = kv
-        .list_entries(&prefix, Order::Asc.into())
+        .list_entries(&prefix, None)
         .await
         .map_err(|err| tonic::Status::internal(format!("Failed to list submissions: {err}")))?;
     let mut submissions = Vec::new();
@@ -700,7 +700,7 @@ async fn latest_submission(
 ) -> std::result::Result<Option<data_proto::SessionSubmission>, tonic::Status> {
     let prefix = keys::session_submission_prefix(&target.ns, &target.agent, &target.session_id);
     let entries = kv
-        .list_entries(&prefix, Order::Asc.into())
+        .list_entries(&prefix, None)
         .await
         .map_err(|err| tonic::Status::internal(format!("Failed to list submissions: {err}")))?;
     let mut submissions = Vec::new();

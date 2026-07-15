@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use super::mcp_registry::McpRegistry;
 use crate::control::config::Config;
+use crate::control::ControlPlane;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{ControlPlane, Order};
 use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::resources_proto;
 use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
@@ -82,7 +82,7 @@ impl AgentRuntime {
 
         // 2. Load session history from KV
         let msg_prefix = crate::control::keys::session_message_prefix(ns, agent_id, session_id);
-        let msg_entries = cp.kv.list_entries(&msg_prefix, Order::Asc.into()).await?;
+        let msg_entries = cp.kv.list_entries(&msg_prefix, None).await?;
 
         let mut history = Vec::new();
         for (_, value) in msg_entries {

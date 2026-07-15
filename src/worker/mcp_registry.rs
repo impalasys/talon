@@ -179,17 +179,19 @@ mod tests {
         async fn list_keys(
             &self,
             list: &ResourceList,
-            _options: crate::control::ListOptions<'_>,
+            options: Option<crate::control::ListOptions<'_>>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
-            let mut keys = self
+            let keys = self
                 .data
                 .lock()
                 .await
                 .keys()
                 .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
+            Ok(crate::control::apply_list_options_to_keys(
+                keys,
+                options.unwrap_or_default(),
+            ))
         }
     }
 

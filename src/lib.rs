@@ -185,7 +185,7 @@ pub mod test_support {
         async fn list_keys(
             &self,
             list: &ResourceList,
-            options: ListOptions<'_>,
+            options: Option<ListOptions<'_>>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
             let keys = self
                 .data
@@ -194,7 +194,10 @@ pub mod test_support {
                 .keys()
                 .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
-            Ok(crate::control::apply_list_options_to_keys(keys, options))
+            Ok(crate::control::apply_list_options_to_keys(
+                keys,
+                options.unwrap_or_default(),
+            ))
         }
 
         async fn list_keys_page(
@@ -205,7 +208,7 @@ pub mod test_support {
         ) -> anyhow::Result<Vec<ResourceKey>> {
             self.list_keys(
                 list,
-                ListOptions::desc().before_name(before_name).limit(limit),
+                Some(ListOptions::desc().before_name(before_name).limit(limit)),
             )
             .await
         }
@@ -218,7 +221,7 @@ pub mod test_support {
         ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
             self.list_entries(
                 list,
-                ListOptions::desc().before_name(before_name).limit(limit),
+                Some(ListOptions::desc().before_name(before_name).limit(limit)),
             )
             .await
         }

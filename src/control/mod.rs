@@ -201,7 +201,7 @@ pub trait KeyValueStore: Send + Sync {
     async fn list_keys(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> anyhow::Result<Vec<ResourceKey>>;
 
     /// List direct children, ordered by resource name descending.
@@ -216,7 +216,7 @@ pub trait KeyValueStore: Send + Sync {
     ) -> anyhow::Result<Vec<ResourceKey>> {
         self.list_keys(
             list,
-            ListOptions::desc().before_name(before_name).limit(limit),
+            Some(ListOptions::desc().before_name(before_name).limit(limit)),
         )
         .await
     }
@@ -233,7 +233,7 @@ pub trait KeyValueStore: Send + Sync {
     ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
         self.list_entries(
             list,
-            ListOptions::desc().before_name(before_name).limit(limit),
+            Some(ListOptions::desc().before_name(before_name).limit(limit)),
         )
         .await
     }
@@ -242,7 +242,7 @@ pub trait KeyValueStore: Send + Sync {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
         let keys = self.list_keys(list, options).await?;
         let mut entries = Vec::with_capacity(keys.len());
@@ -420,7 +420,7 @@ impl KeyValueStore for NoopKeyValueStore {
     async fn list_keys(
         &self,
         _list: &ResourceList,
-        _options: ListOptions<'_>,
+        _options: Option<ListOptions<'_>>,
     ) -> anyhow::Result<Vec<ResourceKey>> {
         Ok(Vec::new())
     }
@@ -939,7 +939,7 @@ mod tests {
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
         ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
-        ListOptions, Order, ProtoKeyValueStoreExt,
+        ListOptions, ProtoKeyValueStoreExt,
     };
     use crate::control::config::proto;
     use crate::control::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
@@ -1168,28 +1168,30 @@ mod tests {
         kv.set(&b, b"two").await.unwrap();
         kv.set(&other, b"three").await.unwrap();
 
-        let entries = kv.list_entries(&list, Order::Asc.into()).await.unwrap();
+        let entries = kv.list_entries(&list, None).await.unwrap();
         assert_eq!(entries.len(), 2);
         assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
         assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
         assert_eq!(
-            kv.list_entries(&list, Order::Desc.into()).await.unwrap(),
+            kv.list_entries(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
         assert_eq!(
-            kv.list_entries(&list, ListOptions::desc().limit(1))
+            kv.list_entries(&list, Some(ListOptions::desc().limit(1)))
                 .await
                 .unwrap(),
             vec![(b.clone(), b"two".to_vec())]
         );
         assert_eq!(
-            kv.list_entries(&list, ListOptions::default().after_name(Some("a")))
+            kv.list_entries(&list, Some(ListOptions::default().after_name(Some("a"))))
                 .await
                 .unwrap(),
             vec![(b.clone(), b"two".to_vec())]
         );
         assert_eq!(
-            kv.list_entries(&list, ListOptions::desc().before_name(Some("b")))
+            kv.list_entries(&list, Some(ListOptions::desc().before_name(Some("b"))))
                 .await
                 .unwrap(),
             vec![(a.clone(), b"one".to_vec())]

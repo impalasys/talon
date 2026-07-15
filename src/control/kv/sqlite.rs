@@ -428,8 +428,9 @@ impl KeyValueStore for SqliteKvStore {
     async fn list_keys(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<ResourceKey>> {
+        let options = options.unwrap_or_default();
         let query = list_keys_query(&self.table, list.kind.is_some(), options);
         let span = tracing::debug_span!(
             "SqliteKvStore.list_keys",
@@ -488,8 +489,9 @@ impl KeyValueStore for SqliteKvStore {
     async fn list_entries(
         &self,
         list: &ResourceList,
-        options: ListOptions<'_>,
+        options: Option<ListOptions<'_>>,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
+        let options = options.unwrap_or_default();
         let query = list_entries_query(&self.table, list.kind.is_some(), options);
         let span = tracing::debug_span!(
             "SqliteKvStore.list_entries",
@@ -810,22 +812,28 @@ mod tests {
         store.set(&other, b"three").await.unwrap();
         assert_eq!(store.get(&a).await.unwrap(), Some(b"one".to_vec()));
 
-        let listed = store.list_keys(&list, Order::Asc.into()).await.unwrap();
+        let listed = store.list_keys(&list, None).await.unwrap();
         assert_eq!(listed, vec![a.clone(), b.clone()]);
         assert_eq!(
-            store.list_keys(&list, Order::Desc.into()).await.unwrap(),
+            store
+                .list_keys(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![b.clone(), a.clone()]
         );
         assert_eq!(
             store
-                .list_keys(&list, ListOptions::default().after_name(Some("a")))
+                .list_keys(&list, Some(ListOptions::default().after_name(Some("a"))))
                 .await
                 .unwrap(),
             vec![b.clone()]
         );
         assert_eq!(
             store
-                .list_keys(&list, ListOptions::desc().before_name(Some("b")).limit(1))
+                .list_keys(
+                    &list,
+                    Some(ListOptions::desc().before_name(Some("b")).limit(1)),
+                )
                 .await
                 .unwrap(),
             vec![a.clone()]
@@ -844,16 +852,19 @@ mod tests {
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
 
-        let entries = store.list_entries(&list, Order::Asc.into()).await.unwrap();
+        let entries = store.list_entries(&list, None).await.unwrap();
         assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
         assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
         assert_eq!(
-            store.list_entries(&list, Order::Desc.into()).await.unwrap(),
+            store
+                .list_entries(&list, Some(ListOptions::desc()))
+                .await
+                .unwrap(),
             vec![(b.clone(), b"two".to_vec()), (a.clone(), b"one".to_vec())]
         );
         assert_eq!(
             store
-                .list_entries(&list, ListOptions::desc().limit(1))
+                .list_entries(&list, Some(ListOptions::desc().limit(1)))
                 .await
                 .unwrap(),
             vec![(b.clone(), b"two".to_vec())]

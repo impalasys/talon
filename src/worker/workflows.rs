@@ -11,8 +11,7 @@ use std::sync::Arc;
 
 use crate::control::resource_model::TypedResource;
 use crate::control::{
-    events, keys, topics, ControlPlane, KeyValueStore, MessagePublisher, Order,
-    ProtoKeyValueStoreExt,
+    events, keys, topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
 };
 use crate::gateway::rpc::{data_proto, resources_proto};
 use crate::harness::knowledge::KvKnowledgeBook;
@@ -1396,7 +1395,7 @@ pub async fn load_step_runs(
     for (_, bytes) in kv
         .list_entries(
             &keys::workflow_step_run_prefix(&run.ns, &run.workflow, &run.id),
-            Order::Asc.into(),
+            None,
         )
         .await?
     {
@@ -2610,7 +2609,7 @@ mod tests {
         let events = kv
             .list_entries(
                 &keys::workflow_run_event_prefix("default", "dispatch-only", &run.id),
-                Order::Asc.into(),
+                None,
             )
             .await
             .unwrap();
@@ -2676,19 +2675,16 @@ mod tests {
         workflow: &str,
         run_id: &str,
     ) -> Vec<String> {
-        kv.list_entries(
-            &keys::workflow_run_event_prefix(ns, workflow, run_id),
-            Order::Asc.into(),
-        )
-        .await
-        .expect("events should list")
-        .into_iter()
-        .map(|(_, bytes)| {
-            data_proto::WorkflowRunEvent::decode(bytes.as_slice())
-                .expect("event should decode")
-                .r#type
-        })
-        .collect()
+        kv.list_entries(&keys::workflow_run_event_prefix(ns, workflow, run_id), None)
+            .await
+            .expect("events should list")
+            .into_iter()
+            .map(|(_, bytes)| {
+                data_proto::WorkflowRunEvent::decode(bytes.as_slice())
+                    .expect("event should decode")
+                    .r#type
+            })
+            .collect()
     }
 
     async fn event_type_count(
