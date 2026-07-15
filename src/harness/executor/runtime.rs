@@ -613,6 +613,17 @@ impl AgentExecutor {
                             tracing::info!(agent_id = %context.agent_id, "Generation interrupted by user");
                             telemetry::record_chat_output(&llm_span, &final_reply, &[]);
                             context.push(LoopMessage::text("assistant", final_reply.clone()));
+                            if let Some(usage) = final_usage.as_ref() {
+                                telemetry::record_usage(&llm_span, usage);
+                                sink.on_usage(usage).await;
+                                crate::control::usage::charge_namespace_usage(
+                                    self.control_plane.kv.as_ref(),
+                                    &usage_subject,
+                                    &crate::control::usage::llm_usage_charges(Some(usage)),
+                                    chrono::Utc::now().timestamp(),
+                                )
+                                .await?;
+                            }
                             sink.on_done().await;
                             return Ok(final_reply);
                         }
@@ -679,7 +690,6 @@ impl AgentExecutor {
                         event: Some(chat_stream_event::Event::Usage(usage)),
                     } => {
                         final_usage = Some(usage.clone());
-                        sink.on_usage(&usage).await;
                     }
                     ChatStreamEvent { event: None } => {}
                 }
@@ -704,6 +714,9 @@ impl AgentExecutor {
                 telemetry::record_usage(&llm_span, usage);
             }
             sink.on_llm_response(&llm_response).await?;
+            if let Some(usage) = llm_response.usage.as_ref() {
+                sink.on_usage(usage).await;
+            }
             crate::control::usage::charge_namespace_usage(
                 self.control_plane.kv.as_ref(),
                 &usage_subject,
@@ -847,8 +860,8 @@ mod tests {
         protobuf_value::{value::Kind as ProtoValueKind, ListValue, Value as ProtoValue},
     };
     use crate::harness::llm::provider::{
-        image_data_part, text_delta_event, tool_call_delta_event, ChatMessage, ChatMessageExt,
-        ChatRequest, ChatResponse, ChatStream, LlmProvider,
+        image_data_part, text_delta_event, tool_call_delta_event, usage_event, ChatMessage,
+        ChatMessageExt, ChatRequest, ChatResponse, ChatStream, ChatUsage, LlmProvider,
     };
     use crate::harness::memory::Embedding;
     use crate::harness::skills::registry::ToolRegistry;
@@ -964,6 +977,42 @@ mod tests {
                 seen_messages: Arc::new(Mutex::new(Vec::new())),
                 call_count: Arc::new(Mutex::new(0)),
             }
+        }
+    }
+
+    struct InterleavedUsageLlm;
+
+    #[async_trait]
+    impl LlmProvider for InterleavedUsageLlm {
+        async fn generate_embedding(&self, _text: &str) -> Result<Embedding> {
+            Ok(vec![0.0; 8])
+        }
+
+        async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
+            unreachable!("stream_chat_completion is used in this test");
+        }
+
+        async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
+            Ok(Box::pin(futures::stream::iter(vec![
+                Ok(text_delta_event("hello ".to_string())),
+                Ok(usage_event(ChatUsage {
+                    input_tokens: 10,
+                    output_tokens: 1,
+                    reasoning_tokens: 0,
+                    total_tokens: 11,
+                })),
+                Ok(text_delta_event("world".to_string())),
+                Ok(usage_event(ChatUsage {
+                    input_tokens: 10,
+                    output_tokens: 2,
+                    reasoning_tokens: 0,
+                    total_tokens: 12,
+                })),
+            ])))
+        }
+
+        async fn completion(&self, prompt: &str) -> Result<String> {
+            Ok(prompt.to_string())
         }
     }
 
@@ -1567,6 +1616,46 @@ mod tests {
             1
         );
         assert!(matches!(sink.events().last(), Some(AgentEvent::Done)));
+    }
+
+    #[tokio::test]
+    async fn executor_buffers_stream_usage_until_turn_boundary() {
+        let llm = Arc::new(InterleavedUsageLlm);
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let executor = AgentExecutor::new(
+            llm,
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("user", "Say hello"));
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+
+        assert_eq!(reply, "hello world");
+        assert_eq!(
+            sink.events(),
+            vec![
+                AgentEvent::Token("hello ".to_string()),
+                AgentEvent::Token("world".to_string()),
+                AgentEvent::Usage(ChatUsage {
+                    input_tokens: 10,
+                    output_tokens: 2,
+                    reasoning_tokens: 0,
+                    total_tokens: 12,
+                }),
+                AgentEvent::Done,
+            ]
+        );
     }
 
     #[tokio::test]
