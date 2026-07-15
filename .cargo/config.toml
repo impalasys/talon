@@ -1,2 +1,2 @@
 [alias]
-install-hooks = "run --quiet --locked --manifest-path tools/install-hooks/Cargo.toml --target-dir target/install-hooks --"
+install-hooks = "run --quiet --locked --package talon-install-hooks --"

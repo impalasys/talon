@@ -1,3 +1,7 @@
+[workspace]
+members = [".", "tools/install-hooks"]
+resolver = "2"
+
 [package]
 name = "talon"
 version = "0.1.0"

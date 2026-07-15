@@ -16,9 +16,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     make_executable(&hook)?;
 
+    let hooks_path = repo_root.join(".githooks");
     let status = Command::new("git")
         .current_dir(&repo_root)
-        .args(["config", "core.hooksPath", ".githooks"])
+        .args(["config", "core.hooksPath"])
+        .arg(&hooks_path)
         .status()?;
 
     if !status.success() {
