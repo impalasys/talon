@@ -4665,8 +4665,6 @@ mod tests {
             &json!({
                 "namespace": owner_namespace,
                 "name": task_name,
-                "phase": "NEEDS_REVIEW",
-                "progress_summary": "Draft announcement is ready.",
                 "output_artifact_uri": artifact_uri
             }),
         )
@@ -4675,6 +4673,27 @@ mod tests {
         .unwrap();
         let updated: Value = serde_json::from_str(&updated).unwrap();
         assert_eq!(updated["task"]["outputArtifactUris"][0], artifact_uri);
+        assert_eq!(updated["task"]["phase"], "RUNNING");
+
+        let phase_update_rejected = execute_tool_for_session(
+            &cp,
+            delegate_namespace,
+            "copywriter",
+            delegate_session_id,
+            &task_spec(&["update"]),
+            UPDATE_TASK_TOOL,
+            &json!({
+                "namespace": owner_namespace,
+                "name": task_name,
+                "phase": "NEEDS_REVIEW",
+                "output_artifact_uri": artifact_uri
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(phase_update_rejected
+            .to_string()
+            .contains("cannot update cross-namespace Task field 'phase'"));
 
         let rejected = execute_tool_for_session(
             &cp,
