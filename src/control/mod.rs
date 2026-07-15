@@ -88,12 +88,6 @@ impl<'a> ListOptions<'a> {
     }
 }
 
-impl From<Order> for ListOptions<'static> {
-    fn from(order: Order) -> Self {
-        Self::ordered(order)
-    }
-}
-
 pub fn apply_list_options_to_keys(
     mut keys: Vec<ResourceKey>,
     options: ListOptions<'_>,

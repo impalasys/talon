@@ -561,7 +561,7 @@ mod tests {
         list_entries_query, list_keys_query, set_query, sqlite_pool, SqliteKvStore,
     };
     use crate::control::kv::sqlite_url_for_path;
-    use crate::control::{keys, KeyValueStore, ListOptions, Order};
+    use crate::control::{keys, KeyValueStore, ListOptions};
     use tempfile::tempdir;
 
     #[test]
@@ -576,8 +576,8 @@ mod tests {
         assert!(compare_and_swap_query("talon_kv", true).contains("AND value = ?6"));
         assert!(compare_and_swap_query("talon_kv", false).contains("DO NOTHING"));
         assert!(delete_query("talon_kv").contains("WHERE namespace = ?1"));
-        assert!(list_keys_query("talon_kv", true, Order::Asc.into()).contains("AND kind = ?3"));
-        assert!(list_keys_query("talon_kv", true, Order::Desc.into())
+        assert!(list_keys_query("talon_kv", true, ListOptions::default()).contains("AND kind = ?3"));
+        assert!(list_keys_query("talon_kv", true, ListOptions::desc())
             .contains("ORDER BY kind DESC, name DESC"));
         assert!(list_keys_query(
             "talon_kv",
@@ -585,8 +585,10 @@ mod tests {
             ListOptions::desc().before_name(Some("b")).limit(10)
         )
         .contains("AND name < ?4"));
-        assert!(list_entries_query("talon_kv", false, Order::Asc.into())
-            .contains("ORDER BY kind ASC, name ASC"));
+        assert!(
+            list_entries_query("talon_kv", false, ListOptions::default())
+                .contains("ORDER BY kind ASC, name ASC")
+        );
     }
 
     #[test]
