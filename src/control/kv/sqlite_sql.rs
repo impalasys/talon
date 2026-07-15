@@ -127,28 +127,6 @@ pub(crate) fn list_entries_query(table: &str, has_kind: bool, options: ListOptio
     )
 }
 
-pub(crate) fn list_keys_page_query(table: &str) -> String {
-    format!(
-        "SELECT namespace, parent_path, kind, name FROM {}
-         WHERE namespace = ?1 AND parent_path = ?2 AND kind = ?3
-           AND (?4 IS NULL OR name < ?4)
-         ORDER BY name DESC
-         LIMIT ?5",
-        quoted_identifier(table)
-    )
-}
-
-pub(crate) fn list_entries_page_query(table: &str) -> String {
-    format!(
-        "SELECT namespace, parent_path, kind, name, value FROM {}
-         WHERE namespace = ?1 AND parent_path = ?2 AND kind = ?3
-           AND (?4 IS NULL OR name < ?4)
-         ORDER BY name DESC
-         LIMIT ?5",
-        quoted_identifier(table)
-    )
-}
-
 pub(crate) fn create_migration_table_statement(table: &str) -> String {
     create_table_statement(table).replacen("CREATE TABLE IF NOT EXISTS", "CREATE TABLE", 1)
 }

@@ -7,7 +7,7 @@ use crate::control::resource_model::{
 };
 use crate::control::scheduling;
 use crate::control::topics;
-use crate::control::{events, keys, ControlPlane, KeyValueStore};
+use crate::control::{events, keys, ControlPlane, KeyValueStore, ListOptions};
 use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
 use anyhow::Context;
 use futures::StreamExt;
@@ -586,10 +586,13 @@ impl GrpcGatewayHandler {
             let entries = self
                 .gateway
                 .kv
-                .list_entries_page(
+                .list_entries(
                     &keys::channel_message_prefix(&req.ns, &req.channel),
-                    scan_before_name.as_deref(),
-                    remaining,
+                    Some(
+                        ListOptions::desc()
+                            .before_name(scan_before_name.as_deref())
+                            .limit(remaining),
+                    ),
                 )
                 .await
                 .map_err(|e| {
@@ -1029,10 +1032,9 @@ async fn recent_channel_messages(
 ) -> anyhow::Result<Vec<data_proto::ChannelMessage>> {
     let entries = cp
         .kv
-        .list_entries_page(
+        .list_entries(
             &keys::channel_message_prefix(&message.ns, &message.channel),
-            None,
-            limit,
+            Some(ListOptions::desc().limit(limit)),
         )
         .await?;
 

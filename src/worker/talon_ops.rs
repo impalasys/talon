@@ -36,7 +36,7 @@ use crate::{
         resource_model::{self, ChannelResourceExt, NamespaceResourceExt, TypedResource},
         scheduling,
         security::platform_jwt,
-        ProtoKeyValueStoreExt,
+        ListOptions, ProtoKeyValueStoreExt,
     },
     gateway::rpc::{data_proto, manifests, resources_proto},
 };
@@ -274,10 +274,13 @@ impl TalonOpsServer {
         }
         let mut entries = self
             .kv()
-            .list_entries_page(
+            .list_entries(
                 &keys::channel_message_prefix(namespace, channel),
-                before_message_id.filter(|value| !value.is_empty()),
-                limit.saturating_add(1),
+                Some(
+                    ListOptions::desc()
+                        .before_name(before_message_id.filter(|value| !value.is_empty()))
+                        .limit(limit.saturating_add(1)),
+                ),
             )
             .await?;
         let has_more = entries.len() > limit;

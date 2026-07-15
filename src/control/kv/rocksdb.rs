@@ -21,26 +21,6 @@ fn prefix_bytes(list: &ResourceList) -> Vec<u8> {
     list.canonical_prefix().into_bytes()
 }
 
-fn page_cursor_bytes(list: &ResourceList, kind: &str, before_name: &str) -> Vec<u8> {
-    key_bytes(&ResourceKey {
-        namespace: list.parent.namespace.clone(),
-        parent_path: list.parent.parent_path.clone(),
-        kind: kind.to_string(),
-        name: before_name.to_string(),
-    })
-}
-
-fn page_seek_bytes(prefix: &[u8], cursor: Option<&[u8]>) -> Vec<u8> {
-    match cursor {
-        Some(cursor) => cursor.to_vec(),
-        None => {
-            let mut seek = prefix.to_vec();
-            seek.push(0xff);
-            seek
-        }
-    }
-}
-
 fn reverse_seek_bytes(prefix: &[u8]) -> Vec<u8> {
     let mut seek = prefix.to_vec();
     seek.push(0xff);
@@ -499,128 +479,6 @@ impl KeyValueStore for RocksDbKvStore {
         .instrument(span)
         .await
     }
-
-    async fn list_keys_page(
-        &self,
-        list: &ResourceList,
-        before_name: Option<&str>,
-        limit: usize,
-    ) -> Result<Vec<ResourceKey>> {
-        if limit == 0 {
-            return Ok(Vec::new());
-        }
-        let Some(kind) = &list.kind else {
-            bail!("paged resource listing requires an explicit resource kind");
-        };
-        let prefix = prefix_bytes(list);
-        let cursor = before_name.map(|before_name| page_cursor_bytes(list, kind, before_name));
-        let seek_key = page_seek_bytes(&prefix, cursor.as_deref());
-        let span = tracing::debug_span!(
-            "RocksDbKvStore.list_keys_page",
-            "db.system" = "rocksdb",
-            "db.operation" = "list_keys_page",
-            "talon.kv.path" = %self.path.as_str(),
-            "talon.resource.kind" = %kind,
-            query_elapsed_us = field::Empty,
-            rows_returned = field::Empty,
-            limit,
-        );
-        let span_for_body = span.clone();
-        async move {
-            let started_at = Instant::now();
-            let keys = self
-                .spawn_blocking("list_keys_page", move |db| {
-                    let mut keys = Vec::with_capacity(limit);
-                    for item in
-                        db.iterator(IteratorMode::From(&seek_key, rocksdb::Direction::Reverse))
-                    {
-                        let (raw_key, _) = item?;
-                        if !raw_key.starts_with(&prefix) {
-                            break;
-                        }
-                        if let Some(cursor) = cursor.as_deref() {
-                            if raw_key.as_ref() >= cursor {
-                                continue;
-                            }
-                        }
-                        keys.push(parse_key(&raw_key)?);
-                        if keys.len() >= limit {
-                            break;
-                        }
-                    }
-                    Ok(keys)
-                })
-                .await?;
-            record_elapsed(&span_for_body, started_at);
-            span_for_body.record("rows_returned", keys.len() as u64);
-            Ok(keys)
-        }
-        .instrument(span)
-        .await
-    }
-
-    async fn list_entries_page(
-        &self,
-        list: &ResourceList,
-        before_name: Option<&str>,
-        limit: usize,
-    ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
-        if limit == 0 {
-            return Ok(Vec::new());
-        }
-        let Some(kind) = &list.kind else {
-            bail!("paged resource listing requires an explicit resource kind");
-        };
-        let prefix = prefix_bytes(list);
-        let cursor = before_name.map(|before_name| page_cursor_bytes(list, kind, before_name));
-        let seek_key = page_seek_bytes(&prefix, cursor.as_deref());
-        let span = tracing::debug_span!(
-            "RocksDbKvStore.list_entries_page",
-            "db.system" = "rocksdb",
-            "db.operation" = "list_entries_page",
-            "talon.kv.path" = %self.path.as_str(),
-            "talon.resource.kind" = %kind,
-            query_elapsed_us = field::Empty,
-            rows_returned = field::Empty,
-            value_bytes = field::Empty,
-            limit,
-        );
-        let span_for_body = span.clone();
-        async move {
-            let started_at = Instant::now();
-            let (entries, value_bytes) = self
-                .spawn_blocking("list_entries_page", move |db| {
-                    let mut entries = Vec::with_capacity(limit);
-                    let mut value_bytes = 0usize;
-                    for item in
-                        db.iterator(IteratorMode::From(&seek_key, rocksdb::Direction::Reverse))
-                    {
-                        let (raw_key, value) = item?;
-                        if !raw_key.starts_with(&prefix) {
-                            break;
-                        }
-                        if let Some(cursor) = cursor.as_deref() {
-                            if raw_key.as_ref() >= cursor {
-                                continue;
-                            }
-                        }
-                        value_bytes += value.len();
-                        entries.push((parse_key(&raw_key)?, value.to_vec()));
-                        if entries.len() >= limit {
-                            break;
-                        }
-                    }
-                    Ok((entries, value_bytes))
-                })
-                .await?;
-            record_elapsed(&span_for_body, started_at);
-            span_for_body.record("rows_returned", entries.len() as u64);
-            span_for_body.record("value_bytes", value_bytes as u64);
-            Ok(entries)
-        }
-        .instrument(span)
-        .await
-    }
 }
 
 #[cfg(test)]
@@ -708,13 +566,19 @@ mod tests {
             vec!["gamma", "beta", "alpha"]
         );
 
-        let page = store.list_keys_page(&list, None, 2).await.unwrap();
+        let page = store
+            .list_keys(&list, Some(ListOptions::desc().limit(2)))
+            .await
+            .unwrap();
         assert_eq!(
             page.iter().map(|key| key.name.as_str()).collect::<Vec<_>>(),
             vec!["gamma", "beta"]
         );
         let next = store
-            .list_entries_page(&list, Some("beta"), 2)
+            .list_entries(
+                &list,
+                Some(ListOptions::desc().before_name(Some("beta")).limit(2)),
+            )
             .await
             .unwrap();
         assert_eq!(next.len(), 1);

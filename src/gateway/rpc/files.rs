@@ -5,7 +5,7 @@ use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::cas::{latest_file_object_key, CasStore};
 use crate::control::resource_model;
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, ProtoKeyValueStoreExt};
+use crate::control::{keys, ListOptions, ProtoKeyValueStoreExt};
 use crate::gateway::auth::Claims;
 use crate::require_auth;
 use anyhow::{anyhow, Context, Result};
@@ -914,7 +914,14 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
             let entries = self
                 .gateway
                 .kv
-                .list_entries_page(&list, before_name.as_deref(), FILE_LIST_SCAN_PAGE_SIZE)
+                .list_entries(
+                    &list,
+                    Some(
+                        ListOptions::desc()
+                            .before_name(before_name.as_deref())
+                            .limit(FILE_LIST_SCAN_PAGE_SIZE),
+                    ),
+                )
                 .await
                 .map_err(to_status)?;
             if entries.is_empty() {
@@ -1139,7 +1146,14 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
             let entries = self
                 .gateway
                 .kv
-                .list_entries_page(&list, before_name.as_deref(), FILE_LIST_SCAN_PAGE_SIZE)
+                .list_entries(
+                    &list,
+                    Some(
+                        ListOptions::desc()
+                            .before_name(before_name.as_deref())
+                            .limit(FILE_LIST_SCAN_PAGE_SIZE),
+                    ),
+                )
                 .await
                 .map_err(to_status)?;
             if entries.is_empty() {

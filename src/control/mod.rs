@@ -88,12 +88,6 @@ impl<'a> ListOptions<'a> {
     }
 }
 
-impl From<Order> for ListOptions<'static> {
-    fn from(order: Order) -> Self {
-        Self::ordered(order)
-    }
-}
-
 pub fn apply_list_options_to_keys(
     mut keys: Vec<ResourceKey>,
     options: ListOptions<'_>,
@@ -148,36 +142,6 @@ pub fn apply_list_options_to_entries(
     entries
 }
 
-pub fn page_keys_desc(
-    mut keys: Vec<ResourceKey>,
-    before_name: Option<&str>,
-    limit: usize,
-) -> Vec<ResourceKey> {
-    if limit == 0 {
-        return Vec::new();
-    }
-
-    keys.retain(|key| before_name.map_or(true, |cursor| key.name.as_str() < cursor));
-    keys.sort_by(|left, right| right.name.cmp(&left.name));
-    keys.truncate(limit);
-    keys
-}
-
-pub fn page_entries_desc(
-    mut entries: Vec<(ResourceKey, Vec<u8>)>,
-    before_name: Option<&str>,
-    limit: usize,
-) -> Vec<(ResourceKey, Vec<u8>)> {
-    if limit == 0 {
-        return Vec::new();
-    }
-
-    entries.retain(|(key, _)| before_name.map_or(true, |cursor| key.name.as_str() < cursor));
-    entries.sort_by(|left, right| right.0.name.cmp(&left.0.name));
-    entries.truncate(limit);
-    entries
-}
-
 #[async_trait::async_trait]
 pub trait KeyValueStore: Send + Sync {
     /// Retrieve a raw byte sequence from the store
@@ -203,40 +167,6 @@ pub trait KeyValueStore: Send + Sync {
         list: &ResourceList,
         options: Option<ListOptions<'_>>,
     ) -> anyhow::Result<Vec<ResourceKey>>;
-
-    /// List direct children, ordered by resource name descending.
-    ///
-    /// `before_name` is an exclusive resource-name cursor. Production backends
-    /// should override this with a storage-level page read.
-    async fn list_keys_page(
-        &self,
-        list: &ResourceList,
-        before_name: Option<&str>,
-        limit: usize,
-    ) -> anyhow::Result<Vec<ResourceKey>> {
-        self.list_keys(
-            list,
-            Some(ListOptions::desc().before_name(before_name).limit(limit)),
-        )
-        .await
-    }
-
-    /// List direct child key/value pairs, ordered by resource name descending.
-    ///
-    /// `before_name` is an exclusive resource-name cursor. Production backends
-    /// should override this with a storage-level page read.
-    async fn list_entries_page(
-        &self,
-        list: &ResourceList,
-        before_name: Option<&str>,
-        limit: usize,
-    ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
-        self.list_entries(
-            list,
-            Some(ListOptions::desc().before_name(before_name).limit(limit)),
-        )
-        .await
-    }
 
     /// List all matching direct child key/value pairs.
     async fn list_entries(
@@ -422,24 +352,6 @@ impl KeyValueStore for NoopKeyValueStore {
         _list: &ResourceList,
         _options: Option<ListOptions<'_>>,
     ) -> anyhow::Result<Vec<ResourceKey>> {
-        Ok(Vec::new())
-    }
-
-    async fn list_keys_page(
-        &self,
-        _list: &ResourceList,
-        _before_name: Option<&str>,
-        _limit: usize,
-    ) -> anyhow::Result<Vec<ResourceKey>> {
-        Ok(Vec::new())
-    }
-
-    async fn list_entries_page(
-        &self,
-        _list: &ResourceList,
-        _before_name: Option<&str>,
-        _limit: usize,
-    ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
         Ok(Vec::new())
     }
 }

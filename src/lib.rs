@@ -199,32 +199,6 @@ pub mod test_support {
                 options.unwrap_or_default(),
             ))
         }
-
-        async fn list_keys_page(
-            &self,
-            list: &ResourceList,
-            before_name: Option<&str>,
-            limit: usize,
-        ) -> anyhow::Result<Vec<ResourceKey>> {
-            self.list_keys(
-                list,
-                Some(ListOptions::desc().before_name(before_name).limit(limit)),
-            )
-            .await
-        }
-
-        async fn list_entries_page(
-            &self,
-            list: &ResourceList,
-            before_name: Option<&str>,
-            limit: usize,
-        ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
-            self.list_entries(
-                list,
-                Some(ListOptions::desc().before_name(before_name).limit(limit)),
-            )
-            .await
-        }
     }
 
     #[derive(Default)]

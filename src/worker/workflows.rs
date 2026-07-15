@@ -11,7 +11,8 @@ use std::sync::Arc;
 
 use crate::control::resource_model::TypedResource;
 use crate::control::{
-    events, keys, topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+    events, keys, topics, ControlPlane, KeyValueStore, ListOptions, MessagePublisher,
+    ProtoKeyValueStoreExt,
 };
 use crate::gateway::rpc::{data_proto, resources_proto};
 use crate::harness::knowledge::KvKnowledgeBook;
@@ -2178,7 +2179,14 @@ async fn latest_assistant_text(
     let mut before_name = None;
     loop {
         let entries = kv
-            .list_entries_page(&prefix, before_name.as_deref(), 64)
+            .list_entries(
+                &prefix,
+                Some(
+                    ListOptions::desc()
+                        .before_name(before_name.as_deref())
+                        .limit(64),
+                ),
+            )
             .await?;
         if entries.is_empty() {
             return Ok(String::new());
