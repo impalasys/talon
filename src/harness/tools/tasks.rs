@@ -24,19 +24,44 @@ fn task_namespace<'a>(args: &'a Value, current_namespace: &'a str) -> Result<&'a
     Ok(namespace)
 }
 
+fn split_task_id(value: &str) -> Option<(&str, &str)> {
+    let (namespace, name) = value.split_once('/')?;
+    let namespace = namespace.trim();
+    let name = name.trim();
+    if namespace.is_empty() || name.is_empty() || name.contains('/') {
+        return None;
+    }
+    Some((namespace, name))
+}
+
 async fn authorized_update_task_namespace(
     cp: &ControlPlane,
     args: &Value,
     current_namespace: &str,
     current_agent: &str,
     current_session: &str,
-) -> Result<String> {
-    let namespace = super::opt_str(args, "namespace").unwrap_or(current_namespace);
+) -> Result<(String, String)> {
+    let raw_name = super::req_str(args, "name")?;
+    let explicit_namespace = super::opt_str(args, "namespace");
+    let (namespace, name) = if let Some((id_namespace, id_name)) = split_task_id(raw_name) {
+        if let Some(namespace) = explicit_namespace {
+            if namespace != id_namespace {
+                return Err(anyhow!(
+                    "task namespace '{}' does not match Task ID namespace '{}'",
+                    namespace,
+                    id_namespace
+                ));
+            }
+        }
+        (id_namespace, id_name)
+    } else {
+        (explicit_namespace.unwrap_or(current_namespace), raw_name)
+    };
+
     if namespace == current_namespace {
-        return Ok(namespace.to_string());
+        return Ok((namespace.to_string(), name.to_string()));
     }
 
-    let name = super::req_str(args, "name")?;
     let session = cp
         .kv
         .get_msg::<data_proto::Session>(&keys::session(
@@ -67,7 +92,7 @@ async fn authorized_update_task_namespace(
         .get(crate::control::delegation::LABEL_TASK_NAME)
         .map(String::as_str);
     if is_delegate && assigned_namespace == Some(namespace) && assigned_name == Some(name) {
-        return Ok(namespace.to_string());
+        return Ok((namespace.to_string(), name.to_string()));
     }
 
     Err(anyhow!(
@@ -264,7 +289,7 @@ pub(super) async fn execute(
         }
         super::UPDATE_TASK_TOOL => {
             super::require_capability(spec, "tasks", "update")?;
-            let namespace = authorized_update_task_namespace(
+            let (namespace, name) = authorized_update_task_namespace(
                 cp,
                 args,
                 current_namespace,
@@ -272,7 +297,6 @@ pub(super) async fn execute(
                 current_session,
             )
             .await?;
-            let name = super::req_str(args, "name")?;
             let output_artifact_uris = super::task_output_artifact_uris_from_args(
                 cp,
                 current_agent,
@@ -282,7 +306,7 @@ pub(super) async fn execute(
             .await?;
             let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
             let resource = store
-                .patch_status_with(&namespace, "Task", name, None, |_, status| {
+                .patch_status_with(&namespace, "Task", &name, None, |_, status| {
                     let mut task_status = match status.kind.take() {
                         Some(resources_proto::resource_status::Kind::Task(status)) => status,
                         _ => resources_proto::TaskStatus::default(),

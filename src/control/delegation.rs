@@ -506,8 +506,9 @@ fn set_condition(
 
 fn delegated_task_message(req: &TaskDelegationRequest) -> String {
     format!(
-        "You have been assigned a Talon Task.\n\nTask: {}\nTask ID: {}/{}\nOwner: {}/{}\n\nInstructions:\n{}",
+        "You have been assigned a Talon Task.\n\nTask: {}\nTask name: {}\nTask ID: {}/{}\nOwner: {}/{}\n\nWhen the work is ready for owner review, attach any output artifact URI with update_task.output_artifact_uri and set phase to NEEDS_REVIEW. Use the Task name above for update_task.name; the full Task ID is only for display.\n\nInstructions:\n{}",
         req.title,
+        req.name,
         req.namespace,
         req.name,
         req.owner_namespace,

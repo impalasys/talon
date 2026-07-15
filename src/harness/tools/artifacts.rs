@@ -16,12 +16,16 @@ pub(super) fn register(registry: &mut ToolRegistry) {
             "properties": {
                 "title": { "type": "string", "description": "Human-readable artifact title." },
                 "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
-                "content": { "type": "string", "description": "Text content to store." },
+                "content": { "type": "string", "description": "Full text content to store. Required unless content_base64 is provided." },
                 "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." },
                 "labels": { "type": "object", "additionalProperties": { "type": "string" } },
                 "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
             },
-            "required": ["title"]
+            "required": ["title"],
+            "anyOf": [
+                { "required": ["content"] },
+                { "required": ["content_base64"] }
+            ]
         }),
     );
     registry.register_builtin(
@@ -43,10 +47,14 @@ pub(super) fn register(registry: &mut ToolRegistry) {
             "properties": {
                 "artifact_uri": { "type": "string" },
                 "media_type": { "type": "string", "description": "Media type. Defaults to the artifact's current media type." },
-                "content": { "type": "string", "description": "Text content to store." },
+                "content": { "type": "string", "description": "Full text content to store. Required unless content_base64 is provided." },
                 "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." }
             },
-            "required": ["artifact_uri"]
+            "required": ["artifact_uri"],
+            "anyOf": [
+                { "required": ["content"] },
+                { "required": ["content_base64"] }
+            ]
         }),
     );
     registry.register_builtin(
