@@ -1186,6 +1186,13 @@ async fn create_artifact(
     }
     let title = req_str(args, "title")?;
     let media_type = opt_str(args, "media_type").unwrap_or("text/markdown");
+    if args.get("content").and_then(Value::as_str).is_none()
+        && opt_str(args, "content_base64").is_none()
+    {
+        return Err(anyhow!(
+            "create_artifact requires content or content_base64"
+        ));
+    }
     let content = artifact_content_bytes(args)?;
     let labels = string_map(args.get("labels"));
     let metadata = string_map(args.get("metadata"));
@@ -3351,6 +3358,23 @@ mod tests {
         assert_eq!(parsed_uri.session_id, "session-1");
         assert_eq!(parsed_uri.artifact_id, artifact_id);
 
+        let empty_create = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "Missing content",
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(empty_create
+            .to_string()
+            .contains("requires content or content_base64"));
+
         let read_output = execute_tool_for_session(
             &cp,
             "Tenant:acme:Workspace:main",
@@ -4724,6 +4748,29 @@ mod tests {
         .unwrap();
         let updated: Value = serde_json::from_str(&updated).unwrap();
         assert_eq!(updated["task"]["outputArtifactUris"][0], artifact_uri);
+
+        let updated_with_task_id = execute_tool_for_session(
+            &cp,
+            delegate_namespace,
+            "copywriter",
+            delegate_session_id,
+            &task_spec(&["update"]),
+            UPDATE_TASK_TOOL,
+            &json!({
+                "name": format!("{owner_namespace}/{task_name}"),
+                "phase": "NEEDS_REVIEW",
+                "progress_summary": "Draft announcement is still ready.",
+                "output_artifact_uri": artifact_uri
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let updated_with_task_id: Value = serde_json::from_str(&updated_with_task_id).unwrap();
+        assert_eq!(
+            updated_with_task_id["task"]["outputArtifactUris"][0],
+            artifact_uri
+        );
 
         let rejected = execute_tool_for_session(
             &cp,
