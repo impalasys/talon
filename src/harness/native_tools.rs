@@ -45,6 +45,7 @@ pub const CHANNEL_PUBLISH_TOOL: &str = "channel_publish";
 pub const CHANNEL_SKIP_REPLY_TOOL: &str = "channel_skip_reply";
 pub const ACTIVATE_SKILL_TOOL: &str = "activate_skill";
 pub const CREATE_ARTIFACT_TOOL: &str = "create_artifact";
+pub const UPDATE_ARTIFACT_TOOL: &str = "update_artifact";
 pub const READ_ARTIFACT_TOOL: &str = "read_artifact";
 pub const GET_ARTIFACT_METADATA_TOOL: &str = "get_artifact_metadata";
 pub const GRANT_ARTIFACT_TOOL: &str = "grant_artifact";
@@ -1267,6 +1268,103 @@ async fn read_artifact(
     }))?)
 }
 
+async fn update_artifact(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<String> {
+    let artifact_uri = req_str(args, "artifact_uri")?;
+    let uri = parse_artifact_uri(artifact_uri)?;
+    if current_namespace != uri.namespace
+        || current_agent != uri.agent
+        || current_session != uri.session_id
+    {
+        return Err(anyhow!(
+            "only the owning artifact namespace/agent/session may update '{artifact_uri}'"
+        ));
+    }
+    let mut artifact = cp
+        .kv
+        .get_msg::<crate::gateway::rpc::data_proto::Artifact>(&keys::artifact(
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
+        ))
+        .await?
+        .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
+    let previous_object_key = artifact
+        .object_ref
+        .as_ref()
+        .map(|object_ref| object_ref.key.clone());
+    let media_type = opt_str(args, "media_type").unwrap_or(&artifact.media_type);
+    if args.get("content").and_then(Value::as_str).is_none()
+        && opt_str(args, "content_base64").is_none()
+    {
+        return Err(anyhow!(
+            "update_artifact requires content or content_base64"
+        ));
+    }
+    let content = artifact_content_bytes(args)?;
+    let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+    let object_ref = cas
+        .put_artifact(
+            &uri.namespace,
+            &uri.agent,
+            &uri.session_id,
+            &uri.artifact_id,
+            &content,
+            media_type,
+            artifact.metadata.clone(),
+        )
+        .await?;
+    artifact.media_type = media_type.to_string();
+    artifact.object_ref = Some(object_ref);
+    let artifact_key = keys::artifact(
+        &uri.namespace,
+        &uri.agent,
+        &uri.session_id,
+        &uri.artifact_id,
+    );
+    if let Err(error) = cp.kv.set_msg(&artifact_key, &artifact).await {
+        if let Some(new_object_key) = artifact
+            .object_ref
+            .as_ref()
+            .map(|object_ref| &object_ref.key)
+        {
+            if let Err(cleanup_error) = cas.delete_object(new_object_key).await {
+                tracing::warn!(
+                    error = %cleanup_error,
+                    object_key = %new_object_key,
+                    "failed to delete uncommitted artifact CAS object after update failure"
+                );
+            }
+        }
+        return Err(error);
+    }
+    if let Some(previous_object_key) = previous_object_key {
+        if artifact
+            .object_ref
+            .as_ref()
+            .is_none_or(|object_ref| object_ref.key != previous_object_key)
+        {
+            if let Err(error) = cas.delete_object(&previous_object_key).await {
+                tracing::warn!(
+                    error = %error,
+                    object_key = %previous_object_key,
+                    "failed to delete superseded artifact CAS object"
+                );
+            }
+        }
+    }
+    Ok(serde_json::to_string_pretty(&json!({
+        "artifact": artifact_json(&artifact),
+        "artifactUri": uri.encode()
+    }))?)
+}
+
 async fn get_artifact_metadata(
     cp: &ControlPlane,
     _current_namespace: &str,
@@ -2273,7 +2371,12 @@ fn artifact_content_bytes(args: &Value) -> Result<Vec<u8>> {
             .decode(encoded)
             .map_err(|err| anyhow!("content_base64 is invalid: {err}"));
     }
-    Ok(opt_str(args, "content").unwrap_or("").as_bytes().to_vec())
+    Ok(args
+        .get("content")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .as_bytes()
+        .to_vec())
 }
 
 #[derive(Debug, Clone)]
@@ -3227,6 +3330,67 @@ mod tests {
         let read_value: Value = serde_json::from_str(&read_output).unwrap();
         assert_eq!(read_value["content"], "draft body");
 
+        let update_output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "content": "revised body",
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let update_value: Value = serde_json::from_str(&update_output).unwrap();
+        assert_eq!(update_value["artifactUri"], artifact_uri);
+        let updated_object_key = update_value["artifact"]["objectRef"]["key"]
+            .as_str()
+            .unwrap();
+        assert_ne!(updated_object_key, object_key);
+        assert!(crate::control::cas::CasStore::new(cp.objects.clone())
+            .get_object_decoded(object_key)
+            .await
+            .unwrap()
+            .is_none());
+
+        let read_updated_output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let read_updated_value: Value = serde_json::from_str(&read_updated_output).unwrap();
+        assert_eq!(read_updated_value["content"], "revised body");
+
+        let empty_update = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(empty_update
+            .to_string()
+            .contains("requires content or content_base64"));
+
         execute_tool_for_session(
             &cp,
             "Tenant:acme:Workspace:main",
@@ -3259,6 +3423,149 @@ mod tests {
         assert_eq!(stored_access.target_agent, "critic");
         assert_eq!(stored_access.target_session_id, "session-2");
         assert_eq!(stored_access.operations, vec!["read", "metadata"]);
+
+        let update_denied = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "critic",
+            "session-2",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "content": "critic overwrite",
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(update_denied.to_string().contains("only the owning"));
+
+        let cross_namespace_update_denied = execute_tool_for_session(
+            &cp,
+            "Tenant:other:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "content": "cross-tenant overwrite",
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(cross_namespace_update_denied
+            .to_string()
+            .contains("only the owning artifact namespace/agent/session"));
+    }
+
+    #[tokio::test]
+    async fn artifact_tools_accept_large_string_content_arguments() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let large_content = format!("# Large Artifact\n\n{}", "0123456789abcdef ".repeat(700));
+        assert!(
+            large_content.len() > 10_000,
+            "test must exercise a 10k+ string argument"
+        );
+
+        let output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "Large draft",
+                "content": large_content,
+                "media_type": "text/markdown"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let value: Value = serde_json::from_str(&output).unwrap();
+        let artifact_uri = value["artifactUri"].as_str().unwrap();
+
+        let read_output = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let read_value: Value = serde_json::from_str(&read_output).unwrap();
+        let actual_content = read_value["content"].as_str().unwrap();
+        assert_eq!(
+            actual_content.len(),
+            large_content.len(),
+            "large create content length mismatch; actual_suffix={:?} expected_suffix={:?}",
+            &actual_content[actual_content.len().saturating_sub(64)..],
+            &large_content[large_content.len().saturating_sub(64)..]
+        );
+        assert!(
+            actual_content == large_content,
+            "large create content mismatch; actual_suffix={:?} expected_suffix={:?}",
+            &actual_content[actual_content.len().saturating_sub(64)..],
+            &large_content[large_content.len().saturating_sub(64)..]
+        );
+
+        let large_revision = format!("# Large Revision\n\n{}", "fedcba9876543210 ".repeat(700));
+        assert!(large_revision.len() > 10_000);
+        execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "content": large_revision,
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        let read_revision = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let read_revision: Value = serde_json::from_str(&read_revision).unwrap();
+        let actual_revision = read_revision["content"].as_str().unwrap();
+        assert_eq!(
+            actual_revision.len(),
+            large_revision.len(),
+            "large update content length mismatch; actual_suffix={:?} expected_suffix={:?}",
+            &actual_revision[actual_revision.len().saturating_sub(64)..],
+            &large_revision[large_revision.len().saturating_sub(64)..]
+        );
+        assert!(
+            actual_revision == large_revision,
+            "large update content mismatch; actual_suffix={:?} expected_suffix={:?}",
+            &actual_revision[actual_revision.len().saturating_sub(64)..],
+            &large_revision[large_revision.len().saturating_sub(64)..]
+        );
     }
 
     #[tokio::test]
