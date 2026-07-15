@@ -24,7 +24,7 @@ fn task_namespace<'a>(args: &'a Value, current_namespace: &'a str) -> Result<&'a
     Ok(namespace)
 }
 
-async fn update_task_namespace(
+async fn authorized_update_task_namespace(
     cp: &ControlPlane,
     args: &Value,
     current_namespace: &str,
@@ -264,9 +264,14 @@ pub(super) async fn execute(
         }
         super::UPDATE_TASK_TOOL => {
             super::require_capability(spec, "tasks", "update")?;
-            let namespace =
-                update_task_namespace(cp, args, current_namespace, current_agent, current_session)
-                    .await?;
+            let namespace = authorized_update_task_namespace(
+                cp,
+                args,
+                current_namespace,
+                current_agent,
+                current_session,
+            )
+            .await?;
             let name = super::req_str(args, "name")?;
             let output_artifact_uris = super::task_output_artifact_uris_from_args(
                 cp,
