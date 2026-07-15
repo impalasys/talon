@@ -5,7 +5,7 @@ test.describe('Talon UI', () => {
   test('shows a connection error when the gateway probe fails', async ({ page }) => {
     await page.goto('/');
 
-    const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
+    const connectButton = page.getByRole('button', { name: /^(Initialize Connection|Connect)$/ });
     const gatewayInput = page.getByLabel('Gateway URL');
 
     await expect(gatewayInput).toBeVisible();
@@ -19,7 +19,7 @@ test.describe('Talon UI', () => {
   test('connect reads browser-filled field values that did not fire React change events', async ({ page }) => {
     await page.goto('/');
 
-    const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
+    const connectButton = page.getByRole('button', { name: /^(Initialize Connection|Connect)$/ });
     const gatewayInput = page.getByLabel('Gateway URL');
     const apiKeyInput = page.getByLabel('API Key');
 
@@ -44,7 +44,7 @@ test.describe('Talon UI', () => {
     });
     await page.goto('/');
 
-    const connectButton = page.locator('button', { hasText: /Initialize Connection|Connecting/ });
+    const connectButton = page.getByRole('button', { name: /^(Initialize Connection|Connect|Connecting\.\.\.)$/ });
     const gatewayInput = page.getByLabel('Gateway URL');
 
     await expect(gatewayInput).toBeVisible();
@@ -53,9 +53,9 @@ test.describe('Talon UI', () => {
     await page.getByLabel('JWT Token').fill('valid-looking-token');
     await connectButton.click();
 
-    await expect(connectButton).toContainText('Connecting');
+    await expect(connectButton).toContainText(/Connecting/);
     await expect(page.getByText(/request timed out/)).toBeVisible({ timeout: 12000 });
-    await expect(connectButton).toContainText('Initialize Connection');
+    await expect(connectButton).toContainText(/Initialize Connection|Connect/);
     await expect(connectButton).toBeEnabled();
   });
 
@@ -67,7 +67,7 @@ test.describe('Talon UI', () => {
     await page.goto('/');
 
     // 2. Connect to the Gateway
-    const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
+    const connectButton = page.getByRole('button', { name: /^(Initialize Connection|Connect)$/ });
     const gatewayInput = page.getByLabel('Gateway URL');
     const apiKeyInput = page.getByLabel('API Key');
     

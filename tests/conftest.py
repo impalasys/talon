@@ -31,6 +31,7 @@ from e2e.stack import (  # noqa: E402
     load_repo_dotenv_values,
     start_aws_local_stack,
     start_postgres_pubsub_stack,
+    start_rocksdb_local_stack,
     start_sqlite_local_stack,
 )
 
@@ -123,6 +124,19 @@ def sqlite_local_stack(llm_server: LlmServer) -> Iterator[E2EStack]:
 
 
 @pytest.fixture(scope="session")
+def rocksdb_local_stack(llm_server: LlmServer) -> Iterator[E2EStack]:
+    stack = start_rocksdb_local_stack(grpc_port=50055)
+    os.environ[api_key_env_name(stack.grpc_port)] = stack.api_key
+    os.environ[api_key_auth_file_env_name(stack.grpc_port)] = stack.auth_file
+    try:
+        yield stack
+    finally:
+        os.environ.pop(api_key_env_name(stack.grpc_port), None)
+        os.environ.pop(api_key_auth_file_env_name(stack.grpc_port), None)
+        stack.stop()
+
+
+@pytest.fixture(scope="session")
 def aws_local_stack(llm_server: LlmServer) -> Iterator[E2EStack]:
     stack = start_aws_local_stack()
     os.environ[api_key_env_name(stack.grpc_port)] = stack.api_key
@@ -197,8 +211,14 @@ def gateway_channel_sqlite(talon_infrastructure_sqlite, sqlite_test_grpc_port):
 
 
 def configured_stack_fixture_names() -> list[str]:
-    configured = os.environ.get("TALON_E2E_STACKS", "postgres_pubsub,sqlite_local,aws_local")
+    configured = os.environ.get(
+        "TALON_E2E_STACKS",
+        "rocksdb_local,postgres_pubsub,sqlite_local,aws_local",
+    )
     aliases = {
+        "rocksdb": "rocksdb_local_stack",
+        "rocksdb_local": "rocksdb_local_stack",
+        "rocksdb-local": "rocksdb_local_stack",
         "postgres": "postgres_pubsub_stack",
         "postgres_pubsub": "postgres_pubsub_stack",
         "postgres-pubsub": "postgres_pubsub_stack",

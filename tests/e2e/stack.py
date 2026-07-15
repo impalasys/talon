@@ -447,7 +447,7 @@ class E2EStack:
     api_key: str
     auth_file: str
     server_proc: subprocess.Popen[Any]
-    worker_proc: subprocess.Popen[Any]
+    worker_proc: subprocess.Popen[Any] | None
     metadata: dict[str, Any] = field(default_factory=dict)
     _resources: list[Any] = field(default_factory=list)
 
@@ -744,6 +744,112 @@ def _wait_for_socket(path: Path) -> None:
             return
         time.sleep(0.25)
     raise RuntimeError(f"Timed out waiting for worker Unix socket {path}")
+
+
+def start_rocksdb_local_stack(
+    *,
+    grpc_port: int | None = None,
+    api_key_name: str = "pytest-rocksdb-root",
+) -> E2EStack:
+    grpc_port = grpc_port or unused_tcp_port()
+    temp_dir = Path(tempfile.mkdtemp(prefix="talon-rocksdb-e2e-"))
+    data_dir = temp_dir / "data"
+    documents_dir = temp_dir / "documents"
+    objects_dir = temp_dir / "objects"
+    workspace_dir = temp_dir / "workspace"
+    broker_socket_path = temp_dir / "talon-broker.sock"
+    worker_socket_path = temp_dir / "talon-worker.sock"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    documents_dir.mkdir(parents=True, exist_ok=True)
+    objects_dir.mkdir(parents=True, exist_ok=True)
+    workspace_dir.mkdir(parents=True, exist_ok=True)
+    env = _base_env(grpc_port)
+    env.update(
+        {
+            "TALON_LOCAL_SOCKET_PATH": str(broker_socket_path),
+            "TALON_WORKER_UNIX_SOCKET_PATH": str(worker_socket_path),
+            "TALON_ROCKSDB_DISABLE_WAL": "true",
+            "TALON_ROCKSDB_WRITE_BUFFER_SIZE_MB": "16",
+            "TALON_ROCKSDB_MAX_WRITE_BUFFER_NUMBER": "2",
+            "TALON_ROCKSDB_BLOCK_CACHE_SIZE_MB": "16",
+            "TALON_ROCKSDB_MAX_BACKGROUND_JOBS": "2",
+        }
+    )
+
+    node_proc: subprocess.Popen[Any] | None = None
+    try:
+        config_path = temp_dir / "talon.e2e.rocksdb.yaml"
+        config_path.write_text(
+            f"""
+providers:
+  mock:
+    type: openai_compatible
+    name: mock
+    base_url: "http://127.0.0.1:{MOCK_LLM_PORT}"
+    model: minimax/minimax-m2.7
+    api_key:
+      source: env
+      key: NOVITA_API_KEY
+default_provider: mock
+workspace_dir: ./workspace
+server:
+  host: "127.0.0.1"
+  port: {grpc_port}
+control_plane:
+  database:
+    driver: rocksdb
+    data_dir: ./data
+  message_broker:
+    driver: local_socket
+  documents:
+    driver: sqlite
+    data_dir: ./documents
+  object_store:
+    driver: local
+    path: ./objects
+""".strip()
+            + "\n"
+        )
+        env["TALON_CONFIG_PATH"] = str(config_path)
+
+        node_proc = subprocess.Popen(
+            [get_binary_path("talon_node")],
+            env=env,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        )
+        wait_for_gateway("127.0.0.1", grpc_port, attempts=40)
+        _wait_for_socket(worker_socket_path)
+        time.sleep(1)
+
+        api_key = create_e2e_api_key(grpc_port, api_key_name)
+        auth_file = temp_dir / "talon-auth.json"
+        return E2EStack(
+            name="rocksdb_local",
+            grpc_port=grpc_port,
+            worker_port=None,
+            temp_dir=temp_dir,
+            env=env,
+            api_key=api_key,
+            auth_file=str(auth_file),
+            server_proc=node_proc,
+            worker_proc=None,
+            metadata={
+                "config_path": str(config_path),
+                "data_dir": str(data_dir),
+                "documents_dir": str(documents_dir),
+                "objects_dir": str(objects_dir),
+                "workspace_dir": str(workspace_dir),
+                "broker_socket_path": str(broker_socket_path),
+                "socket_path": str(worker_socket_path),
+                "worker_endpoint_url": f"unix://{worker_socket_path}",
+                "rocksdb_disable_wal": True,
+            },
+        )
+    except Exception:
+        _stop_process(node_proc)
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise
 
 
 def start_aws_local_stack(

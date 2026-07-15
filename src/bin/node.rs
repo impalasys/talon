@@ -272,6 +272,15 @@ async fn run() -> Result<()> {
         spawn_subscription(
             Arc::clone(&cp.pubsub),
             handler.clone(),
+            topics::WORKFLOW_DISPATCH_TOPIC,
+            "workflow_dispatch",
+            session_concurrency,
+            shutdown.child_token(),
+        )
+        .await?,
+        spawn_subscription(
+            Arc::clone(&cp.pubsub),
+            handler.clone(),
             topics::RESOURCE_LIFECYCLE_TOPIC,
             "resource_lifecycle",
             1,

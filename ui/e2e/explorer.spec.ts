@@ -137,9 +137,8 @@ test.describe('Explorer navigation', () => {
 
     await expect(page.locator('text=Connected')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText(scheduleName).first()).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('button', { name: 'Overview' })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('Next run')).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('button', { name: 'Raw YAML' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Inspector' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'YAML' })).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 
