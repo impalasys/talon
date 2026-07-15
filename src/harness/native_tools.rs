@@ -19,6 +19,8 @@ use crate::gateway::rpc::{
 use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
 
+#[path = "tools/a2a.rs"]
+mod a2a_tools;
 #[path = "tools/artifacts.rs"]
 mod artifact_tools;
 #[path = "tools/tasks.rs"]
@@ -31,6 +33,7 @@ pub const UPDATE_SCHEDULE_TOOL: &str = "update_schedule";
 pub const DELETE_SCHEDULE_TOOL: &str = "delete_schedule";
 pub const CREATE_TASK_TOOL: &str = "create_task";
 pub const DELEGATE_TASK_TOOL: &str = "delegate_task";
+pub const ASK_AGENT_TOOL: &str = "ask_agent";
 pub const GET_TASK_TOOL: &str = "get_task";
 pub const LIST_TASKS_TOOL: &str = "list_tasks";
 pub const UPDATE_TASK_TOOL: &str = "update_task";
@@ -111,6 +114,7 @@ pub fn register_channel_tools(registry: &mut ToolRegistry) {
 
 pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
     artifact_tools::register(registry);
+    a2a_tools::register(registry, spec);
     register_research_tools(registry, spec);
 
     if !has_capability_action(spec, "schedules", "inspect")
@@ -472,6 +476,19 @@ pub async fn execute_tool_for_session(
         current_namespace,
         current_agent,
         current_session,
+        name,
+        args,
+    )
+    .await?
+    {
+        return Ok(Some(result));
+    }
+    if let Some(result) = a2a_tools::execute(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
         name,
         args,
     )
@@ -3173,6 +3190,54 @@ mod tests {
             &task_spec_with_external_connection(&["create"], "remote"),
         );
         assert!(external_registry.get_tool(DELEGATE_TASK_TOOL).is_none());
+    }
+
+    #[test]
+    fn ask_agent_schema_uses_internal_a2a_connection_enum_without_task_capability() {
+        let mut registry = ToolRegistry::new();
+        let mut spec = manifests::AgentSpec::default();
+        spec.a2a = Some(manifests::A2a {
+            connections: vec![manifests::Connection {
+                name: "critic".to_string(),
+                target: Some(manifests::ConnectionRef {
+                    internal: Some(manifests::InternalConnectionRef {
+                        namespace: "Tenant:acme:Copywriter".to_string(),
+                        agent: "critic-agent".to_string(),
+                    }),
+                    external: None,
+                }),
+                ..Default::default()
+            }],
+            agent_card: None,
+        });
+
+        register_tools(&mut registry, &spec);
+
+        let tool = registry
+            .get_tool(ASK_AGENT_TOOL)
+            .expect("ask_agent should be registered");
+        assert_eq!(
+            tool.input_schema["properties"]["connection"]["enum"],
+            json!(["critic"])
+        );
+        assert!(registry.get_tool(DELEGATE_TASK_TOOL).is_none());
+    }
+
+    #[test]
+    fn ask_agent_not_registered_without_internal_a2a_connection() {
+        let mut no_connection_registry = ToolRegistry::new();
+        register_tools(
+            &mut no_connection_registry,
+            &manifests::AgentSpec::default(),
+        );
+        assert!(no_connection_registry.get_tool(ASK_AGENT_TOOL).is_none());
+
+        let mut external_registry = ToolRegistry::new();
+        register_tools(
+            &mut external_registry,
+            &task_spec_with_external_connection(&["create"], "remote"),
+        );
+        assert!(external_registry.get_tool(ASK_AGENT_TOOL).is_none());
     }
 
     #[test]

@@ -346,6 +346,7 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::DELETE_SCHEDULE_TOOL,
         crate::harness::native_tools::CREATE_GOAL_TOOL,
         crate::harness::native_tools::DELEGATE_TASK_TOOL,
+        crate::harness::native_tools::ASK_AGENT_TOOL,
         crate::harness::native_tools::UPDATE_TASK_TOOL,
         crate::harness::native_tools::GET_GOAL_TOOL,
         crate::harness::native_tools::LIST_GOALS_TOOL,

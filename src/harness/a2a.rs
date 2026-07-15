@@ -5,6 +5,12 @@ use anyhow::{anyhow, Result};
 
 use crate::gateway::rpc::manifests;
 
+pub const LABEL_A2A_CALL: &str = "talon.impalasys.com/a2a-call";
+pub const LABEL_CALLER_NAMESPACE: &str = "talon.impalasys.com/caller-namespace";
+pub const LABEL_CALLER_NAME: &str = "talon.impalasys.com/caller-name";
+pub const LABEL_CALLER_SESSION_ID: &str = "talon.impalasys.com/caller-session-id";
+pub const LABEL_A2A_CONNECTION: &str = "talon.impalasys.com/a2a-connection";
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ResolvedInternalConnection {
     pub connection_name: String,
