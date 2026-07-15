@@ -1,5 +1,6 @@
 [workspace]
 members = [".", "tools/install-hooks"]
+exclude = ["sdk/examples/rust"]
 resolver = "2"
 
 [package]
