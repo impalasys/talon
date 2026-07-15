@@ -47,13 +47,13 @@ fn reverse_seek_bytes(prefix: &[u8]) -> Vec<u8> {
     seek
 }
 
-fn key_matches_options(key: &ResourceKey, options: ListOptions<'_>) -> bool {
-    options
-        .before_name
-        .map_or(true, |cursor| key.name.as_str() < cursor)
-        && options
-            .after_name
-            .map_or(true, |cursor| key.name.as_str() > cursor)
+fn key_matches_options(
+    key: &ResourceKey,
+    before_name: Option<&str>,
+    after_name: Option<&str>,
+) -> bool {
+    before_name.map_or(true, |cursor| key.name.as_str() < cursor)
+        && after_name.map_or(true, |cursor| key.name.as_str() > cursor)
 }
 
 fn parse_key(bytes: &[u8]) -> Result<ResourceKey> {
@@ -338,6 +338,9 @@ impl KeyValueStore for RocksDbKvStore {
         }
         let prefix = prefix_bytes(list);
         let seek_key = (options.order == Order::Desc).then(|| reverse_seek_bytes(&prefix));
+        let limit = options.limit;
+        let before_name = options.before_name.map(str::to_owned);
+        let after_name = options.after_name.map(str::to_owned);
         let span = tracing::debug_span!(
             "RocksDbKvStore.list_keys",
             "db.system" = "rocksdb",
@@ -362,11 +365,15 @@ impl KeyValueStore for RocksDbKvStore {
                                 break;
                             }
                             let key = parse_key(&raw_key)?;
-                            if !key_matches_options(&key, options) {
+                            if !key_matches_options(
+                                &key,
+                                before_name.as_deref(),
+                                after_name.as_deref(),
+                            ) {
                                 continue;
                             }
                             keys.push(key);
-                            if options.limit.is_some_and(|limit| keys.len() >= limit) {
+                            if limit.is_some_and(|limit| keys.len() >= limit) {
                                 break;
                             }
                         }
@@ -379,11 +386,15 @@ impl KeyValueStore for RocksDbKvStore {
                                 break;
                             }
                             let key = parse_key(&raw_key)?;
-                            if !key_matches_options(&key, options) {
+                            if !key_matches_options(
+                                &key,
+                                before_name.as_deref(),
+                                after_name.as_deref(),
+                            ) {
                                 continue;
                             }
                             keys.push(key);
-                            if options.limit.is_some_and(|limit| keys.len() >= limit) {
+                            if limit.is_some_and(|limit| keys.len() >= limit) {
                                 break;
                             }
                         }
@@ -409,6 +420,9 @@ impl KeyValueStore for RocksDbKvStore {
         }
         let prefix = prefix_bytes(list);
         let seek_key = (options.order == Order::Desc).then(|| reverse_seek_bytes(&prefix));
+        let limit = options.limit;
+        let before_name = options.before_name.map(str::to_owned);
+        let after_name = options.after_name.map(str::to_owned);
         let span = tracing::debug_span!(
             "RocksDbKvStore.list_entries",
             "db.system" = "rocksdb",
@@ -435,12 +449,16 @@ impl KeyValueStore for RocksDbKvStore {
                                 break;
                             }
                             let key = parse_key(&raw_key)?;
-                            if !key_matches_options(&key, options) {
+                            if !key_matches_options(
+                                &key,
+                                before_name.as_deref(),
+                                after_name.as_deref(),
+                            ) {
                                 continue;
                             }
                             value_bytes += value.len();
                             entries.push((key, value.to_vec()));
-                            if options.limit.is_some_and(|limit| entries.len() >= limit) {
+                            if limit.is_some_and(|limit| entries.len() >= limit) {
                                 break;
                             }
                         }
@@ -453,12 +471,16 @@ impl KeyValueStore for RocksDbKvStore {
                                 break;
                             }
                             let key = parse_key(&raw_key)?;
-                            if !key_matches_options(&key, options) {
+                            if !key_matches_options(
+                                &key,
+                                before_name.as_deref(),
+                                after_name.as_deref(),
+                            ) {
                                 continue;
                             }
                             value_bytes += value.len();
                             entries.push((key, value.to_vec()));
-                            if options.limit.is_some_and(|limit| entries.len() >= limit) {
+                            if limit.is_some_and(|limit| entries.len() >= limit) {
                                 break;
                             }
                         }
