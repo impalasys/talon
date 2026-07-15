@@ -15,6 +15,7 @@ from e2e.stack import (
     MOCK_LLM_PORT,
     start_aws_local_stack,
     start_postgres_pubsub_stack,
+    start_rocksdb_local_stack,
     write_auth_handoff,
 )
 
@@ -48,6 +49,11 @@ def main():
             grpc_port=GATEWAY_GRPC_PORT,
             api_key_name="playwright-root",
         )
+    elif E2E_STACK in ("rocksdb", "rocksdb_local", "rocksdb-local"):
+        stack = start_rocksdb_local_stack(
+            grpc_port=GATEWAY_GRPC_PORT,
+            api_key_name="playwright-root",
+        )
     elif E2E_STACK in ("gcp", "default", ""):
         stack = start_postgres_pubsub_stack(
             grpc_port=GATEWAY_GRPC_PORT,
@@ -56,7 +62,7 @@ def main():
         )
     else:
         raise RuntimeError(
-            f"Unsupported TALON_E2E_STACK={E2E_STACK!r}; expected 'gcp' or 'aws'"
+            f"Unsupported TALON_E2E_STACK={E2E_STACK!r}; expected 'gcp', 'aws', or 'rocksdb'"
         )
 
     ready_server: socketserver.TCPServer | None = None

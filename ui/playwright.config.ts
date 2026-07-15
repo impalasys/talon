@@ -16,9 +16,17 @@ const reuseExistingServer = process.env.REUSE_EXISTING_SERVER === 'true'
   : process.env.REUSE_EXISTING_SERVER === 'false'
     ? false
     : !process.env.CI;
+const E2E_STACK = (process.env.TALON_E2E_STACK || 'gcp').toLowerCase();
+const BACKEND_BUILD_COMMAND = [
+  'case "' + E2E_STACK + '" in',
+  'rocksdb|rocksdb_local|rocksdb-local) cargo build --locked --features rocksdb --bin talon-node --bin talon-cli ;;',
+  'aws|aws_local|aws-local) cargo build --locked --features aws --bin talon-server --bin talon-worker --bin talon-cli ;;',
+  '*) if [ ! -x target/debug/talon-server ] || [ ! -x target/debug/talon-worker ] || [ ! -x target/debug/talon-cli ]; then cargo build --locked --bin talon-server --bin talon-worker --bin talon-cli; fi ;;',
+  'esac',
+].join(' ');
 const DEFAULT_BACKEND_COMMAND = [
   'cd ..',
-  'if [ ! -x target/debug/talon-server ] || [ ! -x target/debug/talon-worker ] || [ ! -x target/debug/talon-cli ]; then cargo build --locked --bin talon-server --bin talon-worker --bin talon-cli; fi',
+  BACKEND_BUILD_COMMAND,
   `PYTHONPATH=.. PATH="$PWD/target/debug:$PATH" ${PYTHON_BIN} tests/run_e2e_stack.py`,
 ].join(' && ');
 
