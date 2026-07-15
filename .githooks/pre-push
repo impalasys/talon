@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+set -eu
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+if ! command -v cargo >/dev/null 2>&1; then
+  if [ -f "$HOME/.cargo/env" ]; then
+    # GUI Git clients often launch hooks without the user's shell PATH.
+    . "$HOME/.cargo/env"
+  fi
+fi
+
+if ! command -v cargo >/dev/null 2>&1; then
+  printf '\n==> Warning: cargo command not found. Skipping pre-push validation.\n'
+  exit 0
+fi
+
+run() {
+  printf '\n==> %s\n' "$*"
+  "$@"
+}
+
+printf '\n==> cargo metadata --locked\n'
+cargo metadata --locked >/dev/null
+run cargo fmt --all --check
+run cargo build --locked --bins
+run cargo test --locked

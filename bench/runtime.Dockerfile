@@ -17,6 +17,7 @@ COPY Cargo.toml Cargo.lock build.rs ./
 COPY third_party ./third_party
 COPY proto ./proto
 COPY sdk/rust/talon-client ./sdk/rust/talon-client
+COPY tools/install-hooks ./tools/install-hooks
 COPY src ./src
 COPY talon.yaml ./talon.yaml
 
