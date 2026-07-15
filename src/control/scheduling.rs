@@ -1086,73 +1086,14 @@ pub fn append_schedule_event(
 mod tests {
     use super::*;
     use crate::control::{
-        keys::{ResourceKey, ResourceList},
-        scheduler::NoopSchedulerBackend,
-        KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        scheduler::NoopSchedulerBackend, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
+    use crate::test_support::MockKvStore;
     use futures::stream;
     use std::pin::Pin;
     use std::sync::Arc;
     use tokio::sync::Mutex;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
-            let map = self.store.lock().await;
-            Ok(map.get(key).cloned())
-        }
-
-        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
-            let mut map = self.store.lock().await;
-            map.insert(key.clone(), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            key: &ResourceKey,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut map = self.store.lock().await;
-            let current = map.get(key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if !matches {
-                return Ok(false);
-            }
-            map.insert(key.clone(), value.to_vec());
-            Ok(true)
-        }
-
-        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
-            let mut map = self.store.lock().await;
-            map.remove(key);
-            Ok(())
-        }
-
-        async fn list_keys(
-            &self,
-            list: &ResourceList,
-            _order: crate::control::Order,
-        ) -> anyhow::Result<Vec<ResourceKey>> {
-            let map = self.store.lock().await;
-            Ok(map
-                .keys()
-                .filter(|key| list.matches(key))
-                .cloned()
-                .collect())
-        }
-    }
 
     #[derive(Default)]
     struct MockPubSub {
