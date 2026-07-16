@@ -1093,6 +1093,25 @@ impl WorkerEventHandler {
                 "failed to retry delegated Task owner wakeups after session release"
             );
         }
+        if let Err(err) = crate::control::session_queue::dispatch_next_queued_message(
+            self.cp.kv.as_ref(),
+            self.cp.pubsub.as_ref(),
+            ns,
+            agent_id,
+            session_id,
+            crate::control::session_queue::NEXT_QUEUE,
+            chrono::Utc::now(),
+        )
+        .await
+        {
+            tracing::warn!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                error = %err,
+                "failed to dispatch next queued session message after session release"
+            );
+        }
     }
 }
 
