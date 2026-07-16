@@ -5,13 +5,6 @@ use anyhow::{anyhow, Result};
 
 use crate::gateway::rpc::manifests;
 
-pub const LABEL_A2A: &str = "talon.impalasys.com/a2a";
-pub const LABEL_A2A_ROLE: &str = "talon.impalasys.com/a2a-role";
-pub const LABEL_A2A_NAME: &str = "talon.impalasys.com/a2a-name";
-pub const LABEL_A2A_CONNECTION: &str = "talon.impalasys.com/a2a-connection";
-pub const LABEL_A2A_OWNER_SESSION: &str = "talon.impalasys.com/a2a-owner-session";
-pub const LABEL_A2A_DIRECTION: &str = "talon.impalasys.com/a2a-direction";
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ResolvedInternalConnection {
     pub connection_name: String,

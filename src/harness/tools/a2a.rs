@@ -4,13 +4,12 @@
 use anyhow::{anyhow, Result};
 use prost::Message;
 use serde_json::{json, Value};
-use std::collections::HashMap;
 
 use crate::control::{keys, scheduling, session_queue, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, manifests};
 use crate::harness::skills::registry::ToolRegistry;
 
-const A2A_METADATA_PREFIX: &str = "a2a.talon.impalasys.com/";
+const A2A_WIRE_METADATA_PREFIX: &str = "wire.a2a.talon.impalasys.com/";
 const OWNER_ALIAS: &str = "owner";
 const AGENT_URI_PREFIX: &str = "agent://";
 
@@ -19,7 +18,7 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
     if !internal_connections.is_empty() {
         registry.register_builtin(
             super::AGENT_OPEN_TOOL,
-            "Open a declared internal A2A agent channel and return a reusable agent:// alias.",
+            "Open a declared internal A2A agent wire and return a reusable agent:// alias.",
             json!({
                 "type": "object",
                 "properties": {
@@ -30,7 +29,7 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
                     },
                     "name": {
                         "type": "string",
-                        "description": "Optional channel alias. Defaults to <connection>-1, such as critic-1."
+                        "description": "Optional wire alias. Defaults to <connection>-1, such as critic-1."
                     }
                 },
                 "required": ["connection"]
@@ -40,13 +39,13 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
 
     registry.register_builtin(
         super::AGENT_SEND_TOOL,
-        "Send a message into an opened A2A agent channel asynchronously.",
+        "Send a message into an opened A2A agent wire asynchronously.",
         json!({
             "type": "object",
             "properties": {
                 "target": {
                     "type": "string",
-                    "description": "Opened channel alias or agent:// alias, such as critic-1, agent://critic-1, or owner."
+                    "description": "Opened wire alias or agent:// alias, such as critic-1, agent://critic-1, or owner."
                 },
                 "message": {
                     "type": "string",
@@ -68,13 +67,13 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
 
     registry.register_builtin(
         super::AGENT_STATUS_TOOL,
-        "Inspect an opened A2A agent channel and optionally a message previously returned by agent_send.",
+        "Inspect an opened A2A agent wire and optionally a message previously returned by agent_send.",
         json!({
             "type": "object",
             "properties": {
                 "target": {
                     "type": "string",
-                    "description": "Opened channel alias or agent:// alias, such as critic-1, agent://critic-1, or owner."
+                    "description": "Opened wire alias or agent:// alias, such as critic-1, agent://critic-1, or owner."
                 },
                 "message_id": {
                     "type": "string",
@@ -135,7 +134,7 @@ async fn agent_open(
         None => default_alias(&target.connection_name),
     };
 
-    if let Some(existing) = load_channel(
+    if let Some(existing) = load_wire(
         cp,
         current_namespace,
         current_agent,
@@ -152,47 +151,25 @@ async fn agent_open(
         )?);
     }
 
-    let labels = HashMap::from([
-        (
-            crate::harness::a2a::LABEL_A2A.to_string(),
-            "true".to_string(),
-        ),
-        (
-            crate::harness::a2a::LABEL_A2A_ROLE.to_string(),
-            "delegate".to_string(),
-        ),
-        (
-            crate::harness::a2a::LABEL_A2A_NAME.to_string(),
-            alias.clone(),
-        ),
-        (
-            crate::harness::a2a::LABEL_A2A_CONNECTION.to_string(),
-            target.connection_name.clone(),
-        ),
-        (
-            crate::harness::a2a::LABEL_A2A_OWNER_SESSION.to_string(),
-            current_session.to_string(),
-        ),
-    ]);
     let child_session_id = scheduling::create_session_with_labels(
         cp,
         &target.target_namespace,
         &target.target_agent,
-        labels,
+        Default::default(),
     )
     .await?;
 
-    let child = AgentChannelRef {
+    let child = AgentWireRef {
         namespace: target.target_namespace.clone(),
         agent: target.target_agent.clone(),
         session_id: child_session_id,
     };
-    let owner = AgentChannelRef {
+    let owner = AgentWireRef {
         namespace: current_namespace.to_string(),
         agent: current_agent.to_string(),
         session_id: current_session.to_string(),
     };
-    upsert_session_channel(
+    upsert_session_wire(
         cp,
         current_namespace,
         current_agent,
@@ -201,7 +178,7 @@ async fn agent_open(
         &child,
     )
     .await?;
-    upsert_session_channel(
+    upsert_session_wire(
         cp,
         &target.target_namespace,
         &target.target_agent,
@@ -228,7 +205,7 @@ async fn agent_send(
 ) -> Result<String> {
     let target_alias = normalize_agent_uri(super::req_str(args, "target")?)?;
     let message = super::req_str(args, "message")?;
-    let target = load_channel(
+    let target = load_wire(
         cp,
         current_namespace,
         current_agent,
@@ -236,7 +213,7 @@ async fn agent_send(
         &target_alias,
     )
     .await?
-    .ok_or_else(|| anyhow!("agent channel '{}' is not open", target_alias))?;
+    .ok_or_else(|| anyhow!("agent wire '{}' is not open", target_alias))?;
 
     let artifact_uris = requested_artifact_uris(args)?;
     for artifact_uri in &artifact_uris {
@@ -251,24 +228,6 @@ async fn agent_send(
         .await?;
     }
 
-    let labels = HashMap::from([
-        (
-            crate::harness::a2a::LABEL_A2A.to_string(),
-            "true".to_string(),
-        ),
-        (
-            crate::harness::a2a::LABEL_A2A_NAME.to_string(),
-            target_alias.clone(),
-        ),
-        (
-            crate::harness::a2a::LABEL_A2A_DIRECTION.to_string(),
-            if target_alias == OWNER_ALIAS {
-                "delegate-to-owner".to_string()
-            } else {
-                "owner-to-delegate".to_string()
-            },
-        ),
-    ]);
     let queued_message = message_with_artifacts(message, &artifact_uris);
     let queued = session_queue::queue_text_message(
         cp.kv.as_ref(),
@@ -277,7 +236,7 @@ async fn agent_send(
         &target.session_id,
         session_queue::NEXT_QUEUE,
         &queued_message,
-        labels,
+        Default::default(),
         chrono::Utc::now(),
     )
     .await?;
@@ -301,7 +260,7 @@ async fn agent_send(
         "sessionId": target.session_id,
         "queue": queued.queue,
         "queueEntryId": queued.entry_id,
-        "messageId": queued.message_id,
+        "messageId": dispatched.as_ref().map(|entry| entry.message_id.as_str()),
         "dispatched": dispatched.is_some(),
         "submissionId": dispatched.as_ref().map(|entry| entry.submission_id.as_str()),
         "artifactUris": artifact_uris
@@ -317,7 +276,7 @@ async fn agent_status(
 ) -> Result<String> {
     let target_alias = normalize_agent_uri(super::req_str(args, "target")?)?;
     let message_id = super::opt_str(args, "message_id").map(str::to_string);
-    let target = load_channel(
+    let target = load_wire(
         cp,
         current_namespace,
         current_agent,
@@ -325,7 +284,7 @@ async fn agent_status(
         &target_alias,
     )
     .await?
-    .ok_or_else(|| anyhow!("agent channel '{}' is not open", target_alias))?;
+    .ok_or_else(|| anyhow!("agent wire '{}' is not open", target_alias))?;
 
     let session = cp
         .kv
@@ -371,14 +330,14 @@ async fn agent_status(
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct AgentChannelRef {
+struct AgentWireRef {
     namespace: String,
     agent: String,
     session_id: String,
 }
 
 fn metadata_key(alias: &str) -> String {
-    format!("{A2A_METADATA_PREFIX}{alias}")
+    format!("{A2A_WIRE_METADATA_PREFIX}{alias}")
 }
 
 fn default_alias(connection: &str) -> String {
@@ -392,7 +351,7 @@ fn validate_alias(alias: &str) -> Result<&str> {
         || alias.chars().any(char::is_control)
         || alias.starts_with('-')
     {
-        return Err(anyhow!("agent channel alias is invalid"));
+        return Err(anyhow!("agent wire alias is invalid"));
     }
     Ok(alias)
 }
@@ -403,38 +362,38 @@ fn normalize_agent_uri(value: &str) -> Result<String> {
     Ok(validate_alias(alias)?.to_string())
 }
 
-fn encode_channel_ref(reference: &AgentChannelRef) -> String {
+fn encode_wire_ref(reference: &AgentWireRef) -> String {
     format!(
         "{}/{}/{}",
         reference.namespace, reference.agent, reference.session_id
     )
 }
 
-fn decode_channel_ref(value: &str) -> Result<AgentChannelRef> {
+fn decode_wire_ref(value: &str) -> Result<AgentWireRef> {
     let parts = value.split('/').collect::<Vec<_>>();
     let [namespace, agent, session_id] = parts.as_slice() else {
-        return Err(anyhow!("agent channel metadata is malformed"));
+        return Err(anyhow!("agent wire metadata is malformed"));
     };
     if [namespace, agent, session_id]
         .iter()
         .any(|part| part.trim().is_empty() || part.chars().any(char::is_control))
     {
-        return Err(anyhow!("agent channel metadata contains invalid values"));
+        return Err(anyhow!("agent wire metadata contains invalid values"));
     }
-    Ok(AgentChannelRef {
+    Ok(AgentWireRef {
         namespace: (*namespace).to_string(),
         agent: (*agent).to_string(),
         session_id: (*session_id).to_string(),
     })
 }
 
-async fn load_channel(
+async fn load_wire(
     cp: &ControlPlane,
     namespace: &str,
     agent: &str,
     session_id: &str,
     alias: &str,
-) -> Result<Option<AgentChannelRef>> {
+) -> Result<Option<AgentWireRef>> {
     let session = cp
         .kv
         .get_msg::<data_proto::Session>(&keys::session(namespace, agent, session_id))
@@ -443,17 +402,17 @@ async fn load_channel(
     session
         .metadata
         .get(&metadata_key(alias))
-        .map(|value| decode_channel_ref(value))
+        .map(|value| decode_wire_ref(value))
         .transpose()
 }
 
-async fn upsert_session_channel(
+async fn upsert_session_wire(
     cp: &ControlPlane,
     namespace: &str,
     agent: &str,
     session_id: &str,
     alias: &str,
-    reference: &AgentChannelRef,
+    reference: &AgentWireRef,
 ) -> Result<()> {
     let key = keys::session(namespace, agent, session_id);
     for _ in 0..8 {
@@ -465,7 +424,7 @@ async fn upsert_session_channel(
         let mut session = data_proto::Session::decode(current.as_slice())?;
         session
             .metadata
-            .insert(metadata_key(alias), encode_channel_ref(reference));
+            .insert(metadata_key(alias), encode_wire_ref(reference));
         if cp
             .kv
             .compare_and_swap(&key, Some(current.as_slice()), &session.encode_to_vec())
@@ -474,13 +433,13 @@ async fn upsert_session_channel(
             return Ok(());
         }
     }
-    Err(anyhow!("failed to update session A2A channel metadata"))
+    Err(anyhow!("failed to update session A2A wire metadata"))
 }
 
 fn open_response(
     alias: &str,
     connection: &str,
-    reference: AgentChannelRef,
+    reference: AgentWireRef,
     reused: bool,
 ) -> Result<String> {
     Ok(serde_json::to_string_pretty(&json!({
@@ -593,7 +552,7 @@ fn message_with_artifacts(message: &str, artifact_uris: &[String]) -> String {
 
 async fn queued_message_status(
     cp: &ControlPlane,
-    target: &AgentChannelRef,
+    target: &AgentWireRef,
     message_id: Option<&str>,
 ) -> Result<Value> {
     let prefix = keys::session_queue_prefix(
@@ -618,18 +577,19 @@ async fn queued_message_status(
         }
         queued_messages.push(item);
     }
+    let message_queued = message_id.map_or(!queued_messages.is_empty(), |_| matched.is_some());
     Ok(json!({
         "name": session_queue::NEXT_QUEUE,
         "pendingCount": queued_messages.len(),
         "oldest": queued_messages.first(),
-        "messageQueued": matched.is_some(),
+        "messageQueued": message_queued,
         "matchedMessage": matched,
     }))
 }
 
 async fn submission_status(
     cp: &ControlPlane,
-    target: &AgentChannelRef,
+    target: &AgentWireRef,
     message_id: Option<&str>,
 ) -> Result<Value> {
     let prefix =
@@ -776,14 +736,14 @@ mod tests {
     }
 
     #[test]
-    fn channel_ref_round_trips() {
-        let reference = AgentChannelRef {
+    fn wire_ref_round_trips() {
+        let reference = AgentWireRef {
             namespace: "Tenant:conic:Nexus".to_string(),
             agent: "critic".to_string(),
             session_id: "session-1".to_string(),
         };
         assert_eq!(
-            decode_channel_ref(&encode_channel_ref(&reference)).unwrap(),
+            decode_wire_ref(&encode_wire_ref(&reference)).unwrap(),
             reference
         );
     }
@@ -822,7 +782,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_open_and_send_wire_forward_and_reverse_channels() {
+    async fn agent_open_and_send_wire_forward_and_reverse_wires() {
         let kv = Arc::new(MockKvStore::new());
         let pubsub = Arc::new(RecordingPubSub::default());
         let cp = ControlPlane::builder(kv.clone(), pubsub.clone()).build();
@@ -857,7 +817,7 @@ mod tests {
         assert_eq!(
             parent
                 .metadata
-                .get("a2a.talon.impalasys.com/critic-1")
+                .get("wire.a2a.talon.impalasys.com/critic-1")
                 .map(String::as_str),
             Some(expected_child_ref.as_str())
         );
@@ -873,10 +833,11 @@ mod tests {
         assert_eq!(
             child
                 .metadata
-                .get("a2a.talon.impalasys.com/owner")
+                .get("wire.a2a.talon.impalasys.com/owner")
                 .map(String::as_str),
             Some("Tenant:acme:Main/cmo/parent-session")
         );
+        assert!(child.labels.is_empty());
 
         let sent = agent_send(
             &cp,
@@ -927,14 +888,14 @@ mod tests {
         let queued_while_processing: Value =
             serde_json::from_str(&queued_while_processing).unwrap();
         assert_eq!(queued_while_processing["dispatched"], false);
+        assert!(queued_while_processing["messageId"].is_null());
         let queued_status = agent_status(
             &cp,
             "Tenant:acme:Main",
             "cmo",
             "parent-session",
             &json!({
-                "target": "critic-1",
-                "message_id": queued_while_processing["messageId"]
+                "target": "critic-1"
             }),
         )
         .await

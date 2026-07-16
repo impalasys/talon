@@ -3191,7 +3191,7 @@ mod tests {
     }
 
     #[test]
-    fn agent_channel_schemas_use_internal_a2a_connection_enum_without_task_capability() {
+    fn agent_wire_schemas_use_internal_a2a_connection_enum_without_task_capability() {
         let mut registry = ToolRegistry::new();
         let mut spec = manifests::AgentSpec::default();
         spec.a2a = Some(manifests::A2a {
