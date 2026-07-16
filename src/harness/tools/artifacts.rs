@@ -21,11 +21,7 @@ pub(super) fn register(registry: &mut ToolRegistry) {
                 "labels": { "type": "object", "additionalProperties": { "type": "string" } },
                 "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
             },
-            "required": ["title"],
-            "anyOf": [
-                { "required": ["content"] },
-                { "required": ["content_base64"] }
-            ]
+            "required": ["title"]
         }),
     );
     registry.register_builtin(
@@ -50,11 +46,7 @@ pub(super) fn register(registry: &mut ToolRegistry) {
                 "content": { "type": "string", "description": "Full text content to store. Required unless content_base64 is provided." },
                 "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." }
             },
-            "required": ["artifact_uri"],
-            "anyOf": [
-                { "required": ["content"] },
-                { "required": ["content_base64"] }
-            ]
+            "required": ["artifact_uri"]
         }),
     );
     registry.register_builtin(
@@ -127,5 +119,36 @@ pub(super) async fn execute(
                 .map(Some)
         }
         _ => Ok(None),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_no_top_level_composition(schema: &Value) {
+        for keyword in ["anyOf", "oneOf", "allOf", "not"] {
+            assert!(
+                schema.get(keyword).is_none(),
+                "OpenAI function schemas reject top-level {keyword}: {schema}"
+            );
+        }
+    }
+
+    #[test]
+    fn artifact_tool_schemas_are_openai_compatible() {
+        let mut registry = ToolRegistry::new();
+        register(&mut registry);
+
+        let tools = registry.list_tools();
+        assert!(!tools.is_empty(), "artifact tools should be registered");
+        for tool in tools {
+            assert_eq!(
+                tool.input_schema["type"], "object",
+                "artifact tool {} input schema must be an object",
+                tool.name
+            );
+            assert_no_top_level_composition(&tool.input_schema);
+        }
     }
 }
