@@ -1,0 +1,152 @@
+{
+  "rules": [
+    {
+      "id": "policy_coordinator_delegates_editor",
+      "system_contains": "policy coordinator",
+      "last_message_contains": "delegate policy document refinement task",
+      "tool_name": "delegate_task",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_delegate_policy_editor_1",
+        "tool_name": "delegate_task",
+        "content": "I will assign the policy editor. ",
+        "arguments": {
+          "title": "Refine policy brief",
+          "description": "Route the policy brief to a drafter and return the final markdown artifact.",
+          "type": "policy_document_refinement",
+          "connection": "policy-editor"
+        }
+      }
+    },
+    {
+      "id": "policy_editor_delegates_drafter",
+      "system_contains": "policy editor",
+      "last_message_contains": "you have been assigned a talon task",
+      "tool_name": "delegate_task",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_delegate_policy_drafter_1",
+        "tool_name": "delegate_task",
+        "content": "I will assign the drafting work. ",
+        "arguments": {
+          "title": "Draft revised policy brief",
+          "description": "Create the final revised policy brief artifact in markdown.",
+          "type": "policy_document_draft",
+          "connection": "policy-drafter"
+        }
+      }
+    },
+    {
+      "id": "policy_drafter_creates_artifact",
+      "system_contains": "policy drafter",
+      "last_message_contains": "you have been assigned a talon task",
+      "tool_name": "create_artifact",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_create_policy_brief_artifact_1",
+        "tool_name": "create_artifact",
+        "content": "I will create the policy brief artifact. ",
+        "arguments": {
+          "title": "Revised remote work policy brief",
+          "content": "## Revised remote work policy brief\n\nTeams may work remotely up to three days per week when service coverage, data security, and manager coordination requirements are met.\n\nImplementation notes:\n- Managers confirm coverage windows every Monday.\n- Employees use approved devices and secure networks.\n- Exceptions require written approval and a review date.",
+          "media_type": "text/markdown",
+          "metadata": {
+            "source": "policy-drafter",
+            "content_type": "policy_brief"
+          }
+        }
+      }
+    },
+    {
+      "id": "policy_coordinator_reads_artifact",
+      "system_contains": "policy coordinator",
+      "last_message_contains": "read this delegated artifact",
+      "tool_name": "read_artifact",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_read_policy_brief_artifact_1",
+        "tool_name": "read_artifact",
+        "content": "I will inspect the delegated policy brief. ",
+        "arguments": {
+          "artifact_uri": "{{artifact_uri}}"
+        }
+      }
+    },
+    {
+      "id": "policy_editor_delegate_followup",
+      "tool_call_id": "call_delegate_policy_editor_1",
+      "response": {
+        "type": "text",
+        "content": "I delegated the policy document refinement task."
+      }
+    },
+    {
+      "id": "policy_drafter_delegate_followup",
+      "tool_call_id": "call_delegate_policy_drafter_1",
+      "response": {
+        "type": "text",
+        "content": "I delegated the policy drafting task."
+      }
+    },
+    {
+      "id": "policy_drafter_artifact_followup",
+      "tool_call_id": "call_create_policy_brief_artifact_1",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_update_policy_draft_task_1",
+        "tool_name": "update_task",
+        "content": "I will attach the policy brief artifact to the task. ",
+        "arguments": {
+          "namespace": "{{task_namespace}}",
+          "name": "{{task_name}}",
+          "phase": "NEEDS_REVIEW",
+          "progress_summary": "Created policy brief artifact for review.",
+          "output_artifact_uri": "{{artifact_uri}}"
+        }
+      }
+    },
+    {
+      "id": "policy_editor_forwards_artifact",
+      "system_contains": "policy editor",
+      "last_message_contains": "delegated task is ready for review",
+      "tool_name": "update_task",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_update_policy_editor_task_1",
+        "tool_name": "update_task",
+        "content": "I will attach the drafter artifact to my owner task. ",
+        "arguments": {
+          "namespace": "{{task_namespace}}",
+          "name": "{{task_name}}",
+          "phase": "NEEDS_REVIEW",
+          "progress_summary": "Forwarded policy brief artifact for review.",
+          "output_artifact_uri": "{{artifact_uri}}"
+        }
+      }
+    },
+    {
+      "id": "policy_drafter_update_followup",
+      "tool_call_id": "call_update_policy_draft_task_1",
+      "response": {
+        "type": "text",
+        "content": "I attached the policy brief artifact to the drafting task."
+      }
+    },
+    {
+      "id": "policy_editor_update_followup",
+      "tool_call_id": "call_update_policy_editor_task_1",
+      "response": {
+        "type": "text",
+        "content": "I attached the policy brief artifact to the refinement task."
+      }
+    },
+    {
+      "id": "policy_read_followup",
+      "tool_call_id": "call_read_policy_brief_artifact_1",
+      "response": {
+        "type": "text",
+        "content": "I read the delegated policy brief artifact."
+      }
+    }
+  ]
+}
