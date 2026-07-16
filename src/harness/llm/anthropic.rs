@@ -296,8 +296,10 @@ impl LlmProvider for AnthropicProvider {
                                     if usage.reasoning_tokens > 0 {
                                         current_usage.reasoning_tokens = usage.reasoning_tokens;
                                     }
-                                    current_usage.total_tokens =
-                                        current_usage.input_tokens + current_usage.output_tokens;
+                                    current_usage.total_tokens = current_usage
+                                        .input_tokens
+                                        .saturating_add(current_usage.output_tokens)
+                                        .saturating_add(current_usage.reasoning_tokens);
                                     items.push(Ok(usage_event(current_usage.clone())));
                                 }
                             }
@@ -333,7 +335,7 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
         .get("input_tokens")
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
-    let output_tokens = usage
+    let completion_tokens = usage
         .get("output_tokens")
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
@@ -342,10 +344,11 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
         .or_else(|| usage.get("reasoning_tokens"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
+    let output_tokens = completion_tokens.saturating_sub(reasoning_tokens);
     let total_tokens = usage
         .get("total_tokens")
         .and_then(|v| v.as_u64())
-        .unwrap_or(input_tokens + output_tokens);
+        .unwrap_or(input_tokens + completion_tokens);
 
     Some(ChatUsage {
         input_tokens,
@@ -554,8 +557,10 @@ mod tests {
                             if usage.reasoning_tokens > 0 {
                                 current_usage.reasoning_tokens = usage.reasoning_tokens;
                             }
-                            current_usage.total_tokens =
-                                current_usage.input_tokens + current_usage.output_tokens;
+                            current_usage.total_tokens = current_usage
+                                .input_tokens
+                                .saturating_add(current_usage.output_tokens)
+                                .saturating_add(current_usage.reasoning_tokens);
                             usage_events.push(current_usage.clone());
                         }
                     }
@@ -576,13 +581,13 @@ mod tests {
                 },
                 ChatUsage {
                     input_tokens: 10,
-                    output_tokens: 4,
+                    output_tokens: 2,
                     reasoning_tokens: 2,
                     total_tokens: 14,
                 },
                 ChatUsage {
                     input_tokens: 10,
-                    output_tokens: 7,
+                    output_tokens: 4,
                     reasoning_tokens: 3,
                     total_tokens: 17,
                 },

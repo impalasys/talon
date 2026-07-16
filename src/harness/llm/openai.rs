@@ -739,12 +739,28 @@ impl Stream for SpanInstrumentedChatStream {
 
 fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
     let usage = value.get("usage")?;
+    if !usage.is_object() {
+        return None;
+    }
+    let has_usage_fields = usage.get("prompt_tokens").is_some()
+        || usage.get("input_tokens").is_some()
+        || usage.get("completion_tokens").is_some()
+        || usage.get("output_tokens").is_some()
+        || usage.get("total_tokens").is_some()
+        || usage.get("reasoning_tokens").is_some()
+        || usage.get("thinking_tokens").is_some()
+        || usage
+            .pointer("/completion_tokens_details/reasoning_tokens")
+            .is_some();
+    if !has_usage_fields {
+        return None;
+    }
     let input_tokens = usage
         .get("prompt_tokens")
         .or_else(|| usage.get("input_tokens"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
-    let output_tokens = usage
+    let completion_tokens = usage
         .get("completion_tokens")
         .or_else(|| usage.get("output_tokens"))
         .and_then(|v| v.as_u64())
@@ -755,10 +771,11 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
         .or_else(|| usage.pointer("/completion_tokens_details/reasoning_tokens"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
+    let output_tokens = completion_tokens.saturating_sub(reasoning_tokens);
     let total_tokens = usage
         .get("total_tokens")
         .and_then(|v| v.as_u64())
-        .unwrap_or(input_tokens + output_tokens);
+        .unwrap_or(input_tokens + completion_tokens);
 
     Some(ChatUsage {
         input_tokens,
@@ -1121,7 +1138,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(usage.input_tokens, 10);
-        assert_eq!(usage.output_tokens, 20);
+        assert_eq!(usage.output_tokens, 14);
         assert_eq!(usage.reasoning_tokens, 6);
         assert_eq!(usage.total_tokens, 30);
     }
@@ -1138,9 +1155,15 @@ mod tests {
         .unwrap();
 
         assert_eq!(usage.input_tokens, 10);
-        assert_eq!(usage.output_tokens, 20);
+        assert_eq!(usage.output_tokens, 14);
         assert_eq!(usage.reasoning_tokens, 6);
         assert_eq!(usage.total_tokens, 30);
+    }
+
+    #[test]
+    fn extract_usage_ignores_null_and_empty_usage() {
+        assert!(extract_usage(&serde_json::json!({ "usage": null })).is_none());
+        assert!(extract_usage(&serde_json::json!({ "usage": {} })).is_none());
     }
 
     #[tokio::test]

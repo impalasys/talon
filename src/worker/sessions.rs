@@ -3267,7 +3267,7 @@ mod tests {
         );
         assert_eq!(
             used_for(crate::control::usage::METRIC_LLM_OUTPUT_TOKENS),
-            (5, 95, false)
+            (3, 97, false)
         );
         assert_eq!(
             used_for(crate::control::usage::METRIC_LLM_REASONING_TOKENS),

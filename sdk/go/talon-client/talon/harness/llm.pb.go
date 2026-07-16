@@ -430,13 +430,18 @@ func (x *ChatMessage) GetToolCallId() string {
 }
 
 type ChatUsage struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	InputTokens     uint64                 `protobuf:"varint,1,opt,name=input_tokens,json=inputTokens,proto3" json:"input_tokens,omitempty"`
-	OutputTokens    uint64                 `protobuf:"varint,2,opt,name=output_tokens,json=outputTokens,proto3" json:"output_tokens,omitempty"`
-	ReasoningTokens uint64                 `protobuf:"varint,3,opt,name=reasoning_tokens,json=reasoningTokens,proto3" json:"reasoning_tokens,omitempty"`
-	TotalTokens     uint64                 `protobuf:"varint,4,opt,name=total_tokens,json=totalTokens,proto3" json:"total_tokens,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Prompt/input tokens reported by the model provider.
+	InputTokens uint64 `protobuf:"varint,1,opt,name=input_tokens,json=inputTokens,proto3" json:"input_tokens,omitempty"`
+	// Non-reasoning output tokens. When a provider reports completion tokens
+	// inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
+	OutputTokens uint64 `protobuf:"varint,2,opt,name=output_tokens,json=outputTokens,proto3" json:"output_tokens,omitempty"`
+	// Reasoning/thinking output tokens reported separately by the provider.
+	ReasoningTokens uint64 `protobuf:"varint,3,opt,name=reasoning_tokens,json=reasoningTokens,proto3" json:"reasoning_tokens,omitempty"`
+	// Provider total tokens when available; otherwise input + output + reasoning.
+	TotalTokens   uint64 `protobuf:"varint,4,opt,name=total_tokens,json=totalTokens,proto3" json:"total_tokens,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ChatUsage) Reset() {
