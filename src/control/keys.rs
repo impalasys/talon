@@ -422,6 +422,34 @@ pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) ->
     )
 }
 
+pub fn session_queue_entry(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    queue: &str,
+    entry_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id), ("Queue", queue)],
+        "SessionMessage",
+        entry_id,
+    )
+}
+
+pub fn session_queue_prefix(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    queue: &str,
+) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Agent", agent), ("Session", session_id), ("Queue", queue)],
+        Some("SessionMessage"),
+    )
+}
+
 pub fn artifact(namespace: &str, agent: &str, session_id: &str, artifact_id: &str) -> ResourceKey {
     resource_key(
         namespace,
