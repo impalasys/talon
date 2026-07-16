@@ -322,21 +322,30 @@ export class ChatMessage extends Message<ChatMessage> {
  */
 export class ChatUsage extends Message<ChatUsage> {
   /**
+   * Prompt/input tokens reported by the model provider.
+   *
    * @generated from field: uint64 input_tokens = 1;
    */
   inputTokens = protoInt64.zero;
 
   /**
+   * Non-reasoning output tokens. When a provider reports completion tokens
+   * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
+   *
    * @generated from field: uint64 output_tokens = 2;
    */
   outputTokens = protoInt64.zero;
 
   /**
+   * Reasoning/thinking output tokens reported separately by the provider.
+   *
    * @generated from field: uint64 reasoning_tokens = 3;
    */
   reasoningTokens = protoInt64.zero;
 
   /**
+   * Provider total tokens when available; otherwise input + output + reasoning.
+   *
    * @generated from field: uint64 total_tokens = 4;
    */
   totalTokens = protoInt64.zero;

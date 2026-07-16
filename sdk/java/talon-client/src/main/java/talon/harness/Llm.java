@@ -5899,24 +5899,41 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Prompt/input tokens reported by the model provider.
+     * </pre>
+     *
      * <code>uint64 input_tokens = 1;</code>
      * @return The inputTokens.
      */
     long getInputTokens();
 
     /**
+     * <pre>
+     * Non-reasoning output tokens. When a provider reports completion tokens
+     * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
+     * </pre>
+     *
      * <code>uint64 output_tokens = 2;</code>
      * @return The outputTokens.
      */
     long getOutputTokens();
 
     /**
+     * <pre>
+     * Reasoning/thinking output tokens reported separately by the provider.
+     * </pre>
+     *
      * <code>uint64 reasoning_tokens = 3;</code>
      * @return The reasoningTokens.
      */
     long getReasoningTokens();
 
     /**
+     * <pre>
+     * Provider total tokens when available; otherwise input + output + reasoning.
+     * </pre>
+     *
      * <code>uint64 total_tokens = 4;</code>
      * @return The totalTokens.
      */
@@ -5967,6 +5984,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     public static final int INPUT_TOKENS_FIELD_NUMBER = 1;
     private long inputTokens_ = 0L;
     /**
+     * <pre>
+     * Prompt/input tokens reported by the model provider.
+     * </pre>
+     *
      * <code>uint64 input_tokens = 1;</code>
      * @return The inputTokens.
      */
@@ -5978,6 +5999,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     public static final int OUTPUT_TOKENS_FIELD_NUMBER = 2;
     private long outputTokens_ = 0L;
     /**
+     * <pre>
+     * Non-reasoning output tokens. When a provider reports completion tokens
+     * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
+     * </pre>
+     *
      * <code>uint64 output_tokens = 2;</code>
      * @return The outputTokens.
      */
@@ -5989,6 +6015,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     public static final int REASONING_TOKENS_FIELD_NUMBER = 3;
     private long reasoningTokens_ = 0L;
     /**
+     * <pre>
+     * Reasoning/thinking output tokens reported separately by the provider.
+     * </pre>
+     *
      * <code>uint64 reasoning_tokens = 3;</code>
      * @return The reasoningTokens.
      */
@@ -6000,6 +6030,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     public static final int TOTAL_TOKENS_FIELD_NUMBER = 4;
     private long totalTokens_ = 0L;
     /**
+     * <pre>
+     * Provider total tokens when available; otherwise input + output + reasoning.
+     * </pre>
+     *
      * <code>uint64 total_tokens = 4;</code>
      * @return The totalTokens.
      */
@@ -6376,6 +6410,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       private long inputTokens_ ;
       /**
+       * <pre>
+       * Prompt/input tokens reported by the model provider.
+       * </pre>
+       *
        * <code>uint64 input_tokens = 1;</code>
        * @return The inputTokens.
        */
@@ -6384,6 +6422,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return inputTokens_;
       }
       /**
+       * <pre>
+       * Prompt/input tokens reported by the model provider.
+       * </pre>
+       *
        * <code>uint64 input_tokens = 1;</code>
        * @param value The inputTokens to set.
        * @return This builder for chaining.
@@ -6396,6 +6438,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Prompt/input tokens reported by the model provider.
+       * </pre>
+       *
        * <code>uint64 input_tokens = 1;</code>
        * @return This builder for chaining.
        */
@@ -6408,6 +6454,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       private long outputTokens_ ;
       /**
+       * <pre>
+       * Non-reasoning output tokens. When a provider reports completion tokens
+       * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
+       * </pre>
+       *
        * <code>uint64 output_tokens = 2;</code>
        * @return The outputTokens.
        */
@@ -6416,6 +6467,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return outputTokens_;
       }
       /**
+       * <pre>
+       * Non-reasoning output tokens. When a provider reports completion tokens
+       * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
+       * </pre>
+       *
        * <code>uint64 output_tokens = 2;</code>
        * @param value The outputTokens to set.
        * @return This builder for chaining.
@@ -6428,6 +6484,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Non-reasoning output tokens. When a provider reports completion tokens
+       * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
+       * </pre>
+       *
        * <code>uint64 output_tokens = 2;</code>
        * @return This builder for chaining.
        */
@@ -6440,6 +6501,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       private long reasoningTokens_ ;
       /**
+       * <pre>
+       * Reasoning/thinking output tokens reported separately by the provider.
+       * </pre>
+       *
        * <code>uint64 reasoning_tokens = 3;</code>
        * @return The reasoningTokens.
        */
@@ -6448,6 +6513,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return reasoningTokens_;
       }
       /**
+       * <pre>
+       * Reasoning/thinking output tokens reported separately by the provider.
+       * </pre>
+       *
        * <code>uint64 reasoning_tokens = 3;</code>
        * @param value The reasoningTokens to set.
        * @return This builder for chaining.
@@ -6460,6 +6529,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Reasoning/thinking output tokens reported separately by the provider.
+       * </pre>
+       *
        * <code>uint64 reasoning_tokens = 3;</code>
        * @return This builder for chaining.
        */
@@ -6472,6 +6545,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       private long totalTokens_ ;
       /**
+       * <pre>
+       * Provider total tokens when available; otherwise input + output + reasoning.
+       * </pre>
+       *
        * <code>uint64 total_tokens = 4;</code>
        * @return The totalTokens.
        */
@@ -6480,6 +6557,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return totalTokens_;
       }
       /**
+       * <pre>
+       * Provider total tokens when available; otherwise input + output + reasoning.
+       * </pre>
+       *
        * <code>uint64 total_tokens = 4;</code>
        * @param value The totalTokens to set.
        * @return This builder for chaining.
@@ -6492,6 +6573,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider total tokens when available; otherwise input + output + reasoning.
+       * </pre>
+       *
        * <code>uint64 total_tokens = 4;</code>
        * @return This builder for chaining.
        */

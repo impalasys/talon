@@ -45,9 +45,14 @@ message ChatMessage {
 }
 
 message ChatUsage {
+  // Prompt/input tokens reported by the model provider.
   uint64 input_tokens = 1;
+  // Non-reasoning output tokens. When a provider reports completion tokens
+  // inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
   uint64 output_tokens = 2;
+  // Reasoning/thinking output tokens reported separately by the provider.
   uint64 reasoning_tokens = 3;
+  // Provider total tokens when available; otherwise input + output + reasoning.
   uint64 total_tokens = 4;
 }
 

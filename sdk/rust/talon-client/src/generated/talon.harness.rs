@@ -69,12 +69,17 @@ pub struct ChatMessage {
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ChatUsage {
+    /// Prompt/input tokens reported by the model provider.
     #[prost(uint64, tag = "1")]
     pub input_tokens: u64,
+    /// Non-reasoning output tokens. When a provider reports completion tokens
+    /// inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
     #[prost(uint64, tag = "2")]
     pub output_tokens: u64,
+    /// Reasoning/thinking output tokens reported separately by the provider.
     #[prost(uint64, tag = "3")]
     pub reasoning_tokens: u64,
+    /// Provider total tokens when available; otherwise input + output + reasoning.
     #[prost(uint64, tag = "4")]
     pub total_tokens: u64,
 }
