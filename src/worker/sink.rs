@@ -1316,6 +1316,7 @@ impl ExecutionSink for PubSubSessionSink {
             }))
             .unwrap_or_else(|_| "{}".to_string()),
         );
+        self.persist_durable_message("tool_call").await;
         self.publish_event(AgentEvent::Action {
             id: id.to_string(),
             name: name.to_string(),
@@ -2192,6 +2193,24 @@ mod tests {
             data_proto::SessionMessagePartType::ToolCall as i32
         );
         assert_eq!(event_part(&events[1]).name, "create_prompt");
+
+        let projection = latest_reply_message(kv.as_ref()).await;
+        assert_eq!(
+            projection
+                .labels
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED)
+        );
+        let projection_part_contents = projection
+            .parts
+            .iter()
+            .map(|part| part.content.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            projection_part_contents,
+            vec!["drafting request", "Tool call"]
+        );
 
         sink.on_token("final").await;
         sink.on_done().await;
