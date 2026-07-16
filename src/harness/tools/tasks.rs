@@ -7,6 +7,8 @@ use serde_json::{json, Value};
 use crate::control::resource_model::TypedResource;
 use crate::control::resources::ResourceStore;
 use crate::control::ControlPlane;
+use crate::control::{keys, ProtoKeyValueStoreExt};
+use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::{manifests, resources_proto};
 use crate::harness::skills::registry::ToolRegistry;
 
@@ -20,6 +22,72 @@ fn task_namespace<'a>(args: &'a Value, current_namespace: &'a str) -> Result<&'a
         ));
     }
     Ok(namespace)
+}
+
+struct AuthorizedTaskUpdate {
+    namespace: String,
+    delegated: bool,
+}
+
+async fn authorized_update_task_namespace(
+    cp: &ControlPlane,
+    args: &Value,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+) -> Result<AuthorizedTaskUpdate> {
+    let namespace = super::opt_str(args, "namespace").unwrap_or(current_namespace);
+    let name = super::req_str(args, "name")?;
+    let session = cp
+        .kv
+        .get_msg::<data_proto::Session>(&keys::session(
+            current_namespace,
+            current_agent,
+            current_session,
+        ))
+        .await?;
+    if let Some(session) = session {
+        let delegated = session
+            .labels
+            .get(crate::control::delegation::LABEL_TASK_ROLE)
+            .map(String::as_str)
+            == Some("delegate");
+        let assigned_namespace = session
+            .labels
+            .get(crate::control::delegation::LABEL_TASK_NAMESPACE)
+            .map(String::as_str);
+        let assigned_name = session
+            .labels
+            .get(crate::control::delegation::LABEL_TASK_NAME)
+            .map(String::as_str);
+        if delegated {
+            if assigned_namespace == Some(namespace) && assigned_name == Some(name) {
+                return Ok(AuthorizedTaskUpdate {
+                    namespace: namespace.to_string(),
+                    delegated: true,
+                });
+            }
+            return Err(anyhow!(
+                "task tools cannot target task '{}' in namespace '{}' from delegated session '{}'",
+                name,
+                namespace,
+                current_session
+            ));
+        }
+    }
+
+    if namespace == current_namespace {
+        return Ok(AuthorizedTaskUpdate {
+            namespace: namespace.to_string(),
+            delegated: false,
+        });
+    }
+
+    Err(anyhow!(
+        "task tools cannot target namespace '{}' from agent namespace '{}'",
+        namespace,
+        current_namespace
+    ))
 }
 
 pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
@@ -106,6 +174,12 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
                     "name": { "type": "string", "description": "Task resource name." },
                     "phase": { "type": "string", "description": "Optional phase: QUEUED, RUNNING, BLOCKED, NEEDS_REVIEW, SUCCEEDED, FAILED, CANCELED, or EXPIRED." },
                     "progress_summary": { "type": "string", "description": "Short current state or result summary." },
+                    "output_artifact_uri": { "type": "string", "description": "Artifact URI to attach as a Task output." },
+                    "output_artifact_uris": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Artifact URIs to attach as Task outputs."
+                    },
                     "execution_namespace": { "type": "string", "description": "Optional execution namespace." },
                     "execution_name": { "type": "string", "description": "Optional execution agent resource name." },
                     "execution_session_id": { "type": "string", "description": "Optional child session id." },
@@ -203,16 +277,43 @@ pub(super) async fn execute(
         }
         super::UPDATE_TASK_TOOL => {
             super::require_capability(spec, "tasks", "update")?;
-            let namespace = task_namespace(args, current_namespace)?;
+            let authorized = authorized_update_task_namespace(
+                cp,
+                args,
+                current_namespace,
+                current_agent,
+                current_session,
+            )
+            .await?;
             let name = super::req_str(args, "name")?;
+            let output_artifact_uris = super::task_output_artifact_uris_from_args(
+                cp,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await?;
             let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
             let resource = store
-                .patch_status_with(namespace, "Task", name, None, |_, status| {
+                .patch_status_with(&authorized.namespace, "Task", name, None, |_, status| {
                     let mut task_status = match status.kind.take() {
                         Some(resources_proto::resource_status::Kind::Task(status)) => status,
                         _ => resources_proto::TaskStatus::default(),
                     };
-                    super::update_task_status(&mut task_status, args)?;
+                    if authorized.delegated {
+                        let active_session = task_status
+                            .execution_ref
+                            .as_ref()
+                            .map(|execution| execution.session_id.as_str());
+                        if active_session != Some(current_session) {
+                            return Err(anyhow!(
+                                "delegated session '{}' cannot update task '{}' because it is not the active execution session",
+                                current_session,
+                                name
+                            ));
+                        }
+                    }
+                    super::update_task_status(&mut task_status, args, &output_artifact_uris)?;
                     status.kind = Some(resources_proto::resource_status::Kind::Task(task_status));
                     Ok(())
                 })

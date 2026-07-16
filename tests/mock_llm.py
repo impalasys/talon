@@ -17,6 +17,8 @@ DELEGATE_TASK_CALL_ID = "call_delegate_task_1"
 DELEGATE_TASK_NAME = "delegate_task"
 CREATE_ARTIFACT_CALL_ID = "call_create_artifact_1"
 CREATE_ARTIFACT_NAME = "create_artifact"
+UPDATE_TASK_CALL_ID = "call_update_task_1"
+UPDATE_TASK_NAME = "update_task"
 READ_ARTIFACT_CALL_ID = "call_read_artifact_1"
 READ_ARTIFACT_NAME = "read_artifact"
 SCENARIO_DIR = Path(__file__).resolve().parent / "fixtures" / "mock_llm_scenarios"
@@ -96,15 +98,35 @@ def last_message(messages):
 
 def last_message_text(messages):
     message = last_message(messages)
-    content = message.get("content", "")
-    return content if isinstance(content, str) else ""
+    return message_text(message)
+
+
+def message_text(message):
+    content = message.get("content", message.get("parts", ""))
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for part in content:
+            if isinstance(part, str):
+                parts.append(part)
+            elif isinstance(part, dict):
+                text = part.get("text") or part.get("content")
+                if isinstance(text, str):
+                    parts.append(text)
+        return "\n".join(parts)
+    return ""
+
+
+def all_message_text(messages):
+    return "\n".join(message_text(message) for message in messages)
 
 
 def system_message_text(messages):
     return "\n".join(
-        message.get("content", "")
+        message_text(message)
         for message in messages
-        if message.get("role") == "system" and isinstance(message.get("content"), str)
+        if message.get("role") == "system"
     )
 
 
@@ -123,6 +145,10 @@ def should_emit_tool_call(messages, tools):
 def collect_scenario_vars(rule, messages):
     text = last_message_text(messages)
     values = {"artifact_uri": artifact_uri_from_text(text)}
+    task_ref = task_ref_from_messages(messages)
+    if task_ref:
+        values["task_namespace"] = task_ref[0]
+        values["task_name"] = task_ref[1]
     for capture in rule.get("captures", []):
         match = re.search(capture["pattern"], text, re.IGNORECASE)
         if match:
@@ -208,6 +234,26 @@ def artifact_uri_from_text(text):
     return match.group(0).strip(".,;)") if match else ""
 
 
+def task_ref_from_messages(messages):
+    match = re.search(r"Task ID:\s*([^/\s]+)/([^\s]+)", all_message_text(messages))
+    return (match.group(1), match.group(2).strip(".,;)")) if match else None
+
+
+def should_emit_update_task_output_call(messages, tools):
+    tool_names = {
+        tool.get("function", {}).get("name")
+        for tool in tools
+        if isinstance(tool, dict)
+    }
+    return (
+        UPDATE_TASK_NAME in tool_names
+        and last_message(messages).get("role") == "tool"
+        and last_message(messages).get("tool_call_id") == CREATE_ARTIFACT_CALL_ID
+        and bool(task_ref_from_messages(messages))
+        and bool(artifact_uri_from_text(last_message_text(messages)))
+    )
+
+
 def should_emit_read_artifact_call(messages, tools):
     tool_names = {
         tool.get("function", {}).get("name")
@@ -241,6 +287,7 @@ def is_tool_followup(messages):
         BLOCKING_TOOL_CALL_ID,
         DELEGATE_TASK_CALL_ID,
         CREATE_ARTIFACT_CALL_ID,
+        UPDATE_TASK_CALL_ID,
         READ_ARTIFACT_CALL_ID,
     }
 
@@ -347,6 +394,22 @@ def build_create_artifact_call_response(model, messages):
         tool_call_id=CREATE_ARTIFACT_CALL_ID,
         tool_name=CREATE_ARTIFACT_NAME,
         arguments=artifact_arguments_for_task(last_message_text(messages)),
+    )
+
+
+def build_update_task_output_call_response(model, messages):
+    task_namespace, task_name = task_ref_from_messages(messages)
+    return tool_call_response_payload(
+        model,
+        tool_call_id=UPDATE_TASK_CALL_ID,
+        tool_name=UPDATE_TASK_NAME,
+        arguments={
+            "namespace": task_namespace,
+            "name": task_name,
+            "phase": "NEEDS_REVIEW",
+            "progress_summary": "Created onboarding artifact for review.",
+            "output_artifact_uri": artifact_uri_from_text(last_message_text(messages)),
+        },
     )
 
 
@@ -553,6 +616,8 @@ async def chat_completions(request: Request):
         reply = None
     elif should_emit_delegated_artifact_call(messages, tools):
         reply = None
+    elif should_emit_update_task_output_call(messages, tools):
+        reply = None
     elif should_emit_read_artifact_call(messages, tools):
         reply = None
     elif should_emit_tool_call(messages, tools):
@@ -563,6 +628,8 @@ async def chat_completions(request: Request):
             reply = "I delegated the onboarding task."
         elif tool_call_id == CREATE_ARTIFACT_CALL_ID:
             reply = "I created the onboarding checklist artifact."
+        elif tool_call_id == UPDATE_TASK_CALL_ID:
+            reply = "I attached the onboarding artifact to the task."
         elif tool_call_id == READ_ARTIFACT_CALL_ID:
             reply = "I read the delegated artifact."
         elif tool_call_id == BLOCKING_TOOL_CALL_ID:
@@ -614,6 +681,23 @@ async def chat_completions(request: Request):
                     tool_call_id=CREATE_ARTIFACT_CALL_ID,
                     tool_name=CREATE_ARTIFACT_NAME,
                     arguments=artifact_arguments_for_task(last_message_text(messages)),
+                ):
+                    yield chunk
+                return
+
+            if should_emit_update_task_output_call(messages, tools):
+                task_namespace, task_name = task_ref_from_messages(messages)
+                async for chunk in stream_tool_call_response(
+                    model,
+                    tool_call_id=UPDATE_TASK_CALL_ID,
+                    tool_name=UPDATE_TASK_NAME,
+                    arguments={
+                        "namespace": task_namespace,
+                        "name": task_name,
+                        "phase": "NEEDS_REVIEW",
+                        "progress_summary": "Created onboarding artifact for review.",
+                        "output_artifact_uri": artifact_uri_from_text(last_message_text(messages)),
+                    },
                 ):
                     yield chunk
                 return
@@ -680,6 +764,9 @@ async def chat_completions(request: Request):
 
     if should_emit_delegated_artifact_call(messages, tools):
         return JSONResponse(content=build_create_artifact_call_response(model, messages))
+
+    if should_emit_update_task_output_call(messages, tools):
+        return JSONResponse(content=build_update_task_output_call_response(model, messages))
 
     if should_emit_read_artifact_call(messages, tools):
         return JSONResponse(
