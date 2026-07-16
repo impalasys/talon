@@ -21,11 +21,7 @@ pub(super) fn register(registry: &mut ToolRegistry) {
                 "labels": { "type": "object", "additionalProperties": { "type": "string" } },
                 "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
             },
-            "required": ["title"],
-            "anyOf": [
-                { "required": ["content"] },
-                { "required": ["content_base64"] }
-            ]
+            "required": ["title"]
         }),
     );
     registry.register_builtin(
@@ -50,11 +46,7 @@ pub(super) fn register(registry: &mut ToolRegistry) {
                 "content": { "type": "string", "description": "Full text content to store. Required unless content_base64 is provided." },
                 "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." }
             },
-            "required": ["artifact_uri"],
-            "anyOf": [
-                { "required": ["content"] },
-                { "required": ["content_base64"] }
-            ]
+            "required": ["artifact_uri"]
         }),
     );
     registry.register_builtin(
@@ -127,5 +119,37 @@ pub(super) async fn execute(
                 .map(Some)
         }
         _ => Ok(None),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_no_top_level_composition(schema: &Value) {
+        for keyword in ["anyOf", "oneOf", "allOf", "not"] {
+            assert!(
+                schema.get(keyword).is_none(),
+                "OpenAI function schemas reject top-level {keyword}: {schema}"
+            );
+        }
+    }
+
+    #[test]
+    fn artifact_tool_schemas_are_openai_compatible() {
+        let mut registry = ToolRegistry::new();
+        register(&mut registry);
+
+        let create = registry
+            .get_tool(super::super::CREATE_ARTIFACT_TOOL)
+            .expect("create_artifact should be registered");
+        let update = registry
+            .get_tool(super::super::UPDATE_ARTIFACT_TOOL)
+            .expect("update_artifact should be registered");
+
+        assert_eq!(create.input_schema["type"], "object");
+        assert_eq!(update.input_schema["type"], "object");
+        assert_no_top_level_composition(&create.input_schema);
+        assert_no_top_level_composition(&update.input_schema);
     }
 }
