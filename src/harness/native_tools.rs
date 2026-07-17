@@ -62,9 +62,9 @@ pub const LIST_MEMORY_TOOL: &str = "list_memory";
 pub const CREATE_MEMORY_TOOL: &str = "create_memory";
 pub const UPDATE_MEMORY_TOOL: &str = "update_memory";
 
-const OP_READ: &str = "read";
-const OP_METADATA: &str = "metadata";
-const OP_PROMOTE: &str = "promote";
+pub(super) const OP_READ: &str = "read";
+pub(super) const OP_METADATA: &str = "metadata";
+pub(super) const OP_PROMOTE: &str = "promote";
 const MAX_ACCESS_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
 
 pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
@@ -1797,23 +1797,93 @@ async fn delegate_task(
         .trim()
         .to_string();
     let name = unique_task_name(&title);
-    delegation::create_delegated_task(
+    let req = delegation::TaskDelegationRequest {
+        namespace,
+        name,
+        title,
+        description,
+        task_type,
+        owner_namespace: current_namespace.to_string(),
+        owner_name: current_agent.to_string(),
+        owner_session_id: current_session.to_string(),
+        connection_name: target.connection_name.clone(),
+        delegate_namespace: target.target_namespace,
+        delegate_name: target.target_agent,
+    };
+    let task = delegation::create_delegated_task(cp, req.clone()).await?;
+    let labels = delegation::task_execution_labels(&req);
+    let alias = format!("{}-1", req.connection_name);
+    let opened = a2a_tools::open_or_reuse_wire(
         cp,
-        delegation::TaskDelegationRequest {
-            namespace,
-            name,
-            title,
-            description,
-            task_type,
-            owner_namespace: current_namespace.to_string(),
-            owner_name: current_agent.to_string(),
-            owner_session_id: current_session.to_string(),
-            connection_name: target.connection_name,
-            delegate_namespace: target.target_namespace,
-            delegate_name: target.target_agent,
-        },
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        &req.connection_name,
+        &alias,
+        labels.clone(),
     )
     .await
+    .inspect_err(|err| {
+        tracing::warn!(
+            task_namespace = %req.namespace,
+            task_name = %req.name,
+            error = %err,
+            "failed to open delegated Task A2A wire"
+        );
+    });
+    let opened = match opened {
+        Ok(opened) => opened,
+        Err(err) => {
+            let _ = delegation::mark_task_dispatch_failed(cp, &req, &err.to_string()).await;
+            return Err(err);
+        }
+    };
+    let sent = a2a_tools::send_wire_message(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &opened.alias,
+        &delegation::delegated_task_message(&req),
+        &[],
+        labels,
+    )
+    .await
+    .inspect_err(|err| {
+        tracing::warn!(
+            task_namespace = %req.namespace,
+            task_name = %req.name,
+            error = %err,
+            "failed to send delegated Task over A2A wire"
+        );
+    });
+    let sent = match sent {
+        Ok(sent) => sent,
+        Err(err) => {
+            let _ = delegation::mark_task_dispatch_failed(cp, &req, &err.to_string()).await;
+            return Err(err);
+        }
+    };
+    match delegation::mark_task_execution_started(
+        cp,
+        &req,
+        &sent.reference.session_id,
+        sent.submission_id.as_deref(),
+    )
+    .await
+    {
+        Ok(task) => Ok(task),
+        Err(err) => {
+            tracing::warn!(
+                task_namespace = %req.namespace,
+                task_name = %req.name,
+                error = %err,
+                "failed to update delegated Task execution status after A2A wire send"
+            );
+            Ok(task)
+        }
+    }
 }
 
 fn task_resource_from_task(task: resources_proto::Task) -> resources_proto::Resource {
@@ -3191,7 +3261,7 @@ mod tests {
     }
 
     #[test]
-    fn agent_channel_schemas_use_internal_a2a_connection_enum_without_task_capability() {
+    fn agent_wire_schemas_use_internal_a2a_connection_enum_without_task_capability() {
         let mut registry = ToolRegistry::new();
         let mut spec = manifests::AgentSpec::default();
         spec.a2a = Some(manifests::A2a {
@@ -3589,6 +3659,151 @@ mod tests {
         assert!(cross_namespace_update_denied
             .to_string()
             .contains("only the owning artifact namespace/agent/session"));
+    }
+
+    #[tokio::test]
+    async fn agent_send_with_artifact_uri_grants_receiver_artifact_access() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        seed_agent(kv.as_ref(), "Tenant:acme:Workspace:main", "writer").await;
+        seed_agent(kv.as_ref(), "Tenant:acme:Workspace:main", "critic").await;
+        seed_session(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "writer-session",
+        )
+        .await;
+        let cp = control_plane(kv.clone(), scheduler);
+        let writer_spec = task_spec_with_internal_connection(
+            &[],
+            "critic",
+            "Tenant:acme:Workspace:main",
+            "critic",
+        );
+
+        let opened = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "writer-session",
+            &writer_spec,
+            AGENT_OPEN_TOOL,
+            &json!({"connection": "critic"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let opened: Value = serde_json::from_str(&opened).unwrap();
+        assert_eq!(opened["name"], "critic-1");
+        let critic_ref = a2a_tools::load_wire_ref(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "writer-session",
+            "critic-1",
+        )
+        .await
+        .unwrap()
+        .expect("critic wire should exist");
+
+        let artifact = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "writer-session",
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "Draft",
+                "content": "# Draft\n\nPlease review.",
+                "media_type": "text/markdown"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let artifact: Value = serde_json::from_str(&artifact).unwrap();
+        let artifact_uri = artifact["artifactUri"].as_str().unwrap();
+        let artifact_id = artifact["artifact"]["id"].as_str().unwrap();
+
+        let denied = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "critic",
+            &critic_ref.session_id,
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({ "artifact_uri": artifact_uri }),
+        )
+        .await
+        .unwrap_err();
+        assert!(denied.to_string().contains("artifact access denied"));
+
+        let sent = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "writer-session",
+            &writer_spec,
+            AGENT_SEND_TOOL,
+            &json!({
+                "target": "critic-1",
+                "message": "Please review the draft.",
+                "artifact_uri": artifact_uri
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(!sent.contains("Please review the draft."));
+        assert!(!sent.contains(artifact_uri));
+        let sent: Value = serde_json::from_str(&sent).unwrap();
+        assert_eq!(sent["status"], "DISPATCHED");
+        assert_eq!(sent["artifactCount"], 1);
+
+        let access = kv
+            .get_msg::<data_proto::ArtifactAccess>(&keys::artifact_access(
+                "Tenant:acme:Workspace:main",
+                "writer",
+                "writer-session",
+                artifact_id,
+                "critic",
+                &critic_ref.session_id,
+            ))
+            .await
+            .unwrap()
+            .expect("agent_send should grant artifact access to target session");
+        assert_eq!(access.operations, vec!["read", "metadata"]);
+        assert_eq!(access.granted_by_agent, "writer");
+        assert_eq!(access.granted_by_session_id, "writer-session");
+
+        let read = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "critic",
+            &critic_ref.session_id,
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({ "artifact_uri": artifact_uri }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let read: Value = serde_json::from_str(&read).unwrap();
+        assert_eq!(read["content"], "# Draft\n\nPlease review.");
+
+        let messages = session_text_messages(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "critic",
+            &critic_ref.session_id,
+        )
+        .await;
+        assert_eq!(messages.len(), 1);
+        assert!(messages[0].starts_with("From @owner:\n\nPlease review the draft."));
+        assert!(messages[0].contains("Attached artifacts:"));
+        assert!(messages[0].contains(artifact_uri));
     }
 
     #[tokio::test]
@@ -4076,6 +4291,13 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
         seed_agent(kv.as_ref(), "Tenant:acme:Operations", "support-agent").await;
+        seed_session(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+        )
+        .await;
         let cp = control_plane(kv.clone(), scheduler);
         let spec = task_spec_with_internal_connection(
             &["inspect", "create"],
@@ -4135,6 +4357,23 @@ mod tests {
         assert_eq!(
             child_session.labels.get(delegation::LABEL_A2A_CONNECTION),
             Some(&"support".to_string())
+        );
+        let owner_session = kv
+            .get_msg::<data_proto::Session>(&keys::session(
+                "Tenant:acme:Workspace:main",
+                "ops-lead",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .expect("owner session should exist");
+        let expected_wire_ref = format!("Tenant:acme:Operations/support-agent/{child_session_id}");
+        assert_eq!(
+            owner_session
+                .metadata
+                .get("wire.a2a.talon.impalasys.com/support-1")
+                .map(String::as_str),
+            Some(expected_wire_ref.as_str())
         );
 
         let store = ResourceStore::new(kv.clone(), Arc::new(EmptyPubSub));
@@ -4287,7 +4526,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn delegate_task_failure_wakes_owner_session() {
+    async fn delegate_task_failure_does_not_auto_notify_owner_session() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
         seed_agent(kv.as_ref(), "Tenant:acme:Operations", "support-agent").await;
@@ -4367,27 +4606,6 @@ mod tests {
         .await
         .is_empty());
 
-        set_session_status(
-            kv.as_ref(),
-            "Tenant:acme:Workspace:main",
-            "ops-lead",
-            "session-1",
-            "IDLE",
-        )
-        .await;
-        let owner_session = kv
-            .get_msg::<data_proto::Session>(&keys::session(
-                "Tenant:acme:Workspace:main",
-                "ops-lead",
-                "session-1",
-            ))
-            .await
-            .unwrap()
-            .unwrap();
-        delegation::retry_owner_wakes_for_session(&cp, &owner_session)
-            .await
-            .unwrap();
-
         let owner_messages = session_text_messages(
             kv.as_ref(),
             "Tenant:acme:Workspace:main",
@@ -4395,9 +4613,10 @@ mod tests {
             "session-1",
         )
         .await;
-        assert!(owner_messages
-            .iter()
-            .any(|message| message.contains("Delegated Task failed.")));
+        assert!(
+            owner_messages.is_empty(),
+            "Task completion must not auto-send owner wake messages; delegates should use agent_send owner"
+        );
     }
 
     #[tokio::test]
@@ -4467,7 +4686,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn nested_delegation_propagates_explicit_artifact_uri_outputs() {
+    async fn nested_delegation_grants_task_output_artifacts_and_notifies_through_agent_send() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
         let namespace = "Tenant:acme:Workspace:main";
@@ -4643,11 +4862,27 @@ mod tests {
             ))
             .await
             .unwrap()
-            .expect("writer output should be granted to router on child completion");
+            .expect("update_task output artifact should grant access to the Task owner");
         assert_eq!(
             router_access.operations,
             vec!["read", "metadata", "promote"]
         );
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "writer",
+            writer_session_id,
+            &manifests::AgentSpec::default(),
+            AGENT_SEND_TOOL,
+            &json!({
+                "target": "owner",
+                "message": "Final memo is ready for router review."
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
 
         let router_artifact = execute_tool_for_session(
             &cp,
@@ -4716,8 +4951,24 @@ mod tests {
             ))
             .await
             .unwrap()
-            .expect("forwarded output should be granted to owner on parent completion");
+            .expect("update_task output artifact should grant access to the parent Task owner");
         assert_eq!(owner_access.operations, vec!["read", "metadata", "promote"]);
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "router",
+            router_session_id,
+            &manifests::AgentSpec::default(),
+            AGENT_SEND_TOOL,
+            &json!({
+                "target": "owner",
+                "message": "Final memo is ready for owner review."
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
 
         let unrelated_owner_access = kv
             .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
@@ -4739,7 +4990,7 @@ mod tests {
             session_text_messages(kv.as_ref(), namespace, "owner", "owner-session").await;
         assert!(owner_messages
             .iter()
-            .any(|message| message.contains(artifact_uri)));
+            .any(|message| message.contains("Final memo is ready for owner review.")));
     }
 
     #[tokio::test]
