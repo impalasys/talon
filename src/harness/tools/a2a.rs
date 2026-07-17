@@ -375,6 +375,9 @@ pub(super) async fn send_wire_message(
         )
         .await?;
     }
+    if message.trim().is_empty() && artifact_uris.is_empty() {
+        return Err(anyhow!("message content or artifact URIs are required"));
+    }
 
     let sender_alias = sender_alias_for_target(
         cp,
@@ -666,24 +669,24 @@ async fn sender_alias_for_target(
     else {
         return Ok(current_agent.to_string());
     };
-    let current = AgentWireRef {
-        namespace: current_namespace.to_string(),
-        agent: current_agent.to_string(),
-        session_id: current_session.to_string(),
-    };
     for (key, value) in &session.metadata {
         let Some(alias) = key.strip_prefix(A2A_WIRE_METADATA_PREFIX) else {
             continue;
         };
-        if decode_wire_ref(value).ok().as_ref() == Some(&current) {
-            return Ok(alias.to_string());
+        if let Ok(wire_ref) = decode_wire_ref(value) {
+            if wire_ref.namespace == current_namespace
+                && wire_ref.agent == current_agent
+                && wire_ref.session_id == current_session
+            {
+                return Ok(alias.to_string());
+            }
         }
     }
     Ok(current_agent.to_string())
 }
 
 fn wire_message(sender_alias: &str, message: &str, artifact_uris: &[String]) -> String {
-    let message = message_with_artifacts(message, artifact_uris);
+    let message = message_with_artifacts(message.trim(), artifact_uris);
     format!("From @{sender_alias}:\n\n{message}")
 }
 
@@ -723,7 +726,8 @@ async fn queued_message_status(
     for (key, bytes) in entries {
         let entry_id = keys::direct_child_name(&prefix, &key).unwrap_or_default();
         let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
-        if message_id.is_none_or(|id| id == message.id || id == entry_id) {
+        if message_id.is_none_or(|id| id == message.id || id == entry_id || entry_id.ends_with(id))
+        {
             pending_entry_ids.push(entry_id);
         }
     }
@@ -744,8 +748,9 @@ async fn active_message_id(
     let mut submissions = Vec::new();
     for (_, bytes) in entries {
         let submission = data_proto::SessionSubmission::decode(bytes.as_slice())?;
-        if message_id.is_none_or(|id| submission.user_message_id == id)
-            && !session_submission_is_terminal(&submission)
+        if message_id.is_none_or(|id| {
+            submission.user_message_id == id || id.ends_with(&submission.user_message_id)
+        }) && !session_submission_is_terminal(&submission)
         {
             submissions.push(submission);
         }
