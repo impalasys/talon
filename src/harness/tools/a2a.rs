@@ -333,6 +333,24 @@ pub(super) async fn open_or_reuse_wire(
     })
 }
 
+pub(super) async fn load_wire_ref(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    alias: &str,
+) -> Result<Option<AgentWireRef>> {
+    let alias = normalize_agent_uri(alias)?;
+    load_wire(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &alias,
+    )
+    .await
+}
+
 pub(super) async fn send_wire_message(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -671,7 +689,8 @@ async fn queued_message_status(
     for (key, bytes) in entries {
         let entry_id = keys::direct_child_name(&prefix, &key).unwrap_or_default();
         let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
-        if message_id.is_none_or(|id| id == message.id || id == entry_id) {
+        if message_id.is_none_or(|id| id == message.id || id == entry_id || entry_id.ends_with(id))
+        {
             pending_entry_ids.push(entry_id);
         }
     }
@@ -692,8 +711,9 @@ async fn active_message_id(
     let mut submissions = Vec::new();
     for (_, bytes) in entries {
         let submission = data_proto::SessionSubmission::decode(bytes.as_slice())?;
-        if message_id.is_none_or(|id| submission.user_message_id == id)
-            && !session_submission_is_terminal(&submission)
+        if message_id.is_none_or(|id| {
+            submission.user_message_id == id || id.ends_with(&submission.user_message_id)
+        }) && !session_submission_is_terminal(&submission)
         {
             submissions.push(submission);
         }
