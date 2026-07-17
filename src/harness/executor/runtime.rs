@@ -52,6 +52,12 @@ pub struct LoopMessage {
     pub tool_call_id: Option<String>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ExecutedToolCall {
+    result: String,
+    stop_after_result: bool,
+}
+
 impl LoopMessage {
     pub fn text(role: impl Into<String>, content: impl Into<String>) -> Self {
         let content = content.into();
@@ -735,6 +741,7 @@ impl AgentExecutor {
             context.push(assistant_message);
 
             if !tool_calls.is_empty() {
+                let mut stop_after_tool_result = None;
                 for tool in &tool_calls {
                     let input = Self::tool_call_input(tool);
                     let tool_type = self.tool_type(&tool.name).await;
@@ -753,10 +760,12 @@ impl AgentExecutor {
                     )
                     .await?;
                     sink.on_tool_call(&tool.id, &tool.name, &input).await;
-                    let result = self
+                    let executed = self
                         .execute_tool_call_result(tool)
                         .instrument(tool_span.clone())
                         .await;
+                    let stop_after_result = executed.stop_after_result;
+                    let result = executed.result;
                     telemetry::record_tool_result(&tool_span, &result);
                     sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
@@ -772,6 +781,14 @@ impl AgentExecutor {
                     .await?;
                     sink.on_tool_result(&tool.id, &tool.name, &result).await;
                     context.push(tool_result_loop_message(&tool.id, &result));
+                    if stop_after_result {
+                        stop_after_tool_result = Some(result);
+                        break;
+                    }
+                }
+                if let Some(result) = stop_after_tool_result {
+                    sink.on_done().await;
+                    return Ok(result);
                 }
                 continue;
             }
@@ -783,8 +800,8 @@ impl AgentExecutor {
 
     pub async fn execute_tool_call(&self, tool: &ToolCall) -> (Value, String) {
         let input = Self::tool_call_input(tool);
-        let result = self.execute_tool_call_result(tool).await;
-        (input, result)
+        let executed = self.execute_tool_call_result(tool).await;
+        (input, executed.result)
     }
 
     pub fn tool_call_input(tool: &ToolCall) -> Value {
@@ -811,12 +828,19 @@ impl AgentExecutor {
         }
     }
 
-    async fn execute_tool_call_result(&self, tool: &ToolCall) -> String {
-        let result = match self.execute_tool(&tool.name, &tool.arguments).await {
-            Ok(result) => result,
-            Err(error) => tool_error_result(&tool.name, &error),
-        };
-        result
+    async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
+        match self.execute_tool(&tool.name, &tool.arguments).await {
+            Ok(result) => ExecutedToolCall {
+                result,
+                stop_after_result: crate::harness::native_tools::tool_requests_worker_stop(
+                    &tool.name,
+                ),
+            },
+            Err(error) => ExecutedToolCall {
+                result: tool_error_result(&tool.name, &error),
+                stop_after_result: false,
+            },
+        }
     }
 
     async fn execute_tool(&self, name: &str, input: &str) -> Result<String> {
@@ -854,9 +878,9 @@ mod tests {
         LoopMessage,
     };
     use crate::control::config::Config;
-    use crate::control::ControlPlane;
+    use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
     use crate::gateway::rpc::{
-        manifests,
+        data_proto, manifests,
         protobuf_value::{value::Kind as ProtoValueKind, ListValue, Value as ProtoValue},
     };
     use crate::harness::llm::provider::{
@@ -865,6 +889,7 @@ mod tests {
     };
     use crate::harness::memory::Embedding;
     use crate::harness::skills::registry::ToolRegistry;
+    use crate::test_support::{MockKvStore, RecordingPubSub};
     use anyhow::Result;
     use async_trait::async_trait;
     use serde_json::json;
@@ -964,6 +989,155 @@ mod tests {
         async fn completion(&self, prompt: &str) -> Result<String> {
             Ok(prompt.to_string())
         }
+    }
+
+    struct WaitToolThenReplyLlm {
+        seen_messages: Arc<Mutex<Vec<Vec<ChatMessage>>>>,
+        call_count: Arc<Mutex<usize>>,
+    }
+
+    impl Default for WaitToolThenReplyLlm {
+        fn default() -> Self {
+            Self {
+                seen_messages: Arc::new(Mutex::new(Vec::new())),
+                call_count: Arc::new(Mutex::new(0)),
+            }
+        }
+    }
+
+    #[async_trait]
+    impl LlmProvider for WaitToolThenReplyLlm {
+        async fn generate_embedding(&self, _text: &str) -> Result<Embedding> {
+            Ok(vec![0.0; 8])
+        }
+
+        async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
+            unreachable!("stream_chat_completion is used in this test");
+        }
+
+        async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+            self.seen_messages
+                .lock()
+                .unwrap()
+                .push(request.messages.clone());
+            let mut call_count = self.call_count.lock().unwrap();
+            let stream = if *call_count == 0 {
+                *call_count += 1;
+                Box::pin(futures::stream::iter(vec![Ok(tool_call_delta_event(
+                    crate::harness::llm::provider::ToolCallDelta {
+                        index: 0,
+                        id: Some("tool-1".to_string()),
+                        name: Some(
+                            crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL.to_string(),
+                        ),
+                        arguments: Some("{\"target\":\"critic-1\"}".to_string()),
+                    },
+                ))])) as ChatStream
+            } else {
+                Box::pin(futures::stream::once(async {
+                    Ok(text_delta_event("recovered after wait error".to_string()))
+                })) as ChatStream
+            };
+            Ok(stream)
+        }
+
+        async fn completion(&self, prompt: &str) -> Result<String> {
+            Ok(prompt.to_string())
+        }
+    }
+
+    struct WaitThenScheduleLlm {
+        seen_messages: Arc<Mutex<Vec<Vec<ChatMessage>>>>,
+    }
+
+    impl Default for WaitThenScheduleLlm {
+        fn default() -> Self {
+            Self {
+                seen_messages: Arc::new(Mutex::new(Vec::new())),
+            }
+        }
+    }
+
+    #[async_trait]
+    impl LlmProvider for WaitThenScheduleLlm {
+        async fn generate_embedding(&self, _text: &str) -> Result<Embedding> {
+            Ok(vec![0.0; 8])
+        }
+
+        async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
+            unreachable!("stream_chat_completion is used in this test");
+        }
+
+        async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+            self.seen_messages
+                .lock()
+                .unwrap()
+                .push(request.messages.clone());
+            Ok(Box::pin(futures::stream::iter(vec![
+                Ok(tool_call_delta_event(crate::harness::llm::provider::ToolCallDelta {
+                    index: 0,
+                    id: Some("wait-tool".to_string()),
+                    name: Some(
+                        crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL.to_string(),
+                    ),
+                    arguments: Some("{\"target\":\"critic-1\"}".to_string()),
+                })),
+                Ok(tool_call_delta_event(crate::harness::llm::provider::ToolCallDelta {
+                    index: 1,
+                    id: Some("schedule-tool".to_string()),
+                    name: Some("create_schedule".to_string()),
+                    arguments: Some(
+                        "{\"name\":\"should-not-run\",\"kind\":\"every\",\"interval_seconds\":60,\"input_message\":\"ping\"}"
+                            .to_string(),
+                    ),
+                })),
+            ])))
+        }
+
+        async fn completion(&self, prompt: &str) -> Result<String> {
+            Ok(prompt.to_string())
+        }
+    }
+
+    async fn control_plane_with_wire() -> ControlPlane {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default())).build();
+        kv.set_msg(
+            &keys::session("Tenant:acme:Workspace:main", "writer", "writer-session"),
+            &data_proto::Session {
+                id: "writer-session".to_string(),
+                agent: "writer".to_string(),
+                ns: "Tenant:acme:Workspace:main".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 1,
+                metadata: [(
+                    "wire.a2a.talon.impalasys.com/critic-1".to_string(),
+                    "Tenant:acme:Workspace:main/critic/critic-session".to_string(),
+                )]
+                .into_iter()
+                .collect(),
+                labels: Default::default(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::session("Tenant:acme:Workspace:main", "critic", "critic-session"),
+            &data_proto::Session {
+                id: "critic-session".to_string(),
+                agent: "critic".to_string(),
+                ns: "Tenant:acme:Workspace:main".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 1,
+                metadata: Default::default(),
+                labels: Default::default(),
+            },
+        )
+        .await
+        .unwrap();
+        cp
     }
 
     struct DelayedToolThenReplyLlm {
@@ -1539,6 +1713,129 @@ mod tests {
             .expect("expected a tool observation");
         assert!(observation.contains("\"ok\":false"));
         assert!(observation.contains("interval_seconds must be at least 300"));
+    }
+
+    #[tokio::test]
+    async fn executor_stops_after_wait_for_message_tool_result() {
+        let llm = Arc::new(WaitToolThenReplyLlm::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let spec = manifests::AgentSpec::default();
+        let executor = AgentExecutor::new_with_session(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry.clone(),
+            Arc::new(Config::default()),
+            "Tenant:acme:Workspace:main".to_string(),
+            "writer".to_string(),
+            "writer-session".to_string(),
+            control_plane_with_wire().await,
+            spec.clone(),
+            HashMap::new(),
+        );
+        {
+            let mut reg = registry.write().await;
+            crate::harness::native_tools::register_tools(&mut reg, &spec);
+        }
+
+        let mut context = ExecutionContext::new("writer");
+        context.push(LoopMessage::text("user", "Ask the critic and wait."));
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+
+        assert!(reply.contains("\"status\":\"WAITING\""), "reply={reply}");
+        assert!(reply.contains("Waiting for a message from critic-1."));
+        assert_eq!(*llm.call_count.lock().unwrap(), 1);
+        let events = sink.events();
+        assert!(events.iter().any(|event| matches!(
+            event,
+            AgentEvent::Action { name, .. }
+                if name == crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL
+        )));
+        assert!(events.iter().any(|event| matches!(
+            event,
+            AgentEvent::Observation { name, .. }
+                if name == crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL
+        )));
+        assert!(events.iter().any(|event| matches!(event, AgentEvent::Done)));
+    }
+
+    #[tokio::test]
+    async fn executor_continues_after_invalid_wait_for_message_tool_result() {
+        let llm = Arc::new(WaitToolThenReplyLlm::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let spec = manifests::AgentSpec::default();
+        let executor = AgentExecutor::new_with_session(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry.clone(),
+            Arc::new(Config::default()),
+            "Tenant:acme:Workspace:main".to_string(),
+            "writer".to_string(),
+            "writer-session".to_string(),
+            ControlPlane::noop(),
+            spec.clone(),
+            HashMap::new(),
+        );
+        {
+            let mut reg = registry.write().await;
+            crate::harness::native_tools::register_tools(&mut reg, &spec);
+        }
+
+        let mut context = ExecutionContext::new("writer");
+        context.push(LoopMessage::text("user", "Ask the critic and wait."));
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+
+        assert_eq!(*llm.call_count.lock().unwrap(), 1);
+        assert_eq!(llm.seen_messages.lock().unwrap().len(), 2);
+        assert!(reply.contains("recovered after wait error"));
+    }
+
+    #[tokio::test]
+    async fn executor_does_not_run_later_tool_calls_after_wait_for_message() {
+        let llm = Arc::new(WaitThenScheduleLlm::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let spec = manifests::AgentSpec::default();
+        let executor = AgentExecutor::new_with_session(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry.clone(),
+            Arc::new(Config::default()),
+            "Tenant:acme:Workspace:main".to_string(),
+            "writer".to_string(),
+            "writer-session".to_string(),
+            control_plane_with_wire().await,
+            spec.clone(),
+            HashMap::new(),
+        );
+        {
+            let mut reg = registry.write().await;
+            crate::harness::native_tools::register_tools(&mut reg, &spec);
+        }
+
+        let mut context = ExecutionContext::new("writer");
+        context.push(LoopMessage::text("user", "Ask the critic and wait."));
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+
+        assert!(reply.contains("\"status\":\"WAITING\""), "reply={reply}");
+        assert_eq!(llm.seen_messages.lock().unwrap().len(), 1);
+        let events = sink.events();
+        assert!(events.iter().any(|event| matches!(
+            event,
+            AgentEvent::Action { name, .. }
+                if name == crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL
+        )));
+        assert!(!events.iter().any(|event| matches!(
+            event,
+            AgentEvent::Action { name, .. } if name == "create_schedule"
+        )));
     }
 
     struct SlowStreamingLlm;

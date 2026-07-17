@@ -95,6 +95,7 @@ pub(super) enum SessionCompletionStatus {
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum PreparedSubmissionState {
     ContinueExecution,
+    StopAfterToolResult,
     FinalResponseReady { content: String },
 }
 
@@ -201,6 +202,7 @@ async fn prepare_context_for_claimed_submission(
             });
         }
 
+        let mut stop_after_tool_results = false;
         let mut results_by_call_id = BTreeMap::new();
         while index < journal_entries.len() {
             let entry = &journal_entries[index];
@@ -298,6 +300,14 @@ async fn prepare_context_for_claimed_submission(
             runtime
                 .context
                 .push(tool_result_loop_message(&tool.id, &result));
+            stop_after_tool_results |=
+                crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
+        }
+        if stop_after_tool_results {
+            return Ok(PreparedSubmission {
+                state: PreparedSubmissionState::StopAfterToolResult,
+                projection_parts,
+            });
         }
     }
 
@@ -720,6 +730,10 @@ impl WorkerEventHandler {
                 prepared_submission.state
             {
                 sink.seed_recovered_final_text_part(&content);
+                sink.on_done().await;
+                return Ok((SessionCompletionStatus::Completed, sink.summary()));
+            }
+            if prepared_submission.state == PreparedSubmissionState::StopAfterToolResult {
                 sink.on_done().await;
                 return Ok((SessionCompletionStatus::Completed, sink.summary()));
             }

@@ -103,6 +103,21 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
             "required": ["target"]
         }),
     );
+
+    registry.register_builtin(
+        super::AGENT_WAIT_FOR_MESSAGE_TOOL,
+        "Stop this worker turn while waiting for a message from an opened A2A agent wire. Use this after agent_send when you need the other agent to respond.",
+        json!({
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string",
+                    "description": "Opened wire name, such as critic-1. In child sessions, owner refers to the session that opened this wire."
+                }
+            },
+            "required": ["target"]
+        }),
+    );
 }
 
 pub(super) async fn execute(
@@ -132,6 +147,11 @@ pub(super) async fn execute(
         }
         super::AGENT_STATUS_TOOL => {
             agent_status(cp, current_namespace, current_agent, current_session, args)
+                .await
+                .map(Some)
+        }
+        super::AGENT_WAIT_FOR_MESSAGE_TOOL => {
+            agent_wait_for_message(cp, current_namespace, current_agent, current_session, args)
                 .await
                 .map(Some)
         }
@@ -249,6 +269,52 @@ async fn agent_status(
     });
 
     Ok(format!("{}\n{}", serde_json::to_string(&summary)?, detail))
+}
+
+async fn agent_wait_for_message(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<String> {
+    let target_alias = normalize_agent_uri(super::req_str(args, "target")?)?;
+    let target = load_wire(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &target_alias,
+    )
+    .await?
+    .ok_or_else(|| anyhow!("agent wire '{}' is not open", target_alias))?;
+
+    let session = cp
+        .kv
+        .get_msg::<data_proto::Session>(&keys::session(
+            &target.namespace,
+            &target.agent,
+            &target.session_id,
+        ))
+        .await?
+        .ok_or_else(|| anyhow!("target agent session '{}' not found", target.session_id))?;
+    let queue = queued_message_status(cp, &target, None).await?;
+    let active = active_message_id(cp, &target, None).await?;
+    let pending = queue.pending_count;
+    let wire_status = wire_status(&session, pending, active.as_deref());
+    let summary = json!({
+        "status": "WAITING",
+        "target": target_alias,
+        "wireStatus": wire_status,
+        "pending": pending,
+        "active": active,
+    });
+
+    Ok(format!(
+        "{}\nWaiting for a message from {}. The worker will stop this turn and resume when an inbound message is dispatched; do not poll agent_status.",
+        serde_json::to_string(&summary)?,
+        target_alias
+    ))
 }
 
 pub(super) async fn open_or_reuse_wire(
