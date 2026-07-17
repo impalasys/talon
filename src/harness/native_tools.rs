@@ -4959,7 +4959,7 @@ mod tests {
             .expect("update_task output artifact should grant access to the parent Task owner");
         assert_eq!(owner_access.operations, vec!["read", "metadata", "promote"]);
 
-        execute_tool_for_session(
+        let owner_send = execute_tool_for_session(
             &cp,
             namespace,
             "router",
@@ -4974,6 +4974,9 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
+        let owner_send: Value = serde_json::from_str(&owner_send).unwrap();
+        assert_eq!(owner_send["status"], "QUEUED");
+        assert!(owner_send["messageId"].is_null());
 
         let unrelated_owner_access = kv
             .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
@@ -4990,6 +4993,21 @@ mod tests {
             unrelated_owner_access.is_none(),
             "completion must not scan and propagate unrelated session artifacts"
         );
+
+        set_session_status(kv.as_ref(), namespace, "owner", "owner-session", "IDLE").await;
+        let dispatched = crate::control::session_queue::dispatch_next_queued_message(
+            kv.as_ref(),
+            cp.pubsub.as_ref(),
+            namespace,
+            "owner",
+            "owner-session",
+            crate::control::session_queue::NEXT_QUEUE,
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap()
+        .expect("queued owner agent_send should dispatch after owner releases");
+        assert!(!dispatched.message_id.is_empty());
 
         let owner_messages =
             session_text_messages(kv.as_ref(), namespace, "owner", "owner-session").await;
