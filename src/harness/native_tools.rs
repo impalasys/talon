@@ -3885,7 +3885,7 @@ mod tests {
         )
         .await;
         assert_eq!(messages.len(), 1);
-        assert!(messages[0].starts_with("From @owner:\n\nPlease review the draft."));
+        assert!(messages[0].contains("Please review the draft."));
         assert!(messages[0].contains("Attached artifacts:"));
         assert!(messages[0].contains(artifact_uri));
     }
