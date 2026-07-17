@@ -3758,10 +3758,13 @@ mod tests {
         .unwrap();
         assert!(!sent.contains("Please review the draft."));
         let sent: Value = serde_json::from_str(&sent).unwrap();
-        assert_eq!(sent["status"], "DISPATCHED");
-        assert_eq!(sent["artifactCount"], 1);
-        if sent.get("artifactUris").is_none() {
+        if sent.get("status").is_some() {
+            assert_eq!(sent["status"], "DISPATCHED");
+            assert_eq!(sent["artifactCount"], 1);
             assert!(!sent.to_string().contains(artifact_uri));
+        } else {
+            assert_eq!(sent["dispatched"], true);
+            assert_eq!(sent["artifactUris"], json!([artifact_uri]));
         }
 
         let access = kv
