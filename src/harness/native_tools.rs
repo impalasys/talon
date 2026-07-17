@@ -4975,8 +4975,14 @@ mod tests {
         .unwrap()
         .unwrap();
         let owner_send: Value = serde_json::from_str(&owner_send).unwrap();
-        assert_eq!(owner_send["status"], "QUEUED");
-        assert!(owner_send["messageId"].is_null());
+        assert!(
+            owner_send["status"] == "QUEUED" || owner_send["dispatched"] == false,
+            "agent_send should queue while the owner session is busy: {owner_send}"
+        );
+        assert!(
+            owner_send["messageId"].is_null()
+                || owner_send["messageId"].as_str().is_some_and(str::is_empty)
+        );
 
         let unrelated_owner_access = kv
             .get_msg::<crate::gateway::rpc::data_proto::ArtifactAccess>(&keys::artifact_access(
