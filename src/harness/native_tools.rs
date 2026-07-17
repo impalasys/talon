@@ -1797,6 +1797,15 @@ async fn delegate_task(
         .trim()
         .to_string();
     let name = unique_task_name(&title);
+    let alias = format!("{}-1", target.connection_name);
+    ensure_delegate_wire_not_busy(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &alias,
+    )
+    .await?;
     let req = delegation::TaskDelegationRequest {
         namespace,
         name,
@@ -1812,7 +1821,6 @@ async fn delegate_task(
     };
     let task = delegation::create_delegated_task(cp, req.clone()).await?;
     let labels = delegation::task_execution_labels(&req);
-    let alias = format!("{}-1", req.connection_name);
     let opened = a2a_tools::open_or_reuse_wire(
         cp,
         current_namespace,
@@ -1884,6 +1892,77 @@ async fn delegate_task(
             Ok(task)
         }
     }
+}
+
+async fn ensure_delegate_wire_not_busy(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    alias: &str,
+) -> Result<()> {
+    let Some(reference) =
+        a2a_tools::load_wire_ref(cp, current_namespace, current_agent, current_session, alias)
+            .await?
+    else {
+        return Ok(());
+    };
+    let Some(session) = cp
+        .kv
+        .get_msg::<data_proto::Session>(&keys::session(
+            &reference.namespace,
+            &reference.agent,
+            &reference.session_id,
+        ))
+        .await?
+    else {
+        return Ok(());
+    };
+    let Some(task_namespace) = session
+        .labels
+        .get(delegation::LABEL_TASK_NAMESPACE)
+        .map(String::as_str)
+    else {
+        return Ok(());
+    };
+    let Some(task_name) = session
+        .labels
+        .get(delegation::LABEL_TASK_NAME)
+        .map(String::as_str)
+    else {
+        return Ok(());
+    };
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let Some(resource) = store.get(task_namespace, "Task", task_name).await? else {
+        return Ok(());
+    };
+    let Some(task) = task_from_resource(resource) else {
+        return Ok(());
+    };
+    let phase = task
+        .status
+        .as_ref()
+        .map(|status| status.phase)
+        .unwrap_or(resources_proto::TaskPhase::Unspecified as i32);
+    if delegate_wire_busy_phase(phase) {
+        return Err(anyhow!(
+            "delegate_task cannot reuse wire '{}' because delegated task '{}/{}' is still {}",
+            alias,
+            task_namespace,
+            task_name,
+            task_phase_name(phase)
+        ));
+    }
+    Ok(())
+}
+
+fn delegate_wire_busy_phase(phase: i32) -> bool {
+    matches!(
+        resources_proto::TaskPhase::try_from(phase).ok(),
+        Some(resources_proto::TaskPhase::Queued)
+            | Some(resources_proto::TaskPhase::Running)
+            | Some(resources_proto::TaskPhase::Blocked)
+    )
 }
 
 fn task_resource_from_task(task: resources_proto::Task) -> resources_proto::Resource {
@@ -4442,6 +4521,122 @@ mod tests {
         .unwrap();
         let listed: Value = serde_json::from_str(&listed).unwrap();
         assert_eq!(listed["tasks"].as_array().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn delegate_task_rejects_same_wire_while_prior_task_is_busy() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        seed_agent(kv.as_ref(), "Tenant:acme:Operations", "support-agent").await;
+        seed_session(
+            kv.as_ref(),
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+        )
+        .await;
+        let cp = control_plane(kv.clone(), scheduler);
+        let spec = task_spec_with_internal_connection(
+            &["inspect", "create", "update"],
+            "support",
+            "Tenant:acme:Operations",
+            "support-agent",
+        );
+
+        let first = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Prepare first checklist",
+                "description": "Create the first checklist.",
+                "connection": "support"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let first: Value = serde_json::from_str(&first).unwrap();
+        let first_task_name = first["task"]["name"].as_str().unwrap();
+        let first_session_id = first["task"]["executionRef"]["sessionId"].as_str().unwrap();
+
+        let busy = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Prepare second checklist",
+                "description": "Create the second checklist.",
+                "connection": "support"
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert!(busy.to_string().contains("still RUNNING"));
+
+        let listed = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            LIST_TASKS_TOOL,
+            &json!({"owner_name": "ops-lead"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let listed: Value = serde_json::from_str(&listed).unwrap();
+        assert_eq!(listed["tasks"].as_array().unwrap().len(), 1);
+
+        execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Operations",
+            "support-agent",
+            first_session_id,
+            &spec,
+            UPDATE_TASK_TOOL,
+            &json!({
+                "namespace": "Tenant:acme:Workspace:main",
+                "name": first_task_name,
+                "phase": "NEEDS_REVIEW",
+                "progress_summary": "Ready for review."
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        let second = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "ops-lead",
+            "session-1",
+            &spec,
+            DELEGATE_TASK_TOOL,
+            &json!({
+                "title": "Prepare second checklist",
+                "description": "Create the second checklist.",
+                "connection": "support"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let second: Value = serde_json::from_str(&second).unwrap();
+        assert_eq!(
+            second["task"]["executionRef"]["sessionId"]
+                .as_str()
+                .unwrap(),
+            first_session_id,
+            "same A2A wire session should be reused once prior task is review-ready"
+        );
     }
 
     #[tokio::test]

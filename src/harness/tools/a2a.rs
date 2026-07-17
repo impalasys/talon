@@ -333,6 +333,24 @@ pub(super) async fn open_or_reuse_wire(
     })
 }
 
+pub(super) async fn load_wire_ref(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    alias: &str,
+) -> Result<Option<AgentWireRef>> {
+    let alias = normalize_agent_uri(alias)?;
+    load_wire(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &alias,
+    )
+    .await
+}
+
 pub(super) async fn send_wire_message(
     cp: &ControlPlane,
     current_namespace: &str,
