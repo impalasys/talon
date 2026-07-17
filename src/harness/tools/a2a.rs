@@ -296,37 +296,28 @@ async fn agent_status(
         .await?
         .ok_or_else(|| anyhow!("target agent session '{}' not found", target.session_id))?;
     let queue = queued_message_status(cp, &target, message_id.as_deref()).await?;
-    let submission = submission_status(cp, &target, message_id.as_deref()).await?;
-    let canonical_message_exists = match message_id.as_deref() {
-        Some(id) => cp
-            .kv
-            .get(&keys::session_message(
-                &target.namespace,
-                &target.agent,
-                &target.session_id,
-                id,
-            ))
-            .await?
-            .is_some(),
-        None => false,
+    let active = active_message_id(cp, &target, message_id.as_deref()).await?;
+    let pending = queue.pending_count;
+    let status = wire_status(&session, pending, active.as_deref());
+    let message_ids = status_message_ids(active.as_deref(), &queue.pending_entry_ids);
+    let detail = if message_ids.is_empty() {
+        format!(
+            "{target_alias} has no active or pending messages. If you are waiting for a reply, please standby and do not poll agent_status."
+        )
+    } else {
+        format!(
+            "{target_alias} is currently {} your message(s) {}. If you are waiting for a reply, please standby and do not poll agent_status.",
+            status_phrase(&status),
+            message_ids.join(", ")
+        )
     };
+    let summary = json!({
+        "status": status,
+        "pending": pending,
+        "active": active,
+    });
 
-    Ok(serde_json::to_string_pretty(&json!({
-        "target": target_alias,
-        "agentUri": format!("{AGENT_URI_PREFIX}{target_alias}"),
-        "namespace": target.namespace,
-        "agent": target.agent,
-        "sessionId": target.session_id,
-        "sessionStatus": session.status,
-        "lastActive": session.last_active,
-        "messageId": message_id,
-        "message": {
-            "queued": queue["messageQueued"].as_bool().unwrap_or(false),
-            "canonicalMessageExists": canonical_message_exists,
-            "submission": submission,
-        },
-        "queue": queue,
-    }))?)
+    Ok(format!("{}\n{}", serde_json::to_string(&summary)?, detail))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -550,11 +541,17 @@ fn message_with_artifacts(message: &str, artifact_uris: &[String]) -> String {
     message
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct QueuedWireStatus {
+    pending_count: usize,
+    pending_entry_ids: Vec<String>,
+}
+
 async fn queued_message_status(
     cp: &ControlPlane,
     target: &AgentWireRef,
     message_id: Option<&str>,
-) -> Result<Value> {
+) -> Result<QueuedWireStatus> {
     let prefix = keys::session_queue_prefix(
         &target.namespace,
         &target.agent,
@@ -562,91 +559,74 @@ async fn queued_message_status(
         session_queue::NEXT_QUEUE,
     );
     let entries = cp.kv.list_entries(&prefix, None).await?;
-    let mut queued_messages = Vec::new();
-    let mut matched = None;
+    let mut pending_entry_ids = Vec::new();
     for (key, bytes) in entries {
         let entry_id = keys::direct_child_name(&prefix, &key).unwrap_or_default();
         let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
-        let item = json!({
-            "entryId": entry_id,
-            "messageId": message.id,
-            "createdAt": message.created_at,
-        });
-        if message_id.is_some_and(|id| id == message.id) {
-            matched = Some(item.clone());
+        if message_id.is_none_or(|id| id == message.id || id == entry_id) {
+            pending_entry_ids.push(entry_id);
         }
-        queued_messages.push(item);
     }
-    let message_queued = message_id.map_or(!queued_messages.is_empty(), |_| matched.is_some());
-    Ok(json!({
-        "name": session_queue::NEXT_QUEUE,
-        "pendingCount": queued_messages.len(),
-        "oldest": queued_messages.first(),
-        "messageQueued": message_queued,
-        "matchedMessage": matched,
-    }))
+    Ok(QueuedWireStatus {
+        pending_count: pending_entry_ids.len(),
+        pending_entry_ids,
+    })
 }
 
-async fn submission_status(
+async fn active_message_id(
     cp: &ControlPlane,
     target: &AgentWireRef,
     message_id: Option<&str>,
-) -> Result<Value> {
+) -> Result<Option<String>> {
     let prefix =
         keys::session_submission_prefix(&target.namespace, &target.agent, &target.session_id);
     let entries = cp.kv.list_entries(&prefix, None).await?;
     let mut submissions = Vec::new();
     for (_, bytes) in entries {
         let submission = data_proto::SessionSubmission::decode(bytes.as_slice())?;
-        if message_id.is_none_or(|id| submission.user_message_id == id) {
+        if message_id.is_none_or(|id| submission.user_message_id == id)
+            && !session_submission_is_terminal(&submission)
+        {
             submissions.push(submission);
         }
     }
-    let latest = submissions
+    Ok(submissions
         .into_iter()
-        .max_by_key(|submission| (submission.created_at, submission.updated_at));
-    Ok(latest
-        .as_ref()
-        .map(session_submission_json)
-        .unwrap_or(Value::Null))
+        .max_by_key(|submission| (submission.created_at, submission.updated_at))
+        .map(|submission| submission.user_message_id))
 }
 
-fn session_submission_json(submission: &data_proto::SessionSubmission) -> Value {
-    json!({
-        "submissionId": submission.submission_id,
-        "userMessageId": submission.user_message_id,
-        "status": session_submission_status_name(submission.status),
-        "currentPhase": session_execution_phase_name(submission.current_phase),
-        "attemptId": submission.attempt_id,
-        "attemptCount": submission.attempt_count,
-        "claimWorkerId": submission.claim_worker_id,
-        "claimExpiresAt": submission.claim_expires_at,
-        "createdAt": submission.created_at,
-        "updatedAt": submission.updated_at,
-        "completedAt": submission.completed_at,
-        "committedMessageId": submission.committed_message_id,
-        "currentJournalEntryId": submission.current_journal_entry_id,
-    })
+fn session_submission_is_terminal(submission: &data_proto::SessionSubmission) -> bool {
+    submission.status == data_proto::SessionSubmissionStatus::Committed as i32
+        || submission.status == data_proto::SessionSubmissionStatus::Failed as i32
+        || submission.status == data_proto::SessionSubmissionStatus::Interrupted as i32
 }
 
-fn session_submission_status_name(status: i32) -> &'static str {
+fn wire_status(session: &data_proto::Session, pending: usize, active: Option<&str>) -> String {
+    if active.is_some() || session.status == "PROCESSING" {
+        "PROCESSING".to_string()
+    } else if pending > 0 {
+        "PENDING".to_string()
+    } else {
+        session.status.clone()
+    }
+}
+
+fn status_phrase(status: &str) -> &'static str {
     match status {
-        value if value == data_proto::SessionSubmissionStatus::Pending as i32 => "PENDING",
-        value if value == data_proto::SessionSubmissionStatus::Claimed as i32 => "CLAIMED",
-        value if value == data_proto::SessionSubmissionStatus::Committed as i32 => "COMMITTED",
-        value if value == data_proto::SessionSubmissionStatus::Failed as i32 => "FAILED",
-        value if value == data_proto::SessionSubmissionStatus::Interrupted as i32 => "INTERRUPTED",
-        _ => "UNSPECIFIED",
+        "PENDING" => "yet to process",
+        "PROCESSING" => "processing",
+        _ => "not processing",
     }
 }
 
-fn session_execution_phase_name(phase: i32) -> &'static str {
-    match phase {
-        value if value == data_proto::SessionExecutionPhase::LlmResponse as i32 => "LLM_RESPONSE",
-        value if value == data_proto::SessionExecutionPhase::ToolResult as i32 => "TOOL_RESULT",
-        value if value == data_proto::SessionExecutionPhase::Committed as i32 => "COMMITTED",
-        _ => "UNSPECIFIED",
+fn status_message_ids(active: Option<&str>, pending_entry_ids: &[String]) -> Vec<String> {
+    let mut ids = Vec::new();
+    if let Some(active) = active {
+        ids.push(active.to_string());
     }
+    ids.extend(pending_entry_ids.iter().cloned());
+    ids
 }
 
 #[cfg(test)]
@@ -722,6 +702,10 @@ mod tests {
             }),
             ..Default::default()
         }
+    }
+
+    fn status_json(output: &str) -> Value {
+        serde_json::from_str(output.lines().next().unwrap()).unwrap()
     }
 
     #[test]
@@ -870,11 +854,11 @@ mod tests {
         )
         .await
         .unwrap();
-        let status: Value = serde_json::from_str(&status).unwrap();
-        assert_eq!(status["sessionStatus"], "PROCESSING");
-        assert_eq!(status["message"]["queued"], false);
-        assert_eq!(status["message"]["canonicalMessageExists"], true);
-        assert_eq!(status["message"]["submission"]["status"], "PENDING");
+        assert!(status.contains("please standby and do not poll agent_status"));
+        let status = status_json(&status);
+        assert_eq!(status["status"], "PROCESSING");
+        assert_eq!(status["pending"], 0);
+        assert_eq!(status["active"], sent["messageId"]);
 
         let queued_while_processing = agent_send(
             &cp,
@@ -900,10 +884,11 @@ mod tests {
         )
         .await
         .unwrap();
-        let queued_status: Value = serde_json::from_str(&queued_status).unwrap();
-        assert_eq!(queued_status["message"]["queued"], true);
-        assert_eq!(queued_status["message"]["canonicalMessageExists"], false);
-        assert_eq!(queued_status["queue"]["pendingCount"], 1);
+        assert!(queued_status.contains("please standby and do not poll agent_status"));
+        let queued_status = status_json(&queued_status);
+        assert_eq!(queued_status["status"], "PROCESSING");
+        assert_eq!(queued_status["pending"], 1);
+        assert_eq!(queued_status["active"], sent["messageId"]);
 
         let mut child = kv
             .get_msg::<data_proto::Session>(&keys::session(
