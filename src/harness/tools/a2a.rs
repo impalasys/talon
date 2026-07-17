@@ -4,6 +4,7 @@
 use anyhow::{anyhow, Result};
 use prost::Message;
 use serde_json::{json, Value};
+use std::collections::HashMap;
 
 use crate::control::{keys, scheduling, session_queue, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, manifests};
@@ -12,6 +13,26 @@ use crate::harness::skills::registry::ToolRegistry;
 const A2A_WIRE_METADATA_PREFIX: &str = "wire.a2a.talon.impalasys.com/";
 const OWNER_ALIAS: &str = "owner";
 const AGENT_URI_PREFIX: &str = "agent://";
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct OpenedAgentWire {
+    pub alias: String,
+    pub connection: String,
+    pub reference: AgentWireRef,
+    pub reused: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct SentAgentWireMessage {
+    pub target_alias: String,
+    pub reference: AgentWireRef,
+    pub queue: String,
+    pub queue_entry_id: String,
+    pub message_id: Option<String>,
+    pub dispatched: bool,
+    pub submission_id: Option<String>,
+    pub artifact_uris: Vec<String>,
+}
 
 pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
     let internal_connections = crate::harness::a2a::internal_connection_names(spec);
@@ -128,72 +149,23 @@ async fn agent_open(
     args: &Value,
 ) -> Result<String> {
     let connection_name = super::req_str(args, "connection")?;
-    let target = crate::harness::a2a::resolve_internal_connection(spec, connection_name)?;
     let alias = match super::opt_str(args, "name") {
         Some(name) => validate_alias(name)?.to_string(),
-        None => default_alias(&target.connection_name),
+        None => default_alias(connection_name),
     };
-
-    if let Some(existing) = load_wire(
+    let opened = open_or_reuse_wire(
         cp,
         current_namespace,
         current_agent,
         current_session,
+        spec,
+        connection_name,
         &alias,
-    )
-    .await?
-    {
-        return Ok(open_response(
-            &alias,
-            &target.connection_name,
-            existing,
-            true,
-        )?);
-    }
-
-    let child_session_id = scheduling::create_session_with_labels(
-        cp,
-        &target.target_namespace,
-        &target.target_agent,
         Default::default(),
     )
     .await?;
 
-    let child = AgentWireRef {
-        namespace: target.target_namespace.clone(),
-        agent: target.target_agent.clone(),
-        session_id: child_session_id,
-    };
-    let owner = AgentWireRef {
-        namespace: current_namespace.to_string(),
-        agent: current_agent.to_string(),
-        session_id: current_session.to_string(),
-    };
-    upsert_session_wire(
-        cp,
-        current_namespace,
-        current_agent,
-        current_session,
-        &alias,
-        &child,
-    )
-    .await?;
-    upsert_session_wire(
-        cp,
-        &target.target_namespace,
-        &target.target_agent,
-        &child.session_id,
-        OWNER_ALIAS,
-        &owner,
-    )
-    .await?;
-
-    Ok(open_response(
-        &alias,
-        &target.connection_name,
-        child,
-        false,
-    )?)
+    Ok(open_response(opened)?)
 }
 
 async fn agent_send(
@@ -205,65 +177,32 @@ async fn agent_send(
 ) -> Result<String> {
     let target_alias = normalize_agent_uri(super::req_str(args, "target")?)?;
     let message = super::req_str(args, "message")?;
-    let target = load_wire(
+    let artifact_uris = requested_artifact_uris(args)?;
+    let sent = send_wire_message(
         cp,
         current_namespace,
         current_agent,
         current_session,
         &target_alias,
-    )
-    .await?
-    .ok_or_else(|| anyhow!("agent wire '{}' is not open", target_alias))?;
-
-    let artifact_uris = requested_artifact_uris(args)?;
-    for artifact_uri in &artifact_uris {
-        grant_artifact_to_session(
-            cp,
-            current_agent,
-            current_session,
-            artifact_uri,
-            &target.agent,
-            &target.session_id,
-        )
-        .await?;
-    }
-
-    let queued_message = message_with_artifacts(message, &artifact_uris);
-    let queued = session_queue::queue_text_message(
-        cp.kv.as_ref(),
-        &target.namespace,
-        &target.agent,
-        &target.session_id,
-        session_queue::NEXT_QUEUE,
-        &queued_message,
+        message,
+        &artifact_uris,
         Default::default(),
-        chrono::Utc::now(),
-    )
-    .await?;
-    let dispatched = session_queue::dispatch_next_queued_message(
-        cp.kv.as_ref(),
-        cp.pubsub.as_ref(),
-        &target.namespace,
-        &target.agent,
-        &target.session_id,
-        session_queue::NEXT_QUEUE,
-        chrono::Utc::now(),
     )
     .await?;
 
     Ok(serde_json::to_string_pretty(&json!({
         "accepted": true,
-        "target": target_alias,
-        "agentUri": format!("{AGENT_URI_PREFIX}{target_alias}"),
-        "namespace": target.namespace,
-        "agent": target.agent,
-        "sessionId": target.session_id,
-        "queue": queued.queue,
-        "queueEntryId": queued.entry_id,
-        "messageId": dispatched.as_ref().map(|entry| entry.message_id.as_str()),
-        "dispatched": dispatched.is_some(),
-        "submissionId": dispatched.as_ref().map(|entry| entry.submission_id.as_str()),
-        "artifactUris": artifact_uris
+        "target": sent.target_alias,
+        "agentUri": format!("{AGENT_URI_PREFIX}{}", sent.target_alias),
+        "namespace": sent.reference.namespace,
+        "agent": sent.reference.agent,
+        "sessionId": sent.reference.session_id,
+        "queue": sent.queue,
+        "queueEntryId": sent.queue_entry_id,
+        "messageId": sent.message_id,
+        "dispatched": sent.dispatched,
+        "submissionId": sent.submission_id,
+        "artifactUris": sent.artifact_uris
     }))?)
 }
 
@@ -320,11 +259,153 @@ async fn agent_status(
     Ok(format!("{}\n{}", serde_json::to_string(&summary)?, detail))
 }
 
+pub(super) async fn open_or_reuse_wire(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    connection_name: &str,
+    alias: &str,
+    labels: HashMap<String, String>,
+) -> Result<OpenedAgentWire> {
+    let target = crate::harness::a2a::resolve_internal_connection(spec, connection_name)?;
+    let alias = validate_alias(alias)?.to_string();
+    if let Some(existing) = load_wire(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &alias,
+    )
+    .await?
+    {
+        refresh_wire_session_labels(cp, &existing, labels).await?;
+        return Ok(OpenedAgentWire {
+            alias,
+            connection: target.connection_name,
+            reference: existing,
+            reused: true,
+        });
+    }
+
+    let child_session_id = scheduling::create_session_with_labels(
+        cp,
+        &target.target_namespace,
+        &target.target_agent,
+        labels,
+    )
+    .await?;
+    let child = AgentWireRef {
+        namespace: target.target_namespace.clone(),
+        agent: target.target_agent.clone(),
+        session_id: child_session_id,
+    };
+    let owner = AgentWireRef {
+        namespace: current_namespace.to_string(),
+        agent: current_agent.to_string(),
+        session_id: current_session.to_string(),
+    };
+    upsert_session_wire(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &alias,
+        &child,
+    )
+    .await?;
+    upsert_session_wire(
+        cp,
+        &target.target_namespace,
+        &target.target_agent,
+        &child.session_id,
+        OWNER_ALIAS,
+        &owner,
+    )
+    .await?;
+
+    Ok(OpenedAgentWire {
+        alias,
+        connection: target.connection_name,
+        reference: child,
+        reused: false,
+    })
+}
+
+pub(super) async fn send_wire_message(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    target_alias: &str,
+    message: &str,
+    artifact_uris: &[String],
+    labels: HashMap<String, String>,
+) -> Result<SentAgentWireMessage> {
+    let target_alias = normalize_agent_uri(target_alias)?;
+    let target = load_wire(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &target_alias,
+    )
+    .await?
+    .ok_or_else(|| anyhow!("agent wire '{}' is not open", target_alias))?;
+
+    for artifact_uri in artifact_uris {
+        grant_artifact_to_session(
+            cp,
+            current_agent,
+            current_session,
+            artifact_uri,
+            &target.agent,
+            &target.session_id,
+        )
+        .await?;
+    }
+
+    let queued_message = message_with_artifacts(message, artifact_uris);
+    let queued = session_queue::queue_text_message(
+        cp.kv.as_ref(),
+        &target.namespace,
+        &target.agent,
+        &target.session_id,
+        session_queue::NEXT_QUEUE,
+        &queued_message,
+        labels,
+        chrono::Utc::now(),
+    )
+    .await?;
+    let dispatched = session_queue::dispatch_next_queued_message(
+        cp.kv.as_ref(),
+        cp.pubsub.as_ref(),
+        &target.namespace,
+        &target.agent,
+        &target.session_id,
+        session_queue::NEXT_QUEUE,
+        chrono::Utc::now(),
+    )
+    .await?;
+
+    Ok(SentAgentWireMessage {
+        target_alias,
+        reference: target,
+        queue: queued.queue,
+        queue_entry_id: queued.entry_id,
+        message_id: dispatched.as_ref().map(|entry| entry.message_id.clone()),
+        dispatched: dispatched.is_some(),
+        submission_id: dispatched.map(|entry| entry.submission_id),
+        artifact_uris: artifact_uris.to_vec(),
+    })
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct AgentWireRef {
-    namespace: String,
-    agent: String,
-    session_id: String,
+pub(super) struct AgentWireRef {
+    pub namespace: String,
+    pub agent: String,
+    pub session_id: String,
 }
 
 fn metadata_key(alias: &str) -> String {
@@ -427,20 +508,47 @@ async fn upsert_session_wire(
     Err(anyhow!("failed to update session A2A wire metadata"))
 }
 
-fn open_response(
-    alias: &str,
-    connection: &str,
-    reference: AgentWireRef,
-    reused: bool,
-) -> Result<String> {
+async fn refresh_wire_session_labels(
+    cp: &ControlPlane,
+    reference: &AgentWireRef,
+    labels: HashMap<String, String>,
+) -> Result<()> {
+    if labels.is_empty() {
+        return Ok(());
+    }
+    let key = keys::session(
+        &reference.namespace,
+        &reference.agent,
+        &reference.session_id,
+    );
+    for _ in 0..8 {
+        let current = cp
+            .kv
+            .get(&key)
+            .await?
+            .ok_or_else(|| anyhow!("session '{}' not found", reference.session_id))?;
+        let mut session = data_proto::Session::decode(current.as_slice())?;
+        session.labels.extend(labels.clone());
+        if cp
+            .kv
+            .compare_and_swap(&key, Some(current.as_slice()), &session.encode_to_vec())
+            .await?
+        {
+            return Ok(());
+        }
+    }
+    Err(anyhow!("failed to update session A2A wire labels"))
+}
+
+fn open_response(opened: OpenedAgentWire) -> Result<String> {
     Ok(serde_json::to_string_pretty(&json!({
-        "agentUri": format!("{AGENT_URI_PREFIX}{alias}"),
-        "name": alias,
-        "connection": connection,
-        "namespace": reference.namespace,
-        "agent": reference.agent,
-        "sessionId": reference.session_id,
-        "reused": reused,
+        "agentUri": format!("{AGENT_URI_PREFIX}{}", opened.alias),
+        "name": opened.alias,
+        "connection": opened.connection,
+        "namespace": opened.reference.namespace,
+        "agent": opened.reference.agent,
+        "sessionId": opened.reference.session_id,
+        "reused": opened.reused,
         "reverseTarget": OWNER_ALIAS
     }))?)
 }

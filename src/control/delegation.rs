@@ -5,9 +5,9 @@ use anyhow::{Context, Result};
 use prost::Message;
 use std::collections::HashMap;
 
-use crate::control::resource_model::{self, TypedResource};
+use crate::control::resource_model;
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, scheduling, ControlPlane, ListOptions, ProtoKeyValueStoreExt};
+use crate::control::{keys, ControlPlane, ListOptions};
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 // Task resource label: marks a Task as created through agent delegation.
@@ -37,17 +37,12 @@ pub const LABEL_TASK_NAMESPACE: &str = "talon.impalasys.com/task-namespace";
 // Delegate session/message label: name of the associated Task resource.
 // Also copied onto owner wake messages so review messages point back to Task.
 pub const LABEL_TASK_NAME: &str = "talon.impalasys.com/task-name";
-// Session/message label: role in the delegation flow, such as delegate or
-// owner-review.
+// Session/message label: role in the delegation flow, such as delegate.
 pub const LABEL_TASK_ROLE: &str = "talon.impalasys.com/task-role";
 
 // Task status condition: tracks whether delegate execution is running,
 // completed, or failed.
 pub const CONDITION_DELEGATED_EXECUTION: &str = "DelegatedExecution";
-// Task status condition: tracks whether the owner session has been notified of
-// review/failure.
-pub const CONDITION_OWNER_WAKE: &str = "OwnerWake";
-
 #[derive(Clone, Debug)]
 pub struct TaskDelegationRequest {
     pub namespace: String,
@@ -110,22 +105,7 @@ pub async fn create_delegated_task(
     let created = store.upsert(&req.namespace, task_resource).await?;
     let task = task_from_resource(created).context("invalid Task after create")?;
 
-    match start_task_execution(cp, &store, &req, task).await {
-        Ok(task) => Ok(task),
-        Err(err) => {
-            let failed =
-                mark_task_failed(&store, &req.namespace, &req.name, &err.to_string()).await;
-            if let Err(mark_err) = failed {
-                tracing::warn!(
-                    task_namespace = %req.namespace,
-                    task_name = %req.name,
-                    error = %mark_err,
-                    "failed to mark delegated Task failed after dispatch error"
-                );
-            }
-            Err(err)
-        }
-    }
+    Ok(task)
 }
 
 pub async fn complete_delegated_task_from_session(
@@ -178,13 +158,6 @@ pub async fn complete_delegated_task_from_session(
     if current_phase == resources_proto::TaskPhase::NeedsReview as i32
         && completion_status == DelegatedSessionCompletion::Completed
     {
-        let task = wake_owner_for_task_review(cp, &store, session, task).await?;
-        return Ok(Some(task));
-    }
-    if current_phase == resources_proto::TaskPhase::Failed as i32
-        && !owner_wake_sent(task.status.as_ref())
-    {
-        let task = wake_owner_for_task_review(cp, &store, session, task).await?;
         return Ok(Some(task));
     }
     if task_phase_is_terminal(current_phase) {
@@ -208,7 +181,6 @@ pub async fn complete_delegated_task_from_session(
 
     let mut skipped_stale = false;
     let mut skipped_existing_phase = false;
-    let mut skipped_should_wake = false;
     let updated =
         patch_task_status_with(&store, task_namespace, task_name, |status, generation| {
             let current_session_id = status
@@ -224,13 +196,10 @@ pub async fn complete_delegated_task_from_session(
                 && completion_status == DelegatedSessionCompletion::Completed
             {
                 skipped_existing_phase = true;
-                skipped_should_wake = !owner_wake_sent(Some(status));
                 return Ok(());
             }
             if task_phase_is_terminal(status.phase) {
                 skipped_existing_phase = true;
-                skipped_should_wake = status.phase == resources_proto::TaskPhase::Failed as i32
-                    && !owner_wake_sent(Some(status));
                 return Ok(());
             }
             status.updated_at = now;
@@ -274,14 +243,9 @@ pub async fn complete_delegated_task_from_session(
     if skipped_stale {
         return Ok(Some(task));
     }
-    if skipped_existing_phase && skipped_should_wake {
-        let task = wake_owner_for_task_review(cp, &store, session, task).await?;
-        return Ok(Some(task));
-    }
     if skipped_existing_phase {
         return Ok(Some(task));
     }
-    let task = wake_owner_for_task_review(cp, &store, session, task).await?;
     Ok(Some(task))
 }
 
@@ -291,96 +255,50 @@ pub enum DelegatedSessionCompletion {
     Failed,
 }
 
-async fn start_task_execution(
+pub async fn mark_task_execution_started(
     cp: &ControlPlane,
-    store: &ResourceStore,
     req: &TaskDelegationRequest,
-    task: resources_proto::Task,
+    session_id: &str,
+    submission_id: Option<&str>,
 ) -> Result<resources_proto::Task> {
-    let labels = task_execution_labels(&req);
-    let session_id = scheduling::create_session_with_labels(
-        cp,
-        &req.delegate_namespace,
-        &req.delegate_name,
-        labels.clone(),
-    )
-    .await
-    .with_context(|| {
-        format!(
-            "failed to create delegated session for {}/{}",
-            req.delegate_namespace, req.delegate_name
-        )
-    })?;
-
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
     let now = chrono::Utc::now().timestamp_micros();
-    let task_name = task.name().to_string();
-    patch_task_status_with(store, &req.namespace, &task_name, |status, generation| {
-        status.phase = resources_proto::TaskPhase::Running as i32;
-        status.progress_summary = "Delegated execution started.".to_string();
-        status.updated_at = now;
-        status.execution_ref = Some(resources_proto::TaskExecutionRef {
-            kind: "AGENT_SESSION".to_string(),
-            namespace: req.delegate_namespace.clone(),
-            name: req.delegate_name.clone(),
-            session_id: session_id.clone(),
-            run_id: String::new(),
-        });
-        set_condition(
-            status,
-            resources_proto::ResourceCondition {
-                r#type: CONDITION_DELEGATED_EXECUTION.to_string(),
-                status: "Unknown".to_string(),
-                reason: "SessionRunning".to_string(),
-                message: "Delegated session is running.".to_string(),
-                last_transition_time: now,
-                observed_generation: generation,
-            },
-        );
-        set_condition(
-            status,
-            resources_proto::ResourceCondition {
-                r#type: CONDITION_OWNER_WAKE.to_string(),
-                status: "False".to_string(),
-                reason: "ExecutionStarted".to_string(),
-                message: "Owner has not yet been notified for this delegated execution."
-                    .to_string(),
-                last_transition_time: now,
-                observed_generation: generation,
-            },
-        );
-        Ok(())
-    })
-    .await?;
-
-    let message = delegated_task_message(&req);
-    let submission_id = scheduling::send_message(
-        cp.kv.as_ref(),
-        cp.pubsub.as_ref(),
-        &req.delegate_namespace,
-        &req.delegate_name,
-        &session_id,
-        &message,
-        labels,
-        chrono::Utc::now(),
-    )
-    .await
-    .with_context(|| {
-        format!(
-            "failed to enqueue delegated Task message for session {}",
-            session_id
-        )
-    })?;
-
-    let updated = patch_task_status_with(store, &req.namespace, &task_name, |status, _| {
-        if let Some(execution_ref) = status.execution_ref.as_mut() {
-            if execution_ref.session_id == session_id {
-                execution_ref.run_id = submission_id.clone();
-            }
-        }
-        Ok(())
-    })
-    .await?;
+    let updated =
+        patch_task_status_with(&store, &req.namespace, &req.name, |status, generation| {
+            status.phase = resources_proto::TaskPhase::Running as i32;
+            status.progress_summary = "Delegated execution started.".to_string();
+            status.updated_at = now;
+            status.execution_ref = Some(resources_proto::TaskExecutionRef {
+                kind: "AGENT_SESSION".to_string(),
+                namespace: req.delegate_namespace.clone(),
+                name: req.delegate_name.clone(),
+                session_id: session_id.to_string(),
+                run_id: submission_id.unwrap_or_default().to_string(),
+            });
+            set_condition(
+                status,
+                resources_proto::ResourceCondition {
+                    r#type: CONDITION_DELEGATED_EXECUTION.to_string(),
+                    status: "Unknown".to_string(),
+                    reason: "SessionRunning".to_string(),
+                    message: "Delegated session is running.".to_string(),
+                    last_transition_time: now,
+                    observed_generation: generation,
+                },
+            );
+            Ok(())
+        })
+        .await?;
     task_from_resource(updated).context("invalid Task after execution start")
+}
+
+pub async fn mark_task_dispatch_failed(
+    cp: &ControlPlane,
+    req: &TaskDelegationRequest,
+    message: &str,
+) -> Result<()> {
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    mark_task_failed(&store, &req.namespace, &req.name, message).await
 }
 
 async fn mark_task_failed(
@@ -475,7 +393,7 @@ fn task_resource_labels(req: &TaskDelegationRequest) -> HashMap<String, String> 
     ])
 }
 
-fn task_execution_labels(req: &TaskDelegationRequest) -> HashMap<String, String> {
+pub fn task_execution_labels(req: &TaskDelegationRequest) -> HashMap<String, String> {
     let mut labels = task_resource_labels(req);
     labels.extend([
         (LABEL_TASK_NAMESPACE.to_string(), req.namespace.clone()),
@@ -504,9 +422,9 @@ fn set_condition(
     }
 }
 
-fn delegated_task_message(req: &TaskDelegationRequest) -> String {
+pub fn delegated_task_message(req: &TaskDelegationRequest) -> String {
     format!(
-        "You have been assigned a Talon Task.\n\nTask: {}\nTask name: {}\nTask ID: {}/{}\nOwner: {}/{}\n\nWhen the work is ready for owner review, attach any output artifact URI with update_task.output_artifact_uri and set phase to NEEDS_REVIEW. Use the Task name above for update_task.name; the full Task ID is only for display.\n\nInstructions:\n{}",
+        "You have been assigned a Talon Task.\n\nTask: {}\nTask name: {}\nTask ID: {}/{}\nOwner: {}/{}\n\nThis Task is your durable work context. Do not rely on a final assistant response to deliver results. When the work is ready for owner review, call update_task with the Task name above, set phase to NEEDS_REVIEW, include a concise progress_summary, and attach any output artifact URI with output_artifact_uri or output_artifact_uris. Task output artifact URIs automatically grant access to the owner session. Then finish the assignment by calling agent_send with target \"owner\" and a short review-ready notification. Use the Task name above for update_task.name; the full Task ID is only for display.\n\nInstructions:\n{}",
         req.title,
         req.name,
         req.namespace,
@@ -560,355 +478,6 @@ async fn latest_assistant_text(
             }
         }
     }
-}
-
-async fn grant_task_output_artifacts_to_owner(
-    cp: &ControlPlane,
-    session: &data_proto::Session,
-    task: &resources_proto::Task,
-) -> Result<usize> {
-    let Some(owner_agent) = session.labels.get(LABEL_OWNER_NAME) else {
-        return Ok(0);
-    };
-    let owner_namespace = session
-        .labels
-        .get(LABEL_OWNER_NAMESPACE)
-        .map(String::as_str)
-        .unwrap_or(session.ns.as_str());
-    let Some(owner_session_id) = session.labels.get(LABEL_OWNER_SESSION_ID) else {
-        return Ok(0);
-    };
-    if owner_namespace.trim().is_empty()
-        || owner_agent.trim().is_empty()
-        || owner_session_id.trim().is_empty()
-    {
-        return Ok(0);
-    }
-
-    let output_artifact_uris = task
-        .status
-        .as_ref()
-        .map(|status| status.output_artifact_uris.as_slice())
-        .unwrap_or_default();
-    let now = chrono::Utc::now().timestamp_micros();
-    let mut granted = 0;
-    for artifact_uri in output_artifact_uris {
-        let Some(artifact_ref) = parse_artifact_uri(artifact_uri) else {
-            tracing::warn!(
-                task_namespace = %task.namespace(),
-                task_name = %task.name(),
-                artifact_uri = %artifact_uri,
-                "skipping malformed Task output artifact URI"
-            );
-            continue;
-        };
-        cp.kv
-            .set_msg(
-                &keys::artifact_access(
-                    &artifact_ref.namespace,
-                    &artifact_ref.agent,
-                    &artifact_ref.session_id,
-                    &artifact_ref.artifact_id,
-                    owner_agent,
-                    owner_session_id,
-                ),
-                &data_proto::ArtifactAccess {
-                    target_agent: owner_agent.clone(),
-                    target_session_id: owner_session_id.clone(),
-                    operations: vec![
-                        "read".to_string(),
-                        "metadata".to_string(),
-                        "promote".to_string(),
-                    ],
-                    expires_at: 0,
-                    granted_by_agent: session.agent.clone(),
-                    granted_by_session_id: session.id.clone(),
-                    created_at: now,
-                },
-            )
-            .await?;
-        granted += 1;
-    }
-    Ok(granted)
-}
-
-struct ArtifactUriRef {
-    namespace: String,
-    agent: String,
-    session_id: String,
-    artifact_id: String,
-}
-
-fn parse_artifact_uri(uri: &str) -> Option<ArtifactUriRef> {
-    let rest = uri.trim().strip_prefix("artifact://")?;
-    let parts = rest.split('/').collect::<Vec<_>>();
-    let [namespace, agent, session_id, artifact_id] = parts.as_slice() else {
-        return None;
-    };
-    if [namespace, agent, session_id, artifact_id]
-        .iter()
-        .any(|part| part.trim().is_empty() || part.chars().any(char::is_control))
-    {
-        return None;
-    }
-    Some(ArtifactUriRef {
-        namespace: (*namespace).to_string(),
-        agent: (*agent).to_string(),
-        session_id: (*session_id).to_string(),
-        artifact_id: (*artifact_id).to_string(),
-    })
-}
-
-async fn wake_owner_for_task_review(
-    cp: &ControlPlane,
-    store: &ResourceStore,
-    session: &data_proto::Session,
-    task: resources_proto::Task,
-) -> Result<resources_proto::Task> {
-    let Some(owner_agent) = session.labels.get(LABEL_OWNER_NAME) else {
-        return Ok(task);
-    };
-    let owner_namespace = session
-        .labels
-        .get(LABEL_OWNER_NAMESPACE)
-        .map(String::as_str)
-        .unwrap_or(session.ns.as_str());
-    let Some(owner_session_id) = session.labels.get(LABEL_OWNER_SESSION_ID) else {
-        return Ok(task);
-    };
-    if owner_namespace.trim().is_empty()
-        || owner_agent.trim().is_empty()
-        || owner_session_id.trim().is_empty()
-    {
-        return Ok(task);
-    }
-
-    if task
-        .status
-        .as_ref()
-        .is_some_and(|status| condition_status(status, CONDITION_OWNER_WAKE) == Some("True"))
-    {
-        return Ok(task);
-    }
-
-    let granted = grant_task_output_artifacts_to_owner(cp, session, &task).await?;
-    let mut message = task_review_message(&task);
-    if granted > 0 {
-        message.push_str(&format!(
-            "\n\nGranted owner access to {granted} artifact output(s)."
-        ));
-    }
-    let labels = HashMap::from([
-        (
-            LABEL_TASK_NAMESPACE.to_string(),
-            task.namespace().to_string(),
-        ),
-        (LABEL_TASK_NAME.to_string(), task.name().to_string()),
-        (LABEL_TASK_ROLE.to_string(), "owner-review".to_string()),
-        (LABEL_DELEGATE_NAMESPACE.to_string(), session.ns.clone()),
-        (LABEL_DELEGATE_NAME.to_string(), session.agent.clone()),
-    ]);
-    match scheduling::send_message(
-        cp.kv.as_ref(),
-        cp.pubsub.as_ref(),
-        owner_namespace,
-        owner_agent,
-        owner_session_id,
-        &message,
-        labels,
-        chrono::Utc::now(),
-    )
-    .await
-    {
-        Ok(_) => {
-            let now = chrono::Utc::now().timestamp_micros();
-            let task_name = task.name().to_string();
-            let task_namespace = task.namespace().to_string();
-            let updated =
-                patch_task_status_with(store, &task_namespace, &task_name, |status, generation| {
-                    set_condition(
-                        status,
-                        resources_proto::ResourceCondition {
-                            r#type: CONDITION_OWNER_WAKE.to_string(),
-                            status: "True".to_string(),
-                            reason: "SessionMessageSent".to_string(),
-                            message: "Owner session was notified that delegated Task needs review."
-                                .to_string(),
-                            last_transition_time: now,
-                            observed_generation: generation,
-                        },
-                    );
-                    Ok(())
-                })
-                .await?;
-            task_from_resource(updated).context("invalid Task after owner wake status")
-        }
-        Err(err) => {
-            let now = chrono::Utc::now().timestamp_micros();
-            let task_name = task.name().to_string();
-            let task_namespace = task.namespace().to_string();
-            let error_message = err.to_string();
-            let updated =
-                patch_task_status_with(store, &task_namespace, &task_name, |status, generation| {
-                    set_condition(
-                        status,
-                        resources_proto::ResourceCondition {
-                            r#type: CONDITION_OWNER_WAKE.to_string(),
-                            status: "False".to_string(),
-                            reason: "SessionMessageFailed".to_string(),
-                            message: error_message.clone(),
-                            last_transition_time: now,
-                            observed_generation: generation,
-                        },
-                    );
-                    Ok(())
-                })
-                .await?;
-            tracing::warn!(
-                namespace = %session.ns,
-                owner_namespace = %owner_namespace,
-                owner_agent = %owner_agent,
-                owner_session_id = %owner_session_id,
-                task_namespace = %task_namespace,
-                task_name = %task_name,
-                error = %err,
-                "failed to wake owner session for delegated Task review"
-            );
-            task_from_resource(updated).context("invalid Task after owner wake failure status")
-        }
-    }
-}
-
-pub async fn retry_owner_wakes_for_session(
-    cp: &ControlPlane,
-    owner_session: &data_proto::Session,
-) -> Result<()> {
-    // Stopgap until sessions have a durable inbox: wake messages cannot be
-    // appended while a owner session is PROCESSING, so retry after release.
-    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
-    for resource in store.list(&owner_session.ns, Some("Task")).await? {
-        let Some(task) = task_from_resource(resource.clone()) else {
-            continue;
-        };
-        let labels = resource
-            .metadata
-            .as_ref()
-            .map(|metadata| &metadata.labels)
-            .context("Task metadata missing")?;
-        if labels.get(LABEL_DELEGATION).map(String::as_str) != Some("true")
-            || labels.get(LABEL_OWNER_NAME).map(String::as_str)
-                != Some(owner_session.agent.as_str())
-            || labels.get(LABEL_OWNER_SESSION_ID).map(String::as_str)
-                != Some(owner_session.id.as_str())
-            || owner_wake_sent(task.status.as_ref())
-        {
-            continue;
-        }
-        let phase = task
-            .status
-            .as_ref()
-            .map(|status| status.phase)
-            .unwrap_or(resources_proto::TaskPhase::Unspecified as i32);
-        if phase != resources_proto::TaskPhase::NeedsReview as i32
-            && phase != resources_proto::TaskPhase::Failed as i32
-        {
-            continue;
-        }
-        let delegate_session = data_proto::Session {
-            id: task
-                .status
-                .as_ref()
-                .and_then(|status| status.execution_ref.as_ref())
-                .map(|execution| execution.session_id.clone())
-                .unwrap_or_default(),
-            agent: labels.get(LABEL_DELEGATE_NAME).cloned().unwrap_or_default(),
-            ns: labels
-                .get(LABEL_DELEGATE_NAMESPACE)
-                .cloned()
-                .unwrap_or_else(|| owner_session.ns.clone()),
-            status: String::new(),
-            created_at: 0,
-            last_active: 0,
-            metadata: HashMap::new(),
-            labels: HashMap::from([
-                (LABEL_OWNER_NAMESPACE.to_string(), owner_session.ns.clone()),
-                (LABEL_OWNER_NAME.to_string(), owner_session.agent.clone()),
-                (LABEL_OWNER_SESSION_ID.to_string(), owner_session.id.clone()),
-            ]),
-        };
-        let task_namespace = task.namespace().to_string();
-        let task_name = task.name().to_string();
-        if let Err(err) = wake_owner_for_task_review(cp, &store, &delegate_session, task).await {
-            tracing::warn!(
-                namespace = %owner_session.ns,
-                agent = %owner_session.agent,
-                session = %owner_session.id,
-                task_namespace = %task_namespace,
-                task_name = %task_name,
-                error = %err,
-                "failed to retry delegated Task owner wake"
-            );
-        }
-    }
-    Ok(())
-}
-
-fn condition_status<'a>(
-    status: &'a resources_proto::TaskStatus,
-    condition_type: &str,
-) -> Option<&'a str> {
-    status
-        .conditions
-        .iter()
-        .find(|condition| condition.r#type == condition_type)
-        .map(|condition| condition.status.as_str())
-}
-
-fn owner_wake_sent(status: Option<&resources_proto::TaskStatus>) -> bool {
-    status.is_some_and(|status| condition_status(status, CONDITION_OWNER_WAKE) == Some("True"))
-}
-
-fn task_review_message(task: &resources_proto::Task) -> String {
-    let title = task
-        .spec
-        .as_ref()
-        .map(|spec| spec.title.as_str())
-        .unwrap_or("Delegated task");
-    let phase = task
-        .status
-        .as_ref()
-        .map(|status| status.phase)
-        .unwrap_or(resources_proto::TaskPhase::Unspecified as i32);
-    let heading = if phase == resources_proto::TaskPhase::Failed as i32 {
-        "Delegated Task failed."
-    } else {
-        "Delegated Task is ready for review."
-    };
-    let mut message = format!(
-        "{heading}\n\nTask: {title}\nTask ID: {}/{}",
-        task.namespace(),
-        task.name()
-    );
-    let artifact_uris = task
-        .status
-        .as_ref()
-        .map(|status| {
-            status
-                .output_artifact_uris
-                .iter()
-                .filter(|uri| !uri.trim().is_empty())
-                .cloned()
-                .collect::<Vec<_>>()
-        })
-        .unwrap_or_default();
-    if !artifact_uris.is_empty() {
-        message.push_str("\n\nArtifacts:");
-        for uri in artifact_uris {
-            message.push_str("\n- ");
-            message.push_str(&uri);
-        }
-    }
-    message
 }
 
 fn task_phase_is_terminal(phase: i32) -> bool {
