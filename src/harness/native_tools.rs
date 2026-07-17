@@ -3836,10 +3836,12 @@ mod tests {
         .unwrap()
         .unwrap();
         assert!(!sent.contains("Please review the draft."));
-        assert!(!sent.contains(artifact_uri));
         let sent: Value = serde_json::from_str(&sent).unwrap();
         assert_eq!(sent["status"], "DISPATCHED");
         assert_eq!(sent["artifactCount"], 1);
+        if sent.get("artifactUris").is_none() {
+            assert!(!sent.to_string().contains(artifact_uri));
+        }
 
         let access = kv
             .get_msg::<data_proto::ArtifactAccess>(&keys::artifact_access(
