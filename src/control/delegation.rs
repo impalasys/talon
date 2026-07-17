@@ -5,9 +5,9 @@ use anyhow::{Context, Result};
 use prost::Message;
 use std::collections::HashMap;
 
-use crate::control::resource_model;
+use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, ControlPlane, ListOptions};
+use crate::control::{keys, session_queue, ControlPlane, ListOptions, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 // Task resource label: marks a Task as created through agent delegation.
@@ -164,6 +164,8 @@ pub async fn complete_delegated_task_from_session(
         return Ok(Some(task));
     }
 
+    let propagated_output_artifact_uris =
+        delegated_session_output_artifact_uris(cp, session, task_namespace, task_name).await?;
     let now = chrono::Utc::now().timestamp_micros();
     let progress_summary = match completion_status {
         DelegatedSessionCompletion::Completed => {
@@ -207,6 +209,11 @@ pub async fn complete_delegated_task_from_session(
                 DelegatedSessionCompletion::Completed => {
                     status.phase = resources_proto::TaskPhase::NeedsReview as i32;
                     status.progress_summary = progress_summary.clone();
+                    for uri in &propagated_output_artifact_uris {
+                        if !status.output_artifact_uris.contains(uri) {
+                            status.output_artifact_uris.push(uri.clone());
+                        }
+                    }
                     set_condition(
                         status,
                         resources_proto::ResourceCondition {
@@ -245,6 +252,22 @@ pub async fn complete_delegated_task_from_session(
     }
     if skipped_existing_phase {
         return Ok(Some(task));
+    }
+    if let Err(err) = grant_output_artifacts_to_task_owner(cp, &task).await {
+        tracing::warn!(
+            task_namespace = %task.namespace(),
+            task_name = %task.name(),
+            error = %err,
+            "failed to grant delegated Task output artifacts to owner session"
+        );
+    }
+    if let Err(err) = notify_task_owner(cp, &task, completion_status).await {
+        tracing::warn!(
+            task_namespace = %task.namespace(),
+            task_name = %task.name(),
+            error = %err,
+            "failed to notify delegated Task owner session"
+        );
     }
     Ok(Some(task))
 }
@@ -391,6 +414,238 @@ fn task_resource_labels(req: &TaskDelegationRequest) -> HashMap<String, String> 
             req.connection_name.clone(),
         ),
     ])
+}
+
+async fn delegated_session_output_artifact_uris(
+    cp: &ControlPlane,
+    session: &data_proto::Session,
+    current_task_namespace: &str,
+    current_task_name: &str,
+) -> Result<Vec<String>> {
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let resources = store.list(&session.ns, Some("Task")).await?;
+    let mut uris = Vec::new();
+    for resource in resources {
+        let Some(task) = task_from_resource(resource) else {
+            continue;
+        };
+        if task.namespace() == current_task_namespace && task.name() == current_task_name {
+            continue;
+        }
+        let labels = task.labels();
+        if labels.get(LABEL_OWNER_NAMESPACE).map(String::as_str) != Some(session.ns.as_str()) {
+            continue;
+        }
+        if labels.get(LABEL_OWNER_NAME).map(String::as_str) != Some(session.agent.as_str()) {
+            continue;
+        }
+        if labels.get(LABEL_OWNER_SESSION_ID).map(String::as_str) != Some(session.id.as_str()) {
+            continue;
+        }
+        let Some(status) = task.status.as_ref() else {
+            continue;
+        };
+        for uri in &status.output_artifact_uris {
+            if !uris.contains(uri) {
+                uris.push(uri.clone());
+            }
+        }
+    }
+    Ok(uris)
+}
+
+async fn grant_output_artifacts_to_task_owner(
+    cp: &ControlPlane,
+    task: &resources_proto::Task,
+) -> Result<()> {
+    let Some(status) = task.status.as_ref() else {
+        return Ok(());
+    };
+    if status.output_artifact_uris.is_empty() {
+        return Ok(());
+    }
+    let Some(owner_session_id) = task
+        .labels()
+        .get(LABEL_OWNER_SESSION_ID)
+        .map(String::as_str)
+    else {
+        return Ok(());
+    };
+    if owner_session_id.trim().is_empty() {
+        return Ok(());
+    }
+    let Some(owner) = task.spec.as_ref().and_then(|spec| spec.owner.as_ref()) else {
+        return Ok(());
+    };
+    if owner.name.trim().is_empty() {
+        return Ok(());
+    }
+
+    let now = chrono::Utc::now().timestamp_micros();
+    for artifact_uri in &status.output_artifact_uris {
+        let uri = parse_artifact_uri(artifact_uri)?;
+        cp.kv
+            .set_msg(
+                &keys::artifact_access(
+                    &uri.namespace,
+                    &uri.agent,
+                    &uri.session_id,
+                    &uri.artifact_id,
+                    &owner.name,
+                    owner_session_id,
+                ),
+                &data_proto::ArtifactAccess {
+                    target_agent: owner.name.clone(),
+                    target_session_id: owner_session_id.to_string(),
+                    operations: vec![
+                        "read".to_string(),
+                        "metadata".to_string(),
+                        "promote".to_string(),
+                    ],
+                    expires_at: 0,
+                    granted_by_agent: task
+                        .spec
+                        .as_ref()
+                        .and_then(|spec| spec.delegate.as_ref())
+                        .map(|delegate| delegate.name.clone())
+                        .unwrap_or_default(),
+                    granted_by_session_id: status
+                        .execution_ref
+                        .as_ref()
+                        .map(|execution| execution.session_id.clone())
+                        .unwrap_or_default(),
+                    created_at: now,
+                },
+            )
+            .await?;
+    }
+    Ok(())
+}
+
+async fn notify_task_owner(
+    cp: &ControlPlane,
+    task: &resources_proto::Task,
+    completion_status: DelegatedSessionCompletion,
+) -> Result<()> {
+    let Some(owner_session_id) = task
+        .labels()
+        .get(LABEL_OWNER_SESSION_ID)
+        .map(String::as_str)
+    else {
+        return Ok(());
+    };
+    if owner_session_id.trim().is_empty() {
+        return Ok(());
+    }
+    let Some(owner) = task.spec.as_ref().and_then(|spec| spec.owner.as_ref()) else {
+        return Ok(());
+    };
+    if owner.name.trim().is_empty() {
+        return Ok(());
+    }
+    let owner_namespace = if owner.namespace.trim().is_empty() {
+        task.namespace()
+    } else {
+        owner.namespace.as_str()
+    };
+    let message = delegated_task_owner_message(task, completion_status);
+    let mut labels = HashMap::new();
+    labels.insert(
+        LABEL_TASK_NAMESPACE.to_string(),
+        task.namespace().to_string(),
+    );
+    labels.insert(LABEL_TASK_NAME.to_string(), task.name().to_string());
+    labels.insert(LABEL_TASK_ROLE.to_string(), "owner-review".to_string());
+    if let Some(spec) = task.spec.as_ref() {
+        if let Some(delegate) = spec.delegate.as_ref() {
+            labels.insert(
+                LABEL_DELEGATE_NAMESPACE.to_string(),
+                delegate.namespace.clone(),
+            );
+            labels.insert(LABEL_DELEGATE_NAME.to_string(), delegate.name.clone());
+        }
+    }
+
+    session_queue::queue_text_message(
+        cp.kv.as_ref(),
+        owner_namespace,
+        &owner.name,
+        owner_session_id,
+        session_queue::NEXT_QUEUE,
+        &message,
+        labels,
+        chrono::Utc::now(),
+    )
+    .await?;
+    session_queue::dispatch_next_queued_message(
+        cp.kv.as_ref(),
+        cp.pubsub.as_ref(),
+        owner_namespace,
+        &owner.name,
+        owner_session_id,
+        session_queue::NEXT_QUEUE,
+        chrono::Utc::now(),
+    )
+    .await?;
+    Ok(())
+}
+
+fn delegated_task_owner_message(
+    task: &resources_proto::Task,
+    completion_status: DelegatedSessionCompletion,
+) -> String {
+    let status = task.status.as_ref();
+    let title = task
+        .spec
+        .as_ref()
+        .map(|spec| spec.title.as_str())
+        .unwrap_or_default();
+    let summary = status
+        .map(|status| status.progress_summary.as_str())
+        .unwrap_or_default();
+    let heading = match completion_status {
+        DelegatedSessionCompletion::Completed => "Delegated Task is ready for review.",
+        DelegatedSessionCompletion::Failed => "Delegated Task failed.",
+    };
+    let mut message = format!(
+        "{heading}\n\nTask: {title}\nTask ID: {}/{}\nSummary: {}",
+        task.namespace(),
+        task.name(),
+        summary
+    );
+    if let Some(status) = status {
+        if !status.output_artifact_uris.is_empty() {
+            message.push_str("\n\nOutput artifacts:");
+            for uri in &status.output_artifact_uris {
+                message.push_str("\n- ");
+                message.push_str(uri);
+            }
+        }
+    }
+    message
+}
+
+struct ParsedArtifactUri<'a> {
+    namespace: &'a str,
+    agent: &'a str,
+    session_id: &'a str,
+    artifact_id: &'a str,
+}
+
+fn parse_artifact_uri(value: &str) -> Result<ParsedArtifactUri<'_>> {
+    let Some(rest) = value.strip_prefix("artifact://") else {
+        anyhow::bail!("invalid artifact URI '{}'", value);
+    };
+    let parts = rest.split('/').collect::<Vec<_>>();
+    if parts.len() != 4 || parts.iter().any(|part| part.is_empty()) {
+        anyhow::bail!("invalid artifact URI '{}'", value);
+    }
+    Ok(ParsedArtifactUri {
+        namespace: parts[0],
+        agent: parts[1],
+        session_id: parts[2],
+        artifact_id: parts[3],
+    })
 }
 
 pub fn task_execution_labels(req: &TaskDelegationRequest) -> HashMap<String, String> {
