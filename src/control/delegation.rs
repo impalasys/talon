@@ -155,11 +155,6 @@ pub async fn complete_delegated_task_from_session(
         .as_ref()
         .map(|status| status.phase)
         .unwrap_or(resources_proto::TaskPhase::Unspecified as i32);
-    if current_phase == resources_proto::TaskPhase::NeedsReview as i32
-        && completion_status == DelegatedSessionCompletion::Completed
-    {
-        return Ok(Some(task));
-    }
     if task_phase_is_terminal(current_phase) {
         return Ok(Some(task));
     }
@@ -182,7 +177,6 @@ pub async fn complete_delegated_task_from_session(
     };
 
     let mut skipped_stale = false;
-    let mut skipped_existing_phase = false;
     let updated =
         patch_task_status_with(&store, task_namespace, task_name, |status, generation| {
             let current_session_id = status
@@ -194,14 +188,7 @@ pub async fn complete_delegated_task_from_session(
                 skipped_stale = true;
                 return Ok(());
             }
-            if status.phase == resources_proto::TaskPhase::NeedsReview as i32
-                && completion_status == DelegatedSessionCompletion::Completed
-            {
-                skipped_existing_phase = true;
-                return Ok(());
-            }
             if task_phase_is_terminal(status.phase) {
-                skipped_existing_phase = true;
                 return Ok(());
             }
             status.updated_at = now;
@@ -248,9 +235,6 @@ pub async fn complete_delegated_task_from_session(
         .await?;
     let task = task_from_resource(updated).context("invalid Task after delegated completion")?;
     if skipped_stale {
-        return Ok(Some(task));
-    }
-    if skipped_existing_phase {
         return Ok(Some(task));
     }
     if let Err(err) = grant_output_artifacts_to_task_owner(cp, &task).await {
