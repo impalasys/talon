@@ -36,6 +36,7 @@ pub const DELEGATE_TASK_TOOL: &str = "delegate_task";
 pub const AGENT_OPEN_TOOL: &str = "agent_open";
 pub const AGENT_SEND_TOOL: &str = "agent_send";
 pub const AGENT_STATUS_TOOL: &str = "agent_status";
+pub const AGENT_WAIT_FOR_MESSAGE_TOOL: &str = "agent_wait_for_message";
 pub const GET_TASK_TOOL: &str = "get_task";
 pub const LIST_TASKS_TOOL: &str = "list_tasks";
 pub const UPDATE_TASK_TOOL: &str = "update_task";
@@ -66,6 +67,10 @@ pub(super) const OP_READ: &str = "read";
 pub(super) const OP_METADATA: &str = "metadata";
 pub(super) const OP_PROMOTE: &str = "promote";
 const MAX_ACCESS_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
+
+pub fn tool_requests_worker_stop(name: &str) -> bool {
+    name == AGENT_WAIT_FOR_MESSAGE_TOOL
+}
 
 pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
     let names = namespace::effective_skill_names(skills);
@@ -3368,6 +3373,7 @@ mod tests {
             json!(["critic"])
         );
         assert!(registry.get_tool(AGENT_SEND_TOOL).is_some());
+        assert!(registry.get_tool(AGENT_WAIT_FOR_MESSAGE_TOOL).is_some());
         assert!(registry.get_tool(DELEGATE_TASK_TOOL).is_none());
     }
 
@@ -3380,6 +3386,9 @@ mod tests {
         );
         assert!(no_connection_registry.get_tool(AGENT_OPEN_TOOL).is_none());
         assert!(no_connection_registry.get_tool(AGENT_SEND_TOOL).is_some());
+        assert!(no_connection_registry
+            .get_tool(AGENT_WAIT_FOR_MESSAGE_TOOL)
+            .is_some());
 
         let mut external_registry = ToolRegistry::new();
         register_tools(
@@ -3388,6 +3397,9 @@ mod tests {
         );
         assert!(external_registry.get_tool(AGENT_OPEN_TOOL).is_none());
         assert!(external_registry.get_tool(AGENT_SEND_TOOL).is_some());
+        assert!(external_registry
+            .get_tool(AGENT_WAIT_FOR_MESSAGE_TOOL)
+            .is_some());
     }
 
     #[test]

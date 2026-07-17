@@ -349,6 +349,7 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::AGENT_OPEN_TOOL,
         crate::harness::native_tools::AGENT_SEND_TOOL,
         crate::harness::native_tools::AGENT_STATUS_TOOL,
+        crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL,
         crate::harness::native_tools::UPDATE_TASK_TOOL,
         crate::harness::native_tools::GET_GOAL_TOOL,
         crate::harness::native_tools::LIST_GOALS_TOOL,
@@ -693,6 +694,7 @@ mod tests {
         assert!(names.contains(&crate::harness::native_tools::CREATE_ARTIFACT_TOOL));
         assert!(names.contains(&crate::harness::native_tools::UPDATE_ARTIFACT_TOOL));
         assert!(names.contains(&crate::harness::native_tools::DELEGATE_TASK_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL));
         assert!(names.contains(&crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL));
         assert!(names.contains(&crate::harness::native_tools::SEARCH_MEMORY_TOOL));
         assert!(names.contains(&crate::harness::native_tools::READ_MEMORY_TOOL));
