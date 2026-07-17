@@ -12,7 +12,6 @@ use crate::harness::skills::registry::ToolRegistry;
 
 const A2A_WIRE_METADATA_PREFIX: &str = "wire.a2a.talon.impalasys.com/";
 const OWNER_ALIAS: &str = "owner";
-const AGENT_URI_PREFIX: &str = "agent://";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct OpenedAgentWire {
@@ -39,7 +38,7 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
     if !internal_connections.is_empty() {
         registry.register_builtin(
             super::AGENT_OPEN_TOOL,
-            "Open a declared internal A2A agent wire and return a reusable agent:// alias.",
+            "Open a declared internal A2A agent wire and return a reusable wire name.",
             json!({
                 "type": "object",
                 "properties": {
@@ -60,26 +59,26 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
 
     registry.register_builtin(
         super::AGENT_SEND_TOOL,
-        "Send a message into an opened A2A agent wire asynchronously.",
+        "Send a message into an opened A2A agent wire asynchronously. Child agents are expected to use target \"owner\" to respond back and finish assigned work.",
         json!({
             "type": "object",
             "properties": {
                 "target": {
                     "type": "string",
-                    "description": "Opened wire alias or agent:// alias, such as critic-1, agent://critic-1, or owner."
+                    "description": "Opened wire name, such as critic-1. In child sessions, owner is the session that opened this wire and should receive completion/review replies."
                 },
                 "message": {
                     "type": "string",
-                    "description": "Message to enqueue for the target agent session."
+                    "description": "Message to enqueue for the target agent session. Talon adds a sender prefix such as @owner or @critic-1 for the receiver."
                 },
                 "artifact_uri": {
                     "type": "string",
-                    "description": "Optional artifact:// URI to grant to the target session."
+                    "description": "Optional artifact:// URI to grant to the target session for ad hoc sharing. Delegated Task outputs grant owner access through update_task output_artifact_uri."
                 },
                 "artifact_uris": {
                     "type": "array",
                     "items": { "type": "string" },
-                    "description": "Optional artifact:// URIs to grant to the target session."
+                    "description": "Optional artifact:// URIs to grant to the target session for ad hoc sharing. Delegated Task outputs grant owner access through update_task output_artifact_uris."
                 }
             },
             "required": ["target", "message"]
@@ -94,7 +93,7 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
             "properties": {
                 "target": {
                     "type": "string",
-                    "description": "Opened wire alias or agent:// alias, such as critic-1, agent://critic-1, or owner."
+                    "description": "Opened wire name, such as critic-1. In child sessions, owner refers to the session that opened this wire."
                 },
                 "message_id": {
                     "type": "string",
@@ -193,16 +192,9 @@ async fn agent_send(
     Ok(serde_json::to_string_pretty(&json!({
         "accepted": true,
         "target": sent.target_alias,
-        "agentUri": format!("{AGENT_URI_PREFIX}{}", sent.target_alias),
-        "namespace": sent.reference.namespace,
-        "agent": sent.reference.agent,
-        "sessionId": sent.reference.session_id,
-        "queue": sent.queue,
-        "queueEntryId": sent.queue_entry_id,
+        "status": if sent.dispatched { "DISPATCHED" } else { "QUEUED" },
         "messageId": sent.message_id,
-        "dispatched": sent.dispatched,
-        "submissionId": sent.submission_id,
-        "artifactUris": sent.artifact_uris
+        "artifactCount": sent.artifact_uris.len()
     }))?)
 }
 
@@ -383,8 +375,19 @@ pub(super) async fn send_wire_message(
         )
         .await?;
     }
+    if message.trim().is_empty() && artifact_uris.is_empty() {
+        return Err(anyhow!("message content or artifact URIs are required"));
+    }
 
-    let queued_message = message_with_artifacts(message, artifact_uris);
+    let sender_alias = sender_alias_for_target(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &target,
+    )
+    .await?;
+    let queued_message = wire_message(&sender_alias, message, artifact_uris);
     let queued = session_queue::queue_text_message(
         cp.kv.as_ref(),
         &target.namespace,
@@ -447,9 +450,7 @@ fn validate_alias(alias: &str) -> Result<&str> {
 }
 
 fn normalize_agent_uri(value: &str) -> Result<String> {
-    let value = value.trim();
-    let alias = value.strip_prefix(AGENT_URI_PREFIX).unwrap_or(value);
-    Ok(validate_alias(alias)?.to_string())
+    Ok(validate_alias(value)?.to_string())
 }
 
 fn encode_wire_ref(reference: &AgentWireRef) -> String {
@@ -560,12 +561,9 @@ async fn refresh_wire_session_labels(
 
 fn open_response(opened: OpenedAgentWire) -> Result<String> {
     Ok(serde_json::to_string_pretty(&json!({
-        "agentUri": format!("{AGENT_URI_PREFIX}{}", opened.alias),
         "name": opened.alias,
         "connection": opened.connection,
-        "namespace": opened.reference.namespace,
-        "agent": opened.reference.agent,
-        "sessionId": opened.reference.session_id,
+        "status": if opened.reused { "OPEN" } else { "CREATED" },
         "reused": opened.reused,
         "reverseTarget": OWNER_ALIAS
     }))?)
@@ -651,6 +649,45 @@ fn artifact_uris_from_text(text: &str) -> Vec<String> {
     uris.sort();
     uris.dedup();
     uris
+}
+
+async fn sender_alias_for_target(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    target: &AgentWireRef,
+) -> Result<String> {
+    let Some(session) = cp
+        .kv
+        .get_msg::<data_proto::Session>(&keys::session(
+            &target.namespace,
+            &target.agent,
+            &target.session_id,
+        ))
+        .await?
+    else {
+        return Ok(current_agent.to_string());
+    };
+    for (key, value) in &session.metadata {
+        let Some(alias) = key.strip_prefix(A2A_WIRE_METADATA_PREFIX) else {
+            continue;
+        };
+        if let Ok(wire_ref) = decode_wire_ref(value) {
+            if wire_ref.namespace == current_namespace
+                && wire_ref.agent == current_agent
+                && wire_ref.session_id == current_session
+            {
+                return Ok(alias.to_string());
+            }
+        }
+    }
+    Ok(current_agent.to_string())
+}
+
+fn wire_message(sender_alias: &str, message: &str, artifact_uris: &[String]) -> String {
+    let message = message_with_artifacts(message.trim(), artifact_uris);
+    format!("From @{sender_alias}:\n\n{message}")
 }
 
 fn message_with_artifacts(message: &str, artifact_uris: &[String]) -> String {
@@ -760,7 +797,7 @@ fn status_message_ids(active: Option<&str>, pending_entry_ids: &[String]) -> Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::resources::ResourceStore;
+    use crate::control::{resources::ResourceStore, KeyValueStore};
     use crate::gateway::rpc::resources_proto;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use std::sync::Arc;
@@ -837,9 +874,9 @@ mod tests {
     }
 
     #[test]
-    fn normalize_agent_uri_accepts_alias_or_uri() {
+    fn normalize_agent_uri_accepts_wire_name() {
         assert_eq!(normalize_agent_uri("critic-1").unwrap(), "critic-1");
-        assert_eq!(normalize_agent_uri("agent://critic-1").unwrap(), "critic-1");
+        assert!(normalize_agent_uri("agent://critic-1").is_err());
     }
 
     #[test]
@@ -913,8 +950,14 @@ mod tests {
         .await
         .unwrap();
         let opened: Value = serde_json::from_str(&opened).unwrap();
-        let child_session = opened["sessionId"].as_str().unwrap();
-        assert_eq!(opened["agentUri"], "agent://critic-1");
+        assert_eq!(opened["name"], "critic-1");
+        assert!(opened.get("agentUri").is_none());
+        assert_eq!(opened["status"], "CREATED");
+        let child_ref = load_wire_ref(&cp, "Tenant:acme:Main", "cmo", "parent-session", "critic-1")
+            .await
+            .unwrap()
+            .expect("wire should be stored on parent session");
+        let child_session = child_ref.session_id.as_str();
 
         let parent = kv
             .get_msg::<data_proto::Session>(&keys::session(
@@ -960,18 +1003,42 @@ mod tests {
         )
         .await
         .unwrap();
+        assert!(!sent.contains("Review this."));
         let sent: Value = serde_json::from_str(&sent).unwrap();
-        assert_eq!(sent["dispatched"], true);
-        assert!(kv
-            .get_msg::<data_proto::SessionSubmission>(&keys::session_submission(
-                "Tenant:acme:Copywriter",
-                "critic-agent",
-                child_session,
-                sent["submissionId"].as_str().unwrap(),
-            ))
+        assert_eq!(sent["target"], "critic-1");
+        assert!(sent.get("agentUri").is_none());
+        assert_eq!(sent["status"], "DISPATCHED");
+        assert_eq!(sent["artifactCount"], 0);
+        let submissions = kv
+            .list_entries(
+                &keys::session_submission_prefix(
+                    "Tenant:acme:Copywriter",
+                    "critic-agent",
+                    child_session,
+                ),
+                None,
+            )
             .await
-            .unwrap()
-            .is_some());
+            .unwrap();
+        assert_eq!(submissions.len(), 1);
+        let child_messages = kv
+            .list_entries(
+                &keys::session_message_prefix(
+                    "Tenant:acme:Copywriter",
+                    "critic-agent",
+                    child_session,
+                ),
+                None,
+            )
+            .await
+            .unwrap();
+        assert_eq!(child_messages.len(), 1);
+        let child_message =
+            data_proto::SessionMessage::decode(child_messages[0].1.as_slice()).unwrap();
+        assert_eq!(
+            child_message.parts.first().unwrap().content,
+            "From @owner:\n\nReview this."
+        );
 
         let status = agent_status(
             &cp,
@@ -997,9 +1064,10 @@ mod tests {
         )
         .await
         .unwrap();
+        assert!(!queued_while_processing.contains("Follow up."));
         let queued_while_processing: Value =
             serde_json::from_str(&queued_while_processing).unwrap();
-        assert_eq!(queued_while_processing["dispatched"], false);
+        assert_eq!(queued_while_processing["status"], "QUEUED");
         assert!(queued_while_processing["messageId"].is_null());
         let queued_status = agent_status(
             &cp,
@@ -1045,9 +1113,28 @@ mod tests {
         .await
         .unwrap();
         let reverse: Value = serde_json::from_str(&reverse).unwrap();
-        assert_eq!(reverse["dispatched"], true);
-        assert_eq!(reverse["namespace"], "Tenant:acme:Main");
-        assert_eq!(reverse["agent"], "cmo");
-        assert_eq!(reverse["sessionId"], "parent-session");
+        assert_eq!(reverse["status"], "DISPATCHED");
+        let parent_submissions = kv
+            .list_entries(
+                &keys::session_submission_prefix("Tenant:acme:Main", "cmo", "parent-session"),
+                None,
+            )
+            .await
+            .unwrap();
+        assert_eq!(parent_submissions.len(), 1);
+        let parent_messages = kv
+            .list_entries(
+                &keys::session_message_prefix("Tenant:acme:Main", "cmo", "parent-session"),
+                None,
+            )
+            .await
+            .unwrap();
+        assert_eq!(parent_messages.len(), 1);
+        let parent_message =
+            data_proto::SessionMessage::decode(parent_messages[0].1.as_slice()).unwrap();
+        assert_eq!(
+            parent_message.parts.first().unwrap().content,
+            "From @critic-1:\n\nLooks good."
+        );
     }
 }
