@@ -117,78 +117,6 @@ async fn authorized_update_task_namespace(
     ))
 }
 
-async fn grant_task_output_artifacts_to_owner(
-    cp: &ControlPlane,
-    current_agent: &str,
-    current_session: &str,
-    task: &resources_proto::Task,
-    output_artifact_uris: &[String],
-) -> Result<()> {
-    if output_artifact_uris.is_empty() {
-        return Ok(());
-    }
-    let labels = task.labels();
-    let Some(owner_session_id) = labels
-        .get(crate::control::delegation::LABEL_OWNER_SESSION_ID)
-        .map(String::as_str)
-    else {
-        return Ok(());
-    };
-    if owner_session_id.trim().is_empty() {
-        return Ok(());
-    }
-    let Some(owner) = task.spec.as_ref().and_then(|spec| spec.owner.as_ref()) else {
-        return Ok(());
-    };
-    if owner.name.trim().is_empty() {
-        return Ok(());
-    }
-    let owner_namespace = if owner.namespace.trim().is_empty() {
-        task.namespace()
-    } else {
-        owner.namespace.as_str()
-    };
-    let now = chrono::Utc::now().timestamp_micros();
-    for artifact_uri in output_artifact_uris {
-        let uri = super::parse_artifact_uri(artifact_uri)?;
-        cp.kv
-            .set_msg(
-                &keys::artifact_access(
-                    &uri.namespace,
-                    &uri.agent,
-                    &uri.session_id,
-                    &uri.artifact_id,
-                    &owner.name,
-                    owner_session_id,
-                ),
-                &data_proto::ArtifactAccess {
-                    target_agent: owner.name.clone(),
-                    target_session_id: owner_session_id.to_string(),
-                    operations: vec![
-                        super::OP_READ.to_string(),
-                        super::OP_METADATA.to_string(),
-                        super::OP_PROMOTE.to_string(),
-                    ],
-                    expires_at: 0,
-                    granted_by_agent: current_agent.to_string(),
-                    granted_by_session_id: current_session.to_string(),
-                    created_at: now,
-                },
-            )
-            .await?;
-        tracing::debug!(
-            task_namespace = %task.namespace(),
-            task_name = %task.name(),
-            owner_namespace = %owner_namespace,
-            owner_agent = %owner.name,
-            owner_session_id = %owner_session_id,
-            artifact_uri = %artifact_uri,
-            "granted Task output artifact access to owner session"
-        );
-    }
-    Ok(())
-}
-
 pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
     if super::has_capability_action(spec, "tasks", "inspect") {
         registry.register_builtin(
@@ -273,11 +201,11 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
                     "name": { "type": "string", "description": "Task resource name." },
                     "phase": { "type": "string", "description": "Optional phase: QUEUED, RUNNING, BLOCKED, NEEDS_REVIEW, SUCCEEDED, FAILED, CANCELED, or EXPIRED." },
                     "progress_summary": { "type": "string", "description": "Short current state or result summary." },
-                    "output_artifact_uri": { "type": "string", "description": "Artifact URI to attach as a Task output. This grants the Task owner session access." },
+                    "output_artifact_uri": { "type": "string", "description": "Artifact URI to attach as a Task output." },
                     "output_artifact_uris": {
                         "type": "array",
                         "items": { "type": "string" },
-                        "description": "Artifact URIs to attach as Task outputs. This grants the Task owner session access."
+                        "description": "Artifact URIs to attach as Task outputs."
                     },
                     "execution_namespace": { "type": "string", "description": "Optional execution namespace." },
                     "execution_name": { "type": "string", "description": "Optional execution agent resource name." },
@@ -418,14 +346,6 @@ pub(super) async fn execute(
                 .await?;
             let task =
                 super::task_from_resource(resource).ok_or_else(|| anyhow!("invalid Task"))?;
-            grant_task_output_artifacts_to_owner(
-                cp,
-                current_agent,
-                current_session,
-                &task,
-                &output_artifact_uris,
-            )
-            .await?;
             Ok(Some(serde_json::to_string_pretty(&json!({
                 "task": super::task_json(&task)
             }))?))
