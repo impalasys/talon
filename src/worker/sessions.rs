@@ -58,7 +58,13 @@ where
     F: std::future::Future<Output = Result<String>>,
 {
     match AssertUnwindSafe(future).catch_unwind().await {
-        Ok(Ok(_)) => Ok(SessionCompletionStatus::Completed),
+        Ok(Ok(reply)) => {
+            if is_wait_for_message_reply(&reply) {
+                Ok(SessionCompletionStatus::Waiting)
+            } else {
+                Ok(SessionCompletionStatus::Completed)
+            }
+        }
         Ok(Err(e)) => {
             tracing::error!(agent = %agent, error = %format!("{:#}", e), "Execution failed");
             sink.on_error(&format!("Error: {:#}", e)).await;
@@ -85,9 +91,16 @@ where
     }
 }
 
+fn is_wait_for_message_reply(reply: &str) -> bool {
+    reply.contains("\"status\":\"WAITING\"")
+        && reply.contains("Waiting for a message")
+        && reply.contains("do not poll agent_status")
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum SessionCompletionStatus {
     Completed,
+    Waiting,
     Errored,
     Panicked,
 }
@@ -735,7 +748,7 @@ impl WorkerEventHandler {
             }
             if prepared_submission.state == PreparedSubmissionState::StopAfterToolResult {
                 sink.on_done().await;
-                return Ok((SessionCompletionStatus::Completed, sink.summary()));
+                return Ok((SessionCompletionStatus::Waiting, sink.summary()));
             }
 
             // Continue execution from the prepared context. The executor only
@@ -802,6 +815,24 @@ impl WorkerEventHandler {
 
         if completion_status == SessionCompletionStatus::Completed {
             if let Err(err) = self
+                .maybe_auto_forward_a2a_final_message(
+                    ns,
+                    &event.agent,
+                    &event.session_id,
+                    &sink.reply_msg_key,
+                )
+                .await
+            {
+                tracing::warn!(
+                    error = %err,
+                    agent = %event.agent,
+                    session = %event.session_id,
+                    message_id = %sink.reply_msg_id,
+                    "failed to auto-forward completed A2A session reply to owner"
+                );
+            }
+
+            if let Err(err) = self
                 .maybe_deliver_connector_session_reply(
                     ns,
                     &event.agent,
@@ -822,7 +853,12 @@ impl WorkerEventHandler {
 
         // If execution failed after writing a reply projection, terminalize the
         // submission as failed so redelivery does not treat it as still claimed.
-        if outcome.is_err() || completion_status != SessionCompletionStatus::Completed {
+        if outcome.is_err()
+            || matches!(
+                completion_status,
+                SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked
+            )
+        {
             match crate::control::ProtoKeyValueStoreExt::get_msg::<data_proto::SessionMessage>(
                 self.cp.kv.as_ref(),
                 &sink.reply_msg_key,
@@ -866,7 +902,10 @@ impl WorkerEventHandler {
             }
         }
 
-        if completion_status != SessionCompletionStatus::Completed {
+        if matches!(
+            completion_status,
+            SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked
+        ) {
             if let Err(err) = self
                 .maybe_deliver_connector_session_reply(
                     ns,
@@ -956,6 +995,59 @@ impl WorkerEventHandler {
         .await
     }
 
+    async fn maybe_auto_forward_a2a_final_message(
+        &self,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        reply_msg_key: &crate::control::keys::ResourceKey,
+    ) -> Result<()> {
+        let Some(message) = self
+            .cp
+            .kv
+            .get_msg::<data_proto::SessionMessage>(reply_msg_key)
+            .await?
+        else {
+            return Ok(());
+        };
+        if message.role != data_proto::MessageRole::RoleAssistant as i32 {
+            return Ok(());
+        }
+        if session_message_sent_to_owner(&message) {
+            return Ok(());
+        }
+
+        let final_text = connector_rpc::session_message_final_response(&message);
+        let artifact_uris = session_message_artifact_uris(&message, &final_text);
+        if final_text.trim().is_empty() && artifact_uris.is_empty() {
+            return Ok(());
+        }
+        let forwarded_text = if final_text.trim().is_empty() {
+            "Completed with attached artifacts.".to_string()
+        } else {
+            final_text.trim().to_string()
+        };
+        let forwarded = crate::harness::native_tools::auto_forward_a2a_final_message(
+            &self.cp,
+            ns,
+            agent,
+            session_id,
+            &forwarded_text,
+            &artifact_uris,
+        )
+        .await?;
+        if forwarded {
+            tracing::info!(
+                namespace = %ns,
+                agent = %agent,
+                session = %session_id,
+                artifacts = artifact_uris.len(),
+                "auto-forwarded completed A2A session reply to owner"
+            );
+        }
+        Ok(())
+    }
+
     pub async fn handle_session_control(
         &self,
         event: crate::control::events::SessionControlEvent,
@@ -1020,7 +1112,7 @@ impl WorkerEventHandler {
                 return;
             }
             session.status = match completion_status {
-                SessionCompletionStatus::Completed => "IDLE",
+                SessionCompletionStatus::Completed | SessionCompletionStatus::Waiting => "IDLE",
                 SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => "ERROR",
             }
             .to_string();
@@ -1071,28 +1163,31 @@ impl WorkerEventHandler {
                 "failed to dispatch workflow from completed child session"
             );
         }
-        let delegated_completion = match completion_status {
-            SessionCompletionStatus::Completed => {
-                crate::control::delegation::DelegatedSessionCompletion::Completed
+        if completion_status != SessionCompletionStatus::Waiting {
+            let delegated_completion = match completion_status {
+                SessionCompletionStatus::Completed => {
+                    crate::control::delegation::DelegatedSessionCompletion::Completed
+                }
+                SessionCompletionStatus::Waiting => unreachable!(),
+                SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => {
+                    crate::control::delegation::DelegatedSessionCompletion::Failed
+                }
+            };
+            if let Err(err) = crate::control::delegation::complete_delegated_task_from_session(
+                &self.cp,
+                &session,
+                delegated_completion,
+            )
+            .await
+            {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent_id,
+                    session = %session_id,
+                    error = %err,
+                    "failed to update delegated Task from completed child session"
+                );
             }
-            SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => {
-                crate::control::delegation::DelegatedSessionCompletion::Failed
-            }
-        };
-        if let Err(err) = crate::control::delegation::complete_delegated_task_from_session(
-            &self.cp,
-            &session,
-            delegated_completion,
-        )
-        .await
-        {
-            tracing::warn!(
-                namespace = %ns,
-                agent = %agent_id,
-                session = %session_id,
-                error = %err,
-                "failed to update delegated Task from completed child session"
-            );
         }
         if let Err(err) = crate::control::session_queue::dispatch_next_queued_message(
             self.cp.kv.as_ref(),
@@ -1116,6 +1211,54 @@ impl WorkerEventHandler {
     }
 }
 
+fn session_message_sent_to_owner(message: &data_proto::SessionMessage) -> bool {
+    message.parts.iter().any(|part| {
+        part.part_type == data_proto::SessionMessagePartType::ToolCall as i32
+            && part.name == crate::harness::native_tools::AGENT_SEND_TOOL
+            && tool_call_target(&part.payload_json).is_some_and(|target| target == "owner")
+    })
+}
+
+fn tool_call_target(payload_json: &str) -> Option<String> {
+    let payload = serde_json::from_str::<Value>(payload_json).ok()?;
+    payload
+        .get("input")?
+        .get("target")?
+        .as_str()
+        .map(str::to_string)
+}
+
+fn session_message_artifact_uris(
+    message: &data_proto::SessionMessage,
+    final_text: &str,
+) -> Vec<String> {
+    let mut uris = crate::harness::native_tools::artifact_uris_from_message_text(final_text);
+    for part in &message.parts {
+        if part.part_type != data_proto::SessionMessagePartType::ToolResult as i32 {
+            continue;
+        }
+        if part.name != crate::harness::native_tools::CREATE_ARTIFACT_TOOL {
+            continue;
+        }
+        if let Some(output) = tool_result_output(&part.payload_json) {
+            uris.extend(crate::harness::native_tools::artifact_uris_from_message_text(&output));
+            if let Ok(value) = serde_json::from_str::<Value>(&output) {
+                if let Some(uri) = value.get("artifactUri").and_then(Value::as_str) {
+                    uris.push(uri.to_string());
+                }
+            }
+        }
+    }
+    uris.sort();
+    uris.dedup();
+    uris
+}
+
+fn tool_result_output(payload_json: &str) -> Option<String> {
+    let payload = serde_json::from_str::<Value>(payload_json).ok()?;
+    payload.get("output")?.as_str().map(str::to_string)
+}
+
 fn next_recovered_part_id(next_projection_part_index: &mut usize) -> String {
     *next_projection_part_index += 1;
     format!("{:06}", *next_projection_part_index)
@@ -1123,7 +1266,9 @@ fn next_recovered_part_id(next_projection_part_index: &mut usize) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{execute_with_panic_boundary, SessionCompletionStatus};
+    use super::{
+        execute_with_panic_boundary, session_message_artifact_uris, SessionCompletionStatus,
+    };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
@@ -1197,6 +1342,23 @@ mod tests {
         }
     }
 
+    fn message_part_with_payload(
+        part_type: data_proto::SessionMessagePartType,
+        name: &str,
+        content: &str,
+        payload_json: &str,
+    ) -> data_proto::SessionMessagePart {
+        data_proto::SessionMessagePart {
+            id: String::new(),
+            part_type: part_type as i32,
+            content: content.to_string(),
+            name: name.to_string(),
+            payload_json: payload_json.to_string(),
+            created_at: 0,
+            object: None,
+        }
+    }
+
     fn assistant_message(parts: Vec<data_proto::SessionMessagePart>) -> data_proto::SessionMessage {
         data_proto::SessionMessage {
             id: "assistant-1".to_string(),
@@ -1205,6 +1367,59 @@ mod tests {
             labels: HashMap::new(),
             parts,
         }
+    }
+
+    async fn put_session_with_metadata(
+        kv: &MockKvStore,
+        namespace: &str,
+        agent: &str,
+        session_id: &str,
+        metadata: HashMap<String, String>,
+    ) {
+        kv.set_msg(
+            &crate::control::keys::session(namespace, agent, session_id),
+            &data_proto::Session {
+                id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: namespace.to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 1,
+                metadata,
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    async fn session_text_messages(
+        kv: &MockKvStore,
+        namespace: &str,
+        agent: &str,
+        session_id: &str,
+    ) -> Vec<String> {
+        let entries = kv
+            .list_entries(
+                &crate::control::keys::session_message_prefix(namespace, agent, session_id),
+                None,
+            )
+            .await
+            .unwrap();
+        entries
+            .into_iter()
+            .map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).unwrap())
+            .flat_map(|message| {
+                message
+                    .parts
+                    .into_iter()
+                    .filter(|part| {
+                        part.part_type == data_proto::SessionMessagePartType::Text as i32
+                    })
+                    .map(|part| part.content)
+                    .collect::<Vec<_>>()
+            })
+            .collect()
     }
 
     #[test]
@@ -1687,6 +1902,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn execute_with_panic_boundary_reports_waiting_for_wait_tool_reply() {
+        let sink = CaptureErrorSink::new();
+
+        let status = execute_with_panic_boundary(
+            async {
+                Ok(
+                    "{\"status\":\"WAITING\",\"target\":\"critic-1\"}\nWaiting for a message from critic-1. The worker will stop this turn and resume when an inbound message is dispatched; do not poll agent_status."
+                        .to_string(),
+                )
+            },
+            &sink,
+            "writer",
+            "session-1",
+        )
+        .await
+        .expect("wait reply should not fail");
+
+        assert_eq!(status, SessionCompletionStatus::Waiting);
+        assert!(sink.errors().is_empty());
+    }
+
+    #[tokio::test]
     async fn handle_session_control_cancels_registered_session() {
         let kv = Arc::new(MockKvStore::default());
         let handler = handler_with_kv(kv);
@@ -1786,6 +2023,259 @@ mod tests {
             .expect("session should load")
             .expect("session should exist");
         assert_eq!(updated.status, "IDLE");
+    }
+
+    #[tokio::test]
+    async fn release_session_lock_sets_waiting_session_back_to_idle() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        let session = data_proto::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "PROCESSING".to_string(),
+            created_at: 0,
+            last_active: 123,
+            metadata: HashMap::new(),
+            labels: HashMap::new(),
+        };
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &session,
+        )
+        .await
+        .expect("session should persist");
+
+        handler
+            .release_session_lock(
+                "conic:test",
+                "assistant",
+                "session-1",
+                123,
+                SessionCompletionStatus::Waiting,
+            )
+            .await;
+
+        let updated = kv
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .expect("session should load")
+            .expect("session should exist");
+        assert_eq!(updated.status, "IDLE");
+    }
+
+    #[tokio::test]
+    async fn release_waiting_session_dispatches_queued_message_after_unlock() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        let session = data_proto::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "PROCESSING".to_string(),
+            created_at: 0,
+            last_active: 123,
+            metadata: HashMap::new(),
+            labels: HashMap::new(),
+        };
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &session,
+        )
+        .await
+        .expect("session should persist");
+        crate::control::session_queue::queue_text_message(
+            kv.as_ref(),
+            "conic:test",
+            "assistant",
+            "session-1",
+            crate::control::session_queue::NEXT_QUEUE,
+            "queued follow-up",
+            HashMap::new(),
+            chrono::Utc::now(),
+        )
+        .await
+        .expect("queued message should persist");
+
+        handler
+            .release_session_lock(
+                "conic:test",
+                "assistant",
+                "session-1",
+                123,
+                SessionCompletionStatus::Waiting,
+            )
+            .await;
+
+        let updated = kv
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .expect("session should load")
+            .expect("session should exist");
+        assert_eq!(updated.status, "PROCESSING");
+        let submissions = kv
+            .list_entries(
+                &crate::control::keys::session_submission_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                ),
+                None,
+            )
+            .await
+            .expect("submissions should list");
+        assert_eq!(submissions.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn completed_a2a_child_reply_auto_forwards_to_owner() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        put_session_with_metadata(
+            kv.as_ref(),
+            "Tenant:acme:Main",
+            "cmo",
+            "owner-session",
+            HashMap::from([(
+                "wire.a2a.talon.impalasys.com/writer-1".to_string(),
+                "Tenant:acme:Copywriter/writer/child-session".to_string(),
+            )]),
+        )
+        .await;
+        put_session_with_metadata(
+            kv.as_ref(),
+            "Tenant:acme:Copywriter",
+            "writer",
+            "child-session",
+            HashMap::from([(
+                "wire.a2a.talon.impalasys.com/owner".to_string(),
+                "Tenant:acme:Main/cmo/owner-session".to_string(),
+            )]),
+        )
+        .await;
+        let reply_key = crate::control::keys::session_message(
+            "Tenant:acme:Copywriter",
+            "writer",
+            "child-session",
+            "assistant-1",
+        );
+        kv.set_msg(
+            &reply_key,
+            &assistant_message(vec![message_part(
+                data_proto::SessionMessagePartType::Text,
+                "Draft is ready.",
+            )]),
+        )
+        .await
+        .unwrap();
+
+        handler
+            .maybe_auto_forward_a2a_final_message(
+                "Tenant:acme:Copywriter",
+                "writer",
+                "child-session",
+                &reply_key,
+            )
+            .await
+            .unwrap();
+
+        let owner_messages =
+            session_text_messages(kv.as_ref(), "Tenant:acme:Main", "cmo", "owner-session").await;
+        assert_eq!(owner_messages, vec!["From @writer-1:\n\nDraft is ready."]);
+    }
+
+    #[tokio::test]
+    async fn completed_a2a_child_reply_does_not_duplicate_explicit_owner_send() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        put_session_with_metadata(
+            kv.as_ref(),
+            "Tenant:acme:Main",
+            "cmo",
+            "owner-session",
+            HashMap::from([(
+                "wire.a2a.talon.impalasys.com/writer-1".to_string(),
+                "Tenant:acme:Copywriter/writer/child-session".to_string(),
+            )]),
+        )
+        .await;
+        put_session_with_metadata(
+            kv.as_ref(),
+            "Tenant:acme:Copywriter",
+            "writer",
+            "child-session",
+            HashMap::from([(
+                "wire.a2a.talon.impalasys.com/owner".to_string(),
+                "Tenant:acme:Main/cmo/owner-session".to_string(),
+            )]),
+        )
+        .await;
+        let reply_key = crate::control::keys::session_message(
+            "Tenant:acme:Copywriter",
+            "writer",
+            "child-session",
+            "assistant-1",
+        );
+        kv.set_msg(
+            &reply_key,
+            &assistant_message(vec![
+                message_part_with_payload(
+                    data_proto::SessionMessagePartType::ToolCall,
+                    crate::harness::native_tools::AGENT_SEND_TOOL,
+                    "Tool call",
+                    r#"{"tool_call_id":"call-1","input":{"target":"owner","message":"Done."}}"#,
+                ),
+                message_part(data_proto::SessionMessagePartType::Text, "Done."),
+            ]),
+        )
+        .await
+        .unwrap();
+
+        handler
+            .maybe_auto_forward_a2a_final_message(
+                "Tenant:acme:Copywriter",
+                "writer",
+                "child-session",
+                &reply_key,
+            )
+            .await
+            .unwrap();
+
+        let owner_messages =
+            session_text_messages(kv.as_ref(), "Tenant:acme:Main", "cmo", "owner-session").await;
+        assert!(owner_messages.is_empty());
+    }
+
+    #[test]
+    fn session_message_artifact_uris_extracts_visible_and_created_artifacts() {
+        let message = assistant_message(vec![
+            message_part_with_payload(
+                data_proto::SessionMessagePartType::ToolResult,
+                crate::harness::native_tools::CREATE_ARTIFACT_TOOL,
+                "",
+                r#"{"tool_call_id":"call-1","output":"{\"artifactUri\":\"artifact://Tenant:acme:Copywriter/writer/child-session/draft\"}"}"#,
+            ),
+            message_part(
+                data_proto::SessionMessagePartType::Text,
+                "Done: artifact://Tenant:acme:Copywriter/writer/child-session/draft",
+            ),
+        ]);
+
+        assert_eq!(
+            session_message_artifact_uris(
+                &message,
+                "Done: artifact://Tenant:acme:Copywriter/writer/child-session/draft",
+            ),
+            vec!["artifact://Tenant:acme:Copywriter/writer/child-session/draft"]
+        );
     }
 
     #[tokio::test]

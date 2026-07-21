@@ -717,6 +717,10 @@ fn artifact_uris_from_text(text: &str) -> Vec<String> {
     uris
 }
 
+pub(super) fn artifact_uris_from_message_text(text: &str) -> Vec<String> {
+    artifact_uris_from_text(text)
+}
+
 async fn sender_alias_for_target(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -762,8 +766,16 @@ fn message_with_artifacts(message: &str, artifact_uris: &[String]) -> String {
     }
 
     let mut message = message.trim_end().to_string();
+    let visible_artifact_uris = artifact_uris
+        .iter()
+        .filter(|artifact_uri| !message.contains(artifact_uri.as_str()))
+        .collect::<Vec<_>>();
+    if visible_artifact_uris.is_empty() {
+        return message;
+    }
+
     message.push_str("\n\nAttached artifacts:");
-    for artifact_uri in artifact_uris {
+    for artifact_uri in visible_artifact_uris {
         message.push_str("\n- ");
         message.push_str(artifact_uri);
     }

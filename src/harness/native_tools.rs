@@ -72,6 +72,45 @@ pub fn tool_requests_worker_stop(name: &str) -> bool {
     name == AGENT_WAIT_FOR_MESSAGE_TOOL
 }
 
+pub(crate) async fn auto_forward_a2a_final_message(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    message: &str,
+    artifact_uris: &[String],
+) -> Result<bool> {
+    if a2a_tools::load_wire_ref(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        "owner",
+    )
+    .await?
+    .is_none()
+    {
+        return Ok(false);
+    }
+
+    a2a_tools::send_wire_message(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        "owner",
+        message,
+        artifact_uris,
+        Default::default(),
+    )
+    .await?;
+    Ok(true)
+}
+
+pub(crate) fn artifact_uris_from_message_text(text: &str) -> Vec<String> {
+    a2a_tools::artifact_uris_from_message_text(text)
+}
+
 pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
     let names = namespace::effective_skill_names(skills);
     if names.is_empty() {
