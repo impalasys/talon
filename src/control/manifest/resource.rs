@@ -264,7 +264,7 @@ pub fn resource_spec_status_from_json(
             kind: Some(SpecKind::Schedule(schedule_spec_from_value(spec_value)?)),
         },
         "Secret" => resources_proto::ResourceSpec {
-            kind: Some(SpecKind::Secret(serde_json::from_value(spec_value)?)),
+            kind: Some(SpecKind::Secret(secret_spec_from_value(spec_value)?)),
         },
         "Template" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Template(template_spec_from_value(spec_value)?)),
@@ -676,6 +676,20 @@ fn file_status_from_value(value: serde_json::Value) -> Result<resources_proto::F
         return Ok(resources_proto::FileStatus::default());
     }
     serde_json::from_value(value).context("Failed to parse File status")
+}
+
+fn secret_spec_from_value(
+    mut value: serde_json::Value,
+) -> Result<resources_proto::SecretSpec> {
+    if let serde_json::Value::Object(object) = &mut value {
+        object
+            .entry("data")
+            .or_insert_with(|| serde_json::Value::Object(Default::default()));
+        object
+            .entry("stringData")
+            .or_insert_with(|| serde_json::Value::Object(Default::default()));
+    }
+    serde_json::from_value(value).context("Failed to parse Secret spec")
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
