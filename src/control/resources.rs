@@ -5,6 +5,7 @@ use crate::control::events;
 use crate::control::{keys, topics, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::resources_proto;
 use anyhow::{anyhow, Context, Result};
+use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 use prost::Message;
 use std::sync::Arc;
 
@@ -50,6 +51,12 @@ impl ResourceStore {
                 bytes,
                 resources_proto::resource_spec::Kind::Schedule,
                 resources_proto::resource_status::Kind::Schedule,
+            ),
+            "Secret" => decode_typed_resource::<resources_proto::Secret, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::Secret,
+                resources_proto::resource_status::Kind::Secret,
             ),
             "Channel" => decode_typed_resource::<resources_proto::Channel, _, _, _, _>(
                 kind,
@@ -205,6 +212,7 @@ impl ResourceStore {
         preserve_existing_status: bool,
     ) -> Result<resources_proto::Resource> {
         normalize_resource(namespace, &mut resource)?;
+        normalize_resource_spec(&mut resource)?;
         let key = resource_key(&resource);
         validate_resource_kind(&resource)?;
         let existing = match self.kv.get(&key).await? {
@@ -379,6 +387,7 @@ impl ResourceStore {
                 .as_mut()
                 .ok_or_else(|| anyhow!("resource metadata missing"))?;
             meta.resource_version = crate::control::uuid::resource_version();
+            normalize_resource_spec(&mut resource)?;
             validate_resource_kind(&resource)?;
             let next = encode_stored_resource(&resource)?;
             if self
@@ -682,6 +691,11 @@ impl_stored_typed_resource!(
     resources_proto::ScheduleStatus
 );
 impl_stored_typed_resource!(
+    resources_proto::Secret,
+    resources_proto::SecretSpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
     resources_proto::Channel,
     resources_proto::ChannelSpec,
     resources_proto::ChannelStatus
@@ -856,6 +870,23 @@ fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8
             },
             |kind| match kind {
                 resources_proto::resource_status::Kind::Schedule(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Secret" => encode_typed_resource::<
+            resources_proto::Secret,
+            resources_proto::SecretSpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Secret(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Secret(status) => Some(status),
                 _ => None,
             },
         ),
@@ -1247,6 +1278,37 @@ pub fn normalize_resource(namespace: &str, resource: &mut resources_proto::Resou
     Ok(())
 }
 
+fn normalize_resource_spec(resource: &mut resources_proto::Resource) -> Result<()> {
+    if let Some(resources_proto::resource_spec::Kind::Secret(spec)) =
+        resource.spec.as_mut().and_then(|spec| spec.kind.as_mut())
+    {
+        normalize_secret_spec(spec)?;
+    }
+    Ok(())
+}
+
+fn normalize_secret_spec(spec: &mut resources_proto::SecretSpec) -> Result<()> {
+    for (key, value) in &spec.data {
+        if key.trim().is_empty() {
+            return Err(anyhow!("Secret spec.data contains an empty key"));
+        }
+        BASE64_STANDARD
+            .decode(value.as_bytes())
+            .with_context(|| format!("Secret spec.data.{} must be base64-encoded", key))?;
+    }
+    for (key, value) in std::mem::take(&mut spec.string_data) {
+        if key.trim().is_empty() {
+            return Err(anyhow!("Secret spec.stringData contains an empty key"));
+        }
+        spec.data
+            .insert(key, BASE64_STANDARD.encode(value.as_bytes()));
+    }
+    if spec.r#type.trim().is_empty() {
+        spec.r#type = "Opaque".to_string();
+    }
+    Ok(())
+}
+
 fn bump_generation(resource: &mut resources_proto::Resource) {
     if let Some(meta) = resource.metadata.as_mut() {
         meta.generation = meta.generation.saturating_add(1).max(1);
@@ -1263,6 +1325,7 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::Agent(_) => "Agent",
         Kind::Workflow(_) => "Workflow",
         Kind::Schedule(_) => "Schedule",
+        Kind::Secret(_) => "Secret",
         Kind::Channel(_) => "Channel",
         Kind::ChannelSubscription(_) => "ChannelSubscription",
         Kind::ConnectorClass(_) => "ConnectorClass",
@@ -1328,6 +1391,7 @@ fn default_status_for_resource(
         Some(SpecKind::Agent(_)) => StatusKind::Agent(Default::default()),
         Some(SpecKind::Workflow(_)) => StatusKind::Workflow(Default::default()),
         Some(SpecKind::Schedule(_)) => StatusKind::Schedule(Default::default()),
+        Some(SpecKind::Secret(_)) => StatusKind::Secret(Default::default()),
         Some(SpecKind::Channel(_)) => StatusKind::Channel(Default::default()),
         Some(SpecKind::ChannelSubscription(_)) => {
             StatusKind::ChannelSubscription(Default::default())
@@ -1478,6 +1542,73 @@ mod tests {
 
         resource.metadata.as_mut().unwrap().name = keys::file_name_for_path(path);
         assert!(store.upsert("customers", resource).await.is_ok());
+    }
+
+    #[tokio::test]
+    async fn secret_resources_convert_string_data_before_storage() {
+        let kv = Arc::new(MockKvStore::new());
+        let store = ResourceStore::new(kv.clone(), Arc::new(RecordingPubSub::default()));
+        let resource = resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Secret".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "api-token".to_string(),
+                namespace: "customers".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Secret(
+                    resources_proto::SecretSpec {
+                        r#type: String::new(),
+                        data: std::collections::HashMap::from([(
+                            "existing".to_string(),
+                            "dmFsdWU=".to_string(),
+                        )]),
+                        string_data: std::collections::HashMap::from([(
+                            "token".to_string(),
+                            "plain-token".to_string(),
+                        )]),
+                    },
+                )),
+            }),
+            status: None,
+        };
+
+        let created = store.upsert("customers", resource).await.unwrap();
+        let Some(resources_proto::resource_spec::Kind::Secret(spec)) =
+            created.spec.as_ref().and_then(|spec| spec.kind.as_ref())
+        else {
+            panic!("expected Secret spec");
+        };
+        assert_eq!(spec.r#type, "Opaque");
+        assert!(spec.string_data.is_empty());
+        assert_eq!(
+            spec.data.get("existing").map(String::as_str),
+            Some("dmFsdWU=")
+        );
+        assert_eq!(
+            spec.data.get("token").map(String::as_str),
+            Some("cGxhaW4tdG9rZW4=")
+        );
+
+        let stored = kv
+            .get(&crate::control::keys::ResourceKey::new(
+                "customers",
+                &[],
+                "Secret",
+                "api-token",
+            ))
+            .await
+            .unwrap()
+            .expect("stored Secret payload");
+        let stored_secret =
+            resources_proto::Secret::decode(stored.as_slice()).expect("stored payload is Secret");
+        let stored_spec = stored_secret.spec.unwrap();
+        assert!(stored_spec.string_data.is_empty());
+        assert_eq!(
+            stored_spec.data.get("token").map(String::as_str),
+            Some("cGxhaW4tdG9rZW4=")
+        );
     }
 
     #[tokio::test]

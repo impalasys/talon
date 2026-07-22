@@ -264,6 +264,7 @@ impl_typed_resource!(
     resources_proto::McpServer,
     resources_proto::Namespace,
     resources_proto::Schedule,
+    resources_proto::Secret,
     resources_proto::Task,
     resources_proto::Worker,
     resources_proto::Workflow,

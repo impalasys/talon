@@ -605,6 +605,7 @@ fn status_phase(resource: &resources_proto::Resource) -> String {
         resources_proto::resource_status::Kind::Connector(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::McpServer(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Knowledge(status) => status.phase.clone(),
+        resources_proto::resource_status::Kind::Secret(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::File(status) => status.phase.clone(),
         resources_proto::resource_status::Kind::Task(status) => {
             resources_proto::TaskPhase::try_from(status.phase)

@@ -12,14 +12,17 @@ import * as agents from "./gen/proto/resources/agents_pb.js";
 import * as channels from "./gen/proto/resources/channels_pb.js";
 import * as common from "./gen/proto/resources/common_pb.js";
 import * as deployments from "./gen/proto/resources/deployments_pb.js";
+import * as files from "./gen/proto/resources/files_pb.js";
 import * as knowledge from "./gen/proto/resources/knowledge_pb.js";
 import * as mcp from "./gen/proto/resources/mcp_pb.js";
 import * as namespaces from "./gen/proto/resources/namespaces_pb.js";
 import * as resources from "./gen/proto/resources/resource_pb.js";
 import * as sandboxes from "./gen/proto/resources/sandboxes_pb.js";
 import * as schedules from "./gen/proto/resources/schedules_pb.js";
+import * as secrets from "./gen/proto/resources/secrets_pb.js";
 import * as sessions from "./gen/proto/resources/sessions_pb.js";
 import * as usage from "./gen/proto/resources/usage_pb.js";
+import * as tasks from "./gen/proto/resources/tasks_pb.js";
 import * as workers from "./gen/proto/resources/workers_pb.js";
 import * as workflows from "./gen/proto/resources/workflows_pb.js";
 import * as v1Auth from "./gen/proto/talon/v1/auth_pb.js";
@@ -51,13 +54,16 @@ export {
   channels,
   common,
   deployments,
+  files,
   knowledge,
   mcp,
   namespaces,
   resources,
   sandboxes,
   schedules,
+  secrets,
   sessions,
+  tasks,
   usage,
   workers,
   workflows,

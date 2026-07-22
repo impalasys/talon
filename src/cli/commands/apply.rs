@@ -88,6 +88,7 @@ fn is_generic_resource_kind(kind: &str) -> bool {
             | "Knowledge"
             | "File"
             | "Task"
+            | "Secret"
             | "Channel"
             | "ChannelSubscription"
             | "Schedule"
