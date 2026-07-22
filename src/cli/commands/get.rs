@@ -11,7 +11,7 @@ use talon_client::v1::{GetResourceRequest, ListNamespacesRequest, ListResourcesR
 
 #[derive(clap::Args)]
 pub(crate) struct GetCommand {
-    /// Type of resource to get: agent, template, mcp-server, worker, knowledge, file, task, schedule, channel, channel-subscription
+    /// Type of resource to get: agent, template, mcp-server, worker, knowledge, file, task, secret, schedule, channel, channel-subscription
     #[arg(value_name = "KIND")]
     pub(crate) kind: String,
     /// Name of the resource. Omit to list resources of this kind.
@@ -116,6 +116,10 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
         "task" | "tasks" => Ok(ResourceListTarget::Resources {
             ns: ns_or_default(),
             kind: Some("Task".to_string()),
+        }),
+        "secret" | "secrets" => Ok(ResourceListTarget::Resources {
+            ns: ns_or_default(),
+            kind: Some("Secret".to_string()),
         }),
         "schedule" | "schedules" => Ok(ResourceListTarget::Resources {
             ns: ns_or_default(),
@@ -490,6 +494,7 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         StatusKind::ChannelSubscription(status)
         | StatusKind::McpServer(status)
         | StatusKind::Knowledge(status)
+        | StatusKind::Secret(status)
         | StatusKind::Skill(status)
         | StatusKind::Template(status)
         | StatusKind::SandboxClass(status)

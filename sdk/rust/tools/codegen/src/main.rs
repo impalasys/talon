@@ -41,6 +41,7 @@ fn main() {
         root.join("proto/resources/namespaces.proto"),
         root.join("proto/resources/channels.proto"),
         root.join("proto/resources/schedules.proto"),
+        root.join("proto/resources/secrets.proto"),
         root.join("proto/resources/workflows.proto"),
         root.join("proto/resources/deployments.proto"),
         root.join("proto/resources/files.proto"),

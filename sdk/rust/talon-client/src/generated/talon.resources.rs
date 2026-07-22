@@ -548,6 +548,34 @@ pub struct Schedule {
     pub status: ::core::option::Option<ScheduleStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Secret {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<SecretSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<CommonResourceStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecretSpec {
+    /// Application-defined secret type, for example "Opaque".
+    #[prost(string, tag = "1")]
+    pub r#type: ::prost::alloc::string::String,
+    /// Base64-encoded secret values keyed by name.
+    #[prost(map = "string, string", tag = "2")]
+    pub data: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    /// Write-only cleartext values. The control plane stores these in data and
+    /// clears this map before persisting or returning the resource.
+    #[prost(map = "string, string", tag = "3")]
+    pub string_data: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WorkflowStepOutputPolicy {
     #[prost(string, tag = "1")]
     pub format: ::prost::alloc::string::String,
@@ -1593,7 +1621,7 @@ pub struct RawResourceStatus {
 pub struct ResourceSpec {
     #[prost(
         oneof = "resource_spec::Kind",
-        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 80, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 80, 90, 1000"
     )]
     pub kind: ::core::option::Option<resource_spec::Kind>,
 }
@@ -1645,6 +1673,8 @@ pub mod resource_spec {
         File(super::FileSpec),
         #[prost(message, tag = "80")]
         Task(super::TaskSpec),
+        #[prost(message, tag = "90")]
+        Secret(super::SecretSpec),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceSpec),
     }
@@ -1653,7 +1683,7 @@ pub mod resource_spec {
 pub struct ResourceStatus {
     #[prost(
         oneof = "resource_status::Kind",
-        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 80, 1000"
+        tags = "1, 2, 3, 4, 5, 12, 13, 6, 8, 9, 10, 11, 20, 21, 22, 40, 41, 42, 50, 60, 70, 80, 90, 1000"
     )]
     pub kind: ::core::option::Option<resource_status::Kind>,
 }
@@ -1705,6 +1735,8 @@ pub mod resource_status {
         File(super::FileStatus),
         #[prost(message, tag = "80")]
         Task(super::TaskStatus),
+        #[prost(message, tag = "90")]
+        Secret(super::CommonResourceStatus),
         #[prost(message, tag = "1000")]
         Raw(super::RawResourceStatus),
     }

@@ -461,6 +461,34 @@ spec:
     }
 
     #[test]
+    fn secret_manifest_parses_string_data() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Secret
+metadata:
+  name: api-token
+  namespace: customers
+spec:
+  type: Opaque
+  stringData:
+    token: plain-token
+"#,
+        )
+        .expect("Secret manifest should parse");
+
+        let Some(resource_spec::Kind::Secret(spec)) = manifest.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected Secret spec");
+        };
+        assert_eq!(spec.r#type, "Opaque");
+        assert_eq!(
+            spec.string_data.get("token").map(String::as_str),
+            Some("plain-token")
+        );
+    }
+
+    #[test]
     fn resource_yaml_renders_common_status_conditions_when_present() {
         let rendered = render_resource_yaml(&resources_proto::Resource {
             api_version: "talon.impalasys.com/v1".to_string(),

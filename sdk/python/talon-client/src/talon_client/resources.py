@@ -7,12 +7,15 @@ from talon_client.proto.resources.knowledge_pb2 import Knowledge, KnowledgeSpec
 from talon_client.proto.resources.namespaces_pb2 import Namespace, NamespaceSpec, NamespaceStatus
 from talon_client.proto.resources.channels_pb2 import Channel, ChannelSpec, ChannelStatus, ChannelContextPolicy, ChannelSubscription, ChannelSubscriptionSpec
 from talon_client.proto.resources.connectors_pb2 import ConnectorClassRuntimeSpec, ConnectorClassAuthSpec, ConnectorSecretRef, ConnectorMatchIndex, ConnectorClassSpec, ConnectorClassStatus, ConnectorSpec, ConnectorStatus, ConnectorClass, Connector
+from talon_client.proto.resources.files_pb2 import File, FileSpec, FilePurpose, FILE_PURPOSE_UNSPECIFIED, FILE_PURPOSE_MEMORY, FILE_PURPOSE_ARTIFACT, FileIndexPolicy, FILE_INDEX_POLICY_UNSPECIFIED, FILE_INDEX_POLICY_NONE, FILE_INDEX_POLICY_SEARCH, FILE_INDEX_POLICY_RETRIEVAL, FileRetention, FILE_RETENTION_UNSPECIFIED, FILE_RETENTION_RETAINED, FileStatus, FileObjectRef, PendingFileUpload
 from talon_client.proto.resources.schedules_pb2 import ScheduleTarget, ScheduleSpec, ScheduleStatus, ScheduleEvent, Schedule
+from talon_client.proto.resources.secrets_pb2 import Secret, SecretSpec
 from talon_client.proto.resources.workflows_pb2 import WorkflowStepOutputPolicy, WorkflowStepRetryPolicy, WorkflowStep, WorkflowSpec, Workflow, WorkflowStatus
 from talon_client.proto.resources.deployments_pb2 import TemplateSpec, Template, DeploymentPlacement, DeploymentSpec, Deployment, DeploymentReplicaSpec, DeploymentReplica, DeploymentStatus, DeploymentReplicaCounts, DeploymentReplicaStatus
 from talon_client.proto.resources.sandboxes_pb2 import SandboxClassSpec, SandboxClass, SandboxWorkspaceSpec, SandboxSetupSpec, SandboxNetworkSpec, SandboxFilesystemSpec, SandboxLeasePolicySpec, SandboxRuntimeTemplateSpec, SandboxPolicySpec, SandboxPolicy, SandboxLease, SandboxProcessStatus, SandboxStatus, SandboxSpec, Sandbox
 from talon_client.proto.resources.sessions_pb2 import SessionSpec, Session, SessionStatus
 from talon_client.proto.resources.skills_pb2 import SkillSpec, Skill
+from talon_client.proto.resources.tasks_pb2 import Task, TaskSpec, TaskExecutionRef, TaskPhase, TASK_PHASE_UNSPECIFIED, TASK_PHASE_QUEUED, TASK_PHASE_RUNNING, TASK_PHASE_BLOCKED, TASK_PHASE_NEEDS_REVIEW, TASK_PHASE_SUCCEEDED, TASK_PHASE_FAILED, TASK_PHASE_CANCELED, TASK_PHASE_EXPIRED, TaskStatus
 from talon_client.proto.resources.usage_pb2 import UsageSelector, UsageLimit, UsagePolicySpec, UsageLimitStatus, UsagePolicyStatus, UsagePolicy
 from talon_client.proto.resources.workers_pb2 import WorkerSpec, WorkerEndpoint, WorkerStatus, Worker
 from talon_client.proto.resources.resource_pb2 import Resource, ResourceManifest, RawResourceSpec, RawResourceStatus, ResourceSpec, ResourceStatus
@@ -69,11 +72,30 @@ __all__ = [
     "ConnectorStatus",
     "ConnectorClass",
     "Connector",
+    "File",
+    "FileSpec",
+    "FilePurpose",
+    "FILE_PURPOSE_UNSPECIFIED",
+    "FILE_PURPOSE_MEMORY",
+    "FILE_PURPOSE_ARTIFACT",
+    "FileIndexPolicy",
+    "FILE_INDEX_POLICY_UNSPECIFIED",
+    "FILE_INDEX_POLICY_NONE",
+    "FILE_INDEX_POLICY_SEARCH",
+    "FILE_INDEX_POLICY_RETRIEVAL",
+    "FileRetention",
+    "FILE_RETENTION_UNSPECIFIED",
+    "FILE_RETENTION_RETAINED",
+    "FileStatus",
+    "FileObjectRef",
+    "PendingFileUpload",
     "ScheduleTarget",
     "ScheduleSpec",
     "ScheduleStatus",
     "ScheduleEvent",
     "Schedule",
+    "Secret",
+    "SecretSpec",
     "WorkflowStepOutputPolicy",
     "WorkflowStepRetryPolicy",
     "WorkflowStep",
@@ -110,6 +132,20 @@ __all__ = [
     "SessionStatus",
     "SkillSpec",
     "Skill",
+    "Task",
+    "TaskSpec",
+    "TaskExecutionRef",
+    "TaskPhase",
+    "TASK_PHASE_UNSPECIFIED",
+    "TASK_PHASE_QUEUED",
+    "TASK_PHASE_RUNNING",
+    "TASK_PHASE_BLOCKED",
+    "TASK_PHASE_NEEDS_REVIEW",
+    "TASK_PHASE_SUCCEEDED",
+    "TASK_PHASE_FAILED",
+    "TASK_PHASE_CANCELED",
+    "TASK_PHASE_EXPIRED",
+    "TaskStatus",
     "UsageSelector",
     "UsageLimit",
     "UsagePolicySpec",

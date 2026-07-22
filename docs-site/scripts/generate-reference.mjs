@@ -34,6 +34,7 @@ const resourceProtos = [
   "resources/connectors.proto",
   "resources/files.proto",
   "resources/schedules.proto",
+  "resources/secrets.proto",
   "resources/workflows.proto",
   "resources/deployments.proto",
   "resources/sandboxes.proto",

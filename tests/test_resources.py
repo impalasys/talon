@@ -19,6 +19,7 @@ from talon_client.resources import (
     ResourceSpec,
     ScheduleSpec,
     ScheduleTarget,
+    SecretSpec,
 )
 
 
@@ -172,4 +173,49 @@ def test_schedule_crud_round_trip(
     assert listed.resources[0].metadata.name == schedule_name
 
     deleted = client.resources.Delete(DeleteResourceRequest(ns=namespace, kind="Schedule", name=schedule_name))
+    assert deleted.success is True
+
+
+def test_secret_crud_round_trip(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    # Verify Secret resources can be created, fetched, listed, and deleted
+    # through the public resource API. string_data should not be returned.
+    run_id = uuid.uuid4().hex[:8]
+    namespace = f"talon-secret-{run_id}"
+    secret_name = f"secret-{run_id}"
+
+    client.namespaces.Create(CreateNamespaceRequest(name=namespace, recursive=True))
+
+    created = create_resource(
+        client,
+        namespace,
+        "Secret",
+        secret_name,
+        ResourceSpec(
+            secret=SecretSpec(
+                type="Opaque",
+                string_data={"token": "plain-token"},
+            ),
+        ),
+    )
+    assert created.metadata.name == secret_name
+    assert created.spec.secret.type == "Opaque"
+    assert created.spec.secret.string_data == {}
+    assert created.spec.secret.data["token"] == "cGxhaW4tdG9rZW4="
+
+    fetched = client.resources.Get(
+        GetResourceRequest(ns=namespace, kind="Secret", name=secret_name)
+    )
+    assert fetched.resource.spec.secret.data["token"] == "cGxhaW4tdG9rZW4="
+    assert fetched.resource.spec.secret.string_data == {}
+
+    listed = client.resources.List(ListResourcesRequest(ns=namespace, kind="Secret"))
+    assert len(listed.resources) == 1
+    assert listed.resources[0].metadata.name == secret_name
+
+    deleted = client.resources.Delete(
+        DeleteResourceRequest(ns=namespace, kind="Secret", name=secret_name)
+    )
     assert deleted.success is True

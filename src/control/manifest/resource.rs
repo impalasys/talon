@@ -263,6 +263,9 @@ pub fn resource_spec_status_from_json(
         "Schedule" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Schedule(schedule_spec_from_value(spec_value)?)),
         },
+        "Secret" => resources_proto::ResourceSpec {
+            kind: Some(SpecKind::Secret(serde_json::from_value(spec_value)?)),
+        },
         "Template" => resources_proto::ResourceSpec {
             kind: Some(SpecKind::Template(template_spec_from_value(spec_value)?)),
         },
@@ -361,6 +364,11 @@ pub fn resource_spec_status_from_json(
                 status_value,
             )?)),
         },
+        "Secret" => resources_proto::ResourceStatus {
+            kind: Some(StatusKind::Secret(common_status_from_value(
+                status_value,
+            )?)),
+        },
         "SandboxClass" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::SandboxClass(common_status_from_value(
                 status_value,
@@ -420,6 +428,7 @@ fn resource_spec_status_to_yaml_values(
     let spec_json = match resource.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
         Some(SpecKind::Agent(spec)) => serde_json::to_string(&AgentSpecManifest::from_proto(spec))?,
         Some(SpecKind::Schedule(spec)) => serde_json::to_string(&schedule_spec_to_json(spec))?,
+        Some(SpecKind::Secret(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Template(spec)) => serde_json::to_string(&serde_json::json!({
             "kind": spec.kind,
             "metadata": spec.metadata.as_ref().map(ObjectMetaManifest::from_resource_meta),
@@ -591,6 +600,7 @@ fn resource_spec_status_to_yaml_values(
             serde_json::to_string(&serde_json::Value::Object(json))?
         }
         Some(StatusKind::Template(status))
+        | Some(StatusKind::Secret(status))
         | Some(StatusKind::Skill(status))
         | Some(StatusKind::McpServer(status))
         | Some(StatusKind::SandboxClass(status))

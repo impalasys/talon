@@ -13,6 +13,7 @@ import "proto/resources/mcp.proto";
 import "proto/resources/namespaces.proto";
 import "proto/resources/sandboxes.proto";
 import "proto/resources/schedules.proto";
+import "proto/resources/secrets.proto";
 import "proto/resources/sessions.proto";
 import "proto/resources/skills.proto";
 import "proto/resources/tasks.proto";
@@ -70,6 +71,7 @@ message ResourceSpec {
     UsagePolicySpec usage_policy = 60;
     FileSpec file = 70;
     TaskSpec task = 80;
+    SecretSpec secret = 90;
     RawResourceSpec raw = 1000;
   }
 }
@@ -101,6 +103,7 @@ message ResourceStatus {
     UsagePolicyStatus usage_policy = 60;
     FileStatus file = 70;
     TaskStatus task = 80;
+    CommonResourceStatus secret = 90;
     RawResourceStatus raw = 1000;
   }
 }

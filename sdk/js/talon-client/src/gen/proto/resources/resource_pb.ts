@@ -22,6 +22,7 @@ import { WorkerSpec, WorkerStatus } from "./workers_pb.js";
 import { UsagePolicySpec, UsagePolicyStatus } from "./usage_pb.js";
 import { FileSpec, FileStatus } from "./files_pb.js";
 import { TaskSpec, TaskStatus } from "./tasks_pb.js";
+import { SecretSpec } from "./secrets_pb.js";
 
 /**
  * @generated from message talon.resources.Resource
@@ -354,6 +355,12 @@ export class ResourceSpec extends Message<ResourceSpec> {
     case: "task";
   } | {
     /**
+     * @generated from field: talon.resources.SecretSpec secret = 90;
+     */
+    value: SecretSpec;
+    case: "secret";
+  } | {
+    /**
      * @generated from field: talon.resources.RawResourceSpec raw = 1000;
      */
     value: RawResourceSpec;
@@ -390,6 +397,7 @@ export class ResourceSpec extends Message<ResourceSpec> {
     { no: 60, name: "usage_policy", kind: "message", T: UsagePolicySpec, oneof: "kind" },
     { no: 70, name: "file", kind: "message", T: FileSpec, oneof: "kind" },
     { no: 80, name: "task", kind: "message", T: TaskSpec, oneof: "kind" },
+    { no: 90, name: "secret", kind: "message", T: SecretSpec, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceSpec, oneof: "kind" },
   ]);
 
@@ -551,6 +559,12 @@ export class ResourceStatus extends Message<ResourceStatus> {
     case: "task";
   } | {
     /**
+     * @generated from field: talon.resources.CommonResourceStatus secret = 90;
+     */
+    value: CommonResourceStatus;
+    case: "secret";
+  } | {
+    /**
      * @generated from field: talon.resources.RawResourceStatus raw = 1000;
      */
     value: RawResourceStatus;
@@ -587,6 +601,7 @@ export class ResourceStatus extends Message<ResourceStatus> {
     { no: 60, name: "usage_policy", kind: "message", T: UsagePolicyStatus, oneof: "kind" },
     { no: 70, name: "file", kind: "message", T: FileStatus, oneof: "kind" },
     { no: 80, name: "task", kind: "message", T: TaskStatus, oneof: "kind" },
+    { no: 90, name: "secret", kind: "message", T: CommonResourceStatus, oneof: "kind" },
     { no: 1000, name: "raw", kind: "message", T: RawResourceStatus, oneof: "kind" },
   ]);
 

@@ -29,6 +29,7 @@ PROTO_SRCS=(
   proto/resources/connectors.proto
   proto/resources/files.proto
   proto/resources/schedules.proto
+  proto/resources/secrets.proto
   proto/resources/workflows.proto
   proto/resources/deployments.proto
   proto/resources/sandboxes.proto
@@ -99,6 +100,7 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/connectors.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/files.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/secrets.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
@@ -139,6 +141,7 @@ GO_OPTS=(
   "--go-grpc_opt=Mproto/resources/connectors.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/files.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/secrets.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
   "--go-grpc_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"

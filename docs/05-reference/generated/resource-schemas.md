@@ -556,6 +556,22 @@ No retention policy has been set. Writers should choose a concrete policy before
 | `spec` | `ScheduleSpec` | - |
 | `status` | `ScheduleStatus` | - |
 
+## `Secret`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `metadata` | `ResourceMeta` | - |
+| `spec` | `SecretSpec` | - |
+| `status` | `CommonResourceStatus` | - |
+
+## `SecretSpec`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `type` | `string` | Application-defined secret type, for example "Opaque". |
+| `data` | `map<string, string>` | Base64-encoded secret values keyed by name. |
+| `string_data` | `map<string, string>` | Write-only cleartext values. The control plane stores these in data and clears this map before persisting or returning the resource. |
+
 ## `WorkflowStepOutputPolicy`
 
 | Field | Type | Notes |
@@ -917,6 +933,7 @@ No phase has been set. Writers should avoid persisting this outside partially in
 | `completed_at` | `int64` | - |
 | `expires_at` | `int64` | - |
 | `execution_ref` | `TaskExecutionRef` | Concrete runtime execution once a delegate session or run is known. |
+| `output_artifact_uris` | `string` | repeated; Artifact URI outputs explicitly attached by the task executor. |
 
 ## `UsageSelector`
 
@@ -1073,6 +1090,7 @@ UsagePolicy configures quota and rate limits for a namespace.
 | `usage_policy` | `UsagePolicySpec` | oneof (kind) |
 | `file` | `FileSpec` | oneof (kind) |
 | `task` | `TaskSpec` | oneof (kind) |
+| `secret` | `SecretSpec` | oneof (kind) |
 | `raw` | `RawResourceSpec` | oneof (kind) |
 
 ## `ResourceStatus`
@@ -1101,6 +1119,7 @@ UsagePolicy configures quota and rate limits for a namespace.
 | `usage_policy` | `UsagePolicyStatus` | oneof (kind) |
 | `file` | `FileStatus` | oneof (kind) |
 | `task` | `TaskStatus` | oneof (kind) |
+| `secret` | `CommonResourceStatus` | oneof (kind) |
 | `raw` | `RawResourceStatus` | oneof (kind) |
 
 ## `ResourceRef`
