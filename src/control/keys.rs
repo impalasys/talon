@@ -347,6 +347,10 @@ pub fn agent_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("Agent"))
 }
 
+pub fn secret(namespace: &str, name: &str) -> ResourceKey {
+    resource_key(namespace, &[], "Secret", name)
+}
+
 pub fn file(namespace: &str, name: &str) -> ResourceKey {
     resource_key(namespace, &[], "File", name)
 }
