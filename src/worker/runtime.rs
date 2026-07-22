@@ -120,7 +120,8 @@ impl AgentRuntime {
         }
 
         // 3. Resolve LLM from AgentSpec + Config
-        let llm = crate::harness::llm::resolver::resolve_llm(&spec, config).await?;
+        let llm =
+            crate::harness::llm::resolver::resolve_llm_for_namespace(&spec, config, cp, ns).await?;
 
         // 4. Build tool registry (builtins + future MCP servers)
         let mut mcp_tools = std::collections::HashMap::new();

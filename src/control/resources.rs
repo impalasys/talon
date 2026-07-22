@@ -562,6 +562,17 @@ impl ResourceStore {
             .transpose()
     }
 
+    pub async fn get_secret(
+        &self,
+        namespace: &str,
+        name: &str,
+    ) -> Result<Option<resources_proto::Secret>> {
+        self.get_by_key(&keys::secret(namespace, name))
+            .await?
+            .map(secret_from_resource)
+            .transpose()
+    }
+
     async fn get_by_key(
         &self,
         key: &keys::ResourceKey,
@@ -632,6 +643,31 @@ pub fn agent_from_resource(resource: resources_proto::Resource) -> Result<resour
         },
     };
     Ok(resources_proto::Agent {
+        metadata: Some(metadata),
+        spec: Some(spec),
+        status: Some(status),
+    })
+}
+
+pub fn secret_from_resource(
+    resource: resources_proto::Resource,
+) -> Result<resources_proto::Secret> {
+    if resource.kind != "Secret" {
+        return Err(anyhow!("expected Secret resource, got {}", resource.kind));
+    }
+    let metadata = resource
+        .metadata
+        .ok_or_else(|| anyhow!("Secret resource metadata is required"))?;
+    let Some(resources_proto::resource_spec::Kind::Secret(spec)) =
+        resource.spec.and_then(|spec| spec.kind)
+    else {
+        return Err(anyhow!("Secret resource is missing typed Secret spec"));
+    };
+    let status = match resource.status.and_then(|status| status.kind) {
+        Some(resources_proto::resource_status::Kind::Secret(status)) => status,
+        _ => resources_proto::CommonResourceStatus::default(),
+    };
+    Ok(resources_proto::Secret {
         metadata: Some(metadata),
         spec: Some(spec),
         status: Some(status),
