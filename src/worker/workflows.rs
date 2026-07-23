@@ -2555,6 +2555,14 @@ mod tests {
     }
 
     fn workflow_handler(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> WorkerEventHandler {
+        workflow_handler_with_base_url(kv, pubsub, "https://unused.example.com".to_string())
+    }
+
+    fn workflow_handler_with_base_url(
+        kv: Arc<MockKvStore>,
+        pubsub: Arc<RecordingPubSub>,
+        base_url: String,
+    ) -> WorkerEventHandler {
         WorkerEventHandler {
             cp: Arc::new(ControlPlane::builder(kv, pubsub).build()),
             config: Arc::new(Config {
@@ -2564,7 +2572,7 @@ mod tests {
                         config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
                             proto::GenericConfig {
                                 name: "novita".to_string(),
-                                base_url: "https://unused.example.com".to_string(),
+                                base_url,
                                 model: "test-model".to_string(),
                                 api_key: Some(Secret {
                                     source: Some(proto::secret::Source::Plain(
@@ -2858,13 +2866,10 @@ Done."#,
                 .await
                 .expect("fake LLM should serve");
         });
-        unsafe {
-            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
-        }
-
         let kv = Arc::new(MockKvStore::new());
         let pubsub = Arc::new(RecordingPubSub::default());
-        let handler = workflow_handler(kv.clone(), pubsub.clone());
+        let handler =
+            workflow_handler_with_base_url(kv.clone(), pubsub.clone(), format!("http://{addr}"));
         let workflow = crate::control::manifest::parse_workflow(
             r#"
 apiVersion: talon.impalasys.com/v1
@@ -3042,9 +3047,6 @@ spec:
             })
         );
 
-        unsafe {
-            std::env::remove_var("NOVITA_BASE_URL");
-        }
         server.abort();
     }
 
@@ -3789,13 +3791,10 @@ spec:
                 .await
                 .expect("fake LLM should serve");
         });
-        unsafe {
-            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
-        }
-
         let kv = Arc::new(MockKvStore::new());
         let pubsub = Arc::new(RecordingPubSub::default());
-        let handler = workflow_handler(kv.clone(), pubsub.clone());
+        let handler =
+            workflow_handler_with_base_url(kv.clone(), pubsub.clone(), format!("http://{addr}"));
 
         let workflow = crate::control::manifest::parse_workflow(
             r#"
@@ -4060,9 +4059,6 @@ spec:
         assert!(event_types.iter().any(|event| event == "run_resumed"));
         assert!(event_types.iter().any(|event| event == "run_completed"));
 
-        unsafe {
-            std::env::remove_var("NOVITA_BASE_URL");
-        }
         server.abort();
     }
 

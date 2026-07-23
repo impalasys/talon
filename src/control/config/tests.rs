@@ -711,6 +711,33 @@ control_plane:
     }
 
     #[test]
+    fn test_provider_api_key_is_optional_in_yaml_config() {
+        let file = NamedTempFile::new().expect("Failed to create temp file");
+        let path = file.path().with_extension("yaml");
+        std::fs::write(
+            &path,
+            r#"
+providers:
+  meta:
+    type: openai_compatible
+    base_url: https://api.llama.com/compat/v1
+    model: Llama-4-Maverick-17B-128E-Instruct-FP8
+"#,
+        )
+        .unwrap();
+
+        let config = Config::from_file(&path).unwrap();
+        let provider = config.providers.get("meta").unwrap();
+        let Some(proto::llm_provider_config::Config::OpenaiCompatible(generic)) = &provider.config
+        else {
+            panic!("expected openai compatible provider");
+        };
+        assert_eq!(generic.base_url, "https://api.llama.com/compat/v1");
+        assert_eq!(generic.model, "Llama-4-Maverick-17B-128E-Instruct-FP8");
+        assert!(generic.api_key.is_none());
+    }
+
+    #[test]
     fn test_s3_object_store_config_from_yaml() {
         let file = NamedTempFile::new().expect("Failed to create temp file");
         let path = file.path().with_extension("yaml");
@@ -774,19 +801,21 @@ control_plane:
                     crate::control::config::SerdeProviderConfig::OpenaiCompatible {
                         base_url: "https://llm.example.com".to_string(),
                         model: "model-x".to_string(),
-                        api_key: crate::control::config::SerdeSecret::Ref(
+                        api_key: Some(crate::control::config::SerdeSecret::Ref(
                             crate::control::config::SerdeSecretRef {
                                 source: "azure".to_string(),
                                 key: "azure-key".to_string(),
                             },
-                        ),
+                        )),
                     },
                 ),
                 (
                     "backup".to_string(),
                     crate::control::config::SerdeProviderConfig::Google {
                         model: "gemini".to_string(),
-                        api_key: crate::control::config::SerdeSecret::Plain("plain".to_string()),
+                        api_key: Some(crate::control::config::SerdeSecret::Plain(
+                            "plain".to_string(),
+                        )),
                     },
                 ),
             ]),
