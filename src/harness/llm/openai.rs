@@ -198,6 +198,34 @@ impl OpenAiCompatibleProvider {
         serde_json::to_string(&Self::redact_data_urls(payload)).unwrap_or_default()
     }
 
+    fn sanitize_tool_schema_for_openai(value: &mut Value) {
+        match value {
+            Value::Object(map) => {
+                map.retain(|_, child| !child.is_null());
+                for child in map.values_mut() {
+                    Self::sanitize_tool_schema_for_openai(child);
+                }
+            }
+            Value::Array(items) => {
+                for child in items {
+                    Self::sanitize_tool_schema_for_openai(child);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn openai_tool_parameters(schema_json: &str) -> Value {
+        let mut schema = serde_json::from_str::<Value>(schema_json)
+            .unwrap_or_else(|_| serde_json::json!({ "type": "object" }));
+        Self::sanitize_tool_schema_for_openai(&mut schema);
+        if schema.get("type").and_then(Value::as_str) == Some("object") {
+            schema
+        } else {
+            serde_json::json!({ "type": "object" })
+        }
+    }
+
     fn compute_request_debug_stats(
         serialized_messages: &[Value],
         tools: &[crate::harness::llm::provider::Tool],
@@ -359,8 +387,7 @@ impl OpenAiCompatibleProvider {
                             "function": {
                                 "name": tool.name,
                                 "description": tool.description,
-                                "parameters": serde_json::from_str::<Value>(&tool.input_schema_json)
-                                    .unwrap_or(Value::Null)
+                                "parameters": Self::openai_tool_parameters(&tool.input_schema_json)
                             }
                         })
                     })
@@ -1688,5 +1715,32 @@ mod tests {
         let text = provider.completion("hello").await.unwrap();
         assert_eq!(text, "plain completion");
         server.abort();
+    }
+
+    #[test]
+    fn openai_tool_parameters_omit_null_schema_fields() {
+        let schema = OpenAiCompatibleProvider::openai_tool_parameters(
+            r#"{
+                "type": "object",
+                "description": null,
+                "properties": {
+                    "urls": {
+                        "type": "array",
+                        "description": null,
+                        "items": {
+                            "type": "string",
+                            "description": null
+                        }
+                    }
+                }
+            }"#,
+        );
+
+        assert_eq!(schema["type"], "object");
+        assert!(schema.get("description").is_none());
+        assert!(schema["properties"]["urls"].get("description").is_none());
+        assert!(schema["properties"]["urls"]["items"]
+            .get("description")
+            .is_none());
     }
 }
