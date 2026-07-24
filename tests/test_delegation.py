@@ -2,6 +2,7 @@ import json
 import time
 import uuid
 
+import grpc
 from google.protobuf.struct_pb2 import ListValue, Value
 
 from e2e.blackbox import (
@@ -25,6 +26,26 @@ from talon_client.resources import A2A, Connection, ConnectionRef, InternalConne
 
 
 PART_TYPE_TOOL_RESULT = 4
+
+
+def _send_message_when_available(
+    client: TalonClient,
+    request: SendMessageRequest,
+    attempts: int = 15,
+    delay: float = 1.0,
+) -> None:
+    for attempt in range(attempts):
+        try:
+            client.sessions.SendMessage(request)
+            return
+        except grpc.RpcError as err:
+            if (
+                err.code() != grpc.StatusCode.RESOURCE_EXHAUSTED
+                or "currently generating" not in err.details()
+                or attempt == attempts - 1
+            ):
+                raise
+            time.sleep(delay)
 
 
 def _capability_values(*values: str) -> ListValue:
@@ -102,7 +123,8 @@ def test_delegate_task_creates_durable_child_session(
     owner_session_id = client.sessions.Create(
         CreateSessionRequest(agent="owner-agent", ns=owner_namespace)
     ).session_id
-    client.sessions.SendMessage(
+    _send_message_when_available(
+        client,
         SendMessageRequest(
             agent="owner-agent",
             session_id=owner_session_id,
@@ -245,7 +267,8 @@ def test_delegate_task_creates_durable_child_session(
 
     assert owner_woke, "owner was not woken when delegated Task became ready"
 
-    client.sessions.SendMessage(
+    _send_message_when_available(
+        client,
         SendMessageRequest(
             agent="owner-agent",
             session_id=owner_session_id,
@@ -368,7 +391,8 @@ def test_legal_document_refinement_delegation_returns_redline_artifact(
     coordinator_session_id = client.sessions.Create(
         CreateSessionRequest(agent="legal-coordinator-agent", ns=coordinator_namespace)
     ).session_id
-    client.sessions.SendMessage(
+    _send_message_when_available(
+        client,
         SendMessageRequest(
             agent="legal-coordinator-agent",
             session_id=coordinator_session_id,
@@ -470,7 +494,8 @@ def test_legal_document_refinement_delegation_returns_redline_artifact(
     else:
         raise AssertionError("coordinator was not woken with the redline artifact")
 
-    client.sessions.SendMessage(
+    _send_message_when_available(
+        client,
         SendMessageRequest(
             agent="legal-coordinator-agent",
             session_id=coordinator_session_id,
@@ -582,7 +607,8 @@ def test_delegated_final_text_artifact_tag_becomes_readable_task_output(
             ns=coordinator_namespace,
         )
     ).session_id
-    client.sessions.SendMessage(
+    _send_message_when_available(
+        client,
         SendMessageRequest(
             agent="inline-coordinator-agent",
             session_id=coordinator_session_id,
@@ -660,7 +686,8 @@ def test_delegated_final_text_artifact_tag_becomes_readable_task_output(
     else:
         raise AssertionError("coordinator was not woken with inline artifact URI")
 
-    client.sessions.SendMessage(
+    _send_message_when_available(
+        client,
         SendMessageRequest(
             agent="inline-coordinator-agent",
             session_id=coordinator_session_id,
@@ -800,7 +827,8 @@ def test_nested_policy_document_delegation_forwards_artifact_uri(
             ns=coordinator_namespace,
         )
     ).session_id
-    client.sessions.SendMessage(
+    _send_message_when_available(
+        client,
         SendMessageRequest(
             agent="policy-coordinator-agent",
             session_id=coordinator_session_id,

@@ -1816,6 +1816,10 @@ mod tests {
     }
 
     fn handler_with_kv(kv: Arc<MockKvStore>) -> WorkerEventHandler {
+        handler_with_kv_and_base_url(kv, "https://unused.example.com".to_string())
+    }
+
+    fn handler_with_kv_and_base_url(kv: Arc<MockKvStore>, base_url: String) -> WorkerEventHandler {
         handler_with_config(
             kv,
             Config {
@@ -1825,7 +1829,7 @@ mod tests {
                         config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
                             proto::GenericConfig {
                                 name: "novita".to_string(),
-                                base_url: "https://unused.example.com".to_string(),
+                                base_url,
                                 model: "test-model".to_string(),
                                 api_key: Some(Secret {
                                     source: Some(proto::secret::Source::Plain(
@@ -3462,12 +3466,8 @@ mod tests {
         let server = tokio::spawn(async move {
             axum::serve(listener, app).await.unwrap();
         });
-        unsafe {
-            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
-        }
-
         let kv = Arc::new(MockKvStore::default());
-        let handler = handler_with_kv(kv.clone());
+        let handler = handler_with_kv_and_base_url(kv.clone(), format!("http://{addr}"));
         let spec = manifests::AgentSpec {
             features: Vec::new(),
             model_policy: None,
@@ -3654,9 +3654,6 @@ mod tests {
             .unwrap();
         assert_eq!(after_duplicate_keys.len(), before_duplicate_keys.len());
 
-        unsafe {
-            std::env::remove_var("NOVITA_BASE_URL");
-        }
         server.abort();
     }
 
@@ -3684,12 +3681,8 @@ mod tests {
         let server = tokio::spawn(async move {
             axum::serve(listener, app).await.unwrap();
         });
-        unsafe {
-            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
-        }
-
         let kv = Arc::new(MockKvStore::default());
-        let handler = handler_with_kv(kv.clone());
+        let handler = handler_with_kv_and_base_url(kv.clone(), format!("http://{addr}"));
         let spec = manifests::AgentSpec {
             features: Vec::new(),
             model_policy: None,
@@ -3781,9 +3774,6 @@ mod tests {
             Some(12)
         );
 
-        unsafe {
-            std::env::remove_var("NOVITA_BASE_URL");
-        }
         server.abort();
     }
 

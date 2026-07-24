@@ -149,13 +149,7 @@ async fn resolve_llm_with_credentials(
             )
             .await?;
 
-            // Allow env-var override of base URL (useful in local dev / CI)
-            let base_url = if let Ok(env_url) = std::env::var("NOVITA_BASE_URL") {
-                tracing::warn!("Overriding LLM base URL with NOVITA_BASE_URL");
-                env_url
-            } else {
-                generic.base_url.clone()
-            };
+            let base_url = generic.base_url.clone();
 
             let model = spec_model
                 .filter(|s| !s.is_empty())
@@ -442,7 +436,6 @@ mod tests {
         let _guard = crate::test_support::async_env_mutex().lock().await;
         unsafe {
             std::env::remove_var("NOVITA_API_KEY");
-            std::env::remove_var("NOVITA_BASE_URL");
         }
         let app = Router::new().route(
             "/chat/completions",
@@ -483,9 +476,6 @@ mod tests {
     #[tokio::test]
     async fn resolve_llm_for_namespace_uses_tenant_provider_secret() {
         let _guard = crate::test_support::async_env_mutex().lock().await;
-        unsafe {
-            std::env::remove_var("NOVITA_BASE_URL");
-        }
         let app = Router::new().route(
             "/chat/completions",
             post(|headers: HeaderMap| async move {
@@ -551,10 +541,6 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_llm_for_namespace_uses_literal_provider_secret_key() {
-        let _guard = crate::test_support::async_env_mutex().lock().await;
-        unsafe {
-            std::env::remove_var("NOVITA_BASE_URL");
-        }
         let app = Router::new().route(
             "/chat/completions",
             post(|headers: HeaderMap| async move {
@@ -682,15 +668,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn resolve_llm_uses_env_override_for_base_url() {
-        let _guard = crate::test_support::async_env_mutex().lock().await;
+    async fn resolve_llm_uses_configured_base_url() {
         let app = Router::new().route(
             "/chat/completions",
             post(|| async {
                 Json(json!({
                     "choices": [{
                         "message": {
-                            "content": "resolved via env override",
+                            "content": "resolved via configured base URL",
                             "tool_calls": []
                         }
                     }]
@@ -701,13 +686,10 @@ mod tests {
         let addr = listener.local_addr().unwrap();
         let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
 
-        unsafe {
-            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
-        }
         let config = config_with_provider(
             "primary",
             openai_compatible_provider(
-                "https://unused.example.com".to_string(),
+                format!("http://{addr}"),
                 Some(Secret {
                     source: Some(proto::secret::Source::Plain("config-key".to_string())),
                 }),
@@ -719,11 +701,8 @@ mod tests {
         assert_eq!(llm.provider_key, "primary");
         assert_eq!(llm.model, "config-model");
         let response = llm.provider.completion("ping").await.unwrap();
-        assert_eq!(response, "resolved via env override");
+        assert_eq!(response, "resolved via configured base URL");
 
-        unsafe {
-            std::env::remove_var("NOVITA_BASE_URL");
-        }
         server.abort();
     }
 }

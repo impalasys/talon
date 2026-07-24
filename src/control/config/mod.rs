@@ -52,24 +52,24 @@ pub enum SerdeProviderConfig {
     Openai {
         model: String,
         #[serde(alias = "apiKey")]
-        api_key: SerdeSecret,
+        api_key: Option<SerdeSecret>,
     },
     Anthropic {
         model: String,
         #[serde(alias = "apiKey")]
-        api_key: SerdeSecret,
+        api_key: Option<SerdeSecret>,
     },
     Google {
         model: String,
         #[serde(alias = "apiKey")]
-        api_key: SerdeSecret,
+        api_key: Option<SerdeSecret>,
     },
     OpenaiCompatible {
         #[serde(alias = "baseUrl")]
         base_url: String,
         model: String,
         #[serde(alias = "apiKey")]
-        api_key: SerdeSecret,
+        api_key: Option<SerdeSecret>,
     },
 }
 
@@ -249,7 +249,7 @@ impl From<SerdeConfig> for Config {
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
                                 model,
-                                api_key: Some(api_key.into()),
+                                api_key: api_key.map(Into::into),
                                 org_id: "".to_string(),
                             },
                         )),
@@ -258,7 +258,7 @@ impl From<SerdeConfig> for Config {
                         config: Some(proto::llm_provider_config::Config::Anthropic(
                             proto::AnthropicConfig {
                                 model,
-                                api_key: Some(api_key.into()),
+                                api_key: api_key.map(Into::into),
                             },
                         )),
                     },
@@ -266,7 +266,7 @@ impl From<SerdeConfig> for Config {
                         config: Some(proto::llm_provider_config::Config::Google(
                             proto::GoogleConfig {
                                 model,
-                                api_key: Some(api_key.into()),
+                                api_key: api_key.map(Into::into),
                             },
                         )),
                     },
@@ -280,7 +280,7 @@ impl From<SerdeConfig> for Config {
                                 name: "".to_string(),
                                 base_url,
                                 model,
-                                api_key: Some(api_key.into()),
+                                api_key: api_key.map(Into::into),
                             },
                         )),
                     },
