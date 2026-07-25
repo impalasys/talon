@@ -33,15 +33,18 @@ flate2 = "1.1"
 zstd = "0.13"
 hyper = { version = "1", features = ["server", "http1", "http2"] }
 hyper-util = { version = "0.1", features = ["tokio", "server-auto", "server-graceful", "service"] }
-opentelemetry = "0.31"
-opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "trace"] }
-opentelemetry_sdk = "0.31"
+opentelemetry = "0.32"
+opentelemetry-otlp = { version = "0.32", default-features = false, features = ["grpc-tonic", "trace"] }
+opentelemetry_sdk = "0.32"
 pprof = { version = "0.15", features = ["flamegraph"], optional = true }
 tikv-jemallocator = { version = "0.7", optional = true }
 tikv-jemalloc-ctl = { version = "0.7", optional = true }
 redb = "1.0"
 rocksdb = { version = "0.24", default-features = false, features = ["lz4"], optional = true }
 reqwest = { version = "0.11", features = ["json", "stream"] }
+# Keep rand on 0.8 to match other workspace crates (e.g. cronformer). Bumping only
+# talon to 0.10 makes crate_universe emit versioned aliases only and breaks
+# @crates//:rand references in talon/BUILD.bazel.
 rand = "0.8"
 rmcp = { version = "1.4", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
@@ -55,7 +58,8 @@ urlencoding = "2.1"
 tokio = { version = "1.0", features = ["full"] }
 tokio-tungstenite = "0.20"
 tracing = "0.1"
-tracing-opentelemetry = "0.32"
+# 0.33 tracks opentelemetry 0.32; 0.32.x requires opentelemetry 0.31.
+tracing-opentelemetry = "0.33"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tonic = { version = "0.12.3", features = ["tls-webpki-roots"] }
 tonic-web = "0.12.3"
