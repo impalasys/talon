@@ -970,9 +970,14 @@ impl GrpcGatewayHandler {
 
         let mut session_ids = Vec::new();
         let mut sessions = Vec::new();
+        let mut session_order = std::collections::HashMap::<String, usize>::new();
+
         for key in keys {
             if let Some(session_id) = keys::direct_child_name(&session_prefix, &key) {
-                session_ids.push(session_id.to_string());
+                let session_id = session_id.to_string();
+                let index = session_ids.len();
+                session_ids.push(session_id.clone());
+                session_order.insert(session_id.clone(), index);
 
                 let session = self
                     .gateway
@@ -992,6 +997,13 @@ impl GrpcGatewayHandler {
                 }
             }
         }
+
+        sessions.sort_by_key(|session| {
+            session_order
+                .get(&session.session_id)
+                .copied()
+                .unwrap_or(usize::MAX)
+        });
 
         Ok(tonic::Response::new(proto::ListSessionsResponse {
             session_ids,
