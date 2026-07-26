@@ -39,7 +39,11 @@
     "prepack": "pnpm run build",
     "prebuild-storybook": "pnpm --dir ../../sdk/js/talon-client build",
     "screenshots": "node scripts/capture-storybook-screenshots.mjs",
-    "storybook": "storybook dev -p 6006"
+    "storybook": "storybook dev -p 6006",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.{ts,tsx}\""
+  },
+  "engines": {
+    "node": ">=22.6"
   },
   "publishConfig": {
     "access": "public"

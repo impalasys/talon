@@ -689,10 +689,11 @@ impl GrpcGatewayHandler {
         artifact_uri: &str,
         operation: &str,
         caller: HandleCaller,
+        metadata: &MetadataMap,
     ) -> Result<(ArtifactUri, data_proto::Artifact)> {
         let uri = parse_artifact_uri(artifact_uri)?;
         let artifact = self.load_artifact_by_uri(&uri).await?;
-        authorize_artifact_access(self, &uri, operation, caller, artifact_uri).await?;
+        authorize_artifact_access(self, &uri, operation, caller, artifact_uri, metadata).await?;
         Ok((uri, artifact))
     }
 
@@ -1026,6 +1027,7 @@ impl proto::file_service_server::FileService for GrpcGatewayHandler {
                 &req.get_ref().artifact_uri,
                 OP_PROMOTE,
                 handle_caller_from_request(self, &req),
+                req.metadata(),
             )
             .await
             .map_err(to_status)?;
@@ -1088,6 +1090,7 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
                 &req.get_ref().artifact_uri,
                 OP_READ,
                 handle_caller_from_request(self, &req),
+                req.metadata(),
             )
             .await
             .map_err(to_status)?;
@@ -1115,6 +1118,7 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
                 &req.get_ref().artifact_uri,
                 OP_METADATA,
                 handle_caller_from_request(self, &req),
+                req.metadata(),
             )
             .await
             .map_err(to_status)?;
@@ -1186,9 +1190,10 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
         req: Request<proto::GrantArtifactRequest>,
     ) -> std::result::Result<Response<proto::ArtifactUriResponse>, Status> {
         let caller = handle_caller_from_request(self, &req);
+        let metadata = req.metadata().clone();
         let req = req.into_inner();
         let (uri, _) = self
-            .resolve_artifact_uri(&req.artifact_uri, OP_READ, caller.clone())
+            .resolve_artifact_uri(&req.artifact_uri, OP_WRITE, caller.clone(), &metadata)
             .await
             .map_err(to_status)?;
         let operations = if req.operations.is_empty() {
@@ -1436,10 +1441,37 @@ async fn authorize_artifact_access(
     operation: &str,
     caller: HandleCaller,
     artifact_uri: &str,
+    metadata: &MetadataMap,
 ) -> Result<()> {
-    if caller.agent == uri.agent && caller.session_id == uri.session_id {
+    // Owner session (matching agent + session) may always read/metadata/promote.
+    if !caller.agent.trim().is_empty()
+        && !caller.session_id.trim().is_empty()
+        && caller.agent == uri.agent
+        && caller.session_id == uri.session_id
+    {
         return Ok(());
     }
+
+    // Namespace-scoped JWTs with read on the artifact's namespace may read
+    // content/metadata (same model as ListArtifacts). Do not relax promote/write.
+    if matches!(operation, OP_READ | OP_METADATA) {
+        if let Some(auth_config) = &handler.gateway.auth_config {
+            if auth_config.mode == crate::gateway::auth::AuthMode::Jwt
+                && crate::gateway::auth::check_auth_for_operation(
+                    metadata,
+                    auth_config,
+                    crate::gateway::auth::AuthzOperation::Read,
+                    &uri.namespace,
+                    None,
+                    None,
+                )
+                .is_ok()
+            {
+                return Ok(());
+            }
+        }
+    }
+
     if caller.agent.trim().is_empty() || caller.session_id.trim().is_empty() {
         return Err(permission_denied(
             "artifact uri requires caller agent and session identity",
@@ -2202,6 +2234,224 @@ mod tests {
         .unwrap()
         .into_inner();
         assert_eq!(granted_read.content, b"final draft");
+    }
+
+    #[tokio::test]
+    async fn namespace_jwt_can_read_artifact_content_and_metadata() {
+        use crate::control::security::platform_jwt;
+        use crate::gateway::auth::TalonGrantClaim;
+        use crate::test_support::{PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
+
+        let _guard = PlatformJwtEnvGuard::acquire().await;
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let control_plane = ControlPlane::builder(
+            Arc::new(MockKvStore::default()),
+            Arc::new(RecordingPubSub::default()),
+        )
+        .objects(objects.clone())
+        .build();
+        let handler = GrpcGatewayHandler {
+            gateway: Arc::new(Gateway::from_control_plane(
+                Some(AuthConfig::jwt_platform()),
+                control_plane,
+            )),
+        };
+
+        let namespace = "Tenant:acme:Workspace:main";
+        let other_namespace = "Tenant:other:Workspace:main";
+        let artifact_id = "artifact-ns-read";
+        let session_id = "session-1";
+        let object_ref = CasStore::new(objects)
+            .put_artifact(
+                namespace,
+                "writer",
+                session_id,
+                artifact_id,
+                b"namespace readable",
+                "text/markdown",
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
+        handler
+            .gateway
+            .kv
+            .set_msg(
+                &keys::artifact(namespace, "writer", session_id, artifact_id),
+                &data_proto::Artifact {
+                    id: artifact_id.to_string(),
+                    session_id: session_id.to_string(),
+                    title: "NS draft".to_string(),
+                    media_type: "text/markdown".to_string(),
+                    object_ref: Some(object_ref),
+                    created_by_agent: "writer".to_string(),
+                    created_at: chrono::Utc::now().timestamp_micros(),
+                    labels: HashMap::new(),
+                    metadata: HashMap::new(),
+                },
+            )
+            .await
+            .unwrap();
+        let artifact_uri = format!("artifact://{namespace}/writer/{session_id}/{artifact_id}");
+
+        let sign = |grants: Vec<TalonGrantClaim>| {
+            platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+                .unwrap()
+                .sign(&Claims {
+                    iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
+                    sub: "oidc:operator".to_string(),
+                    aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+                    iat: Some(1),
+                    exp: 10000000000,
+                    ns: None,
+                    agent: None,
+                    session: None,
+                    channel: None,
+                    origins: Vec::new(),
+                    grants,
+                })
+                .unwrap()
+        };
+
+        let allowed_token = sign(vec![TalonGrantClaim {
+            kind: "read".to_string(),
+            namespace: Some(namespace.to_string()),
+            agent: None,
+            session: None,
+            channel: None,
+        }]);
+        let wrong_ns_token = sign(vec![TalonGrantClaim {
+            kind: "read".to_string(),
+            namespace: Some(other_namespace.to_string()),
+            agent: None,
+            session: None,
+            channel: None,
+        }]);
+        let agent_scoped_token = sign(vec![TalonGrantClaim {
+            kind: "read".to_string(),
+            namespace: Some(namespace.to_string()),
+            agent: Some("other-agent".to_string()),
+            session: None,
+            channel: None,
+        }]);
+
+        let mut allowed_req = Request::new(proto::ReadArtifactRequest {
+            artifact_uri: artifact_uri.clone(),
+        });
+        allowed_req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {allowed_token}").parse().unwrap(),
+        );
+        // Namespace operator JWT has no agent/session claims.
+        allowed_req.extensions_mut().insert(Claims {
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
+            sub: "oidc:operator".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
+            exp: 10000000000,
+            ns: None,
+            agent: None,
+            session: None,
+            channel: None,
+            origins: Vec::new(),
+            grants: vec![TalonGrantClaim {
+                kind: "read".to_string(),
+                namespace: Some(namespace.to_string()),
+                agent: None,
+                session: None,
+                channel: None,
+            }],
+        });
+
+        let allowed_read =
+            proto::artifact_service_server::ArtifactService::read_artifact(&handler, allowed_req)
+                .await
+                .unwrap()
+                .into_inner();
+        assert_eq!(allowed_read.content, b"namespace readable");
+
+        let mut metadata_req = Request::new(proto::GetArtifactMetadataRequest {
+            artifact_uri: artifact_uri.clone(),
+        });
+        metadata_req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {allowed_token}").parse().unwrap(),
+        );
+        let metadata = proto::artifact_service_server::ArtifactService::get_artifact_metadata(
+            &handler,
+            metadata_req,
+        )
+        .await
+        .unwrap()
+        .into_inner();
+        assert_eq!(metadata.artifact.unwrap().title, "NS draft");
+
+        let mut grant_req = Request::new(proto::GrantArtifactRequest {
+            artifact_uri: artifact_uri.clone(),
+            target_agent: "critic".to_string(),
+            target_session_id: "session-2".to_string(),
+            operations: vec![OP_READ.to_string()],
+            ttl_seconds: 60,
+        });
+        grant_req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {allowed_token}").parse().unwrap(),
+        );
+        let grant_denied =
+            proto::artifact_service_server::ArtifactService::grant_artifact(&handler, grant_req)
+                .await
+                .unwrap_err();
+        assert_eq!(grant_denied.code(), tonic::Code::PermissionDenied);
+
+        let mut denied_req = Request::new(proto::ReadArtifactRequest {
+            artifact_uri: artifact_uri.clone(),
+        });
+        denied_req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {wrong_ns_token}").parse().unwrap(),
+        );
+        let denied =
+            proto::artifact_service_server::ArtifactService::read_artifact(&handler, denied_req)
+                .await
+                .unwrap_err();
+        assert_eq!(denied.code(), tonic::Code::PermissionDenied);
+
+        // Agent-scoped grant without matching agent selector cannot use the
+        // namespace-read path when check_auth is called with agent=None (grant
+        // agent selector fails), and has no owner/session identity.
+        let mut agent_scoped_req = Request::new(proto::ReadArtifactRequest {
+            artifact_uri: artifact_uri.clone(),
+        });
+        agent_scoped_req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {agent_scoped_token}").parse().unwrap(),
+        );
+        agent_scoped_req.extensions_mut().insert(Claims {
+            iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
+            sub: "oidc:agent-user".to_string(),
+            aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
+            iat: Some(1),
+            exp: 10000000000,
+            ns: None,
+            agent: Some("other-agent".to_string()),
+            session: None,
+            channel: None,
+            origins: Vec::new(),
+            grants: vec![TalonGrantClaim {
+                kind: "read".to_string(),
+                namespace: Some(namespace.to_string()),
+                agent: Some("other-agent".to_string()),
+                session: None,
+                channel: None,
+            }],
+        });
+        let agent_denied = proto::artifact_service_server::ArtifactService::read_artifact(
+            &handler,
+            agent_scoped_req,
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(agent_denied.code(), tonic::Code::PermissionDenied);
     }
 
     #[tokio::test]
