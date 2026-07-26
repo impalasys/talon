@@ -156,7 +156,7 @@ export function MarkdownMessage({ children, onResourceClick }: MarkdownMessagePr
                 : undefined;
             const resourceUri = resourceUriFromHref(dataUri || href);
 
-            if (resourceUri) {
+            if (resourceUri && onResourceClick) {
               return (
                 <a
                   {...props}

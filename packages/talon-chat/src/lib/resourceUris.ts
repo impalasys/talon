@@ -49,7 +49,7 @@ function isValidUriSegment(segment: string): boolean {
  * Returns null for OS-style paths like `file:///tmp/foo` (wrong segment count).
  */
 export function parseResourceUri(value: string): ParsedResourceUri | null {
-  const trimmed = stripTrailingProsePunctuation(value.trim());
+  const trimmed = value.trim();
   if (!trimmed) return null;
 
   if (trimmed.startsWith("artifact://")) {
@@ -137,6 +137,27 @@ function isInsideCodeFence(markdown: string, index: number): boolean {
   return fenceCount % 2 === 1;
 }
 
+function isInsideInlineCode(markdown: string, index: number): boolean {
+  const lineStart = markdown.lastIndexOf("\n", index - 1) + 1;
+  const before = markdown.slice(lineStart, index);
+  const backtickRunRe = /`+/g;
+  let activeRunLength: number | null = null;
+  let match: RegExpExecArray | null;
+  while ((match = backtickRunRe.exec(before)) !== null) {
+    const runLength = match[0].length;
+    if (activeRunLength === null) {
+      activeRunLength = runLength;
+    } else if (runLength === activeRunLength) {
+      activeRunLength = null;
+    }
+  }
+  return activeRunLength !== null;
+}
+
+function isInsideCode(markdown: string, index: number): boolean {
+  return isInsideCodeFence(markdown, index) || isInsideInlineCode(markdown, index);
+}
+
 function isAlreadyLinked(markdown: string, start: number, end: number): boolean {
   // Skip only when this span is already a markdown link destination: ](uri)
   // Do not treat parenthesized prose like (file://ns/name) as linked.
@@ -175,7 +196,7 @@ function rewriteResourceLinkDestinations(markdown: string): string {
     const dest = match[1];
     const start = match.index;
 
-    if (isInsideCodeFence(markdown, start)) {
+    if (isInsideCode(markdown, start)) {
       continue;
     }
 
@@ -216,17 +237,17 @@ export function linkifyResourceUris(markdown: string): string {
     const start = match.index;
     const end = start + raw.length;
 
-    if (isInsideCodeFence(working, start) || isAlreadyLinked(working, start, end)) {
+    if (isInsideCode(working, start) || isAlreadyLinked(working, start, end)) {
       continue;
     }
 
-    const parsed = parseResourceUri(raw);
+    const rawWithoutTrailing = stripTrailingProsePunctuation(raw);
+    const parsed = parseResourceUri(rawWithoutTrailing);
     if (!parsed) {
       continue;
     }
 
-    // Preserve any trailing punctuation that parseResourceUri stripped.
-    const rawWithoutTrailing = stripTrailingProsePunctuation(raw);
+    // Preserve prose punctuation outside the generated link.
     const actualTrailing = raw.slice(rawWithoutTrailing.length);
 
     result += working.slice(lastIndex, start);

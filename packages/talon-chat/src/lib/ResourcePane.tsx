@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { MarkdownMessage } from "./MarkdownMessage";
 import {
@@ -77,6 +77,7 @@ export function ResourcePane({
         : uri);
   const mediaType = resource?.mediaType || "";
 
+  const paneRef = useRef<HTMLElement>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   // Enter animation: mount closed, then flip open on the next frame.
   const [entered, setEntered] = useState(false);
@@ -98,21 +99,11 @@ export function ResourcePane({
   }, [open, onExitComplete]);
 
   useEffect(() => {
-    // Build a blob URL for:
-    // - image/* inline rendering when no signedUrl, and
-    // - non-text/non-markdown binary downloads when content is only available as bytes.
     if (!resource || resource.signedUrl) {
       setBlobUrl(null);
       return;
     }
     if (!(resource.content instanceof Uint8Array) || resource.content.byteLength === 0) {
-      setBlobUrl(null);
-      return;
-    }
-    const isImage = isImageMediaType(resource.mediaType);
-    const isInlineText =
-      isTextMediaType(resource.mediaType) || isMarkdownMediaType(resource.mediaType);
-    if (!isImage && isInlineText) {
       setBlobUrl(null);
       return;
     }
@@ -129,6 +120,17 @@ export function ResourcePane({
     };
   }, [resource]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
   const textContent = useMemo(() => {
     if (!resource) return null;
     if (!isTextMediaType(resource.mediaType) && !isMarkdownMediaType(resource.mediaType)) {
@@ -141,11 +143,19 @@ export function ResourcePane({
   const downloadHref = resource?.signedUrl || blobUrl || null;
   const isVisible = open && entered;
 
+  useEffect(() => {
+    if (!isVisible) return;
+    paneRef.current?.focus({ preventScroll: true });
+  }, [isVisible]);
+
   return (
     <aside
+      ref={paneRef}
       className="talon-resource-pane"
+      aria-label={title}
       data-testid="talon-resource-pane"
       data-open={isVisible ? "true" : "false"}
+      tabIndex={-1}
       style={{
         display: "flex",
         flexDirection: "column",

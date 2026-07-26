@@ -34,13 +34,12 @@ describe("parseResourceUri", () => {
     });
   });
 
-  it("strips trailing prose punctuation", () => {
-    const parsed = parseResourceUri("file://ns/name.");
-    assert.equal(parsed?.uri, "file://ns/name");
-    assert.equal(parseResourceUri("artifact://ns/a/s/id,").uri, "artifact://ns/a/s/id");
-    assert.equal(parseResourceUri("file://ns/name;").uri, "file://ns/name");
-    assert.equal(parseResourceUri("file://ns/name)").uri, "file://ns/name");
-    assert.equal(parseResourceUri("file://ns/name]").uri, "file://ns/name");
+  it("preserves terminal punctuation in valid resource identifiers", () => {
+    assert.equal(parseResourceUri("file://ns/name.")?.uri, "file://ns/name.");
+    assert.equal(parseResourceUri("artifact://ns/a/s/id,")?.uri, "artifact://ns/a/s/id,");
+    assert.equal(parseResourceUri("file://ns/name;")?.uri, "file://ns/name;");
+    assert.equal(parseResourceUri("file://ns/name)")?.uri, "file://ns/name)");
+    assert.equal(parseResourceUri("file://ns/name]")?.uri, "file://ns/name]");
   });
 
   it("rejects OS-style file paths", () => {
@@ -138,6 +137,23 @@ describe("linkifyResourceUris", () => {
     const input = "See the draft (file://ns/name) and notes.";
     const out = linkifyResourceUris(input);
     assert.ok(out.includes(`([file://ns/name](${toResourceMarkdownHref("file://ns/name")}))`));
+  });
+
+  it("keeps trailing prose punctuation outside generated links", () => {
+    const input = "See file://ns/name. Then artifact://ns/a/s/id, plus file://ns/other; and file://ns/end]";
+    const out = linkifyResourceUris(input);
+    assert.ok(out.includes(`[file://ns/name](${toResourceMarkdownHref("file://ns/name")}).`));
+    assert.ok(out.includes(`[artifact://ns/a/s/id](${toResourceMarkdownHref("artifact://ns/a/s/id")}),`));
+    assert.ok(out.includes(`[file://ns/other](${toResourceMarkdownHref("file://ns/other")});`));
+    assert.ok(out.includes(`[file://ns/end](${toResourceMarkdownHref("file://ns/end")})]`));
+  });
+
+  it("does not linkify inside inline code spans", () => {
+    const input = "`file://ns/name` and `see artifact://ns/a/s/id` but file://ns/other";
+    const out = linkifyResourceUris(input);
+    assert.ok(out.includes("`file://ns/name`"));
+    assert.ok(out.includes("`see artifact://ns/a/s/id`"));
+    assert.ok(out.includes(`[file://ns/other](${toResourceMarkdownHref("file://ns/other")})`));
   });
 
   it("leaves non-resource text unchanged", () => {

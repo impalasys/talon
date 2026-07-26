@@ -82,11 +82,6 @@ const gatewayClient: GatewayClientLike = {
   sessions: {
     create: async () => ({ sessionId: "storybook-session" }),
     clear: async () => ({}),
-    get: async () => ({
-      sessionId: "storybook-session",
-      messages: fixedMessages,
-      state: "IDLE",
-    }),
     listMessages: async () => ({
       messages: fixedMessages,
       hasMore: false,
@@ -205,11 +200,6 @@ function createStreamingGatewayClient() {
         submitted = false;
         return {};
       },
-      get: async () => ({
-        sessionId: "storybook-streaming-session",
-        messages: submitted ? fixedMessages : [],
-        state: submitted ? "IDLE" : "RUNNING",
-      }),
       listMessages: async () => ({
         messages: submitted ? fixedMessages : [],
         hasMore: false,
@@ -271,6 +261,17 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+const waitForResourcePaneOpen: NonNullable<Story["play"]> = async ({ canvasElement }) => {
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    if (canvasElement.querySelector('[data-testid="talon-resource-pane"][data-open="true"]')) {
+      return;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+  }
+  throw new Error("Timed out waiting for resource pane to open");
+};
 
 export const ExistingSession: Story = {};
 
@@ -380,11 +381,6 @@ function createSessionClient(messages: typeof resourceCatalogMessages): GatewayC
   return {
     create: async () => ({ sessionId: "storybook-session" }),
     clear: async () => ({}),
-    get: async () => ({
-      sessionId: "storybook-session",
-      messages,
-      state: "IDLE",
-    }),
     listMessages: async () => ({
       messages,
       hasMore: false,
@@ -399,7 +395,7 @@ function createSessionClient(messages: typeof resourceCatalogMessages): GatewayC
 const resourceGatewayClient: GatewayClientLike = {
   sessions: createSessionClient(resourceCatalogMessages),
   artifacts: {
-    readArtifact: async ({ artifactUri }: { artifactUri: string }) => {
+    readArtifact: async ({ artifactUri }) => {
       if (artifactUri === ARTIFACT_DENIED_URI) {
         throw new Error("PermissionDenied: artifact access denied");
       }
@@ -460,7 +456,7 @@ const resourceGatewayClient: GatewayClientLike = {
     }),
   },
   files: {
-    readFile: async ({ file }: { file?: { uri?: string } }) => {
+    readFile: async ({ file }) => {
       const uri = file?.uri ?? "";
       if (uri === FILE_JSON_URI) {
         return {
@@ -550,11 +546,22 @@ export const ResourceUris: Story = {
 
 function AutoOpenResourceLink({ uri }: { uri: string }) {
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const link = document.querySelector<HTMLAnchorElement>(`a[data-resource-uri="${uri}"], a[href="${uri}"]`);
-      link?.click();
-    }, 450);
-    return () => window.clearTimeout(timeoutId);
+    const selector = `a[data-resource-uri="${CSS.escape(uri)}"]`;
+    let cancelled = false;
+    const deadline = Date.now() + 5000;
+    const tick = () => {
+      if (cancelled) return;
+      const link = document.querySelector<HTMLAnchorElement>(selector);
+      if (link) {
+        link.click();
+        return;
+      }
+      if (Date.now() < deadline) window.setTimeout(tick, 50);
+    };
+    tick();
+    return () => {
+      cancelled = true;
+    };
   }, [uri]);
   return null;
 }
@@ -573,6 +580,7 @@ export const ResourcePaneMarkdownArtifact: Story = {
       <TalonSession {...args} />
     </ResourceSessionFrame>
   ),
+  play: waitForResourcePaneOpen,
 };
 
 /** Auto-opens a markdown file URI. */
@@ -589,6 +597,7 @@ export const ResourcePaneMarkdownFile: Story = {
       <TalonSession {...args} />
     </ResourceSessionFrame>
   ),
+  play: waitForResourcePaneOpen,
 };
 
 /** Auto-opens JSON content rendered as monospace pre. */
@@ -604,6 +613,7 @@ export const ResourcePaneJson: Story = {
       <TalonSession {...args} />
     </ResourceSessionFrame>
   ),
+  play: waitForResourcePaneOpen,
 };
 
 /** Auto-opens image/* content. */
@@ -619,6 +629,7 @@ export const ResourcePaneImage: Story = {
       <TalonSession {...args} />
     </ResourceSessionFrame>
   ),
+  play: waitForResourcePaneOpen,
 };
 
 /** Auto-opens binary resource with download affordance. */
@@ -634,6 +645,7 @@ export const ResourcePaneBinaryDownload: Story = {
       <TalonSession {...args} />
     </ResourceSessionFrame>
   ),
+  play: waitForResourcePaneOpen,
 };
 
 /** Access denied error state in the pane. */
@@ -649,6 +661,7 @@ export const ResourcePaneAccessDenied: Story = {
       <TalonSession {...args} />
     </ResourceSessionFrame>
   ),
+  play: waitForResourcePaneOpen,
 };
 
 /** Slow fetch shows the loading state, then content. */
@@ -664,6 +677,7 @@ export const ResourcePaneLoading: Story = {
       <TalonSession {...args} />
     </ResourceSessionFrame>
   ),
+  play: waitForResourcePaneOpen,
 };
 
 /** Host owns open/view via onResourceClick (no built-in pane). */

@@ -1193,7 +1193,7 @@ impl proto::artifact_service_server::ArtifactService for GrpcGatewayHandler {
         let metadata = req.metadata().clone();
         let req = req.into_inner();
         let (uri, _) = self
-            .resolve_artifact_uri(&req.artifact_uri, OP_READ, caller.clone(), &metadata)
+            .resolve_artifact_uri(&req.artifact_uri, OP_WRITE, caller.clone(), &metadata)
             .await
             .map_err(to_status)?;
         let operations = if req.operations.is_empty() {
@@ -2385,6 +2385,23 @@ mod tests {
         .unwrap()
         .into_inner();
         assert_eq!(metadata.artifact.unwrap().title, "NS draft");
+
+        let mut grant_req = Request::new(proto::GrantArtifactRequest {
+            artifact_uri: artifact_uri.clone(),
+            target_agent: "critic".to_string(),
+            target_session_id: "session-2".to_string(),
+            operations: vec![OP_READ.to_string()],
+            ttl_seconds: 60,
+        });
+        grant_req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {allowed_token}").parse().unwrap(),
+        );
+        let grant_denied =
+            proto::artifact_service_server::ArtifactService::grant_artifact(&handler, grant_req)
+                .await
+                .unwrap_err();
+        assert_eq!(grant_denied.code(), tonic::Code::PermissionDenied);
 
         let mut denied_req = Request::new(proto::ReadArtifactRequest {
             artifact_uri: artifact_uri.clone(),
