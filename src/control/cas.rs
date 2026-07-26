@@ -743,7 +743,7 @@ mod tests {
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use flate2::{write::GzEncoder, Compression};
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
     use std::io::Write;
     use std::sync::Arc;
 
@@ -963,7 +963,7 @@ mod tests {
         let store = CasStore::new(objects.clone());
         let mut rng = rand::rngs::StdRng::seed_from_u64(42);
         let raw = (0..2 * 1024)
-            .map(|_| rng.gen_range(0u8..=0xff))
+            .map(|_| rng.random_range(0u8..=0xff))
             .collect::<Vec<_>>();
 
         let object = store

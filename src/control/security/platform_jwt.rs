@@ -42,7 +42,9 @@ impl PlatformJwtKey {
         let mut jwk = Jwk::from_encoding_key(&encoding_key, Algorithm::RS256)
             .map_err(|err| anyhow!("failed to derive public JWK: {err}"))?;
         validate_rsa_modulus_bits(&jwk)?;
-        let kid = jwk.thumbprint(ThumbprintHash::SHA256);
+        let kid = jwk
+            .thumbprint(ThumbprintHash::SHA256)
+            .map_err(|err| anyhow!("failed to derive JWK thumbprint: {err}"))?;
         jwk.common.key_id = Some(kid);
         jwk.common.public_key_use = Some(PublicKeyUse::Signature);
         Ok(Self { encoding_key, jwk })

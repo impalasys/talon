@@ -360,8 +360,10 @@ pub(crate) async fn login_with_google_loopback(
 }
 
 fn random_url_token(byte_len: usize) -> String {
+    use rand::RngExt;
+
     let mut bytes = vec![0u8; byte_len];
-    rand::RngCore::fill_bytes(&mut rand::thread_rng(), &mut bytes);
+    rand::rng().fill(&mut bytes);
     general_purpose::URL_SAFE_NO_PAD.encode(bytes)
 }
 

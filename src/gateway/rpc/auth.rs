@@ -12,7 +12,7 @@ use crate::gateway::Gateway;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use jsonwebtoken::{decode, decode_header, jwk::JwkSet, Algorithm, DecodingKey, Validation};
 use prost::Message;
-use rand::RngCore;
+use rand::RngExt;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
@@ -896,7 +896,7 @@ fn parse_api_key(value: &str) -> Result<ParsedApiKey<'_>, tonic::Status> {
 
 fn random_url_token(byte_len: usize) -> String {
     let mut bytes = vec![0u8; byte_len];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill(&mut bytes);
     URL_SAFE_NO_PAD.encode(bytes)
 }
 
