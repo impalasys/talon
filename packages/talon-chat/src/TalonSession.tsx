@@ -214,20 +214,34 @@ function resourceCallHeaders(agent: string, sessionId: string | null | undefined
   return Object.keys(headers).length > 0 ? headers : undefined;
 }
 
+/** Strict base64 shape: length multiple of 4 and only base64 alphabet + padding. */
+const BASE64_CONTENT_RE = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+function looksLikeBase64(value: string): boolean {
+  if (value.length === 0 || value.length % 4 !== 0) return false;
+  // Avoid treating short plain words as base64 (e.g. "test" is valid alphabet).
+  if (value.length < 16) return false;
+  return BASE64_CONTENT_RE.test(value);
+}
+
 function bytesFromContent(content: unknown): Uint8Array | undefined {
   if (content == null) return undefined;
   if (content instanceof Uint8Array) return content;
   if (typeof content === "string") {
     if (content.length === 0) return new Uint8Array(0);
-    // Connect JSON may base64-encode bytes; try UTF-8 first for plain text mocks.
-    try {
-      const binary = atob(content);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-      return bytes;
-    } catch {
-      return new TextEncoder().encode(content);
+    // Connect JSON may base64-encode bytes. Only decode when the string looks like
+    // base64; otherwise treat as literal UTF-8 text (mocks and plain responses).
+    if (looksLikeBase64(content)) {
+      try {
+        const binary = atob(content);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+      } catch {
+        // Fall through to UTF-8 if padded base64 shape still fails to decode.
+      }
     }
+    return new TextEncoder().encode(content);
   }
   if (ArrayBuffer.isView(content)) {
     return new Uint8Array(content.buffer, content.byteOffset, content.byteLength);

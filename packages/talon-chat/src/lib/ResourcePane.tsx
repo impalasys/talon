@@ -98,15 +98,21 @@ export function ResourcePane({
   }, [open, onExitComplete]);
 
   useEffect(() => {
-    if (!resource || !isImageMediaType(resource.mediaType)) {
-      setBlobUrl(null);
-      return;
-    }
-    if (resource.signedUrl) {
+    // Build a blob URL for:
+    // - image/* inline rendering when no signedUrl, and
+    // - non-text/non-markdown binary downloads when content is only available as bytes.
+    if (!resource || resource.signedUrl) {
       setBlobUrl(null);
       return;
     }
     if (!(resource.content instanceof Uint8Array) || resource.content.byteLength === 0) {
+      setBlobUrl(null);
+      return;
+    }
+    const isImage = isImageMediaType(resource.mediaType);
+    const isInlineText =
+      isTextMediaType(resource.mediaType) || isMarkdownMediaType(resource.mediaType);
+    if (!isImage && isInlineText) {
       setBlobUrl(null);
       return;
     }

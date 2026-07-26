@@ -134,6 +134,12 @@ describe("linkifyResourceUris", () => {
     assert.ok(out.includes(`[file://ns/guidelines](${toResourceMarkdownHref("file://ns/guidelines")})`));
   });
 
+  it("linkifies parenthesized prose URIs", () => {
+    const input = "See the draft (file://ns/name) and notes.";
+    const out = linkifyResourceUris(input);
+    assert.ok(out.includes(`([file://ns/name](${toResourceMarkdownHref("file://ns/name")}))`));
+  });
+
   it("leaves non-resource text unchanged", () => {
     assert.equal(linkifyResourceUris("hello world"), "hello world");
     assert.equal(linkifyResourceUris("visit https://example.com"), "visit https://example.com");

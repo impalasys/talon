@@ -138,12 +138,12 @@ function isInsideCodeFence(markdown: string, index: number): boolean {
 }
 
 function isAlreadyLinked(markdown: string, start: number, end: number): boolean {
-  // Skip if already inside a markdown link destination: ](uri) or [label](uri)
+  // Skip only when this span is already a markdown link destination: ](uri)
+  // Do not treat parenthesized prose like (file://ns/name) as linked.
   const after = markdown.slice(end);
   if (/^\s*\)/.test(after)) {
-    // Look back for preceding ](
     const before = markdown.slice(0, start);
-    if (/\]\(\s*$/.test(before) || /\(\s*$/.test(before)) {
+    if (/\]\(\s*$/.test(before)) {
       return true;
     }
   }
