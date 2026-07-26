@@ -66,3 +66,41 @@ export const ReadOnly: Story = {
     disableUserInput: true,
   },
 };
+
+const resourceChannelMessages = [
+  {
+    id: "ch-resource-1",
+    authorKind: "agent",
+    author: "writer",
+    content:
+      "Posted draft artifact://Tenant:acme:Ops/writer/sess-1/final-draft and file://Tenant:acme:Ops/memory-brand-guidelines for review.\n\n" +
+      "Also a labeled link: [brand guidelines](file://Tenant:acme:Ops/memory-brand-guidelines).",
+    createdAt: "2026-06-05T16:20:00.000Z",
+    sourceAgent: "writer",
+    sourceSessionId: "sess-1",
+  },
+  {
+    id: "ch-resource-2",
+    authorKind: "user",
+    author: "sightline",
+    content: "Thanks — I'll open those from the session view.",
+    createdAt: "2026-06-05T16:21:00.000Z",
+  },
+];
+
+/** Channel messages linkify resource URIs; host receives onResourceClick (no built-in pane). */
+export const ResourceUris: Story = {
+  name: "Resource URIs (onResourceClick)",
+  args: {
+    gatewayClient: {
+      channels: {
+        listMessages: async () => ({ messages: resourceChannelMessages, hasMore: false }),
+        postMessage: async () => ({}),
+      },
+    },
+    onResourceClick: (uri: string) => {
+      window.alert(`channel onResourceClick: ${uri}`);
+    },
+    formatTimestamp: () => "Jun 5, 2026, 9:20 AM",
+  },
+};

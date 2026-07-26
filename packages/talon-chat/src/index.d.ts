@@ -7,9 +7,59 @@ export type GatewayClientLike = {
     "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
   > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage">>;
   cas?: CasServiceClientLike;
+  artifacts?: ArtifactServiceClientLike;
+  files?: FileServiceClientLike;
 };
 
 export type CasServiceClientLike = Pick<TalonClient["cas"], "getObject">;
+
+export type ArtifactServiceClientLike = Pick<
+  TalonClient["artifacts"],
+  "readArtifact" | "getArtifactMetadata"
+>;
+
+export type FileServiceClientLike = Pick<
+  TalonClient["files"],
+  "readFile" | "getFileMetadata"
+>;
+
+export type ResourceUriKind = "artifact" | "file";
+
+export type ParsedResourceUri =
+  | {
+      kind: "artifact";
+      uri: string;
+      namespace: string;
+      agent: string;
+      sessionId: string;
+      artifactId: string;
+    }
+  | {
+      kind: "file";
+      uri: string;
+      namespace: string;
+      fileName: string;
+    };
+
+export type ResourceViewModel = {
+  kind: ResourceUriKind;
+  uri: string;
+  title: string;
+  mediaType: string;
+  content?: Uint8Array | string;
+  signedUrl?: string;
+  path?: string;
+  sessionId?: string;
+  agent?: string;
+};
+
+export function parseResourceUri(value: string): ParsedResourceUri | null;
+export function isResourceUri(value: string): boolean;
+export function linkifyResourceUris(markdown: string): string;
+export function toResourceMarkdownHref(uri: string): string;
+export function resourceUriFromHref(href: string | null | undefined): string | null;
+export function resourceUriShortLabel(uri: string): string;
+export const RESOURCE_MARKDOWN_HREF_PREFIX: string;
 
 export type ToolInvocationItem = {
   toolCallId: string;
@@ -217,6 +267,15 @@ export type TalonSessionProps = {
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
   enableDebugMessageEditing?: boolean;
+  /**
+   * Called when an artifact:// or file:// link is clicked.
+   * If omitted, the built-in split pane opens when the matching client is available.
+   */
+  onResourceClick?: (uri: string) => void;
+  /**
+   * Override content fetch for the built-in resource pane (both kinds).
+   */
+  fetchResource?: (uri: string, signal: AbortSignal) => Promise<ResourceViewModel>;
 };
 
 export type TalonCopilotProps = TalonSessionProps;
@@ -273,6 +332,11 @@ export type TalonChannelProps = {
   formatTimestamp?: (message: ChannelMessage) => string;
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
   commands?: TalonChannelCommand[];
+  /**
+   * Called when an artifact:// or file:// link is clicked in a channel message.
+   * Channels do not open a built-in split pane in phase 1.
+   */
+  onResourceClick?: (uri: string) => void;
 };
 
 export type UseTalonChannelMessagesOptions = {

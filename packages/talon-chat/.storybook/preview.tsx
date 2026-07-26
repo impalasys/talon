@@ -38,6 +38,9 @@ const preview: Preview = {
           ? "linear-gradient(to top, rgba(24,24,27,0.96), rgba(24,24,27,0.78) 58%, rgba(24,24,27,0))"
           : "linear-gradient(to top, rgba(255,255,255,0.94), rgba(255,255,255,0.72) 58%, rgba(255,255,255,0))",
         "--talon-chat-scrollbar-thumb": isDark ? "rgba(212,212,216,0.38)" : "rgba(113,113,122,0.52)",
+        "--talon-chat-link-fg": isDark ? "#34d399" : "#047857",
+        "--talon-chat-accent-fg": isDark ? "#34d399" : "#047857",
+        "--talon-chat-resource-pane-bg": isDark ? "#18181b" : "#ffffff",
         "--talon-chat-avatar-bg": isDark ? "#fafafa" : "#18181b",
         "--talon-chat-avatar-fg": isDark ? "#18181b" : "#ffffff",
         "--copilot-input-bg": isDark ? "rgba(39,39,42,0.94)" : "rgba(255,255,255,0.96)",

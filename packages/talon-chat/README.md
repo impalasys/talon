@@ -152,6 +152,44 @@ talon-cli auth local-token \
 
 In production, mint frontend tokens through your trusted backend after OIDC-authenticated authorization.
 
+## Resource URIs
+
+Assistant and user messages can include Talon resource URIs:
+
+| Scheme | Format | Example |
+| --- | --- | --- |
+| Artifact | `artifact://<namespace>/<agent>/<session>/<artifact_id>` | `artifact://Tenant:acme:Ops/writer/sess-1/draft` |
+| File | `file://<namespace>/<file_name>` | `file://Tenant:acme:Ops/memory-brand-guidelines` |
+
+Bare URIs (and markdown links with those schemes) render as clickable links.
+In `TalonSession`, clicking a resource opens a **split pane** next to the chat
+when the gateway client exposes the matching service:
+
+```tsx
+const gatewayClient = createTalonClient({ baseUrl, authToken });
+// gatewayClient.artifacts and gatewayClient.files are used automatically.
+
+<TalonSession
+  namespace="support"
+  agent="docs"
+  gatewayClient={gatewayClient}
+  sessionId={sessionId}
+/>
+```
+
+- **Artifacts** load via `artifacts.readArtifact` (caller agent/session headers
+  are attached from the session props for owner reads).
+- **Files** load via `files.readFile` with `{ file: { uri } }`.
+- Hosts can take over with `onResourceClick` (no built-in pane) or override
+  loading with `fetchResource`.
+- `TalonChannel` linkifies and calls `onResourceClick` only; it does not open a
+  built-in pane yet.
+
+Helpers `parseResourceUri`, `isResourceUri`, and `linkifyResourceUris` are
+exported for host apps.
+
+OS-style paths like `file:///tmp/foo` are **not** treated as Talon file URIs.
+
 ## Storybook and Chromatic
 
 Run the component preview locally:

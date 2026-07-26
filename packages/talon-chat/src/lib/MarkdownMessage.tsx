@@ -1,13 +1,27 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Streamdown } from "streamdown";
+import { linkifyResourceUris, resourceUriFromHref } from "./resourceUris";
 
 function border(color: string) {
   return `1px solid ${color}`;
 }
 
-export function MarkdownMessage({ children }: { children: string }) {
+export type MarkdownMessageProps = {
+  children: string;
+  /**
+   * Called when an `artifact://` or `file://` link is clicked.
+   * Prevents default navigation for resource URIs.
+   */
+  onResourceClick?: (uri: string) => void;
+};
+
+export function MarkdownMessage({ children, onResourceClick }: MarkdownMessageProps) {
+  // Resource links are rewritten to harden-safe hash hrefs (#talon-resource/…)
+  // so Streamdown's default rehype-harden does not replace them with [blocked].
+  const linkified = useMemo(() => linkifyResourceUris(children), [children]);
+
   const compactListChildren = (content: React.ReactNode): React.ReactNode =>
     React.Children.map(content, (child) => {
       if (!React.isValidElement(child)) {
@@ -134,7 +148,38 @@ export function MarkdownMessage({ children }: { children: string }) {
               }}
             />
           ),
-          a: (props) => <a {...props} style={{ color: "inherit", textDecoration: "underline" }} />,
+          a: (props) => {
+            const href = typeof props.href === "string" ? props.href : "";
+            const dataUri =
+              typeof (props as { "data-resource-uri"?: string })["data-resource-uri"] === "string"
+                ? (props as { "data-resource-uri"?: string })["data-resource-uri"]
+                : undefined;
+            const resourceUri = resourceUriFromHref(dataUri || href);
+
+            if (resourceUri) {
+              return (
+                <a
+                  {...props}
+                  href={href.startsWith("#") ? href : `#`}
+                  data-resource-uri={resourceUri}
+                  title={resourceUri}
+                  style={{
+                    color: "var(--talon-chat-link-fg, var(--talon-chat-accent-fg, #047857))",
+                    textDecoration: "underline",
+                    cursor: "pointer",
+                    wordBreak: "break-all",
+                  }}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onResourceClick?.(resourceUri);
+                  }}
+                />
+              );
+            }
+
+            return <a {...props} style={{ color: "inherit", textDecoration: "underline" }} />;
+          },
           blockquote: (props) => (
             <blockquote
               {...props}
@@ -148,7 +193,7 @@ export function MarkdownMessage({ children }: { children: string }) {
           ),
         }}
       >
-        {children}
+        {linkified}
       </Streamdown>
     </div>
   );

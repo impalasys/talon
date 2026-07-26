@@ -91,6 +91,11 @@ export type TalonChannelProps = {
   formatTimestamp?: (message: ChannelMessage) => string;
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
   commands?: TalonChannelCommand[];
+  /**
+   * Called when an artifact:// or file:// link is clicked in a channel message.
+   * Channels do not open a built-in split pane in phase 1.
+   */
+  onResourceClick?: (uri: string) => void;
 };
 
 export type UseTalonChannelMessagesOptions = {
@@ -485,6 +490,7 @@ export function TalonChannel({
   formatTimestamp,
   renderMessageActions,
   commands,
+  onResourceClick,
 }: TalonChannelProps) {
   const [draft, setDraft] = useState("");
   const [isPosting, setIsPosting] = useState(false);
@@ -672,7 +678,7 @@ export function TalonChannel({
                       {messageActions ? <div style={{ marginLeft: "auto" }}>{messageActions}</div> : null}
                     </div>
                     <div style={{ marginTop: 8, whiteSpace: "normal", overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.6 }}>
-                      <MarkdownMessage>{message.content || ""}</MarkdownMessage>
+                      <MarkdownMessage onResourceClick={onResourceClick}>{message.content || ""}</MarkdownMessage>
                     </div>
                   </div>
                 );

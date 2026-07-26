@@ -23,6 +23,11 @@ import {
   type TalonChatCommand,
 } from "./lib/commands";
 import { MarkdownMessage } from "./lib/MarkdownMessage";
+import { ResourcePane } from "./lib/ResourcePane";
+import {
+  parseResourceUri,
+  type ResourceViewModel,
+} from "./lib/resourceUris";
 import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
 
 const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -42,10 +47,24 @@ export type SessionServiceClientLike = {
 
 export type CasServiceClientLike = Pick<TalonClient["cas"], "getObject">;
 
+export type ArtifactServiceClientLike = Pick<
+  TalonClient["artifacts"],
+  "readArtifact" | "getArtifactMetadata"
+>;
+
+export type FileServiceClientLike = Pick<
+  TalonClient["files"],
+  "readFile" | "getFileMetadata"
+>;
+
 export type GatewayClientLike = {
   sessions: SessionServiceClientLike;
   cas?: CasServiceClientLike;
+  artifacts?: ArtifactServiceClientLike;
+  files?: FileServiceClientLike;
 };
+
+export type { ResourceViewModel };
 
 export type TalonSessionCommandTarget = {
   type: "session";
@@ -156,6 +175,15 @@ export type TalonSessionProps = {
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
   enableDebugMessageEditing?: boolean;
+  /**
+   * Called when an artifact:// or file:// link is clicked.
+   * If omitted, the built-in split pane opens when the matching client is available.
+   */
+  onResourceClick?: (uri: string) => void;
+  /**
+   * Override content fetch for the built-in resource pane (both kinds).
+   */
+  fetchResource?: (uri: string, signal: AbortSignal) => Promise<ResourceViewModel>;
 };
 
 export type TalonCopilotProps = TalonSessionProps;
@@ -174,6 +202,112 @@ const CONNECTOR_DELIVERY_SKIPPED = "skipped";
 
 function border(color: string) {
   return `1px solid ${color}`;
+}
+
+const HANDLE_CALLER_AGENT_HEADER = "x-talon-agent";
+const HANDLE_CALLER_SESSION_HEADER = "x-talon-session-id";
+
+function resourceCallHeaders(agent: string, sessionId: string | null | undefined) {
+  const headers: Record<string, string> = {};
+  if (agent) headers[HANDLE_CALLER_AGENT_HEADER] = agent;
+  if (sessionId) headers[HANDLE_CALLER_SESSION_HEADER] = sessionId;
+  return Object.keys(headers).length > 0 ? headers : undefined;
+}
+
+function bytesFromContent(content: unknown): Uint8Array | undefined {
+  if (content == null) return undefined;
+  if (content instanceof Uint8Array) return content;
+  if (typeof content === "string") {
+    if (content.length === 0) return new Uint8Array(0);
+    // Connect JSON may base64-encode bytes; try UTF-8 first for plain text mocks.
+    try {
+      const binary = atob(content);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    } catch {
+      return new TextEncoder().encode(content);
+    }
+  }
+  if (ArrayBuffer.isView(content)) {
+    return new Uint8Array(content.buffer, content.byteOffset, content.byteLength);
+  }
+  return undefined;
+}
+
+async function fetchResourceFromGateway(options: {
+  uri: string;
+  gatewayClient: GatewayClientLike;
+  agent: string;
+  sessionId: string | null;
+  signal: AbortSignal;
+}): Promise<ResourceViewModel> {
+  const { uri, gatewayClient, agent, sessionId, signal } = options;
+  const parsed = parseResourceUri(uri);
+  if (!parsed) {
+    throw new Error(`Unsupported resource URI: ${uri}`);
+  }
+
+  const headers = resourceCallHeaders(agent, sessionId);
+  const callOptions = {
+    signal,
+    ...(headers ? { headers } : {}),
+  };
+
+  if (parsed.kind === "artifact") {
+    const artifacts = gatewayClient.artifacts;
+    if (!artifacts?.readArtifact) {
+      throw new Error("Gateway client does not expose artifacts.readArtifact().");
+    }
+    const response = await (artifacts.readArtifact as any)(
+      { artifactUri: parsed.uri },
+      callOptions,
+    );
+    const artifact = response?.artifact ?? {};
+    const mediaType =
+      artifact.mediaType || artifact.media_type || "application/octet-stream";
+    const title =
+      (typeof artifact.title === "string" && artifact.title) || parsed.artifactId;
+    return {
+      kind: "artifact",
+      uri: parsed.uri,
+      title,
+      mediaType,
+      content: bytesFromContent(response?.content),
+      signedUrl: response?.signedUrl || response?.signed_url || undefined,
+      sessionId: parsed.sessionId,
+      agent: parsed.agent,
+    };
+  }
+
+  const files = gatewayClient.files;
+  if (!files?.readFile) {
+    throw new Error("Gateway client does not expose files.readFile().");
+  }
+  const response = await (files.readFile as any)(
+    { file: { uri: parsed.uri } },
+    callOptions,
+  );
+  const file = response?.file ?? {};
+  const meta = file.metadata ?? {};
+  const spec = file.spec ?? {};
+  const mediaType =
+    spec.mediaType ||
+    spec.media_type ||
+    "application/octet-stream";
+  const title =
+    (typeof meta.name === "string" && meta.name) ||
+    (typeof spec.path === "string" && spec.path.split("/").filter(Boolean).pop()) ||
+    parsed.fileName;
+  return {
+    kind: "file",
+    uri: parsed.uri,
+    title,
+    mediaType,
+    content: bytesFromContent(response?.content),
+    signedUrl: response?.signedUrl || response?.signed_url || undefined,
+    path: typeof spec.path === "string" ? spec.path : undefined,
+  };
 }
 
 const talonChatFontFamily =
@@ -826,6 +960,8 @@ export function TalonSession({
   allowMessageEditing = false,
   onMessageEdit,
   enableDebugMessageEditing = false,
+  onResourceClick: onResourceClickProp,
+  fetchResource,
 }: TalonSessionProps) {
   const [messages, setMessages] = useState<CopilotMessage[]>(emptyMessages);
   const [input, setInput] = useState("");
@@ -837,6 +973,14 @@ export function TalonSession({
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
+  const [openResourceUri, setOpenResourceUri] = useState<string | null>(null);
+  /** False while the pane plays its close transition before unmount. */
+  const [resourcePaneOpen, setResourcePaneOpen] = useState(false);
+  const [resourceView, setResourceView] = useState<ResourceViewModel | null>(null);
+  const [resourceLoading, setResourceLoading] = useState(false);
+  const [resourceError, setResourceError] = useState<Error | null>(null);
+  const resourceAbortRef = useRef<AbortController | null>(null);
+  const missingResourceClientWarnedRef = useRef(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageValue, setEditingMessageValue] = useState("");
   const [reviewActionMessageId, setReviewActionMessageId] = useState<string | null>(null);
@@ -1092,6 +1236,118 @@ export function TalonSession({
     [updateSessionMessage],
   );
 
+  const loadResource = useCallback(
+    async (uri: string) => {
+      resourceAbortRef.current?.abort();
+      const controller = new AbortController();
+      resourceAbortRef.current = controller;
+      setResourceLoading(true);
+      setResourceError(null);
+      setResourceView(null);
+
+      try {
+        let view: ResourceViewModel;
+        if (fetchResource) {
+          view = await fetchResource(uri, controller.signal);
+        } else {
+          view = await fetchResourceFromGateway({
+            uri,
+            gatewayClient,
+            agent,
+            sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
+            signal: controller.signal,
+          });
+        }
+        if (controller.signal.aborted) return;
+        setResourceView(view);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        setResourceError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        if (!controller.signal.aborted) {
+          setResourceLoading(false);
+        }
+      }
+    },
+    [agent, fetchResource, gatewayClient, sessionId],
+  );
+
+  const clearResourcePaneState = useCallback(() => {
+    resourceAbortRef.current?.abort();
+    resourceAbortRef.current = null;
+    setOpenResourceUri(null);
+    setResourcePaneOpen(false);
+    setResourceView(null);
+    setResourceError(null);
+    setResourceLoading(false);
+  }, []);
+
+  const closeResourcePane = useCallback(() => {
+    // Animate closed; unmount after ResourcePane fires onExitComplete.
+    resourceAbortRef.current?.abort();
+    resourceAbortRef.current = null;
+    setResourcePaneOpen(false);
+  }, []);
+
+  const handleResourcePaneExitComplete = useCallback(() => {
+    setOpenResourceUri(null);
+    setResourceView(null);
+    setResourceError(null);
+    setResourceLoading(false);
+  }, []);
+
+  const handleResourceClick = useCallback(
+    (uri: string) => {
+      if (onResourceClickProp) {
+        onResourceClickProp(uri);
+        return;
+      }
+
+      const parsed = parseResourceUri(uri);
+      if (!parsed) return;
+
+      if (openResourceUri === parsed.uri && resourcePaneOpen) {
+        closeResourcePane();
+        return;
+      }
+
+      const canFetchArtifact =
+        Boolean(fetchResource) || Boolean(gatewayClient?.artifacts?.readArtifact);
+      const canFetchFile = Boolean(fetchResource) || Boolean(gatewayClient?.files?.readFile);
+      const canOpen =
+        (parsed.kind === "artifact" && canFetchArtifact) ||
+        (parsed.kind === "file" && canFetchFile);
+
+      if (!canOpen) {
+        if (!missingResourceClientWarnedRef.current && typeof console !== "undefined") {
+          missingResourceClientWarnedRef.current = true;
+          console.warn(
+            "[talon-chat] Resource link clicked but no artifacts/files client (or fetchResource) is available.",
+          );
+        }
+        return;
+      }
+
+      setOpenResourceUri(parsed.uri);
+      setResourcePaneOpen(true);
+      void loadResource(parsed.uri);
+    },
+    [
+      closeResourcePane,
+      fetchResource,
+      gatewayClient,
+      loadResource,
+      onResourceClickProp,
+      openResourceUri,
+      resourcePaneOpen,
+    ],
+  );
+
+  // Reset open resource pane when the session identity changes.
+  useEffect(() => {
+    clearResourcePaneState();
+  }, [namespace, agent, sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const copyMessageContent = useCallback(async (message: CopilotMessage) => {
     const nextContent = editableMessageContent(message);
     if (!nextContent.trim()) {
@@ -1242,7 +1498,7 @@ export function TalonSession({
                       if (item.type === "text") {
                         return (
                           <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-assistant-fg, inherit)" }}>
-                            <MarkdownMessage>{item.text}</MarkdownMessage>
+                            <MarkdownMessage onResourceClick={handleResourceClick}>{item.text}</MarkdownMessage>
                           </div>
                         );
                       }
@@ -1465,7 +1721,7 @@ export function TalonSession({
                       if (item.type === "text") {
                         return (
                           <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
-                            <MarkdownMessage>{item.text}</MarkdownMessage>
+                            <MarkdownMessage onResourceClick={handleResourceClick}>{item.text}</MarkdownMessage>
                           </div>
                         );
                       }
@@ -1550,7 +1806,9 @@ export function TalonSession({
                     })}
                   </div>
                 ) : (
-                  message.role === "assistant" ? <MarkdownMessage>{content}</MarkdownMessage> : content
+                  message.role === "assistant" ? (
+                    <MarkdownMessage onResourceClick={handleResourceClick}>{content}</MarkdownMessage>
+                  ) : content
                 )}
               </div>
             )}
@@ -1667,7 +1925,7 @@ export function TalonSession({
         </div>
       );
     });
-  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, isLoading, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, updateConnectorDeliveryStatus]);
+  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, isLoading, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, updateConnectorDeliveryStatus]);
 
   const resolvedHistoryPageSize = Math.max(
     1,
@@ -1893,6 +2151,8 @@ export function TalonSession({
   const clearLocalSession = useCallback(() => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
+    resourceAbortRef.current?.abort();
+    resourceAbortRef.current = null;
     setMessages(emptyMessages);
     messagesRef.current = emptyMessages;
     setStreamEvents([]);
@@ -1903,6 +2163,10 @@ export function TalonSession({
     setLoadingStartedAt(null);
     setExpandedThinkingMessages({});
     setExpandedToolItems({});
+    setOpenResourceUri(null);
+    setResourceView(null);
+    setResourceError(null);
+    setResourceLoading(false);
     autoScrollPinnedRef.current = true;
   }, []);
 
@@ -2370,111 +2634,148 @@ export function TalonSession({
           }
         `}
       </style>
-      <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          flex: 1,
+          minHeight: 0,
+          minWidth: 0,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
         <div
-          className="talon-session-transcript"
-          data-testid="copilot-transcript"
-          ref={scrollContainerRef}
-          onScroll={handleTranscriptScroll}
-          style={{ height: "100%", overflowY: "auto", overflowX: "hidden", minHeight: 0 }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            // Fills remaining space so chat + pane land at an even 50/50 when open.
+            flex: "1 1 auto",
+            minWidth: 0,
+            minHeight: 0,
+            transition: "flex 280ms cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
         >
-          <div style={{ maxWidth: 896, margin: "0 auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {renderedMessages}
+          <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
+            <div
+              className="talon-session-transcript"
+              data-testid="copilot-transcript"
+              ref={scrollContainerRef}
+              onScroll={handleTranscriptScroll}
+              style={{ height: "100%", overflowY: "auto", overflowX: "hidden", minHeight: 0 }}
+            >
+              <div style={{ maxWidth: 896, margin: "0 auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
+              {renderedMessages}
 
-          {isLoading && messages[messages.length - 1]?.role === "user" ? (
-            <div style={{ width: "100%" }}>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                {formatWorkingDuration(loadingStartedAt, loadingNow)}
+              {isLoading && messages[messages.length - 1]?.role === "user" ? (
+                <div style={{ width: "100%" }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                    {formatWorkingDuration(loadingStartedAt, loadingNow)}
+                  </div>
+                </div>
+              ) : null}
+
+              {error ? (
+                <div style={{ display: "flex", gap: "1rem" }}>
+                  <div style={{ flexShrink: 0 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(254,226,226,1)", border: border("rgba(252,165,165,1)") }}>
+                      <Activity size="14" color="rgba(220,38,38,1)" strokeWidth={1.75} />
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(220,38,38,1)" }}>System Incident</span>
+                    <div style={{ fontSize: 13, borderRadius: 10, background: "rgba(254,242,242,1)", border: border("rgba(252,165,165,0.6)"), color: "rgba(220,38,38,1)", padding: 12, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
+                      {error.message || "An error occurred while connecting to the agent."}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              <div ref={bottomRef} />
               </div>
             </div>
-          ) : null}
-
-          {error ? (
-            <div style={{ display: "flex", gap: "1rem" }}>
-              <div style={{ flexShrink: 0 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(254,226,226,1)", border: border("rgba(252,165,165,1)") }}>
-                  <Activity size="14" color="rgba(220,38,38,1)" strokeWidth={1.75} />
-                </div>
-              </div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(220,38,38,1)" }}>System Incident</span>
-                <div style={{ fontSize: 13, borderRadius: 10, background: "rgba(254,242,242,1)", border: border("rgba(252,165,165,0.6)"), color: "rgba(220,38,38,1)", padding: 12, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
-                  {error.message || "An error occurred while connecting to the agent."}
-                </div>
-              </div>
-            </div>
-          ) : null}
-          <div ref={bottomRef} />
+            {scrollThumb.visible ? (
+              <div
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  top: scrollThumb.top,
+                  right: 2,
+                  width: 5,
+                  height: scrollThumb.height,
+                  borderRadius: 999,
+                  background: "var(--talon-chat-scrollbar-thumb, rgba(113,113,122,0.52))",
+                  pointerEvents: "none",
+                }}
+              />
+            ) : null}
           </div>
+
+          {disabled ? null : (
+            <div
+              style={{
+                position: "sticky",
+                bottom: 0,
+                zIndex: 10,
+                flexShrink: 0,
+                display: "flex",
+                justifyContent: "center",
+                width: "100%",
+                boxSizing: "border-box",
+                padding: "1.5rem",
+                background: "var(--talon-chat-composer-bg, linear-gradient(to top, rgba(255,255,255,0.94), rgba(255,255,255,0.72) 58%, rgba(255,255,255,0)))",
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <div style={{ width: "100%", maxWidth: "var(--talon-chat-composer-max-width, 896px)", paddingBottom: 8 }}>
+                <TalonChatComposer
+                  value={input}
+                  onValueChange={setInput}
+                  onSubmit={(nextInput) => void submitMessage(nextInput)}
+                  placeholder={placeholder}
+                  variant={composerVariant}
+                  autoFocus={autoFocus}
+                  rows={inputRows}
+                  canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isLoading}
+                  isGenerating={isLoading}
+                  canStop={Boolean(currentSession)}
+                  commandMenuItems={commandMenuItems}
+                  startAdornment={composerStartAdornment}
+                  endAdornment={composerEndAdornment}
+                  imageAttachments={imageAttachments.map((attachment) => ({
+                    id: attachment.id,
+                    filename: attachment.file.name,
+                    previewUrl: attachment.previewUrl,
+                    status: attachment.status,
+                    error: attachment.error,
+                  }))}
+                  imageUploadEnabled={Boolean(onImageUpload)}
+                  imageAccept={imageAccept}
+                  onImageFilesSelected={addImageFiles}
+                  onRemoveImageAttachment={removeImageAttachment}
+                  onStop={() => {
+                    void stopGeneration().catch((err: any) =>
+                      setError(err instanceof Error ? err : new Error("Failed to stop generation")),
+                    );
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
-        {scrollThumb.visible ? (
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              top: scrollThumb.top,
-              right: 2,
-              width: 5,
-              height: scrollThumb.height,
-              borderRadius: 999,
-              background: "var(--talon-chat-scrollbar-thumb, rgba(113,113,122,0.52))",
-              pointerEvents: "none",
-            }}
+
+        {openResourceUri ? (
+          <ResourcePane
+            uri={openResourceUri}
+            resource={resourceView}
+            isLoading={resourceLoading}
+            error={resourceError}
+            open={resourcePaneOpen}
+            onClose={closeResourcePane}
+            onExitComplete={handleResourcePaneExitComplete}
+            onResourceClick={handleResourceClick}
           />
         ) : null}
       </div>
-
-      {disabled ? null : (
-        <div
-          style={{
-            position: "sticky",
-            bottom: 0,
-            zIndex: 10,
-            flexShrink: 0,
-            display: "flex",
-            justifyContent: "center",
-            width: "100%",
-            boxSizing: "border-box",
-            padding: "1.5rem",
-            background: "var(--talon-chat-composer-bg, linear-gradient(to top, rgba(255,255,255,0.94), rgba(255,255,255,0.72) 58%, rgba(255,255,255,0)))",
-            backdropFilter: "blur(10px)",
-          }}
-        >
-          <div style={{ width: "100%", maxWidth: "var(--talon-chat-composer-max-width, 896px)", paddingBottom: 8 }}>
-            <TalonChatComposer
-              value={input}
-              onValueChange={setInput}
-              onSubmit={(nextInput) => void submitMessage(nextInput)}
-              placeholder={placeholder}
-              variant={composerVariant}
-              autoFocus={autoFocus}
-              rows={inputRows}
-              canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isLoading}
-              isGenerating={isLoading}
-              canStop={Boolean(currentSession)}
-              commandMenuItems={commandMenuItems}
-              startAdornment={composerStartAdornment}
-              endAdornment={composerEndAdornment}
-              imageAttachments={imageAttachments.map((attachment) => ({
-                id: attachment.id,
-                filename: attachment.file.name,
-                previewUrl: attachment.previewUrl,
-                status: attachment.status,
-                error: attachment.error,
-              }))}
-              imageUploadEnabled={Boolean(onImageUpload)}
-              imageAccept={imageAccept}
-              onImageFilesSelected={addImageFiles}
-              onRemoveImageAttachment={removeImageAttachment}
-              onStop={() => {
-                void stopGeneration().catch((err: any) =>
-                  setError(err instanceof Error ? err : new Error("Failed to stop generation")),
-                );
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

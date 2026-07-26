@@ -1,7 +1,10 @@
 export {
   TalonSession,
   TalonCopilot,
+  type ArtifactServiceClientLike,
+  type FileServiceClientLike,
   type GatewayClientLike,
+  type ResourceViewModel,
   type TalonSessionCommand,
   type TalonSessionCommandTarget,
   type TalonSessionProps,
@@ -13,6 +16,17 @@ export {
   type TalonImageUploadResult,
   type TalonSessionPendingImageAttachment,
 } from "./TalonSession";
+export {
+  isResourceUri,
+  linkifyResourceUris,
+  parseResourceUri,
+  RESOURCE_MARKDOWN_HREF_PREFIX,
+  resourceUriFromHref,
+  resourceUriShortLabel,
+  toResourceMarkdownHref,
+  type ParsedResourceUri,
+  type ResourceUriKind,
+} from "./lib/resourceUris";
 export {
   TalonChannel,
   useTalonChannelMessages,
