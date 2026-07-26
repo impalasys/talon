@@ -219,7 +219,7 @@ export function ResourcePane({
               flexShrink: 0,
             }}
           >
-            <X size={16} strokeWidth={1.9} />
+            <X size="16" strokeWidth={1.9} />
           </button>
         </header>
 
