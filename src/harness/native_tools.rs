@@ -4,9 +4,11 @@
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
-use serde_json::{json, Value};
-use std::collections::HashMap;
+use serde_json::{json, Number, Value};
+use std::collections::{HashMap, HashSet};
+use std::fs;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::path::{Component, Path, PathBuf};
 use std::time::Duration;
 
 use crate::control::resource_model::{self, TypedResource};
@@ -72,6 +74,7 @@ pub const GET_FILE_METADATA_TOOL: &str = "get_file_metadata";
 pub const CREATE_FILE_TOOL: &str = "create_file";
 pub const UPDATE_FILE_TOOL: &str = "update_file";
 pub const DELETE_FILE_TOOL: &str = "delete_file";
+pub const RUN_PYTHON_CODE_TOOL: &str = "run_python_code";
 
 pub(super) const OP_READ: &str = "read";
 pub(super) const OP_METADATA: &str = "metadata";
@@ -199,6 +202,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         && !has_capability_action(spec, "files", "create")
         && !has_capability_action(spec, "files", "update")
         && !has_capability_action(spec, "files", "delete")
+        && !has_capability_action(spec, "code", "run")
         && !has_capability_action(spec, "goals", "inspect")
         && !has_capability_action(spec, "goals", "create")
         && !has_capability_action(spec, "goals", "update")
@@ -406,6 +410,43 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                     "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
                     "path": { "type": "string", "description": "Logical File path." }
                 }
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "code", "run") {
+        registry.register_builtin(
+            RUN_PYTHON_CODE_TOOL,
+            "Run Python code in Monty, a restricted interpreter for agent-written code. Requires TALON_MONTY_BIN or a monty runtime binary on PATH. Host filesystem, environment, and network access are not available; declared Talon files/artifacts may be mounted under /talon/input and outputs written under /talon/output are persisted as session artifacts. Code may call Talon native tools with talon_tool(name, args), except run_python_code itself.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "code": { "type": "string", "description": "Python code to execute. The value of the final expression is returned when present." },
+                    "inputs": {
+                        "type": "object",
+                        "description": "Optional JSON object exposed as Python globals before execution.",
+                        "additionalProperties": true
+                    },
+                    "mounts": {
+                        "type": "array",
+                        "description": "Optional Talon file:// or artifact:// handles to materialize read-only under /talon/input.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "uri": { "type": "string", "description": "file:// or artifact:// URI to mount." },
+                                "mount_path": { "type": "string", "description": "Relative path under /talon/input. Defaults to a safe name derived from the URI." }
+                            },
+                            "required": ["uri"]
+                        }
+                    },
+                    "persist_outputs": {
+                        "type": "boolean",
+                        "description": "Whether files written under /talon/output should be persisted as session artifacts. Defaults to true."
+                    },
+                    "timeout_ms": { "type": "integer", "description": "Maximum execution time in milliseconds. Defaults to 1000 and is capped at 30000." },
+                    "memory_bytes": { "type": "integer", "description": "Approximate heap memory cap in bytes. Defaults to 16777216 and is capped at 134217728." }
+                },
+                "required": ["code"]
             }),
         );
     }
@@ -769,6 +810,20 @@ pub async fn execute_tool_for_session_output(
                 .await
                 .map(ToolOutput::text)
                 .map(Some)
+        }
+        RUN_PYTHON_CODE_TOOL => {
+            require_capability(spec, "code", "run")?;
+            run_python_code_tool(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                spec,
+                args,
+            )
+            .await
+            .map(ToolOutput::text)
+            .map(Some)
         }
         FETCH_URL_TOOL => {
             require_capability(spec, "research", "fetch_url")?;
@@ -1283,6 +1338,705 @@ async fn create_file_tool(
     Ok(serde_json::to_string_pretty(&json!({
         "file": file_json(&file, false),
     }))?)
+}
+
+const TALON_TOOL_FUNCTION: &str = "talon_tool";
+const CODE_INPUT_MOUNT: &str = "/talon/input";
+const CODE_OUTPUT_MOUNT: &str = "/talon/output";
+const MAX_CODE_MOUNTS: usize = 25;
+const MAX_CODE_INPUT_BYTES: u64 = 25 * 1024 * 1024;
+const MAX_CODE_OUTPUT_FILES: usize = 100;
+const MAX_CODE_OUTPUT_BYTES: u64 = 25 * 1024 * 1024;
+
+struct CodeMountBundle {
+    _temp_dir: tempfile::TempDir,
+    output_dir: PathBuf,
+    mounts: Vec<monty_pool::MountSpec>,
+    mounted_inputs: Vec<Value>,
+}
+
+struct CodeRunContext {
+    tool_tx: tokio::sync::mpsc::Sender<CodeToolRequest>,
+}
+
+struct CodeToolRequest {
+    tool_name: String,
+    tool_args: Value,
+    response_tx: std::sync::mpsc::Sender<Result<String, String>>,
+}
+
+async fn run_python_code_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    args: &Value,
+) -> Result<String> {
+    let code = req_str(args, "code")?.to_string();
+    let mut inputs = monty_inputs_from_args(args)?;
+    if inputs.iter().any(|(name, _)| name == TALON_TOOL_FUNCTION) {
+        return Err(anyhow!(
+            "input name '{}' is reserved for Talon tool calls",
+            TALON_TOOL_FUNCTION
+        ));
+    }
+    inputs.push((
+        TALON_TOOL_FUNCTION.to_string(),
+        monty_types::MontyObject::Function {
+            name: TALON_TOOL_FUNCTION.to_string(),
+            docstring: Some(
+                "Call a permitted Talon native tool: talon_tool(name, args={}).".to_string(),
+            ),
+        },
+    ));
+    let timeout_ms = opt_u64(args, "timeout_ms").unwrap_or(1000).clamp(1, 30_000);
+    let memory_bytes = opt_u64(args, "memory_bytes")
+        .unwrap_or(16 * 1024 * 1024)
+        .clamp(1, 128 * 1024 * 1024) as usize;
+    let persist_outputs = args
+        .get("persist_outputs")
+        .and_then(Value::as_bool)
+        .unwrap_or(true);
+    let CodeMountBundle {
+        _temp_dir,
+        output_dir,
+        mounts,
+        mounted_inputs,
+    } = prepare_code_mounts(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        args,
+    )
+    .await?;
+    let (tool_tx, mut tool_rx) = tokio::sync::mpsc::channel::<CodeToolRequest>(8);
+    let context = CodeRunContext { tool_tx };
+    let join = tokio::task::spawn_blocking(move || {
+        run_monty_python(code, inputs, mounts, context, timeout_ms, memory_bytes)
+    });
+    tokio::pin!(join);
+    let mut result: Value = loop {
+        tokio::select! {
+            run_result = &mut join => {
+                break run_result
+                    .map_err(|err| anyhow!("Monty execution task failed: {err}"))??;
+            }
+            Some(request) = tool_rx.recv() => {
+                let output = Box::pin(execute_tool_for_session(
+                    cp,
+                    current_namespace,
+                    current_agent,
+                    current_session,
+                    spec,
+                    &request.tool_name,
+                    &request.tool_args,
+                ))
+                .await
+                .and_then(|output| {
+                    output.ok_or_else(|| anyhow!("unknown Talon tool '{}'", request.tool_name))
+                })
+                .map_err(|err| err.to_string());
+                let _ = request.response_tx.send(output);
+            }
+        }
+    };
+
+    let outputs = if persist_outputs {
+        persist_code_outputs(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            &output_dir,
+        )
+        .await?
+    } else {
+        Vec::new()
+    };
+    if let Some(object) = result.as_object_mut() {
+        object.insert("mountedInputs".to_string(), json!(mounted_inputs));
+        object.insert("outputMount".to_string(), json!(CODE_OUTPUT_MOUNT));
+        object.insert("outputs".to_string(), json!(outputs));
+    }
+    Ok(serde_json::to_string_pretty(&result)?)
+}
+
+fn run_monty_python(
+    code: String,
+    inputs: Vec<(String, monty_types::MontyObject)>,
+    mounts: Vec<monty_pool::MountSpec>,
+    context: CodeRunContext,
+    timeout_ms: u64,
+    memory_bytes: usize,
+) -> Result<Value> {
+    let input_names = inputs
+        .iter()
+        .map(|(name, _)| name.clone())
+        .collect::<Vec<_>>();
+    let limits = monty_types::ResourceLimits::new()
+        .max_duration(Duration::from_millis(timeout_ms))
+        .max_memory(memory_bytes);
+    let mut config = monty_pool::PoolConfig::subprocess(
+        std::env::var("TALON_MONTY_BIN").unwrap_or_else(|_| "monty".to_string()),
+    );
+    config.min_processes = 0;
+    config.max_processes = 1;
+    config.request_timeout =
+        Some(Duration::from_millis(timeout_ms).saturating_add(Duration::from_secs(1)));
+    config.checkout_timeout = Some(Duration::from_secs(5));
+    let pool = monty_pool::Pool::new(config).map_err(|err| {
+        anyhow!(
+            "failed to start Monty runtime: {err}. Install pydantic-monty-runtime or set TALON_MONTY_BIN to the monty binary"
+        )
+    })?;
+    let repl = monty_pool::ReplConfig {
+        script_name: "agent_code.py".to_string(),
+        limits: Some(limits),
+        ..Default::default()
+    };
+    let mut session = pool.checkout(&repl)?;
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    let mut on_print = |stream: monty_types::PrintStream, text: &str| match stream {
+        monty_types::PrintStream::Stdout => stdout.push_str(text),
+        monty_types::PrintStream::Stderr => stderr.push_str(text),
+    };
+    let mut event = session.feed(&code, inputs, mounts, true, &mut on_print)?;
+    let result = loop {
+        match event {
+            monty_pool::TurnEvent::Complete(value) => break value,
+            monty_pool::TurnEvent::FunctionCall {
+                function_name,
+                args,
+                kwargs,
+                method_call,
+                ..
+            } => {
+                let value =
+                    handle_code_function_call(&context, &function_name, args, kwargs, method_call);
+                event = session.resume(value, &mut on_print)?;
+            }
+            monty_pool::TurnEvent::OsCall { function_name, .. } => {
+                if let Some(next) = session.resume_from_mounts(&mut on_print)? {
+                    event = next;
+                } else {
+                    return Err(anyhow!(
+                        "Monty code requested OS operation '{function_name}', but only filesystem access under {CODE_INPUT_MOUNT} and {CODE_OUTPUT_MOUNT} is available"
+                    ));
+                }
+            }
+            monty_pool::TurnEvent::NameLookup { name } => {
+                let known_inputs = if input_names.is_empty() {
+                    "no inputs were provided".to_string()
+                } else {
+                    format!("available inputs: {}", input_names.join(", "))
+                };
+                return Err(anyhow!(
+                    "Monty code requested unknown name '{name}'; {known_inputs}"
+                ));
+            }
+            monty_pool::TurnEvent::ResolveFutures { .. } => {
+                return Err(anyhow!(
+                    "Monty code suspended on external futures, but external futures are disabled for this tool"
+                ));
+            }
+        }
+    };
+    drop(on_print);
+    session.finish()?;
+    Ok(json!({
+        "ok": true,
+        "runtime": "monty",
+        "language": "python",
+        "stdout": stdout,
+        "stderr": stderr,
+        "result": result.to_string(),
+        "value": serde_json::to_value(&result)?,
+        "inputMount": CODE_INPUT_MOUNT,
+    }))
+}
+
+async fn prepare_code_mounts(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    args: &Value,
+) -> Result<CodeMountBundle> {
+    let temp_dir = tempfile::Builder::new()
+        .prefix("talon-code-")
+        .tempdir()
+        .map_err(|err| anyhow!("failed to create code mount tempdir: {err}"))?;
+    let input_dir = temp_dir.path().join("input");
+    let output_dir = temp_dir.path().join("output");
+    fs::create_dir_all(&input_dir)?;
+    fs::create_dir_all(&output_dir)?;
+
+    let requested = args
+        .get("mounts")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    if requested.len() > MAX_CODE_MOUNTS {
+        return Err(anyhow!(
+            "mounts exceeds maximum of {} entries",
+            MAX_CODE_MOUNTS
+        ));
+    }
+
+    let mut total_input_bytes = 0_u64;
+    let mut mounted_inputs = Vec::new();
+    let mut seen_mount_paths = HashSet::new();
+    for (index, mount) in requested.iter().enumerate() {
+        let object = mount
+            .as_object()
+            .ok_or_else(|| anyhow!("mounts[{index}] must be an object"))?;
+        let uri = object
+            .get("uri")
+            .and_then(Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(|| anyhow!("mounts[{index}].uri is required"))?;
+        let mount_path = object
+            .get("mount_path")
+            .and_then(Value::as_str)
+            .map(validate_code_mount_path)
+            .transpose()?
+            .unwrap_or_else(|| default_code_mount_path(uri, index));
+        if !seen_mount_paths.insert(mount_path.clone()) {
+            return Err(anyhow!(
+                "mount_path '{}' is used more than once",
+                mount_path.display()
+            ));
+        }
+        let (bytes, media_type, source_kind) = read_code_mount_source(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            uri,
+        )
+        .await?;
+        total_input_bytes = total_input_bytes
+            .checked_add(bytes.len() as u64)
+            .ok_or_else(|| anyhow!("mounted input byte count overflowed"))?;
+        if total_input_bytes > MAX_CODE_INPUT_BYTES {
+            return Err(anyhow!(
+                "mounted inputs exceed {} byte limit",
+                MAX_CODE_INPUT_BYTES
+            ));
+        }
+        let target = input_dir.join(&mount_path);
+        if let Some(parent) = target.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(&target, &bytes)?;
+        mounted_inputs.push(json!({
+            "uri": uri,
+            "mountPath": code_virtual_mount_path(CODE_INPUT_MOUNT, &mount_path),
+            "mediaType": media_type,
+            "sizeBytes": bytes.len(),
+            "source": source_kind,
+        }));
+    }
+
+    Ok(CodeMountBundle {
+        _temp_dir: temp_dir,
+        output_dir: output_dir.clone(),
+        mounts: vec![
+            monty_pool::MountSpec::new(
+                CODE_INPUT_MOUNT.to_string(),
+                input_dir,
+                monty_pool::MountSpecMode::ReadOnly,
+            ),
+            monty_pool::MountSpec::new(
+                CODE_OUTPUT_MOUNT.to_string(),
+                output_dir,
+                monty_pool::MountSpecMode::ReadWrite,
+            ),
+        ],
+        mounted_inputs,
+    })
+}
+
+async fn read_code_mount_source(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    uri: &str,
+) -> Result<(Vec<u8>, String, &'static str)> {
+    if uri.starts_with("file://") {
+        require_file_read(spec)?;
+        let (namespace, path) = parse_file_uri(uri)?;
+        let namespace = if namespace == "current" {
+            current_namespace.to_string()
+        } else {
+            namespace
+        };
+        let file = find_file_by_path(cp, &namespace, &path)
+            .await?
+            .ok_or_else(|| anyhow!("File '{}' not found", path))?;
+        let media_type = file
+            .spec
+            .as_ref()
+            .map(|spec| spec.media_type.clone())
+            .unwrap_or_else(|| "application/octet-stream".to_string());
+        Ok((read_file_bytes(cp, &file).await?, media_type, "file"))
+    } else if uri.starts_with("artifact://") {
+        let (_, artifact) =
+            resolve_artifact_uri(cp, current_agent, current_session, uri, OP_READ).await?;
+        let object_ref = artifact
+            .object_ref
+            .as_ref()
+            .ok_or_else(|| anyhow!("Artifact has no objectRef"))?;
+        let object = cp
+            .objects
+            .get(&object_ref.key)
+            .await?
+            .ok_or_else(|| anyhow!("Artifact object not found"))?;
+        Ok((object.bytes, artifact.media_type, "artifact"))
+    } else {
+        Err(anyhow!("mount uri must start with file:// or artifact://"))
+    }
+}
+
+fn validate_code_mount_path(value: &str) -> Result<PathBuf> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        return Err(anyhow!("mount_path must not be empty"));
+    }
+    let path = Path::new(trimmed);
+    if path.is_absolute() {
+        return Err(anyhow!("mount_path must be relative to {CODE_INPUT_MOUNT}"));
+    }
+    let mut clean = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::Normal(part) => clean.push(part),
+            Component::CurDir => {}
+            _ => return Err(anyhow!("mount_path must not contain '..' or prefixes")),
+        }
+    }
+    if clean.as_os_str().is_empty() {
+        return Err(anyhow!("mount_path must include a file name"));
+    }
+    Ok(clean)
+}
+
+fn default_code_mount_path(uri: &str, index: usize) -> PathBuf {
+    let tail = uri
+        .rsplit('/')
+        .next()
+        .map(safe_code_path_segment)
+        .filter(|value| !value.is_empty() && value != "." && value != "..")
+        .unwrap_or_else(|| format!("mount-{index}"));
+    PathBuf::from(tail)
+}
+
+fn safe_code_path_segment(value: &str) -> String {
+    value
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() || matches!(ch, '.' | '-' | '_') {
+                ch
+            } else {
+                '_'
+            }
+        })
+        .collect::<String>()
+        .trim_matches('_')
+        .to_string()
+}
+
+async fn read_file_bytes(cp: &ControlPlane, file: &resources_proto::File) -> Result<Vec<u8>> {
+    let object_ref = file
+        .status
+        .as_ref()
+        .and_then(|status| status.object_ref.as_ref())
+        .ok_or_else(|| anyhow!("File has no objectRef"))?;
+    let object = crate::control::cas::CasStore::new(cp.objects.clone())
+        .get_object_decoded(&object_ref.key)
+        .await?
+        .ok_or_else(|| anyhow!("File object '{}' not found", object_ref.key))?;
+    Ok(object.bytes)
+}
+
+async fn persist_code_outputs(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    output_dir: &Path,
+) -> Result<Vec<Value>> {
+    let mut paths = Vec::new();
+    collect_code_output_files(output_dir, output_dir, &mut paths)?;
+    if paths.len() > MAX_CODE_OUTPUT_FILES {
+        return Err(anyhow!(
+            "code output contains {} files, exceeding limit of {}",
+            paths.len(),
+            MAX_CODE_OUTPUT_FILES
+        ));
+    }
+    let mut total_bytes = 0_u64;
+    let mut outputs = Vec::new();
+    for relative in paths {
+        let path = output_dir.join(&relative);
+        let bytes = fs::read(&path)?;
+        total_bytes = total_bytes
+            .checked_add(bytes.len() as u64)
+            .ok_or_else(|| anyhow!("output byte count overflowed"))?;
+        if total_bytes > MAX_CODE_OUTPUT_BYTES {
+            return Err(anyhow!(
+                "code outputs exceed {} byte limit",
+                MAX_CODE_OUTPUT_BYTES
+            ));
+        }
+        let relative_virtual_path = code_relative_virtual_path(&relative);
+        let output_mount_path = format!("{CODE_OUTPUT_MOUNT}/{relative_virtual_path}");
+        let title = relative_virtual_path.clone();
+        let media_type = mime_guess::from_path(&path)
+            .first_or_octet_stream()
+            .essence_str()
+            .to_string();
+        let artifact_output = create_artifact(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            &json!({
+                "title": title,
+                "media_type": media_type,
+                "content_base64": general_purpose::STANDARD.encode(&bytes),
+                "metadata": {
+                    "source": "run_python_code",
+                    "mountPath": output_mount_path.clone()
+                }
+            }),
+        )
+        .await?;
+        let artifact_value: Value = serde_json::from_str(&artifact_output)?;
+        outputs.push(json!({
+            "path": output_mount_path,
+            "sizeBytes": bytes.len(),
+            "mediaType": media_type,
+            "artifactUri": artifact_value.get("artifactUri").cloned().unwrap_or(Value::Null),
+            "artifact": artifact_value.get("artifact").cloned().unwrap_or(Value::Null),
+        }));
+    }
+    Ok(outputs)
+}
+
+fn code_virtual_mount_path(root: &str, relative: &Path) -> String {
+    format!("{root}/{}", code_relative_virtual_path(relative))
+}
+
+fn code_relative_virtual_path(relative: &Path) -> String {
+    relative.to_string_lossy().replace('\\', "/")
+}
+
+fn collect_code_output_files(root: &Path, dir: &Path, paths: &mut Vec<PathBuf>) -> Result<()> {
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let path = entry.path();
+        if file_type.is_dir() {
+            collect_code_output_files(root, &path, paths)?;
+        } else if file_type.is_file() {
+            let relative = path.strip_prefix(root)?.to_path_buf();
+            paths.push(relative);
+        }
+    }
+    paths.sort();
+    Ok(())
+}
+
+fn handle_code_function_call(
+    context: &CodeRunContext,
+    function_name: &str,
+    args: Vec<monty_types::MontyObject>,
+    kwargs: Vec<(monty_types::MontyObject, monty_types::MontyObject)>,
+    method_call: bool,
+) -> monty_pool::ResumeValue {
+    match call_talon_tool(context, function_name, args, kwargs, method_call) {
+        Ok(value) => monty_pool::ResumeValue::Return(value),
+        Err(error) => monty_pool::ResumeValue::Error(monty_types::MontyException::new(
+            monty_types::ExcType::RuntimeError,
+            Some(error.to_string()),
+        )),
+    }
+}
+
+fn call_talon_tool(
+    context: &CodeRunContext,
+    function_name: &str,
+    args: Vec<monty_types::MontyObject>,
+    kwargs: Vec<(monty_types::MontyObject, monty_types::MontyObject)>,
+    method_call: bool,
+) -> Result<monty_types::MontyObject> {
+    if function_name != TALON_TOOL_FUNCTION || method_call {
+        return Err(anyhow!(
+            "host function '{}' is not available; use {}(name, args={{}})",
+            function_name,
+            TALON_TOOL_FUNCTION
+        ));
+    }
+    if !kwargs.is_empty() {
+        return Err(anyhow!(
+            "{TALON_TOOL_FUNCTION} does not accept keyword arguments"
+        ));
+    }
+    let tool_name = args
+        .first()
+        .ok_or_else(|| anyhow!("{TALON_TOOL_FUNCTION} requires a tool name"))?;
+    let tool_name = String::try_from(tool_name)
+        .map_err(|_| anyhow!("{TALON_TOOL_FUNCTION} first argument must be a string tool name"))?;
+    if tool_name == RUN_PYTHON_CODE_TOOL {
+        return Err(anyhow!("run_python_code cannot be called from code"));
+    }
+    let tool_args = match args.get(1) {
+        Some(value) => monty_object_to_json(value)?,
+        None => json!({}),
+    };
+    if !tool_args.is_object() {
+        return Err(anyhow!(
+            "{TALON_TOOL_FUNCTION} second argument must be a dict/object"
+        ));
+    }
+    let (response_tx, response_rx) = std::sync::mpsc::channel();
+    context
+        .tool_tx
+        .blocking_send(CodeToolRequest {
+            tool_name: tool_name.clone(),
+            tool_args,
+            response_tx,
+        })
+        .map_err(|_| anyhow!("Talon tool bridge is no longer available"))?;
+    let output = response_rx
+        .recv()
+        .map_err(|_| anyhow!("Talon tool bridge closed before returning a result"))?
+        .map_err(|err| anyhow!(err))?;
+    match serde_json::from_str::<Value>(&output) {
+        Ok(value) => json_to_monty_object(&value),
+        Err(_) => Ok(monty_types::MontyObject::String(output)),
+    }
+}
+
+fn monty_object_to_json(value: &monty_types::MontyObject) -> Result<Value> {
+    Ok(match value {
+        monty_types::MontyObject::None => Value::Null,
+        monty_types::MontyObject::Bool(value) => Value::Bool(*value),
+        monty_types::MontyObject::Int(value) => json!(value),
+        monty_types::MontyObject::Float(value) => Value::Number(
+            Number::from_f64(*value)
+                .ok_or_else(|| anyhow!("non-finite float not supported in talon_tool args"))?,
+        ),
+        monty_types::MontyObject::String(value) => Value::String(value.clone()),
+        monty_types::MontyObject::Bytes(value) => {
+            json!({ "content_base64": general_purpose::STANDARD.encode(value) })
+        }
+        monty_types::MontyObject::List(values)
+        | monty_types::MontyObject::Tuple(values)
+        | monty_types::MontyObject::Set(values) => values
+            .iter()
+            .map(monty_object_to_json)
+            .collect::<Result<Vec<_>>>()
+            .map(Value::Array)?,
+        monty_types::MontyObject::Dict(pairs) => {
+            let mut map = serde_json::Map::new();
+            for (key, value) in pairs {
+                let key = match key {
+                    monty_types::MontyObject::String(value) => value.clone(),
+                    other => other.to_string(),
+                };
+                map.insert(key, monty_object_to_json(value)?);
+            }
+            Value::Object(map)
+        }
+        other => {
+            return Err(anyhow!(
+                "cannot pass {} value from Python to Talon tool",
+                other.type_name()
+            ));
+        }
+    })
+}
+
+fn monty_inputs_from_args(args: &Value) -> Result<Vec<(String, monty_types::MontyObject)>> {
+    let Some(inputs) = args.get("inputs") else {
+        return Ok(Vec::new());
+    };
+    let object = inputs
+        .as_object()
+        .ok_or_else(|| anyhow!("inputs must be a JSON object"))?;
+    object
+        .iter()
+        .map(|(name, value)| {
+            if !is_python_identifier(name) {
+                return Err(anyhow!(
+                    "input name '{}' is not a valid Python identifier",
+                    name
+                ));
+            }
+            Ok((name.clone(), json_to_monty_object(value)?))
+        })
+        .collect()
+}
+
+fn json_to_monty_object(value: &Value) -> Result<monty_types::MontyObject> {
+    Ok(match value {
+        Value::Null => monty_types::MontyObject::None,
+        Value::Bool(value) => monty_types::MontyObject::Bool(*value),
+        Value::Number(number) => {
+            if let Some(value) = number.as_i64() {
+                monty_types::MontyObject::Int(value)
+            } else if let Some(value) = number.as_u64() {
+                let value = i64::try_from(value)
+                    .map_err(|_| anyhow!("integer input exceeds Monty's i64 boundary"))?;
+                monty_types::MontyObject::Int(value)
+            } else {
+                monty_types::MontyObject::Float(
+                    number
+                        .as_f64()
+                        .ok_or_else(|| anyhow!("invalid JSON number input"))?,
+                )
+            }
+        }
+        Value::String(value) => monty_types::MontyObject::String(value.clone()),
+        Value::Array(values) => monty_types::MontyObject::List(
+            values
+                .iter()
+                .map(json_to_monty_object)
+                .collect::<Result<Vec<_>>>()?,
+        ),
+        Value::Object(object) => monty_types::MontyObject::Dict(
+            object
+                .iter()
+                .map(|(key, value)| {
+                    Ok((
+                        monty_types::MontyObject::String(key.clone()),
+                        json_to_monty_object(value)?,
+                    ))
+                })
+                .collect::<Result<Vec<_>>>()?
+                .into(),
+        ),
+    })
+}
+
+fn is_python_identifier(value: &str) -> bool {
+    let mut chars = value.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    (first == '_' || first.is_ascii_alphabetic())
+        && chars.all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
 }
 
 async fn update_file_tool(
@@ -3250,6 +4004,10 @@ fn opt_usize(args: &Value, key: &str) -> Option<usize> {
         .map(|value| value as usize)
 }
 
+fn opt_u64(args: &Value, key: &str) -> Option<u64> {
+    args.get(key).and_then(Value::as_u64)
+}
+
 fn string_map(value: Option<&Value>) -> HashMap<String, String> {
     value
         .and_then(Value::as_object)
@@ -3827,6 +4585,56 @@ mod tests {
         }
     }
 
+    fn code_spec(capabilities: &[&str]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            capabilities: HashMap::from([(
+                "code".to_string(),
+                crate::gateway::rpc::protobuf_value::ListValue {
+                    values: capabilities
+                        .iter()
+                        .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                        })
+                        .collect(),
+                },
+            )]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
+    fn code_and_file_spec(
+        code_capabilities: &[&str],
+        file_capabilities: &[&str],
+    ) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            capabilities: HashMap::from([
+                (
+                    "code".to_string(),
+                    crate::gateway::rpc::protobuf_value::ListValue {
+                        values: code_capabilities
+                            .iter()
+                            .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                                kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                            })
+                            .collect(),
+                    },
+                ),
+                (
+                    "files".to_string(),
+                    crate::gateway::rpc::protobuf_value::ListValue {
+                        values: file_capabilities
+                            .iter()
+                            .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                                kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                            })
+                            .collect(),
+                    },
+                ),
+            ]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
     fn task_spec(capabilities: &[&str]) -> manifests::AgentSpec {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
@@ -4098,6 +4906,381 @@ mod tests {
         assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_some());
         assert!(write_registry.get_tool(DELETE_FILE_TOOL).is_some());
         assert!(write_registry.get_tool(READ_FILE_TOOL).is_none());
+    }
+
+    #[test]
+    fn register_code_tools_respects_capabilities() {
+        let mut registry = ToolRegistry::new();
+        register_tools(&mut registry, &code_spec(&["run"]));
+        assert!(registry.get_tool(RUN_PYTHON_CODE_TOOL).is_some());
+
+        let mut empty_registry = ToolRegistry::new();
+        register_tools(&mut empty_registry, &code_spec(&[]));
+        assert!(empty_registry.get_tool(RUN_PYTHON_CODE_TOOL).is_none());
+    }
+
+    #[tokio::test]
+    async fn run_python_code_executes_with_monty() {
+        if !monty_runtime_available_for_test() {
+            return;
+        }
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let output = execute_tool_for_session(
+            &cp,
+            "Tenant:test:Workspace:main",
+            "analyst",
+            "session-1",
+            &code_spec(&["run"]),
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "print('checking')\nsum(values) + offset",
+                "inputs": {
+                    "values": [1, 2, 3],
+                    "offset": 4
+                },
+                "timeout_ms": 1000,
+                "memory_bytes": 1048576
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let value: Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(value["ok"], true);
+        assert_eq!(value["runtime"], "monty");
+        assert_eq!(value["stdout"], "checking\n");
+        assert_eq!(value["result"], "10");
+    }
+
+    #[tokio::test]
+    async fn run_python_code_requires_capability() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let err = execute_tool_for_session(
+            &cp,
+            "Tenant:test:Workspace:main",
+            "analyst",
+            "session-1",
+            &code_spec(&[]),
+            RUN_PYTHON_CODE_TOOL,
+            &json!({ "code": "1 + 1" }),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(err.contains("code:run"));
+    }
+
+    #[tokio::test]
+    async fn run_python_code_mounts_files_and_persists_outputs() {
+        if !monty_runtime_available_for_test() {
+            return;
+        }
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let namespace = "Tenant:test:Workspace:main";
+        let spec = code_and_file_spec(&["run"], &["read", "create"]);
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            CREATE_FILE_TOOL,
+            &json!({
+                "path": "/datasets/input.txt",
+                "content": "hello mount",
+                "media_type": "text/plain"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        let output = execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "from pathlib import Path\ntext = Path('/talon/input/input.txt').read_text()\nPath('/talon/output/summary.txt').write_text(text.upper())\ntext",
+                "mounts": [
+                    {
+                        "uri": file_uri(namespace, "/datasets/input.txt"),
+                        "mount_path": "input.txt"
+                    }
+                ],
+                "timeout_ms": 1000
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let value: Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(value["value"], "hello mount");
+        assert_eq!(
+            value["mountedInputs"][0]["mountPath"],
+            "/talon/input/input.txt"
+        );
+        let artifact_uri = value["outputs"][0]["artifactUri"].as_str().unwrap();
+        let read = execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            READ_ARTIFACT_TOOL,
+            &json!({ "artifact_uri": artifact_uri }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let read: Value = serde_json::from_str(&read).unwrap();
+        assert_eq!(read["content"], "HELLO MOUNT");
+    }
+
+    #[tokio::test]
+    async fn run_python_code_rejects_duplicate_mount_paths_before_runtime() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let namespace = "Tenant:test:Workspace:main";
+        let spec = code_and_file_spec(&["run"], &["read", "create"]);
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            CREATE_FILE_TOOL,
+            &json!({
+                "path": "/datasets/one.txt",
+                "content": "one",
+                "media_type": "text/plain"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let error = execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "1",
+                "mounts": [
+                    {
+                        "uri": file_uri(namespace, "/datasets/one.txt"),
+                        "mount_path": "input.txt"
+                    },
+                    {
+                        "uri": file_uri(namespace, "/datasets/two.txt"),
+                        "mount_path": "input.txt"
+                    }
+                ]
+            }),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(
+            error.contains("mount_path 'input.txt' is used more than once"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn default_code_mount_paths_do_not_use_dot_segments() {
+        assert_eq!(
+            default_code_mount_path("file://Tenant:test:Workspace:main/..", 7),
+            PathBuf::from("mount-7")
+        );
+        assert_eq!(
+            default_code_mount_path("file://Tenant:test:Workspace:main/.", 8),
+            PathBuf::from("mount-8")
+        );
+        assert_eq!(
+            default_code_mount_path("file://Tenant:test:Workspace:main/data.txt", 9),
+            PathBuf::from("data.txt")
+        );
+    }
+
+    #[test]
+    fn code_virtual_mount_paths_use_forward_slashes() {
+        let path = PathBuf::from("nested\\windows-name.txt");
+        assert_eq!(
+            code_virtual_mount_path(CODE_OUTPUT_MOUNT, &path),
+            "/talon/output/nested/windows-name.txt"
+        );
+    }
+
+    #[test]
+    fn monty_object_to_json_rejects_non_finite_floats() {
+        let error = monty_object_to_json(&monty_types::MontyObject::Float(f64::NAN))
+            .unwrap_err()
+            .to_string();
+        assert!(
+            error.contains("non-finite float not supported in talon_tool args"),
+            "{error}"
+        );
+        assert!(monty_object_to_json(&monty_types::MontyObject::Float(f64::INFINITY)).is_err());
+    }
+
+    #[tokio::test]
+    async fn code_artifact_mounts_use_existing_artifact_access_grants() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let namespace = "Tenant:test:Workspace:main";
+        let writer = "writer";
+        let writer_session = "session-1";
+        let reader = "reader";
+        let reader_session = "session-2";
+        let artifact_output = execute_tool_for_session(
+            &cp,
+            namespace,
+            writer,
+            writer_session,
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "mountable.txt",
+                "media_type": "text/plain",
+                "content": "artifact contents"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let artifact_output: Value = serde_json::from_str(&artifact_output).unwrap();
+        let artifact_uri = artifact_output["artifactUri"].as_str().unwrap();
+        let denied = read_code_mount_source(
+            &cp,
+            namespace,
+            reader,
+            reader_session,
+            &code_spec(&["run"]),
+            artifact_uri,
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(denied.contains("artifact access denied"), "{denied}");
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            writer,
+            writer_session,
+            &manifests::AgentSpec::default(),
+            GRANT_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "target_agent": reader,
+                "target_session_id": reader_session,
+                "operations": ["read"]
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let (bytes, media_type, source_kind) = read_code_mount_source(
+            &cp,
+            namespace,
+            reader,
+            reader_session,
+            &code_spec(&["run"]),
+            artifact_uri,
+        )
+        .await
+        .unwrap();
+        assert_eq!(bytes, b"artifact contents");
+        assert_eq!(media_type, "text/plain");
+        assert_eq!(source_kind, "artifact");
+    }
+
+    #[tokio::test]
+    async fn run_python_code_can_call_talon_tools_but_not_itself() {
+        if !monty_runtime_available_for_test() {
+            return;
+        }
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let namespace = "Tenant:test:Workspace:main";
+        let spec = code_and_file_spec(&["run"], &["read", "create"]);
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            CREATE_FILE_TOOL,
+            &json!({
+                "path": "/datasets/tool.txt",
+                "content": "hello tool",
+                "media_type": "text/plain"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        let output = execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "talon_tool('read_file', {'path': '/datasets/tool.txt'})['content']",
+                "timeout_ms": 1000
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let value: Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(value["value"], "hello tool");
+
+        let error = execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "talon_tool('run_python_code', {'code': '1 + 1'})",
+                "timeout_ms": 1000
+            }),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(error.contains("run_python_code cannot be called from code"));
+    }
+
+    fn monty_runtime_available_for_test() -> bool {
+        if std::env::var_os("TALON_MONTY_BIN").is_some() {
+            return true;
+        }
+        std::process::Command::new("sh")
+            .arg("-c")
+            .arg("command -v monty")
+            .output()
+            .map(|output| output.status.success())
+            .unwrap_or(false)
     }
 
     #[test]
