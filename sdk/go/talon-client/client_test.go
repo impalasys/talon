@@ -208,6 +208,53 @@ func TestConnectGRPCWebUnaryMapsTrailerStatus(t *testing.T) {
 	}
 }
 
+func TestAPIKeyRefreshIntervalForcesNewExchange(t *testing.T) {
+	var exchangeCalls int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("content-type", "application/grpc-web+proto")
+		switch r.URL.Path {
+		case talonv1.AuthService_ExchangeApiKey_FullMethodName:
+			exchangeCalls++
+			_, _ = w.Write(grpcWebBody(&talonv1.ExchangeApiKeyResponse{
+				AccessToken: "exchanged-token",
+				TokenType:   "Bearer",
+				ExpiresAt:   uint64(time.Now().Add(time.Hour).Unix()),
+			}))
+		case talonv1.NamespaceService_List_FullMethodName:
+			if got := r.Header.Get("authorization"); got != "Bearer exchanged-token" {
+				t.Fatalf("authorization header = %q, want exchanged token", got)
+			}
+			_, _ = w.Write(grpcWebBody(&talonv1.ListNamespacesResponse{}))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client, err := talonclient.ConnectWithOptions(
+		context.Background(),
+		server.URL,
+		talonclient.WithGRPCWeb(),
+		talonclient.WithAPIKey("talon_sk_v1_id_secret"),
+		talonclient.WithAPIKeyRefreshInterval(10*time.Millisecond),
+	)
+	if err != nil {
+		t.Fatalf("connect gRPC-Web client: %v", err)
+	}
+	defer client.Close()
+
+	if _, err := client.Namespaces().List(context.Background(), &talonv1.ListNamespacesRequest{}); err != nil {
+		t.Fatalf("first list namespaces: %v", err)
+	}
+	time.Sleep(20 * time.Millisecond)
+	if _, err := client.Namespaces().List(context.Background(), &talonv1.ListNamespacesRequest{}); err != nil {
+		t.Fatalf("second list namespaces: %v", err)
+	}
+	if exchangeCalls != 2 {
+		t.Fatalf("exchange calls = %d, want 2", exchangeCalls)
+	}
+}
+
 func TestConnectGRPCWebUnaryRequiresFinalStatus(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("content-type", "application/grpc-web+proto")

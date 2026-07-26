@@ -28,14 +28,15 @@ const (
 )
 
 type GatewayClientOptions struct {
-	Endpoint       string
-	Transport      GatewayTransport
-	Authorization  string
-	APIKey         string
-	ConnectTimeout time.Duration
-	RequestTimeout time.Duration
-	HTTPClient     *http.Client
-	DialOptions    []grpc.DialOption
+	Endpoint              string
+	Transport             GatewayTransport
+	Authorization         string
+	APIKey                string
+	APIKeyRefreshInterval time.Duration
+	ConnectTimeout        time.Duration
+	RequestTimeout        time.Duration
+	HTTPClient            *http.Client
+	DialOptions           []grpc.DialOption
 }
 
 type GatewayClientOption func(*GatewayClientOptions)
@@ -93,6 +94,12 @@ func WithAuthorization(authorization string) GatewayClientOption {
 func WithAPIKey(apiKey string) GatewayClientOption {
 	return func(opts *GatewayClientOptions) {
 		opts.APIKey = apiKey
+	}
+}
+
+func WithAPIKeyRefreshInterval(interval time.Duration) GatewayClientOption {
+	return func(opts *GatewayClientOptions) {
+		opts.APIKeyRefreshInterval = interval
 	}
 }
 
@@ -208,7 +215,9 @@ type apiKeyCredentials struct {
 	mu          sync.Mutex
 	token       string
 	expires     time.Time
+	issued      time.Time
 	refresh     time.Duration
+	maxAge      time.Duration
 	refreshing  bool
 	refreshDone chan struct{}
 	exchange    func(context.Context, string) (*talonv1.ExchangeApiKeyResponse, error)
@@ -235,6 +244,7 @@ func newAPIKeyCredentialsWithExchange(opts GatewayClientOptions, exchange func(c
 		apiKey:   strings.TrimSpace(opts.APIKey),
 		opts:     opts,
 		refresh:  time.Minute,
+		maxAge:   opts.APIKeyRefreshInterval,
 		exchange: exchange,
 	}
 }
@@ -255,7 +265,7 @@ func (c *apiKeyCredentials) authorization(ctx context.Context) (string, error) {
 	c.mu.Lock()
 	for {
 		now := time.Now()
-		if c.token != "" && c.expires.After(now.Add(c.refresh)) {
+		if c.token != "" && c.expires.After(now.Add(c.refresh)) && !c.tokenAgeExceeded(now) {
 			token := c.token
 			c.mu.Unlock()
 			return token, nil
@@ -277,6 +287,7 @@ func (c *apiKeyCredentials) authorization(ctx context.Context) (string, error) {
 	done := c.refreshDone
 	c.mu.Unlock()
 
+	issued := time.Now()
 	resp, err := c.exchange(ctx, c.apiKey)
 	if err != nil {
 		c.mu.Lock()
@@ -289,9 +300,14 @@ func (c *apiKeyCredentials) authorization(ctx context.Context) (string, error) {
 	c.mu.Lock()
 	c.token = "Bearer " + resp.AccessToken
 	c.expires = time.Unix(int64(resp.ExpiresAt), 0)
+	c.issued = issued
 	c.refreshing = false
 	close(done)
 	token := c.token
 	c.mu.Unlock()
 	return token, nil
+}
+
+func (c *apiKeyCredentials) tokenAgeExceeded(now time.Time) bool {
+	return c.maxAge > 0 && !c.issued.IsZero() && !c.issued.Add(c.maxAge).After(now)
 }
