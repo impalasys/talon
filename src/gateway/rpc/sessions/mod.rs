@@ -964,15 +964,20 @@ impl GrpcGatewayHandler {
         let keys = self
             .gateway
             .kv
-            .list_keys(&session_prefix, None)
+            .list_keys(&session_prefix, Some(ListOptions::desc()))
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to list sessions: {}", e)))?;
 
         let mut session_ids = Vec::new();
         let mut sessions = Vec::new();
+        let mut session_order = std::collections::HashMap::<String, usize>::new();
+
         for key in keys {
             if let Some(session_id) = keys::direct_child_name(&session_prefix, &key) {
+                let session_id = session_id.to_string();
+                let index = session_ids.len();
                 session_ids.push(session_id.clone());
+                session_order.insert(session_id.clone(), index);
 
                 let session = self
                     .gateway
@@ -993,7 +998,12 @@ impl GrpcGatewayHandler {
             }
         }
 
-        sessions.sort_by(|left, right| right.updated_at.cmp(&left.updated_at));
+        sessions.sort_by_key(|session| {
+            session_order
+                .get(&session.session_id)
+                .copied()
+                .unwrap_or(usize::MAX)
+        });
 
         Ok(tonic::Response::new(proto::ListSessionsResponse {
             session_ids,
@@ -1960,6 +1970,58 @@ mod tests {
             ]),
             ..Default::default()
         }
+    }
+
+    #[tokio::test]
+    async fn list_sessions_orders_session_ids_by_desc_key_order() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+
+        kv.set_msg(
+            &keys::session(ns, agent, "session-a"),
+            &data_proto::Session {
+                id: "session-a".to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                status: "READY".to_string(),
+                created_at: 1,
+                last_active: 10,
+                metadata: Default::default(),
+                labels: Default::default(),
+            },
+        )
+        .await
+        .unwrap();
+
+        kv.set_msg(
+            &keys::session(ns, agent, "session-z"),
+            &data_proto::Session {
+                id: "session-z".to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                status: "READY".to_string(),
+                created_at: 2,
+                last_active: 1,
+                metadata: Default::default(),
+                labels: Default::default(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_list_sessions(tonic::Request::new(proto::ListSessionsRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert_eq!(response.session_ids, vec!["session-z", "session-a"]);
     }
 
     #[tokio::test]

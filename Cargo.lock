@@ -5614,7 +5614,6 @@ dependencies = [
  "prost 0.13.5",
  "prost-types 0.13.5",
  "reqwest 0.12.28",
- "tokio",
  "tonic 0.12.3",
  "tonic-web",
 ]
