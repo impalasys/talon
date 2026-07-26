@@ -62,6 +62,12 @@ pub const READ_MEMORY_TOOL: &str = "read_memory";
 pub const LIST_MEMORY_TOOL: &str = "list_memory";
 pub const CREATE_MEMORY_TOOL: &str = "create_memory";
 pub const UPDATE_MEMORY_TOOL: &str = "update_memory";
+pub const LIST_FILES_TOOL: &str = "list_files";
+pub const READ_FILE_TOOL: &str = "read_file";
+pub const GET_FILE_METADATA_TOOL: &str = "get_file_metadata";
+pub const CREATE_FILE_TOOL: &str = "create_file";
+pub const UPDATE_FILE_TOOL: &str = "update_file";
+pub const DELETE_FILE_TOOL: &str = "delete_file";
 
 pub(super) const OP_READ: &str = "read";
 pub(super) const OP_METADATA: &str = "metadata";
@@ -175,6 +181,11 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         && !has_capability_action(spec, "memory", "read")
         && !has_capability_action(spec, "memory", "create")
         && !has_capability_action(spec, "memory", "update")
+        && !has_capability_action(spec, "files", "inspect")
+        && !has_capability_action(spec, "files", "read")
+        && !has_capability_action(spec, "files", "create")
+        && !has_capability_action(spec, "files", "update")
+        && !has_capability_action(spec, "files", "delete")
         && !has_capability_action(spec, "goals", "inspect")
         && !has_capability_action(spec, "goals", "create")
         && !has_capability_action(spec, "goals", "update")
@@ -311,6 +322,78 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
             UPDATE_MEMORY_TOOL,
             "Update a durable workspace memory File. Updates write a new immutable CAS object and advance File.status.objectRef.",
             memory_write_schema(),
+        );
+    }
+
+    if has_capability_action(spec, "files", "inspect")
+        || has_capability_action(spec, "files", "read")
+    {
+        registry.register_builtin(
+            LIST_FILES_TOOL,
+            "List namespace File resources by optional path prefix, purpose, and index policy.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
+                    "prefix": { "type": "string", "description": "Optional logical path prefix such as /content/pages." },
+                    "purpose": { "type": "string", "description": "Optional purpose: ARTIFACT or MEMORY." },
+                    "index_policy": { "type": "string", "description": "Optional index policy: NONE, SEARCH, or RETRIEVAL." },
+                    "limit": { "type": "integer", "description": "Maximum results. Defaults to 50." }
+                }
+            }),
+        );
+        registry.register_builtin(
+            READ_FILE_TOOL,
+            "Read a namespace File by file:// URI or logical path.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI returned by Talon or Conic." },
+                    "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
+                    "path": { "type": "string", "description": "Logical File path, for example /content/pages/<id>/content.md." }
+                }
+            }),
+        );
+        registry.register_builtin(
+            GET_FILE_METADATA_TOOL,
+            "Get File metadata by file:// URI or logical path without reading content.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI returned by Talon or Conic." },
+                    "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
+                    "path": { "type": "string", "description": "Logical File path." }
+                }
+            }),
+        );
+    }
+
+    if has_capability_action(spec, "files", "create") {
+        registry.register_builtin(
+            CREATE_FILE_TOOL,
+            "Create a namespace File. Defaults to purpose=ARTIFACT, index_policy=SEARCH, and retention=RETAINED.",
+            file_write_schema(),
+        );
+    }
+    if has_capability_action(spec, "files", "update") {
+        registry.register_builtin(
+            UPDATE_FILE_TOOL,
+            "Update an existing namespace File by file:// URI or logical path.",
+            file_write_schema(),
+        );
+    }
+    if has_capability_action(spec, "files", "delete") {
+        registry.register_builtin(
+            DELETE_FILE_TOOL,
+            "Delete a namespace File resource by file:// URI or logical path.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI returned by Talon or Conic." },
+                    "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
+                    "path": { "type": "string", "description": "Logical File path." }
+                }
+            }),
         );
     }
 
@@ -497,6 +580,23 @@ fn memory_write_schema() -> Value {
     })
 }
 
+fn file_write_schema() -> Value {
+    json!({
+        "type": "object",
+        "properties": {
+            "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI for updates." },
+            "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
+            "path": { "type": "string", "description": "Logical File path, for example /content/pages/<id>/content.md." },
+            "content": { "type": "string", "description": "Markdown, HTML, or text content to store." },
+            "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
+            "purpose": { "type": "string", "description": "File purpose: ARTIFACT or MEMORY. Defaults to ARTIFACT." },
+            "index_policy": { "type": "string", "description": "Index policy: NONE, SEARCH, or RETRIEVAL. Defaults to SEARCH." },
+            "retention": { "type": "string", "description": "Retention policy: RETAINED. Defaults to RETAINED." }
+        },
+        "required": ["content"]
+    })
+}
+
 pub async fn execute_tool(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -582,6 +682,38 @@ pub async fn execute_tool_for_session(
         UPDATE_MEMORY_TOOL => {
             require_capability(spec, "memory", "update")?;
             put_memory(cp, current_namespace, args).await.map(Some)
+        }
+        LIST_FILES_TOOL => {
+            require_file_read(spec)?;
+            list_files_tool(cp, current_namespace, args).await.map(Some)
+        }
+        READ_FILE_TOOL => {
+            require_file_read(spec)?;
+            read_file_tool(cp, current_namespace, args).await.map(Some)
+        }
+        GET_FILE_METADATA_TOOL => {
+            require_file_read(spec)?;
+            get_file_metadata_tool(cp, current_namespace, args)
+                .await
+                .map(Some)
+        }
+        CREATE_FILE_TOOL => {
+            require_capability(spec, "files", "create")?;
+            create_file_tool(cp, current_namespace, args)
+                .await
+                .map(Some)
+        }
+        UPDATE_FILE_TOOL => {
+            require_capability(spec, "files", "update")?;
+            update_file_tool(cp, current_namespace, args)
+                .await
+                .map(Some)
+        }
+        DELETE_FILE_TOOL => {
+            require_capability(spec, "files", "delete")?;
+            delete_file_tool(cp, current_namespace, args)
+                .await
+                .map(Some)
         }
         FETCH_URL_TOOL => {
             require_capability(spec, "research", "fetch_url")?;
@@ -856,7 +988,7 @@ async fn read_session_messages(
 }
 
 async fn search_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
-    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let namespace = namespace_arg(current_namespace, args);
     let query = req_str(args, "query")?.to_ascii_lowercase();
     let prefix = opt_str(args, "prefix")
         .map(normalize_logical_path)
@@ -864,7 +996,7 @@ async fn search_memory(cp: &ControlPlane, current_namespace: &str, args: &Value)
         .unwrap_or_else(|| "/memory".to_string());
     let limit = opt_usize(args, "limit").unwrap_or(10).clamp(1, 50);
     let mut results = Vec::new();
-    for file in list_memory_files(cp, namespace, &prefix).await? {
+    for file in list_memory_files(cp, &namespace, &prefix).await? {
         let Some(spec) = file.spec.as_ref() else {
             continue;
         };
@@ -889,9 +1021,9 @@ async fn search_memory(cp: &ControlPlane, current_namespace: &str, args: &Value)
 }
 
 async fn read_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
-    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let namespace = namespace_arg(current_namespace, args);
     let path = normalize_logical_path(req_str(args, "path")?)?;
-    let file = find_memory_file_by_path(cp, namespace, &path)
+    let file = find_memory_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("memory file '{}' not found", path))?;
     let content = read_file_content(cp, &file).await?;
@@ -904,13 +1036,13 @@ async fn read_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -
 }
 
 async fn list_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
-    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let namespace = namespace_arg(current_namespace, args);
     let prefix = opt_str(args, "prefix")
         .map(normalize_logical_path)
         .transpose()?
         .unwrap_or_else(|| "/memory".to_string());
     let limit = opt_usize(args, "limit").unwrap_or(50).clamp(1, 100);
-    let files = list_memory_files(cp, namespace, &prefix).await?;
+    let files = list_memory_files(cp, &namespace, &prefix).await?;
     let entries = files
         .into_iter()
         .take(limit)
@@ -936,13 +1068,206 @@ async fn list_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -
 }
 
 async fn put_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
-    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
+    let namespace = namespace_arg(current_namespace, args);
     let path = normalize_memory_path(req_str(args, "path")?)?;
     let content = req_str(args, "content")?;
     let media_type = opt_str(args, "media_type").unwrap_or("text/markdown");
-    let file = upsert_memory_file(cp, namespace, &path, media_type, content.as_bytes()).await?;
+    let file = upsert_memory_file(cp, &namespace, &path, media_type, content.as_bytes()).await?;
     Ok(serde_json::to_string_pretty(&json!({
         "file": memory_file_json(&file),
+    }))?)
+}
+
+async fn list_files_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<String> {
+    let namespace = namespace_arg(current_namespace, args);
+    let prefix = opt_str(args, "prefix")
+        .map(normalize_logical_path)
+        .transpose()?;
+    let purpose = opt_str(args, "purpose")
+        .map(parse_file_purpose)
+        .transpose()?;
+    let index_policy = opt_str(args, "index_policy")
+        .map(parse_file_index_policy)
+        .transpose()?;
+    let limit = opt_usize(args, "limit").unwrap_or(50).clamp(1, 100);
+    let entries = list_files_by_filter(
+        cp,
+        &namespace,
+        prefix.as_deref().unwrap_or(""),
+        purpose,
+        index_policy,
+    )
+    .await?
+    .into_iter()
+    .take(limit)
+    .map(|file| file_json(&file, false))
+    .collect::<Vec<_>>();
+    Ok(serde_json::to_string_pretty(
+        &json!({ "entries": entries }),
+    )?)
+}
+
+async fn read_file_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<String> {
+    let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    let file = find_file_by_path(cp, &namespace, &path)
+        .await?
+        .ok_or_else(|| anyhow!("File '{}' not found", path))?;
+    let content = read_file_content(cp, &file).await?;
+    let mut value = file_json(&file, false);
+    if let Some(object) = value.as_object_mut() {
+        object.insert("content".to_string(), json!(content));
+    }
+    Ok(serde_json::to_string_pretty(&value)?)
+}
+
+async fn get_file_metadata_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<String> {
+    let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    let file = find_file_by_path(cp, &namespace, &path)
+        .await?
+        .ok_or_else(|| anyhow!("File '{}' not found", path))?;
+    Ok(serde_json::to_string_pretty(&file_json(&file, false))?)
+}
+
+async fn create_file_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<String> {
+    let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    if find_file_by_path(cp, &namespace, &path).await?.is_some() {
+        return Err(anyhow!("File '{}' already exists", path));
+    }
+    let content = req_str(args, "content")?;
+    let media_type = opt_str(args, "media_type").unwrap_or("text/markdown");
+    let purpose = opt_str(args, "purpose")
+        .map(parse_file_purpose)
+        .transpose()?
+        .unwrap_or(resources_proto::FilePurpose::Artifact as i32);
+    let index_policy = opt_str(args, "index_policy")
+        .map(parse_file_index_policy)
+        .transpose()?
+        .unwrap_or(resources_proto::FileIndexPolicy::Search as i32);
+    let retention = opt_str(args, "retention")
+        .map(parse_file_retention)
+        .transpose()?
+        .unwrap_or(resources_proto::FileRetention::Retained as i32);
+    let file = upsert_file(
+        cp,
+        &namespace,
+        None,
+        &path,
+        media_type,
+        purpose,
+        index_policy,
+        retention,
+        content.as_bytes(),
+    )
+    .await?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "file": file_json(&file, false),
+    }))?)
+}
+
+async fn update_file_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<String> {
+    let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    let existing = find_file_by_path(cp, &namespace, &path)
+        .await?
+        .ok_or_else(|| anyhow!("File '{}' not found", path))?;
+    let content = req_str(args, "content")?;
+    let existing_spec = existing.spec.as_ref();
+    let media_type = opt_str(args, "media_type")
+        .or_else(|| existing_spec.map(|spec| spec.media_type.as_str()))
+        .unwrap_or("text/markdown")
+        .to_string();
+    let purpose = opt_str(args, "purpose")
+        .map(parse_file_purpose)
+        .transpose()?
+        .or_else(|| existing_spec.map(|spec| spec.purpose))
+        .unwrap_or(resources_proto::FilePurpose::Artifact as i32);
+    let index_policy = opt_str(args, "index_policy")
+        .map(parse_file_index_policy)
+        .transpose()?
+        .or_else(|| existing_spec.map(|spec| spec.index_policy))
+        .unwrap_or(resources_proto::FileIndexPolicy::Search as i32);
+    let retention = opt_str(args, "retention")
+        .map(parse_file_retention)
+        .transpose()?
+        .or_else(|| existing_spec.map(|spec| spec.retention))
+        .unwrap_or(resources_proto::FileRetention::Retained as i32);
+    let file = upsert_file(
+        cp,
+        &namespace,
+        Some(existing),
+        &path,
+        &media_type,
+        purpose,
+        index_policy,
+        retention,
+        content.as_bytes(),
+    )
+    .await?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "file": file_json(&file, false),
+    }))?)
+}
+
+async fn delete_file_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<String> {
+    let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    let file = find_file_by_path(cp, &namespace, &path)
+        .await?
+        .ok_or_else(|| anyhow!("File '{}' not found", path))?;
+    let name = file_name_from_file(&file);
+    let latest_key = crate::control::cas::latest_file_object_key(&namespace, &path);
+    let object_key = file
+        .status
+        .as_ref()
+        .and_then(|status| status.object_ref.as_ref())
+        .map(|object| object.key.clone());
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let deleted = store.delete(&namespace, "File", &name).await?;
+    if deleted {
+        let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+        if let Err(error) = cas.delete_object(&latest_key).await {
+            tracing::warn!(
+                error = %error,
+                object_key = %latest_key,
+                "failed to delete latest File object from native tool"
+            );
+        }
+        if let Some(object_key) = object_key {
+            if let Err(error) = cas.delete_object(&object_key).await {
+                tracing::warn!(
+                    error = %error,
+                    object_key = %object_key,
+                    "failed to delete File CAS object from native tool"
+                );
+            }
+        }
+    }
+    Ok(serde_json::to_string_pretty(&json!({
+        "deleted": deleted,
+        "namespace": namespace,
+        "path": path,
     }))?)
 }
 
@@ -950,6 +1275,23 @@ async fn list_memory_files(
     cp: &ControlPlane,
     namespace: &str,
     prefix: &str,
+) -> Result<Vec<resources_proto::File>> {
+    list_files_by_filter(
+        cp,
+        namespace,
+        prefix,
+        Some(resources_proto::FilePurpose::Memory as i32),
+        Some(resources_proto::FileIndexPolicy::Retrieval as i32),
+    )
+    .await
+}
+
+async fn list_files_by_filter(
+    cp: &ControlPlane,
+    namespace: &str,
+    prefix: &str,
+    purpose: Option<i32>,
+    index_policy: Option<i32>,
 ) -> Result<Vec<resources_proto::File>> {
     let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
     let mut files = Vec::new();
@@ -960,10 +1302,10 @@ async fn list_memory_files(
         let Some(spec) = file.spec.as_ref() else {
             continue;
         };
-        if spec.purpose != resources_proto::FilePurpose::Memory as i32 {
+        if purpose.is_some_and(|purpose| spec.purpose != purpose) {
             continue;
         }
-        if spec.index_policy != resources_proto::FileIndexPolicy::Retrieval as i32 {
+        if index_policy.is_some_and(|index_policy| spec.index_policy != index_policy) {
             continue;
         }
         if !prefix.is_empty() && !spec.path.starts_with(prefix) {
@@ -991,6 +1333,17 @@ async fn find_memory_file_by_path(
         .find(|file| file.spec.as_ref().map(|spec| spec.path.as_str()) == Some(path)))
 }
 
+async fn find_file_by_path(
+    cp: &ControlPlane,
+    namespace: &str,
+    path: &str,
+) -> Result<Option<resources_proto::File>> {
+    Ok(list_files_by_filter(cp, namespace, path, None, None)
+        .await?
+        .into_iter()
+        .find(|file| file.spec.as_ref().map(|spec| spec.path.as_str()) == Some(path)))
+}
+
 async fn read_file_content(cp: &ControlPlane, file: &resources_proto::File) -> Result<String> {
     let object_ref = file
         .status
@@ -1011,13 +1364,38 @@ async fn upsert_memory_file(
     media_type: &str,
     content: &[u8],
 ) -> Result<resources_proto::File> {
-    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
     let existing = find_memory_file_by_path(cp, namespace, path).await?;
+    upsert_file(
+        cp,
+        namespace,
+        existing,
+        path,
+        media_type,
+        resources_proto::FilePurpose::Memory as i32,
+        resources_proto::FileIndexPolicy::Retrieval as i32,
+        resources_proto::FileRetention::Retained as i32,
+        content,
+    )
+    .await
+}
+
+async fn upsert_file(
+    cp: &ControlPlane,
+    namespace: &str,
+    existing: Option<resources_proto::File>,
+    path: &str,
+    media_type: &str,
+    purpose: i32,
+    index_policy: i32,
+    retention: i32,
+    content: &[u8],
+) -> Result<resources_proto::File> {
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
     let name = existing
         .as_ref()
         .map(file_name_from_file)
         .filter(|name| !name.is_empty())
-        .unwrap_or_else(|| safe_file_resource_name(path));
+        .unwrap_or_else(|| keys::file_name_for_path(path));
     let status = existing
         .as_ref()
         .and_then(|file| file.status.clone())
@@ -1025,9 +1403,9 @@ async fn upsert_memory_file(
     let spec = resources_proto::FileSpec {
         path: path.to_string(),
         media_type: media_type.to_string(),
-        purpose: resources_proto::FilePurpose::Memory as i32,
-        index_policy: resources_proto::FileIndexPolicy::Retrieval as i32,
-        retention: resources_proto::FileRetention::Retained as i32,
+        purpose,
+        index_policy,
+        retention,
     };
     let mut resource = store
         .upsert(
@@ -1037,11 +1415,7 @@ async fn upsert_memory_file(
                 name,
                 spec,
                 status,
-                file_resource_labels(
-                    resources_proto::FilePurpose::Memory as i32,
-                    resources_proto::FileIndexPolicy::Retrieval as i32,
-                    resources_proto::FileRetention::Retained as i32,
-                ),
+                file_resource_labels(purpose, index_policy, retention),
             ),
         )
         .await?;
@@ -1125,6 +1499,37 @@ fn file_name_from_file(file: &resources_proto::File) -> String {
         .unwrap_or_default()
 }
 
+fn file_json(file: &resources_proto::File, include_resource_name: bool) -> Value {
+    let namespace = file
+        .metadata
+        .as_ref()
+        .map(|metadata| metadata.namespace.as_str())
+        .unwrap_or_default();
+    let spec = file.spec.as_ref();
+    let path = spec.map(|spec| spec.path.as_str()).unwrap_or_default();
+    let object = file
+        .status
+        .as_ref()
+        .and_then(|status| status.object_ref.as_ref());
+    let mut value = json!({
+        "namespace": namespace,
+        "uri": file_uri(namespace, path),
+        "path": path,
+        "mediaType": spec.map(|spec| spec.media_type.as_str()).unwrap_or_default(),
+        "purpose": spec.map(|spec| file_purpose_label(spec.purpose)).unwrap_or("unspecified"),
+        "indexPolicy": spec.map(|spec| file_index_policy_label(spec.index_policy)).unwrap_or("unspecified"),
+        "retention": spec.map(|spec| file_retention_label(spec.retention)).unwrap_or("unspecified"),
+        "sizeBytes": object.map(|object| object.size_bytes).unwrap_or_default(),
+        "sha256": object.map(|object| object.sha256.as_str()).unwrap_or_default(),
+    });
+    if include_resource_name {
+        if let Some(map) = value.as_object_mut() {
+            map.insert("name".to_string(), json!(file_name_from_file(file)));
+        }
+    }
+    value
+}
+
 fn memory_file_json(file: &resources_proto::File) -> Value {
     let spec = file.spec.as_ref();
     let object = file
@@ -1143,31 +1548,50 @@ fn memory_file_json(file: &resources_proto::File) -> Value {
     })
 }
 
+fn file_uri(namespace: &str, path: &str) -> String {
+    format!("file://{}{}", namespace, path)
+}
+
+fn file_location_from_args(current_namespace: &str, args: &Value) -> Result<(String, String)> {
+    if let Some(uri) = opt_str(args, "uri") {
+        return parse_file_uri(uri);
+    }
+    let namespace = namespace_arg(current_namespace, args);
+    let path = normalize_logical_path(req_str(args, "path")?)?;
+    Ok((namespace, path))
+}
+
+fn namespace_arg(current_namespace: &str, args: &Value) -> String {
+    match opt_str(args, "namespace") {
+        Some("current" | "current_namespace" | "current namespace") | None => {
+            current_namespace.to_string()
+        }
+        Some(namespace) => namespace.to_string(),
+    }
+}
+
+fn parse_file_uri(uri: &str) -> Result<(String, String)> {
+    let rest = uri
+        .trim()
+        .strip_prefix("file://")
+        .ok_or_else(|| anyhow!("file uri must start with 'file://'"))?;
+    let split = rest
+        .find('/')
+        .ok_or_else(|| anyhow!("file uri must include namespace and path"))?;
+    let namespace = rest[..split].trim();
+    if namespace.is_empty() {
+        return Err(anyhow!("file uri namespace is required"));
+    }
+    let path = normalize_logical_path(&rest[split..])?;
+    Ok((namespace.to_string(), path))
+}
+
 fn normalize_memory_path(path: &str) -> Result<String> {
     let path = normalize_logical_path(path)?;
     if !path.starts_with("/memory/") && path != "/memory" {
         return Err(anyhow!("memory path must be under /memory"));
     }
     Ok(path)
-}
-
-fn safe_file_resource_name(path: &str) -> String {
-    let slug = path
-        .trim_matches('/')
-        .chars()
-        .map(|ch| {
-            if ch.is_ascii_alphanumeric() {
-                ch.to_ascii_lowercase()
-            } else {
-                '-'
-            }
-        })
-        .collect::<String>()
-        .trim_matches('-')
-        .chars()
-        .take(48)
-        .collect::<String>();
-    crate::control::uuid::unique_name(if slug.is_empty() { "file" } else { &slug })
 }
 
 fn file_resource_labels(
@@ -1213,6 +1637,52 @@ fn file_retention_label(value: i32) -> &'static str {
         Some(resources_proto::FileRetention::Retained) => "retained",
         _ => "unspecified",
     }
+}
+
+fn parse_file_purpose(value: &str) -> Result<i32> {
+    let normalized = normalize_enum_input(value);
+    match normalized.as_str() {
+        "artifact" | "file-purpose-artifact" => Ok(resources_proto::FilePurpose::Artifact as i32),
+        "memory" | "file-purpose-memory" => Ok(resources_proto::FilePurpose::Memory as i32),
+        _ => Err(anyhow!(
+            "unsupported File purpose '{}'; expected ARTIFACT or MEMORY",
+            value
+        )),
+    }
+}
+
+fn parse_file_index_policy(value: &str) -> Result<i32> {
+    let normalized = normalize_enum_input(value);
+    match normalized.as_str() {
+        "none" | "file-index-policy-none" => Ok(resources_proto::FileIndexPolicy::None as i32),
+        "search" | "file-index-policy-search" => {
+            Ok(resources_proto::FileIndexPolicy::Search as i32)
+        }
+        "retrieval" | "file-index-policy-retrieval" => {
+            Ok(resources_proto::FileIndexPolicy::Retrieval as i32)
+        }
+        _ => Err(anyhow!(
+            "unsupported File index_policy '{}'; expected NONE, SEARCH, or RETRIEVAL",
+            value
+        )),
+    }
+}
+
+fn parse_file_retention(value: &str) -> Result<i32> {
+    let normalized = normalize_enum_input(value);
+    match normalized.as_str() {
+        "retained" | "file-retention-retained" => {
+            Ok(resources_proto::FileRetention::Retained as i32)
+        }
+        _ => Err(anyhow!(
+            "unsupported File retention '{}'; expected RETAINED",
+            value
+        )),
+    }
+}
+
+fn normalize_enum_input(value: &str) -> String {
+    value.trim().to_ascii_lowercase().replace(['_', ' '], "-")
 }
 
 fn memory_excerpt(content: &str, query: &str) -> String {
@@ -3062,6 +3532,15 @@ fn require_memory_read(spec: &manifests::AgentSpec) -> Result<()> {
     Err(anyhow!("agent does not have capability 'memory:read'"))
 }
 
+fn require_file_read(spec: &manifests::AgentSpec) -> Result<()> {
+    if has_capability_action(spec, "files", "read")
+        || has_capability_action(spec, "files", "inspect")
+    {
+        return Ok(());
+    }
+    Err(anyhow!("agent does not have capability 'files:read'"))
+}
+
 fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: &str) -> bool {
     spec.capabilities
         .get(capability)
@@ -3134,6 +3613,23 @@ mod tests {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
                 "research".to_string(),
+                crate::gateway::rpc::protobuf_value::ListValue {
+                    values: capabilities
+                        .iter()
+                        .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                        })
+                        .collect(),
+                },
+            )]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
+    fn file_spec(capabilities: &[&str]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            capabilities: HashMap::from([(
+                "files".to_string(),
                 crate::gateway::rpc::protobuf_value::ListValue {
                     values: capabilities
                         .iter()
@@ -3333,6 +3829,143 @@ mod tests {
 
         assert!(registry.get_tool(FETCH_URL_TOOL).is_some());
         assert!(registry.get_tool(WEB_SEARCH_TOOL).is_none());
+    }
+
+    #[test]
+    fn register_file_tools_respects_capabilities() {
+        let mut read_registry = ToolRegistry::new();
+        register_tools(&mut read_registry, &file_spec(&["read"]));
+
+        assert!(read_registry.get_tool(LIST_FILES_TOOL).is_some());
+        assert!(read_registry.get_tool(READ_FILE_TOOL).is_some());
+        assert!(read_registry.get_tool(GET_FILE_METADATA_TOOL).is_some());
+        assert!(read_registry.get_tool(CREATE_FILE_TOOL).is_none());
+        assert!(read_registry.get_tool(UPDATE_FILE_TOOL).is_none());
+        assert!(read_registry.get_tool(DELETE_FILE_TOOL).is_none());
+
+        let mut write_registry = ToolRegistry::new();
+        register_tools(
+            &mut write_registry,
+            &file_spec(&["create", "update", "delete"]),
+        );
+
+        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_some());
+        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_some());
+        assert!(write_registry.get_tool(DELETE_FILE_TOOL).is_some());
+        assert!(write_registry.get_tool(READ_FILE_TOOL).is_none());
+    }
+
+    #[test]
+    fn file_uri_parsing_preserves_namespace_and_path() {
+        let (namespace, path) = parse_file_uri(
+            "file://Tenant:conic:Customers:13/content/pages/cGFnZToxNjY=/content.md",
+        )
+        .expect("file uri should parse");
+
+        assert_eq!(namespace, "Tenant:conic:Customers:13");
+        assert_eq!(path, "/content/pages/cGFnZToxNjY=/content.md");
+    }
+
+    #[tokio::test]
+    async fn file_tools_create_read_update_list_and_delete() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let spec = file_spec(&["inspect", "read", "create", "update", "delete"]);
+        let namespace = "Tenant:conic:Customers:13";
+        let path = "/content/pages/cGFnZToxNjY=/content.md";
+        let uri = file_uri(namespace, path);
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "cmo",
+            "session-1",
+            &spec,
+            CREATE_FILE_TOOL,
+            &json!({
+                "path": path,
+                "content": "# First draft",
+            }),
+        )
+        .await
+        .expect("create should execute")
+        .expect("create should return output");
+
+        let read = execute_tool_for_session(
+            &cp,
+            namespace,
+            "cmo",
+            "session-1",
+            &spec,
+            READ_FILE_TOOL,
+            &json!({ "uri": uri }),
+        )
+        .await
+        .expect("read should execute")
+        .expect("read should return output");
+        let read: Value = serde_json::from_str(&read).unwrap();
+        assert_eq!(read["content"], "# First draft");
+        assert_eq!(read["purpose"], "artifact");
+        assert_eq!(read["indexPolicy"], "search");
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "cmo",
+            "session-1",
+            &spec,
+            UPDATE_FILE_TOOL,
+            &json!({
+                "uri": uri,
+                "content": "# Revised draft",
+            }),
+        )
+        .await
+        .expect("update should execute")
+        .expect("update should return output");
+
+        let list = execute_tool_for_session(
+            &cp,
+            namespace,
+            "cmo",
+            "session-1",
+            &spec,
+            LIST_FILES_TOOL,
+            &json!({ "namespace": "current", "prefix": "/content/pages" }),
+        )
+        .await
+        .expect("list should execute")
+        .expect("list should return output");
+        let list: Value = serde_json::from_str(&list).unwrap();
+        assert_eq!(list["entries"].as_array().unwrap().len(), 1);
+        assert_eq!(list["entries"][0]["uri"], uri);
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "cmo",
+            "session-1",
+            &spec,
+            DELETE_FILE_TOOL,
+            &json!({ "uri": uri }),
+        )
+        .await
+        .expect("delete should execute")
+        .expect("delete should return output");
+
+        let error = execute_tool_for_session(
+            &cp,
+            namespace,
+            "cmo",
+            "session-1",
+            &spec,
+            READ_FILE_TOOL,
+            &json!({ "uri": uri }),
+        )
+        .await
+        .expect_err("deleted file should not read");
+        assert!(error.to_string().contains("not found"));
     }
 
     #[test]
