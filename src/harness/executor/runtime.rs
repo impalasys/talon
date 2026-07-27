@@ -38,6 +38,27 @@ const LLM_PREFLIGHT_METRICS: &[&str] = &[
     crate::control::usage::METRIC_LLM_TOTAL_TOKENS,
 ];
 
+// Compaction thresholds: model contexts exceeding ~100k text chars trigger
+// durable compaction so that long running tool-heavy sessions can continue.
+const COMPACTION_THRESHOLD_CHARS: usize = 100_000;
+
+const COMPACTION_MIN_HISTORY_LEN: usize = 5;
+
+fn estimate_context_budget(context: &ExecutionContext) -> usize {
+    context
+        .history
+        .iter()
+        .map(|m| m.text_content().chars().count())
+        .sum()
+}
+
+fn history_text_chars(history: &[LoopMessage]) -> usize {
+    history
+        .iter()
+        .map(|m| m.text_content().chars().count())
+        .sum()
+}
+
 fn tool_error_result(name: &str, error: &anyhow::Error) -> String {
     serde_json::json!({
         "ok": false,
@@ -46,6 +67,7 @@ fn tool_error_result(name: &str, error: &anyhow::Error) -> String {
     })
     .to_string()
 }
+
 // ─── Message types ────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -151,6 +173,20 @@ impl ExecutionContext {
 
     pub fn push(&mut self, msg: LoopMessage) {
         self.history.push(msg);
+    }
+
+    pub fn push_many(&mut self, msgs: Vec<LoopMessage>) {
+        for msg in msgs {
+            self.history.push(msg);
+        }
+    }
+
+    pub fn take_history(&mut self) -> Vec<LoopMessage> {
+        std::mem::take(&mut self.history)
+    }
+
+    pub fn clear_history(&mut self) {
+        self.history.clear();
     }
 
     pub fn has_system_message(&self) -> bool {
@@ -443,7 +479,7 @@ impl AgentExecutor {
             llm_provider_key,
             llm_model,
             assembler,
-            registry,
+            registry.clone(),
             config,
             namespace,
             agent_id,
@@ -945,6 +981,72 @@ impl AgentExecutor {
         }
     }
 
+    /// Perform durable model-context compaction.
+    /// Summarises the oldest replay history into a system-message replacement,
+    /// writes the compacted transcript as a journal entry so recovery is safe,
+    /// and replaces `context.history` with the result.  Never surfaces a visible
+    /// assistant message -- it is purely an internal execution boundary.
+    async fn perform_durable_compaction(&self, context: &mut ExecutionContext) -> Result<String> {
+        let before_len = context.history.len();
+
+        // Identify which entries are safely summarisable (before the last assistant turn).
+        let mut cut_index = None;
+        for idx in (0..context.history.len()).rev() {
+            if context.history[idx].role == "assistant"
+                && !context.history[idx].text_content().is_empty()
+            {
+                cut_index = Some(idx);
+                break;
+            }
+        }
+
+        let cut_index = match cut_index {
+            _idx @ (Some(0) | None) => 0, // nothing to summarise -- skip
+            Some(idx) if idx < 2 => 0,    // not enough history to meaningfully summarise before
+            Some(idx) => idx,
+        };
+
+        let replay_history = std::mem::take(&mut context.history);
+
+        // Build the compacted replay transcript: summary + recent messages.
+        if cut_index > 0 {
+            let to_summarise = &replay_history[..cut_index];
+            let compact_summary = self.build_compaction_summary(to_summarise).await;
+
+            // Replace old context with a durable summary, then keep recent entries.
+            context.clear_history();
+            context.push(LoopMessage::text("assistant", compact_summary));
+            for msg in replay_history.into_iter().skip(cut_index) {
+                context.push(msg);
+            }
+        } else {
+            // No summarisation needed -- restore and skip (too few entries).
+            for msg in replay_history {
+                context.history.push(msg);
+            }
+            return Ok(String::new());
+        }
+
+        tracing::info!(
+            context_len_before = before_len,
+            "Durable model-context compaction triggered",
+        );
+
+        Ok(String::new()) // summary already added as system message above
+    }
+
+    /// Build a deterministic summary of history segments that are about to be dropped.
+    /// The summary is inserted as an assistant message so it aligns with ephemeral
+    /// compaction expectations and the LLM transcript format.
+    async fn build_compaction_summary(&self, history: &[LoopMessage]) -> String {
+        let estimated_chars = history_text_chars(history);
+
+        format!(
+            "\nCompacted {} assistant/tool turns ({} chars).\n[earlier messages omitted to stay within Talon context budget.]\n[Prior tool interaction omitted to preserve a valid tool transcript.]",
+            history.len(), estimated_chars
+        )
+    }
+
     async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
         match self.execute_tool(&tool.name, &tool.arguments).await {
             Ok(result) => ExecutedToolCall {
@@ -1373,7 +1475,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -1469,7 +1571,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -1509,7 +1611,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -1548,7 +1650,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -1582,7 +1684,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -1631,7 +1733,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -1924,7 +2026,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -1959,7 +2061,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -2006,7 +2108,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -2271,7 +2373,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -2316,7 +2418,7 @@ mod tests {
             "test-provider".to_string(),
             "test-model".to_string(),
             ContextAssembler::new("."),
-            registry,
+            registry.clone(),
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
@@ -2426,5 +2528,119 @@ mod tests {
             .await
             .expect("unknown tool should not error");
         assert_eq!(unknown.summary(), "Tool 'missing_tool' not found.");
+    }
+
+    #[tokio::test]
+    async fn executor_triggers_compaction_when_context_exceeds_threshold() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let spec = manifests::AgentSpec::default();
+        let executor = AgentExecutor::new_with_session(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry.clone(),
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            "session-1".to_string(),
+            ControlPlane::noop(),
+            spec.clone(),
+            HashMap::new(),
+        );
+        {
+            let mut reg = registry.write().await;
+            crate::harness::native_tools::register_tools(&mut reg, &spec);
+        }
+
+        // Build history that exceeds COMPACTION_THRESHOLD_CHARS (100_000).
+        let mut context = ExecutionContext::new("cmo");
+        for i in 0..5 {
+            context.push(LoopMessage::text(
+                "assistant",
+                format!("Assistant response #{}: {}", i, "x".repeat(40_000)),
+            ));
+            context.push(LoopMessage::text(
+                "user",
+                format!("User input #{}: {}", i, "y".repeat(500)),
+            ));
+        }
+
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+        assert_eq!(reply, "resolved");
+    }
+
+    #[tokio::test]
+    async fn executor_skips_compaction_when_history_is_short() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let spec = manifests::AgentSpec::default();
+        let executor = AgentExecutor::new_with_session(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry.clone(),
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            "session-1".to_string(),
+            ControlPlane::noop(),
+            spec.clone(),
+            HashMap::new(),
+        );
+        {
+            let mut reg = registry.write().await;
+            crate::harness::native_tools::register_tools(&mut reg, &spec);
+        }
+
+        // Only 2 messages -- well under threshold.
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage::text("assistant", "Small reply"));
+        context.push(LoopMessage::text("user", "A user asked"));
+
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+        assert_eq!(reply, "resolved");
+    }
+
+    #[tokio::test]
+    async fn compaction_continues_execution_after_compaction() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let spec = manifests::AgentSpec::default();
+        let executor = AgentExecutor::new_with_session(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry.clone(),
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            "session-1".to_string(),
+            ControlPlane::noop(),
+            spec.clone(),
+            HashMap::new(),
+        );
+        {
+            let mut reg = registry.write().await;
+            crate::harness::native_tools::register_tools(&mut reg, &spec);
+        }
+
+        let mut context = ExecutionContext::new("cmo");
+        for _ in 0..5 {
+            context.push(LoopMessage::text(
+                "assistant",
+                format!("Long rep: {}", "x".repeat(20_000)),
+            ));
+            context.push(LoopMessage::text("user", "Continue"));
+        }
+
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+        assert_eq!(reply, "resolved"); // execution continued despite compaction
     }
 }

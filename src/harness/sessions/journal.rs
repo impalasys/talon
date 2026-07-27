@@ -10,12 +10,137 @@ use crate::control::cas::CasStore;
 use crate::control::tool_output::{self, ToolOutputStorageContext};
 use crate::control::{keys, KeyValueStore, ListOptions};
 use crate::gateway::rpc::data_proto::{
-    session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
-    SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadLlmResponse,
+    session_journal_entry_payload, CompactMessage, CompactToolCall, SessionExecutionPhase,
+    SessionJournalEntryPayload, SessionJournalEntryPayloadCommit,
+    SessionJournalEntryPayloadCompaction, SessionJournalEntryPayloadLlmResponse,
     SessionJournalEntryPayloadToolResult,
 };
+use crate::harness::executor::LoopMessage;
 use crate::harness::llm::ChatResponse;
 use crate::harness::llm::ToolOutput;
+
+pub async fn append_compaction(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent_id: &str,
+    session_id: &str,
+    submission_id: &str,
+    attempt_id: &str,
+    replay_history: &[LoopMessage],
+    compacted_through_journal_entry_id: &str,
+    original_estimated_size: i64,
+    compacted_estimated_size: i64,
+    now_micros: i64,
+) -> Result<SessionJournalEntry> {
+    ensure_submission_attempt_current(kv, ns, agent_id, session_id, submission_id, attempt_id)
+        .await?;
+
+    let max_id = kv
+        .list_keys(
+            &keys::session_journal_entry_prefix(ns, agent_id, session_id, submission_id),
+            Some(ListOptions::desc().limit(1)),
+        )
+        .await?
+        .into_iter()
+        .next()
+        .and_then(|key| key.name.parse::<u64>().ok())
+        .unwrap_or(0);
+    let journal_entry_id = format!("{:06}", max_id.saturating_add(1));
+
+    let entry_key =
+        keys::session_journal_entry(ns, agent_id, session_id, submission_id, &journal_entry_id);
+    if kv.get(&entry_key).await?.is_some() {
+        return Err(anyhow!("compaction journal entry id already exists"));
+    }
+
+    let entry = SessionJournalEntry {
+        submission_id: submission_id.to_string(),
+        journal_entry_id: journal_entry_id.clone(),
+        attempt_id: attempt_id.to_string(),
+        phase: SessionExecutionPhase::Compaction as i32,
+        payload: Some(SessionJournalEntryPayload {
+            payload: Some(session_journal_entry_payload::Payload::Compaction(
+                compaction_payload(
+                    replay_history,
+                    compacted_through_journal_entry_id,
+                    original_estimated_size,
+                    compacted_estimated_size,
+                ),
+            )),
+        }),
+        created_at: now_micros,
+        updated_at: now_micros,
+        committed_at: None,
+        committed_message_id: None,
+    };
+
+    if !kv
+        .compare_and_swap(&entry_key, None, &entry.encode_to_vec())
+        .await?
+    {
+        return Err(anyhow!("failed to append session compaction journal entry"));
+    }
+
+    update_submission_from_entry(
+        kv,
+        ns,
+        agent_id,
+        session_id,
+        submission_id,
+        &entry,
+        None,
+        None,
+        now_micros,
+    )
+    .await?;
+
+    tracing::info!(
+        submission = %submission_id,
+        journal_entry_id = %journal_entry_id,
+        original_size = original_estimated_size,
+        compacted_size = compacted_estimated_size,
+        "Compaction journal entry written",
+    );
+
+    Ok(entry)
+}
+
+fn compaction_payload(
+    replay_history: &[LoopMessage],
+    compacted_through_journal_entry_id: &str,
+    original_estimated_size: i64,
+    compacted_estimated_size: i64,
+) -> SessionJournalEntryPayloadCompaction {
+    let entries: Vec<CompactMessage> = replay_history
+        .iter()
+        .map(|msg| CompactMessage {
+            role: msg.role.clone(),
+            text_content: msg.text_content(),
+            tool_calls: msg
+                .tool_calls
+                .as_ref()
+                .map(|calls| {
+                    calls
+                        .iter()
+                        .map(|call| CompactToolCall {
+                            id: call.id.clone(),
+                            name: call.name.clone(),
+                            arguments: call.arguments.clone(),
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
+            tool_call_id: msg.tool_call_id.clone().or(None),
+        })
+        .collect();
+
+    SessionJournalEntryPayloadCompaction {
+        replay_history: entries,
+        compacted_through_journal_entry_id: compacted_through_journal_entry_id.to_string(),
+        original_estimated_size,
+        compacted_estimated_size,
+    }
+}
 
 pub async fn append_llm_response(
     kv: &dyn KeyValueStore,
@@ -614,5 +739,57 @@ mod tests {
         .unwrap_err();
 
         assert!(err.to_string().contains("stale session submission attempt"));
+    }
+
+    #[tokio::test]
+    async fn compaction_entry_appends_and_updates_submission() {
+        let kv = crate::test_support::MockKvStore::default();
+        seed_claimed_submission(&kv).await;
+
+        let history = vec![
+            LoopMessage::text("assistant", "Step 1"),
+            LoopMessage::text("tool", "result-1"),
+        ];
+        assert_eq!(history.len(), 2);
+
+        let compact_entry = append_compaction(
+            &kv,
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &history,
+            "compacted_through_000002",
+            5_000,
+            800,
+            10,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            compact_entry.phase,
+            SessionExecutionPhase::Compaction as i32
+        );
+        let submission = kv
+            .get_msg::<SessionSubmission>(&keys::session_submission(
+                "ns",
+                "agent",
+                "session-1",
+                "submission-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            submission.current_journal_entry_id.as_deref(),
+            Some(compact_entry.journal_entry_id.clone().as_str()),
+        );
+
+        let entries = list_journal_entries(&kv, "ns", "agent", "session-1", "submission-1")
+            .await
+            .unwrap();
+        assert_eq!(entries.len(), 1);
     }
 }

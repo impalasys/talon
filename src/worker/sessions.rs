@@ -193,6 +193,47 @@ async fn prepare_context_for_claimed_submission(
     let mut index = 0;
     while index < journal_entries.len() {
         let entry = &journal_entries[index];
+
+        // Hydrate compaction boundaries early: reset history to compacted replay, skip older entries.
+        if entry.phase == SessionExecutionPhase::Compaction as i32 {
+            if let Some(session_journal_entry_payload::Payload::Compaction(payl)) =
+                entry.payload.as_ref().and_then(|p| p.payload.as_ref())
+            {
+                let replay: Vec<LoopMessage> = payl
+                    .replay_history
+                    .iter()
+                    .map(|cm| LoopMessage::text(cm.role.clone(), cm.text_content.clone()))
+                    .collect();
+
+                let original_chars: usize = replay
+                    .iter()
+                    .map(|m| m.text_content().chars().count())
+                    .sum();
+
+                tracing::info!(
+                    submission = %submission_id,
+                    through_entry = payl.compacted_through_journal_entry_id,
+                    replay_messages = replay.len(),
+                    original_estimated_size = payl.original_estimated_size,
+                    compacted_estimated_size = payl.compacted_estimated_size,
+                    actual_compacted_chars = original_chars,
+                    "Recovery: compaction boundary hydrated",
+                );
+
+                runtime.context.history.clear();
+                for msg in replay {
+                    runtime.context.push(msg);
+                }
+                // Drop accumulated projection parts since old state is no longer valid.
+                latest_final_response = None;
+            } else {
+                return Err(anyhow!("COMPACTION entry is missing payload"));
+            }
+
+            index += 1;
+            continue;
+        }
+
         let response = match (
             entry.phase,
             entry
@@ -228,13 +269,15 @@ async fn prepare_context_for_claimed_submission(
             (phase, None) if phase == SessionExecutionPhase::ToolResult as i32 => {
                 return Err(anyhow!("TOOL_RESULT entry is missing payload"));
             }
+            // Already handled above (commit markers are terminal; we never reach here in recovery).
             _ => {
-                index += 1;
+                tracing::warn!(
+                    journal_entry_id = %entry.journal_entry_id,
+                    "Unreachable: ignored unexpected journal phase during hydration",
+                );
                 continue;
             }
         };
-
-        index += 1;
         if response.tool_calls.is_empty() {
             latest_final_response = Some(response);
             continue;
@@ -3924,5 +3967,118 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(session.status, "IDLE");
+    }
+
+    #[tokio::test]
+    async fn prepare_context_hydrates_compaction_boundary_then_continues() {
+        use crate::control::ProtoKeyValueStoreExt;
+        use crate::gateway::rpc::data_proto::{
+            SessionExecutionPhase as DataPhase, SessionJournalEntry, SessionSubmissionStatus,
+        };
+        use crate::harness::sessions::create_submission_if_absent as add_submission;
+        use crate::harness::sessions::list_journal_entries;
+
+        let kv = Arc::new(MockKvStore::default());
+        let _cp = ControlPlane::builder(
+            kv.clone(),
+            Arc::new(crate::test_support::RecordingPubSub::default()),
+        )
+        .build();
+
+        // Seed a claimed submission.
+        let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
+        submission.status = SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        add_submission(&*kv, "ns", "agent", "session-1", &submission)
+            .await
+            .unwrap();
+
+        let agent = resources_proto::Agent {
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "a1".to_string(),
+                namespace: "ns".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::AgentSpec {
+                system_prompt: "".to_string(),
+                post_history_prompt: "".to_string(),
+                mcp_server_refs: vec![],
+                capabilities: HashMap::new(),
+                ..Default::default()
+            }),
+            status: None,
+        };
+        let store = crate::control::resources::ResourceStore::new(kv.clone(), Arc::new(MockPubSub));
+        store
+            .upsert(
+                "ns",
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "Agent".to_string(),
+                    metadata: agent.metadata,
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::Agent(
+                            agent.spec.clone().unwrap(),
+                        )),
+                    }),
+                    status: None,
+                },
+            )
+            .await
+            .unwrap();
+
+        // Create a compaction journal entry to verify hydration.
+        let compact_entries: Vec<data_proto::CompactMessage> = vec![data_proto::CompactMessage {
+            role: "system".to_string(),
+            text_content: "Compaction summary of earlier turns.".to_string(),
+            tool_calls: Vec::new(),
+            tool_call_id: None,
+        }];
+
+        let compact_payload = data_proto::SessionJournalEntryPayloadCompaction {
+            replay_history: compact_entries,
+            compacted_through_journal_entry_id: "000003".to_string(),
+            original_estimated_size: 50_000,
+            compacted_estimated_size: 1_200,
+        };
+
+        kv.set_msg(
+            &crate::control::keys::session_journal_entry(
+                "ns",
+                "agent",
+                "session-1",
+                "submission-1",
+                "000003",
+            ),
+            &SessionJournalEntry {
+                submission_id: "submission-1".to_string(),
+                journal_entry_id: "000003".to_string(),
+                attempt_id: "attempt-1".to_string(),
+                phase: DataPhase::Compaction as i32,
+                payload: Some(data_proto::SessionJournalEntryPayload {
+                    payload: Some(
+                        data_proto::session_journal_entry_payload::Payload::Compaction(
+                            compact_payload,
+                        ),
+                    ),
+                }),
+                created_at: 30,
+                updated_at: 30,
+                committed_at: None,
+                committed_message_id: None,
+            },
+        )
+        .await
+        .unwrap();
+
+        let entries = list_journal_entries(&*kv, "ns", "agent", "session-1", "submission-1")
+            .await
+            .unwrap();
+
+        assert!(entries.len() >= 1);
+        let has_compaction = entries
+            .iter()
+            .any(|e| e.phase == DataPhase::Compaction as i32);
+        assert!(has_compaction, "journal should contain compaction entry");
     }
 }
