@@ -195,6 +195,9 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_reasoning(&self, reasoning: &str);
     /// The agent chose to call a tool.
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value);
+    /// The model has started emitting tool-call deltas. Implementations can
+    /// flush any buffered live output before the tool call is fully assembled.
+    async fn on_tool_call_stream_started(&self) {}
     /// The full completed LLM response reached a durable recovery boundary.
     async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) -> Result<()> {
         Ok(())
@@ -569,6 +572,7 @@ impl AgentExecutor {
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
             let mut final_usage: Option<ChatUsage> = None;
+            let mut saw_tool_call_delta = false;
             let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
                 .and_then(|model| model.thinking.clone());
             let usage_subject = self.usage_subject();
@@ -674,6 +678,10 @@ impl AgentExecutor {
                     ChatStreamEvent {
                         event: Some(chat_stream_event::Event::ToolCallDelta(delta)),
                     } => {
+                        if !saw_tool_call_delta {
+                            saw_tool_call_delta = true;
+                            sink.on_tool_call_stream_started().await;
+                        }
                         let entry = tool_calls_by_index
                             .entry(delta.index as usize)
                             .or_insert_with(|| ToolCall {

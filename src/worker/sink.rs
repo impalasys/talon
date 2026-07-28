@@ -1325,6 +1325,10 @@ impl ExecutionSink for PubSubSessionSink {
         .await;
     }
 
+    async fn on_tool_call_stream_started(&self) {
+        self.flush_active_stream_event_buffer().await;
+    }
+
     async fn on_tool_result_recorded(&self, id: &str, name: &str, result: &str) -> Result<()> {
         let part_id = self.next_part_id();
         let cas = CasStore::new(self.objects.clone());
@@ -2221,6 +2225,57 @@ mod tests {
         assert_eq!(
             reply_part_contents,
             vec!["drafting request", "Tool call", "final"]
+        );
+    }
+
+    #[tokio::test]
+    async fn token_buffer_flushes_when_tool_call_stream_starts() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        let mut fanout = fanout_stream(&sink).await;
+        sink.on_token("drafting ").await;
+        sink.on_token("request").await;
+        sink.on_tool_call_stream_started().await;
+
+        let event = next_fanout_event(&mut fanout).await;
+        assert_eq!(
+            event_part(&event).part_type,
+            data_proto::SessionMessagePartType::Text as i32
+        );
+        assert_eq!(event_part(&event).content, "drafting request");
+
+        sink.on_tool_call("tool-1", "create_prompt", &json!({"content": "x"}))
+            .await;
+        let tool_event = next_fanout_event(&mut fanout).await;
+        assert_eq!(
+            event_part(&tool_event).part_type,
+            data_proto::SessionMessagePartType::ToolCall as i32
+        );
+
+        let projection = latest_reply_message(kv.as_ref()).await;
+        let projection_part_contents = projection
+            .parts
+            .iter()
+            .map(|part| part.content.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            projection_part_contents,
+            vec!["drafting request", "Tool call"]
         );
     }
 
