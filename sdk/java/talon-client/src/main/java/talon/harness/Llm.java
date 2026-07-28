@@ -26,1538 +26,6 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
-  public interface ChatImageUrlOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.harness.ChatImageUrl)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string url = 1;</code>
-     * @return The url.
-     */
-    java.lang.String getUrl();
-    /**
-     * <code>string url = 1;</code>
-     * @return The bytes for url.
-     */
-    com.google.protobuf.ByteString
-        getUrlBytes();
-
-    /**
-     * <code>optional string detail = 2;</code>
-     * @return Whether the detail field is set.
-     */
-    boolean hasDetail();
-    /**
-     * <code>optional string detail = 2;</code>
-     * @return The detail.
-     */
-    java.lang.String getDetail();
-    /**
-     * <code>optional string detail = 2;</code>
-     * @return The bytes for detail.
-     */
-    com.google.protobuf.ByteString
-        getDetailBytes();
-  }
-  /**
-   * Protobuf type {@code talon.harness.ChatImageUrl}
-   */
-  public static final class ChatImageUrl extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.harness.ChatImageUrl)
-      ChatImageUrlOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ChatImageUrl");
-    }
-    // Use ChatImageUrl.newBuilder() to construct.
-    private ChatImageUrl(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ChatImageUrl() {
-      url_ = "";
-      detail_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatImageUrl_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatImageUrl_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatImageUrl_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.harness.Llm.ChatImageUrl.class, talon.harness.Llm.ChatImageUrl.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int URL_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object url_ = "";
-    /**
-     * <code>string url = 1;</code>
-     * @return The url.
-     */
-    @java.lang.Override
-    public java.lang.String getUrl() {
-      java.lang.Object ref = url_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        url_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string url = 1;</code>
-     * @return The bytes for url.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getUrlBytes() {
-      java.lang.Object ref = url_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        url_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int DETAIL_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object detail_ = "";
-    /**
-     * <code>optional string detail = 2;</code>
-     * @return Whether the detail field is set.
-     */
-    @java.lang.Override
-    public boolean hasDetail() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>optional string detail = 2;</code>
-     * @return The detail.
-     */
-    @java.lang.Override
-    public java.lang.String getDetail() {
-      java.lang.Object ref = detail_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        detail_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>optional string detail = 2;</code>
-     * @return The bytes for detail.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getDetailBytes() {
-      java.lang.Object ref = detail_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        detail_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(url_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, url_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, detail_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(url_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, url_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, detail_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.harness.Llm.ChatImageUrl)) {
-        return super.equals(obj);
-      }
-      talon.harness.Llm.ChatImageUrl other = (talon.harness.Llm.ChatImageUrl) obj;
-
-      if (!getUrl()
-          .equals(other.getUrl())) return false;
-      if (hasDetail() != other.hasDetail()) return false;
-      if (hasDetail()) {
-        if (!getDetail()
-            .equals(other.getDetail())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + URL_FIELD_NUMBER;
-      hash = (53 * hash) + getUrl().hashCode();
-      if (hasDetail()) {
-        hash = (37 * hash) + DETAIL_FIELD_NUMBER;
-        hash = (53 * hash) + getDetail().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.harness.Llm.ChatImageUrl parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.harness.Llm.ChatImageUrl parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.harness.Llm.ChatImageUrl parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.harness.Llm.ChatImageUrl parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.harness.Llm.ChatImageUrl prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.harness.ChatImageUrl}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.harness.ChatImageUrl)
-        talon.harness.Llm.ChatImageUrlOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatImageUrl_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatImageUrl_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.harness.Llm.ChatImageUrl.class, talon.harness.Llm.ChatImageUrl.Builder.class);
-      }
-
-      // Construct using talon.harness.Llm.ChatImageUrl.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        url_ = "";
-        detail_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatImageUrl_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatImageUrl getDefaultInstanceForType() {
-        return talon.harness.Llm.ChatImageUrl.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatImageUrl build() {
-        talon.harness.Llm.ChatImageUrl result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatImageUrl buildPartial() {
-        talon.harness.Llm.ChatImageUrl result = new talon.harness.Llm.ChatImageUrl(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.harness.Llm.ChatImageUrl result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.url_ = url_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.detail_ = detail_;
-          to_bitField0_ |= 0x00000001;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.harness.Llm.ChatImageUrl) {
-          return mergeFrom((talon.harness.Llm.ChatImageUrl)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.harness.Llm.ChatImageUrl other) {
-        if (other == talon.harness.Llm.ChatImageUrl.getDefaultInstance()) return this;
-        if (!other.getUrl().isEmpty()) {
-          url_ = other.url_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (other.hasDetail()) {
-          detail_ = other.detail_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                url_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                detail_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object url_ = "";
-      /**
-       * <code>string url = 1;</code>
-       * @return The url.
-       */
-      public java.lang.String getUrl() {
-        java.lang.Object ref = url_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          url_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string url = 1;</code>
-       * @return The bytes for url.
-       */
-      public com.google.protobuf.ByteString
-          getUrlBytes() {
-        java.lang.Object ref = url_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          url_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string url = 1;</code>
-       * @param value The url to set.
-       * @return This builder for chaining.
-       */
-      public Builder setUrl(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        url_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string url = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearUrl() {
-        url_ = getDefaultInstance().getUrl();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string url = 1;</code>
-       * @param value The bytes for url to set.
-       * @return This builder for chaining.
-       */
-      public Builder setUrlBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        url_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object detail_ = "";
-      /**
-       * <code>optional string detail = 2;</code>
-       * @return Whether the detail field is set.
-       */
-      public boolean hasDetail() {
-        return ((bitField0_ & 0x00000002) != 0);
-      }
-      /**
-       * <code>optional string detail = 2;</code>
-       * @return The detail.
-       */
-      public java.lang.String getDetail() {
-        java.lang.Object ref = detail_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          detail_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string detail = 2;</code>
-       * @return The bytes for detail.
-       */
-      public com.google.protobuf.ByteString
-          getDetailBytes() {
-        java.lang.Object ref = detail_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          detail_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string detail = 2;</code>
-       * @param value The detail to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDetail(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        detail_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string detail = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearDetail() {
-        detail_ = getDefaultInstance().getDetail();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string detail = 2;</code>
-       * @param value The bytes for detail to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDetailBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        detail_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.harness.ChatImageUrl)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.harness.ChatImageUrl)
-    private static final talon.harness.Llm.ChatImageUrl DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.harness.Llm.ChatImageUrl();
-    }
-
-    public static talon.harness.Llm.ChatImageUrl getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ChatImageUrl>
-        PARSER = new com.google.protobuf.AbstractParser<ChatImageUrl>() {
-      @java.lang.Override
-      public ChatImageUrl parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ChatImageUrl> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ChatImageUrl> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.harness.Llm.ChatImageUrl getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ChatImageDataOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.harness.ChatImageData)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string media_type = 1;</code>
-     * @return The mediaType.
-     */
-    java.lang.String getMediaType();
-    /**
-     * <code>string media_type = 1;</code>
-     * @return The bytes for mediaType.
-     */
-    com.google.protobuf.ByteString
-        getMediaTypeBytes();
-
-    /**
-     * <code>string data_base64 = 2;</code>
-     * @return The dataBase64.
-     */
-    java.lang.String getDataBase64();
-    /**
-     * <code>string data_base64 = 2;</code>
-     * @return The bytes for dataBase64.
-     */
-    com.google.protobuf.ByteString
-        getDataBase64Bytes();
-
-    /**
-     * <code>optional string detail = 3;</code>
-     * @return Whether the detail field is set.
-     */
-    boolean hasDetail();
-    /**
-     * <code>optional string detail = 3;</code>
-     * @return The detail.
-     */
-    java.lang.String getDetail();
-    /**
-     * <code>optional string detail = 3;</code>
-     * @return The bytes for detail.
-     */
-    com.google.protobuf.ByteString
-        getDetailBytes();
-  }
-  /**
-   * Protobuf type {@code talon.harness.ChatImageData}
-   */
-  public static final class ChatImageData extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.harness.ChatImageData)
-      ChatImageDataOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ChatImageData");
-    }
-    // Use ChatImageData.newBuilder() to construct.
-    private ChatImageData(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ChatImageData() {
-      mediaType_ = "";
-      dataBase64_ = "";
-      detail_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatImageData_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatImageData_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatImageData_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.harness.Llm.ChatImageData.class, talon.harness.Llm.ChatImageData.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int MEDIA_TYPE_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object mediaType_ = "";
-    /**
-     * <code>string media_type = 1;</code>
-     * @return The mediaType.
-     */
-    @java.lang.Override
-    public java.lang.String getMediaType() {
-      java.lang.Object ref = mediaType_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        mediaType_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string media_type = 1;</code>
-     * @return The bytes for mediaType.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getMediaTypeBytes() {
-      java.lang.Object ref = mediaType_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        mediaType_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int DATA_BASE64_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object dataBase64_ = "";
-    /**
-     * <code>string data_base64 = 2;</code>
-     * @return The dataBase64.
-     */
-    @java.lang.Override
-    public java.lang.String getDataBase64() {
-      java.lang.Object ref = dataBase64_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        dataBase64_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string data_base64 = 2;</code>
-     * @return The bytes for dataBase64.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getDataBase64Bytes() {
-      java.lang.Object ref = dataBase64_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        dataBase64_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int DETAIL_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object detail_ = "";
-    /**
-     * <code>optional string detail = 3;</code>
-     * @return Whether the detail field is set.
-     */
-    @java.lang.Override
-    public boolean hasDetail() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>optional string detail = 3;</code>
-     * @return The detail.
-     */
-    @java.lang.Override
-    public java.lang.String getDetail() {
-      java.lang.Object ref = detail_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        detail_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>optional string detail = 3;</code>
-     * @return The bytes for detail.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getDetailBytes() {
-      java.lang.Object ref = detail_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        detail_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, mediaType_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(dataBase64_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, dataBase64_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, detail_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, mediaType_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(dataBase64_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, dataBase64_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, detail_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.harness.Llm.ChatImageData)) {
-        return super.equals(obj);
-      }
-      talon.harness.Llm.ChatImageData other = (talon.harness.Llm.ChatImageData) obj;
-
-      if (!getMediaType()
-          .equals(other.getMediaType())) return false;
-      if (!getDataBase64()
-          .equals(other.getDataBase64())) return false;
-      if (hasDetail() != other.hasDetail()) return false;
-      if (hasDetail()) {
-        if (!getDetail()
-            .equals(other.getDetail())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + MEDIA_TYPE_FIELD_NUMBER;
-      hash = (53 * hash) + getMediaType().hashCode();
-      hash = (37 * hash) + DATA_BASE64_FIELD_NUMBER;
-      hash = (53 * hash) + getDataBase64().hashCode();
-      if (hasDetail()) {
-        hash = (37 * hash) + DETAIL_FIELD_NUMBER;
-        hash = (53 * hash) + getDetail().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.harness.Llm.ChatImageData parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.harness.Llm.ChatImageData parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.harness.Llm.ChatImageData parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.harness.Llm.ChatImageData parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.harness.Llm.ChatImageData prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.harness.ChatImageData}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.harness.ChatImageData)
-        talon.harness.Llm.ChatImageDataOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatImageData_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatImageData_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.harness.Llm.ChatImageData.class, talon.harness.Llm.ChatImageData.Builder.class);
-      }
-
-      // Construct using talon.harness.Llm.ChatImageData.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        mediaType_ = "";
-        dataBase64_ = "";
-        detail_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatImageData_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatImageData getDefaultInstanceForType() {
-        return talon.harness.Llm.ChatImageData.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatImageData build() {
-        talon.harness.Llm.ChatImageData result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatImageData buildPartial() {
-        talon.harness.Llm.ChatImageData result = new talon.harness.Llm.ChatImageData(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.harness.Llm.ChatImageData result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.mediaType_ = mediaType_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.dataBase64_ = dataBase64_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.detail_ = detail_;
-          to_bitField0_ |= 0x00000001;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.harness.Llm.ChatImageData) {
-          return mergeFrom((talon.harness.Llm.ChatImageData)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.harness.Llm.ChatImageData other) {
-        if (other == talon.harness.Llm.ChatImageData.getDefaultInstance()) return this;
-        if (!other.getMediaType().isEmpty()) {
-          mediaType_ = other.mediaType_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getDataBase64().isEmpty()) {
-          dataBase64_ = other.dataBase64_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (other.hasDetail()) {
-          detail_ = other.detail_;
-          bitField0_ |= 0x00000004;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                mediaType_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                dataBase64_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 26: {
-                detail_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object mediaType_ = "";
-      /**
-       * <code>string media_type = 1;</code>
-       * @return The mediaType.
-       */
-      public java.lang.String getMediaType() {
-        java.lang.Object ref = mediaType_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          mediaType_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string media_type = 1;</code>
-       * @return The bytes for mediaType.
-       */
-      public com.google.protobuf.ByteString
-          getMediaTypeBytes() {
-        java.lang.Object ref = mediaType_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          mediaType_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string media_type = 1;</code>
-       * @param value The mediaType to set.
-       * @return This builder for chaining.
-       */
-      public Builder setMediaType(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        mediaType_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string media_type = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearMediaType() {
-        mediaType_ = getDefaultInstance().getMediaType();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string media_type = 1;</code>
-       * @param value The bytes for mediaType to set.
-       * @return This builder for chaining.
-       */
-      public Builder setMediaTypeBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        mediaType_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object dataBase64_ = "";
-      /**
-       * <code>string data_base64 = 2;</code>
-       * @return The dataBase64.
-       */
-      public java.lang.String getDataBase64() {
-        java.lang.Object ref = dataBase64_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          dataBase64_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string data_base64 = 2;</code>
-       * @return The bytes for dataBase64.
-       */
-      public com.google.protobuf.ByteString
-          getDataBase64Bytes() {
-        java.lang.Object ref = dataBase64_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          dataBase64_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string data_base64 = 2;</code>
-       * @param value The dataBase64 to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDataBase64(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        dataBase64_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string data_base64 = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearDataBase64() {
-        dataBase64_ = getDefaultInstance().getDataBase64();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string data_base64 = 2;</code>
-       * @param value The bytes for dataBase64 to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDataBase64Bytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        dataBase64_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object detail_ = "";
-      /**
-       * <code>optional string detail = 3;</code>
-       * @return Whether the detail field is set.
-       */
-      public boolean hasDetail() {
-        return ((bitField0_ & 0x00000004) != 0);
-      }
-      /**
-       * <code>optional string detail = 3;</code>
-       * @return The detail.
-       */
-      public java.lang.String getDetail() {
-        java.lang.Object ref = detail_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          detail_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string detail = 3;</code>
-       * @return The bytes for detail.
-       */
-      public com.google.protobuf.ByteString
-          getDetailBytes() {
-        java.lang.Object ref = detail_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          detail_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string detail = 3;</code>
-       * @param value The detail to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDetail(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        detail_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string detail = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearDetail() {
-        detail_ = getDefaultInstance().getDetail();
-        bitField0_ = (bitField0_ & ~0x00000004);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string detail = 3;</code>
-       * @param value The bytes for detail to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDetailBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        detail_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.harness.ChatImageData)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.harness.ChatImageData)
-    private static final talon.harness.Llm.ChatImageData DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.harness.Llm.ChatImageData();
-    }
-
-    public static talon.harness.Llm.ChatImageData getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ChatImageData>
-        PARSER = new com.google.protobuf.AbstractParser<ChatImageData>() {
-      @java.lang.Override
-      public ChatImageData parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ChatImageData> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ChatImageData> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.harness.Llm.ChatImageData getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
   public interface ChatContentPartOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.harness.ChatContentPart)
       com.google.protobuf.MessageOrBuilder {
@@ -1580,34 +48,19 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         getTextBytes();
 
     /**
-     * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
-     * @return Whether the imageUrl field is set.
+     * <code>.talon.data.ObjectRef object_ref = 4;</code>
+     * @return Whether the objectRef field is set.
      */
-    boolean hasImageUrl();
+    boolean hasObjectRef();
     /**
-     * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
-     * @return The imageUrl.
+     * <code>.talon.data.ObjectRef object_ref = 4;</code>
+     * @return The objectRef.
      */
-    talon.harness.Llm.ChatImageUrl getImageUrl();
+    talon.data.Data.ObjectRef getObjectRef();
     /**
-     * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+     * <code>.talon.data.ObjectRef object_ref = 4;</code>
      */
-    talon.harness.Llm.ChatImageUrlOrBuilder getImageUrlOrBuilder();
-
-    /**
-     * <code>.talon.harness.ChatImageData image_data = 3;</code>
-     * @return Whether the imageData field is set.
-     */
-    boolean hasImageData();
-    /**
-     * <code>.talon.harness.ChatImageData image_data = 3;</code>
-     * @return The imageData.
-     */
-    talon.harness.Llm.ChatImageData getImageData();
-    /**
-     * <code>.talon.harness.ChatImageData image_data = 3;</code>
-     */
-    talon.harness.Llm.ChatImageDataOrBuilder getImageDataOrBuilder();
+    talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder();
 
     talon.harness.Llm.ChatContentPart.ContentCase getContentCase();
   }
@@ -1660,8 +113,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         implements com.google.protobuf.Internal.EnumLite,
             com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       TEXT(1),
-      IMAGE_URL(2),
-      IMAGE_DATA(3),
+      OBJECT_REF(4),
       CONTENT_NOT_SET(0);
       private final int value;
       private ContentCase(int value) {
@@ -1680,8 +132,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       public static ContentCase forNumber(int value) {
         switch (value) {
           case 1: return TEXT;
-          case 2: return IMAGE_URL;
-          case 3: return IMAGE_DATA;
+          case 4: return OBJECT_REF;
           case 0: return CONTENT_NOT_SET;
           default: return null;
         }
@@ -1745,66 +196,35 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int IMAGE_URL_FIELD_NUMBER = 2;
+    public static final int OBJECT_REF_FIELD_NUMBER = 4;
     /**
-     * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
-     * @return Whether the imageUrl field is set.
+     * <code>.talon.data.ObjectRef object_ref = 4;</code>
+     * @return Whether the objectRef field is set.
      */
     @java.lang.Override
-    public boolean hasImageUrl() {
-      return contentCase_ == 2;
+    public boolean hasObjectRef() {
+      return contentCase_ == 4;
     }
     /**
-     * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
-     * @return The imageUrl.
+     * <code>.talon.data.ObjectRef object_ref = 4;</code>
+     * @return The objectRef.
      */
     @java.lang.Override
-    public talon.harness.Llm.ChatImageUrl getImageUrl() {
-      if (contentCase_ == 2) {
-         return (talon.harness.Llm.ChatImageUrl) content_;
+    public talon.data.Data.ObjectRef getObjectRef() {
+      if (contentCase_ == 4) {
+         return (talon.data.Data.ObjectRef) content_;
       }
-      return talon.harness.Llm.ChatImageUrl.getDefaultInstance();
+      return talon.data.Data.ObjectRef.getDefaultInstance();
     }
     /**
-     * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+     * <code>.talon.data.ObjectRef object_ref = 4;</code>
      */
     @java.lang.Override
-    public talon.harness.Llm.ChatImageUrlOrBuilder getImageUrlOrBuilder() {
-      if (contentCase_ == 2) {
-         return (talon.harness.Llm.ChatImageUrl) content_;
+    public talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder() {
+      if (contentCase_ == 4) {
+         return (talon.data.Data.ObjectRef) content_;
       }
-      return talon.harness.Llm.ChatImageUrl.getDefaultInstance();
-    }
-
-    public static final int IMAGE_DATA_FIELD_NUMBER = 3;
-    /**
-     * <code>.talon.harness.ChatImageData image_data = 3;</code>
-     * @return Whether the imageData field is set.
-     */
-    @java.lang.Override
-    public boolean hasImageData() {
-      return contentCase_ == 3;
-    }
-    /**
-     * <code>.talon.harness.ChatImageData image_data = 3;</code>
-     * @return The imageData.
-     */
-    @java.lang.Override
-    public talon.harness.Llm.ChatImageData getImageData() {
-      if (contentCase_ == 3) {
-         return (talon.harness.Llm.ChatImageData) content_;
-      }
-      return talon.harness.Llm.ChatImageData.getDefaultInstance();
-    }
-    /**
-     * <code>.talon.harness.ChatImageData image_data = 3;</code>
-     */
-    @java.lang.Override
-    public talon.harness.Llm.ChatImageDataOrBuilder getImageDataOrBuilder() {
-      if (contentCase_ == 3) {
-         return (talon.harness.Llm.ChatImageData) content_;
-      }
-      return talon.harness.Llm.ChatImageData.getDefaultInstance();
+      return talon.data.Data.ObjectRef.getDefaultInstance();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -1824,11 +244,8 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (contentCase_ == 1) {
         com.google.protobuf.GeneratedMessage.writeString(output, 1, content_);
       }
-      if (contentCase_ == 2) {
-        output.writeMessage(2, (talon.harness.Llm.ChatImageUrl) content_);
-      }
-      if (contentCase_ == 3) {
-        output.writeMessage(3, (talon.harness.Llm.ChatImageData) content_);
+      if (contentCase_ == 4) {
+        output.writeMessage(4, (talon.data.Data.ObjectRef) content_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1842,13 +259,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (contentCase_ == 1) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(1, content_);
       }
-      if (contentCase_ == 2) {
+      if (contentCase_ == 4) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, (talon.harness.Llm.ChatImageUrl) content_);
-      }
-      if (contentCase_ == 3) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, (talon.harness.Llm.ChatImageData) content_);
+          .computeMessageSize(4, (talon.data.Data.ObjectRef) content_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1871,13 +284,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           if (!getText()
               .equals(other.getText())) return false;
           break;
-        case 2:
-          if (!getImageUrl()
-              .equals(other.getImageUrl())) return false;
-          break;
-        case 3:
-          if (!getImageData()
-              .equals(other.getImageData())) return false;
+        case 4:
+          if (!getObjectRef()
+              .equals(other.getObjectRef())) return false;
           break;
         case 0:
         default:
@@ -1898,13 +307,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           hash = (37 * hash) + TEXT_FIELD_NUMBER;
           hash = (53 * hash) + getText().hashCode();
           break;
-        case 2:
-          hash = (37 * hash) + IMAGE_URL_FIELD_NUMBER;
-          hash = (53 * hash) + getImageUrl().hashCode();
-          break;
-        case 3:
-          hash = (37 * hash) + IMAGE_DATA_FIELD_NUMBER;
-          hash = (53 * hash) + getImageData().hashCode();
+        case 4:
+          hash = (37 * hash) + OBJECT_REF_FIELD_NUMBER;
+          hash = (53 * hash) + getObjectRef().hashCode();
           break;
         case 0:
         default:
@@ -2040,11 +445,8 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        if (imageUrlBuilder_ != null) {
-          imageUrlBuilder_.clear();
-        }
-        if (imageDataBuilder_ != null) {
-          imageDataBuilder_.clear();
+        if (objectRefBuilder_ != null) {
+          objectRefBuilder_.clear();
         }
         contentCase_ = 0;
         content_ = null;
@@ -2087,13 +489,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       private void buildPartialOneofs(talon.harness.Llm.ChatContentPart result) {
         result.contentCase_ = contentCase_;
         result.content_ = this.content_;
-        if (contentCase_ == 2 &&
-            imageUrlBuilder_ != null) {
-          result.content_ = imageUrlBuilder_.build();
-        }
-        if (contentCase_ == 3 &&
-            imageDataBuilder_ != null) {
-          result.content_ = imageDataBuilder_.build();
+        if (contentCase_ == 4 &&
+            objectRefBuilder_ != null) {
+          result.content_ = objectRefBuilder_.build();
         }
       }
 
@@ -2116,12 +514,8 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
             onChanged();
             break;
           }
-          case IMAGE_URL: {
-            mergeImageUrl(other.getImageUrl());
-            break;
-          }
-          case IMAGE_DATA: {
-            mergeImageData(other.getImageData());
+          case OBJECT_REF: {
+            mergeObjectRef(other.getObjectRef());
             break;
           }
           case CONTENT_NOT_SET: {
@@ -2159,20 +553,13 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 content_ = input.readStringRequireUtf8();
                 break;
               } // case 10
-              case 18: {
+              case 34: {
                 input.readMessage(
-                    internalGetImageUrlFieldBuilder().getBuilder(),
+                    internalGetObjectRefFieldBuilder().getBuilder(),
                     extensionRegistry);
-                contentCase_ = 2;
+                contentCase_ = 4;
                 break;
-              } // case 18
-              case 26: {
-                input.readMessage(
-                    internalGetImageDataFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                contentCase_ = 3;
-                break;
-              } // case 26
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2295,287 +682,145 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          talon.harness.Llm.ChatImageUrl, talon.harness.Llm.ChatImageUrl.Builder, talon.harness.Llm.ChatImageUrlOrBuilder> imageUrlBuilder_;
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> objectRefBuilder_;
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
-       * @return Whether the imageUrl field is set.
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
+       * @return Whether the objectRef field is set.
        */
       @java.lang.Override
-      public boolean hasImageUrl() {
-        return contentCase_ == 2;
+      public boolean hasObjectRef() {
+        return contentCase_ == 4;
       }
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
-       * @return The imageUrl.
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
+       * @return The objectRef.
        */
       @java.lang.Override
-      public talon.harness.Llm.ChatImageUrl getImageUrl() {
-        if (imageUrlBuilder_ == null) {
-          if (contentCase_ == 2) {
-            return (talon.harness.Llm.ChatImageUrl) content_;
+      public talon.data.Data.ObjectRef getObjectRef() {
+        if (objectRefBuilder_ == null) {
+          if (contentCase_ == 4) {
+            return (talon.data.Data.ObjectRef) content_;
           }
-          return talon.harness.Llm.ChatImageUrl.getDefaultInstance();
+          return talon.data.Data.ObjectRef.getDefaultInstance();
         } else {
-          if (contentCase_ == 2) {
-            return imageUrlBuilder_.getMessage();
+          if (contentCase_ == 4) {
+            return objectRefBuilder_.getMessage();
           }
-          return talon.harness.Llm.ChatImageUrl.getDefaultInstance();
+          return talon.data.Data.ObjectRef.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
        */
-      public Builder setImageUrl(talon.harness.Llm.ChatImageUrl value) {
-        if (imageUrlBuilder_ == null) {
+      public Builder setObjectRef(talon.data.Data.ObjectRef value) {
+        if (objectRefBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
           content_ = value;
           onChanged();
         } else {
-          imageUrlBuilder_.setMessage(value);
+          objectRefBuilder_.setMessage(value);
         }
-        contentCase_ = 2;
+        contentCase_ = 4;
         return this;
       }
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
        */
-      public Builder setImageUrl(
-          talon.harness.Llm.ChatImageUrl.Builder builderForValue) {
-        if (imageUrlBuilder_ == null) {
+      public Builder setObjectRef(
+          talon.data.Data.ObjectRef.Builder builderForValue) {
+        if (objectRefBuilder_ == null) {
           content_ = builderForValue.build();
           onChanged();
         } else {
-          imageUrlBuilder_.setMessage(builderForValue.build());
+          objectRefBuilder_.setMessage(builderForValue.build());
         }
-        contentCase_ = 2;
+        contentCase_ = 4;
         return this;
       }
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
        */
-      public Builder mergeImageUrl(talon.harness.Llm.ChatImageUrl value) {
-        if (imageUrlBuilder_ == null) {
-          if (contentCase_ == 2 &&
-              content_ != talon.harness.Llm.ChatImageUrl.getDefaultInstance()) {
-            content_ = talon.harness.Llm.ChatImageUrl.newBuilder((talon.harness.Llm.ChatImageUrl) content_)
+      public Builder mergeObjectRef(talon.data.Data.ObjectRef value) {
+        if (objectRefBuilder_ == null) {
+          if (contentCase_ == 4 &&
+              content_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
+            content_ = talon.data.Data.ObjectRef.newBuilder((talon.data.Data.ObjectRef) content_)
                 .mergeFrom(value).buildPartial();
           } else {
             content_ = value;
           }
           onChanged();
         } else {
-          if (contentCase_ == 2) {
-            imageUrlBuilder_.mergeFrom(value);
+          if (contentCase_ == 4) {
+            objectRefBuilder_.mergeFrom(value);
           } else {
-            imageUrlBuilder_.setMessage(value);
+            objectRefBuilder_.setMessage(value);
           }
         }
-        contentCase_ = 2;
+        contentCase_ = 4;
         return this;
       }
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
        */
-      public Builder clearImageUrl() {
-        if (imageUrlBuilder_ == null) {
-          if (contentCase_ == 2) {
+      public Builder clearObjectRef() {
+        if (objectRefBuilder_ == null) {
+          if (contentCase_ == 4) {
             contentCase_ = 0;
             content_ = null;
             onChanged();
           }
         } else {
-          if (contentCase_ == 2) {
+          if (contentCase_ == 4) {
             contentCase_ = 0;
             content_ = null;
           }
-          imageUrlBuilder_.clear();
+          objectRefBuilder_.clear();
         }
         return this;
       }
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
        */
-      public talon.harness.Llm.ChatImageUrl.Builder getImageUrlBuilder() {
-        return internalGetImageUrlFieldBuilder().getBuilder();
+      public talon.data.Data.ObjectRef.Builder getObjectRefBuilder() {
+        return internalGetObjectRefFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
        */
       @java.lang.Override
-      public talon.harness.Llm.ChatImageUrlOrBuilder getImageUrlOrBuilder() {
-        if ((contentCase_ == 2) && (imageUrlBuilder_ != null)) {
-          return imageUrlBuilder_.getMessageOrBuilder();
+      public talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder() {
+        if ((contentCase_ == 4) && (objectRefBuilder_ != null)) {
+          return objectRefBuilder_.getMessageOrBuilder();
         } else {
-          if (contentCase_ == 2) {
-            return (talon.harness.Llm.ChatImageUrl) content_;
+          if (contentCase_ == 4) {
+            return (talon.data.Data.ObjectRef) content_;
           }
-          return talon.harness.Llm.ChatImageUrl.getDefaultInstance();
+          return talon.data.Data.ObjectRef.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.harness.ChatImageUrl image_url = 2;</code>
+       * <code>.talon.data.ObjectRef object_ref = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.harness.Llm.ChatImageUrl, talon.harness.Llm.ChatImageUrl.Builder, talon.harness.Llm.ChatImageUrlOrBuilder>
-          internalGetImageUrlFieldBuilder() {
-        if (imageUrlBuilder_ == null) {
-          if (!(contentCase_ == 2)) {
-            content_ = talon.harness.Llm.ChatImageUrl.getDefaultInstance();
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>
+          internalGetObjectRefFieldBuilder() {
+        if (objectRefBuilder_ == null) {
+          if (!(contentCase_ == 4)) {
+            content_ = talon.data.Data.ObjectRef.getDefaultInstance();
           }
-          imageUrlBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.harness.Llm.ChatImageUrl, talon.harness.Llm.ChatImageUrl.Builder, talon.harness.Llm.ChatImageUrlOrBuilder>(
-                  (talon.harness.Llm.ChatImageUrl) content_,
+          objectRefBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>(
+                  (talon.data.Data.ObjectRef) content_,
                   getParentForChildren(),
                   isClean());
           content_ = null;
         }
-        contentCase_ = 2;
+        contentCase_ = 4;
         onChanged();
-        return imageUrlBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.harness.Llm.ChatImageData, talon.harness.Llm.ChatImageData.Builder, talon.harness.Llm.ChatImageDataOrBuilder> imageDataBuilder_;
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       * @return Whether the imageData field is set.
-       */
-      @java.lang.Override
-      public boolean hasImageData() {
-        return contentCase_ == 3;
-      }
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       * @return The imageData.
-       */
-      @java.lang.Override
-      public talon.harness.Llm.ChatImageData getImageData() {
-        if (imageDataBuilder_ == null) {
-          if (contentCase_ == 3) {
-            return (talon.harness.Llm.ChatImageData) content_;
-          }
-          return talon.harness.Llm.ChatImageData.getDefaultInstance();
-        } else {
-          if (contentCase_ == 3) {
-            return imageDataBuilder_.getMessage();
-          }
-          return talon.harness.Llm.ChatImageData.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       */
-      public Builder setImageData(talon.harness.Llm.ChatImageData value) {
-        if (imageDataBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          content_ = value;
-          onChanged();
-        } else {
-          imageDataBuilder_.setMessage(value);
-        }
-        contentCase_ = 3;
-        return this;
-      }
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       */
-      public Builder setImageData(
-          talon.harness.Llm.ChatImageData.Builder builderForValue) {
-        if (imageDataBuilder_ == null) {
-          content_ = builderForValue.build();
-          onChanged();
-        } else {
-          imageDataBuilder_.setMessage(builderForValue.build());
-        }
-        contentCase_ = 3;
-        return this;
-      }
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       */
-      public Builder mergeImageData(talon.harness.Llm.ChatImageData value) {
-        if (imageDataBuilder_ == null) {
-          if (contentCase_ == 3 &&
-              content_ != talon.harness.Llm.ChatImageData.getDefaultInstance()) {
-            content_ = talon.harness.Llm.ChatImageData.newBuilder((talon.harness.Llm.ChatImageData) content_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            content_ = value;
-          }
-          onChanged();
-        } else {
-          if (contentCase_ == 3) {
-            imageDataBuilder_.mergeFrom(value);
-          } else {
-            imageDataBuilder_.setMessage(value);
-          }
-        }
-        contentCase_ = 3;
-        return this;
-      }
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       */
-      public Builder clearImageData() {
-        if (imageDataBuilder_ == null) {
-          if (contentCase_ == 3) {
-            contentCase_ = 0;
-            content_ = null;
-            onChanged();
-          }
-        } else {
-          if (contentCase_ == 3) {
-            contentCase_ = 0;
-            content_ = null;
-          }
-          imageDataBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       */
-      public talon.harness.Llm.ChatImageData.Builder getImageDataBuilder() {
-        return internalGetImageDataFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       */
-      @java.lang.Override
-      public talon.harness.Llm.ChatImageDataOrBuilder getImageDataOrBuilder() {
-        if ((contentCase_ == 3) && (imageDataBuilder_ != null)) {
-          return imageDataBuilder_.getMessageOrBuilder();
-        } else {
-          if (contentCase_ == 3) {
-            return (talon.harness.Llm.ChatImageData) content_;
-          }
-          return talon.harness.Llm.ChatImageData.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.harness.ChatImageData image_data = 3;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.harness.Llm.ChatImageData, talon.harness.Llm.ChatImageData.Builder, talon.harness.Llm.ChatImageDataOrBuilder>
-          internalGetImageDataFieldBuilder() {
-        if (imageDataBuilder_ == null) {
-          if (!(contentCase_ == 3)) {
-            content_ = talon.harness.Llm.ChatImageData.getDefaultInstance();
-          }
-          imageDataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.harness.Llm.ChatImageData, talon.harness.Llm.ChatImageData.Builder, talon.harness.Llm.ChatImageDataOrBuilder>(
-                  (talon.harness.Llm.ChatImageData) content_,
-                  getParentForChildren(),
-                  isClean());
-          content_ = null;
-        }
-        contentCase_ = 3;
-        onChanged();
-        return imageDataBuilder_;
+        return objectRefBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.harness.ChatContentPart)
@@ -11184,16 +9429,6 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_harness_ChatImageUrl_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_harness_ChatImageUrl_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_harness_ChatImageData_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_harness_ChatImageData_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_harness_ChatContentPart_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -11248,113 +9483,99 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
   static {
     java.lang.String[] descriptorData = {
       "\n\027proto/harness/llm.proto\022\rtalon.harness" +
-      "\032\034proto/resources/agents.proto\";\n\014ChatIm" +
-      "ageUrl\022\013\n\003url\030\001 \001(\t\022\023\n\006detail\030\002 \001(\tH\000\210\001\001" +
-      "B\t\n\007_detail\"X\n\rChatImageData\022\022\n\nmedia_ty" +
-      "pe\030\001 \001(\t\022\023\n\013data_base64\030\002 \001(\t\022\023\n\006detail\030" +
-      "\003 \001(\tH\000\210\001\001B\t\n\007_detail\"\222\001\n\017ChatContentPar" +
-      "t\022\016\n\004text\030\001 \001(\tH\000\0220\n\timage_url\030\002 \001(\0132\033.t" +
-      "alon.harness.ChatImageUrlH\000\0222\n\nimage_dat" +
-      "a\030\003 \001(\0132\034.talon.harness.ChatImageDataH\000B" +
-      "\t\n\007content\"7\n\010ToolCall\022\n\n\002id\030\001 \001(\t\022\014\n\004na" +
-      "me\030\002 \001(\t\022\021\n\targuments\030\003 \001(\t\"x\n\rToolCallD" +
-      "elta\022\r\n\005index\030\001 \001(\r\022\017\n\002id\030\002 \001(\tH\000\210\001\001\022\021\n\004" +
-      "name\030\003 \001(\tH\001\210\001\001\022\026\n\targuments\030\004 \001(\tH\002\210\001\001B" +
-      "\005\n\003_idB\007\n\005_nameB\014\n\n_arguments\"\253\001\n\013ChatMe" +
-      "ssage\022\014\n\004role\030\001 \001(\t\0225\n\rcontent_parts\030\002 \003" +
-      "(\0132\036.talon.harness.ChatContentPart\022+\n\nto" +
-      "ol_calls\030\003 \003(\0132\027.talon.harness.ToolCall\022" +
-      "\031\n\014tool_call_id\030\004 \001(\tH\000\210\001\001B\017\n\r_tool_call" +
-      "_id\"h\n\tChatUsage\022\024\n\014input_tokens\030\001 \001(\004\022\025" +
-      "\n\routput_tokens\030\002 \001(\004\022\030\n\020reasoning_token" +
-      "s\030\003 \001(\004\022\024\n\014total_tokens\030\004 \001(\004\"\204\001\n\014ChatRe" +
-      "sponse\022\017\n\007content\030\001 \001(\t\022+\n\ntool_calls\030\002 " +
-      "\003(\0132\027.talon.harness.ToolCall\022,\n\005usage\030\003 " +
-      "\001(\0132\030.talon.harness.ChatUsageH\000\210\001\001B\010\n\006_u" +
-      "sage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013descriptio" +
-      "n\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t\"\244\001\n\013C" +
-      "hatRequest\022,\n\010messages\030\001 \003(\0132\032.talon.har" +
-      "ness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023.talon." +
-      "harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.talon.r" +
-      "esources.ThinkingConfigH\000\210\001\001B\013\n\t_thinkin" +
-      "g\"\257\001\n\017ChatStreamEvent\022\024\n\ntext_delta\030\001 \001(" +
-      "\tH\000\022\031\n\017reasoning_delta\030\002 \001(\tH\000\0227\n\017tool_c" +
-      "all_delta\030\003 \001(\0132\034.talon.harness.ToolCall" +
-      "DeltaH\000\022)\n\005usage\030\004 \001(\0132\030.talon.harness.C" +
-      "hatUsageH\000B\007\n\005eventb\006proto3"
+      "\032\025proto/data/data.proto\032\034proto/resources" +
+      "/agents.proto\"Y\n\017ChatContentPart\022\016\n\004text" +
+      "\030\001 \001(\tH\000\022+\n\nobject_ref\030\004 \001(\0132\025.talon.dat" +
+      "a.ObjectRefH\000B\t\n\007content\"7\n\010ToolCall\022\n\n\002" +
+      "id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\021\n\targuments\030\003 \001(" +
+      "\t\"x\n\rToolCallDelta\022\r\n\005index\030\001 \001(\r\022\017\n\002id\030" +
+      "\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001(\tH\001\210\001\001\022\026\n\targumen" +
+      "ts\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007\n\005_nameB\014\n\n_argume" +
+      "nts\"\253\001\n\013ChatMessage\022\014\n\004role\030\001 \001(\t\0225\n\rcon" +
+      "tent_parts\030\002 \003(\0132\036.talon.harness.ChatCon" +
+      "tentPart\022+\n\ntool_calls\030\003 \003(\0132\027.talon.har" +
+      "ness.ToolCall\022\031\n\014tool_call_id\030\004 \001(\tH\000\210\001\001" +
+      "B\017\n\r_tool_call_id\"h\n\tChatUsage\022\024\n\014input_" +
+      "tokens\030\001 \001(\004\022\025\n\routput_tokens\030\002 \001(\004\022\030\n\020r" +
+      "easoning_tokens\030\003 \001(\004\022\024\n\014total_tokens\030\004 " +
+      "\001(\004\"\204\001\n\014ChatResponse\022\017\n\007content\030\001 \001(\t\022+\n" +
+      "\ntool_calls\030\002 \003(\0132\027.talon.harness.ToolCa" +
+      "ll\022,\n\005usage\030\003 \001(\0132\030.talon.harness.ChatUs" +
+      "ageH\000\210\001\001B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t" +
+      "\022\023\n\013description\030\002 \001(\t\022\031\n\021input_schema_js" +
+      "on\030\003 \001(\t\"\244\001\n\013ChatRequest\022,\n\010messages\030\001 \003" +
+      "(\0132\032.talon.harness.ChatMessage\022\"\n\005tools\030" +
+      "\002 \003(\0132\023.talon.harness.Tool\0226\n\010thinking\030\003" +
+      " \001(\0132\037.talon.resources.ThinkingConfigH\000\210" +
+      "\001\001B\013\n\t_thinking\"\257\001\n\017ChatStreamEvent\022\024\n\nt" +
+      "ext_delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 \001" +
+      "(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon.ha" +
+      "rness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030.t" +
+      "alon.harness.ChatUsageH\000B\007\n\005eventb\006proto" +
+      "3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
+          talon.data.Data.getDescriptor(),
           talon.resources.Agents.getDescriptor(),
         });
-    internal_static_talon_harness_ChatImageUrl_descriptor =
-      getDescriptor().getMessageType(0);
-    internal_static_talon_harness_ChatImageUrl_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_harness_ChatImageUrl_descriptor,
-        new java.lang.String[] { "Url", "Detail", });
-    internal_static_talon_harness_ChatImageData_descriptor =
-      getDescriptor().getMessageType(1);
-    internal_static_talon_harness_ChatImageData_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_harness_ChatImageData_descriptor,
-        new java.lang.String[] { "MediaType", "DataBase64", "Detail", });
     internal_static_talon_harness_ChatContentPart_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(0);
     internal_static_talon_harness_ChatContentPart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatContentPart_descriptor,
-        new java.lang.String[] { "Text", "ImageUrl", "ImageData", "Content", });
+        new java.lang.String[] { "Text", "ObjectRef", "Content", });
     internal_static_talon_harness_ToolCall_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(1);
     internal_static_talon_harness_ToolCall_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolCall_descriptor,
         new java.lang.String[] { "Id", "Name", "Arguments", });
     internal_static_talon_harness_ToolCallDelta_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(2);
     internal_static_talon_harness_ToolCallDelta_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolCallDelta_descriptor,
         new java.lang.String[] { "Index", "Id", "Name", "Arguments", });
     internal_static_talon_harness_ChatMessage_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(3);
     internal_static_talon_harness_ChatMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatMessage_descriptor,
         new java.lang.String[] { "Role", "ContentParts", "ToolCalls", "ToolCallId", });
     internal_static_talon_harness_ChatUsage_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(4);
     internal_static_talon_harness_ChatUsage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatUsage_descriptor,
         new java.lang.String[] { "InputTokens", "OutputTokens", "ReasoningTokens", "TotalTokens", });
     internal_static_talon_harness_ChatResponse_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(5);
     internal_static_talon_harness_ChatResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatResponse_descriptor,
         new java.lang.String[] { "Content", "ToolCalls", "Usage", });
     internal_static_talon_harness_Tool_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(6);
     internal_static_talon_harness_Tool_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_Tool_descriptor,
         new java.lang.String[] { "Name", "Description", "InputSchemaJson", });
     internal_static_talon_harness_ChatRequest_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(7);
     internal_static_talon_harness_ChatRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatRequest_descriptor,
         new java.lang.String[] { "Messages", "Tools", "Thinking", });
     internal_static_talon_harness_ChatStreamEvent_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(8);
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatStreamEvent_descriptor,
         new java.lang.String[] { "TextDelta", "ReasoningDelta", "ToolCallDelta", "Usage", "Event", });
     descriptor.resolveAllFeaturesImmutable();
+    talon.data.Data.getDescriptor();
     talon.resources.Agents.getDescriptor();
   }
 

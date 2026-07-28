@@ -279,22 +279,19 @@ fn message_value(message: &ChatMessage) -> Value {
 fn content_parts_value(parts: &[ChatContentPart]) -> Vec<Value> {
     parts
         .iter()
-        .filter_map(|part| match part.content.as_ref()? {
-            chat_content_part::Content::Text(text) => Some(json!({
+        .filter_map(|part| match part.content.as_ref() {
+            Some(chat_content_part::Content::Text(text)) => Some(json!({
                 "type": "text",
                 "content": text,
             })),
-            chat_content_part::Content::ImageUrl(image) => Some(json!({
-                "type": "image",
-                "url": image.url,
-                "detail": image.detail,
+            Some(chat_content_part::Content::ObjectRef(object)) => Some(json!({
+                "type": "object",
+                "object_key": object.key,
+                "media_type": object.media_type,
+                "size_bytes": object.size_bytes,
+                "filename": object.filename,
             })),
-            chat_content_part::Content::ImageData(image) => Some(json!({
-                "type": "image",
-                "media_type": image.media_type,
-                "data": image.data_base64,
-                "detail": image.detail,
-            })),
+            None => None,
         })
         .collect()
 }
@@ -324,8 +321,9 @@ fn low_cardinality_error_text(error: &str) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::gateway::rpc::data_proto;
     use crate::harness::llm::{
-        chat_message_text, image_data_part, image_url_part, text_part, ChatMessage, Tool, ToolCall,
+        chat_message_text, object_ref_part, text_part, ChatMessage, Tool, ToolCall,
     };
 
     #[test]
@@ -349,8 +347,13 @@ mod tests {
             role: "assistant".to_string(),
             content_parts: vec![
                 text_part("hello"),
-                image_url_part("https://example.test/image.png", Some("high")),
-                image_data_part("image/png", "base64-data", Some("low")),
+                object_ref_part(data_proto::ObjectRef {
+                    key: "cas/acme/files/file-1/sha".to_string(),
+                    media_type: "image/png".to_string(),
+                    size_bytes: 123,
+                    filename: "image.png".to_string(),
+                    ..Default::default()
+                }),
             ],
             tool_calls: vec![ToolCall {
                 id: "call-1".to_string(),
@@ -365,11 +368,10 @@ mod tests {
         assert_eq!(value[0]["role"], "assistant");
         assert_eq!(value[0]["parts"][0]["content"], "hello");
         assert_eq!(
-            value[0]["parts"][1]["url"],
-            "https://example.test/image.png"
+            value[0]["parts"][1]["object_key"],
+            "cas/acme/files/file-1/sha"
         );
-        assert_eq!(value[0]["parts"][2]["data"], "base64-data");
-        assert_eq!(value[0]["parts"][3]["arguments"]["query"], "plan");
+        assert_eq!(value[0]["parts"][2]["arguments"]["query"], "plan");
     }
 
     #[test]

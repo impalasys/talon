@@ -7,7 +7,6 @@
 package data
 
 import (
-	harness "github.com/impalasys/talon/sdk/go/talon-client/talon/harness"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -83,7 +82,7 @@ func (SessionExecutionPhase) EnumDescriptor() ([]byte, []int) {
 
 type SessionJournalEntryPayloadLlmResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Response      *harness.ChatResponse  `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
+	Response      *ChatResponse          `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -118,7 +117,7 @@ func (*SessionJournalEntryPayloadLlmResponse) Descriptor() ([]byte, []int) {
 	return file_proto_data_session_journal_entry_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SessionJournalEntryPayloadLlmResponse) GetResponse() *harness.ChatResponse {
+func (x *SessionJournalEntryPayloadLlmResponse) GetResponse() *ChatResponse {
 	if x != nil {
 		return x.Response
 	}
@@ -510,7 +509,7 @@ var file_proto_data_session_journal_entry_proto_goTypes = []any{
 	(*SessionJournalEntryPayloadCommit)(nil),      // 3: talon.data.SessionJournalEntryPayloadCommit
 	(*SessionJournalEntryPayload)(nil),            // 4: talon.data.SessionJournalEntryPayload
 	(*SessionJournalEntry)(nil),                   // 5: talon.data.SessionJournalEntry
-	(*harness.ChatResponse)(nil),                  // 6: talon.harness.ChatResponse
+	(*ChatResponse)(nil),                          // 6: talon.harness.ChatResponse
 	(*ObjectRef)(nil),                             // 7: talon.data.ObjectRef
 }
 var file_proto_data_session_journal_entry_proto_depIdxs = []int32{
@@ -534,6 +533,7 @@ func file_proto_data_session_journal_entry_proto_init() {
 		return
 	}
 	file_proto_data_data_proto_init()
+	file_proto_harness_llm_proto_init()
 	file_proto_data_session_journal_entry_proto_msgTypes[3].OneofWrappers = []any{
 		(*SessionJournalEntryPayload_LlmResponse)(nil),
 		(*SessionJournalEntryPayload_ToolResult)(nil),

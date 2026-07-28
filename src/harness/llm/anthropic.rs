@@ -1,15 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::cas::CasStore;
 use crate::gateway::rpc::manifests;
 use crate::harness::llm::provider::{
-    chat_content_part, chat_message_text, chat_stream_event, text_delta_event, usage_event,
-    ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent,
-    ChatUsage, LlmProvider,
+    chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
+    text_delta_event, usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
+    ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use base64::{engine::general_purpose, Engine as _};
 use futures::{stream, StreamExt};
 use serde_json::json;
 
@@ -23,15 +25,17 @@ pub struct AnthropicProvider {
     pub model: String,
     pub http_client: reqwest::Client,
     pub api_base_url: Option<String>,
+    cas: CasStore,
 }
 
 impl AnthropicProvider {
-    pub fn new(api_key: String, model: String) -> Self {
+    pub fn new(api_key: String, model: String, cas: CasStore) -> Self {
         Self {
             api_key,
             model,
             http_client: reqwest::Client::new(),
             api_base_url: None,
+            cas,
         }
     }
 
@@ -77,7 +81,18 @@ impl AnthropicProvider {
             .filter(|content| !content.is_empty())
     }
 
-    fn serialize_message(message: &ChatMessage) -> serde_json::Value {
+    async fn serialize_content_parts(
+        &self,
+        parts: &[ChatContentPart],
+    ) -> Result<Vec<serde_json::Value>> {
+        let mut serialized = Vec::with_capacity(parts.len());
+        for part in parts {
+            serialized.push(anthropic_content_part(&self.cas, part).await?);
+        }
+        Ok(serialized)
+    }
+
+    async fn serialize_message(&self, message: &ChatMessage) -> Result<serde_json::Value> {
         let content = match message.content_parts.as_slice() {
             [] => serde_json::Value::String(String::new()),
             [part] => match part.content.as_ref() {
@@ -85,25 +100,17 @@ impl AnthropicProvider {
                     serde_json::Value::String(text.clone())
                 }
                 _ => serde_json::Value::Array(
-                    message
-                        .content_parts
-                        .iter()
-                        .map(anthropic_content_part)
-                        .collect(),
+                    self.serialize_content_parts(&message.content_parts).await?,
                 ),
             },
             _ => serde_json::Value::Array(
-                message
-                    .content_parts
-                    .iter()
-                    .map(anthropic_content_part)
-                    .collect(),
+                self.serialize_content_parts(&message.content_parts).await?,
             ),
         };
-        json!({
+        Ok(json!({
             "role": message.role,
             "content": content,
-        })
+        }))
     }
 
     fn request_system_prompt(messages: &[ChatMessage]) -> Option<String> {
@@ -127,35 +134,65 @@ impl AnthropicProvider {
         (!system_parts.is_empty()).then(|| system_parts.join("\n\n"))
     }
 
-    fn request_messages(messages: &[ChatMessage]) -> Vec<serde_json::Value> {
-        messages
-            .iter()
-            .filter(|message| message.role != "system")
-            .map(Self::serialize_message)
-            .collect()
+    async fn request_messages(&self, messages: &[ChatMessage]) -> Result<Vec<serde_json::Value>> {
+        let mut serialized = Vec::new();
+        for message in messages.iter().filter(|message| message.role != "system") {
+            serialized.push(self.serialize_message(message).await?);
+        }
+        Ok(serialized)
     }
 }
 
-fn anthropic_content_part(part: &ChatContentPart) -> serde_json::Value {
-    match part.content.as_ref() {
+fn object_ref_text(object_ref: &crate::gateway::rpc::data_proto::ObjectRef) -> serde_json::Value {
+    json!({
+        "type": "text",
+        "text": object_ref_fallback_text(object_ref),
+    })
+}
+
+async fn anthropic_content_part(
+    cas: &CasStore,
+    part: &ChatContentPart,
+) -> Result<serde_json::Value> {
+    Ok(match part.content.as_ref() {
         Some(chat_content_part::Content::Text(text)) => json!({
             "type": "text",
             "text": text,
         }),
-        Some(chat_content_part::Content::ImageUrl(image)) => json!({
-            "type": "text",
-            "text": format!("[Image URL: {}]", image.url),
-        }),
-        Some(chat_content_part::Content::ImageData(image)) => json!({
-            "type": "image",
-            "source": {
-                "type": "base64",
-                "media_type": image.media_type,
-                "data": image.data_base64,
+        Some(chat_content_part::Content::ObjectRef(object_ref)) => {
+            let object_ref_media_type = object_ref.media_type.trim();
+            if !object_ref_media_type.is_empty()
+                && !object_ref_media_type
+                    .to_ascii_lowercase()
+                    .starts_with("image/")
+            {
+                return Ok(object_ref_text(object_ref));
             }
-        }),
+            let Some(stored) = cas.get_object_decoded(&object_ref.key).await? else {
+                return Ok(json!({
+                    "type": "text",
+                    "text": format!("[Image object '{}' is missing.]", object_ref.key),
+                }));
+            };
+            let media_type = if object_ref_media_type.is_empty() {
+                stored.metadata.media_type.trim()
+            } else {
+                object_ref_media_type
+            };
+            if !media_type.to_ascii_lowercase().starts_with("image/") {
+                return Ok(object_ref_text(object_ref));
+            }
+            json!({
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": general_purpose::STANDARD.encode(stored.bytes),
+                }
+            })
+        }
         None => json!({"type": "text", "text": ""}),
-    }
+    })
 }
 
 #[async_trait]
@@ -174,7 +211,7 @@ impl LlmProvider for AnthropicProvider {
         let mut payload = json!({
             "model": self.model,
             "max_tokens": max_tokens,
-            "messages": Self::request_messages(&request.messages),
+            "messages": self.request_messages(&request.messages).await?,
         });
         if let Some(system_prompt) = Self::request_system_prompt(&request.messages) {
             payload["system"] = json!(system_prompt);
@@ -217,7 +254,7 @@ impl LlmProvider for AnthropicProvider {
         let mut payload = json!({
             "model": self.model,
             "max_tokens": max_tokens,
-            "messages": Self::request_messages(&request.messages),
+            "messages": self.request_messages(&request.messages).await?,
             "stream": true,
         });
         if let Some(system_prompt) = Self::request_system_prompt(&request.messages) {
@@ -361,11 +398,17 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use crate::gateway::rpc::manifests::ThinkingConfig;
-    use crate::harness::llm::{image_data_part, image_url_part};
+    use crate::harness::llm::{chat_message_text, object_ref_part};
     use axum::{routing::post, Json, Router};
     use serde_json::json;
+    use std::sync::Arc;
     use tokio::net::TcpListener;
+
+    fn test_cas_store() -> CasStore {
+        CasStore::new(Arc::new(InMemoryObjectStore::default()))
+    }
 
     #[test]
     fn resolve_thinking_config_defaults_budget_and_max_tokens() {
@@ -423,24 +466,49 @@ mod tests {
         );
     }
 
-    #[test]
-    fn anthropic_content_part_falls_back_to_text_for_image_urls() {
+    #[tokio::test]
+    async fn anthropic_content_part_falls_back_to_text_for_non_images() {
         assert_eq!(
-            anthropic_content_part(&image_url_part(
-                "https://example.com/image.png",
-                Some("high")
-            )),
+            anthropic_content_part(
+                &test_cas_store(),
+                &object_ref_part(crate::gateway::rpc::data_proto::ObjectRef {
+                    key: "cas/acme/files/file-1/report.pdf".to_string(),
+                    media_type: "application/pdf".to_string(),
+                    size_bytes: 3,
+                    filename: "report.pdf".to_string(),
+                    ..Default::default()
+                })
+            )
+            .await
+            .unwrap(),
             json!({
                 "type": "text",
-                "text": "[Image URL: https://example.com/image.png]",
+                "text": "[Object reference: application/pdf; 3 bytes]",
             })
         );
     }
 
-    #[test]
-    fn anthropic_content_part_serializes_image_data_as_base64() {
+    #[tokio::test]
+    async fn anthropic_content_part_serializes_image_object_ref_as_base64() {
+        let store: Arc<dyn ObjectStore + Send + Sync> = Arc::new(InMemoryObjectStore::default());
+        let mut object = store
+            .put(
+                "cas/acme/files/file-1/image.png",
+                b"png",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "image.png".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        object.media_type.clear();
+
         assert_eq!(
-            anthropic_content_part(&image_data_part("image/png", "cG5n", None::<String>)),
+            anthropic_content_part(&CasStore::new(store), &object_ref_part(object))
+                .await
+                .unwrap(),
             json!({
                 "type": "image",
                 "source": {
@@ -452,15 +520,26 @@ mod tests {
         );
     }
 
-    #[test]
-    fn serialize_message_emits_strings_for_empty_and_single_text_content() {
-        let empty = AnthropicProvider::serialize_message(&ChatMessage {
-            role: "assistant".to_string(),
-            content_parts: Vec::new(),
-            tool_calls: Vec::new(),
-            tool_call_id: None,
-        });
-        let text = AnthropicProvider::serialize_message(&chat_message_text("user", "hello"));
+    #[tokio::test]
+    async fn serialize_message_emits_strings_for_empty_and_single_text_content() {
+        let provider = AnthropicProvider::new(
+            "test-key".to_string(),
+            "claude-test".to_string(),
+            test_cas_store(),
+        );
+        let empty = provider
+            .serialize_message(&ChatMessage {
+                role: "assistant".to_string(),
+                content_parts: Vec::new(),
+                tool_calls: Vec::new(),
+                tool_call_id: None,
+            })
+            .await
+            .unwrap();
+        let text = provider
+            .serialize_message(&chat_message_text("user", "hello"))
+            .await
+            .unwrap();
 
         assert_eq!(empty["content"], "");
         assert_eq!(text["content"], "hello");
@@ -472,6 +551,7 @@ mod tests {
             model: "claude-test".to_string(),
             http_client: reqwest::Client::new(),
             api_base_url: Some(base_url),
+            cas: test_cas_store(),
         }
     }
 
@@ -759,7 +839,8 @@ mod tests {
 
     #[tokio::test]
     async fn generate_embedding_reports_unsupported_provider() {
-        let provider = AnthropicProvider::new("key".to_string(), "model".to_string());
+        let provider =
+            AnthropicProvider::new("key".to_string(), "model".to_string(), test_cas_store());
         let err = provider.generate_embedding("hello").await.unwrap_err();
         assert!(err
             .to_string()

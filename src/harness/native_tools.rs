@@ -16,6 +16,7 @@ use crate::control::{delegation, keys, ControlPlane, ListOptions, ProtoKeyValueS
 use crate::gateway::rpc::{
     data_proto, manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
 };
+use crate::harness::schema::ToolOutput;
 use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
 
@@ -617,7 +618,29 @@ pub async fn execute_tool_for_session(
     name: &str,
     args: &Value,
 ) -> Result<Option<String>> {
-    if let Some(result) = artifact_tools::execute(
+    Ok(execute_tool_for_session_output(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        name,
+        args,
+    )
+    .await?
+    .map(|output| output.summary()))
+}
+
+pub async fn execute_tool_for_session_output(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    name: &str,
+    args: &Value,
+) -> Result<Option<ToolOutput>> {
+    if let Some(result) = artifact_tools::execute_output(
         cp,
         current_namespace,
         current_agent,
@@ -640,7 +663,7 @@ pub async fn execute_tool_for_session(
     )
     .await?
     {
-        return Ok(Some(result));
+        return Ok(Some(ToolOutput::text(result)));
     }
     if let Some(result) = task_tools::execute(
         cp,
@@ -653,7 +676,7 @@ pub async fn execute_tool_for_session(
     )
     .await?
     {
-        return Ok(Some(result));
+        return Ok(Some(ToolOutput::text(result)));
     }
 
     match name {
@@ -661,11 +684,15 @@ pub async fn execute_tool_for_session(
             require_capability(spec, "sessions", "read:messages")?;
             read_session_messages(cp, current_namespace, current_agent, args)
                 .await
+                .map(ToolOutput::text)
                 .map(Some)
         }
         SEARCH_MEMORY_TOOL => {
             require_memory_read(spec)?;
-            search_memory(cp, current_namespace, args).await.map(Some)
+            search_memory(cp, current_namespace, args)
+                .await
+                .map(ToolOutput::text)
+                .map(Some)
         }
         READ_MEMORY_TOOL => {
             require_memory_read(spec)?;
@@ -673,19 +700,31 @@ pub async fn execute_tool_for_session(
         }
         LIST_MEMORY_TOOL => {
             require_memory_read(spec)?;
-            list_memory(cp, current_namespace, args).await.map(Some)
+            list_memory(cp, current_namespace, args)
+                .await
+                .map(ToolOutput::text)
+                .map(Some)
         }
         CREATE_MEMORY_TOOL => {
             require_capability(spec, "memory", "create")?;
-            put_memory(cp, current_namespace, args).await.map(Some)
+            put_memory(cp, current_namespace, args)
+                .await
+                .map(ToolOutput::text)
+                .map(Some)
         }
         UPDATE_MEMORY_TOOL => {
             require_capability(spec, "memory", "update")?;
-            put_memory(cp, current_namespace, args).await.map(Some)
+            put_memory(cp, current_namespace, args)
+                .await
+                .map(ToolOutput::text)
+                .map(Some)
         }
         LIST_FILES_TOOL => {
             require_file_read(spec)?;
-            list_files_tool(cp, current_namespace, args).await.map(Some)
+            list_files_tool(cp, current_namespace, args)
+                .await
+                .map(ToolOutput::text)
+                .map(Some)
         }
         READ_FILE_TOOL => {
             require_file_read(spec)?;
@@ -695,33 +734,37 @@ pub async fn execute_tool_for_session(
             require_file_read(spec)?;
             get_file_metadata_tool(cp, current_namespace, args)
                 .await
+                .map(ToolOutput::text)
                 .map(Some)
         }
         CREATE_FILE_TOOL => {
             require_capability(spec, "files", "create")?;
             create_file_tool(cp, current_namespace, args)
                 .await
+                .map(ToolOutput::text)
                 .map(Some)
         }
         UPDATE_FILE_TOOL => {
             require_capability(spec, "files", "update")?;
             update_file_tool(cp, current_namespace, args)
                 .await
+                .map(ToolOutput::text)
                 .map(Some)
         }
         DELETE_FILE_TOOL => {
             require_capability(spec, "files", "delete")?;
             delete_file_tool(cp, current_namespace, args)
                 .await
+                .map(ToolOutput::text)
                 .map(Some)
         }
         FETCH_URL_TOOL => {
             require_capability(spec, "research", "fetch_url")?;
-            fetch_url(args).await.map(Some)
+            fetch_url(args).await.map(ToolOutput::text).map(Some)
         }
         WEB_SEARCH_TOOL => {
             require_capability(spec, "research", "web_search")?;
-            web_search(args).await.map(Some)
+            web_search(args).await.map(ToolOutput::text).map(Some)
         }
         ACTIVATE_SKILL_TOOL => {
             let skill_name = req_str(args, "name")?;
@@ -730,7 +773,7 @@ pub async fn execute_tool_for_session(
                 .ok_or_else(|| anyhow!("skill '{}' is not available", skill_name))?;
             let activated = namespace::format_activated_skill(skill)
                 .ok_or_else(|| anyhow!("skill '{}' has no instructions", skill_name))?;
-            Ok(Some(activated))
+            Ok(Some(ToolOutput::text(activated)))
         }
         CHANNEL_PUBLISH_TOOL => {
             let content = req_str(args, "content")?;
@@ -742,11 +785,13 @@ pub async fn execute_tool_for_session(
                 content,
             )
             .await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "published": true,
-                "messageId": message.id,
-                "channel": message.channel
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "published": true,
+                    "messageId": message.id,
+                    "channel": message.channel
+                }),
+            )?)))
         }
         CHANNEL_SKIP_REPLY_TOOL => {
             let reason = opt_str(args, "reason").unwrap_or("");
@@ -758,10 +803,12 @@ pub async fn execute_tool_for_session(
                 reason,
             )
             .await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "published": false,
-                "skipped": true
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "published": false,
+                    "skipped": true
+                }),
+            )?)))
         }
         LIST_SCHEDULES_TOOL => {
             require_capability(spec, "schedules", "inspect")?;
@@ -799,9 +846,9 @@ pub async fn execute_tool_for_session(
                     break;
                 }
             }
-            Ok(Some(serde_json::to_string_pretty(
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
                 &json!({ "schedules": schedules }),
-            )?))
+            )?)))
         }
         GET_SCHEDULE_TOOL => {
             require_capability(spec, "schedules", "inspect")?;
@@ -812,18 +859,22 @@ pub async fn execute_tool_for_session(
                 .get_msg::<resources_proto::Schedule>(&keys::schedule(namespace, schedule_name))
                 .await?
                 .ok_or_else(|| anyhow!("schedule '{}' not found", schedule_name))?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "schedule": schedule_json(&schedule)
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "schedule": schedule_json(&schedule)
+                }),
+            )?)))
         }
         CREATE_SCHEDULE_TOOL => {
             require_capability(spec, "schedules", "create")?;
             let schedule =
                 upsert_schedule(cp, current_namespace, current_agent, args, None).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "schedule": schedule_json(&schedule),
-                "backendArmed": schedule.status.as_ref().map(|status| status.backend_armed).unwrap_or(false)
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "schedule": schedule_json(&schedule),
+                    "backendArmed": schedule.status.as_ref().map(|status| status.backend_armed).unwrap_or(false)
+                }),
+            )?)))
         }
         UPDATE_SCHEDULE_TOOL => {
             require_capability(spec, "schedules", "update")?;
@@ -836,10 +887,12 @@ pub async fn execute_tool_for_session(
                 .ok_or_else(|| anyhow!("schedule '{}' not found", schedule_name))?;
             let schedule =
                 upsert_schedule(cp, current_namespace, current_agent, args, Some(existing)).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "schedule": schedule_json(&schedule),
-                "backendArmed": schedule.status.as_ref().map(|status| status.backend_armed).unwrap_or(false)
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "schedule": schedule_json(&schedule),
+                    "backendArmed": schedule.status.as_ref().map(|status| status.backend_armed).unwrap_or(false)
+                }),
+            )?)))
         }
         DELETE_SCHEDULE_TOOL => {
             require_capability(spec, "schedules", "delete")?;
@@ -854,9 +907,9 @@ pub async fn execute_tool_for_session(
                 }
             }
             cp.kv.delete(&key).await?;
-            Ok(Some(serde_json::to_string_pretty(
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
                 &json!({ "success": true }),
-            )?))
+            )?)))
         }
         LIST_GOALS_TOOL => {
             require_capability(spec, "goals", "inspect")?;
@@ -871,26 +924,32 @@ pub async fn execute_tool_for_session(
                 .into_iter()
                 .map(|goal| goal_json(&goal))
                 .collect::<Vec<_>>();
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "goals": goals
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "goals": goals
+                }),
+            )?)))
         }
         GET_GOAL_TOOL => {
             require_capability(spec, "goals", "inspect")?;
             let goal =
                 get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
                     .await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "goal": goal_json(&goal)
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "goal": goal_json(&goal)
+                }),
+            )?)))
         }
         CREATE_GOAL_TOOL => {
             require_capability(spec, "goals", "create")?;
             let goal =
                 create_goal(cp, current_namespace, current_agent, current_session, args).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "goal": goal_json(&goal)
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "goal": goal_json(&goal)
+                }),
+            )?)))
         }
         UPDATE_GOAL_TOOL => {
             require_capability(spec, "goals", "update")?;
@@ -899,9 +958,11 @@ pub async fn execute_tool_for_session(
                     .await?;
             update_goal_from_args(&mut goal, args)?;
             upsert_goal(cp, goal.clone()).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "goal": goal_json(&goal)
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "goal": goal_json(&goal)
+                }),
+            )?)))
         }
         COMPLETE_GOAL_TOOL => {
             require_capability(spec, "goals", "update")?;
@@ -916,9 +977,11 @@ pub async fn execute_tool_for_session(
                 goal.progress_summary = summary.to_string();
             }
             upsert_goal(cp, goal.clone()).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "goal": goal_json(&goal)
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "goal": goal_json(&goal)
+                }),
+            )?)))
         }
         BLOCK_GOAL_TOOL => {
             require_capability(spec, "goals", "update")?;
@@ -933,9 +996,11 @@ pub async fn execute_tool_for_session(
                 goal.progress_summary = summary.to_string();
             }
             upsert_goal(cp, goal.clone()).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({
-                "goal": goal_json(&goal)
-            }))?))
+            Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
+                &json!({
+                    "goal": goal_json(&goal)
+                }),
+            )?)))
         }
         _ => Ok(None),
     }
@@ -1020,19 +1085,17 @@ async fn search_memory(cp: &ControlPlane, current_namespace: &str, args: &Value)
     )?)
 }
 
-async fn read_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
+async fn read_memory(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<ToolOutput> {
     let namespace = namespace_arg(current_namespace, args);
     let path = normalize_logical_path(req_str(args, "path")?)?;
     let file = find_memory_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("memory file '{}' not found", path))?;
-    let content = read_file_content(cp, &file).await?;
-    Ok(serde_json::to_string_pretty(&json!({
-        "namespace": namespace,
-        "name": file_name_from_file(&file),
-        "path": path,
-        "content": content,
-    }))?)
+    read_file_output(cp, &file).await
 }
 
 async fn list_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
@@ -1115,17 +1178,12 @@ async fn read_file_tool(
     cp: &ControlPlane,
     current_namespace: &str,
     args: &Value,
-) -> Result<String> {
+) -> Result<ToolOutput> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
-    let content = read_file_content(cp, &file).await?;
-    let mut value = file_json(&file, false);
-    if let Some(object) = value.as_object_mut() {
-        object.insert("content".to_string(), json!(content));
-    }
-    Ok(serde_json::to_string_pretty(&value)?)
+    read_file_output(cp, &file).await
 }
 
 async fn get_file_metadata_tool(
@@ -1344,7 +1402,68 @@ async fn find_file_by_path(
         .find(|file| file.spec.as_ref().map(|spec| spec.path.as_str()) == Some(path)))
 }
 
+struct ReadFileObject {
+    object: crate::control::object_store::StoredObject,
+    object_ref: data_proto::ObjectRef,
+}
+
 async fn read_file_content(cp: &ControlPlane, file: &resources_proto::File) -> Result<String> {
+    let read_object = read_file_object(cp, file).await?;
+    Ok(String::from_utf8_lossy(&read_object.object.bytes).to_string())
+}
+
+async fn read_file_output(cp: &ControlPlane, file: &resources_proto::File) -> Result<ToolOutput> {
+    let read_object = read_file_object(cp, file).await?;
+    let spec_media_type = file
+        .spec
+        .as_ref()
+        .map(|spec| spec.media_type.trim())
+        .unwrap_or_default();
+    let object_media_type = read_object.object.metadata.media_type.trim();
+    let media_type = if !spec_media_type.is_empty() {
+        spec_media_type.to_string()
+    } else if !object_media_type.is_empty() {
+        object_media_type.to_string()
+    } else {
+        file.spec
+            .as_ref()
+            .and_then(|spec| mime_guess::from_path(&spec.path).first_raw())
+            .unwrap_or("application/octet-stream")
+            .to_string()
+    };
+    let filename = {
+        let metadata_filename = read_object.object.metadata.filename.trim();
+        if !metadata_filename.is_empty() {
+            metadata_filename.to_string()
+        } else {
+            file.spec
+                .as_ref()
+                .map(|spec| {
+                    spec.path
+                        .trim_end_matches('/')
+                        .rsplit('/')
+                        .next()
+                        .unwrap_or_default()
+                        .to_string()
+                })
+                .unwrap_or_default()
+        }
+    };
+    let mut object_ref = read_object.object_ref;
+    object_ref.media_type = media_type.clone();
+    object_ref.filename = filename.clone();
+    Ok(ToolOutput::from_source_object(
+        read_object.object.bytes,
+        media_type,
+        filename,
+        object_ref,
+    ))
+}
+
+async fn read_file_object(
+    cp: &ControlPlane,
+    file: &resources_proto::File,
+) -> Result<ReadFileObject> {
     let object_ref = file
         .status
         .as_ref()
@@ -1354,7 +1473,8 @@ async fn read_file_content(cp: &ControlPlane, file: &resources_proto::File) -> R
         .get_object_decoded(&object_ref.key)
         .await?
         .ok_or_else(|| anyhow!("File object '{}' not found", object_ref.key))?;
-    Ok(String::from_utf8_lossy(&object.bytes).to_string())
+    let object_ref = crate::control::cas::object_ref_from_stored_object(&object_ref.key, &object);
+    Ok(ReadFileObject { object, object_ref })
 }
 
 async fn upsert_memory_file(
@@ -1782,7 +1902,7 @@ async fn read_artifact(
     current_agent: &str,
     current_session: &str,
     args: &Value,
-) -> Result<String> {
+) -> Result<ToolOutput> {
     let artifact_uri = req_str(args, "artifact_uri")?;
     let (_, artifact) =
         resolve_artifact_uri(cp, current_agent, current_session, artifact_uri, OP_READ).await?;
@@ -1795,16 +1915,31 @@ async fn read_artifact(
         .get(&object_ref.key)
         .await?
         .ok_or_else(|| anyhow!("Artifact object not found"))?;
-    let content_text = String::from_utf8(object.bytes.clone()).ok();
-    Ok(serde_json::to_string_pretty(&json!({
-        "artifact": artifact_json(&artifact),
-        "content": content_text,
-        "contentBase64": if content_text.is_none() {
-            Some(general_purpose::STANDARD.encode(&object.bytes))
-        } else {
-            None
-        }
-    }))?)
+    let media_type = if !artifact.media_type.trim().is_empty() {
+        artifact.media_type.trim().to_string()
+    } else if !object_ref.media_type.trim().is_empty() {
+        object_ref.media_type.trim().to_string()
+    } else if !object.metadata.media_type.trim().is_empty() {
+        object.metadata.media_type.trim().to_string()
+    } else {
+        "application/octet-stream".to_string()
+    };
+    let filename = if !object_ref.filename.trim().is_empty() {
+        object_ref.filename.clone()
+    } else if !object.metadata.filename.trim().is_empty() {
+        object.metadata.filename.clone()
+    } else {
+        artifact.title.clone()
+    };
+    let mut object_ref = object_ref.clone();
+    object_ref.media_type = media_type.clone();
+    object_ref.filename = filename.clone();
+    Ok(ToolOutput::from_source_object(
+        object.bytes,
+        media_type,
+        filename,
+        object_ref,
+    ))
 }
 
 async fn update_artifact(
@@ -3756,6 +3891,63 @@ mod tests {
         .unwrap();
     }
 
+    async fn seed_claimed_submission(kv: &MockKvStore, ns: &str, agent: &str, session_id: &str) {
+        let mut submission =
+            crate::harness::sessions::pending_submission("submission-1", session_id, "user-1", 1);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::harness::sessions::create_submission_if_absent(
+            kv,
+            ns,
+            agent,
+            session_id,
+            &submission,
+        )
+        .await
+        .unwrap();
+    }
+
+    async fn append_test_tool_result(
+        kv: &MockKvStore,
+        cp: &ControlPlane,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        tool_name: &str,
+        output: &ToolOutput,
+    ) -> data_proto::ObjectRef {
+        seed_claimed_submission(kv, ns, agent, session_id).await;
+        let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+        let entry = crate::harness::sessions::append_tool_result(
+            kv,
+            &cas,
+            ns,
+            agent,
+            session_id,
+            "message-1",
+            "part-1",
+            "submission-1",
+            "attempt-1",
+            "call-1",
+            tool_name,
+            output,
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .await
+        .unwrap();
+        let payload = entry
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+            .expect("journal payload");
+        match payload {
+            data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
+                result.object.clone().expect("journaled object ref")
+            }
+            other => panic!("expected tool result payload, got {other:?}"),
+        }
+    }
+
     async fn set_session_status(
         kv: &MockKvStore,
         ns: &str,
@@ -3892,7 +4084,7 @@ mod tests {
         .expect("create should execute")
         .expect("create should return output");
 
-        let read = execute_tool_for_session(
+        let read = execute_tool_for_session_output(
             &cp,
             namespace,
             "cmo",
@@ -3904,10 +4096,12 @@ mod tests {
         .await
         .expect("read should execute")
         .expect("read should return output");
-        let read: Value = serde_json::from_str(&read).unwrap();
-        assert_eq!(read["content"], "# First draft");
-        assert_eq!(read["purpose"], "artifact");
-        assert_eq!(read["indexPolicy"], "search");
+        assert_eq!(read.summary(), "# First draft");
+        assert!(read
+            .object_ref()
+            .expect("read_file should retain source object ref")
+            .key
+            .contains("/files/"));
 
         execute_tool_for_session(
             &cp,
@@ -4292,8 +4486,7 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
-        let read_value: Value = serde_json::from_str(&read_output).unwrap();
-        assert_eq!(read_value["content"], "draft body");
+        assert_eq!(read_output, "draft body");
 
         let update_output = execute_tool_for_session(
             &cp,
@@ -4336,8 +4529,7 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
-        let read_updated_value: Value = serde_json::from_str(&read_updated_output).unwrap();
-        assert_eq!(read_updated_value["content"], "revised body");
+        assert_eq!(read_updated_output, "revised body");
 
         let empty_update = execute_tool_for_session(
             &cp,
@@ -4422,6 +4614,248 @@ mod tests {
         assert!(cross_namespace_update_denied
             .to_string()
             .contains("only the owning artifact namespace/agent/session"));
+    }
+
+    #[tokio::test]
+    async fn read_artifact_returns_typed_image_output() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        let png_bytes = b"png-bytes";
+        let created = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            CREATE_ARTIFACT_TOOL,
+            &json!({
+                "title": "Screenshot",
+                "content_base64": general_purpose::STANDARD.encode(png_bytes),
+                "media_type": "image/png"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let value: Value = serde_json::from_str(&created).unwrap();
+        let artifact_uri = value["artifactUri"].as_str().unwrap();
+
+        let output = execute_tool_for_session_output(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_ARTIFACT_TOOL,
+            &json!({ "artifact_uri": artifact_uri }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        let source_object_key = output
+            .object_ref()
+            .as_ref()
+            .expect("image output should retain source object ref")
+            .key
+            .clone();
+        let content_parts = output.content_parts();
+        assert_eq!(
+            crate::harness::llm::content_part_object_ref(&content_parts[0])
+                .unwrap()
+                .key,
+            source_object_key
+        );
+
+        let journaled_object = append_test_tool_result(
+            kv.as_ref(),
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            READ_ARTIFACT_TOOL,
+            &output,
+        )
+        .await;
+        assert_eq!(journaled_object.key, source_object_key);
+    }
+
+    #[tokio::test]
+    async fn read_memory_returns_typed_image_output() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        let png_bytes = b"png-bytes";
+        upsert_memory_file(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "/memory/screenshot.png",
+            "image/png",
+            png_bytes,
+        )
+        .await
+        .unwrap();
+
+        let output = execute_tool_for_session_output(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec {
+                capabilities: HashMap::from([(
+                    "memory".to_string(),
+                    crate::gateway::rpc::protobuf_value::ListValue {
+                        values: vec![crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue("read".to_string())),
+                        }],
+                    },
+                )]),
+                ..manifests::AgentSpec::default()
+            },
+            READ_MEMORY_TOOL,
+            &json!({"path": "/memory/screenshot.png"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        let source_object_key = output
+            .object_ref()
+            .as_ref()
+            .expect("image output should retain source object ref")
+            .key
+            .clone();
+        let content_parts = output.content_parts();
+        assert_eq!(
+            crate::harness::llm::content_part_object_ref(&content_parts[0])
+                .unwrap()
+                .key,
+            source_object_key
+        );
+
+        let journaled_object = append_test_tool_result(
+            kv.as_ref(),
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            READ_MEMORY_TOOL,
+            &output,
+        )
+        .await;
+        assert_eq!(journaled_object.key, source_object_key);
+    }
+
+    #[tokio::test]
+    async fn read_memory_text_output_reuses_object_ref() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        let content = "source text ".repeat(400);
+        upsert_memory_file(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "/memory/notes.txt",
+            "text/plain; charset=utf-8",
+            content.as_bytes(),
+        )
+        .await
+        .unwrap();
+
+        let output = execute_tool_for_session_output(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec {
+                capabilities: HashMap::from([(
+                    "memory".to_string(),
+                    crate::gateway::rpc::protobuf_value::ListValue {
+                        values: vec![crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue("read".to_string())),
+                        }],
+                    },
+                )]),
+                ..manifests::AgentSpec::default()
+            },
+            READ_MEMORY_TOOL,
+            &json!({"path": "/memory/notes.txt"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(output.summary(), content);
+        let source_object_key = output
+            .object_ref()
+            .expect("text output should retain source object ref")
+            .key
+            .clone();
+        let content_parts = output.content_parts();
+        assert_eq!(
+            crate::harness::llm::content_part_object_ref(&content_parts[0])
+                .unwrap()
+                .key,
+            source_object_key
+        );
+
+        let journaled_object = append_test_tool_result(
+            kv.as_ref(),
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            READ_MEMORY_TOOL,
+            &output,
+        )
+        .await;
+        assert_eq!(journaled_object.key, source_object_key);
+    }
+
+    #[tokio::test]
+    async fn read_file_output_reuses_object_ref() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        let content = "source text ".repeat(400);
+        let file = upsert_memory_file(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "/memory/notes.txt",
+            "text/plain; charset=utf-8",
+            content.as_bytes(),
+        )
+        .await
+        .unwrap();
+
+        let output = read_file_output(&cp, &file).await.unwrap();
+
+        assert_eq!(output.summary(), content);
+        let source_object_key = output
+            .object_ref()
+            .expect("read_file_output should retain source object ref")
+            .key
+            .clone();
+        let content_parts = output.content_parts();
+        assert_eq!(
+            crate::harness::llm::content_part_object_ref(&content_parts[0])
+                .unwrap()
+                .key,
+            source_object_key
+        );
+
+        let journaled_object = append_test_tool_result(
+            kv.as_ref(),
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            READ_MEMORY_TOOL,
+            &output,
+        )
+        .await;
+        assert_eq!(journaled_object.key, source_object_key);
     }
 
     #[tokio::test]
@@ -4558,8 +4992,7 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
-        let read: Value = serde_json::from_str(&read).unwrap();
-        assert_eq!(read["content"], "# Draft\n\nPlease review.");
+        assert_eq!(read, "# Draft\n\nPlease review.");
 
         let messages = session_text_messages(
             kv.as_ref(),
@@ -4618,8 +5051,7 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
-        let read_value: Value = serde_json::from_str(&read_output).unwrap();
-        let actual_content = read_value["content"].as_str().unwrap();
+        let actual_content = read_output.as_str();
         assert_eq!(
             actual_content.len(),
             large_content.len(),
@@ -4666,8 +5098,7 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
-        let read_revision: Value = serde_json::from_str(&read_revision).unwrap();
-        let actual_revision = read_revision["content"].as_str().unwrap();
+        let actual_revision = read_revision.as_str();
         assert_eq!(
             actual_revision.len(),
             large_revision.len(),

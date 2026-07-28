@@ -17,7 +17,8 @@ use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
     self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionStatus,
 };
-use crate::harness::executor::{tool_result_loop_message, ExecutionSink, LoopMessage};
+use crate::harness::executor::{tool_output_loop_message, ExecutionSink, LoopMessage};
+use crate::harness::schema::ToolOutput;
 use crate::harness::sessions::{self, ClaimOutcome};
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
@@ -136,6 +137,42 @@ enum RecoveredProjectionPart {
 struct PreparedSubmission {
     state: PreparedSubmissionState,
     projection_parts: Vec<RecoveredProjectionPart>,
+}
+
+async fn tool_output_from_recorded_object(
+    cp: &ControlPlane,
+    object: &data_proto::ObjectRef,
+) -> Result<ToolOutput> {
+    let stored = cp
+        .objects
+        .get(&object.key)
+        .await?
+        .ok_or_else(|| anyhow!("tool result object '{}' is missing", object.key))?;
+    let bytes = decode_stored_object_bytes(&stored, &object.key)?;
+    let mut media_type = if object.media_type.trim().is_empty() {
+        stored.metadata.media_type.trim().to_string()
+    } else {
+        object.media_type.trim().to_string()
+    };
+    let filename = if object.filename.trim().is_empty() {
+        stored.metadata.filename.clone()
+    } else {
+        object.filename.clone()
+    };
+    if media_type.is_empty() {
+        media_type = [&filename, &object.key]
+            .into_iter()
+            .filter(|value| !value.trim().is_empty())
+            .find_map(|value| mime_guess::from_path(value).first_raw())
+            .unwrap_or_default()
+            .to_string();
+    }
+    Ok(ToolOutput::from_source_object(
+        bytes,
+        media_type,
+        filename,
+        object.clone(),
+    ))
 }
 
 async fn prepare_context_for_claimed_submission(
@@ -266,24 +303,15 @@ async fn prepare_context_for_claimed_submission(
             });
             let tool_result_part_id = next_recovered_part_id(&mut next_projection_part_index);
 
-            let result = if let Some(recorded) = results_by_call_id.get(&tool.id) {
+            let result_output = if let Some(recorded) = results_by_call_id.get(&tool.id) {
                 if let Some(object) = recorded.object.as_ref() {
-                    let stored =
-                        cp.objects.get(&object.key).await?.ok_or_else(|| {
-                            anyhow!("tool result object '{}' is missing", object.key)
-                        })?;
-                    let bytes = decode_stored_object_bytes(&stored, &object.key)?;
-                    String::from_utf8(bytes).map_err(|err| {
-                        anyhow!(
-                            "tool result object '{}' is not valid UTF-8: {err}",
-                            object.key
-                        )
-                    })?
+                    tool_output_from_recorded_object(cp, object).await?
                 } else {
-                    recorded.output.clone()
+                    ToolOutput::text(recorded.output.clone())
                 }
             } else {
                 let (_input, result) = runtime.executor.execute_tool_call(tool).await;
+                let output = ToolOutput::text(result.clone());
                 let cas = CasStore::new(cp.objects.clone());
                 sessions::append_tool_result(
                     cp.kv.as_ref(),
@@ -297,12 +325,13 @@ async fn prepare_context_for_claimed_submission(
                     attempt_id,
                     &tool.id,
                     &tool.name,
-                    &result,
+                    &output,
                     chrono::Utc::now().timestamp_micros(),
                 )
                 .await?;
-                result
+                output
             };
+            let result = result_output.summary();
 
             projection_parts.push(RecoveredProjectionPart::ToolResult {
                 part_id: tool_result_part_id,
@@ -312,7 +341,7 @@ async fn prepare_context_for_claimed_submission(
             });
             runtime
                 .context
-                .push(tool_result_loop_message(&tool.id, &result));
+                .push(tool_output_loop_message(&tool.id, &result_output));
             stop_after_tool_results |=
                 crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
         }
@@ -1270,6 +1299,7 @@ mod tests {
         execute_with_panic_boundary, session_message_artifact_uris, SessionCompletionStatus,
     };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
+    use crate::control::object_store::ObjectMetadata;
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
@@ -1319,7 +1349,7 @@ mod tests {
         async fn on_token(&self, _: &str) {}
         async fn on_reasoning(&self, _: &str) {}
         async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
-        async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
+        async fn on_tool_result(&self, _: &str, _: &str, _: &crate::harness::schema::ToolOutput) {}
         async fn on_usage(&self, _: &crate::harness::llm::ChatUsage) {}
         async fn on_done(&self) {}
         async fn on_error(&self, err: &str) {
@@ -1844,6 +1874,35 @@ mod tests {
                 ..Config::default()
             },
         )
+    }
+
+    #[tokio::test]
+    async fn recorded_image_object_recovery_preserves_object_ref() {
+        let cp =
+            ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(MockPubSub)).build();
+        let object = cp
+            .objects
+            .put(
+                "cas/conic%3Atest/sessions/session-1/messages/message-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata::default(),
+            )
+            .await
+            .unwrap();
+
+        let output = super::tool_output_from_recorded_object(&cp, &object)
+            .await
+            .unwrap();
+
+        assert_eq!(output.object_ref().unwrap().key, object.key);
+        let parts = output.content_parts();
+        assert_eq!(parts.len(), 1);
+        assert_eq!(
+            crate::harness::llm::content_part_object_ref(&parts[0])
+                .unwrap()
+                .media_type,
+            "image/png"
+        );
     }
 
     #[tokio::test]

@@ -14,6 +14,7 @@ use crate::gateway::rpc::data_proto::{
     SessionJournalEntryPayloadToolResult,
 };
 use crate::harness::llm::ChatResponse;
+use crate::harness::schema::ToolOutput;
 
 const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 
@@ -60,12 +61,14 @@ pub async fn append_tool_result(
     attempt_id: &str,
     tool_call_id: &str,
     name: &str,
-    result: &str,
+    result: &ToolOutput,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
     ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
-    let object = cas
-        .put_tool_result_if_raw_at_least(
+    let object = if let Some(object_ref) = result.object_ref() {
+        Some(object_ref.clone())
+    } else if let Some(text) = result.inline_summary() {
+        cas.put_tool_result_if_raw_at_least(
             ns,
             agent,
             session_id,
@@ -73,15 +76,18 @@ pub async fn append_tool_result(
             part_id,
             tool_call_id,
             name,
-            result.as_bytes(),
+            text.as_bytes(),
             TOOL_RESULT_OBJECT_THRESHOLD_BYTES,
         )
-        .await?;
-    ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
-    let output = if object.is_some() {
-        String::new()
+        .await?
     } else {
-        result.to_string()
+        None
+    };
+    ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
+    let output = if object.is_none() {
+        result.inline_summary().unwrap_or_default().to_string()
+    } else {
+        String::new()
     };
     append_journal_entry(
         kv,
@@ -443,7 +449,7 @@ mod tests {
             "attempt-1",
             "call-1",
             "search",
-            "answer",
+            &ToolOutput::text("answer"),
             3,
         )
         .await

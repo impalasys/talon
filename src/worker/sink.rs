@@ -22,6 +22,7 @@ use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
 use crate::harness::llm::{ChatResponse, ChatUsage};
+use crate::harness::schema::ToolOutput;
 use crate::harness::sessions::{self, SessionSubmission};
 use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
@@ -1329,7 +1330,12 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_active_stream_event_buffer().await;
     }
 
-    async fn on_tool_result_recorded(&self, id: &str, name: &str, result: &str) -> Result<()> {
+    async fn on_tool_result_recorded(
+        &self,
+        id: &str,
+        name: &str,
+        result: &ToolOutput,
+    ) -> Result<()> {
         let part_id = self.next_part_id();
         let cas = CasStore::new(self.objects.clone());
         let entry = sessions::append_tool_result(
@@ -1372,17 +1378,21 @@ impl ExecutionSink for PubSubSessionSink {
         Ok(())
     }
 
-    async fn on_tool_result(&self, id: &str, name: &str, result: &str) {
+    async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput) {
         *self.tool_results.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
+        let result_output = result.serialized_output();
         let recorded = { self.recorded_tool_results.lock().unwrap().remove(id) };
         let stored = match recorded {
             Some(stored) => stored,
             None => {
                 let part_id = self.next_part_id();
-                let object = match CasStore::new(self.objects.clone())
-                    .put_tool_result_if_raw_at_least(
+                let cas = CasStore::new(self.objects.clone());
+                let object = match if let Some(object_ref) = result.object_ref() {
+                    Ok(Some(object_ref.clone()))
+                } else if let Some(text) = result.inline_summary() {
+                    cas.put_tool_result_if_raw_at_least(
                         &self.ns,
                         &self.agent_id,
                         &self.session_id,
@@ -1390,11 +1400,13 @@ impl ExecutionSink for PubSubSessionSink {
                         &part_id,
                         id,
                         name,
-                        result.as_bytes(),
+                        text.as_bytes(),
                         TOOL_RESULT_OBJECT_THRESHOLD_BYTES,
                     )
                     .await
-                {
+                } else {
+                    Ok(None)
+                } {
                     Ok(object) => object,
                     Err(err) => {
                         tracing::error!(
@@ -1416,7 +1428,7 @@ impl ExecutionSink for PubSubSessionSink {
                     part_id,
                     output: object
                         .is_none()
-                        .then(|| result.to_string())
+                        .then(|| result.inline_summary().unwrap_or_default().to_string())
                         .unwrap_or_default(),
                     object,
                 }
@@ -1445,7 +1457,7 @@ impl ExecutionSink for PubSubSessionSink {
         self.publish_event(AgentEvent::Observation {
             id: id.to_string(),
             name: name.to_string(),
-            output: result.to_string(),
+            output: result_output,
         })
         .await;
     }
@@ -1693,6 +1705,7 @@ mod tests {
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::ExecutionSink;
     use crate::harness::llm::ChatUsage;
+    use crate::harness::schema::ToolOutput;
     use crate::harness::sessions;
     use async_trait::async_trait;
     use futures::StreamExt;
@@ -2399,7 +2412,7 @@ mod tests {
         sink.on_token("drafting ").await;
         sink.on_tool_call("tool-1", "create_prompt", &json!({"content": "x"}))
             .await;
-        sink.on_tool_result("tool-1", "create_prompt", "created")
+        sink.on_tool_result("tool-1", "create_prompt", &ToolOutput::text("created"))
             .await;
         sink.on_reasoning("checking ").await;
         sink.on_token("final").await;
@@ -2474,8 +2487,12 @@ mod tests {
             "x".repeat(40_000)
         );
 
-        sink.on_tool_result("tool-1", "mcp_github_get_file_contents", &raw_output)
-            .await;
+        sink.on_tool_result(
+            "tool-1",
+            "mcp_github_get_file_contents",
+            &ToolOutput::text(raw_output.clone()),
+        )
+        .await;
         sink.on_done().await;
 
         let entries = kv.entries.lock().await.clone();
@@ -2773,7 +2790,7 @@ mod tests {
         })
         .await
         .unwrap();
-        sink.on_tool_result_recorded("call-a", "search", "result-a")
+        sink.on_tool_result_recorded("call-a", "search", &ToolOutput::text("result-a"))
             .await
             .unwrap();
         sink.on_llm_response(&ChatResponse {
@@ -3041,7 +3058,8 @@ mod tests {
         sink.on_token(" there").await;
         sink.on_tool_call("tool-1", "search", &json!({"q": "talon"}))
             .await;
-        sink.on_tool_result("tool-1", "search", "result body").await;
+        sink.on_tool_result("tool-1", "search", &ToolOutput::text("result body"))
+            .await;
         sink.on_done().await;
 
         let summary = sink.summary();

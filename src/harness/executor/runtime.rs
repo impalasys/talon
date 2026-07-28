@@ -1,15 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::cas::CasStore;
 use crate::control::config::Config;
 use crate::control::ControlPlane;
 use crate::harness::executor::compaction::compact_history_for_llm;
 use crate::harness::llm::resolver::resolve_model_profile;
 use crate::harness::llm::{
-    chat_content_part, chat_stream_event, text_part, ChatContentPart, ChatMessage, ChatRequest,
-    ChatResponse, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall,
+    chat_content_part, chat_stream_event, object_ref_part, text_part, ChatContentPart, ChatMessage,
+    ChatRequest, ChatResponse, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall,
 };
 use crate::harness::mcp::{call_tool_for_config, McpConnectionConfig};
+use crate::harness::schema::{is_text_object_media_type, ToolOutput};
 use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::telemetry;
 use anyhow::Result;
@@ -52,9 +54,9 @@ pub struct LoopMessage {
     pub tool_call_id: Option<String>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 struct ExecutedToolCall {
-    result: String,
+    result: ToolOutput,
     stop_after_result: bool,
 }
 
@@ -183,6 +185,19 @@ fn prefix_latest_user_message(history: &mut [LoopMessage], prefix: &str) {
     message.content_parts.insert(0, text_part(prefix));
 }
 
+fn infer_media_type_for_object_ref(
+    object_ref: &crate::gateway::rpc::data_proto::ObjectRef,
+) -> Option<String> {
+    [&object_ref.filename, &object_ref.key]
+        .into_iter()
+        .filter(|value| !value.trim().is_empty())
+        .find_map(|value| mime_guess::from_path(value).first_raw().map(str::to_string))
+}
+
+fn is_image_object_media_type(media_type: &str) -> bool {
+    media_type.trim().to_ascii_lowercase().starts_with("image/")
+}
+
 // ─── ExecutionSink ────────────────────────────────────────────────────────────
 
 /// Receives structured events from the executor. Implement this to fan out to
@@ -203,9 +218,9 @@ pub trait ExecutionSink: Send + Sync {
         Ok(())
     }
     /// The tool returned a result.
-    async fn on_tool_result(&self, id: &str, name: &str, result: &str);
+    async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput);
     /// A tool result has been durably recorded.
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
         Ok(())
     }
     /// The agent requested permission from the user/client.
@@ -231,8 +246,8 @@ impl ExecutionSink for NullSink {
     async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) -> Result<()> {
         Ok(())
     }
-    async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+    async fn on_tool_result(&self, _: &str, _: &str, _: &ToolOutput) {}
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
         Ok(())
     }
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
@@ -280,14 +295,14 @@ impl ExecutionSink for CaptureSink {
             input: input.clone(),
         });
     }
-    async fn on_tool_result(&self, id: &str, name: &str, result: &str) {
+    async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput) {
         self.events.lock().unwrap().push(AgentEvent::Observation {
             id: id.to_string(),
             name: name.to_string(),
-            output: result.to_string(),
+            output: result.serialized_output(),
         });
     }
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &str) -> Result<()> {
+    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
         Ok(())
     }
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
@@ -502,11 +517,11 @@ impl AgentExecutor {
         })
     }
 
-    fn messages_for_llm(
+    async fn messages_for_llm(
         &self,
         context: &ExecutionContext,
         prompts: &ExecutionPrompts,
-    ) -> Vec<ChatMessage> {
+    ) -> Result<Vec<ChatMessage>> {
         let mut history = context.history.clone();
         if let Some(system_prompt) = prompts.system_prompt.as_deref() {
             history.insert(0, LoopMessage::text("system", system_prompt.to_string()));
@@ -515,7 +530,7 @@ impl AgentExecutor {
             prefix_latest_user_message(&mut history, post_history_prompt);
         }
 
-        compact_history_for_llm(&history)
+        let mut messages = compact_history_for_llm(&history)
             .iter()
             .map(|m| ChatMessage {
                 role: m.role.clone(),
@@ -523,7 +538,74 @@ impl AgentExecutor {
                 tool_calls: m.tool_calls.clone().unwrap_or_default(),
                 tool_call_id: m.tool_call_id.clone(),
             })
-            .collect()
+            .collect::<Vec<_>>();
+        for message in &mut messages {
+            message.content_parts = self
+                .hydrate_object_ref_parts_for_llm(std::mem::take(&mut message.content_parts))
+                .await?;
+        }
+        Ok(messages)
+    }
+
+    async fn hydrate_object_ref_parts_for_llm(
+        &self,
+        parts: Vec<ChatContentPart>,
+    ) -> Result<Vec<ChatContentPart>> {
+        let cas = CasStore::new(self.control_plane.objects.clone());
+        let mut hydrated = Vec::with_capacity(parts.len());
+        for part in parts {
+            let Some(object_ref) = (match part.content.as_ref() {
+                Some(chat_content_part::Content::ObjectRef(object_ref)) => Some(object_ref),
+                _ => None,
+            }) else {
+                hydrated.push(part);
+                continue;
+            };
+            let object_ref_media_type = object_ref.media_type.trim();
+            if !object_ref_media_type.is_empty()
+                && !is_text_object_media_type(object_ref_media_type)
+                && !is_image_object_media_type(object_ref_media_type)
+            {
+                hydrated.push(part);
+                continue;
+            }
+            let Some(stored) = cas.get_object_decoded(&object_ref.key).await? else {
+                hydrated.push(text_part(format!(
+                    "[Object '{}' is missing.]",
+                    object_ref.key
+                )));
+                continue;
+            };
+            let media_type = if !object_ref.media_type.trim().is_empty() {
+                object_ref.media_type.trim().to_string()
+            } else if !stored.metadata.media_type.trim().is_empty() {
+                stored.metadata.media_type.trim().to_string()
+            } else {
+                infer_media_type_for_object_ref(object_ref).unwrap_or_default()
+            };
+            if is_text_object_media_type(&media_type) {
+                hydrated.push(text_part(
+                    String::from_utf8_lossy(&stored.bytes).to_string(),
+                ));
+                continue;
+            }
+            if !is_image_object_media_type(&media_type) {
+                hydrated.push(object_ref_part(object_ref.clone()));
+                continue;
+            }
+            let mut hydrated_ref = object_ref.clone();
+            if hydrated_ref.media_type.trim().is_empty() {
+                hydrated_ref.media_type = media_type;
+            }
+            if hydrated_ref.filename.trim().is_empty() {
+                hydrated_ref.filename = stored.metadata.filename;
+            }
+            if hydrated_ref.size_bytes == 0 {
+                hydrated_ref.size_bytes = stored.metadata.size_bytes;
+            }
+            hydrated.push(object_ref_part(hydrated_ref));
+        }
+        Ok(hydrated)
     }
 
     /// Run the prepared execution context to completion, emitting events to
@@ -562,7 +644,7 @@ impl AgentExecutor {
             }
             turn_limit -= 1;
 
-            let messages = self.messages_for_llm(context, &prompts);
+            let messages = self.messages_for_llm(context, &prompts).await?;
 
             let tools = {
                 let reg = self.registry.read().await;
@@ -774,7 +856,8 @@ impl AgentExecutor {
                         .await;
                     let stop_after_result = executed.stop_after_result;
                     let result = executed.result;
-                    telemetry::record_tool_result(&tool_span, &result);
+                    let result_text = result.summary();
+                    telemetry::record_tool_result(&tool_span, &result_text);
                     sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
                     crate::control::usage::charge_namespace_usage(
@@ -788,9 +871,9 @@ impl AgentExecutor {
                     )
                     .await?;
                     sink.on_tool_result(&tool.id, &tool.name, &result).await;
-                    context.push(tool_result_loop_message(&tool.id, &result));
+                    context.push(tool_output_loop_message(&tool.id, &result));
                     if stop_after_result {
-                        stop_after_tool_result = Some(result);
+                        stop_after_tool_result = Some(result_text);
                         break;
                     }
                 }
@@ -809,7 +892,7 @@ impl AgentExecutor {
     pub async fn execute_tool_call(&self, tool: &ToolCall) -> (Value, String) {
         let input = Self::tool_call_input(tool);
         let executed = self.execute_tool_call_result(tool).await;
-        (input, executed.result)
+        (input, executed.result.summary())
     }
 
     pub fn tool_call_input(tool: &ToolCall) -> Value {
@@ -845,18 +928,20 @@ impl AgentExecutor {
                 ),
             },
             Err(error) => ExecutedToolCall {
-                result: tool_error_result(&tool.name, &error),
+                result: ToolOutput::text(tool_error_result(&tool.name, &error)),
                 stop_after_result: false,
             },
         }
     }
 
-    async fn execute_tool(&self, name: &str, input: &str) -> Result<String> {
+    async fn execute_tool(&self, name: &str, input: &str) -> Result<ToolOutput> {
         let args: Value = serde_json::from_str(input).unwrap_or(Value::Null);
         if let Some(tool) = self.mcp_tools.get(name) {
-            return call_tool_for_config(&tool.config, &tool.remote_name, args).await;
+            return call_tool_for_config(&tool.config, &tool.remote_name, args)
+                .await
+                .map(ToolOutput::text);
         }
-        if let Some(result) = crate::harness::native_tools::execute_tool_for_session(
+        if let Some(result) = crate::harness::native_tools::execute_tool_for_session_output(
             &self.control_plane,
             &self.namespace,
             &self.agent_id,
@@ -869,7 +954,7 @@ impl AgentExecutor {
         {
             return Ok(result);
         }
-        Ok(format!("Tool '{}' not found.", name))
+        Ok(ToolOutput::text(format!("Tool '{}' not found.", name)))
     }
 }
 
@@ -879,6 +964,15 @@ pub fn tool_result_loop_message(tool_call_id: &str, result: &str) -> LoopMessage
     tool_message
 }
 
+pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> LoopMessage {
+    LoopMessage {
+        role: "tool".to_string(),
+        content_parts: result.content_parts(),
+        tool_calls: None,
+        tool_call_id: Some(tool_call_id.to_string()),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -886,16 +980,19 @@ mod tests {
         LoopMessage,
     };
     use crate::control::config::Config;
+    use crate::control::object_store::ObjectMetadata;
     use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
     use crate::gateway::rpc::{
         data_proto, manifests,
         protobuf_value::{value::Kind as ProtoValueKind, ListValue, Value as ProtoValue},
     };
     use crate::harness::llm::provider::{
-        image_data_part, text_delta_event, tool_call_delta_event, usage_event, ChatMessage,
-        ChatMessageExt, ChatRequest, ChatResponse, ChatStream, ChatUsage, LlmProvider,
+        content_part_object_ref, object_ref_part, text_delta_event, tool_call_delta_event,
+        usage_event, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse, ChatStream, ChatUsage,
+        LlmProvider,
     };
     use crate::harness::memory::Embedding;
+    use crate::harness::schema::ToolOutput;
     use crate::harness::skills::registry::ToolRegistry;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use anyhow::Result;
@@ -1487,6 +1584,19 @@ mod tests {
     async fn executor_prefixes_multimodal_latest_user_message_without_dropping_parts() {
         let llm = Arc::new(RecordingLlmProvider::default());
         let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let cp = ControlPlane::noop();
+        let object = cp
+            .objects
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
         let mut spec = manifests::AgentSpec::default();
         spec.post_history_prompt = "Use this context.".to_string();
         let executor = AgentExecutor::new(
@@ -1498,7 +1608,7 @@ mod tests {
             Arc::new(Config::default()),
             "conic:wks:13".to_string(),
             "cmo".to_string(),
-            ControlPlane::noop(),
+            cp,
             spec,
             HashMap::new(),
         );
@@ -1506,7 +1616,7 @@ mod tests {
         let mut context = ExecutionContext::new("cmo");
         context.push(LoopMessage {
             role: "user".to_string(),
-            content_parts: vec![image_data_part("image/png", "cG5n", Some("low"))],
+            content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
         });
@@ -1526,6 +1636,253 @@ mod tests {
         assert_eq!(
             messages[0].content_parts[1],
             original_user_message.content_parts[0]
+        );
+    }
+
+    #[tokio::test]
+    async fn executor_hydrates_object_ref_image_parts_for_llm() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let cp = ControlPlane::noop();
+        let object = cp
+            .objects
+            .put(
+                "cas/acme/files/file-1/sha",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    size_bytes: 9,
+                    sha256: "sha".to_string(),
+                    filename: "image.png".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            cp,
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage {
+            role: "user".to_string(),
+            content_parts: vec![object_ref_part(object.clone())],
+            tool_calls: None,
+            tool_call_id: None,
+        });
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        let seen = llm.seen_messages.lock().unwrap();
+        let part = &seen.last().unwrap()[0].content_parts[0];
+        assert_eq!(content_part_object_ref(part).unwrap().key, object.key);
+        assert_eq!(
+            content_part_object_ref(part).unwrap().media_type,
+            "image/png"
+        );
+    }
+
+    #[tokio::test]
+    async fn executor_infers_object_ref_image_media_type_for_llm() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let cp = ControlPlane::noop();
+        let object = cp
+            .objects
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    size_bytes: 9,
+                    sha256: "sha".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            cp,
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage {
+            role: "user".to_string(),
+            content_parts: vec![object_ref_part(object)],
+            tool_calls: None,
+            tool_call_id: None,
+        });
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        let seen = llm.seen_messages.lock().unwrap();
+        assert_eq!(
+            content_part_object_ref(&seen.last().unwrap()[0].content_parts[0])
+                .unwrap()
+                .media_type,
+            "image/png"
+        );
+    }
+
+    #[tokio::test]
+    async fn executor_hydrates_text_object_ref_parts_for_llm() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let cp = ControlPlane::noop();
+        let object = cp
+            .objects
+            .put(
+                "cas/acme/files/file-1/notes.txt",
+                b"source text",
+                ObjectMetadata {
+                    media_type: "text/plain; charset=utf-8".to_string(),
+                    size_bytes: 11,
+                    filename: "notes.txt".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            cp,
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage {
+            role: "user".to_string(),
+            content_parts: vec![object_ref_part(object)],
+            tool_calls: None,
+            tool_call_id: None,
+        });
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        let seen = llm.seen_messages.lock().unwrap();
+        assert_eq!(seen.last().unwrap()[0].text_content(), "source text");
+    }
+
+    #[tokio::test]
+    async fn executor_replaces_missing_object_ref_image_with_placeholder() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage {
+            role: "user".to_string(),
+            content_parts: vec![object_ref_part(data_proto::ObjectRef {
+                key: "cas/acme/files/file-1/missing.png".to_string(),
+                media_type: "image/png".to_string(),
+                ..Default::default()
+            })],
+            tool_calls: None,
+            tool_call_id: None,
+        });
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        let seen = llm.seen_messages.lock().unwrap();
+        assert!(seen.last().unwrap()[0]
+            .text_content()
+            .contains("missing.png"));
+    }
+
+    #[tokio::test]
+    async fn executor_describes_non_image_object_ref_parts_for_llm() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage {
+            role: "user".to_string(),
+            content_parts: vec![object_ref_part(data_proto::ObjectRef {
+                key: "cas/acme/files/file-1/clip.mp4".to_string(),
+                media_type: "video/mp4".to_string(),
+                size_bytes: 42,
+                filename: "clip.mp4".to_string(),
+                ..Default::default()
+            })],
+            tool_calls: None,
+            tool_call_id: None,
+        });
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        let seen = llm.seen_messages.lock().unwrap();
+        assert_eq!(
+            content_part_object_ref(&seen.last().unwrap()[0].content_parts[0])
+                .unwrap()
+                .media_type,
+            "video/mp4"
         );
     }
 
@@ -1987,7 +2344,8 @@ mod tests {
         let sink = CaptureSink::new();
         sink.on_token("tok").await;
         sink.on_tool_call("id-1", "tool", &json!({"x": 1})).await;
-        sink.on_tool_result("id-1", "tool", "result").await;
+        sink.on_tool_result("id-1", "tool", &ToolOutput::text("result"))
+            .await;
         sink.on_done().await;
         sink.on_error("boom").await;
 
@@ -2034,12 +2392,12 @@ mod tests {
             )
             .await
             .expect("legacy knowledge tool should not error");
-        assert_eq!(legacy, "Tool 'knowledge_search' not found.");
+        assert_eq!(legacy.summary(), "Tool 'knowledge_search' not found.");
 
         let unknown = executor
             .execute_tool("missing_tool", "not-json")
             .await
             .expect("unknown tool should not error");
-        assert_eq!(unknown, "Tool 'missing_tool' not found.");
+        assert_eq!(unknown.summary(), "Tool 'missing_tool' not found.");
     }
 }

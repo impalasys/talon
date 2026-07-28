@@ -28,6 +28,20 @@ from talon_client.resources import A2A, Connection, ConnectionRef, InternalConne
 PART_TYPE_TOOL_RESULT = 4
 
 
+def _tool_result_content(output: str) -> str:
+    if not output:
+        return ""
+    try:
+        decoded = json.loads(output)
+    except json.JSONDecodeError:
+        return output
+    if isinstance(decoded, dict):
+        return str(decoded.get("content", ""))
+    if isinstance(decoded, str):
+        return decoded
+    return ""
+
+
 def _send_message_when_available(
     client: TalonClient,
     request: SendMessageRequest,
@@ -298,9 +312,9 @@ def test_delegate_task_creates_durable_child_session(
             payload = json.loads(part.payload_json or "{}")
             output = payload.get("output", "")
             if output:
-                read_outputs.append(json.loads(output))
+                read_outputs.append(_tool_result_content(output))
         if owner.state == "IDLE" and any(
-            "Onboarding checklist" in output.get("content", "")
+            "Onboarding checklist" in output
             for output in read_outputs
         ):
             break
@@ -312,13 +326,13 @@ def test_delegate_task_creates_durable_child_session(
         for part in message.parts
         if part.part_type == PART_TYPE_TOOL_RESULT
     ]
-    read_outputs = [
-        json.loads(json.loads(part.payload_json or "{}").get("output", "{}"))
-        for part in owner_tool_results
-        if json.loads(part.payload_json or "{}").get("output")
-    ]
+    read_outputs = []
+    for part in owner_tool_results:
+        output = json.loads(part.payload_json or "{}").get("output", "")
+        if output:
+            read_outputs.append(_tool_result_content(output))
     assert any(
-        "Onboarding checklist" in output.get("content", "")
+        "Onboarding checklist" in output
         for output in read_outputs
     ), "owner could not read child artifact"
 
@@ -522,16 +536,16 @@ def test_legal_document_refinement_delegation_returns_redline_artifact(
                 payload = json.loads(part.payload_json or "{}")
                 output = payload.get("output", "")
                 if output:
-                    read_outputs.append(json.loads(output))
+                    read_outputs.append(_tool_result_content(output))
         if coordinator.state == "IDLE" and any(
-            "Mutual NDA fallback clause redline" in output.get("content", "")
+            "Mutual NDA fallback clause redline" in output
             for output in read_outputs
         ):
             break
 
     assert any(
-        "same degree of care" in output.get("content", "")
-        and "reasonable care" in output.get("content", "")
+        "same degree of care" in output
+        and "reasonable care" in output
         for output in read_outputs
     ), "coordinator could not read the delegated legal redline artifact"
 
@@ -714,15 +728,15 @@ def test_delegated_final_text_artifact_tag_becomes_readable_task_output(
                 payload = json.loads(part.payload_json or "{}")
                 output = payload.get("output", "")
                 if output:
-                    read_outputs.append(json.loads(output))
+                    read_outputs.append(_tool_result_content(output))
         if coordinator.state == "IDLE" and any(
-            "Directors should approve" in output.get("content", "")
+            "Directors should approve" in output
             for output in read_outputs
         ):
             break
 
     assert any(
-        "Directors should approve the operating plan" in output.get("content", "")
+        "Directors should approve the operating plan" in output
         for output in read_outputs
     ), "coordinator could not read the inline delegated artifact"
 

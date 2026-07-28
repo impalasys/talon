@@ -11,7 +11,7 @@ pub use compaction::{compact_history_for_llm, tool_result_preview, ContextBudget
 pub use history::session_message_to_loop_messages;
 pub use rpc::{RpcMessage, RpcRequest, RpcResponse};
 pub use runtime::{
-    tool_result_loop_message, AgentEvent, AgentExecutor, CaptureSink, ContextAssembler,
-    ExecutionContext, ExecutionSink, LoopMessage, NullSink, RegisteredMcpTool,
+    tool_output_loop_message, tool_result_loop_message, AgentEvent, AgentExecutor, CaptureSink,
+    ContextAssembler, ExecutionContext, ExecutionSink, LoopMessage, NullSink, RegisteredMcpTool,
 };
 pub use task::{EncryptedResult, Task, TaskResult, TaskStatus};

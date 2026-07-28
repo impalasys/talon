@@ -593,8 +593,7 @@ fn fit_content_parts_to_weight(
                     fitted.push(text_part(next));
                 }
             }
-            Some(chat_content_part::Content::ImageUrl(_))
-            | Some(chat_content_part::Content::ImageData(_)) => {
+            Some(chat_content_part::Content::ObjectRef(_)) => {
                 let weight = content_part_weight(part);
                 if weight <= remaining {
                     fitted.push(part.clone());
@@ -602,15 +601,7 @@ fn fit_content_parts_to_weight(
                     continue;
                 }
 
-                let marker = match part.content.as_ref() {
-                    Some(chat_content_part::Content::ImageUrl(_)) => {
-                        "[Image URL omitted to stay within Talon context budget.]"
-                    }
-                    Some(chat_content_part::Content::ImageData(_)) => {
-                        "[Image omitted to stay within Talon context budget.]"
-                    }
-                    _ => unreachable!(),
-                };
+                let marker = "[Object omitted to stay within Talon context budget.]";
                 if marker.len() <= remaining {
                     fitted.push(text_part(marker.to_string()));
                     remaining = remaining.saturating_sub(marker.len());
@@ -626,22 +617,11 @@ fn fit_content_parts_to_weight(
 fn content_part_weight(part: &ChatContentPart) -> usize {
     match part.content.as_ref() {
         Some(chat_content_part::Content::Text(text)) => text.len(),
-        Some(chat_content_part::Content::ImageUrl(image)) => {
-            image.url.len()
-                + image
-                    .detail
-                    .as_ref()
-                    .map(|detail| detail.len())
-                    .unwrap_or(0)
-        }
-        Some(chat_content_part::Content::ImageData(image)) => {
+        Some(chat_content_part::Content::ObjectRef(object)) => {
             INLINE_IMAGE_CONTEXT_WEIGHT
-                + image.media_type.len()
-                + image
-                    .detail
-                    .as_ref()
-                    .map(|detail| detail.len())
-                    .unwrap_or(0)
+                + object.media_type.len()
+                + object.key.len()
+                + object.filename.len()
         }
         None => 0,
     }
@@ -887,8 +867,11 @@ mod tests {
         compact_history_for_llm_with_budget, replay_has_user_or_tool_anchor,
         serialized_message_weight, tool_history_is_consistent, ContextBudget,
     };
+    use crate::gateway::rpc::data_proto;
     use crate::harness::executor::LoopMessage;
-    use crate::harness::llm::{chat_content_part, image_data_part, text_part, ToolCall};
+    use crate::harness::llm::{
+        content_part_object_ref, object_ref_part, text_part, ChatContentPart, ToolCall,
+    };
     use serde::Deserialize;
 
     fn budget() -> ContextBudget {
@@ -911,6 +894,16 @@ mod tests {
 
     fn message(role: impl Into<String>, content: impl Into<String>) -> LoopMessage {
         LoopMessage::text(role, content)
+    }
+
+    fn image_object_part() -> ChatContentPart {
+        object_ref_part(data_proto::ObjectRef {
+            key: "cas/acme/files/file-1/sha".to_string(),
+            media_type: "image/png".to_string(),
+            size_bytes: 200_000,
+            filename: "image.png".to_string(),
+            ..Default::default()
+        })
     }
 
     #[derive(Deserialize)]
@@ -1128,10 +1121,7 @@ mod tests {
     #[test]
     fn compact_history_preserves_multimodal_parts_when_message_is_kept() {
         let mut user = message("user", "");
-        user.content_parts = vec![
-            text_part("describe this"),
-            image_data_part("image/png", "x".repeat(200_000), None::<String>),
-        ];
+        user.content_parts = vec![text_part("describe this"), image_object_part()];
         let history = vec![message("system", "sys"), user];
 
         let compacted = compact_history_for_llm_with_budget(
@@ -1146,11 +1136,8 @@ mod tests {
         assert!(compacted.iter().any(|message| {
             message.role == "user"
                 && message.content_parts.iter().any(|part| {
-                    matches!(
-                        part.content.as_ref(),
-                        Some(chat_content_part::Content::ImageData(image))
-                            if image.media_type == "image/png"
-                    )
+                    content_part_object_ref(part)
+                        .is_some_and(|object| object.media_type == "image/png")
                 })
         }));
     }
@@ -1160,7 +1147,7 @@ mod tests {
         let mut user = message("user", "");
         user.content_parts = vec![
             text_part("please inspect this image carefully"),
-            image_data_part("image/png", "x".repeat(200_000), None::<String>),
+            image_object_part(),
         ];
         let tiny_budget = ContextBudget {
             total_chars: 80,
@@ -1178,12 +1165,7 @@ mod tests {
         assert!(compacted
             .iter()
             .flat_map(|message| &message.content_parts)
-            .all(|part| {
-                !matches!(
-                    part.content.as_ref(),
-                    Some(chat_content_part::Content::ImageData(_))
-                )
-            }));
+            .all(|part| content_part_object_ref(part).is_none()));
     }
 
     #[test]

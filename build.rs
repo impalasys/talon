@@ -153,8 +153,6 @@ fn main() -> std::io::Result<()> {
         ".talon.data.SessionJournalEntryPayloadLlmResponse",
         ".talon.data.SessionJournalEntryPayloadToolResult",
         ".talon.data.SessionJournalEntryPayloadCommit",
-        ".talon.harness.ChatImageUrl",
-        ".talon.harness.ChatImageData",
         ".talon.harness.ChatMessage",
         ".talon.harness.ChatRequest",
         ".talon.harness.ChatResponse",

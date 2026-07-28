@@ -7,10 +7,10 @@ use async_trait::async_trait;
 use futures::Stream;
 use std::pin::Pin;
 
+use crate::gateway::rpc::data_proto;
 pub use crate::gateway::rpc::harness_proto::{
-    chat_content_part, chat_stream_event, ChatContentPart, ChatImageData, ChatImageUrl,
-    ChatMessage, ChatRequest, ChatResponse, ChatStreamEvent, ChatUsage, Tool, ToolCall,
-    ToolCallDelta,
+    chat_content_part, chat_stream_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
+    ChatStreamEvent, ChatUsage, Tool, ToolCall, ToolCallDelta,
 };
 
 pub fn text_part(text: impl Into<String>) -> ChatContentPart {
@@ -19,30 +19,30 @@ pub fn text_part(text: impl Into<String>) -> ChatContentPart {
     }
 }
 
-pub fn image_url_part(
-    url: impl Into<String>,
-    detail: Option<impl Into<String>>,
-) -> ChatContentPart {
+pub fn object_ref_part(object_ref: data_proto::ObjectRef) -> ChatContentPart {
     ChatContentPart {
-        content: Some(chat_content_part::Content::ImageUrl(ChatImageUrl {
-            url: url.into(),
-            detail: detail.map(Into::into),
-        })),
+        content: Some(chat_content_part::Content::ObjectRef(object_ref)),
     }
 }
 
-pub fn image_data_part(
-    media_type: impl Into<String>,
-    data_base64: impl Into<String>,
-    detail: Option<impl Into<String>>,
-) -> ChatContentPart {
-    ChatContentPart {
-        content: Some(chat_content_part::Content::ImageData(ChatImageData {
-            media_type: media_type.into(),
-            data_base64: data_base64.into(),
-            detail: detail.map(Into::into),
-        })),
+pub fn content_part_object_ref(part: &ChatContentPart) -> Option<&data_proto::ObjectRef> {
+    match part.content.as_ref()? {
+        chat_content_part::Content::ObjectRef(object_ref) => Some(object_ref),
+        _ => None,
     }
+}
+
+pub fn object_ref_fallback_text(object_ref: &data_proto::ObjectRef) -> String {
+    let media_type = object_ref.media_type.trim();
+    format!(
+        "[Object reference: {}; {} bytes]",
+        if media_type.is_empty() {
+            "unknown media type"
+        } else {
+            media_type
+        },
+        object_ref.size_bytes
+    )
 }
 
 pub fn content_parts_text(parts: &[ChatContentPart]) -> String {
