@@ -512,7 +512,9 @@ impl AgentExecutor {
             prefix_latest_user_message(&mut history, post_history_prompt);
         }
 
-        compact_history_for_llm(&history)
+        let mut compacted = compact_history_for_llm(&history);
+        preserve_user_anchor(&history, &mut compacted);
+        compacted
             .iter()
             .map(|m| ChatMessage {
                 role: m.role.clone(),
@@ -704,6 +706,7 @@ impl AgentExecutor {
             let tool_calls: Vec<ToolCall> = tool_calls_by_index
                 .into_values()
                 .filter(|tool| !tool.name.is_empty())
+                .map(normalize_tool_call_arguments)
                 .collect();
 
             let llm_response = ChatResponse {
@@ -805,7 +808,7 @@ impl AgentExecutor {
     }
 
     pub fn tool_call_input(tool: &ToolCall) -> Value {
-        serde_json::from_str(&tool.arguments).unwrap_or(Value::Null)
+        serde_json::from_str(&tool.arguments).unwrap_or_else(|_| serde_json::json!({}))
     }
 
     async fn tool_type(&self, name: &str) -> &'static str {
@@ -863,6 +866,41 @@ impl AgentExecutor {
         }
         Ok(format!("Tool '{}' not found.", name))
     }
+}
+
+fn normalize_tool_call_arguments(mut tool: ToolCall) -> ToolCall {
+    tool.arguments = match serde_json::from_str::<Value>(&tool.arguments) {
+        Ok(Value::Object(_)) => tool.arguments,
+        _ => "{}".to_string(),
+    };
+    tool
+}
+
+fn preserve_user_anchor(original: &[LoopMessage], compacted: &mut Vec<LoopMessage>) {
+    if compacted
+        .iter()
+        .any(|message| message.role == "user" || message.role == "tool")
+    {
+        return;
+    }
+
+    let Some(anchor) = original
+        .iter()
+        .rev()
+        .find(|message| message.role == "user")
+        .cloned()
+    else {
+        return;
+    };
+    let insert_at = if compacted
+        .first()
+        .is_some_and(|message| message.role == "system")
+    {
+        1
+    } else {
+        0
+    };
+    compacted.insert(insert_at, anchor);
 }
 
 pub fn tool_result_loop_message(tool_call_id: &str, result: &str) -> LoopMessage {
@@ -1324,6 +1362,54 @@ mod tests {
         assert_eq!(input["offset"], 0);
         assert!(input["limit"].is_number());
         assert!(!input["limit"].is_string());
+    }
+
+    #[test]
+    fn tool_call_input_defaults_invalid_arguments_to_empty_object() {
+        let tool = crate::harness::llm::ToolCall {
+            id: "call_1".to_string(),
+            name: "mcp_conic_list_links".to_string(),
+            arguments: String::new(),
+        };
+
+        let input = AgentExecutor::tool_call_input(&tool);
+
+        assert_eq!(input, json!({}));
+    }
+
+    #[test]
+    fn normalize_tool_call_arguments_defaults_empty_or_non_object_to_empty_object() {
+        let empty = super::normalize_tool_call_arguments(crate::harness::llm::ToolCall {
+            id: "call_1".to_string(),
+            name: "mcp_conic_list_links".to_string(),
+            arguments: String::new(),
+        });
+        let null = super::normalize_tool_call_arguments(crate::harness::llm::ToolCall {
+            id: "call_2".to_string(),
+            name: "mcp_conic_list_links".to_string(),
+            arguments: "null".to_string(),
+        });
+
+        assert_eq!(empty.arguments, "{}");
+        assert_eq!(null.arguments, "{}");
+    }
+
+    #[test]
+    fn preserve_user_anchor_when_compaction_left_only_system_and_assistant() {
+        let original = vec![
+            LoopMessage::text("system", "system prompt"),
+            LoopMessage::text("user", "scheduled prompt"),
+            LoopMessage::text("assistant", "large prior summary"),
+        ];
+        let mut compacted = vec![
+            LoopMessage::text("system", "system prompt"),
+            LoopMessage::text("assistant", "large prior summary"),
+        ];
+
+        super::preserve_user_anchor(&original, &mut compacted);
+
+        assert_eq!(compacted[1].role, "user");
+        assert_eq!(compacted[1].text_content(), "scheduled prompt");
     }
 
     #[tokio::test]

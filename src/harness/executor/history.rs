@@ -264,8 +264,17 @@ fn tool_call_from_part(part: &data_proto::SessionMessagePart) -> Option<ToolCall
     Some(ToolCall {
         id: tool_call_id.to_string(),
         name: part.name.clone(),
-        arguments: serde_json::to_string(&input).unwrap_or_else(|_| "null".to_string()),
+        arguments: tool_arguments_json(input),
     })
+}
+
+fn tool_arguments_json(input: serde_json::Value) -> String {
+    match input {
+        serde_json::Value::Object(_) => {
+            serde_json::to_string(&input).unwrap_or_else(|_| "{}".to_string())
+        }
+        _ => "{}".to_string(),
+    }
 }
 
 async fn tool_result_message_from_part(
@@ -726,6 +735,34 @@ mod tests {
         assert_eq!(calls[0].id, "call-ok");
         assert_eq!(history[1].tool_call_id.as_deref(), Some("call-ok"));
         assert_eq!(history[1].text_content(), "first-result");
+    }
+
+    #[tokio::test]
+    async fn assistant_session_message_replays_missing_tool_input_as_empty_object() {
+        let store = InMemoryObjectStore::default();
+        let call = data_proto::SessionMessagePart {
+            id: "000001".to_string(),
+            part_type: data_proto::SessionMessagePartType::ToolCall as i32,
+            content: "Tool call".to_string(),
+            name: "list_links".to_string(),
+            payload_json: serde_json::json!({
+                "tool_call_id": "call-empty",
+            })
+            .to_string(),
+            created_at: 0,
+            object: None,
+        };
+        let message = assistant_message(vec![
+            call,
+            tool_result_part_for_call("call-empty", "list_links", "[]"),
+        ]);
+
+        let history = session_message_to_loop_messages(&message, &store)
+            .await
+            .unwrap();
+
+        let calls = history[0].tool_calls.as_ref().unwrap();
+        assert_eq!(calls[0].arguments, "{}");
     }
 
     #[tokio::test]
