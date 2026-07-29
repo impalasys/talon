@@ -1536,6 +1536,7 @@ export function TalonSession({
 
                       const toolKey = `${message.id}-work-tool-${item.toolCallId || index}`;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
+                      const isRunningTool = isLiveAssistantMessage && item.result === undefined;
                       return (
                         <div key={toolKey}>
                           <button
@@ -1560,6 +1561,11 @@ export function TalonSession({
                             <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
                             </span>
+                            {isRunningTool ? (
+                              <span style={{ flexShrink: 0, borderRadius: 999, background: "var(--talon-chat-tool-running-bg, rgba(14,165,233,0.12))", color: "var(--talon-chat-tool-running-fg, #0369a1)", padding: "0.1rem 0.45rem", fontSize: 11, fontWeight: 700 }}>
+                                Running
+                              </span>
+                            ) : null}
                             <ChevronRight
                               className="talon-session-tool-chevron"
                               size="14"
@@ -1759,6 +1765,7 @@ export function TalonSession({
 
                       const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
+                      const isRunningTool = isLiveAssistantMessage && item.result === undefined;
                       return (
                         <div key={toolKey}>
                           <button
@@ -1783,6 +1790,11 @@ export function TalonSession({
                             <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
                             </span>
+                            {isRunningTool ? (
+                              <span style={{ flexShrink: 0, borderRadius: 999, background: "var(--talon-chat-tool-running-bg, rgba(14,165,233,0.12))", color: "var(--talon-chat-tool-running-fg, #0369a1)", padding: "0.1rem 0.45rem", fontSize: 11, fontWeight: 700 }}>
+                                Running
+                              </span>
+                            ) : null}
                             <ChevronRight
                               className="talon-session-tool-chevron"
                               size="14"
@@ -2507,14 +2519,14 @@ export function TalonSession({
       }, { signal: controller.signal });
 
       submitTurnStarted = true;
-      const { assistantText } = await streamSessionPartEvents({
+      const { hasAssistantEvent } = await streamSessionPartEvents({
         events: turnStream,
         setMessages,
         setStreamEvents,
         signal: controller.signal,
       });
 
-      if (!assistantText) {
+      if (!hasAssistantEvent) {
         await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature);
       } else {
         await refreshNewestSessionPage(session);

@@ -159,6 +159,7 @@ export async function streamUiSubmission(options: {
   let buffer = "";
   let assistantText = "";
   let assistantMessageId: string | null = null;
+  let hasAssistantEvent = false;
 
   const ensureLiveAssistant = (messageId?: string) => {
     const nextMessageId = messageId || assistantMessageId || createLocalMessageId();
@@ -205,14 +206,17 @@ export async function streamUiSubmission(options: {
       if (code === UI_STREAM_ASSISTANT_MESSAGE_ID_CODE && typeof part?.messageId === "string" && part.messageId) {
         ensureLiveAssistant(part.messageId);
       } else if (code === UI_STREAM_TEXT_CHUNK_CODE && typeof part === "string") {
+        hasAssistantEvent = true;
         const messageId = ensureLiveAssistant();
         assistantText += part;
         setMessages((prev) => appendAssistantText(prev, messageId, part));
       } else if (code === UI_STREAM_REASONING_CHUNK_CODE && typeof part === "string") {
+        hasAssistantEvent = true;
         const messageId = ensureLiveAssistant();
         setStreamEvents((prev) => [...prev, { type: "reasoning", content: part }]);
         setMessages((prev) => appendAssistantReasoning(prev, messageId, part));
       } else if (code === UI_STREAM_TOOL_CALL_CODE) {
+        hasAssistantEvent = true;
         const messageId = ensureLiveAssistant();
         setStreamEvents((prev) => [
           ...prev,
@@ -234,6 +238,7 @@ export async function streamUiSubmission(options: {
           ),
         );
       } else if (code === UI_STREAM_TOOL_RESULT_CODE) {
+        hasAssistantEvent = true;
         const messageId = ensureLiveAssistant();
         setStreamEvents((prev) => [
           ...prev,
@@ -254,6 +259,7 @@ export async function streamUiSubmission(options: {
           ),
         );
       } else if (code === UI_STREAM_USAGE_CODE && part && typeof part === "object") {
+        hasAssistantEvent = true;
         const messageId = ensureLiveAssistant();
         setStreamEvents((prev) => [
           ...prev,
@@ -270,7 +276,7 @@ export async function streamUiSubmission(options: {
     }
   }
 
-  return { assistantText };
+  return { assistantText, hasAssistantEvent };
 }
 
 export async function streamSessionPartEvents(options: {
@@ -282,6 +288,7 @@ export async function streamSessionPartEvents(options: {
   const { events, setMessages, setStreamEvents, signal } = options;
   let assistantText = "";
   let assistantMessageId: string | null = null;
+  let hasAssistantEvent = false;
 
   const ensureLiveAssistant = (messageId?: string) => {
     const nextMessageId = messageId || assistantMessageId || createLocalMessageId();
@@ -320,21 +327,26 @@ export async function streamSessionPartEvents(options: {
     const messageId = ensureLiveAssistant(event?.messageId ?? event?.message_id);
 
     if (partType === SESSION_MESSAGE_PART_TYPE.TEXT || partType === "SESSION_MESSAGE_PART_TYPE_TEXT") {
+      hasAssistantEvent = true;
       assistantText += content;
       setMessages((prev) => appendAssistantText(prev, messageId, content));
     } else if (partType === SESSION_MESSAGE_PART_TYPE.REASONING || partType === "SESSION_MESSAGE_PART_TYPE_REASONING") {
+      hasAssistantEvent = true;
       setStreamEvents((prev) => [...prev, { type: "reasoning", content }]);
       setMessages((prev) => appendAssistantReasoning(prev, messageId, content));
     } else if (partType === SESSION_MESSAGE_PART_TYPE.TOOL_CALL || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_CALL") {
+      hasAssistantEvent = true;
       const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
       const toolName = typeof part.name === "string" && part.name ? part.name : "tool";
       setStreamEvents((prev) => [...prev, { type: "tool_call", content: toolName, name: toolName, payload }]);
       setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, toolName, payload?.input, undefined, messageId));
     } else if (partType === SESSION_MESSAGE_PART_TYPE.TOOL_RESULT || partType === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT") {
+      hasAssistantEvent = true;
       const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
       setStreamEvents((prev) => [...prev, { type: "tool_result", content: toolCallId, payload }]);
       setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, "", undefined, payload?.output ?? content, messageId));
     } else if (partType === SESSION_MESSAGE_PART_TYPE.USAGE || partType === "SESSION_MESSAGE_PART_TYPE_USAGE") {
+      hasAssistantEvent = true;
       const usage = payload && typeof payload === "object" ? payload as UsageSummary : {};
       setStreamEvents((prev) => [...prev, { type: "usage", content: formatUsageSummary(usage), payload: usage }]);
       setMessages((prev) => applyUsageToMessages(prev, messageId, usage));
@@ -342,11 +354,12 @@ export async function streamSessionPartEvents(options: {
       const error = new Error(content || "Session stream error");
       throw error;
     } else if (partType === SESSION_MESSAGE_PART_TYPE.IMAGE || partType === "SESSION_MESSAGE_PART_TYPE_IMAGE") {
+      hasAssistantEvent = true;
       setMessages((prev) => appendAssistantPart(prev, messageId, part));
     }
   }
 
-  return { assistantText };
+  return { assistantText, hasAssistantEvent };
 }
 
 function parsePayload(value: unknown): any {

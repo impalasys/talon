@@ -1580,6 +1580,222 @@ describe('TalonCopilot', () => {
     });
   });
 
+  it('stops progress after a completed tool-only stream', async () => {
+    const createdAt = String(Date.now() * 1000);
+    const gatewayClient = {
+      sessions: {
+        create: jest.fn().mockResolvedValue({ sessionId: 'sess-tool-only' }),
+        listMessages: jest.fn().mockResolvedValue({
+          sessionId: 'sess-tool-only',
+          state: 'IDLE',
+          items: [
+            {
+              message: {
+                id: 'assistant-tool-only',
+                role: 'ROLE_ASSISTANT',
+                parts: [
+                  {
+                    partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                    id: 'call-tool-only',
+                    name: 'inspect_docs',
+                    payloadJson: JSON.stringify({
+                      tool_call_id: 'call-tool-only',
+                      input: { query: 'streaming' },
+                    }),
+                  },
+                  {
+                    partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                    id: 'call-tool-only',
+                    name: 'inspect_docs',
+                    payloadJson: JSON.stringify({
+                      tool_call_id: 'call-tool-only',
+                      output: 'done',
+                    }),
+                  },
+                  {
+                    partType: 'SESSION_MESSAGE_PART_TYPE_USAGE',
+                    payloadJson: JSON.stringify({ total_tokens: 18 }),
+                  },
+                ],
+                createdAt,
+              },
+              steps: [],
+            },
+          ],
+          hasMore: false,
+        }),
+        submitTurn: jest.fn(async function* () {
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+            messageId: 'assistant-tool-only',
+            part: {
+              partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+              id: 'call-tool-only',
+              name: 'inspect_docs',
+              payloadJson: JSON.stringify({
+                tool_call_id: 'call-tool-only',
+                input: { query: 'streaming' },
+              }),
+            },
+          };
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+            messageId: 'assistant-tool-only',
+            part: {
+              partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+              id: 'call-tool-only',
+              name: 'inspect_docs',
+              payloadJson: JSON.stringify({
+                tool_call_id: 'call-tool-only',
+                output: 'done',
+              }),
+            },
+          };
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+            messageId: 'assistant-tool-only',
+            part: {
+              partType: 'SESSION_MESSAGE_PART_TYPE_USAGE',
+              payloadJson: JSON.stringify({ total_tokens: 18 }),
+            },
+          };
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DONE',
+            messageId: 'assistant-tool-only',
+          };
+        }),
+        streamParts: jest.fn(async function* () {}),
+        stopGeneration: jest.fn(),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'inspect without final text' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    const workedButton = await screen.findByRole('button', { name: /Worked/ });
+    expect(screen.queryByText(/Working/)).not.toBeInTheDocument();
+    expect(gatewayClient.sessions.listMessages).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(workedButton);
+    expect(screen.getByText(/Called/)).toHaveTextContent('inspect_docs');
+    expect(screen.getByText('18 total')).toBeInTheDocument();
+  });
+
+  it('highlights a live tool call while it is running', async () => {
+    let finishTool!: () => void;
+    const toolFinished = new Promise<void>((resolve) => {
+      finishTool = resolve;
+    });
+    const createdAt = String(Date.now() * 1000);
+    const gatewayClient = {
+      sessions: {
+        create: jest.fn().mockResolvedValue({ sessionId: 'sess-running-tool' }),
+        listMessages: jest.fn().mockResolvedValue({
+          sessionId: 'sess-running-tool',
+          state: 'IDLE',
+          items: [
+            {
+              message: {
+                id: 'assistant-running-tool',
+                role: 'ROLE_ASSISTANT',
+                parts: [
+                  {
+                    partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                    id: 'call-running',
+                    name: 'long_flow',
+                    payloadJson: JSON.stringify({
+                      tool_call_id: 'call-running',
+                      input: { task: 'run' },
+                    }),
+                  },
+                  {
+                    partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                    id: 'call-running',
+                    name: 'long_flow',
+                    payloadJson: JSON.stringify({
+                      tool_call_id: 'call-running',
+                      output: 'complete',
+                    }),
+                  },
+                ],
+                createdAt,
+              },
+              steps: [],
+            },
+          ],
+          hasMore: false,
+        }),
+        submitTurn: jest.fn(async function* () {
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+            messageId: 'assistant-running-tool',
+            part: {
+              partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+              id: 'call-running',
+              name: 'long_flow',
+              payloadJson: JSON.stringify({
+                tool_call_id: 'call-running',
+                input: { task: 'run' },
+              }),
+            },
+          };
+          await toolFinished;
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+            messageId: 'assistant-running-tool',
+            part: {
+              partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+              id: 'call-running',
+              name: 'long_flow',
+              payloadJson: JSON.stringify({
+                tool_call_id: 'call-running',
+                output: 'complete',
+              }),
+            },
+          };
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DONE',
+            messageId: 'assistant-running-tool',
+          };
+        }),
+        streamParts: jest.fn(async function* () {}),
+        stopGeneration: jest.fn(),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'run the long flow' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    expect(await screen.findByText('Running')).toBeInTheDocument();
+    expect(screen.getByText(/Called/)).toHaveTextContent('long_flow');
+
+    await act(async () => {
+      finishTool();
+      await toolFinished;
+    });
+    await waitFor(() => expect(screen.queryByText('Running')).not.toBeInTheDocument());
+  });
+
   it('loads older history pages when scrolled near the top', async () => {
     const gatewayClient = {
       createSession: jest.fn(),
