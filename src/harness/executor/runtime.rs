@@ -512,9 +512,7 @@ impl AgentExecutor {
             prefix_latest_user_message(&mut history, post_history_prompt);
         }
 
-        let mut compacted = compact_history_for_llm(&history);
-        preserve_user_anchor(&history, &mut compacted);
-        compacted
+        compact_history_for_llm(&history)
             .iter()
             .map(|m| ChatMessage {
                 role: m.role.clone(),
@@ -874,33 +872,6 @@ fn normalize_tool_call_arguments(mut tool: ToolCall) -> ToolCall {
         _ => "{}".to_string(),
     };
     tool
-}
-
-fn preserve_user_anchor(original: &[LoopMessage], compacted: &mut Vec<LoopMessage>) {
-    if compacted
-        .iter()
-        .any(|message| message.role == "user" || message.role == "tool")
-    {
-        return;
-    }
-
-    let Some(anchor) = original
-        .iter()
-        .rev()
-        .find(|message| message.role == "user")
-        .cloned()
-    else {
-        return;
-    };
-    let insert_at = if compacted
-        .first()
-        .is_some_and(|message| message.role == "system")
-    {
-        1
-    } else {
-        0
-    };
-    compacted.insert(insert_at, anchor);
 }
 
 pub fn tool_result_loop_message(tool_call_id: &str, result: &str) -> LoopMessage {
@@ -1392,24 +1363,6 @@ mod tests {
 
         assert_eq!(empty.arguments, "{}");
         assert_eq!(null.arguments, "{}");
-    }
-
-    #[test]
-    fn preserve_user_anchor_when_compaction_left_only_system_and_assistant() {
-        let original = vec![
-            LoopMessage::text("system", "system prompt"),
-            LoopMessage::text("user", "scheduled prompt"),
-            LoopMessage::text("assistant", "large prior summary"),
-        ];
-        let mut compacted = vec![
-            LoopMessage::text("system", "system prompt"),
-            LoopMessage::text("assistant", "large prior summary"),
-        ];
-
-        super::preserve_user_anchor(&original, &mut compacted);
-
-        assert_eq!(compacted[1].role, "user");
-        assert_eq!(compacted[1].text_content(), "scheduled prompt");
     }
 
     #[tokio::test]
