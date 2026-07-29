@@ -12,8 +12,9 @@
 // too large, the oldest omittable segments are removed and replaced with an
 // assistant marker after the head system message when one exists. Recent
 // context is favored, and every returned transcript is checked to avoid
-// orphaned tool messages, missing tool results, duplicate call ids, or
-// non-adjacent tool interactions.
+// orphaned tool messages, missing tool results, duplicate call ids,
+// non-adjacent tool interactions, or removing the last user/tool request
+// anchor from an otherwise request-anchored transcript.
 
 use super::runtime::LoopMessage;
 use crate::harness::llm::{chat_content_part, text_part, ChatContentPart};
@@ -28,6 +29,7 @@ pub fn compact_history_for_llm_with_budget(
     budget: ContextBudget,
 ) -> Vec<LoopMessage> {
     let mut history_segments = segments::normalize(segments::from(history), budget);
+    let normalized_has_request_anchor = segments::has_request_anchor(&history_segments);
     debug_assert!(
         tool_history_is_consistent(&segments::to_history(&history_segments)),
         "normalized replay history must preserve valid tool-call structure"
@@ -90,6 +92,10 @@ pub fn compact_history_for_llm_with_budget(
     debug_assert!(
         tool_history_is_consistent(&compacted),
         "compacted replay history must preserve valid tool-call structure"
+    );
+    debug_assert!(
+        !normalized_has_request_anchor || replay_has_user_or_tool_anchor(&compacted),
+        "compacted replay history must preserve a user/tool request anchor"
     );
     compacted
 }
@@ -347,6 +353,10 @@ mod segments {
         segments.iter().map(Segment::weight).sum()
     }
 
+    pub(super) fn has_request_anchor(segments: &[Segment]) -> bool {
+        segments.iter().any(Segment::has_request_anchor)
+    }
+
     pub(super) fn omitted_marker(omitted: usize) -> Option<LoopMessage> {
         if omitted == 0 {
             return None;
@@ -373,11 +383,24 @@ mod segments {
         if segments.len() <= 1 {
             return None;
         }
-        if segments.first().is_some_and(Segment::is_system_only) {
-            Some(1)
+        let request_anchor_count = segments
+            .iter()
+            .filter(|segment| segment.has_request_anchor())
+            .count();
+        let start = if segments.first().is_some_and(Segment::is_system_only) {
+            1
         } else {
-            Some(0)
+            0
+        };
+
+        for index in start..segments.len() {
+            let segment = &segments[index];
+            if request_anchor_count <= 1 && segment.has_request_anchor() {
+                continue;
+            }
+            return Some(index);
         }
+        None
     }
 
     fn tool_segment_summary(
@@ -447,6 +470,13 @@ mod segments {
 
         pub(super) fn is_tool_interaction(&self) -> bool {
             self.complete && self.message.is_some() && !self.tool_results.is_empty()
+        }
+
+        fn has_request_anchor(&self) -> bool {
+            self.message
+                .as_ref()
+                .is_some_and(|message| message.role == "user" || message.role == "tool")
+                || !self.tool_results.is_empty()
         }
 
         pub(super) fn message_count(&self) -> usize {
@@ -678,6 +708,12 @@ fn tool_history_is_consistent(history: &[LoopMessage]) -> bool {
     true
 }
 
+fn replay_has_user_or_tool_anchor(history: &[LoopMessage]) -> bool {
+    history
+        .iter()
+        .any(|message| message.role == "user" || message.role == "tool")
+}
+
 fn compact_tool_result_for_llm(result: &str, budget: ContextBudget) -> String {
     if result.len() <= budget.max_tool_result_chars {
         return result.to_string();
@@ -848,8 +884,8 @@ fn env_usize(key: &str, default: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::{
-        compact_history_for_llm_with_budget, serialized_message_weight, tool_history_is_consistent,
-        ContextBudget,
+        compact_history_for_llm_with_budget, replay_has_user_or_tool_anchor,
+        serialized_message_weight, tool_history_is_consistent, ContextBudget,
     };
     use crate::harness::executor::LoopMessage;
     use crate::harness::llm::{chat_content_part, image_data_part, text_part, ToolCall};
@@ -1060,6 +1096,33 @@ mod tests {
         assert!(compacted
             .iter()
             .any(|m| m.text_content().contains("omitted")));
+    }
+
+    #[test]
+    fn compact_history_preserves_request_anchor_when_omitting_segments() {
+        let history = vec![
+            message("system", "sys"),
+            message("user", "scheduled prompt"),
+            message("assistant", "A".repeat(500)),
+            message("assistant", "B".repeat(500)),
+        ];
+        let compact_budget = ContextBudget {
+            total_chars: 120,
+            max_message_chars: 80,
+            max_tool_result_chars: 80,
+            max_tool_argument_chars: 80,
+        };
+
+        let compacted = compact_history_for_llm_with_budget(&history, compact_budget);
+
+        assert!(replay_has_user_or_tool_anchor(&compacted));
+        assert!(compacted.iter().any(|message| {
+            message.role == "user" && message.text_content() == "scheduled prompt"
+        }));
+        assert!(compacted
+            .iter()
+            .any(|message| message.text_content().contains("omitted")));
+        assert!(tool_history_is_consistent(&compacted));
     }
 
     #[test]
