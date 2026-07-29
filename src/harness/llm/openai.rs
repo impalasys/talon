@@ -114,12 +114,13 @@ impl OpenAiCompatibleProvider {
                         .tool_calls
                         .into_iter()
                         .map(|tool| {
+                            let arguments = Self::openai_tool_arguments(&tool.arguments);
                             serde_json::json!({
                                 "id": tool.id,
                                 "type": "function",
                                 "function": {
                                     "name": tool.name,
-                                    "arguments": tool.arguments,
+                                    "arguments": arguments,
                                 }
                             })
                         })
@@ -134,6 +135,13 @@ impl OpenAiCompatibleProvider {
                 json
             })
             .collect()
+    }
+
+    fn openai_tool_arguments(arguments: &str) -> String {
+        match serde_json::from_str::<Value>(arguments) {
+            Ok(Value::Object(_)) => arguments.to_string(),
+            _ => "{}".to_string(),
+        }
     }
 
     fn supports_tool_retry_without_tools(
@@ -906,6 +914,18 @@ mod tests {
             "mcp_conic_create_github_pr"
         );
         assert_eq!(serialized[1]["tool_call_id"], "call_1");
+    }
+
+    #[test]
+    fn serialize_messages_normalizes_invalid_tool_arguments() {
+        let messages = vec![assistant_tool_call_message("mcp_conic_list_links", "")];
+
+        let serialized = OpenAiCompatibleProvider::serialize_messages(messages);
+
+        assert_eq!(
+            serialized[0]["tool_calls"][0]["function"]["arguments"],
+            "{}"
+        );
     }
 
     #[test]
