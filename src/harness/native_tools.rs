@@ -4789,7 +4789,8 @@ mod tests {
         .unwrap()
         .unwrap();
 
-        assert_eq!(output.summary(), content);
+        assert!(output.summary().starts_with("[Object: notes.txt"));
+        assert!(!output.summary().contains(&content));
         let source_object_key = output
             .object_ref()
             .expect("text output should retain source object ref")
@@ -4834,7 +4835,8 @@ mod tests {
 
         let output = read_file_output(&cp, &file).await.unwrap();
 
-        assert_eq!(output.summary(), content);
+        assert!(output.summary().starts_with("[Object: notes.txt"));
+        assert!(!output.summary().contains(&content));
         let source_object_key = output
             .object_ref()
             .expect("read_file_output should retain source object ref")
@@ -5040,7 +5042,7 @@ mod tests {
         let value: Value = serde_json::from_str(&output).unwrap();
         let artifact_uri = value["artifactUri"].as_str().unwrap();
 
-        let read_output = execute_tool_for_session(
+        let read_output = execute_tool_for_session_output(
             &cp,
             "Tenant:acme:Workspace:main",
             "writer",
@@ -5054,20 +5056,21 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
-        let actual_content = read_output.as_str();
-        assert_eq!(
-            actual_content.len(),
-            large_content.len(),
-            "large create content length mismatch; actual_suffix={:?} expected_suffix={:?}",
-            &actual_content[actual_content.len().saturating_sub(64)..],
-            &large_content[large_content.len().saturating_sub(64)..]
-        );
-        assert!(
-            actual_content == large_content,
-            "large create content mismatch; actual_suffix={:?} expected_suffix={:?}",
-            &actual_content[actual_content.len().saturating_sub(64)..],
-            &large_content[large_content.len().saturating_sub(64)..]
-        );
+        let read_object = read_output
+            .object_ref()
+            .expect("large artifact read should return an object ref");
+        assert_eq!(read_object.size_bytes, large_content.len() as u64);
+        let stored = cp
+            .objects
+            .get(&read_object.key)
+            .await
+            .unwrap()
+            .expect("large artifact object should exist");
+        let actual_content = String::from_utf8(
+            crate::control::cas::decode_stored_object_bytes(&stored, &read_object.key).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(actual_content, large_content);
 
         let large_revision = format!("# Large Revision\n\n{}", "fedcba9876543210 ".repeat(700));
         assert!(large_revision.len() > 10_000);
@@ -5087,7 +5090,7 @@ mod tests {
         .unwrap()
         .unwrap();
 
-        let read_revision = execute_tool_for_session(
+        let read_revision = execute_tool_for_session_output(
             &cp,
             "Tenant:acme:Workspace:main",
             "writer",
@@ -5101,20 +5104,21 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
-        let actual_revision = read_revision.as_str();
-        assert_eq!(
-            actual_revision.len(),
-            large_revision.len(),
-            "large update content length mismatch; actual_suffix={:?} expected_suffix={:?}",
-            &actual_revision[actual_revision.len().saturating_sub(64)..],
-            &large_revision[large_revision.len().saturating_sub(64)..]
-        );
-        assert!(
-            actual_revision == large_revision,
-            "large update content mismatch; actual_suffix={:?} expected_suffix={:?}",
-            &actual_revision[actual_revision.len().saturating_sub(64)..],
-            &large_revision[large_revision.len().saturating_sub(64)..]
-        );
+        let revision_object = read_revision
+            .object_ref()
+            .expect("large artifact revision read should return an object ref");
+        assert_eq!(revision_object.size_bytes, large_revision.len() as u64);
+        let stored = cp
+            .objects
+            .get(&revision_object.key)
+            .await
+            .unwrap()
+            .expect("large artifact revision object should exist");
+        let actual_revision = String::from_utf8(
+            crate::control::cas::decode_stored_object_bytes(&stored, &revision_object.key).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(actual_revision, large_revision);
     }
 
     #[tokio::test]

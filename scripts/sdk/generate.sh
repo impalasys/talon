@@ -110,6 +110,10 @@ GO_OPTS=(
   "--go_opt=Mproto/resources/usage.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/workers.proto=${GO_MODULE}/talon/resources"
   "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
+  # Go packages cannot represent the proto dependency cycle created by
+  # talon.data.SessionJournalEntry -> talon.harness.ToolOutput ->
+  # talon.data.ObjectRef, so generate the harness LLM messages into the data
+  # package for the Go SDK.
   "--go_opt=Mproto/harness/llm.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/api_keys.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/data/connectors.proto=${GO_MODULE}/talon/routing"

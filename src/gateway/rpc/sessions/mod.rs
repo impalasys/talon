@@ -4,9 +4,11 @@
 use super::{connectors as connector_rpc, data_proto, proto, GrpcGatewayHandler};
 use crate::control::cas::{session_object_key_prefix, SessionCasScope, METADATA_AGENT};
 use crate::control::scheduling;
+use crate::control::tool_output;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys, keys::ResourceParent, KeyValueStore, ListOptions};
+use crate::gateway::rpc::harness_proto::{chat_content_part, ToolOutput};
 use prost::Message;
 use serde_json::{json, Value};
 use std::collections::HashSet;
@@ -205,7 +207,7 @@ async fn collect_session_tool_result_object_keys(
                 continue;
             }
         };
-        for part in message.parts {
+        for part in &message.parts {
             if part.part_type == data_proto::SessionMessagePartType::ToolResult as i32 {
                 collect_tool_result_object_key(
                     part.object.as_ref(),
@@ -213,6 +215,28 @@ async fn collect_session_tool_result_object_keys(
                     agent,
                     &mut keys_to_delete,
                 );
+                match tool_output::parse_tool_result_payload_json(
+                    &part.payload_json,
+                    part.object.as_ref(),
+                    &part.content,
+                ) {
+                    Ok(Some(payload)) => collect_tool_output_object_keys(
+                        &payload.tool_output,
+                        &expected_prefix,
+                        agent,
+                        &mut keys_to_delete,
+                    ),
+                    Ok(None) => {}
+                    Err(error) => tracing::warn!(
+                        error = %error,
+                        namespace = %ns,
+                        agent = %agent,
+                        session_id = %session_id,
+                        message_id = %message.id,
+                        part_id = %part.id,
+                        "failed to parse session message tool result payload while collecting objects for deletion"
+                    ),
+                }
             }
         }
     }
@@ -245,21 +269,54 @@ async fn collect_session_tool_result_object_keys(
                     continue;
                 }
             };
-            let object = entry
+            if let Some(tool_result) = entry
                 .payload
                 .as_ref()
                 .and_then(|payload| payload.payload.as_ref())
                 .and_then(|payload| match payload {
                     data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
-                        result.object.as_ref()
+                        Some(result)
                     }
                     _ => None,
-                });
-            collect_tool_result_object_key(object, &expected_prefix, agent, &mut keys_to_delete);
+                })
+            {
+                collect_tool_result_object_key(
+                    tool_result.object.as_ref(),
+                    &expected_prefix,
+                    agent,
+                    &mut keys_to_delete,
+                );
+                if let Some(tool_output) = tool_result.tool_output.as_ref() {
+                    collect_tool_output_object_keys(
+                        tool_output,
+                        &expected_prefix,
+                        agent,
+                        &mut keys_to_delete,
+                    );
+                }
+            }
         }
     }
 
     Ok(keys_to_delete.into_iter().collect())
+}
+
+fn collect_tool_output_object_keys(
+    output: &ToolOutput,
+    expected_prefix: &str,
+    expected_agent: &str,
+    keys_to_delete: &mut HashSet<String>,
+) {
+    for part in &output.content_parts {
+        if let Some(chat_content_part::Content::ObjectRef(object_ref)) = part.content.as_ref() {
+            collect_tool_result_object_key(
+                Some(object_ref),
+                expected_prefix,
+                expected_agent,
+                keys_to_delete,
+            );
+        }
+    }
 }
 
 fn collect_tool_result_object_key(
@@ -2270,6 +2327,91 @@ mod tests {
                                 output: "large journal".to_string(),
                                 object: Some(object),
                                 tool_output: None,
+                            },
+                        ),
+                    ),
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(handler
+            .gateway
+            .objects
+            .get(object_key)
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn delete_session_removes_tool_output_content_part_objects_from_journal_only_entries() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let message_id = "message-1";
+        let submission_id = "submission-1";
+        let tool_call_id = "tool-1";
+        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.png";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        let object = handler
+            .gateway
+            .objects
+            .put(
+                object_key,
+                b"image bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "part-1.png".to_string(),
+                    ..tool_result_metadata(ns, agent, session_id, message_id, tool_call_id)
+                },
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_submission(ns, agent, session_id, submission_id),
+            &crate::harness::sessions::pending_submission(submission_id, session_id, "user-1", 1),
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::session_journal_entry(ns, agent, session_id, submission_id, "000001"),
+            &data_proto::SessionJournalEntry {
+                journal_entry_id: "000001".to_string(),
+                submission_id: submission_id.to_string(),
+                attempt_id: "attempt-1".to_string(),
+                phase: data_proto::SessionExecutionPhase::ToolResult as i32,
+                created_at: 1,
+                updated_at: 1,
+                committed_at: None,
+                committed_message_id: None,
+                payload: Some(data_proto::SessionJournalEntryPayload {
+                    payload: Some(
+                        data_proto::session_journal_entry_payload::Payload::ToolResult(
+                            data_proto::SessionJournalEntryPayloadToolResult {
+                                tool_call_id: tool_call_id.to_string(),
+                                name: "shell".to_string(),
+                                output: String::new(),
+                                object: None,
+                                tool_output: Some(
+                                    crate::harness::llm::ToolOutput::from_content_parts(
+                                        vec![crate::harness::llm::object_ref_part(object)],
+                                        "",
+                                    ),
+                                ),
                             },
                         ),
                     ),

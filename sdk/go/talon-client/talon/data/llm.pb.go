@@ -725,12 +725,12 @@ var File_proto_harness_llm_proto protoreflect.FileDescriptor
 
 const file_proto_harness_llm_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/harness/llm.proto\x12\rtalon.harness\x1a\x15proto/data/data.proto\x1a\x1cproto/resources/agents.proto\"j\n" +
+	"\x17proto/harness/llm.proto\x12\rtalon.harness\x1a\x15proto/data/data.proto\x1a\x1cproto/resources/agents.proto\"v\n" +
 	"\x0fChatContentPart\x12\x14\n" +
 	"\x04text\x18\x01 \x01(\tH\x00R\x04text\x126\n" +
 	"\n" +
 	"object_ref\x18\x04 \x01(\v2\x15.talon.data.ObjectRefH\x00R\tobjectRefB\t\n" +
-	"\acontent\"k\n" +
+	"\acontentJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04\"k\n" +
 	"\n" +
 	"ToolOutput\x12C\n" +
 	"\rcontent_parts\x18\x01 \x03(\v2\x1e.talon.harness.ChatContentPartR\fcontentParts\x12\x18\n" +

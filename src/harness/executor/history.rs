@@ -276,12 +276,14 @@ async fn tool_result_message_from_part(
         return Ok(None);
     };
     if payload.get("tool_output").is_some() {
-        let parsed = tool_output::parse_tool_result_payload_json(
+        let Some(parsed) = tool_output::parse_tool_result_payload_json(
             &part.payload_json,
             part.object.as_ref(),
             &part.content,
         )?
-        .ok_or_else(|| anyhow!("tool result payload is missing tool_call_id"))?;
+        else {
+            return Ok(None);
+        };
         return Ok(Some(LoopMessage {
             role: "tool".to_string(),
             content_parts: parsed.tool_output.content_parts(),
@@ -336,6 +338,22 @@ async fn tool_result_message_from_part(
                     label, media_type, object_ref.size_bytes
                 ),
             );
+            message.content_parts.push(object_ref_part(object_ref));
+            message.tool_call_id = Some(tool_call_id.to_string());
+            return Ok(Some(message));
+        }
+        if !tool_output::is_text_object_media_type(&media_type) {
+            let label = if object_ref.filename.is_empty() {
+                object_ref.key.as_str()
+            } else {
+                object_ref.filename.as_str()
+            };
+            let summary = if inline_output.is_empty() {
+                tool_output::object_ref_summary(&media_type, label, object_ref.size_bytes)
+            } else {
+                inline_output
+            };
+            let mut message = LoopMessage::text("tool", summary);
             message.content_parts.push(object_ref_part(object_ref));
             message.tool_call_id = Some(tool_call_id.to_string());
             return Ok(Some(message));
@@ -682,7 +700,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tool_result_message_replays_non_utf8_object_lossily() {
+    async fn tool_result_message_preserves_binary_legacy_object_ref() {
         let store = InMemoryObjectStore::default();
         let object = store
             .put(
@@ -705,7 +723,7 @@ mod tests {
             })
             .to_string(),
         );
-        part.object = Some(object);
+        part.object = Some(object.clone());
 
         let message = tool_result_message_from_part(&part, &store)
             .await
@@ -713,9 +731,12 @@ mod tests {
             .unwrap();
 
         assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
+        assert!(message.text_content().contains("[Object: blob.bin"));
         assert_eq!(
-            message.text_content(),
-            String::from_utf8_lossy(&[0x66, 0x6f, 0xff, 0x6f]).into_owned()
+            content_part_object_ref(&message.content_parts[1])
+                .unwrap()
+                .key,
+            object.key
         );
     }
 

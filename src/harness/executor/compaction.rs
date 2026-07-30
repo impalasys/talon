@@ -17,6 +17,7 @@
 // anchor from an otherwise request-anchored transcript.
 
 use super::runtime::LoopMessage;
+use crate::control::tool_output::is_text_object_media_type;
 use crate::harness::llm::{chat_content_part, text_part, ChatContentPart};
 use serde_json::Value;
 
@@ -618,10 +619,15 @@ fn content_part_weight(part: &ChatContentPart) -> usize {
     match part.content.as_ref() {
         Some(chat_content_part::Content::Text(text)) => text.len(),
         Some(chat_content_part::Content::ObjectRef(object)) => {
-            INLINE_IMAGE_CONTEXT_WEIGHT
-                + object.media_type.len()
-                + object.key.len()
-                + object.filename.len()
+            let object_payload_weight = if is_text_object_media_type(&object.media_type) {
+                usize::try_from(object.size_bytes).unwrap_or(usize::MAX)
+            } else {
+                INLINE_IMAGE_CONTEXT_WEIGHT
+            };
+            object_payload_weight
+                .saturating_add(object.media_type.len())
+                .saturating_add(object.key.len())
+                .saturating_add(object.filename.len())
         }
         None => 0,
     }
@@ -906,6 +912,16 @@ mod tests {
         })
     }
 
+    fn text_object_part(size_bytes: u64) -> ChatContentPart {
+        object_ref_part(data_proto::ObjectRef {
+            key: "cas/acme/files/file-1/output.txt".to_string(),
+            media_type: "text/plain; charset=utf-8".to_string(),
+            size_bytes,
+            filename: "output.txt".to_string(),
+            ..Default::default()
+        })
+    }
+
     #[derive(Deserialize)]
     struct FixtureLoopMessage {
         role: String,
@@ -1166,6 +1182,27 @@ mod tests {
             .iter()
             .flat_map(|message| &message.content_parts)
             .all(|part| content_part_object_ref(part).is_none()));
+    }
+
+    #[test]
+    fn compact_history_counts_text_object_refs_by_stored_size() {
+        let mut user = message("user", "");
+        user.content_parts = vec![text_part("please summarize this"), text_object_part(50_000)];
+        let object_budget = ContextBudget {
+            total_chars: 5_000,
+            max_message_chars: 5_000,
+            ..budget()
+        };
+
+        let compacted = compact_history_for_llm_with_budget(&[user], object_budget);
+
+        assert!(compacted
+            .iter()
+            .flat_map(|message| &message.content_parts)
+            .all(|part| content_part_object_ref(part).is_none()));
+        assert!(compacted
+            .iter()
+            .any(|message| message.text_content().contains("Object omitted")));
     }
 
     #[test]

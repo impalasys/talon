@@ -10,6 +10,7 @@ message ChatContentPart {
     string text = 1;
     talon.data.ObjectRef object_ref = 4;
   }
+  reserved 2, 3;
 }
 
 message ToolOutput {

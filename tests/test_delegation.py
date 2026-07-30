@@ -28,7 +28,25 @@ from talon_client.resources import A2A, Connection, ConnectionRef, InternalConne
 PART_TYPE_TOOL_RESULT = 4
 
 
-def _tool_result_content(output: str) -> str:
+def _tool_result_content(payload: dict) -> str:
+    tool_output = payload.get("tool_output") or payload.get("toolOutput") or {}
+    content_parts = (
+        tool_output.get("content_parts")
+        or tool_output.get("contentParts")
+        or []
+    )
+    text = "".join(
+        part.get("text", "")
+        for part in content_parts
+        if isinstance(part, dict) and part.get("type") == "text"
+    )
+    if text:
+        return text
+    summary = tool_output.get("summary")
+    if isinstance(summary, str):
+        return summary
+
+    output = payload.get("output", "")
     if not output:
         return ""
     try:
@@ -252,7 +270,7 @@ def test_delegate_task_creates_durable_child_session(
     worker_artifact_uri = ""
     for part in worker_tool_results:
         payload = json.loads(part.payload_json or "{}")
-        output = payload.get("output", "")
+        output = _tool_result_content(payload)
         if output:
             output_json = json.loads(output)
             worker_artifact_uri = output_json.get("artifactUri", "")
@@ -310,9 +328,9 @@ def test_delegate_task_creates_durable_child_session(
         read_outputs = []
         for part in owner_tool_results:
             payload = json.loads(part.payload_json or "{}")
-            output = payload.get("output", "")
+            output = _tool_result_content(payload)
             if output:
-                read_outputs.append(_tool_result_content(output))
+                read_outputs.append(output)
         if owner.state == "IDLE" and any(
             "Onboarding checklist" in output
             for output in read_outputs
@@ -328,9 +346,9 @@ def test_delegate_task_creates_durable_child_session(
     ]
     read_outputs = []
     for part in owner_tool_results:
-        output = json.loads(part.payload_json or "{}").get("output", "")
+        output = _tool_result_content(json.loads(part.payload_json or "{}"))
         if output:
-            read_outputs.append(_tool_result_content(output))
+            read_outputs.append(output)
     assert any(
         "Onboarding checklist" in output
         for output in read_outputs
@@ -534,9 +552,9 @@ def test_legal_document_refinement_delegation_returns_redline_artifact(
                 if part.part_type != PART_TYPE_TOOL_RESULT:
                     continue
                 payload = json.loads(part.payload_json or "{}")
-                output = payload.get("output", "")
+                output = _tool_result_content(payload)
                 if output:
-                    read_outputs.append(_tool_result_content(output))
+                    read_outputs.append(output)
         if coordinator.state == "IDLE" and any(
             "Mutual NDA fallback clause redline" in output
             for output in read_outputs
@@ -726,9 +744,9 @@ def test_delegated_final_text_artifact_tag_becomes_readable_task_output(
                 if part.part_type != PART_TYPE_TOOL_RESULT:
                     continue
                 payload = json.loads(part.payload_json or "{}")
-                output = payload.get("output", "")
+                output = _tool_result_content(payload)
                 if output:
-                    read_outputs.append(_tool_result_content(output))
+                    read_outputs.append(output)
         if coordinator.state == "IDLE" and any(
             "Directors should approve" in output
             for output in read_outputs

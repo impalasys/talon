@@ -53,7 +53,9 @@ impl ToolOutput {
         if object_ref.filename.trim().is_empty() {
             object_ref.filename = filename.clone();
         }
-        let summary = if is_text_object_media_type(&media_type) {
+        let summary = if is_text_object_media_type(&media_type)
+            && bytes.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES
+        {
             String::from_utf8_lossy(&bytes).to_string()
         } else {
             object_ref_summary(&media_type, &filename, bytes.len() as u64)
@@ -88,7 +90,12 @@ impl ToolOutput {
 }
 
 pub fn is_text_object_media_type(media_type: &str) -> bool {
-    let media_type = media_type.trim().to_ascii_lowercase();
+    let media_type = media_type
+        .split(';')
+        .next()
+        .unwrap_or_default()
+        .trim()
+        .to_ascii_lowercase();
     media_type.starts_with("text/")
         || matches!(
             media_type.as_str(),
@@ -330,9 +337,7 @@ fn parse_content_part_json(value: &Value) -> Result<ChatContentPart> {
             Ok(object_ref_part(parse_object_ref_json(object_ref)?))
         }
         "empty" | "" => Ok(ChatContentPart { content: None }),
-        other => Err(anyhow!(
-            "unsupported tool output content part type '{other}'"
-        )),
+        _ => Ok(ChatContentPart { content: None }),
     }
 }
 
@@ -378,7 +383,7 @@ fn parse_object_ref_json(value: &Value) -> Result<data_proto::ObjectRef> {
     })
 }
 
-fn object_ref_summary(media_type: &str, filename: &str, size_bytes: u64) -> String {
+pub(crate) fn object_ref_summary(media_type: &str, filename: &str, size_bytes: u64) -> String {
     let normalized_media_type = media_type.trim().to_ascii_lowercase();
     let label = if normalized_media_type.starts_with("image/") {
         "Image"
@@ -493,6 +498,53 @@ mod tests {
             first_object_ref(&payload.tool_output).map(|object| object.key.as_str()),
             Some("cas/object")
         );
+    }
+
+    #[test]
+    fn media_type_parameters_are_ignored_for_text_classification() {
+        assert!(is_text_object_media_type("application/json; charset=utf-8"));
+        assert!(is_text_object_media_type(
+            " application/vnd.test+json ; charset=utf-8"
+        ));
+        assert!(is_text_object_media_type("text/plain; charset=utf-8"));
+        assert!(!is_text_object_media_type("image/png; charset=binary"));
+    }
+
+    #[test]
+    fn source_text_object_summary_is_bounded_for_large_content() {
+        let content = "x".repeat(TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
+        let output = ToolOutput::from_source_object(
+            content.into_bytes(),
+            "text/plain; charset=utf-8",
+            "large.txt",
+            object_ref("cas/large-text", "text/plain; charset=utf-8"),
+        );
+
+        assert_eq!(
+            output.summary(),
+            format!(
+                "[Object: large.txt (text/plain; charset=utf-8; {} bytes)]",
+                TOOL_RESULT_OBJECT_THRESHOLD_BYTES
+            )
+        );
+        assert_eq!(
+            first_object_ref(&output).map(|object| object.key.as_str()),
+            Some("cas/large-text")
+        );
+    }
+
+    #[test]
+    fn unknown_content_part_types_decode_as_empty_parts() {
+        let payload = parse_tool_result_payload_json(
+            r#"{"tool_call_id":"call-1","tool_output":{"summary":"","content_parts":[{"type":"future","value":"x"}]}}"#,
+            None,
+            "",
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(payload.tool_output.content_parts.len(), 1);
+        assert!(payload.tool_output.content_parts[0].content.is_none());
     }
 
     #[tokio::test]
