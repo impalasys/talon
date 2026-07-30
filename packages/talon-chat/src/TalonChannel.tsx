@@ -16,6 +16,7 @@ function border(color: string) {
 
 const talonChatFontFamily =
   'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const talonChatMessageFontSize = "var(--talon-chat-message-font-size, 1rem)";
 
 const CHANNEL_SCROLL_LOAD_THRESHOLD_PX = 64;
 const CHANNEL_SCROLL_BOTTOM_THRESHOLD_PX = 96;
@@ -668,7 +669,7 @@ export function TalonChannel({
                 const messageAuthorKind = message.authorKind || message.author_kind || "user";
                 const messageActions = renderMessageActions?.(message);
                 return (
-                  <div key={channelMessageKey(message, index)} style={{ borderRadius: 12, border: border("rgba(148,163,184,0.24)"), background: "var(--copilot-channel-message-bg, rgba(255,255,255,0.72))", color: "var(--copilot-channel-message-fg, inherit)", padding: "1rem" }}>
+                  <div key={channelMessageKey(message, index)} style={{ borderRadius: 12, border: border("rgba(148,163,184,0.24)"), background: "var(--copilot-channel-message-bg, rgba(255,255,255,0.72))", color: "var(--copilot-channel-message-fg, inherit)", padding: "1.1rem" }}>
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 12, opacity: 0.72 }}>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, color: "inherit", opacity: 1 }}>
                         <Hash size="13" />
@@ -677,7 +678,7 @@ export function TalonChannel({
                       <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{resolvedFormatTimestamp(message)}</span>
                       {messageActions ? <div style={{ marginLeft: "auto" }}>{messageActions}</div> : null}
                     </div>
-                    <div style={{ marginTop: 8, whiteSpace: "normal", overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.6 }}>
+                    <div style={{ marginTop: 8, whiteSpace: "normal", overflowWrap: "anywhere", fontSize: talonChatMessageFontSize, lineHeight: 1.6 }}>
                       <MarkdownMessage onResourceClick={onResourceClick}>{message.content || ""}</MarkdownMessage>
                     </div>
                   </div>

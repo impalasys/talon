@@ -326,6 +326,7 @@ async function fetchResourceFromGateway(options: {
 
 const talonChatFontFamily =
   'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const talonChatMessageFontSize = "var(--talon-chat-message-font-size, 1rem)";
 
 function cn(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
@@ -623,39 +624,31 @@ async function toolResultObjectData(response: any, fallbackObject?: TalonChatObj
   return bytes;
 }
 
-async function hydrateCasToolResultObjects(
-  messages: CopilotMessage[],
-  cas?: CasServiceClientLike,
-): Promise<CopilotMessage[]> {
-  if (!cas?.getObject) return messages;
-  const decoder = new TextDecoder();
-  return Promise.all(messages.map(async (message) => {
-    if (!Array.isArray(message.parts)) return message;
-    let changed = false;
-    const parts = await Promise.all(message.parts.map(async (part: any) => {
-      if (!part || typeof part !== "object" || !isToolResultPart(part)) return part;
-      if (typeof part.content === "string" && part.content.length > 0) return part;
-      const key = objectRefKey(objectRefFromPart(part));
-      if (!key) return part;
-      try {
-        const response = await cas.getObject({ key });
-        const data = await toolResultObjectData(response, objectRefFromPart(part));
-        changed = true;
-        return withToolResultContent(part, decoder.decode(data));
-      } catch (err) {
-        console.warn("Could not hydrate CAS tool-result object", key, err);
-        return part;
-      }
-    }));
-    return changed
-      ? {
-          ...message,
-          parts,
-          content: getMessageContent({ ...message, parts }),
-          timeline: getMessageAssistantTimeline({ ...message, parts }),
-        }
-      : message;
-  }));
+function toolCallIdFromToolResultPart(part: any): string {
+  if (typeof part?.toolCallId === "string") return part.toolCallId;
+  if (typeof part?.tool_call_id === "string") return part.tool_call_id;
+  const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
+  const payloadToolCallId = payload.tool_call_id ?? payload.toolCallId;
+  if (typeof payloadToolCallId === "string") return payloadToolCallId;
+  return typeof part?.id === "string" ? part.id : "";
+}
+
+function findHydratableToolResultPart(
+  parts: unknown,
+  toolCallId: string,
+): { part: any; index: number; key: string } | null {
+  if (!Array.isArray(parts)) return null;
+  for (let index = 0; index < parts.length; index += 1) {
+    const part = parts[index] as any;
+    if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
+    if (typeof part.content === "string" && part.content.length > 0) continue;
+    const key = objectRefKey(objectRefFromPart(part));
+    if (!key) continue;
+    const partToolCallId = toolCallIdFromToolResultPart(part);
+    if (toolCallId && partToolCallId !== toolCallId) continue;
+    return { part, index, key };
+  }
+  return null;
 }
 
 function messageImageParts(
@@ -987,6 +980,7 @@ export function TalonSession({
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
+  const [toolResultHydration, setToolResultHydration] = useState<Record<string, "loading" | "error">>({});
   const [openResourceUri, setOpenResourceUri] = useState<string | null>(null);
   /** False while the pane plays its close transition before unmount. */
   const [resourcePaneOpen, setResourcePaneOpen] = useState(false);
@@ -1011,10 +1005,18 @@ export function TalonSession({
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
   const imageAttachmentsRef = useRef<TalonSessionPendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
+  const toolResultHydrationInFlightRef = useRef<Set<string>>(new Set());
+  const toolResultHydrationGenerationRef = useRef(0);
   const skipNextAutoScrollRef = useRef(false);
   const autoScrollPinnedRef = useRef(true);
   const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
   const isLoadingOlderHistoryRef = useRef(false);
+
+  const invalidateToolResultHydration = useCallback(() => {
+    toolResultHydrationGenerationRef.current += 1;
+    toolResultHydrationInFlightRef.current.clear();
+    setToolResultHydration({});
+  }, []);
 
   const updateTranscriptScrollThumb = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -1101,7 +1103,7 @@ export function TalonSession({
 
   useSafeLayoutEffect(() => {
     updateTranscriptScrollThumb();
-  }, [messages, expandedThinkingMessages, expandedToolItems, isLoading, error, streamEvents, updateTranscriptScrollThumb]);
+  }, [messages, expandedThinkingMessages, expandedToolItems, toolResultHydration, isLoading, error, streamEvents, updateTranscriptScrollThumb]);
 
   useEffect(() => {
     if (!isLoading || loadingStartedAt === null) {
@@ -1148,6 +1150,75 @@ export function TalonSession({
       [toolKey]: !prev[toolKey],
     }));
   }, []);
+
+  const hydrateToolResultForExpandedItem = useCallback(
+    async (message: CopilotMessage, toolCallId: string, toolKey: string) => {
+      const match = findHydratableToolResultPart(message.parts, toolCallId);
+      const cas = gatewayClient?.cas;
+      if (!match || !cas?.getObject) return;
+      if (toolResultHydrationInFlightRef.current.has(toolKey)) return;
+
+      toolResultHydrationInFlightRef.current.add(toolKey);
+      const generation = toolResultHydrationGenerationRef.current;
+      setToolResultHydration((prev) => ({
+        ...prev,
+        [toolKey]: "loading",
+      }));
+
+      try {
+        const response = await cas.getObject({ key: match.key });
+        const data = await toolResultObjectData(response, objectRefFromPart(match.part));
+        const output = new TextDecoder().decode(data);
+        if (toolResultHydrationGenerationRef.current !== generation) return;
+
+        setMessages((current) => {
+          if (toolResultHydrationGenerationRef.current !== generation) return current;
+          const nextMessages = current.map((candidate) => {
+            if (candidate.id !== message.id) return candidate;
+            const currentMatch = findHydratableToolResultPart(candidate.parts, toolCallId);
+            if (!currentMatch || currentMatch.key !== match.key || !Array.isArray(candidate.parts)) {
+              return candidate;
+            }
+            const parts = [...candidate.parts];
+            parts[currentMatch.index] = withToolResultContent(currentMatch.part, output);
+            const timelineSource = {
+              role: candidate.role,
+              content: candidate.content,
+              parts,
+              reasoningContent: candidate.reasoningContent,
+              usage: candidate.usage,
+            };
+            return {
+              ...candidate,
+              parts,
+              content: getMessageContent(timelineSource),
+              timeline: getMessageAssistantTimeline(timelineSource),
+            };
+          });
+          messagesRef.current = nextMessages;
+          return nextMessages;
+        });
+        if (toolResultHydrationGenerationRef.current !== generation) return;
+
+        setToolResultHydration((prev) => {
+          if (!(toolKey in prev)) return prev;
+          const next = { ...prev };
+          delete next[toolKey];
+          return next;
+        });
+      } catch (err) {
+        if (toolResultHydrationGenerationRef.current !== generation) return;
+        console.warn("Could not hydrate CAS tool-result object", match.key, err);
+        setToolResultHydration((prev) => ({
+          ...prev,
+          [toolKey]: "error",
+        }));
+      } finally {
+        toolResultHydrationInFlightRef.current.delete(toolKey);
+      }
+    },
+    [gatewayClient],
+  );
 
   const updateSessionMessage = useCallback(
     async (message: CopilotMessage, parts: unknown[], labels: Record<string, string>) => {
@@ -1462,7 +1533,7 @@ export function TalonSession({
                   ? "var(--talon-chat-user-bubble-bg, rgba(24,24,27,0.07))"
                   : "transparent",
                 color: isUserMessage ? "var(--talon-chat-user-bubble-fg, inherit)" : "inherit",
-                padding: isUserMessage ? "0.65rem 0.85rem" : 0,
+                padding: isUserMessage ? "0.75rem 1rem" : 0,
               }}
             >
               {hasWorkDetails ? (
@@ -1537,12 +1608,18 @@ export function TalonSession({
                       const toolKey = `${message.id}-work-tool-${item.toolCallId || index}`;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
                       const isRunningTool = isLiveAssistantMessage && item.result === undefined;
+                      const toolHydrationState = toolResultHydration[toolKey];
                       return (
                         <div key={toolKey}>
                           <button
                             className="talon-session-tool-row"
                             type="button"
-                            onClick={() => toggleToolItem(toolKey)}
+                            onClick={() => {
+                              toggleToolItem(toolKey);
+                              if (!isToolExpanded) {
+                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey);
+                              }
+                            }}
                             style={{
                               width: "auto",
                               maxWidth: "100%",
@@ -1586,7 +1663,11 @@ export function TalonSession({
                                   <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
                                 </pre>
                               </div>
-                              {item.result !== undefined ? (
+                              {toolHydrationState ? (
+                                <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                                  {toolHydrationState === "loading" ? "Loading output..." : "Could not load output."}
+                                </div>
+                              ) : item.result !== undefined ? (
                                 <div>
                                   <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
                                     Output
@@ -1667,8 +1748,9 @@ export function TalonSession({
                     borderRadius: 8,
                     background: "var(--talon-chat-edit-bg, rgba(24,24,27,0.92))",
                     color: "var(--talon-chat-edit-fg, inherit)",
-                    padding: "0.55rem 0.65rem",
+                    padding: "0.65rem 0.8rem",
                     font: "inherit",
+                    fontSize: talonChatMessageFontSize,
                     lineHeight: 1.55,
                     outline: "none",
                     boxShadow: "var(--talon-chat-edit-shadow, inset 0 0 0 1px rgba(255,255,255,0.02))",
@@ -1729,7 +1811,7 @@ export function TalonSession({
                   overflow: "hidden",
                   overflowWrap: "anywhere",
                   whiteSpace: message.role === "assistant" ? "normal" : "pre-wrap",
-                  fontSize: message.role === "system" ? 12 : 14,
+                  fontSize: message.role === "system" ? 12 : talonChatMessageFontSize,
                   lineHeight: 1.65,
                   opacity: message.role === "system" ? 0.72 : 0.94,
                   fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
@@ -1766,12 +1848,18 @@ export function TalonSession({
                       const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
                       const isRunningTool = isLiveAssistantMessage && item.result === undefined;
+                      const toolHydrationState = toolResultHydration[toolKey];
                       return (
                         <div key={toolKey}>
                           <button
                             className="talon-session-tool-row"
                             type="button"
-                            onClick={() => toggleToolItem(toolKey)}
+                            onClick={() => {
+                              toggleToolItem(toolKey);
+                              if (!isToolExpanded) {
+                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey);
+                              }
+                            }}
                             style={{
                               width: "auto",
                               maxWidth: "100%",
@@ -1815,7 +1903,11 @@ export function TalonSession({
                                   <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
                                 </pre>
                               </div>
-                              {item.result !== undefined ? (
+                              {toolHydrationState ? (
+                                <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
+                                  {toolHydrationState === "loading" ? "Loading output..." : "Could not load output."}
+                                </div>
+                              ) : item.result !== undefined ? (
                                 <div>
                                   <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
                                     Output
@@ -1951,7 +2043,7 @@ export function TalonSession({
         </div>
       );
     });
-  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, isLoading, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, updateConnectorDeliveryStatus]);
+  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, isLoading, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultHydration, updateConnectorDeliveryStatus]);
 
   const resolvedHistoryPageSize = Math.max(
     1,
@@ -1989,20 +2081,15 @@ export function TalonSession({
   const hydrateSessionHistoryPage = useCallback(
     async (
       response: any,
-      target: { ns: string; agent: string; sessionId: string },
     ): Promise<SessionHistoryPage> => {
-      const res = normalizeHistoryPage(response);
-      return {
-        ...res,
-        messages: await hydrateCasToolResultObjects(res.messages, gatewayClient?.cas),
-      };
+      return normalizeHistoryPage(response);
     },
-    [gatewayClient],
+    [],
   );
 
   const loadInitialSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
-      const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target), target);
+      const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
       autoScrollPinnedRef.current = true;
       setMessages(res.messages);
       setHasMoreHistory(res.hasMore);
@@ -2031,7 +2118,6 @@ export function TalonSession({
       try {
         const res = await hydrateSessionHistoryPage(
           await getSessionMessagesPage(target, nextBeforeMessageId),
-          target,
         );
         const existingIds = new Set(messagesRef.current.map((message) => message.id));
         const olderMessages = res.messages.filter((message) => !existingIds.has(message.id));
@@ -2064,7 +2150,7 @@ export function TalonSession({
 
   const refreshNewestSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
-      const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target), target);
+      const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
       const newestPageIds = new Set(res.messages.map((message) => message.id));
       const oldestPageMessage = res.messages[0];
       const oldestPageId = oldestPageMessage?.id;
@@ -2128,6 +2214,7 @@ export function TalonSession({
       setNextBeforeMessageId(null);
       setIsLoadingOlderHistory(false);
       setStreamEvents([]);
+      invalidateToolResultHydration();
       setError(null);
       return;
     }
@@ -2140,6 +2227,7 @@ export function TalonSession({
     const controller = new AbortController();
     resumeAbortControllerRef.current?.abort();
     resumeAbortControllerRef.current = controller;
+    invalidateToolResultHydration();
     loadInitialSessionPage(nextSession)
       .then((res) => {
         if (!cancelled && res.state === "PROCESSING") {
@@ -2156,12 +2244,12 @@ export function TalonSession({
       cancelled = true;
       controller.abort();
     };
-  }, [agent, loadInitialSessionPage, namespace, resumeStream, sessionId]);
+  }, [agent, invalidateToolResultHydration, loadInitialSessionPage, namespace, resumeStream, sessionId]);
 
   const waitForCanonicalAssistantUpdate = useCallback(
     async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string) => {
       for (let attempt = 0; attempt < 40; attempt += 1) {
-        const sessionState = await hydrateSessionHistoryPage(await getSessionMessagesPage(session), session);
+        const sessionState = await hydrateSessionHistoryPage(await getSessionMessagesPage(session));
         const nextSignature = getAssistantSignature(sessionState.messages);
         if (nextSignature && nextSignature !== baselineSignature) {
           await refreshNewestSessionPage(session);
@@ -2189,12 +2277,13 @@ export function TalonSession({
     setLoadingStartedAt(null);
     setExpandedThinkingMessages({});
     setExpandedToolItems({});
+    invalidateToolResultHydration();
     setOpenResourceUri(null);
     setResourceView(null);
     setResourceError(null);
     setResourceLoading(false);
     autoScrollPinnedRef.current = true;
-  }, []);
+  }, [invalidateToolResultHydration]);
 
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;

@@ -565,14 +565,31 @@ test.describe('Chat Streaming', () => {
     expect(hydrated).toContain('blocking_lookup result for docs.example.com');
     expect(hydrated).toContain('reference section 079');
 
+    const browserCasObjectRequests: string[] = [];
+    page.on('request', request => {
+      const url = request.url();
+      if (url.includes('/talon.v1.CasService/GetObject')) {
+        browserCasObjectRequests.push(url);
+      }
+    });
+
     await page.reload();
     const workToggle = page.getByRole('button', { name: /Worked for \d+s/ }).last();
     await expect(workToggle).toBeVisible({ timeout: 30000 });
+    expect(browserCasObjectRequests).toHaveLength(0);
     await workToggle.click();
+    expect(browserCasObjectRequests).toHaveLength(0);
+
     const toolToggle = page.getByRole('button', { name: /Called\s+mcp_durable_slow_blocking_lookup/ }).last();
     await expect(toolToggle).toBeVisible({ timeout: 10000 });
     await toolToggle.click();
     await expect(page.locator('code').filter({ hasText: 'reference section 079' }).last()).toBeVisible({ timeout: 10000 });
+    expect(browserCasObjectRequests).toHaveLength(1);
+
+    await toolToggle.click();
+    await toolToggle.click();
+    await expect(page.locator('code').filter({ hasText: 'reference section 079' }).last()).toBeVisible({ timeout: 10000 });
+    expect(browserCasObjectRequests).toHaveLength(1);
   });
 });
 

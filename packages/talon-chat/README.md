@@ -46,6 +46,18 @@ Keep session state in your app when you want to control which transcript is show
 
 `TalonCopilot` is still exported as an alias for existing integrations.
 
+## Styling
+
+The chat text defaults to a 16px reading size. Hosts can tune the main message
+and composer sizes with CSS variables:
+
+```css
+:root {
+  --talon-chat-message-font-size: 1rem;
+  --talon-chat-composer-font-size: 1rem;
+}
+```
+
 ## Image uploads
 
 `TalonSession` can accept image attachments when you provide an `onImageUpload`

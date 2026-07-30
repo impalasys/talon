@@ -15,7 +15,7 @@ function border(color: string) {
 const talonChatFontFamily =
   'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
-const composerTextareaFontSize = 16;
+const composerTextareaFontSize = "var(--talon-chat-composer-font-size, 1rem)";
 const composerTextareaLineHeight = 20;
 const composerMutedForeground = "var(--copilot-composer-muted-fg, var(--copilot-input-placeholder, rgba(82,82,91,0.72)))";
 const composerVariantTransition =
