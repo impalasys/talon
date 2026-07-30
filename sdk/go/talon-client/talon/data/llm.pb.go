@@ -104,6 +104,58 @@ func (*ChatContentPart_Text) isChatContentPart_Content() {}
 
 func (*ChatContentPart_ObjectRef) isChatContentPart_Content() {}
 
+type ToolOutput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContentParts  []*ChatContentPart     `protobuf:"bytes,1,rep,name=content_parts,json=contentParts,proto3" json:"content_parts,omitempty"`
+	Summary       string                 `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolOutput) Reset() {
+	*x = ToolOutput{}
+	mi := &file_proto_harness_llm_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolOutput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolOutput) ProtoMessage() {}
+
+func (x *ToolOutput) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_harness_llm_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolOutput.ProtoReflect.Descriptor instead.
+func (*ToolOutput) Descriptor() ([]byte, []int) {
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ToolOutput) GetContentParts() []*ChatContentPart {
+	if x != nil {
+		return x.ContentParts
+	}
+	return nil
+}
+
+func (x *ToolOutput) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
 type ToolCall struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -116,7 +168,7 @@ type ToolCall struct {
 
 func (x *ToolCall) Reset() {
 	*x = ToolCall{}
-	mi := &file_proto_harness_llm_proto_msgTypes[1]
+	mi := &file_proto_harness_llm_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -128,7 +180,7 @@ func (x *ToolCall) String() string {
 func (*ToolCall) ProtoMessage() {}
 
 func (x *ToolCall) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_harness_llm_proto_msgTypes[1]
+	mi := &file_proto_harness_llm_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -141,7 +193,7 @@ func (x *ToolCall) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToolCall.ProtoReflect.Descriptor instead.
 func (*ToolCall) Descriptor() ([]byte, []int) {
-	return file_proto_harness_llm_proto_rawDescGZIP(), []int{1}
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ToolCall) GetId() string {
@@ -177,7 +229,7 @@ type ToolCallDelta struct {
 
 func (x *ToolCallDelta) Reset() {
 	*x = ToolCallDelta{}
-	mi := &file_proto_harness_llm_proto_msgTypes[2]
+	mi := &file_proto_harness_llm_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -189,7 +241,7 @@ func (x *ToolCallDelta) String() string {
 func (*ToolCallDelta) ProtoMessage() {}
 
 func (x *ToolCallDelta) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_harness_llm_proto_msgTypes[2]
+	mi := &file_proto_harness_llm_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -202,7 +254,7 @@ func (x *ToolCallDelta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToolCallDelta.ProtoReflect.Descriptor instead.
 func (*ToolCallDelta) Descriptor() ([]byte, []int) {
-	return file_proto_harness_llm_proto_rawDescGZIP(), []int{2}
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ToolCallDelta) GetIndex() uint32 {
@@ -245,7 +297,7 @@ type ChatMessage struct {
 
 func (x *ChatMessage) Reset() {
 	*x = ChatMessage{}
-	mi := &file_proto_harness_llm_proto_msgTypes[3]
+	mi := &file_proto_harness_llm_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +309,7 @@ func (x *ChatMessage) String() string {
 func (*ChatMessage) ProtoMessage() {}
 
 func (x *ChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_harness_llm_proto_msgTypes[3]
+	mi := &file_proto_harness_llm_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +322,7 @@ func (x *ChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
 func (*ChatMessage) Descriptor() ([]byte, []int) {
-	return file_proto_harness_llm_proto_rawDescGZIP(), []int{3}
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ChatMessage) GetRole() string {
@@ -318,7 +370,7 @@ type ChatUsage struct {
 
 func (x *ChatUsage) Reset() {
 	*x = ChatUsage{}
-	mi := &file_proto_harness_llm_proto_msgTypes[4]
+	mi := &file_proto_harness_llm_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -330,7 +382,7 @@ func (x *ChatUsage) String() string {
 func (*ChatUsage) ProtoMessage() {}
 
 func (x *ChatUsage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_harness_llm_proto_msgTypes[4]
+	mi := &file_proto_harness_llm_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -343,7 +395,7 @@ func (x *ChatUsage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatUsage.ProtoReflect.Descriptor instead.
 func (*ChatUsage) Descriptor() ([]byte, []int) {
-	return file_proto_harness_llm_proto_rawDescGZIP(), []int{4}
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ChatUsage) GetInputTokens() uint64 {
@@ -385,7 +437,7 @@ type ChatResponse struct {
 
 func (x *ChatResponse) Reset() {
 	*x = ChatResponse{}
-	mi := &file_proto_harness_llm_proto_msgTypes[5]
+	mi := &file_proto_harness_llm_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -397,7 +449,7 @@ func (x *ChatResponse) String() string {
 func (*ChatResponse) ProtoMessage() {}
 
 func (x *ChatResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_harness_llm_proto_msgTypes[5]
+	mi := &file_proto_harness_llm_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -410,7 +462,7 @@ func (x *ChatResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatResponse.ProtoReflect.Descriptor instead.
 func (*ChatResponse) Descriptor() ([]byte, []int) {
-	return file_proto_harness_llm_proto_rawDescGZIP(), []int{5}
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ChatResponse) GetContent() string {
@@ -446,7 +498,7 @@ type Tool struct {
 
 func (x *Tool) Reset() {
 	*x = Tool{}
-	mi := &file_proto_harness_llm_proto_msgTypes[6]
+	mi := &file_proto_harness_llm_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +510,7 @@ func (x *Tool) String() string {
 func (*Tool) ProtoMessage() {}
 
 func (x *Tool) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_harness_llm_proto_msgTypes[6]
+	mi := &file_proto_harness_llm_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +523,7 @@ func (x *Tool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tool.ProtoReflect.Descriptor instead.
 func (*Tool) Descriptor() ([]byte, []int) {
-	return file_proto_harness_llm_proto_rawDescGZIP(), []int{6}
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Tool) GetName() string {
@@ -506,7 +558,7 @@ type ChatRequest struct {
 
 func (x *ChatRequest) Reset() {
 	*x = ChatRequest{}
-	mi := &file_proto_harness_llm_proto_msgTypes[7]
+	mi := &file_proto_harness_llm_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -518,7 +570,7 @@ func (x *ChatRequest) String() string {
 func (*ChatRequest) ProtoMessage() {}
 
 func (x *ChatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_harness_llm_proto_msgTypes[7]
+	mi := &file_proto_harness_llm_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -531,7 +583,7 @@ func (x *ChatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatRequest.ProtoReflect.Descriptor instead.
 func (*ChatRequest) Descriptor() ([]byte, []int) {
-	return file_proto_harness_llm_proto_rawDescGZIP(), []int{7}
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ChatRequest) GetMessages() []*ChatMessage {
@@ -570,7 +622,7 @@ type ChatStreamEvent struct {
 
 func (x *ChatStreamEvent) Reset() {
 	*x = ChatStreamEvent{}
-	mi := &file_proto_harness_llm_proto_msgTypes[8]
+	mi := &file_proto_harness_llm_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -582,7 +634,7 @@ func (x *ChatStreamEvent) String() string {
 func (*ChatStreamEvent) ProtoMessage() {}
 
 func (x *ChatStreamEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_harness_llm_proto_msgTypes[8]
+	mi := &file_proto_harness_llm_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -595,7 +647,7 @@ func (x *ChatStreamEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatStreamEvent.ProtoReflect.Descriptor instead.
 func (*ChatStreamEvent) Descriptor() ([]byte, []int) {
-	return file_proto_harness_llm_proto_rawDescGZIP(), []int{8}
+	return file_proto_harness_llm_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ChatStreamEvent) GetEvent() isChatStreamEvent_Event {
@@ -678,7 +730,11 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\x04text\x18\x01 \x01(\tH\x00R\x04text\x126\n" +
 	"\n" +
 	"object_ref\x18\x04 \x01(\v2\x15.talon.data.ObjectRefH\x00R\tobjectRefB\t\n" +
-	"\acontent\"L\n" +
+	"\acontent\"k\n" +
+	"\n" +
+	"ToolOutput\x12C\n" +
+	"\rcontent_parts\x18\x01 \x03(\v2\x1e.talon.harness.ChatContentPartR\fcontentParts\x12\x18\n" +
+	"\asummary\x18\x02 \x01(\tR\asummary\"L\n" +
 	"\bToolCall\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
@@ -740,36 +796,38 @@ func file_proto_harness_llm_proto_rawDescGZIP() []byte {
 	return file_proto_harness_llm_proto_rawDescData
 }
 
-var file_proto_harness_llm_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_harness_llm_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_harness_llm_proto_goTypes = []any{
 	(*ChatContentPart)(nil),          // 0: talon.harness.ChatContentPart
-	(*ToolCall)(nil),                 // 1: talon.harness.ToolCall
-	(*ToolCallDelta)(nil),            // 2: talon.harness.ToolCallDelta
-	(*ChatMessage)(nil),              // 3: talon.harness.ChatMessage
-	(*ChatUsage)(nil),                // 4: talon.harness.ChatUsage
-	(*ChatResponse)(nil),             // 5: talon.harness.ChatResponse
-	(*Tool)(nil),                     // 6: talon.harness.Tool
-	(*ChatRequest)(nil),              // 7: talon.harness.ChatRequest
-	(*ChatStreamEvent)(nil),          // 8: talon.harness.ChatStreamEvent
-	(*ObjectRef)(nil),                // 9: talon.data.ObjectRef
-	(*resources.ThinkingConfig)(nil), // 10: talon.resources.ThinkingConfig
+	(*ToolOutput)(nil),               // 1: talon.harness.ToolOutput
+	(*ToolCall)(nil),                 // 2: talon.harness.ToolCall
+	(*ToolCallDelta)(nil),            // 3: talon.harness.ToolCallDelta
+	(*ChatMessage)(nil),              // 4: talon.harness.ChatMessage
+	(*ChatUsage)(nil),                // 5: talon.harness.ChatUsage
+	(*ChatResponse)(nil),             // 6: talon.harness.ChatResponse
+	(*Tool)(nil),                     // 7: talon.harness.Tool
+	(*ChatRequest)(nil),              // 8: talon.harness.ChatRequest
+	(*ChatStreamEvent)(nil),          // 9: talon.harness.ChatStreamEvent
+	(*ObjectRef)(nil),                // 10: talon.data.ObjectRef
+	(*resources.ThinkingConfig)(nil), // 11: talon.resources.ThinkingConfig
 }
 var file_proto_harness_llm_proto_depIdxs = []int32{
-	9,  // 0: talon.harness.ChatContentPart.object_ref:type_name -> talon.data.ObjectRef
-	0,  // 1: talon.harness.ChatMessage.content_parts:type_name -> talon.harness.ChatContentPart
-	1,  // 2: talon.harness.ChatMessage.tool_calls:type_name -> talon.harness.ToolCall
-	1,  // 3: talon.harness.ChatResponse.tool_calls:type_name -> talon.harness.ToolCall
-	4,  // 4: talon.harness.ChatResponse.usage:type_name -> talon.harness.ChatUsage
-	3,  // 5: talon.harness.ChatRequest.messages:type_name -> talon.harness.ChatMessage
-	6,  // 6: talon.harness.ChatRequest.tools:type_name -> talon.harness.Tool
-	10, // 7: talon.harness.ChatRequest.thinking:type_name -> talon.resources.ThinkingConfig
-	2,  // 8: talon.harness.ChatStreamEvent.tool_call_delta:type_name -> talon.harness.ToolCallDelta
-	4,  // 9: talon.harness.ChatStreamEvent.usage:type_name -> talon.harness.ChatUsage
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	10, // 0: talon.harness.ChatContentPart.object_ref:type_name -> talon.data.ObjectRef
+	0,  // 1: talon.harness.ToolOutput.content_parts:type_name -> talon.harness.ChatContentPart
+	0,  // 2: talon.harness.ChatMessage.content_parts:type_name -> talon.harness.ChatContentPart
+	2,  // 3: talon.harness.ChatMessage.tool_calls:type_name -> talon.harness.ToolCall
+	2,  // 4: talon.harness.ChatResponse.tool_calls:type_name -> talon.harness.ToolCall
+	5,  // 5: talon.harness.ChatResponse.usage:type_name -> talon.harness.ChatUsage
+	4,  // 6: talon.harness.ChatRequest.messages:type_name -> talon.harness.ChatMessage
+	7,  // 7: talon.harness.ChatRequest.tools:type_name -> talon.harness.Tool
+	11, // 8: talon.harness.ChatRequest.thinking:type_name -> talon.resources.ThinkingConfig
+	3,  // 9: talon.harness.ChatStreamEvent.tool_call_delta:type_name -> talon.harness.ToolCallDelta
+	5,  // 10: talon.harness.ChatStreamEvent.usage:type_name -> talon.harness.ChatUsage
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_proto_harness_llm_proto_init() }
@@ -782,11 +840,11 @@ func file_proto_harness_llm_proto_init() {
 		(*ChatContentPart_Text)(nil),
 		(*ChatContentPart_ObjectRef)(nil),
 	}
-	file_proto_harness_llm_proto_msgTypes[2].OneofWrappers = []any{}
 	file_proto_harness_llm_proto_msgTypes[3].OneofWrappers = []any{}
-	file_proto_harness_llm_proto_msgTypes[5].OneofWrappers = []any{}
-	file_proto_harness_llm_proto_msgTypes[7].OneofWrappers = []any{}
-	file_proto_harness_llm_proto_msgTypes[8].OneofWrappers = []any{
+	file_proto_harness_llm_proto_msgTypes[4].OneofWrappers = []any{}
+	file_proto_harness_llm_proto_msgTypes[6].OneofWrappers = []any{}
+	file_proto_harness_llm_proto_msgTypes[8].OneofWrappers = []any{}
+	file_proto_harness_llm_proto_msgTypes[9].OneofWrappers = []any{
 		(*ChatStreamEvent_TextDelta)(nil),
 		(*ChatStreamEvent_ReasoningDelta)(nil),
 		(*ChatStreamEvent_ToolCallDelta)(nil),
@@ -798,7 +856,7 @@ func file_proto_harness_llm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_harness_llm_proto_rawDesc), len(file_proto_harness_llm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -5,7 +5,7 @@ use anyhow::Result;
 use serde_json::{json, Value};
 
 use crate::control::ControlPlane;
-use crate::harness::schema::ToolOutput;
+use crate::harness::llm::ToolOutput;
 use crate::harness::skills::registry::ToolRegistry;
 
 pub(super) fn register(registry: &mut ToolRegistry) {

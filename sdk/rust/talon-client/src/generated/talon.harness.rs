@@ -18,6 +18,13 @@ pub mod chat_content_part {
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ToolOutput {
+    #[prost(message, repeated, tag = "1")]
+    pub content_parts: ::prost::alloc::vec::Vec<ChatContentPart>,
+    #[prost(string, tag = "2")]
+    pub summary: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ToolCall {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,

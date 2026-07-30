@@ -12,7 +12,6 @@ pub mod mcp;
 pub mod memory;
 pub mod native_tools;
 pub mod sandbox;
-pub mod schema;
 pub mod sessions;
 pub mod skills;
 pub mod telemetry;

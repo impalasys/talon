@@ -12,13 +12,14 @@ use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
 use crate::control::cas::{decode_stored_object_bytes, CasStore};
+use crate::control::tool_output::{self, ToolOutputStorageContext};
 use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
     self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionStatus,
 };
 use crate::harness::executor::{tool_output_loop_message, ExecutionSink, LoopMessage};
-use crate::harness::schema::ToolOutput;
+use crate::harness::llm::ToolOutput;
 use crate::harness::sessions::{self, ClaimOutcome};
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
@@ -304,23 +305,35 @@ async fn prepare_context_for_claimed_submission(
             let tool_result_part_id = next_recovered_part_id(&mut next_projection_part_index);
 
             let result_output = if let Some(recorded) = results_by_call_id.get(&tool.id) {
-                if let Some(object) = recorded.object.as_ref() {
+                if let Some(output) = recorded.tool_output.clone() {
+                    output
+                } else if let Some(object) = recorded.object.as_ref() {
                     tool_output_from_recorded_object(cp, object).await?
                 } else {
                     ToolOutput::text(recorded.output.clone())
                 }
             } else {
                 let (_input, result) = runtime.executor.execute_tool_call(tool).await;
-                let output = ToolOutput::text(result.clone());
                 let cas = CasStore::new(cp.objects.clone());
+                let output = tool_output::normalize_for_session_storage(
+                    &cas,
+                    ToolOutputStorageContext {
+                        ns,
+                        agent,
+                        session_id,
+                        message_id,
+                        part_id: &tool_result_part_id,
+                        tool_call_id: &tool.id,
+                        tool_name: &tool.name,
+                    },
+                    &ToolOutput::text(result.clone()),
+                )
+                .await?;
                 sessions::append_tool_result(
                     cp.kv.as_ref(),
-                    &cas,
                     ns,
                     agent,
                     session_id,
-                    message_id,
-                    &tool_result_part_id,
                     submission_id,
                     attempt_id,
                     &tool.id,
@@ -1284,8 +1297,7 @@ fn session_message_artifact_uris(
 }
 
 fn tool_result_output(payload_json: &str) -> Option<String> {
-    let payload = serde_json::from_str::<Value>(payload_json).ok()?;
-    payload.get("output")?.as_str().map(str::to_string)
+    tool_output::text_from_payload_json(payload_json)
 }
 
 fn next_recovered_part_id(next_projection_part_index: &mut usize) -> String {
@@ -1349,7 +1361,7 @@ mod tests {
         async fn on_token(&self, _: &str) {}
         async fn on_reasoning(&self, _: &str) {}
         async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
-        async fn on_tool_result(&self, _: &str, _: &str, _: &crate::harness::schema::ToolOutput) {}
+        async fn on_tool_result(&self, _: &str, _: &str, _: &crate::harness::llm::ToolOutput) {}
         async fn on_usage(&self, _: &crate::harness::llm::ChatUsage) {}
         async fn on_done(&self) {}
         async fn on_error(&self, err: &str) {

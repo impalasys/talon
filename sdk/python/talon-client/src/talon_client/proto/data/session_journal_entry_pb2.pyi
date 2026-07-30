@@ -26,16 +26,18 @@ class SessionJournalEntryPayloadLlmResponse(_message.Message):
     def __init__(self, response: _Optional[_Union[_llm_pb2.ChatResponse, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntryPayloadToolResult(_message.Message):
-    __slots__ = ("tool_call_id", "name", "output", "object")
+    __slots__ = ("tool_call_id", "name", "output", "object", "tool_output")
     TOOL_CALL_ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_FIELD_NUMBER: _ClassVar[int]
     OBJECT_FIELD_NUMBER: _ClassVar[int]
+    TOOL_OUTPUT_FIELD_NUMBER: _ClassVar[int]
     tool_call_id: str
     name: str
     output: str
     object: _data_pb2.ObjectRef
-    def __init__(self, tool_call_id: _Optional[str] = ..., name: _Optional[str] = ..., output: _Optional[str] = ..., object: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
+    tool_output: _llm_pb2.ToolOutput
+    def __init__(self, tool_call_id: _Optional[str] = ..., name: _Optional[str] = ..., output: _Optional[str] = ..., object: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ..., tool_output: _Optional[_Union[_llm_pb2.ToolOutput, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntryPayloadCommit(_message.Message):
     __slots__ = ("committed_message_id",)

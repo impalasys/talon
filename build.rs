@@ -157,6 +157,7 @@ fn main() -> std::io::Result<()> {
         ".talon.harness.ChatRequest",
         ".talon.harness.ChatResponse",
         ".talon.harness.ChatUsage",
+        ".talon.harness.ToolOutput",
         ".talon.harness.Tool",
         ".talon.harness.ToolCall",
         ".talon.harness.ToolCallDelta",

@@ -59,6 +59,49 @@ export class ChatContentPart extends Message<ChatContentPart> {
 }
 
 /**
+ * @generated from message talon.harness.ToolOutput
+ */
+export class ToolOutput extends Message<ToolOutput> {
+  /**
+   * @generated from field: repeated talon.harness.ChatContentPart content_parts = 1;
+   */
+  contentParts: ChatContentPart[] = [];
+
+  /**
+   * @generated from field: string summary = 2;
+   */
+  summary = "";
+
+  constructor(data?: PartialMessage<ToolOutput>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.harness.ToolOutput";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "content_parts", kind: "message", T: ChatContentPart, repeated: true },
+    { no: 2, name: "summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutput {
+    return new ToolOutput().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolOutput {
+    return new ToolOutput().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolOutput {
+    return new ToolOutput().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolOutput | PlainMessage<ToolOutput> | undefined, b: ToolOutput | PlainMessage<ToolOutput> | undefined): boolean {
+    return proto3.util.equals(ToolOutput, a, b);
+  }
+}
+
+/**
  * @generated from message talon.harness.ToolCall
  */
 export class ToolCall extends Message<ToolCall> {

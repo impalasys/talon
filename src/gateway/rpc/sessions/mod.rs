@@ -2269,6 +2269,7 @@ mod tests {
                                 name: "shell".to_string(),
                                 output: "large journal".to_string(),
                                 object: Some(object),
+                                tool_output: None,
                             },
                         ),
                     ),

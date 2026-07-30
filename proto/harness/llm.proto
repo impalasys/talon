@@ -12,6 +12,11 @@ message ChatContentPart {
   }
 }
 
+message ToolOutput {
+  repeated ChatContentPart content_parts = 1;
+  string summary = 2;
+}
+
 message ToolCall {
   string id = 1;
   string name = 2;

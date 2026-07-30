@@ -16,7 +16,7 @@ use crate::control::{delegation, keys, ControlPlane, ListOptions, ProtoKeyValueS
 use crate::gateway::rpc::{
     data_proto, manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
 };
-use crate::harness::schema::ToolOutput;
+use crate::harness::llm::ToolOutput;
 use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
 
@@ -3918,19 +3918,31 @@ mod tests {
     ) -> data_proto::ObjectRef {
         seed_claimed_submission(kv, ns, agent, session_id).await;
         let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+        let output = crate::control::tool_output::normalize_for_session_storage(
+            &cas,
+            crate::control::tool_output::ToolOutputStorageContext {
+                ns,
+                agent,
+                session_id,
+                message_id: "message-1",
+                part_id: "part-1",
+                tool_call_id: "call-1",
+                tool_name,
+            },
+            output,
+        )
+        .await
+        .unwrap();
         let entry = crate::harness::sessions::append_tool_result(
             kv,
-            &cas,
             ns,
             agent,
             session_id,
-            "message-1",
-            "part-1",
             "submission-1",
             "attempt-1",
             "call-1",
             tool_name,
-            output,
+            &output,
             chrono::Utc::now().timestamp_micros(),
         )
         .await
@@ -3941,9 +3953,12 @@ mod tests {
             .and_then(|payload| payload.payload.as_ref())
             .expect("journal payload");
         match payload {
-            data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
-                result.object.clone().expect("journaled object ref")
-            }
+            data_proto::session_journal_entry_payload::Payload::ToolResult(result) => result
+                .tool_output
+                .as_ref()
+                .and_then(crate::control::tool_output::first_object_ref)
+                .cloned()
+                .expect("journaled object ref"),
             other => panic!("expected tool result payload, got {other:?}"),
         }
     }

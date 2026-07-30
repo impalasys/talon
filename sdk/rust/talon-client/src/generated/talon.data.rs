@@ -699,6 +699,8 @@ pub struct SessionJournalEntryPayloadToolResult {
     pub output: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "4")]
     pub object: ::core::option::Option<ObjectRef>,
+    #[prost(message, optional, tag = "5")]
+    pub tool_output: ::core::option::Option<super::harness::ToolOutput>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayloadCommit {

@@ -10,7 +10,7 @@ use std::pin::Pin;
 use crate::gateway::rpc::data_proto;
 pub use crate::gateway::rpc::harness_proto::{
     chat_content_part, chat_stream_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
-    ChatStreamEvent, ChatUsage, Tool, ToolCall, ToolCallDelta,
+    ChatStreamEvent, ChatUsage, Tool, ToolCall, ToolCallDelta, ToolOutput,
 };
 
 pub fn text_part(text: impl Into<String>) -> ChatContentPart {

@@ -874,6 +874,904 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface ToolOutputOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.harness.ToolOutput)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    java.util.List<talon.harness.Llm.ChatContentPart>
+        getContentPartsList();
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    talon.harness.Llm.ChatContentPart getContentParts(int index);
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    int getContentPartsCount();
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    java.util.List<? extends talon.harness.Llm.ChatContentPartOrBuilder>
+        getContentPartsOrBuilderList();
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    talon.harness.Llm.ChatContentPartOrBuilder getContentPartsOrBuilder(
+        int index);
+
+    /**
+     * <code>string summary = 2;</code>
+     * @return The summary.
+     */
+    java.lang.String getSummary();
+    /**
+     * <code>string summary = 2;</code>
+     * @return The bytes for summary.
+     */
+    com.google.protobuf.ByteString
+        getSummaryBytes();
+  }
+  /**
+   * Protobuf type {@code talon.harness.ToolOutput}
+   */
+  public static final class ToolOutput extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.harness.ToolOutput)
+      ToolOutputOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ToolOutput");
+    }
+    // Use ToolOutput.newBuilder() to construct.
+    private ToolOutput(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ToolOutput() {
+      contentParts_ = java.util.Collections.emptyList();
+      summary_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutput_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutput_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutput_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.harness.Llm.ToolOutput.class, talon.harness.Llm.ToolOutput.Builder.class);
+    }
+
+    public static final int CONTENT_PARTS_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.harness.Llm.ChatContentPart> contentParts_;
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.harness.Llm.ChatContentPart> getContentPartsList() {
+      return contentParts_;
+    }
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.harness.Llm.ChatContentPartOrBuilder>
+        getContentPartsOrBuilderList() {
+      return contentParts_;
+    }
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    @java.lang.Override
+    public int getContentPartsCount() {
+      return contentParts_.size();
+    }
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ChatContentPart getContentParts(int index) {
+      return contentParts_.get(index);
+    }
+    /**
+     * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ChatContentPartOrBuilder getContentPartsOrBuilder(
+        int index) {
+      return contentParts_.get(index);
+    }
+
+    public static final int SUMMARY_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object summary_ = "";
+    /**
+     * <code>string summary = 2;</code>
+     * @return The summary.
+     */
+    @java.lang.Override
+    public java.lang.String getSummary() {
+      java.lang.Object ref = summary_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        summary_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string summary = 2;</code>
+     * @return The bytes for summary.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSummaryBytes() {
+      java.lang.Object ref = summary_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        summary_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < contentParts_.size(); i++) {
+        output.writeMessage(1, contentParts_.get(i));
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, summary_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+
+          {
+            final int count = contentParts_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(contentParts_.get(i));
+            }
+            size += 1 * count;
+          }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, summary_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.harness.Llm.ToolOutput)) {
+        return super.equals(obj);
+      }
+      talon.harness.Llm.ToolOutput other = (talon.harness.Llm.ToolOutput) obj;
+
+      if (!getContentPartsList()
+          .equals(other.getContentPartsList())) return false;
+      if (!getSummary()
+          .equals(other.getSummary())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getContentPartsCount() > 0) {
+        hash = (37 * hash) + CONTENT_PARTS_FIELD_NUMBER;
+        hash = (53 * hash) + getContentPartsList().hashCode();
+      }
+      hash = (37 * hash) + SUMMARY_FIELD_NUMBER;
+      hash = (53 * hash) + getSummary().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.harness.Llm.ToolOutput parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.harness.Llm.ToolOutput parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.harness.Llm.ToolOutput parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ToolOutput parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.harness.Llm.ToolOutput prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.harness.ToolOutput}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.harness.ToolOutput)
+        talon.harness.Llm.ToolOutputOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutput_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutput_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.harness.Llm.ToolOutput.class, talon.harness.Llm.ToolOutput.Builder.class);
+      }
+
+      // Construct using talon.harness.Llm.ToolOutput.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        if (contentPartsBuilder_ == null) {
+          contentParts_ = java.util.Collections.emptyList();
+        } else {
+          contentParts_ = null;
+          contentPartsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000001);
+        summary_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutput_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutput getDefaultInstanceForType() {
+        return talon.harness.Llm.ToolOutput.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutput build() {
+        talon.harness.Llm.ToolOutput result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutput buildPartial() {
+        talon.harness.Llm.ToolOutput result = new talon.harness.Llm.ToolOutput(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(talon.harness.Llm.ToolOutput result) {
+        if (contentPartsBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0)) {
+            contentParts_ = java.util.Collections.unmodifiableList(contentParts_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.contentParts_ = contentParts_;
+        } else {
+          result.contentParts_ = contentPartsBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(talon.harness.Llm.ToolOutput result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.summary_ = summary_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.harness.Llm.ToolOutput) {
+          return mergeFrom((talon.harness.Llm.ToolOutput)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.harness.Llm.ToolOutput other) {
+        if (other == talon.harness.Llm.ToolOutput.getDefaultInstance()) return this;
+        if (contentPartsBuilder_ == null) {
+          if (!other.contentParts_.isEmpty()) {
+            if (contentParts_.isEmpty()) {
+              contentParts_ = other.contentParts_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureContentPartsIsMutable();
+              contentParts_.addAll(other.contentParts_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.contentParts_.isEmpty()) {
+            if (contentPartsBuilder_.isEmpty()) {
+              contentPartsBuilder_.dispose();
+              contentPartsBuilder_ = null;
+              contentParts_ = other.contentParts_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              contentPartsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetContentPartsFieldBuilder() : null;
+            } else {
+              contentPartsBuilder_.addAllMessages(other.contentParts_);
+            }
+          }
+        }
+        if (!other.getSummary().isEmpty()) {
+          summary_ = other.summary_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                talon.harness.Llm.ChatContentPart m =
+                    input.readMessage(
+                        talon.harness.Llm.ChatContentPart.parser(),
+                        extensionRegistry);
+                if (contentPartsBuilder_ == null) {
+                  ensureContentPartsIsMutable();
+                  contentParts_.add(m);
+                } else {
+                  contentPartsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 10
+              case 18: {
+                summary_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<talon.harness.Llm.ChatContentPart> contentParts_ =
+        java.util.Collections.emptyList();
+      private void ensureContentPartsIsMutable() {
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          contentParts_ = new java.util.ArrayList<talon.harness.Llm.ChatContentPart>(contentParts_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.harness.Llm.ChatContentPart, talon.harness.Llm.ChatContentPart.Builder, talon.harness.Llm.ChatContentPartOrBuilder> contentPartsBuilder_;
+
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public java.util.List<talon.harness.Llm.ChatContentPart> getContentPartsList() {
+        if (contentPartsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(contentParts_);
+        } else {
+          return contentPartsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public int getContentPartsCount() {
+        if (contentPartsBuilder_ == null) {
+          return contentParts_.size();
+        } else {
+          return contentPartsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public talon.harness.Llm.ChatContentPart getContentParts(int index) {
+        if (contentPartsBuilder_ == null) {
+          return contentParts_.get(index);
+        } else {
+          return contentPartsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder setContentParts(
+          int index, talon.harness.Llm.ChatContentPart value) {
+        if (contentPartsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureContentPartsIsMutable();
+          contentParts_.set(index, value);
+          onChanged();
+        } else {
+          contentPartsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder setContentParts(
+          int index, talon.harness.Llm.ChatContentPart.Builder builderForValue) {
+        if (contentPartsBuilder_ == null) {
+          ensureContentPartsIsMutable();
+          contentParts_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          contentPartsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder addContentParts(talon.harness.Llm.ChatContentPart value) {
+        if (contentPartsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureContentPartsIsMutable();
+          contentParts_.add(value);
+          onChanged();
+        } else {
+          contentPartsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder addContentParts(
+          int index, talon.harness.Llm.ChatContentPart value) {
+        if (contentPartsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureContentPartsIsMutable();
+          contentParts_.add(index, value);
+          onChanged();
+        } else {
+          contentPartsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder addContentParts(
+          talon.harness.Llm.ChatContentPart.Builder builderForValue) {
+        if (contentPartsBuilder_ == null) {
+          ensureContentPartsIsMutable();
+          contentParts_.add(builderForValue.build());
+          onChanged();
+        } else {
+          contentPartsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder addContentParts(
+          int index, talon.harness.Llm.ChatContentPart.Builder builderForValue) {
+        if (contentPartsBuilder_ == null) {
+          ensureContentPartsIsMutable();
+          contentParts_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          contentPartsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder addAllContentParts(
+          java.lang.Iterable<? extends talon.harness.Llm.ChatContentPart> values) {
+        if (contentPartsBuilder_ == null) {
+          ensureContentPartsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, contentParts_);
+          onChanged();
+        } else {
+          contentPartsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder clearContentParts() {
+        if (contentPartsBuilder_ == null) {
+          contentParts_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          contentPartsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public Builder removeContentParts(int index) {
+        if (contentPartsBuilder_ == null) {
+          ensureContentPartsIsMutable();
+          contentParts_.remove(index);
+          onChanged();
+        } else {
+          contentPartsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public talon.harness.Llm.ChatContentPart.Builder getContentPartsBuilder(
+          int index) {
+        return internalGetContentPartsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public talon.harness.Llm.ChatContentPartOrBuilder getContentPartsOrBuilder(
+          int index) {
+        if (contentPartsBuilder_ == null) {
+          return contentParts_.get(index);  } else {
+          return contentPartsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public java.util.List<? extends talon.harness.Llm.ChatContentPartOrBuilder>
+           getContentPartsOrBuilderList() {
+        if (contentPartsBuilder_ != null) {
+          return contentPartsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(contentParts_);
+        }
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public talon.harness.Llm.ChatContentPart.Builder addContentPartsBuilder() {
+        return internalGetContentPartsFieldBuilder().addBuilder(
+            talon.harness.Llm.ChatContentPart.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public talon.harness.Llm.ChatContentPart.Builder addContentPartsBuilder(
+          int index) {
+        return internalGetContentPartsFieldBuilder().addBuilder(
+            index, talon.harness.Llm.ChatContentPart.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.harness.ChatContentPart content_parts = 1;</code>
+       */
+      public java.util.List<talon.harness.Llm.ChatContentPart.Builder>
+           getContentPartsBuilderList() {
+        return internalGetContentPartsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.harness.Llm.ChatContentPart, talon.harness.Llm.ChatContentPart.Builder, talon.harness.Llm.ChatContentPartOrBuilder>
+          internalGetContentPartsFieldBuilder() {
+        if (contentPartsBuilder_ == null) {
+          contentPartsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.harness.Llm.ChatContentPart, talon.harness.Llm.ChatContentPart.Builder, talon.harness.Llm.ChatContentPartOrBuilder>(
+                  contentParts_,
+                  ((bitField0_ & 0x00000001) != 0),
+                  getParentForChildren(),
+                  isClean());
+          contentParts_ = null;
+        }
+        return contentPartsBuilder_;
+      }
+
+      private java.lang.Object summary_ = "";
+      /**
+       * <code>string summary = 2;</code>
+       * @return The summary.
+       */
+      public java.lang.String getSummary() {
+        java.lang.Object ref = summary_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          summary_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string summary = 2;</code>
+       * @return The bytes for summary.
+       */
+      public com.google.protobuf.ByteString
+          getSummaryBytes() {
+        java.lang.Object ref = summary_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          summary_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string summary = 2;</code>
+       * @param value The summary to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSummary(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        summary_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string summary = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSummary() {
+        summary_ = getDefaultInstance().getSummary();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string summary = 2;</code>
+       * @param value The bytes for summary to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSummaryBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        summary_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.harness.ToolOutput)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.harness.ToolOutput)
+    private static final talon.harness.Llm.ToolOutput DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.harness.Llm.ToolOutput();
+    }
+
+    public static talon.harness.Llm.ToolOutput getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ToolOutput>
+        PARSER = new com.google.protobuf.AbstractParser<ToolOutput>() {
+      @java.lang.Override
+      public ToolOutput parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ToolOutput> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ToolOutput> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutput getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface ToolCallOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.harness.ToolCall)
       com.google.protobuf.MessageOrBuilder {
@@ -9434,6 +10332,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_harness_ChatContentPart_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_harness_ToolOutput_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_harness_ToolOutput_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_harness_ToolCall_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -9486,33 +10389,35 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       "\032\025proto/data/data.proto\032\034proto/resources" +
       "/agents.proto\"Y\n\017ChatContentPart\022\016\n\004text" +
       "\030\001 \001(\tH\000\022+\n\nobject_ref\030\004 \001(\0132\025.talon.dat" +
-      "a.ObjectRefH\000B\t\n\007content\"7\n\010ToolCall\022\n\n\002" +
-      "id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\021\n\targuments\030\003 \001(" +
-      "\t\"x\n\rToolCallDelta\022\r\n\005index\030\001 \001(\r\022\017\n\002id\030" +
-      "\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001(\tH\001\210\001\001\022\026\n\targumen" +
-      "ts\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007\n\005_nameB\014\n\n_argume" +
-      "nts\"\253\001\n\013ChatMessage\022\014\n\004role\030\001 \001(\t\0225\n\rcon" +
-      "tent_parts\030\002 \003(\0132\036.talon.harness.ChatCon" +
-      "tentPart\022+\n\ntool_calls\030\003 \003(\0132\027.talon.har" +
-      "ness.ToolCall\022\031\n\014tool_call_id\030\004 \001(\tH\000\210\001\001" +
-      "B\017\n\r_tool_call_id\"h\n\tChatUsage\022\024\n\014input_" +
-      "tokens\030\001 \001(\004\022\025\n\routput_tokens\030\002 \001(\004\022\030\n\020r" +
-      "easoning_tokens\030\003 \001(\004\022\024\n\014total_tokens\030\004 " +
-      "\001(\004\"\204\001\n\014ChatResponse\022\017\n\007content\030\001 \001(\t\022+\n" +
-      "\ntool_calls\030\002 \003(\0132\027.talon.harness.ToolCa" +
-      "ll\022,\n\005usage\030\003 \001(\0132\030.talon.harness.ChatUs" +
-      "ageH\000\210\001\001B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t" +
-      "\022\023\n\013description\030\002 \001(\t\022\031\n\021input_schema_js" +
-      "on\030\003 \001(\t\"\244\001\n\013ChatRequest\022,\n\010messages\030\001 \003" +
-      "(\0132\032.talon.harness.ChatMessage\022\"\n\005tools\030" +
-      "\002 \003(\0132\023.talon.harness.Tool\0226\n\010thinking\030\003" +
-      " \001(\0132\037.talon.resources.ThinkingConfigH\000\210" +
-      "\001\001B\013\n\t_thinking\"\257\001\n\017ChatStreamEvent\022\024\n\nt" +
-      "ext_delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 \001" +
-      "(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon.ha" +
-      "rness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030.t" +
-      "alon.harness.ChatUsageH\000B\007\n\005eventb\006proto" +
-      "3"
+      "a.ObjectRefH\000B\t\n\007content\"T\n\nToolOutput\0225" +
+      "\n\rcontent_parts\030\001 \003(\0132\036.talon.harness.Ch" +
+      "atContentPart\022\017\n\007summary\030\002 \001(\t\"7\n\010ToolCa" +
+      "ll\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\021\n\targument" +
+      "s\030\003 \001(\t\"x\n\rToolCallDelta\022\r\n\005index\030\001 \001(\r\022" +
+      "\017\n\002id\030\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001(\tH\001\210\001\001\022\026\n\ta" +
+      "rguments\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007\n\005_nameB\014\n\n_" +
+      "arguments\"\253\001\n\013ChatMessage\022\014\n\004role\030\001 \001(\t\022" +
+      "5\n\rcontent_parts\030\002 \003(\0132\036.talon.harness.C" +
+      "hatContentPart\022+\n\ntool_calls\030\003 \003(\0132\027.tal" +
+      "on.harness.ToolCall\022\031\n\014tool_call_id\030\004 \001(" +
+      "\tH\000\210\001\001B\017\n\r_tool_call_id\"h\n\tChatUsage\022\024\n\014" +
+      "input_tokens\030\001 \001(\004\022\025\n\routput_tokens\030\002 \001(" +
+      "\004\022\030\n\020reasoning_tokens\030\003 \001(\004\022\024\n\014total_tok" +
+      "ens\030\004 \001(\004\"\204\001\n\014ChatResponse\022\017\n\007content\030\001 " +
+      "\001(\t\022+\n\ntool_calls\030\002 \003(\0132\027.talon.harness." +
+      "ToolCall\022,\n\005usage\030\003 \001(\0132\030.talon.harness." +
+      "ChatUsageH\000\210\001\001B\010\n\006_usage\"D\n\004Tool\022\014\n\004name" +
+      "\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022\031\n\021input_sch" +
+      "ema_json\030\003 \001(\t\"\244\001\n\013ChatRequest\022,\n\010messag" +
+      "es\030\001 \003(\0132\032.talon.harness.ChatMessage\022\"\n\005" +
+      "tools\030\002 \003(\0132\023.talon.harness.Tool\0226\n\010thin" +
+      "king\030\003 \001(\0132\037.talon.resources.ThinkingCon" +
+      "figH\000\210\001\001B\013\n\t_thinking\"\257\001\n\017ChatStreamEven" +
+      "t\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017reasoning_del" +
+      "ta\030\002 \001(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.ta" +
+      "lon.harness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001" +
+      "(\0132\030.talon.harness.ChatUsageH\000B\007\n\005eventb" +
+      "\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9526,50 +10431,56 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatContentPart_descriptor,
         new java.lang.String[] { "Text", "ObjectRef", "Content", });
-    internal_static_talon_harness_ToolCall_descriptor =
+    internal_static_talon_harness_ToolOutput_descriptor =
       getDescriptor().getMessageType(1);
+    internal_static_talon_harness_ToolOutput_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_harness_ToolOutput_descriptor,
+        new java.lang.String[] { "ContentParts", "Summary", });
+    internal_static_talon_harness_ToolCall_descriptor =
+      getDescriptor().getMessageType(2);
     internal_static_talon_harness_ToolCall_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolCall_descriptor,
         new java.lang.String[] { "Id", "Name", "Arguments", });
     internal_static_talon_harness_ToolCallDelta_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(3);
     internal_static_talon_harness_ToolCallDelta_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolCallDelta_descriptor,
         new java.lang.String[] { "Index", "Id", "Name", "Arguments", });
     internal_static_talon_harness_ChatMessage_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(4);
     internal_static_talon_harness_ChatMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatMessage_descriptor,
         new java.lang.String[] { "Role", "ContentParts", "ToolCalls", "ToolCallId", });
     internal_static_talon_harness_ChatUsage_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(5);
     internal_static_talon_harness_ChatUsage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatUsage_descriptor,
         new java.lang.String[] { "InputTokens", "OutputTokens", "ReasoningTokens", "TotalTokens", });
     internal_static_talon_harness_ChatResponse_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(6);
     internal_static_talon_harness_ChatResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatResponse_descriptor,
         new java.lang.String[] { "Content", "ToolCalls", "Usage", });
     internal_static_talon_harness_Tool_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(7);
     internal_static_talon_harness_Tool_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_Tool_descriptor,
         new java.lang.String[] { "Name", "Description", "InputSchemaJson", });
     internal_static_talon_harness_ChatRequest_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(8);
     internal_static_talon_harness_ChatRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatRequest_descriptor,
         new java.lang.String[] { "Messages", "Tools", "Thinking", });
     internal_static_talon_harness_ChatStreamEvent_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(9);
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatStreamEvent_descriptor,

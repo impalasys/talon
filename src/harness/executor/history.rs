@@ -4,6 +4,7 @@
 use super::runtime::LoopMessage;
 use crate::control::cas::{decode_stored_object_bytes, object_ref_from_metadata};
 use crate::control::object_store::ObjectStore;
+use crate::control::tool_output;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{object_ref_part, text_part, ChatContentPart, ToolCall};
 use anyhow::{anyhow, Result};
@@ -274,6 +275,20 @@ async fn tool_result_message_from_part(
     let Some(tool_call_id) = payload.get("tool_call_id").and_then(|v| v.as_str()) else {
         return Ok(None);
     };
+    if payload.get("tool_output").is_some() {
+        let parsed = tool_output::parse_tool_result_payload_json(
+            &part.payload_json,
+            part.object.as_ref(),
+            &part.content,
+        )?
+        .ok_or_else(|| anyhow!("tool result payload is missing tool_call_id"))?;
+        return Ok(Some(LoopMessage {
+            role: "tool".to_string(),
+            content_parts: parsed.tool_output.content_parts,
+            tool_calls: None,
+            tool_call_id: Some(parsed.tool_call_id),
+        }));
+    }
     let inline_output = payload
         .get("output")
         .and_then(|v| v.as_str())
@@ -348,8 +363,9 @@ mod tests {
         message_content_parts, session_message_to_loop_messages, tool_result_message_from_part,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
+    use crate::control::tool_output;
     use crate::gateway::rpc::data_proto;
-    use crate::harness::llm::content_part_object_ref;
+    use crate::harness::llm::{content_part_object_ref, object_ref_part, text_part, ToolOutput};
     use std::collections::HashMap;
 
     fn tool_result_part(content: String, payload_json: String) -> data_proto::SessionMessagePart {
@@ -509,6 +525,43 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(message.text_content(), "fallback output");
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_replays_typed_tool_output_content_parts() {
+        let store = InMemoryObjectStore::default();
+        let object = data_proto::ObjectRef {
+            key: "cas/image.png".to_string(),
+            media_type: "image/png".to_string(),
+            size_bytes: 12,
+            sha256: "abc123".to_string(),
+            filename: "image.png".to_string(),
+            metadata: HashMap::new(),
+            content_encoding: String::new(),
+        };
+        let output = ToolOutput::from_content_parts(
+            vec![text_part("caption"), object_ref_part(object.clone())],
+            "caption",
+        );
+        let part = tool_result_part(
+            String::new(),
+            tool_output::tool_result_payload_json("tool-1", &output).unwrap(),
+        );
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.text_content(), "caption");
+        assert_eq!(
+            message
+                .content_parts
+                .iter()
+                .find_map(content_part_object_ref)
+                .map(|object| object.key.as_str()),
+            Some("cas/image.png")
+        );
     }
 
     #[tokio::test]

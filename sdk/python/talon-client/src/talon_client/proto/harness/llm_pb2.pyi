@@ -16,6 +16,14 @@ class ChatContentPart(_message.Message):
     object_ref: _data_pb2.ObjectRef
     def __init__(self, text: _Optional[str] = ..., object_ref: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
+class ToolOutput(_message.Message):
+    __slots__ = ("content_parts", "summary")
+    CONTENT_PARTS_FIELD_NUMBER: _ClassVar[int]
+    SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    content_parts: _containers.RepeatedCompositeFieldContainer[ChatContentPart]
+    summary: str
+    def __init__(self, content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., summary: _Optional[str] = ...) -> None: ...
+
 class ToolCall(_message.Message):
     __slots__ = ("id", "name", "arguments")
     ID_FIELD_NUMBER: _ClassVar[int]

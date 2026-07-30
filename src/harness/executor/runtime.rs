@@ -3,15 +3,16 @@
 
 use crate::control::cas::CasStore;
 use crate::control::config::Config;
+use crate::control::tool_output::{self, is_text_object_media_type};
 use crate::control::ControlPlane;
 use crate::harness::executor::compaction::compact_history_for_llm;
 use crate::harness::llm::resolver::resolve_model_profile;
+use crate::harness::llm::ToolOutput;
 use crate::harness::llm::{
     chat_content_part, chat_stream_event, object_ref_part, text_part, ChatContentPart, ChatMessage,
     ChatRequest, ChatResponse, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall,
 };
 use crate::harness::mcp::{call_tool_for_config, McpConnectionConfig};
-use crate::harness::schema::{is_text_object_media_type, ToolOutput};
 use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::telemetry;
 use anyhow::Result;
@@ -299,7 +300,7 @@ impl ExecutionSink for CaptureSink {
         self.events.lock().unwrap().push(AgentEvent::Observation {
             id: id.to_string(),
             name: name.to_string(),
-            output: result.serialized_output(),
+            output: tool_output::display_text(result),
         });
     }
     async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
@@ -991,8 +992,8 @@ mod tests {
         usage_event, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse, ChatStream, ChatUsage,
         LlmProvider,
     };
+    use crate::harness::llm::ToolOutput;
     use crate::harness::memory::Embedding;
-    use crate::harness::schema::ToolOutput;
     use crate::harness::skills::registry::ToolRegistry;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use anyhow::Result;

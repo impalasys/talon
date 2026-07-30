@@ -554,7 +554,7 @@ test.describe('Chat Streaming', () => {
       const payload = sessionPartPayload(toolResultPart);
       expect(payload.output).toBeUndefined();
       expect(payload.output_preview).toBeUndefined();
-      expect(payload.output_object_key).toBe(toolResultPart.object.key);
+      expect(payload.tool_output.content_parts[0].object_ref.key).toBe(toolResultPart.object.key);
     }).toPass({ timeout: 30000 });
 
     const fetched = await client.cas.getObject({ key: toolResultPart.object.key });

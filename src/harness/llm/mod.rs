@@ -16,5 +16,5 @@ pub use provider::{
     content_parts_text, object_ref_part, reasoning_delta_event, text_delta_event, text_part,
     tool_call_delta_event, usage_event, ChatContentPart, ChatMessage, ChatMessageExt, ChatRequest,
     ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider, Tool, ToolCall,
-    ToolCallDelta,
+    ToolCallDelta, ToolOutput,
 };

@@ -421,7 +421,10 @@ def _run_cas_tool_result_turn(
     payload = json.loads(tool_results[0].payload_json)
     assert "output" not in payload
     assert "output_preview" not in payload
-    assert payload["output_object_key"] == tool_results[0].object.key
+    assert (
+        payload["tool_output"]["content_parts"][0]["object_ref"]["key"]
+        == tool_results[0].object.key
+    )
     return namespace, session_id, tool_results[0]
 
 

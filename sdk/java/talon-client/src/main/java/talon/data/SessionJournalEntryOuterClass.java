@@ -828,6 +828,21 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * <code>.talon.data.ObjectRef object = 4;</code>
      */
     talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder();
+
+    /**
+     * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+     * @return Whether the toolOutput field is set.
+     */
+    boolean hasToolOutput();
+    /**
+     * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+     * @return The toolOutput.
+     */
+    talon.harness.Llm.ToolOutput getToolOutput();
+    /**
+     * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+     */
+    talon.harness.Llm.ToolOutputOrBuilder getToolOutputOrBuilder();
   }
   /**
    * Protobuf type {@code talon.data.SessionJournalEntryPayloadToolResult}
@@ -1018,6 +1033,32 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       return object_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : object_;
     }
 
+    public static final int TOOL_OUTPUT_FIELD_NUMBER = 5;
+    private talon.harness.Llm.ToolOutput toolOutput_;
+    /**
+     * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+     * @return Whether the toolOutput field is set.
+     */
+    @java.lang.Override
+    public boolean hasToolOutput() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+     * @return The toolOutput.
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutput getToolOutput() {
+      return toolOutput_ == null ? talon.harness.Llm.ToolOutput.getDefaultInstance() : toolOutput_;
+    }
+    /**
+     * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputOrBuilder getToolOutputOrBuilder() {
+      return toolOutput_ == null ? talon.harness.Llm.ToolOutput.getDefaultInstance() : toolOutput_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1044,6 +1085,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(4, getObject());
       }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(5, getToolOutput());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1065,6 +1109,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, getObject());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getToolOutput());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1092,6 +1140,11 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         if (!getObject()
             .equals(other.getObject())) return false;
       }
+      if (hasToolOutput() != other.hasToolOutput()) return false;
+      if (hasToolOutput()) {
+        if (!getToolOutput()
+            .equals(other.getToolOutput())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1112,6 +1165,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (hasObject()) {
         hash = (37 * hash) + OBJECT_FIELD_NUMBER;
         hash = (53 * hash) + getObject().hashCode();
+      }
+      if (hasToolOutput()) {
+        hash = (37 * hash) + TOOL_OUTPUT_FIELD_NUMBER;
+        hash = (53 * hash) + getToolOutput().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -1244,6 +1301,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
           internalGetObjectFieldBuilder();
+          internalGetToolOutputFieldBuilder();
         }
       }
       @java.lang.Override
@@ -1257,6 +1315,11 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         if (objectBuilder_ != null) {
           objectBuilder_.dispose();
           objectBuilder_ = null;
+        }
+        toolOutput_ = null;
+        if (toolOutputBuilder_ != null) {
+          toolOutputBuilder_.dispose();
+          toolOutputBuilder_ = null;
         }
         return this;
       }
@@ -1307,6 +1370,12 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
               : objectBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.toolOutput_ = toolOutputBuilder_ == null
+              ? toolOutput_
+              : toolOutputBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1339,6 +1408,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         }
         if (other.hasObject()) {
           mergeObject(other.getObject());
+        }
+        if (other.hasToolOutput()) {
+          mergeToolOutput(other.getToolOutput());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -1388,6 +1460,13 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 42: {
+                input.readMessage(
+                    internalGetToolOutputFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1740,6 +1819,127 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           object_ = null;
         }
         return objectBuilder_;
+      }
+
+      private talon.harness.Llm.ToolOutput toolOutput_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutput, talon.harness.Llm.ToolOutput.Builder, talon.harness.Llm.ToolOutputOrBuilder> toolOutputBuilder_;
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       * @return Whether the toolOutput field is set.
+       */
+      public boolean hasToolOutput() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       * @return The toolOutput.
+       */
+      public talon.harness.Llm.ToolOutput getToolOutput() {
+        if (toolOutputBuilder_ == null) {
+          return toolOutput_ == null ? talon.harness.Llm.ToolOutput.getDefaultInstance() : toolOutput_;
+        } else {
+          return toolOutputBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       */
+      public Builder setToolOutput(talon.harness.Llm.ToolOutput value) {
+        if (toolOutputBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          toolOutput_ = value;
+        } else {
+          toolOutputBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       */
+      public Builder setToolOutput(
+          talon.harness.Llm.ToolOutput.Builder builderForValue) {
+        if (toolOutputBuilder_ == null) {
+          toolOutput_ = builderForValue.build();
+        } else {
+          toolOutputBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       */
+      public Builder mergeToolOutput(talon.harness.Llm.ToolOutput value) {
+        if (toolOutputBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+            toolOutput_ != null &&
+            toolOutput_ != talon.harness.Llm.ToolOutput.getDefaultInstance()) {
+            getToolOutputBuilder().mergeFrom(value);
+          } else {
+            toolOutput_ = value;
+          }
+        } else {
+          toolOutputBuilder_.mergeFrom(value);
+        }
+        if (toolOutput_ != null) {
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       */
+      public Builder clearToolOutput() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        toolOutput_ = null;
+        if (toolOutputBuilder_ != null) {
+          toolOutputBuilder_.dispose();
+          toolOutputBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       */
+      public talon.harness.Llm.ToolOutput.Builder getToolOutputBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return internalGetToolOutputFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       */
+      public talon.harness.Llm.ToolOutputOrBuilder getToolOutputOrBuilder() {
+        if (toolOutputBuilder_ != null) {
+          return toolOutputBuilder_.getMessageOrBuilder();
+        } else {
+          return toolOutput_ == null ?
+              talon.harness.Llm.ToolOutput.getDefaultInstance() : toolOutput_;
+        }
+      }
+      /**
+       * <code>.talon.harness.ToolOutput tool_output = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutput, talon.harness.Llm.ToolOutput.Builder, talon.harness.Llm.ToolOutputOrBuilder>
+          internalGetToolOutputFieldBuilder() {
+        if (toolOutputBuilder_ == null) {
+          toolOutputBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.harness.Llm.ToolOutput, talon.harness.Llm.ToolOutput.Builder, talon.harness.Llm.ToolOutputOrBuilder>(
+                  getToolOutput(),
+                  getParentForChildren(),
+                  isClean());
+          toolOutput_ = null;
+        }
+        return toolOutputBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.SessionJournalEntryPayloadToolResult)
@@ -5074,32 +5274,33 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       "\022\ntalon.data\032\025proto/data/data.proto\032\027pro" +
       "to/harness/llm.proto\"V\n%SessionJournalEn" +
       "tryPayloadLlmResponse\022-\n\010response\030\001 \001(\0132" +
-      "\033.talon.harness.ChatResponse\"\201\001\n$Session" +
+      "\033.talon.harness.ChatResponse\"\261\001\n$Session" +
       "JournalEntryPayloadToolResult\022\024\n\014tool_ca" +
       "ll_id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\016\n\006output\030\003 \001(" +
       "\t\022%\n\006object\030\004 \001(\0132\025.talon.data.ObjectRef" +
-      "\"@\n SessionJournalEntryPayloadCommit\022\034\n\024" +
-      "committed_message_id\030\001 \001(\t\"\373\001\n\032SessionJo" +
-      "urnalEntryPayload\022I\n\014llm_response\030\001 \001(\0132" +
-      "1.talon.data.SessionJournalEntryPayloadL" +
-      "lmResponseH\000\022G\n\013tool_result\030\002 \001(\01320.talo" +
-      "n.data.SessionJournalEntryPayloadToolRes" +
-      "ultH\000\022>\n\006commit\030\003 \001(\0132,.talon.data.Sessi" +
-      "onJournalEntryPayloadCommitH\000B\t\n\007payload" +
-      "\"\325\002\n\023SessionJournalEntry\022\025\n\rsubmission_i" +
-      "d\030\001 \001(\t\022\030\n\020journal_entry_id\030\002 \001(\t\022\022\n\natt" +
-      "empt_id\030\003 \001(\t\0220\n\005phase\030\004 \001(\0162!.talon.dat" +
-      "a.SessionExecutionPhase\0227\n\007payload\030\005 \001(\013" +
-      "2&.talon.data.SessionJournalEntryPayload" +
-      "\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003" +
-      "\022\031\n\014committed_at\030\010 \001(\003H\000\210\001\001\022!\n\024committed" +
-      "_message_id\030\t \001(\tH\001\210\001\001B\017\n\r_committed_atB" +
-      "\027\n\025_committed_message_id*\272\001\n\025SessionExec" +
-      "utionPhase\022\'\n#SESSION_EXECUTION_PHASE_UN" +
-      "SPECIFIED\020\000\022(\n$SESSION_EXECUTION_PHASE_L" +
-      "LM_RESPONSE\020\001\022\'\n#SESSION_EXECUTION_PHASE" +
-      "_TOOL_RESULT\020\002\022%\n!SESSION_EXECUTION_PHAS" +
-      "E_COMMITTED\020\003b\006proto3"
+      "\022.\n\013tool_output\030\005 \001(\0132\031.talon.harness.To" +
+      "olOutput\"@\n SessionJournalEntryPayloadCo" +
+      "mmit\022\034\n\024committed_message_id\030\001 \001(\t\"\373\001\n\032S" +
+      "essionJournalEntryPayload\022I\n\014llm_respons" +
+      "e\030\001 \001(\01321.talon.data.SessionJournalEntry" +
+      "PayloadLlmResponseH\000\022G\n\013tool_result\030\002 \001(" +
+      "\01320.talon.data.SessionJournalEntryPayloa" +
+      "dToolResultH\000\022>\n\006commit\030\003 \001(\0132,.talon.da" +
+      "ta.SessionJournalEntryPayloadCommitH\000B\t\n" +
+      "\007payload\"\325\002\n\023SessionJournalEntry\022\025\n\rsubm" +
+      "ission_id\030\001 \001(\t\022\030\n\020journal_entry_id\030\002 \001(" +
+      "\t\022\022\n\nattempt_id\030\003 \001(\t\0220\n\005phase\030\004 \001(\0162!.t" +
+      "alon.data.SessionExecutionPhase\0227\n\007paylo" +
+      "ad\030\005 \001(\0132&.talon.data.SessionJournalEntr" +
+      "yPayload\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_" +
+      "at\030\007 \001(\003\022\031\n\014committed_at\030\010 \001(\003H\000\210\001\001\022!\n\024c" +
+      "ommitted_message_id\030\t \001(\tH\001\210\001\001B\017\n\r_commi" +
+      "tted_atB\027\n\025_committed_message_id*\272\001\n\025Ses" +
+      "sionExecutionPhase\022\'\n#SESSION_EXECUTION_" +
+      "PHASE_UNSPECIFIED\020\000\022(\n$SESSION_EXECUTION" +
+      "_PHASE_LLM_RESPONSE\020\001\022\'\n#SESSION_EXECUTI" +
+      "ON_PHASE_TOOL_RESULT\020\002\022%\n!SESSION_EXECUT" +
+      "ION_PHASE_COMMITTED\020\003b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5118,7 +5319,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     internal_static_talon_data_SessionJournalEntryPayloadToolResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadToolResult_descriptor,
-        new java.lang.String[] { "ToolCallId", "Name", "Output", "Object", });
+        new java.lang.String[] { "ToolCallId", "Name", "Output", "Object", "ToolOutput", });
     internal_static_talon_data_SessionJournalEntryPayloadCommit_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_data_SessionJournalEntryPayloadCommit_fieldAccessorTable = new

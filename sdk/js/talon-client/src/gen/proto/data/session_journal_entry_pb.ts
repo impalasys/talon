@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ChatResponse } from "../harness/llm_pb.js";
+import { ChatResponse, ToolOutput } from "../harness/llm_pb.js";
 import { ObjectRef } from "./data_pb.js";
 
 /**
@@ -112,6 +112,11 @@ export class SessionJournalEntryPayloadToolResult extends Message<SessionJournal
    */
   object?: ObjectRef;
 
+  /**
+   * @generated from field: talon.harness.ToolOutput tool_output = 5;
+   */
+  toolOutput?: ToolOutput;
+
   constructor(data?: PartialMessage<SessionJournalEntryPayloadToolResult>) {
     super();
     proto3.util.initPartial(data, this);
@@ -124,6 +129,7 @@ export class SessionJournalEntryPayloadToolResult extends Message<SessionJournal
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "output", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "object", kind: "message", T: ObjectRef },
+    { no: 5, name: "tool_output", kind: "message", T: ToolOutput },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayloadToolResult {
