@@ -16,6 +16,7 @@ function border(color: string) {
 
 const talonChatFontFamily =
   'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const talonChatMessageFontSize = "var(--talon-chat-message-font-size, 1rem)";
 
 const CHANNEL_SCROLL_LOAD_THRESHOLD_PX = 64;
 const CHANNEL_SCROLL_BOTTOM_THRESHOLD_PX = 96;
@@ -677,7 +678,7 @@ export function TalonChannel({
                       <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{resolvedFormatTimestamp(message)}</span>
                       {messageActions ? <div style={{ marginLeft: "auto" }}>{messageActions}</div> : null}
                     </div>
-                    <div style={{ marginTop: 8, whiteSpace: "normal", overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.6 }}>
+                    <div style={{ marginTop: 8, whiteSpace: "normal", overflowWrap: "anywhere", fontSize: talonChatMessageFontSize, lineHeight: 1.6 }}>
                       <MarkdownMessage onResourceClick={onResourceClick}>{message.content || ""}</MarkdownMessage>
                     </div>
                   </div>

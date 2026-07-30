@@ -326,6 +326,7 @@ async function fetchResourceFromGateway(options: {
 
 const talonChatFontFamily =
   'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+const talonChatMessageFontSize = "var(--talon-chat-message-font-size, 1rem)";
 
 function cn(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
@@ -1749,6 +1750,7 @@ export function TalonSession({
                     color: "var(--talon-chat-edit-fg, inherit)",
                     padding: "0.55rem 0.65rem",
                     font: "inherit",
+                    fontSize: talonChatMessageFontSize,
                     lineHeight: 1.55,
                     outline: "none",
                     boxShadow: "var(--talon-chat-edit-shadow, inset 0 0 0 1px rgba(255,255,255,0.02))",
@@ -1809,7 +1811,7 @@ export function TalonSession({
                   overflow: "hidden",
                   overflowWrap: "anywhere",
                   whiteSpace: message.role === "assistant" ? "normal" : "pre-wrap",
-                  fontSize: message.role === "system" ? 12 : 14,
+                  fontSize: message.role === "system" ? 12 : talonChatMessageFontSize,
                   lineHeight: 1.65,
                   opacity: message.role === "system" ? 0.72 : 0.94,
                   fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
