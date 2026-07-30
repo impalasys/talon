@@ -339,7 +339,7 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
   });
 
-  it('hydrates zstd CAS tool results with a library fallback when the browser stream rejects zstd', async () => {
+  it('lazily hydrates zstd CAS tool results with a library fallback when the browser stream rejects zstd', async () => {
     const decodedOutput = new TextEncoder().encode('zstd hydrated tool output');
     const decompressZstd = jest.requireMock('fzstd').decompress as jest.Mock;
     decompressZstd.mockReturnValueOnce(decodedOutput);
@@ -412,9 +412,13 @@ describe('TalonCopilot', () => {
       );
 
       expect(await screen.findByText('Done')).toBeInTheDocument();
+      expect(gatewayClient.cas.getObject).not.toHaveBeenCalled();
       fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
       fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
       expect(await screen.findByText('zstd hydrated tool output')).toBeInTheDocument();
+      expect(gatewayClient.cas.getObject).toHaveBeenCalledWith({
+        key: 'cas/ops/sessions/sess-zstd/messages/assistant-zstd/000001.txt',
+      });
       expect(decompressZstd).toHaveBeenCalledWith(new Uint8Array([0x28, 0xb5, 0x2f, 0xfd]));
       expect(warnSpy).not.toHaveBeenCalledWith(
         expect.stringContaining('Could not hydrate CAS tool-result object'),
@@ -425,6 +429,233 @@ describe('TalonCopilot', () => {
       global.DecompressionStream = originalDecompressionStream;
       warnSpy.mockRestore();
     }
+  });
+
+  it('shows an inline error when lazy CAS tool result hydration fails', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-cas-fail',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-cas-fail',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                  toolCallId: 'call-cas-fail',
+                  toolName: 'knowledge_search',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-cas-fail', input: { query: 'docs' } }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                  toolCallId: 'call-cas-fail',
+                  toolName: 'knowledge_search',
+                  content: '',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-cas-fail' }),
+                  object: {
+                    key: 'cas/ops/sessions/sess-cas-fail/messages/assistant-cas-fail/000001.txt',
+                  },
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Done after failed hydrate.',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      cas: {
+        getObject: jest.fn().mockRejectedValue(new Error('CAS unavailable')),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-cas-fail"
+      />,
+    );
+
+    expect(await screen.findByText('Done after failed hydrate.')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
+
+    expect(await screen.findByText('Could not load output.')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Could not hydrate CAS tool-result object',
+      'cas/ops/sessions/sess-cas-fail/messages/assistant-cas-fail/000001.txt',
+      expect.any(Error),
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('does not refetch a lazy CAS tool result after it has been hydrated once', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-cas-cache',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-cas-cache',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                  toolCallId: 'call-cas-cache',
+                  toolName: 'knowledge_search',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-cas-cache', input: { query: 'docs' } }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                  toolCallId: 'call-cas-cache',
+                  toolName: 'knowledge_search',
+                  content: '',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-cas-cache' }),
+                  object: {
+                    key: 'cas/ops/sessions/sess-cas-cache/messages/assistant-cas-cache/000001.txt',
+                  },
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Done after cached hydrate.',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      cas: {
+        getObject: jest.fn().mockResolvedValue({
+          data: new TextEncoder().encode('cached hydrated output'),
+        }),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-cas-cache"
+      />,
+    );
+
+    expect(await screen.findByText('Done after cached hydrate.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+    const toolToggle = await screen.findByRole('button', { name: /Called\s+knowledge_search/ });
+    fireEvent.click(toolToggle);
+    expect(await screen.findByText('cached hydrated output')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(toolToggle);
+    fireEvent.click(toolToggle);
+    expect(await screen.findByText('cached hydrated output')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not hydrate CAS tool results while loading initial or older history pages', async () => {
+    const listSessionMessages = jest.fn(async (request: any) => ({
+      sessionId: 'sess-cas-pages',
+      state: 'IDLE',
+      hasMore: !request.beforeMessageId,
+      nextBeforeMessageId: request.beforeMessageId ? undefined : 'assistant-latest',
+      items: [
+        {
+          message: {
+            id: request.beforeMessageId ? 'assistant-older' : 'assistant-latest',
+            role: 'ROLE_ASSISTANT',
+            parts: [
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                toolCallId: request.beforeMessageId ? 'call-older' : 'call-latest',
+                toolName: 'knowledge_search',
+                payloadJson: JSON.stringify({
+                  tool_call_id: request.beforeMessageId ? 'call-older' : 'call-latest',
+                  input: { query: request.beforeMessageId ? 'older' : 'latest' },
+                }),
+              },
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                toolCallId: request.beforeMessageId ? 'call-older' : 'call-latest',
+                toolName: 'knowledge_search',
+                content: '',
+                payloadJson: JSON.stringify({
+                  tool_call_id: request.beforeMessageId ? 'call-older' : 'call-latest',
+                }),
+                object: {
+                  key: request.beforeMessageId
+                    ? 'cas/ops/sessions/sess-cas-pages/messages/assistant-older/000001.txt'
+                    : 'cas/ops/sessions/sess-cas-pages/messages/assistant-latest/000001.txt',
+                },
+              },
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                content: request.beforeMessageId ? 'Older page final answer.' : 'Latest page final answer.',
+              },
+            ],
+            createdAt: request.beforeMessageId ? '1777755591000000' : '1777755592000000',
+          },
+          steps: [],
+        },
+      ],
+    }));
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages,
+      cas: {
+        getObject: jest.fn().mockResolvedValue({
+          data: new TextEncoder().encode('hydrated page output'),
+        }),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-cas-pages"
+        historyPageSize={1}
+      />,
+    );
+
+    expect(await screen.findByText('Latest page final answer.')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).not.toHaveBeenCalled();
+
+    fireEvent.scroll(screen.getByTestId('copilot-transcript'), { target: { scrollTop: 0 } });
+
+    expect(await screen.findByText('Older page final answer.')).toBeInTheDocument();
+    expect(listSessionMessages).toHaveBeenCalledWith({
+      ns: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-cas-pages',
+      pageSize: 1,
+      beforeMessageId: 'assistant-latest',
+    });
+    expect(gatewayClient.cas.getObject).not.toHaveBeenCalled();
+
+    const workToggles = screen.getAllByRole('button', { name: /Worked/ });
+    fireEvent.click(workToggles.at(-1)!);
+    fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
+    expect(await screen.findByText('hydrated page output')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
   });
 
   it('shows pending connector replies and requests delivery by updating message labels', async () => {
