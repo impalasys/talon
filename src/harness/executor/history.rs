@@ -284,7 +284,7 @@ async fn tool_result_message_from_part(
         .ok_or_else(|| anyhow!("tool result payload is missing tool_call_id"))?;
         return Ok(Some(LoopMessage {
             role: "tool".to_string(),
-            content_parts: parsed.tool_output.content_parts,
+            content_parts: parsed.tool_output.content_parts(),
             tool_calls: None,
             tool_call_id: Some(parsed.tool_call_id),
         }));
