@@ -112,12 +112,80 @@ impl OpenAiCompatibleProvider {
         Ok(serialized)
     }
 
+    fn tool_message_content(parts: &[ChatContentPart]) -> String {
+        parts
+            .iter()
+            .filter_map(|part| match part.content.as_ref()? {
+                chat_content_part::Content::Text(text) => Some(text.clone()),
+                chat_content_part::Content::ObjectRef(object_ref) => {
+                    Some(object_ref_fallback_text(object_ref))
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    async fn serialize_tool_result_media_message(
+        &self,
+        tool_call_id: Option<&str>,
+        parts: &[ChatContentPart],
+    ) -> Result<Option<serde_json::Value>> {
+        let mut media_parts = Vec::new();
+        for part in parts {
+            if !matches!(
+                part.content.as_ref(),
+                Some(chat_content_part::Content::ObjectRef(_))
+            ) {
+                continue;
+            }
+            let serialized = openai_content_part(&self.cas, part).await?;
+            if serialized.get("type").and_then(Value::as_str) == Some("image_url") {
+                media_parts.push(serialized);
+            }
+        }
+        if media_parts.is_empty() {
+            return Ok(None);
+        }
+
+        let label = tool_call_id
+            .map(|id| format!("Image result returned by tool call {id}."))
+            .unwrap_or_else(|| "Image result returned by a tool call.".to_string());
+        let mut content = vec![serde_json::json!({
+            "type": "text",
+            "text": label,
+        })];
+        content.extend(media_parts);
+        Ok(Some(serde_json::json!({
+            "role": "user",
+            "content": content,
+        })))
+    }
+
     async fn serialize_messages(
         &self,
         messages: Vec<ChatMessage>,
     ) -> Result<Vec<serde_json::Value>> {
         let mut serialized = Vec::with_capacity(messages.len());
         for message in messages {
+            if message.role == "tool" {
+                let tool_call_id = message.tool_call_id.as_deref();
+                let mut json = serde_json::json!({
+                    "role": "tool",
+                    "content": Self::tool_message_content(&message.content_parts),
+                });
+                if let Some(tool_call_id) = tool_call_id {
+                    json["tool_call_id"] = serde_json::json!(tool_call_id);
+                }
+                let media_message = self
+                    .serialize_tool_result_media_message(tool_call_id, &message.content_parts)
+                    .await?;
+                serialized.push(json);
+                if let Some(media_message) = media_message {
+                    serialized.push(media_message);
+                }
+                continue;
+            }
+
             let content = match message.content_parts.as_slice() {
                 [] => serde_json::Value::String(String::new()),
                 [part] => match part.content.as_ref() {
@@ -1008,6 +1076,99 @@ mod tests {
         assert_eq!(
             serialized[0]["content"][1]["image_url"]["url"],
             "data:image/png;base64,cG5nLWJ5dGVz"
+        );
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_projects_tool_image_results_as_follow_up_user_media() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let object = store
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "screenshot.png".to_string(),
+                    size_bytes: 9,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let provider = OpenAiCompatibleProvider::new(
+            "test-key".to_string(),
+            "http://localhost".to_string(),
+            "test-model".to_string(),
+            CasStore::new(store),
+        );
+
+        let serialized = provider
+            .serialize_messages(vec![ChatMessage {
+                role: "tool".to_string(),
+                content_parts: vec![object_ref_part(object)],
+                tool_calls: Vec::new(),
+                tool_call_id: Some("call_1".to_string()),
+            }])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized.len(), 2);
+        assert_eq!(serialized[0]["role"], "tool");
+        assert_eq!(serialized[0]["tool_call_id"], "call_1");
+        assert_eq!(
+            serialized[0]["content"],
+            "[Object reference: image/png; 9 bytes]"
+        );
+        assert_eq!(serialized[1]["role"], "user");
+        assert_eq!(
+            serialized[1]["content"][0]["text"],
+            "Image result returned by tool call call_1."
+        );
+        assert_eq!(serialized[1]["content"][1]["type"], "image_url");
+        assert_eq!(
+            serialized[1]["content"][1]["image_url"]["url"],
+            "data:image/png;base64,cG5nLWJ5dGVz"
+        );
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_keeps_tool_text_results_as_tool_messages_only() {
+        let serialized = test_provider()
+            .serialize_messages(vec![tool_result_message("plain result")])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized.len(), 1);
+        assert_eq!(serialized[0]["role"], "tool");
+        assert_eq!(serialized[0]["content"], "plain result");
+        assert_eq!(serialized[0]["tool_call_id"], "call_1");
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_keeps_non_image_tool_object_refs_as_text_only() {
+        let serialized = test_provider()
+            .serialize_messages(vec![ChatMessage {
+                role: "tool".to_string(),
+                content_parts: vec![object_ref_part(
+                    crate::gateway::rpc::data_proto::ObjectRef {
+                        key: "cas/acme/files/file-1/report.pdf".to_string(),
+                        media_type: "application/pdf".to_string(),
+                        size_bytes: 3,
+                        filename: "report.pdf".to_string(),
+                        ..Default::default()
+                    },
+                )],
+                tool_calls: Vec::new(),
+                tool_call_id: Some("call_1".to_string()),
+            }])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized.len(), 1);
+        assert_eq!(serialized[0]["role"], "tool");
+        assert_eq!(
+            serialized[0]["content"],
+            "[Object reference: application/pdf; 3 bytes]"
         );
     }
 
