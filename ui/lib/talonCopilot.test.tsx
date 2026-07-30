@@ -37,6 +37,16 @@ function makeStreamResponse(lines: string[]) {
   } as any;
 }
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((innerResolve, innerReject) => {
+    resolve = innerResolve;
+    reject = innerReject;
+  });
+  return { promise, resolve, reject };
+}
+
 function makeControllableStreamResponse() {
   const encoder = new TextEncoder();
   let releaseNextRead: ((line: string | null) => void) | null = null;
@@ -429,6 +439,238 @@ describe('TalonCopilot', () => {
       global.DecompressionStream = originalDecompressionStream;
       warnSpy.mockRestore();
     }
+  });
+
+  it('matches lazy CAS tool results by payload tool call id before generic part id', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-payload-id',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-payload-id',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  id: 'generic-call-part-id',
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                  toolName: 'knowledge_search',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-from-payload', input: { query: 'docs' } }),
+                },
+                {
+                  id: 'generic-result-part-id',
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                  toolName: 'knowledge_search',
+                  content: '',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-from-payload' }),
+                  object: {
+                    key: 'cas/ops/sessions/sess-payload-id/messages/assistant-payload-id/000001.txt',
+                  },
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Done after payload id hydrate.',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      cas: {
+        getObject: jest.fn().mockResolvedValue({
+          data: new TextEncoder().encode('payload id hydrated output'),
+        }),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-payload-id"
+      />,
+    );
+
+    expect(await screen.findByText('Done after payload id hydrate.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
+
+    expect(await screen.findByText('payload id hydrated output')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start duplicate lazy CAS hydration while a tool result is already loading', async () => {
+    const hydration = deferred<any>();
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-cas-inflight',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-cas-inflight',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                  toolCallId: 'call-cas-inflight',
+                  toolName: 'knowledge_search',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-cas-inflight', input: { query: 'docs' } }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                  toolCallId: 'call-cas-inflight',
+                  toolName: 'knowledge_search',
+                  content: '',
+                  payloadJson: JSON.stringify({ tool_call_id: 'call-cas-inflight' }),
+                  object: {
+                    key: 'cas/ops/sessions/sess-cas-inflight/messages/assistant-cas-inflight/000001.txt',
+                  },
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Done while hydration is pending.',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      cas: {
+        getObject: jest.fn().mockReturnValue(hydration.promise),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-cas-inflight"
+      />,
+    );
+
+    expect(await screen.findByText('Done while hydration is pending.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+    const toolToggle = await screen.findByRole('button', { name: /Called\s+knowledge_search/ });
+    fireEvent.click(toolToggle);
+    expect(await screen.findByText('Loading output...')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(toolToggle);
+    fireEvent.click(toolToggle);
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      hydration.resolve({
+        data: new TextEncoder().encode('single in-flight hydrated output'),
+      });
+      await hydration.promise;
+    });
+
+    expect(await screen.findByText('single in-flight hydrated output')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores stale lazy CAS hydration failures after switching sessions', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const oldHydration = deferred<any>();
+    const listSessionMessages = jest.fn(async (request: any) => ({
+      sessionId: request.sessionId,
+      state: 'IDLE',
+      items: [
+        {
+          message: {
+            id: 'assistant-shared',
+            role: 'ROLE_ASSISTANT',
+            parts: [
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                toolCallId: 'call-shared',
+                toolName: 'knowledge_search',
+                payloadJson: JSON.stringify({ tool_call_id: 'call-shared', input: { query: request.sessionId } }),
+              },
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                toolCallId: 'call-shared',
+                toolName: 'knowledge_search',
+                content: '',
+                payloadJson: JSON.stringify({ tool_call_id: 'call-shared' }),
+                object: {
+                  key: `cas/ops/sessions/${request.sessionId}/messages/assistant-shared/000001.txt`,
+                },
+              },
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                content: request.sessionId === 'sess-stale-old'
+                  ? 'Old session final answer.'
+                  : 'New session final answer.',
+              },
+            ],
+            createdAt: String(Date.now() * 1000),
+          },
+          steps: [],
+        },
+      ],
+      hasMore: false,
+    }));
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages,
+      cas: {
+        getObject: jest.fn().mockReturnValue(oldHydration.promise),
+      },
+    };
+
+    const { rerender } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-stale-old"
+      />,
+    );
+
+    expect(await screen.findByText('Old session final answer.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
+    expect(await screen.findByText('Loading output...')).toBeInTheDocument();
+
+    rerender(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-stale-new"
+      />,
+    );
+
+    expect(await screen.findByText('New session final answer.')).toBeInTheDocument();
+
+    await act(async () => {
+      oldHydration.reject(new Error('old CAS failed'));
+      await oldHydration.promise.catch(() => undefined);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Could not load output.')).not.toBeInTheDocument();
+    });
+    expect(warnSpy).not.toHaveBeenCalledWith(
+      'Could not hydrate CAS tool-result object',
+      expect.stringContaining('sess-stale-old'),
+      expect.any(Error),
+    );
+    warnSpy.mockRestore();
   });
 
   it('shows an inline error when lazy CAS tool result hydration fails', async () => {

@@ -626,10 +626,10 @@ async function toolResultObjectData(response: any, fallbackObject?: TalonChatObj
 function toolCallIdFromToolResultPart(part: any): string {
   if (typeof part?.toolCallId === "string") return part.toolCallId;
   if (typeof part?.tool_call_id === "string") return part.tool_call_id;
-  if (typeof part?.id === "string") return part.id;
   const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
   const payloadToolCallId = payload.tool_call_id ?? payload.toolCallId;
-  return typeof payloadToolCallId === "string" ? payloadToolCallId : "";
+  if (typeof payloadToolCallId === "string") return payloadToolCallId;
+  return typeof part?.id === "string" ? part.id : "";
 }
 
 function findHydratableToolResultPart(
@@ -644,7 +644,7 @@ function findHydratableToolResultPart(
     const key = objectRefKey(objectRefFromPart(part));
     if (!key) continue;
     const partToolCallId = toolCallIdFromToolResultPart(part);
-    if (toolCallId && partToolCallId && partToolCallId !== toolCallId) continue;
+    if (toolCallId && partToolCallId !== toolCallId) continue;
     return { part, index, key };
   }
   return null;
@@ -1004,10 +1004,18 @@ export function TalonSession({
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
   const imageAttachmentsRef = useRef<TalonSessionPendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
+  const toolResultHydrationInFlightRef = useRef<Set<string>>(new Set());
+  const toolResultHydrationGenerationRef = useRef(0);
   const skipNextAutoScrollRef = useRef(false);
   const autoScrollPinnedRef = useRef(true);
   const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
   const isLoadingOlderHistoryRef = useRef(false);
+
+  const invalidateToolResultHydration = useCallback(() => {
+    toolResultHydrationGenerationRef.current += 1;
+    toolResultHydrationInFlightRef.current.clear();
+    setToolResultHydration({});
+  }, []);
 
   const updateTranscriptScrollThumb = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -1147,7 +1155,10 @@ export function TalonSession({
       const match = findHydratableToolResultPart(message.parts, toolCallId);
       const cas = gatewayClient?.cas;
       if (!match || !cas?.getObject) return;
+      if (toolResultHydrationInFlightRef.current.has(toolKey)) return;
 
+      toolResultHydrationInFlightRef.current.add(toolKey);
+      const generation = toolResultHydrationGenerationRef.current;
       setToolResultHydration((prev) => ({
         ...prev,
         [toolKey]: "loading",
@@ -1157,8 +1168,10 @@ export function TalonSession({
         const response = await cas.getObject({ key: match.key });
         const data = await toolResultObjectData(response, objectRefFromPart(match.part));
         const output = new TextDecoder().decode(data);
+        if (toolResultHydrationGenerationRef.current !== generation) return;
 
         setMessages((current) => {
+          if (toolResultHydrationGenerationRef.current !== generation) return current;
           const nextMessages = current.map((candidate) => {
             if (candidate.id !== message.id) return candidate;
             const currentMatch = findHydratableToolResultPart(candidate.parts, toolCallId);
@@ -1184,6 +1197,7 @@ export function TalonSession({
           messagesRef.current = nextMessages;
           return nextMessages;
         });
+        if (toolResultHydrationGenerationRef.current !== generation) return;
 
         setToolResultHydration((prev) => {
           if (!(toolKey in prev)) return prev;
@@ -1192,11 +1206,14 @@ export function TalonSession({
           return next;
         });
       } catch (err) {
+        if (toolResultHydrationGenerationRef.current !== generation) return;
         console.warn("Could not hydrate CAS tool-result object", match.key, err);
         setToolResultHydration((prev) => ({
           ...prev,
           [toolKey]: "error",
         }));
+      } finally {
+        toolResultHydrationInFlightRef.current.delete(toolKey);
       }
     },
     [gatewayClient],
@@ -2195,7 +2212,7 @@ export function TalonSession({
       setNextBeforeMessageId(null);
       setIsLoadingOlderHistory(false);
       setStreamEvents([]);
-      setToolResultHydration({});
+      invalidateToolResultHydration();
       setError(null);
       return;
     }
@@ -2208,6 +2225,7 @@ export function TalonSession({
     const controller = new AbortController();
     resumeAbortControllerRef.current?.abort();
     resumeAbortControllerRef.current = controller;
+    invalidateToolResultHydration();
     loadInitialSessionPage(nextSession)
       .then((res) => {
         if (!cancelled && res.state === "PROCESSING") {
@@ -2224,7 +2242,7 @@ export function TalonSession({
       cancelled = true;
       controller.abort();
     };
-  }, [agent, loadInitialSessionPage, namespace, resumeStream, sessionId]);
+  }, [agent, invalidateToolResultHydration, loadInitialSessionPage, namespace, resumeStream, sessionId]);
 
   const waitForCanonicalAssistantUpdate = useCallback(
     async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string) => {
@@ -2257,13 +2275,13 @@ export function TalonSession({
     setLoadingStartedAt(null);
     setExpandedThinkingMessages({});
     setExpandedToolItems({});
-    setToolResultHydration({});
+    invalidateToolResultHydration();
     setOpenResourceUri(null);
     setResourceView(null);
     setResourceError(null);
     setResourceLoading(false);
     autoScrollPinnedRef.current = true;
-  }, []);
+  }, [invalidateToolResultHydration]);
 
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;
