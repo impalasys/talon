@@ -394,24 +394,34 @@ def _run_cas_tool_result_turn(
 
     response = None
     assistant = None
+    tool_result_message = None
     for _ in range(30):
         response = client.sessions.Get(
             GetSessionRequest(agent=agent_name, session_id=session_id, ns=namespace)
         )
         assistant = last_assistant_message(response.messages)
-        if assistant is not None and any(
-            part.part_type == PART_TYPE_TOOL_RESULT for part in assistant.parts
-        ):
+        tool_result_message = next(
+            (
+                message
+                for message in reversed(response.messages)
+                if any(part.part_type == PART_TYPE_TOOL_RESULT for part in message.parts)
+            ),
+            None,
+        )
+        if tool_result_message is not None:
             break
         time.sleep(1)
 
     assert response is not None
     assert assistant is not None
+    assert tool_result_message is not None
     if require_summary:
         assert "I checked blocking_lookup for docs.example.com." in message_text(assistant)
 
     tool_results = [
-        part for part in assistant.parts if part.part_type == PART_TYPE_TOOL_RESULT
+        part
+        for part in tool_result_message.parts
+        if part.part_type == PART_TYPE_TOOL_RESULT
     ]
     assert len(tool_results) == 1
     assert tool_results[0].content == ""
