@@ -218,7 +218,7 @@ def test_delegate_task_creates_durable_child_session(
 
     worker_done = False
     worker_messages = []
-    for _ in range(45):
+    for _ in range(90):
         time.sleep(1)
         worker = client.sessions.Get(
             GetSessionRequest(

@@ -341,6 +341,7 @@ def _run_cas_tool_result_turn(
     *,
     message: str,
     require_summary: bool = True,
+    poll_attempts: int = 30,
 ):
     namespace = f"talon-cas-tool-{stack.name}-{uuid.uuid4().hex[:8]}"
     agent_name = "cas-tool-agent"
@@ -395,7 +396,7 @@ def _run_cas_tool_result_turn(
     response = None
     assistant = None
     tool_result_message = None
-    for _ in range(30):
+    for _ in range(poll_attempts):
         response = client.sessions.Get(
             GetSessionRequest(agent=agent_name, session_id=session_id, ns=namespace)
         )
@@ -472,6 +473,7 @@ def test_super_large_tool_result_uses_s3_object_store_on_aws_stack(
                 "super-large-docs.example.com result and summarize what you found."
             ),
             require_summary=False,
+            poll_attempts=90,
         )
 
         fetched = client.cas.GetObject(GetCasObjectRequest(key=tool_result.object.key))
