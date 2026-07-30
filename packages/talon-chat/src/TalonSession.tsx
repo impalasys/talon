@@ -1533,7 +1533,7 @@ export function TalonSession({
                   ? "var(--talon-chat-user-bubble-bg, rgba(24,24,27,0.07))"
                   : "transparent",
                 color: isUserMessage ? "var(--talon-chat-user-bubble-fg, inherit)" : "inherit",
-                padding: isUserMessage ? "0.65rem 0.85rem" : 0,
+                padding: isUserMessage ? "0.75rem 1rem" : 0,
               }}
             >
               {hasWorkDetails ? (
@@ -1748,7 +1748,7 @@ export function TalonSession({
                     borderRadius: 8,
                     background: "var(--talon-chat-edit-bg, rgba(24,24,27,0.92))",
                     color: "var(--talon-chat-edit-fg, inherit)",
-                    padding: "0.55rem 0.65rem",
+                    padding: "0.65rem 0.8rem",
                     font: "inherit",
                     fontSize: talonChatMessageFontSize,
                     lineHeight: 1.55,
