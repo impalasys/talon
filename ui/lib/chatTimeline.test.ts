@@ -294,6 +294,117 @@ describe("fallback readers", () => {
     ]);
   });
 
+  it("reads typed tool output text content parts from canonical payloads", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        {
+          partType: 3,
+          name: "read_file",
+          payloadJson: JSON.stringify({
+            tool_call_id: "call-typed",
+            input: { path: "/docs/report.md" },
+          }),
+        },
+        {
+          partType: 4,
+          name: "read_file",
+          payloadJson: JSON.stringify({
+            tool_call_id: "call-typed",
+            tool_output: {
+              summary: "summary should not win over text parts",
+              content_parts: [
+                { type: "text", text: "hello " },
+                {
+                  type: "object_ref",
+                  object_ref: { key: "cas/image.png", media_type: "image/png" },
+                },
+                null,
+                { type: "text", text: "world" },
+              ],
+            },
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      {
+        type: "tool",
+        toolCallId: "call-typed",
+        toolName: "read_file",
+        args: { path: "/docs/report.md" },
+        result: "hello world",
+      },
+    ]);
+  });
+
+  it("falls back from typed tool output to summary or legacy output fields", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        {
+          partType: 3,
+          name: "read_file",
+          payloadJson: JSON.stringify({
+            tool_call_id: "call-summary",
+            input: { path: "/images/chart.png" },
+          }),
+        },
+        {
+          partType: 4,
+          name: "read_file",
+          payloadJson: JSON.stringify({
+            tool_call_id: "call-summary",
+            tool_output: {
+              summary: "[Image: chart.png (image/png; 12 bytes)]",
+              contentParts: [
+                {
+                  type: "object_ref",
+                  object_ref: { key: "cas/chart.png", media_type: "image/png" },
+                },
+              ],
+            },
+          }),
+        },
+        {
+          partType: 3,
+          name: "search",
+          payloadJson: JSON.stringify({
+            tool_call_id: "call-legacy",
+            input: { query: "docs" },
+          }),
+        },
+        {
+          partType: 4,
+          name: "search",
+          payloadJson: JSON.stringify({
+            tool_call_id: "call-legacy",
+            tool_output: { summary: 42, content_parts: "not an array" },
+            outputPreview: "legacy preview",
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      {
+        type: "tool",
+        toolCallId: "call-summary",
+        toolName: "read_file",
+        args: { path: "/images/chart.png" },
+        result: "[Image: chart.png (image/png; 12 bytes)]",
+      },
+      {
+        type: "tool",
+        toolCallId: "call-legacy",
+        toolName: "search",
+        args: { query: "docs" },
+        result: "legacy preview",
+      },
+    ]);
+  });
+
   it("reads canonical error and usage parts", () => {
     const message = {
       role: "assistant",
