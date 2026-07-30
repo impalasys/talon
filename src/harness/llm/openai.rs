@@ -166,6 +166,7 @@ impl OpenAiCompatibleProvider {
         messages: Vec<ChatMessage>,
     ) -> Result<Vec<serde_json::Value>> {
         let mut serialized = Vec::with_capacity(messages.len());
+        let mut pending_tool_media_messages = Vec::new();
         for message in messages {
             if message.role == "tool" {
                 let tool_call_id = message.tool_call_id.as_deref();
@@ -181,11 +182,12 @@ impl OpenAiCompatibleProvider {
                     .await?;
                 serialized.push(json);
                 if let Some(media_message) = media_message {
-                    serialized.push(media_message);
+                    pending_tool_media_messages.push(media_message);
                 }
                 continue;
             }
 
+            serialized.append(&mut pending_tool_media_messages);
             let content = match message.content_parts.as_slice() {
                 [] => serde_json::Value::String(String::new()),
                 [part] => match part.content.as_ref() {
@@ -230,6 +232,7 @@ impl OpenAiCompatibleProvider {
 
             serialized.push(json);
         }
+        serialized.append(&mut pending_tool_media_messages);
         Ok(serialized)
     }
 
@@ -1142,6 +1145,60 @@ mod tests {
         assert_eq!(serialized[0]["role"], "tool");
         assert_eq!(serialized[0]["content"], "plain result");
         assert_eq!(serialized[0]["tool_call_id"], "call_1");
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_defers_tool_result_media_until_tool_batch_end() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let object = store
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "screenshot.png".to_string(),
+                    size_bytes: 9,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let provider = OpenAiCompatibleProvider::new(
+            "test-key".to_string(),
+            "http://localhost".to_string(),
+            "test-model".to_string(),
+            CasStore::new(store),
+        );
+
+        let serialized = provider
+            .serialize_messages(vec![
+                ChatMessage {
+                    role: "tool".to_string(),
+                    content_parts: vec![object_ref_part(object)],
+                    tool_calls: Vec::new(),
+                    tool_call_id: Some("call_1".to_string()),
+                },
+                ChatMessage {
+                    role: "tool".to_string(),
+                    content_parts: vec![text_part("plain result".to_string())],
+                    tool_calls: Vec::new(),
+                    tool_call_id: Some("call_2".to_string()),
+                },
+            ])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized.len(), 3);
+        assert_eq!(serialized[0]["role"], "tool");
+        assert_eq!(serialized[0]["tool_call_id"], "call_1");
+        assert_eq!(serialized[1]["role"], "tool");
+        assert_eq!(serialized[1]["tool_call_id"], "call_2");
+        assert_eq!(serialized[2]["role"], "user");
+        assert_eq!(
+            serialized[2]["content"][0]["text"],
+            "Image result returned by tool call call_1."
+        );
+        assert_eq!(serialized[2]["content"][1]["type"], "image_url");
     }
 
     #[tokio::test]
