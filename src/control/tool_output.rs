@@ -172,6 +172,7 @@ pub async fn normalize_for_session_storage(
     output: &ToolOutput,
 ) -> Result<ToolOutput> {
     let mut content_parts = Vec::with_capacity(output.content_parts.len());
+    let mut stored_large_text = false;
     for (index, part) in output.content_parts.iter().enumerate() {
         let Some(chat_content_part::Content::Text(text)) = part.content.as_ref() else {
             content_parts.push(part.clone());
@@ -199,10 +200,21 @@ pub async fn normalize_for_session_storage(
             )
             .await?;
         content_parts.push(object_ref_part(object_ref));
+        stored_large_text = true;
     }
+    let summary = if stored_large_text
+        && output.summary.as_bytes().len() >= TOOL_RESULT_OBJECT_THRESHOLD_BYTES
+    {
+        summary(&ToolOutput {
+            content_parts: content_parts.clone(),
+            summary: String::new(),
+        })
+    } else {
+        output.summary.clone()
+    };
     Ok(ToolOutput {
         content_parts,
-        summary: output.summary.clone(),
+        summary,
     })
 }
 
@@ -571,6 +583,35 @@ mod tests {
         let object = first_object_ref(&normalized).unwrap();
         assert!(object.key.contains("/messages/message/part.txt"));
         assert!(store.get(&object.key).await.unwrap().is_some());
+    }
+
+    #[tokio::test]
+    async fn large_text_normalization_replaces_large_summary() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let cas = CasStore::new(store);
+        let content = "x".repeat(TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
+        let output = ToolOutput::text(content);
+        let normalized = normalize_for_session_storage(
+            &cas,
+            ToolOutputStorageContext {
+                ns: "ns",
+                agent: "agent",
+                session_id: "session",
+                message_id: "message",
+                part_id: "part",
+                tool_call_id: "call",
+                tool_name: "tool",
+            },
+            &output,
+        )
+        .await
+        .unwrap();
+
+        assert!(normalized.summary.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
+        assert!(normalized.summary.starts_with("[Object: call.txt ("));
+        let payload = tool_result_payload_json("call", &normalized).unwrap();
+        assert!(payload.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
+        assert!(!payload.contains(&"x".repeat(128)));
     }
 
     #[tokio::test]
