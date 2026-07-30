@@ -12,7 +12,7 @@ use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
 use crate::control::cas::{decode_stored_object_bytes, CasStore};
-use crate::control::tool_output::{self, ToolOutputStorageContext};
+use crate::control::tool_output;
 use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
@@ -315,34 +315,33 @@ async fn prepare_context_for_claimed_submission(
             } else {
                 let (_input, result) = runtime.executor.execute_tool_call(tool).await;
                 let cas = CasStore::new(cp.objects.clone());
-                let output = tool_output::normalize_for_session_storage(
-                    &cas,
-                    ToolOutputStorageContext {
-                        ns,
-                        agent,
-                        session_id,
-                        message_id,
-                        part_id: &tool_result_part_id,
-                        tool_call_id: &tool.id,
-                        tool_name: &tool.name,
-                    },
-                    &ToolOutput::text(result.clone()),
-                )
-                .await?;
-                sessions::append_tool_result(
+                let entry = sessions::append_tool_result(
                     cp.kv.as_ref(),
+                    &cas,
                     ns,
                     agent,
                     session_id,
+                    message_id,
+                    &tool_result_part_id,
                     submission_id,
                     attempt_id,
                     &tool.id,
                     &tool.name,
-                    &output,
+                    &ToolOutput::text(result.clone()),
                     chrono::Utc::now().timestamp_micros(),
                 )
                 .await?;
-                output
+                entry
+                    .payload
+                    .as_ref()
+                    .and_then(|payload| payload.payload.as_ref())
+                    .and_then(|payload| match payload {
+                        session_journal_entry_payload::Payload::ToolResult(result) => {
+                            result.tool_output.clone()
+                        }
+                        _ => None,
+                    })
+                    .unwrap_or_else(|| ToolOutput::text(result.clone()))
             };
             let result = result_output.summary();
 

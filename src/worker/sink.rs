@@ -1327,33 +1327,33 @@ impl ExecutionSink for PubSubSessionSink {
     ) -> Result<()> {
         let part_id = self.next_part_id();
         let cas = CasStore::new(self.objects.clone());
-        let output = tool_output::normalize_for_session_storage(
-            &cas,
-            ToolOutputStorageContext {
-                ns: &self.ns,
-                agent: &self.agent_id,
-                session_id: &self.session_id,
-                message_id: &self.reply_msg_id,
-                part_id: &part_id,
-                tool_call_id: id,
-                tool_name: name,
-            },
-            result,
-        )
-        .await?;
         let entry = sessions::append_tool_result(
             self.kv.as_ref(),
+            &cas,
             &self.ns,
             &self.agent_id,
             &self.session_id,
+            &self.reply_msg_id,
+            &part_id,
             &self.submission_id,
             &self.attempt_id,
             id,
             name,
-            &output,
+            result,
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
+        let output = entry
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+            .and_then(|payload| match payload {
+                data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
+                    result.tool_output.clone()
+                }
+                _ => None,
+            })
+            .unwrap_or_else(|| result.clone());
         self.recorded_tool_results.lock().unwrap().insert(
             id.to_string(),
             RecordedToolResult {

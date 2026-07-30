@@ -3918,31 +3918,19 @@ mod tests {
     ) -> data_proto::ObjectRef {
         seed_claimed_submission(kv, ns, agent, session_id).await;
         let cas = crate::control::cas::CasStore::new(cp.objects.clone());
-        let output = crate::control::tool_output::normalize_for_session_storage(
-            &cas,
-            crate::control::tool_output::ToolOutputStorageContext {
-                ns,
-                agent,
-                session_id,
-                message_id: "message-1",
-                part_id: "part-1",
-                tool_call_id: "call-1",
-                tool_name,
-            },
-            output,
-        )
-        .await
-        .unwrap();
         let entry = crate::harness::sessions::append_tool_result(
             kv,
+            &cas,
             ns,
             agent,
             session_id,
+            "message-1",
+            "part-1",
             "submission-1",
             "attempt-1",
             "call-1",
             tool_name,
-            &output,
+            output,
             chrono::Utc::now().timestamp_micros(),
         )
         .await
