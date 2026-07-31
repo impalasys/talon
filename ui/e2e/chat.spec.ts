@@ -692,6 +692,7 @@ test.describe('Live session reconciliation', () => {
     const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
     const target = { ns: testNs, agent: testAgent, sessionId };
     const submitTurnRequests: string[] = [];
+    let externalGenerationStarted = false;
     page.on('request', request => {
       if (request.url().includes('/SubmitTurn')) {
         submitTurnRequests.push(request.url());
@@ -705,12 +706,21 @@ test.describe('Live session reconciliation', () => {
     });
     const { chatInput, sendButton } = await openSessionDirectly(page, target, gatewayUrl);
 
-    await client.sessions.sendMessage({
-      ...target,
-      message: 'square root of 144',
-      labels: {},
+    await page.route('**/SubmitTurn', async route => {
+      if (externalGenerationStarted) {
+        await route.continue();
+        return;
+      }
+      externalGenerationStarted = true;
+      const externalGeneration = client.sessions.sendMessage({
+        ...target,
+        message: 'square root of 144',
+        labels: {},
+      });
+      void externalGeneration.catch(() => undefined);
+      await waitForMockStreamBlocked();
+      await route.continue();
     });
-    await waitForMockStreamBlocked();
 
     await chatInput.fill('a second request that must not be accepted');
     await sendButton.click();
