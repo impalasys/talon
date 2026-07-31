@@ -4,6 +4,8 @@
 # Docker-specific runtime values, such as container env var names or mounted
 # volume paths.
 
+extends: ./models.yaml
+
 providers:
   # Provider secrets are read from the compose service environment, usually
   # populated from .env by docker-compose.yaml.

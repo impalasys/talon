@@ -1,3 +1,5 @@
+extends: ./models.yaml
+
 llmProviders:
   openai:
     type: openai

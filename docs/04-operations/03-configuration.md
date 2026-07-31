@@ -11,6 +11,42 @@ the runtime config proto. The proto-native shape uses `providers` and
 `control_plane`; the checked-in local files also use aliases such as
 `llmProviders`, `storage`, and `pubsub` where they are easier to read.
 
+## Layered configuration
+
+A file can extend one or more local configuration files:
+
+```yaml
+extends: ./models.yaml
+```
+
+or:
+
+```yaml
+extends:
+  - ./models.yaml
+  - ./shared-providers.toml
+```
+
+YAML (`.yaml`/`.yml`), JSON, and TOML extension files are supported. Paths are
+resolved relative to the file that declares them; absolute local paths are
+also allowed. URLs and other remote includes are rejected. Each file expands
+`${ENVIRONMENT_VARIABLE}` placeholders before it is parsed, so paths and
+values in a parent are interpreted in the parent's own environment and
+directory.
+
+Parent layers are merged in declaration order, followed by the child. Maps
+merge recursively, with child keys taking precedence; lists and scalar values
+are replaced by the later layer. Duplicate extensions are allowed. Active
+include cycles report their full chain, and nesting is limited to 32 levels.
+The `providers`/`llmProviders` and `models`/`llmModels`/`modelLimits` aliases
+are normalized before merging, so child overrides are deterministic. Relative
+filesystem settings such as `workspace_dir`, database directories, and local
+object-store paths are resolved relative to the file where they appear.
+
+`TALON_CONFIG_INLINE_YAML` must be self-contained and cannot use `extends`; use
+`TALON_CONFIG_PATH` when layered configuration is needed. `extends` is a loader
+directive and is not retained in the runtime configuration protobuf.
+
 ## Provider configuration
 
 Provider config defines model backends and secrets. The config schema supports:
@@ -22,6 +58,45 @@ Provider config defines model backends and secrets. The config schema supports:
 
 Provider maps may be written as `providers` or `llmProviders`. If both are
 present, Talon merges them before building the runtime config.
+
+## Model catalog
+
+The optional `models` map records model metadata. This repository's
+`models.yaml` is a shared curated catalog extended by both example deployment
+configs. Model names are matched against the selected agent model;
+provider-qualified keys such as `openai/gpt-5` are also supported when the same
+model name is used by multiple providers.
+
+The checked-in catalog includes major Chinese model families and routes,
+including DeepSeek, Qwen, GLM/Zhipu, Kimi/Moonshot, MiniMax, Hunyuan, Xiaomi
+MiMo, and InclusionAI, plus Novita, SiliconFlow, Volcengine, Baichuan, and
+OpenRouter-qualified variants.
+
+Catalog entries describe limits and pricing only. They do not activate a
+provider, enable a connection, or resolve credentials. Keep provider
+connections and secrets in the deployment config. The catalog is static and
+is not refreshed from provider APIs during startup.
+
+Costs are USD per one million tokens. `contextWindowTokens` is the complete
+provider context window. When `maxOutputTokens` is present, compaction reserves
+that many tokens for generation and uses the remainder as the history limit.
+
+```yaml
+models:
+  openai/gpt-5:
+    provider: openai
+    contextWindowTokens: 400000
+    maxOutputTokens: 128000
+    inputCostPerMillionTokens: 1.25
+    outputCostPerMillionTokens: 10.00
+    cacheReadCostPerMillionTokens: 0.125
+    cacheWriteCostPerMillionTokens: 1.25
+```
+
+The pricing fields are retained as model metadata for usage accounting and
+future provider integrations. Compaction currently consumes the context and
+output limits; if no matching model entry exists, it keeps the existing
+environment/default character budget.
 
 ## Secret sources
 

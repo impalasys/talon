@@ -30,6 +30,7 @@ services:
         required: false
     volumes:
       - ./talon.docker-compose.yaml:/data/talon/talon.docker-compose.yaml:ro
+      - ./models.yaml:/data/talon/models.yaml:ro
       - talon-objects:/data/talon/objects
     ports:
       - "50051:50051"
@@ -112,6 +113,7 @@ services:
         required: false
     volumes:
       - ./talon.docker-compose.yaml:/data/talon/talon.docker-compose.yaml:ro
+      - ./models.yaml:/data/talon/models.yaml:ro
       - talon-objects:/data/talon/objects
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:

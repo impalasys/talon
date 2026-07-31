@@ -29,6 +29,48 @@ pub fn compact_history_for_llm_with_budget(
     history: &[LoopMessage],
     budget: ContextBudget,
 ) -> Vec<LoopMessage> {
+    compact_history_for_llm_with_budget_and_model_limits(
+        history,
+        budget,
+        ModelContextLimits::default(),
+    )
+}
+
+/// Model metadata that affects the amount of history Talon can send in one
+/// request. Context limits are token limits, while the compactor operates on
+/// character weights, so the effective input limit is conservatively estimated
+/// at four characters per token.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ModelContextLimits {
+    pub context_window_tokens: Option<u64>,
+    pub max_output_tokens: Option<u64>,
+}
+
+impl ModelContextLimits {
+    pub fn effective_input_tokens(self) -> Option<u64> {
+        self.context_window_tokens
+            .map(|context| context.saturating_sub(self.max_output_tokens.unwrap_or_default()))
+    }
+
+    pub fn effective_input_chars(self) -> Option<usize> {
+        self.effective_input_tokens()
+            .map(|tokens| tokens.min((usize::MAX / 4) as u64).saturating_mul(4) as usize)
+    }
+}
+
+pub fn compact_history_for_llm_with_model_limits(
+    history: &[LoopMessage],
+    model_limits: ModelContextLimits,
+) -> Vec<LoopMessage> {
+    let budget = ContextBudget::default().with_model_limits(model_limits);
+    compact_history_for_llm_with_budget_and_model_limits(history, budget, model_limits)
+}
+
+pub fn compact_history_for_llm_with_budget_and_model_limits(
+    history: &[LoopMessage],
+    budget: ContextBudget,
+    model_limits: ModelContextLimits,
+) -> Vec<LoopMessage> {
     let mut history_segments = segments::normalize(segments::from(history), budget);
     let normalized_has_request_anchor = segments::has_request_anchor(&history_segments);
     debug_assert!(
@@ -55,7 +97,7 @@ pub fn compact_history_for_llm_with_budget(
     let mut omitted = 0usize;
 
     loop {
-        let marker = segments::omitted_marker(omitted);
+        let marker = segments::omitted_marker(omitted, model_limits);
         let total_chars = marker.as_ref().map(serialized_message_weight).unwrap_or(0)
             + segments::total_weight(&history_segments);
         if total_chars <= budget.total_chars {
@@ -120,6 +162,22 @@ impl Default for ContextBudget {
             max_tool_result_chars: env_usize("TALON_LLM_TOOL_RESULT_MAX_CHARS", 128_000),
             max_tool_argument_chars: env_usize("TALON_LLM_TOOL_ARGUMENT_MAX_CHARS", 4_000),
         }
+    }
+}
+
+impl ContextBudget {
+    pub fn with_model_limits(mut self, model_limits: ModelContextLimits) -> Self {
+        if let Some(total_chars) = model_limits.effective_input_chars() {
+            // An explicit environment override remains a hard upper bound;
+            // otherwise use the configured model window instead of the legacy
+            // fixed default so larger-context models can make use of it.
+            if std::env::var_os("TALON_LLM_HISTORY_MAX_CHARS").is_some() {
+                self.total_chars = self.total_chars.min(total_chars);
+            } else {
+                self.total_chars = total_chars;
+            }
+        }
+        self
     }
 }
 
@@ -221,7 +279,7 @@ fn serialized_message_weight(message: &LoopMessage) -> usize {
 mod segments {
     use super::{
         compact_loop_message, force_fit_message, serialized_message_weight, truncate_middle,
-        ContextBudget, LoopMessage,
+        ContextBudget, LoopMessage, ModelContextLimits,
     };
 
     #[derive(Debug, Clone)]
@@ -358,15 +416,28 @@ mod segments {
         segments.iter().any(Segment::has_request_anchor)
     }
 
-    pub(super) fn omitted_marker(omitted: usize) -> Option<LoopMessage> {
+    pub(super) fn omitted_marker(
+        omitted: usize,
+        model_limits: ModelContextLimits,
+    ) -> Option<LoopMessage> {
         if omitted == 0 {
             return None;
         }
+        let limit_note = match (
+            model_limits.context_window_tokens,
+            model_limits.max_output_tokens,
+        ) {
+            (Some(context), Some(output)) => {
+                format!(" Model context limit: {context} tokens ({output} reserved for output).")
+            }
+            (Some(context), None) => format!(" Model context limit: {context} tokens."),
+            _ => String::new(),
+        };
         Some(LoopMessage::text(
             "assistant",
             format!(
-                "[{} earlier messages omitted to stay within Talon context budget.]",
-                omitted
+                "[{} earlier messages omitted to stay within Talon context budget.{}]",
+                omitted, limit_note
             ),
         ))
     }
@@ -870,8 +941,9 @@ fn env_usize(key: &str, default: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::{
-        compact_history_for_llm_with_budget, replay_has_user_or_tool_anchor,
-        serialized_message_weight, tool_history_is_consistent, ContextBudget,
+        compact_history_for_llm_with_budget, compact_history_for_llm_with_budget_and_model_limits,
+        replay_has_user_or_tool_anchor, serialized_message_weight, tool_history_is_consistent,
+        ContextBudget, ModelContextLimits,
     };
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::LoopMessage;
@@ -920,6 +992,47 @@ mod tests {
             filename: "output.txt".to_string(),
             ..Default::default()
         })
+    }
+
+    #[test]
+    fn model_context_limits_reserve_output_and_convert_to_character_budget() {
+        let limits = ModelContextLimits {
+            context_window_tokens: Some(128_000),
+            max_output_tokens: Some(16_000),
+        };
+
+        assert_eq!(limits.effective_input_tokens(), Some(112_000));
+        assert_eq!(limits.effective_input_chars(), Some(448_000));
+    }
+
+    #[test]
+    fn compaction_marker_includes_configured_model_context_limit() {
+        let history = vec![
+            message("user", "u".repeat(300)),
+            message("assistant", "a".repeat(300)),
+            message("user", "latest"),
+        ];
+        let compacted = compact_history_for_llm_with_budget_and_model_limits(
+            &history,
+            ContextBudget {
+                total_chars: 250,
+                max_message_chars: 200,
+                max_tool_result_chars: 180,
+                max_tool_argument_chars: 120,
+            },
+            ModelContextLimits {
+                context_window_tokens: Some(128),
+                max_output_tokens: Some(32),
+            },
+        );
+
+        let marker = compacted
+            .iter()
+            .find(|message| message.text_content().contains("earlier messages omitted"))
+            .expect("compaction should retain an omission marker");
+        assert!(marker
+            .text_content()
+            .contains("Model context limit: 128 tokens (32 reserved for output)."));
     }
 
     #[derive(Deserialize)]

@@ -27,6 +27,7 @@ COPY sdk/rust/talon-client ./sdk/rust/talon-client
 COPY tools/install-hooks ./tools/install-hooks
 COPY src ./src
 COPY talon.yaml ./talon.yaml
+COPY models.yaml ./models.yaml
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
@@ -45,6 +46,7 @@ COPY sdk/rust/talon-client ./sdk/rust/talon-client
 COPY tools/install-hooks ./tools/install-hooks
 COPY src ./src
 COPY talon.yaml ./talon.yaml
+COPY models.yaml ./models.yaml
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     cargo build --release --locked --features rocksdb \
@@ -98,6 +100,7 @@ COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 RUN command -v talon-cli >/dev/null
 RUN mkdir -p /data/talon
 COPY --from=builder /usr/src/talon/talon.yaml /data/talon/talon.yaml
+COPY --from=builder /usr/src/talon/models.yaml /data/talon/models.yaml
 
 ENV TALON_DATA_DIR=/data/talon
 ENV RUST_LOG=info
