@@ -136,6 +136,53 @@ async function provisionMcpSession(page: Page) {
   return { chatInput, sendButton, sessionId, gatewayUrl, client, testNs, testAgent };
 }
 
+function mockLlmUrl(pathname: string) {
+  const port = process.env.MOCK_LLM_PORT || '8000';
+  return `http://127.0.0.1:${port}${pathname}`;
+}
+
+async function mockLlmControl(pathname: string, init?: RequestInit) {
+  const response = await fetch(mockLlmUrl(pathname), init);
+  expect(response.ok).toBeTruthy();
+  return response.json();
+}
+
+async function resetMockLlm() {
+  await mockLlmControl('/__control/reset', { method: 'POST' });
+}
+
+async function waitForMockStreamBlocked() {
+  await expect.poll(async () => (await mockLlmControl('/__control/state')).blocked).toBe(true);
+}
+
+async function unblockMockLlm() {
+  await mockLlmControl('/__control/unblock_stream', { method: 'POST' });
+}
+
+async function waitForSessionState(
+  client: any,
+  target: { ns: string; agent: string; sessionId: string },
+  expectedState: string,
+) {
+  await expect(async () => {
+    const history = await client.sessions.listMessages({
+      ...target,
+      pageSize: 50,
+    });
+    expect(history.state).toBe(expectedState);
+  }).toPass({ timeout: 60000 });
+}
+
+async function openSessionDirectly(page: Page, target: { ns: string; agent: string; sessionId: string }, gatewayUrl: string) {
+  await installBrowserAuth(page, gatewayUrl);
+  await page.goto(`/?connected=true&ns=${encodeURIComponent(target.ns)}&agent=${encodeURIComponent(target.agent)}&session=${encodeURIComponent(target.sessionId)}`);
+
+  const chatInput = page.locator('textarea[placeholder="Ask Talon to perform a task..."]');
+  const sendButton = page.locator('form').filter({ has: chatInput }).getByRole('button', { name: 'Send message' });
+  await expect(chatInput).toBeVisible({ timeout: 15000 });
+  return { chatInput, sendButton };
+}
+
 async function decodeCasText(response: any, data: Uint8Array): Promise<string> {
   const encoding = String(response?.contentEncoding || response?.metadata?.contentEncoding || '').toLowerCase();
   if (encoding === 'zstd') {
@@ -590,6 +637,88 @@ test.describe('Chat Streaming', () => {
     await toolToggle.click();
     await expect(page.locator('code').filter({ hasText: 'reference section 079' }).last()).toBeVisible({ timeout: 10000 });
     expect(browserCasObjectRequests).toHaveLength(1);
+  });
+});
+
+test.describe('Live session reconciliation', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test.beforeEach(async () => {
+    await resetMockLlm();
+  });
+
+  test.afterEach(async () => {
+    await unblockMockLlm();
+  });
+
+  test('reopens a processing session after reload and stops an externally started generation', async ({ page }) => {
+    const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
+    const target = { ns: testNs, agent: testAgent, sessionId };
+
+    await mockLlmControl('/__control/block_stream_after_chunks', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ chunks: 1 }),
+    });
+    await client.sessions.sendMessage({
+      ...target,
+      message: 'square root of 144',
+      labels: {},
+    });
+    await waitForSessionState(client, target, 'PROCESSING');
+    await waitForMockStreamBlocked();
+
+    const { chatInput } = await openSessionDirectly(page, target, gatewayUrl);
+    await expect(page.getByText(/Working for/)).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: /Stop generation/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Worked for/i })).toHaveCount(0);
+
+    await page.reload();
+    await expect(chatInput).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/Working for/)).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: /Stop generation/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Worked for/i })).toHaveCount(0);
+
+    await page.getByRole('button', { name: /Stop generation/i }).click();
+    await waitForSessionState(client, target, 'IDLE');
+    await expect(page.getByRole('button', { name: /Stop generation/i })).toHaveCount(0, { timeout: 15000 });
+    await expect(page.getByText(/System Incident/)).toHaveCount(0);
+  });
+
+  test('recovers from a busy UI submit while an external generation remains live', async ({ page }) => {
+    const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
+    const target = { ns: testNs, agent: testAgent, sessionId };
+
+    await mockLlmControl('/__control/block_stream_after_chunks', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ chunks: 1 }),
+    });
+    const { chatInput, sendButton } = await openSessionDirectly(page, target, gatewayUrl);
+
+    await client.sessions.sendMessage({
+      ...target,
+      message: 'square root of 144',
+      labels: {},
+    });
+    await waitForSessionState(client, target, 'PROCESSING');
+    await waitForMockStreamBlocked();
+
+    await chatInput.fill('a second request that must not be accepted');
+    await expect(sendButton).toBeEnabled();
+    await sendButton.click();
+
+    await expect(page.getByText(/Working for/)).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('a second request that must not be accepted', { exact: true })).toHaveCount(0);
+    await expect(page.getByText(/System Incident/)).toHaveCount(0);
+
+    await page.getByRole('button', { name: /Stop generation/i }).click();
+    await waitForSessionState(client, target, 'IDLE');
+    await expect(async () => {
+      const history = await client.sessions.listMessages({ ...target, pageSize: 50 });
+      const contents = (history.items ?? []).map((item: any) => sessionMessageText(item.message));
+      expect(contents).not.toContain('a second request that must not be accepted');
+    }).toPass({ timeout: 30000 });
   });
 });
 

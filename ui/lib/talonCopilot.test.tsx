@@ -2294,6 +2294,73 @@ describe('TalonCopilot', () => {
     expect(screen.getByText('18 total')).toBeInTheDocument();
   });
 
+  it('restores the open working state when reloading a processing session', async () => {
+    const streamStarted = deferred<void>();
+    const finishStream = deferred<void>();
+    const gatewayClient = {
+      sessions: {
+        create: jest.fn(),
+        listMessages: jest.fn().mockResolvedValueOnce({
+          sessionId: 'sess-reloaded-processing',
+          state: 'PROCESSING',
+          items: [
+            {
+              message: {
+                id: 'user-reloaded-processing',
+                role: 'ROLE_USER',
+                content: 'Continue the in-progress task',
+                createdAt: String(Date.now() * 1000),
+              },
+              steps: [],
+            },
+            {
+              message: {
+                id: 'assistant-reloaded-processing',
+                role: 'ROLE_ASSISTANT',
+                parts: [
+                  { type: 'reasoning', text: 'Still checking the latest records.' },
+                  { type: 'text', text: 'The current answer is not complete yet.' },
+                ],
+                createdAt: String(Date.now() * 1000),
+              },
+              steps: [],
+            },
+          ],
+          hasMore: false,
+        }).mockResolvedValue({
+          sessionId: 'sess-reloaded-processing',
+          state: 'IDLE',
+          items: [],
+          hasMore: false,
+        }),
+        submitTurn: jest.fn(async function* () {}),
+        streamParts: jest.fn(async function* () {
+          streamStarted.resolve();
+          await finishStream.promise;
+          yield { kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DONE', messageId: 'assistant-reloaded-processing' };
+        }),
+        stopGeneration: jest.fn(),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-reloaded-processing"
+      />,
+    );
+
+    expect(await screen.findByText(/Working for/)).toBeInTheDocument();
+    await waitFor(() => expect(streamStarted.promise).resolves.toBeUndefined());
+    expect(screen.queryByText(/Worked for/)).not.toBeInTheDocument();
+    expect(screen.getByText('Still checking the latest records.')).toBeInTheDocument();
+
+    finishStream.resolve();
+    await waitFor(() => expect(screen.queryByText(/Working for/)).not.toBeInTheDocument());
+  });
+
   it('highlights a live tool call while it is running', async () => {
     let finishTool!: () => void;
     const toolFinished = new Promise<void>((resolve) => {
@@ -2531,8 +2598,9 @@ describe('TalonCopilot', () => {
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
   });
 
-  it('aborts an existing session resume stream before sending a new message', async () => {
+  it('exposes stop generation for an externally processing session', async () => {
     const resumeStream = makeControllableStreamResponse();
+    const stopGeneration = jest.fn(async () => ({ success: true }));
     const gatewayClient = {
       createSession: jest.fn(),
       listSessionMessages: jest
@@ -2570,6 +2638,7 @@ describe('TalonCopilot', () => {
           steps: [],
         }),
       getSession: jest.fn(),
+      stopGeneration,
     };
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();
@@ -2601,20 +2670,91 @@ describe('TalonCopilot', () => {
     });
     const resumeSignal = fetchMock.mock.calls[0][1].signal as AbortSignal;
 
+    fireEvent.click(screen.getByRole('button', { name: /stop generation/i }));
+
+    await waitFor(() => expect(resumeSignal.aborted).toBe(true));
+    await waitFor(() => expect(stopGeneration).toHaveBeenCalledWith({
+      ns: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-existing-processing',
+    }));
+    resumeStream.release(null);
+
+    expect(screen.queryByText('Sure')).not.toBeInTheDocument();
+    expect(gatewayClient.createSession).not.toHaveBeenCalled();
+  });
+
+  it('rolls back a busy submission and resumes the canonical session stream', async () => {
+    const resumeFinished = deferred<void>();
+    const submitTurn = jest.fn(async function* () {
+      throw Object.assign(new Error('Session is currently generating a response.'), { code: 8 });
+    });
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest
+        .fn()
+        .mockResolvedValueOnce({
+          sessionId: 'sess-busy-submit',
+          state: 'IDLE',
+          messages: [
+            {
+              id: 'user-existing-busy',
+              role: 'ROLE_USER',
+              content: 'Existing prompt',
+              createdAt: String(Date.now() * 1000),
+            },
+          ],
+          steps: [],
+        })
+        .mockResolvedValueOnce({
+          sessionId: 'sess-busy-submit',
+          state: 'PROCESSING',
+          messages: [
+            {
+              id: 'user-existing-busy',
+              role: 'ROLE_USER',
+              content: 'Existing prompt',
+              createdAt: String(Date.now() * 1000),
+            },
+            {
+              id: 'assistant-existing-busy',
+              role: 'ROLE_ASSISTANT',
+              content: 'Canonical partial response',
+              createdAt: String(Date.now() * 1000),
+            },
+          ],
+          steps: [],
+        }),
+      submitTurn,
+      streamParts: jest.fn(async function* () {
+        await resumeFinished.promise;
+        yield { kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DONE', messageId: 'assistant-existing-busy' };
+      }),
+      stopGeneration: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-busy-submit"
+      />,
+    );
+
+    await screen.findByText('Existing prompt');
     fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
       target: { value: 'new request' },
     });
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
-    await waitFor(() => expect(resumeSignal.aborted).toBe(true));
-    resumeStream.release('f:{"messageId":"assistant-existing"}\n');
-    resumeStream.release('0:"Sure"\n');
-    resumeStream.release(null);
+    expect(await screen.findByText(/Working for/)).toBeInTheDocument();
+    expect(screen.queryByText('new request')).not.toBeInTheDocument();
+    expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
+    expect(submitTurn).toHaveBeenCalledTimes(1);
 
-    expect(await screen.findByText('Sure')).toBeInTheDocument();
-    await waitFor(() => expect(gatewayClient.listSessionMessages).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText('SureSure')).not.toBeInTheDocument();
-    expect(gatewayClient.createSession).not.toHaveBeenCalled();
+    resumeFinished.resolve();
+    await waitFor(() => expect(screen.queryByText(/Working for/)).not.toBeInTheDocument());
   });
 });
 
