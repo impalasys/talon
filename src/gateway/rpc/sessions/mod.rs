@@ -1651,9 +1651,9 @@ impl GrpcGatewayHandler {
         }
 
         let event = events::SessionControlEvent {
-            session_id: req.session_id,
-            agent: req.agent,
-            ns: req.ns,
+            session_id: req.session_id.clone(),
+            agent: req.agent.clone(),
+            ns: req.ns.clone(),
             action: "stop_generation".to_string(),
             timestamp: chrono::Utc::now().timestamp_micros(),
         };
@@ -1662,6 +1662,22 @@ impl GrpcGatewayHandler {
             .publish(topics::SESSION_CONTROL_TOPIC, &event.encode_to_vec())
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to publish stop event: {}", e)))?;
+
+        let control_plane = crate::control::ControlPlane::new(
+            self.gateway.kv.clone(),
+            self.gateway.pubsub.clone(),
+            self.gateway.scheduler.clone(),
+            self.gateway.objects.clone(),
+            self.gateway.documents.clone(),
+        );
+        crate::control::delegation::publish_stop_generation_to_open_connections(
+            &control_plane,
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(format!("Failed to stop child sessions: {}", e)))?;
 
         Ok(tonic::Response::new(proto::StopSessionGenerationResponse {
             success: true,

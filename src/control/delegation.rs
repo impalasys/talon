@@ -3,11 +3,13 @@
 
 use anyhow::{Context, Result};
 use prost::Message;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, session_queue, ControlPlane, ListOptions, ProtoKeyValueStoreExt};
+use crate::control::{
+    events, keys, session_queue, topics, ControlPlane, ListOptions, ProtoKeyValueStoreExt,
+};
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 // Task resource label: marks a Task as created through agent delegation.
@@ -40,6 +42,11 @@ pub const LABEL_TASK_NAME: &str = "talon.impalasys.com/task-name";
 // Session/message label: role in the delegation flow, such as delegate.
 pub const LABEL_TASK_ROLE: &str = "talon.impalasys.com/task-role";
 
+// Session metadata written by agent_open. It is the source of truth for the
+// graph of agent sessions opened by a session; Tasks are workflow records and
+// must not determine which sessions a stop operation reaches.
+const A2A_WIRE_METADATA_PREFIX: &str = "wire.a2a.talon.impalasys.com/";
+
 // Task status condition: tracks whether delegate execution is running,
 // completed, or failed.
 pub const CONDITION_DELEGATED_EXECUTION: &str = "DelegatedExecution";
@@ -56,6 +63,88 @@ pub struct TaskDelegationRequest {
     pub connection_name: String,
     pub delegate_namespace: String,
     pub delegate_name: String,
+}
+
+/// Publish the existing stop-generation event to sessions reachable through a
+/// session's open A2A agent connections. The root session is intentionally
+/// excluded because its caller publishes the original event itself.
+pub async fn publish_stop_generation_to_open_connections(
+    cp: &ControlPlane,
+    owner_namespace: &str,
+    owner_name: &str,
+    owner_session_id: &str,
+) -> Result<()> {
+    let root = (
+        owner_namespace.to_string(),
+        owner_name.to_string(),
+        owner_session_id.to_string(),
+    );
+    let mut sessions_to_stop =
+        open_agent_connections(cp, owner_namespace, owner_name, owner_session_id).await?;
+    let mut visited_sessions = HashSet::from([root]);
+    let now = chrono::Utc::now().timestamp_micros();
+
+    while let Some((namespace, agent, session_id)) = sessions_to_stop.pop() {
+        let session_key = (namespace.clone(), agent.clone(), session_id.clone());
+        if !visited_sessions.insert(session_key) {
+            continue;
+        }
+        // Each child has an "owner" wire back to its parent; the visited set
+        // keeps that cycle, including the root session, out of the fan-out.
+        sessions_to_stop.extend(open_agent_connections(cp, &namespace, &agent, &session_id).await?);
+        let event = events::SessionControlEvent {
+            session_id,
+            agent,
+            ns: namespace,
+            action: "stop_generation".to_string(),
+            timestamp: now,
+        };
+        cp.pubsub
+            .publish(topics::SESSION_CONTROL_TOPIC, &event.encode_to_vec())
+            .await?;
+    }
+    Ok(())
+}
+
+async fn open_agent_connections(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+) -> Result<Vec<(String, String, String)>> {
+    let Some(session) = cp
+        .kv
+        .get_msg::<data_proto::Session>(&keys::session(namespace, agent, session_id))
+        .await?
+    else {
+        return Ok(Vec::new());
+    };
+    Ok(session
+        .metadata
+        .iter()
+        .filter_map(|(key, value)| {
+            key.strip_prefix(A2A_WIRE_METADATA_PREFIX)
+                .and_then(|_| decode_agent_connection(value))
+        })
+        .collect())
+}
+
+fn decode_agent_connection(value: &str) -> Option<(String, String, String)> {
+    let parts = value.split('/').collect::<Vec<_>>();
+    let [namespace, agent, session_id] = parts.as_slice() else {
+        return None;
+    };
+    if [namespace, agent, session_id]
+        .iter()
+        .any(|part| part.trim().is_empty() || part.chars().any(char::is_control))
+    {
+        return None;
+    }
+    Some((
+        (*namespace).to_string(),
+        (*agent).to_string(),
+        (*session_id).to_string(),
+    ))
 }
 
 pub async fn create_delegated_task(
