@@ -4,6 +4,7 @@
 use anyhow::Result;
 use serde_json::{json, Value};
 
+use crate::control::tool_output::ToolOutputExt;
 use crate::control::ControlPlane;
 use crate::harness::llm::ToolOutput;
 use crate::harness::skills::registry::ToolRegistry;

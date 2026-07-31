@@ -376,6 +376,7 @@ fn journal_entry_order(journal_entry_id: &str) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::tool_output::ToolOutputExt;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::data_proto::{SessionExecutionPhase, SessionSubmissionStatus};
     use crate::harness::llm::{ChatResponse, ToolCall};

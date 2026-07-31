@@ -14,7 +14,7 @@ use crate::control::delegation;
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::object_store::{default_object_store, ObjectStore};
 use crate::control::resources::ResourceStore;
-use crate::control::tool_output::{self, ToolOutputStorageContext};
+use crate::control::tool_output::{self, ToolOutputExt, ToolOutputStorageContext};
 use crate::control::{
     keys::{self, ResourceKey},
     KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
@@ -1669,6 +1669,7 @@ mod tests {
     };
     use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
+    use crate::control::tool_output::ToolOutputExt;
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::ExecutionSink;

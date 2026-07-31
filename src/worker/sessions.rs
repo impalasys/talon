@@ -12,7 +12,7 @@ use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
 use crate::control::cas::{decode_stored_object_bytes, CasStore};
-use crate::control::tool_output;
+use crate::control::tool_output::{self, ToolOutputExt};
 use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
@@ -1311,6 +1311,7 @@ mod tests {
     };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::object_store::ObjectMetadata;
+    use crate::control::tool_output::ToolOutputExt;
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,

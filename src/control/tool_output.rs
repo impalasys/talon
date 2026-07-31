@@ -30,8 +30,22 @@ pub struct ToolOutputStorageContext<'a> {
     pub tool_name: &'a str,
 }
 
-impl ToolOutput {
-    pub fn text(text: impl Into<String>) -> Self {
+pub trait ToolOutputExt {
+    fn text(text: impl Into<String>) -> Self;
+    fn from_source_object(
+        bytes: Vec<u8>,
+        media_type: impl Into<String>,
+        filename: impl Into<String>,
+        object_ref: data_proto::ObjectRef,
+    ) -> Self;
+    fn from_content_parts(content_parts: Vec<ChatContentPart>, summary: impl Into<String>) -> Self;
+    fn summary(&self) -> String;
+    fn content_parts(&self) -> Vec<ChatContentPart>;
+    fn object_ref(&self) -> Option<&data_proto::ObjectRef>;
+}
+
+impl ToolOutputExt for ToolOutput {
+    fn text(text: impl Into<String>) -> Self {
         let text = text.into();
         Self {
             content_parts: vec![text_part(text.clone())],
@@ -39,7 +53,7 @@ impl ToolOutput {
         }
     }
 
-    pub fn from_source_object(
+    fn from_source_object(
         bytes: Vec<u8>,
         media_type: impl Into<String>,
         filename: impl Into<String>,
@@ -66,25 +80,22 @@ impl ToolOutput {
         }
     }
 
-    pub fn from_content_parts(
-        content_parts: Vec<ChatContentPart>,
-        summary: impl Into<String>,
-    ) -> Self {
+    fn from_content_parts(content_parts: Vec<ChatContentPart>, summary: impl Into<String>) -> Self {
         Self {
             content_parts,
             summary: summary.into(),
         }
     }
 
-    pub fn summary(&self) -> String {
+    fn summary(&self) -> String {
         summary(self)
     }
 
-    pub fn content_parts(&self) -> Vec<ChatContentPart> {
+    fn content_parts(&self) -> Vec<ChatContentPart> {
         self.content_parts.clone()
     }
 
-    pub fn object_ref(&self) -> Option<&data_proto::ObjectRef> {
+    fn object_ref(&self) -> Option<&data_proto::ObjectRef> {
         first_object_ref(self)
     }
 }

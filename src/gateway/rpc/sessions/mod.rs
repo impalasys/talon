@@ -1830,6 +1830,7 @@ mod tests {
     use crate::control::object_store::{
         InMemoryObjectStore, ObjectMetadata, ObjectStore, StoredObject,
     };
+    use crate::control::tool_output::ToolOutputExt;
     use crate::control::ControlPlane;
     use crate::control::MessagePublisher;
     use crate::control::ProtoKeyValueStoreExt;

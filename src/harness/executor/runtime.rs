@@ -3,7 +3,7 @@
 
 use crate::control::cas::CasStore;
 use crate::control::config::Config;
-use crate::control::tool_output::{self, is_text_object_media_type};
+use crate::control::tool_output::{self, is_text_object_media_type, ToolOutputExt};
 use crate::control::ControlPlane;
 use crate::harness::executor::compaction::compact_history_for_llm;
 use crate::harness::llm::resolver::resolve_model_profile;
@@ -982,6 +982,7 @@ mod tests {
     };
     use crate::control::config::Config;
     use crate::control::object_store::ObjectMetadata;
+    use crate::control::tool_output::ToolOutputExt;
     use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
     use crate::gateway::rpc::{
         data_proto, manifests,

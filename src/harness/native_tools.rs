@@ -12,6 +12,7 @@ use std::time::Duration;
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
+use crate::control::tool_output::ToolOutputExt;
 use crate::control::{delegation, keys, ControlPlane, ListOptions, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{
     data_proto, manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,

@@ -4,7 +4,7 @@
 use super::runtime::LoopMessage;
 use crate::control::cas::{decode_stored_object_bytes, object_ref_from_metadata};
 use crate::control::object_store::ObjectStore;
-use crate::control::tool_output;
+use crate::control::tool_output::{self, ToolOutputExt};
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{object_ref_part, text_part, ChatContentPart, ToolCall};
 use anyhow::{anyhow, Result};
@@ -381,7 +381,7 @@ mod tests {
         message_content_parts, session_message_to_loop_messages, tool_result_message_from_part,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
-    use crate::control::tool_output;
+    use crate::control::tool_output::{self, ToolOutputExt};
     use crate::gateway::rpc::data_proto;
     use crate::harness::llm::{content_part_object_ref, object_ref_part, text_part, ToolOutput};
     use std::collections::HashMap;
