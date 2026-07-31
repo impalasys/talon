@@ -232,6 +232,10 @@ jobs:
       - name: Check Docker daemon
         run: docker info
 
+      - name: Run live session reconciliation E2E
+        working-directory: ui
+        run: pnpm test:e2e --grep "Live session reconciliation"
+
       - name: Capture Sightline E2E screenshots
         working-directory: ui
         run: pnpm test:e2e --grep @screenshots

@@ -649,11 +649,13 @@ test.describe('Live session reconciliation', () => {
 
   test.afterEach(async () => {
     await unblockMockLlm();
+    await resetMockLlm();
   });
 
   test('reopens a processing session after reload and stops an externally started generation', async ({ page }) => {
     const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
     const target = { ns: testNs, agent: testAgent, sessionId };
+    const { chatInput } = await openSessionDirectly(page, target, gatewayUrl);
 
     await mockLlmControl('/__control/block_stream_after_chunks', {
       method: 'POST',
@@ -668,7 +670,6 @@ test.describe('Live session reconciliation', () => {
     await waitForSessionState(client, target, 'PROCESSING');
     await waitForMockStreamBlocked();
 
-    const { chatInput } = await openSessionDirectly(page, target, gatewayUrl);
     await expect(page.getByText(/Working for/)).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('button', { name: /Stop generation/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Worked for/i })).toHaveCount(0);
@@ -688,6 +689,12 @@ test.describe('Live session reconciliation', () => {
   test('recovers from a busy UI submit while an external generation remains live', async ({ page }) => {
     const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
     const target = { ns: testNs, agent: testAgent, sessionId };
+    const submitTurnRequests: string[] = [];
+    page.on('request', request => {
+      if (request.url().includes('/SubmitTurn')) {
+        submitTurnRequests.push(request.url());
+      }
+    });
 
     await mockLlmControl('/__control/block_stream_after_chunks', {
       method: 'POST',
@@ -708,6 +715,7 @@ test.describe('Live session reconciliation', () => {
     await expect(sendButton).toBeEnabled();
     await sendButton.click();
 
+    await expect.poll(() => submitTurnRequests.length).toBe(1);
     await expect(page.getByText(/Working for/)).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('a second request that must not be accepted', { exact: true })).toHaveCount(0);
     await expect(page.getByText(/System Incident/)).toHaveCount(0);

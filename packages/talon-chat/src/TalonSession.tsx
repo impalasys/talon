@@ -1089,6 +1089,7 @@ export function TalonSession({
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
+  const stopAbortControllerRef = useRef<AbortController | null>(null);
   const currentSessionRef = useRef<{ ns: string; agent: string; sessionId: string } | null>(null);
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
   const imageAttachmentsRef = useRef<TalonSessionPendingImageAttachment[]>([]);
@@ -2206,6 +2207,9 @@ export function TalonSession({
   const loadInitialSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
       const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+      if (!isSameSession(currentSessionRef.current, target)) {
+        return res;
+      }
       autoScrollPinnedRef.current = true;
       setMessages(res.messages);
       setHasMoreHistory(res.hasMore);
@@ -2335,9 +2339,15 @@ export function TalonSession({
   );
 
   const waitForSessionToStop = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }) => {
+    async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
       for (let attempt = 0; attempt < 40; attempt += 1) {
+        if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
+          return null;
+        }
         const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+        if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
+          return null;
+        }
         setSessionState(res.state);
         if (res.state !== "PROCESSING") {
           return res;
@@ -2355,6 +2365,9 @@ export function TalonSession({
       if (currentSessionRef.current && currentSessionRef.current.ns === namespace && currentSessionRef.current.agent === agent) {
         return;
       }
+      stopAbortControllerRef.current?.abort();
+      stopAbortControllerRef.current = null;
+      currentSessionRef.current = null;
       setCurrentSession(null);
       setSessionState(null);
       isStoppingRef.current = false;
@@ -2378,6 +2391,9 @@ export function TalonSession({
     abortControllerRef.current = null;
     resumeAbortControllerRef.current?.abort();
     resumeAbortControllerRef.current = controller;
+    stopAbortControllerRef.current?.abort();
+    stopAbortControllerRef.current = null;
+    currentSessionRef.current = nextSession;
     invalidateToolResultHydration();
     setIsLoading(false);
     setIsResuming(false);
@@ -2402,8 +2418,53 @@ export function TalonSession({
     return () => {
       cancelled = true;
       controller.abort();
+      stopAbortControllerRef.current?.abort();
+      stopAbortControllerRef.current = null;
     };
   }, [agent, invalidateToolResultHydration, loadInitialSessionPage, namespace, resumeStream, sessionId]);
+
+  useEffect(() => {
+    const target = currentSession;
+    if (!target || isSessionLive) {
+      return;
+    }
+
+    let cancelled = false;
+    let requestInFlight = false;
+    const pollForExternalGeneration = async () => {
+      if (cancelled || requestInFlight || !isSameSession(currentSessionRef.current, target)) {
+        return;
+      }
+      requestInFlight = true;
+      try {
+        const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+        if (cancelled || !isSameSession(currentSessionRef.current, target) || res.state !== "PROCESSING") {
+          return;
+        }
+        await refreshNewestSessionPage(target);
+        if (cancelled || !isSameSession(currentSessionRef.current, target)) {
+          return;
+        }
+        const controller = new AbortController();
+        resumeAbortControllerRef.current?.abort();
+        resumeAbortControllerRef.current = controller;
+        setIsResuming(true);
+        setLoadingStartedAt(sessionProcessingStartTime(res.messages) ?? Date.now());
+        setLoadingNow(Date.now());
+        void resumeStream(target, controller.signal);
+      } catch {
+        // The normal stream/error path reports actionable failures once work is live.
+      } finally {
+        requestInFlight = false;
+      }
+    };
+
+    const intervalId = window.setInterval(() => void pollForExternalGeneration(), 1000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [currentSession, getSessionMessagesPage, hydrateSessionHistoryPage, isSessionLive, refreshNewestSessionPage, resumeStream]);
 
   const waitForCanonicalAssistantUpdate = useCallback(
     async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string) => {
@@ -2426,6 +2487,8 @@ export function TalonSession({
     abortControllerRef.current = null;
     resumeAbortControllerRef.current?.abort();
     resumeAbortControllerRef.current = null;
+    stopAbortControllerRef.current?.abort();
+    stopAbortControllerRef.current = null;
     resourceAbortRef.current?.abort();
     resourceAbortRef.current = null;
     setMessages(emptyMessages);
@@ -2617,6 +2680,8 @@ export function TalonSession({
     let submitTurnStarted = false;
     let resumedAfterBusyFailure = false;
     let submittedUserMessageId: string | null = null;
+    let submittedSession: TalonSessionHandle | null = null;
+    let submitController: AbortController | null = null;
 
     const ensureSession = async (): Promise<TalonSessionHandle> => {
       let session = currentSessionRef.current;
@@ -2718,8 +2783,10 @@ export function TalonSession({
       );
 
       session = await ensureSession();
+      submittedSession = session;
 
       const controller = new AbortController();
+      submitController = controller;
       abortControllerRef.current = controller;
       const uploadedImages = await uploadQueuedImages(session, controller.signal);
       const imageParts = uploadedImages.map((attachment) => {
@@ -2791,7 +2858,12 @@ export function TalonSession({
       }
     } catch (err: any) {
       const nextError = err instanceof Error ? err : new Error(String(err));
-      const session = currentSessionRef.current;
+      const session = submittedSession && isSameSession(currentSessionRef.current, submittedSession)
+        ? submittedSession
+        : null;
+      if (submitController?.signal.aborted || (submittedSession && !session)) {
+        return;
+      }
       if (session && isSessionBusyError(nextError)) {
         if (submittedUserMessageId) {
           const optimisticMessageId = submittedUserMessageId;
@@ -2827,10 +2899,15 @@ export function TalonSession({
       }
       setError(nextError);
     } finally {
-      abortControllerRef.current = null;
-      setIsLoading(false);
-      if (!resumedAfterBusyFailure) {
-        setLoadingStartedAt(null);
+      if (submitController?.signal.aborted || (submittedSession && !isSameSession(currentSessionRef.current, submittedSession))) {
+        return;
+      }
+      if (!submitController || abortControllerRef.current === submitController) {
+        abortControllerRef.current = null;
+        setIsLoading(false);
+        if (!resumedAfterBusyFailure) {
+          setLoadingStartedAt(null);
+        }
       }
     }
   }, [agent, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, resumeStream, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
@@ -2839,6 +2916,9 @@ export function TalonSession({
     if (!currentSessionRef.current || !isSessionLive || isStopping) return;
 
     const session = currentSessionRef.current;
+    const stopController = new AbortController();
+    stopAbortControllerRef.current?.abort();
+    stopAbortControllerRef.current = stopController;
     isStoppingRef.current = true;
     setIsStopping(true);
     abortControllerRef.current?.abort();
@@ -2855,20 +2935,29 @@ export function TalonSession({
         throw new Error("TalonSession requires a Talon clientset with sessions.stopGeneration().");
       }
       await sessions.stopGeneration(session);
-      const stopped = await waitForSessionToStop(session);
+      const stopped = await waitForSessionToStop(session, stopController.signal);
+      if (stopController.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
+        return;
+      }
       if (!stopped) {
+        stopAbortControllerRef.current = null;
         isStoppingRef.current = false;
         setIsStopping(false);
         setError(new Error("Stop was requested, but the session is still generating."));
         return;
       }
       await refreshNewestSessionPage(session);
+      stopAbortControllerRef.current = null;
       isStoppingRef.current = false;
       setIsStopping(false);
       setIsResuming(false);
       setLoadingStartedAt(null);
       setError(null);
     } catch (err) {
+      if (stopController.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
+        return;
+      }
+      stopAbortControllerRef.current = null;
       isStoppingRef.current = false;
       setIsStopping(false);
       const stopError = err instanceof Error ? err : new Error(String(err));
