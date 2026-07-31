@@ -107,13 +107,18 @@ fn contains_mention(content: &str, target: &str) -> bool {
         return false;
     }
 
+    let slack_needle = format!("<@{target}>");
+    if content.contains(&slack_needle) {
+        return true;
+    }
+
     let needle = format!("@{target}");
     let mut offset = 0;
     while let Some(match_offset) = content[offset..].find(&needle) {
         let start = offset + match_offset;
         let end = start + needle.len();
         let previous = content[..start].chars().next_back();
-        let start_ok = previous.map_or(true, |ch| ch != '@' && mention_boundary(ch));
+        let start_ok = previous.map_or(true, |ch| ch != '@' && ch != '<' && mention_boundary(ch));
         let end_ok = content[end..].chars().next().map_or(true, mention_boundary);
         if start_ok && end_ok {
             return true;
@@ -1088,4 +1093,42 @@ fn format_channel_prompt(
         message.content,
         context_section
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::contains_mention;
+
+    #[test]
+    fn contains_mention_accepts_slack_style_mentions() {
+        assert!(contains_mention(
+            "Please check this <@assistant>.",
+            "assistant"
+        ));
+        assert!(contains_mention(
+            "<@support.bot:primary> can you help?",
+            "support.bot:primary"
+        ));
+        assert!(!contains_mention(
+            "<@assistant-extra> is different",
+            "assistant"
+        ));
+        assert!(!contains_mention("<@assistant", "assistant"));
+    }
+
+    #[test]
+    fn contains_mention_keeps_legacy_at_mentions_for_compatibility() {
+        assert!(contains_mention(
+            "Please check this @assistant, thanks",
+            "assistant"
+        ));
+        assert!(!contains_mention(
+            "Please check this @assistant-extra.",
+            "assistant"
+        ));
+        assert!(!contains_mention(
+            "Please check this @@assistant.",
+            "assistant"
+        ));
+    }
 }

@@ -503,7 +503,7 @@ pub async fn dispatch_schedule(
 
 fn format_scheduled_message(schedule_name: &str, input_message: &str) -> String {
     format!(
-        "[Scheduled run: {}]\nThis is an automated scheduled execution. Execute the task below. Do not create, update, or delete schedules unless the task explicitly asks for that.\n\nTask:\n{}",
+        "<@schedule:{}>\nThis is an automated scheduled execution. Execute the task below. Do not create, update, or delete schedules unless the task explicitly asks for that.\n\nTask:\n{}",
         schedule_name,
         input_message.trim()
     )
@@ -1517,7 +1517,7 @@ mod tests {
     fn format_scheduled_message_includes_schedule_provenance() {
         assert_eq!(
             format_scheduled_message("hello-world-ping", "  Hello world!  "),
-            "[Scheduled run: hello-world-ping]\nThis is an automated scheduled execution. Execute the task below. Do not create, update, or delete schedules unless the task explicitly asks for that.\n\nTask:\nHello world!"
+            "<@schedule:hello-world-ping>\nThis is an automated scheduled execution. Execute the task below. Do not create, update, or delete schedules unless the task explicitly asks for that.\n\nTask:\nHello world!"
         );
     }
 

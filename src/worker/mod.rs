@@ -856,7 +856,7 @@ mod tests {
         assert_eq!(event.direction, MessageDirection::Inbound as i32);
         assert_eq!(event.agent, "assistant");
         assert_eq!(event.session_id, "session-1");
-        assert!(event.message.contains("Scheduled run: nightly"));
+        assert!(event.message.contains("<@schedule:nightly>"));
     }
 
     #[tokio::test]
@@ -956,7 +956,7 @@ mod tests {
         assert_eq!(event.direction, MessageDirection::Inbound as i32);
         assert_eq!(event.agent, "assistant");
         assert_eq!(event.session_id, "session-1");
-        assert!(event.message.contains("Scheduled run: nightly"));
+        assert!(event.message.contains("<@schedule:nightly>"));
 
         drop(scheduler);
         server.abort();
