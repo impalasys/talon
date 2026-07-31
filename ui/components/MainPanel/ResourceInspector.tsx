@@ -24,16 +24,50 @@ function field(value: any, camelName: string, snakeName: string = camelName) {
   return value?.[camelName] ?? value?.[snakeName];
 }
 
-function fileDescriptor(document: any) {
+type FileDescriptor =
+  | {
+      kind: 'text';
+      inlineContent?: string;
+      objectKey: string;
+      language: 'markdown' | 'text';
+      mediaType: string;
+      filename: string;
+      sizeBytes: number;
+    }
+  | {
+      kind: 'image';
+      objectKey: string;
+      mediaType: string;
+      filename: string;
+      sizeBytes: number;
+    };
+
+function mediaTypeBase(mediaType: string) {
+  return mediaType.split(';')[0]?.trim().toLowerCase() || '';
+}
+
+function objectRefSizeBytes(objectRef: any) {
+  const value = field(objectRef, 'sizeBytes', 'size_bytes');
+  if (typeof value === 'bigint') return Number(value);
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return Number(value) || 0;
+  return 0;
+}
+
+function fileDescriptor(document: any): FileDescriptor | null {
   if (document?.kind !== 'File') return null;
   const spec = document.spec || {};
   const status = document.status || {};
   const objectRef = field(status, 'objectRef', 'object_ref');
 
-  const mediaType = String(spec.mediaType || spec.mimeType || spec.contentType || '').toLowerCase();
-  const objectMediaType = String(field(objectRef, 'mediaType', 'media_type') || '').toLowerCase();
+  const mediaType = mediaTypeBase(String(spec.mediaType || spec.mimeType || spec.contentType || ''));
+  const objectMediaType = mediaTypeBase(String(field(objectRef, 'mediaType', 'media_type') || ''));
   const effectiveMediaType = mediaType || objectMediaType;
-  const path = String(spec.path || field(objectRef, 'filename') || document.metadata?.name || '').toLowerCase();
+  const rawPath = String(spec.path || field(objectRef, 'filename') || document.metadata?.name || '');
+  const path = rawPath.toLowerCase();
+  const filename = String(field(objectRef, 'filename') || rawPath.split('/').filter(Boolean).pop() || document.metadata?.name || 'file');
+  const objectKey = String(field(objectRef, 'key') || '');
+  const sizeBytes = objectRefSizeBytes(objectRef);
   const isMarkdown =
     effectiveMediaType.includes('markdown') ||
     effectiveMediaType === 'text/md' ||
@@ -45,13 +79,27 @@ function fileDescriptor(document: any) {
     effectiveMediaType.startsWith('text/') ||
     effectiveMediaType === 'application/json' ||
     effectiveMediaType.endsWith('+json');
-  if (!isText) return null;
+  const isImage = effectiveMediaType.startsWith('image/');
+  if (!isText && !isImage) return null;
+
+  if (isImage) {
+    return {
+      kind: 'image',
+      objectKey,
+      mediaType: effectiveMediaType || 'image/*',
+      filename,
+      sizeBytes,
+    };
+  }
 
   return {
+    kind: 'text',
     inlineContent: typeof spec.content === 'string' ? spec.content : undefined,
-    objectKey: String(field(objectRef, 'key') || ''),
+    objectKey,
     language: isMarkdown ? 'markdown' as const : 'text' as const,
     mediaType: effectiveMediaType || (isMarkdown ? 'text/markdown' : 'text/plain'),
+    filename,
+    sizeBytes,
   };
 }
 
@@ -89,32 +137,70 @@ async function casObjectData(response: any): Promise<Uint8Array> {
 }
 
 async function decodeCasObjectText(response: any) {
+  const decoded = await decodeCasObjectBytes(response);
+  return new TextDecoder().decode(decoded);
+}
+
+async function decodeCasObjectBytes(response: any) {
   const bytes = await casObjectData(response);
   const encoding = String(response?.contentEncoding ?? response?.content_encoding ?? response?.metadata?.content_encoding ?? '').toLowerCase();
-  const decoded =
+  return (
     encoding === 'zstd'
       ? await decompressZstdCasObjectData(bytes)
       : encoding === 'gzip'
         ? await decompressCasObjectData(bytes, 'gzip')
-        : bytes;
-  return new TextDecoder().decode(decoded);
+        : bytes
+  );
 }
 
 function FileContentInspector({ document }: { document: any }) {
   const file = useMemo(() => fileDescriptor(document), [document]);
+  const [imageBlobUrl, setImageBlobUrl] = useState<string | null>(null);
   const inlineContentVersion = file?.objectKey
     ? ''
     : String(field(document?.metadata, 'resourceVersion', 'resource_version') || field(document?.metadata, 'generation') || '');
   const contentQuery = useQuery({
     queryKey: ['file-content', file?.objectKey || '', inlineContentVersion],
     queryFn: async () => {
+      if (file?.kind === 'image') {
+        if (!file.objectKey) return { kind: 'image' as const, src: '', bytes: null };
+        const response = await getGatewayClient().cas.getObject({ key: file.objectKey });
+        const casResponse: any = response;
+        const signedUrl = typeof casResponse?.signedUrl === 'string'
+          ? casResponse.signedUrl
+          : typeof casResponse?.signed_url === 'string'
+            ? casResponse.signed_url
+            : '';
+        if (signedUrl) return { kind: 'image' as const, src: signedUrl, bytes: null };
+        return { kind: 'image' as const, src: '', bytes: await decodeCasObjectBytes(response) };
+      }
       if (typeof file?.inlineContent === 'string') return file.inlineContent;
       if (!file?.objectKey) return '';
       const response = await getGatewayClient().cas.getObject({ key: file.objectKey });
       return decodeCasObjectText(response);
     },
-    enabled: Boolean(file && (typeof file.inlineContent === 'string' || file.objectKey)),
+    enabled: Boolean(file && ((file.kind === 'text' && typeof file.inlineContent === 'string') || file.objectKey)),
   });
+
+  useEffect(() => {
+    if (file?.kind !== 'image') {
+      setImageBlobUrl(null);
+      return;
+    }
+    const data = contentQuery.data;
+    if (!data || typeof data === 'string' || data.kind !== 'image' || !data.bytes?.byteLength) {
+      setImageBlobUrl(null);
+      return;
+    }
+    const copy = new Uint8Array(data.bytes.byteLength);
+    copy.set(data.bytes);
+    const url = URL.createObjectURL(new Blob([copy.buffer], { type: file.mediaType || 'application/octet-stream' }));
+    setImageBlobUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [contentQuery.data, file]);
+
   if (!file) return null;
 
   if (contentQuery.isLoading) {
@@ -133,9 +219,54 @@ function FileContentInspector({ document }: { document: any }) {
     );
   }
 
+  if (file.kind === 'image') {
+    const data = contentQuery.data;
+    const imageSrc = data && typeof data !== 'string' && data.kind === 'image'
+      ? data.src || imageBlobUrl
+      : imageBlobUrl;
+    return (
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
+        <div className="flex items-center justify-between gap-4 border-b border-border/70 px-5 py-3">
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-foreground">{file.filename}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {file.mediaType}{file.sizeBytes ? ` · ${file.sizeBytes.toLocaleString()} bytes` : ''}
+            </div>
+          </div>
+          {imageSrc ? (
+            <a
+              href={imageSrc}
+              target="_blank"
+              rel="noreferrer"
+              download={file.filename}
+              className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              Open
+            </a>
+          ) : null}
+        </div>
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-muted/20 p-6">
+          {imageSrc ? (
+            <img
+              src={imageSrc}
+              alt={file.filename}
+              className="max-h-full max-w-full rounded-lg border border-border bg-background object-contain shadow-sm"
+            />
+          ) : (
+            <div className="text-sm text-muted-foreground">Image bytes are unavailable.</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-0 min-w-0 flex-1 overflow-hidden bg-background">
-      <MarkdownEditor value={contentQuery.data || ''} language={file.language} className="h-full min-h-0" />
+      <MarkdownEditor
+        value={typeof contentQuery.data === 'string' ? contentQuery.data : ''}
+        language={file.language}
+        className="h-full min-h-0"
+      />
     </div>
   );
 }
@@ -175,10 +306,17 @@ export function ResourceInspector({
     setMode('yaml');
   }, [selectedNode?.fullPath]);
 
+  const fileInspectorDescriptor = selectedNode?.type === 'file' && document ? fileDescriptor(document) : null;
   const inspector =
     dedicatedInspector ||
-    (selectedNode?.type === 'file' && document && fileDescriptor(document) ? <FileContentInspector document={document} /> : null);
+    (fileInspectorDescriptor ? <FileContentInspector document={document} /> : null);
   const canToggle = Boolean(selectedNode && !isLoading && !error && yaml && inspector);
+
+  useEffect(() => {
+    if (fileInspectorDescriptor?.kind === 'image') {
+      setMode('inspector');
+    }
+  }, [fileInspectorDescriptor?.kind, selectedNode?.fullPath]);
 
   return (
     <div className={`min-h-0 flex-1 overflow-hidden transition-opacity duration-300 ${!isConnected ? 'pointer-events-none opacity-20' : ''}`}>

@@ -4,8 +4,10 @@
 use anyhow::{anyhow, Context, Result};
 use std::sync::Arc;
 
+use crate::control::cas::CasStore;
 use crate::control::config::secrets::SecretExt;
 use crate::control::config::{proto, Config, Secret};
+use crate::control::object_store::ObjectStore;
 use crate::control::ControlPlane;
 use crate::gateway::rpc::manifests::{self, AgentSpec};
 use crate::harness::llm::LlmProvider;
@@ -40,8 +42,12 @@ pub fn resolve_model_profile(policy: Option<&manifests::ModelPolicy>) -> Option<
 ///   2. Config's default_provider
 /// Returns an error when the selected provider is missing, unsupported, or
 /// cannot resolve its credentials.
-pub async fn resolve_llm(spec: &AgentSpec, config: &Config) -> Result<ResolvedLlm> {
-    resolve_llm_with_credentials(spec, config, None).await
+pub async fn resolve_llm(
+    spec: &AgentSpec,
+    config: &Config,
+    object_store: Arc<dyn ObjectStore + Send + Sync>,
+) -> Result<ResolvedLlm> {
+    resolve_llm_with_credentials(spec, config, object_store, None).await
 }
 
 pub async fn resolve_llm_for_namespace(
@@ -53,6 +59,7 @@ pub async fn resolve_llm_for_namespace(
     resolve_llm_with_credentials(
         spec,
         config,
+        cp.objects.clone(),
         Some(TenantCredentialContext { cp, namespace }),
     )
     .await
@@ -67,8 +74,10 @@ struct TenantCredentialContext<'a> {
 async fn resolve_llm_with_credentials(
     spec: &AgentSpec,
     config: &Config,
+    object_store: Arc<dyn ObjectStore + Send + Sync>,
     credentials: Option<TenantCredentialContext<'_>>,
 ) -> Result<ResolvedLlm> {
+    let cas = CasStore::new(object_store);
     let selected_model = resolve_model_profile(spec.model_policy.as_ref());
     let spec_provider = selected_model.map(|m| m.provider.as_str());
     let spec_model = selected_model.map(|m| m.name.as_str());
@@ -113,6 +122,7 @@ async fn resolve_llm_with_credentials(
                     api_key,
                     base_url,
                     model.clone(),
+                    cas,
                 )),
                 provider_key: provider_name.to_string(),
                 model,
@@ -135,6 +145,7 @@ async fn resolve_llm_with_credentials(
                 provider: Arc::new(crate::harness::llm::anthropic::AnthropicProvider::new(
                     api_key,
                     model.clone(),
+                    cas,
                 )),
                 provider_key: provider_name.to_string(),
                 model,
@@ -161,6 +172,7 @@ async fn resolve_llm_with_credentials(
                     api_key,
                     base_url,
                     model.clone(),
+                    cas,
                 )),
                 provider_key: provider_name.to_string(),
                 model,
@@ -284,6 +296,7 @@ mod tests {
         resolve_llm, resolve_llm_for_namespace, resolve_model_profile, API_KEYS_SECRET_NAME,
     };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
+    use crate::control::object_store::InMemoryObjectStore;
     use crate::control::ControlPlane;
     use crate::gateway::rpc::manifests;
     use crate::gateway::rpc::resources_proto;
@@ -375,6 +388,10 @@ mod tests {
             .unwrap();
     }
 
+    fn test_object_store() -> Arc<dyn crate::control::object_store::ObjectStore + Send + Sync> {
+        Arc::new(InMemoryObjectStore::default())
+    }
+
     #[test]
     fn resolve_model_profile_falls_back_to_first_profile_with_model() {
         let policy = manifests::ModelPolicy {
@@ -408,7 +425,7 @@ mod tests {
         };
         let spec = manifests::AgentSpec::default();
 
-        let err = match resolve_llm(&spec, &config).await {
+        let err = match resolve_llm(&spec, &config, test_object_store()).await {
             Ok(_) => panic!("expected provider config error"),
             Err(err) => err,
         };
@@ -424,7 +441,13 @@ mod tests {
             ..Config::default()
         };
 
-        let err = match resolve_llm(&manifests::AgentSpec::default(), &config).await {
+        let err = match resolve_llm(
+            &manifests::AgentSpec::default(),
+            &config,
+            test_object_store(),
+        )
+        .await
+        {
             Ok(_) => panic!("expected missing provider error"),
             Err(err) => err,
         };
@@ -464,7 +487,9 @@ mod tests {
             ),
         );
         let spec = spec_with_default_model("secondary", "spec-model");
-        let llm = resolve_llm(&spec, &config).await.unwrap();
+        let llm = resolve_llm(&spec, &config, test_object_store())
+            .await
+            .unwrap();
         assert_eq!(llm.provider_key, "secondary");
         assert_eq!(llm.model, "spec-model");
         let response = llm.provider.completion("ping").await.unwrap();
@@ -695,9 +720,13 @@ mod tests {
                 }),
             ),
         );
-        let llm = resolve_llm(&manifests::AgentSpec::default(), &config)
-            .await
-            .unwrap();
+        let llm = resolve_llm(
+            &manifests::AgentSpec::default(),
+            &config,
+            test_object_store(),
+        )
+        .await
+        .unwrap();
         assert_eq!(llm.provider_key, "primary");
         assert_eq!(llm.model, "config-model");
         let response = llm.provider.completion("ping").await.unwrap();

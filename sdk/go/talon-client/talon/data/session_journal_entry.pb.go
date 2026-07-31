@@ -7,7 +7,6 @@
 package data
 
 import (
-	harness "github.com/impalasys/talon/sdk/go/talon-client/talon/harness"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -83,7 +82,7 @@ func (SessionExecutionPhase) EnumDescriptor() ([]byte, []int) {
 
 type SessionJournalEntryPayloadLlmResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Response      *harness.ChatResponse  `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
+	Response      *ChatResponse          `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -118,7 +117,7 @@ func (*SessionJournalEntryPayloadLlmResponse) Descriptor() ([]byte, []int) {
 	return file_proto_data_session_journal_entry_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SessionJournalEntryPayloadLlmResponse) GetResponse() *harness.ChatResponse {
+func (x *SessionJournalEntryPayloadLlmResponse) GetResponse() *ChatResponse {
 	if x != nil {
 		return x.Response
 	}
@@ -131,6 +130,7 @@ type SessionJournalEntryPayloadToolResult struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Output        string                 `protobuf:"bytes,3,opt,name=output,proto3" json:"output,omitempty"`
 	Object        *ObjectRef             `protobuf:"bytes,4,opt,name=object,proto3" json:"object,omitempty"`
+	ToolOutput    *ToolOutput            `protobuf:"bytes,5,opt,name=tool_output,json=toolOutput,proto3" json:"tool_output,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -189,6 +189,13 @@ func (x *SessionJournalEntryPayloadToolResult) GetOutput() string {
 func (x *SessionJournalEntryPayloadToolResult) GetObject() *ObjectRef {
 	if x != nil {
 		return x.Object
+	}
+	return nil
+}
+
+func (x *SessionJournalEntryPayloadToolResult) GetToolOutput() *ToolOutput {
+	if x != nil {
+		return x.ToolOutput
 	}
 	return nil
 }
@@ -453,13 +460,15 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	"&proto/data/session_journal_entry.proto\x12\n" +
 	"talon.data\x1a\x15proto/data/data.proto\x1a\x17proto/harness/llm.proto\"`\n" +
 	"%SessionJournalEntryPayloadLlmResponse\x127\n" +
-	"\bresponse\x18\x01 \x01(\v2\x1b.talon.harness.ChatResponseR\bresponse\"\xa3\x01\n" +
+	"\bresponse\x18\x01 \x01(\v2\x1b.talon.harness.ChatResponseR\bresponse\"\xdf\x01\n" +
 	"$SessionJournalEntryPayloadToolResult\x12 \n" +
 	"\ftool_call_id\x18\x01 \x01(\tR\n" +
 	"toolCallId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
 	"\x06output\x18\x03 \x01(\tR\x06output\x12-\n" +
-	"\x06object\x18\x04 \x01(\v2\x15.talon.data.ObjectRefR\x06object\"T\n" +
+	"\x06object\x18\x04 \x01(\v2\x15.talon.data.ObjectRefR\x06object\x12:\n" +
+	"\vtool_output\x18\x05 \x01(\v2\x19.talon.harness.ToolOutputR\n" +
+	"toolOutput\"T\n" +
 	" SessionJournalEntryPayloadCommit\x120\n" +
 	"\x14committed_message_id\x18\x01 \x01(\tR\x12committedMessageId\"\x9c\x02\n" +
 	"\x1aSessionJournalEntryPayload\x12V\n" +
@@ -510,22 +519,24 @@ var file_proto_data_session_journal_entry_proto_goTypes = []any{
 	(*SessionJournalEntryPayloadCommit)(nil),      // 3: talon.data.SessionJournalEntryPayloadCommit
 	(*SessionJournalEntryPayload)(nil),            // 4: talon.data.SessionJournalEntryPayload
 	(*SessionJournalEntry)(nil),                   // 5: talon.data.SessionJournalEntry
-	(*harness.ChatResponse)(nil),                  // 6: talon.harness.ChatResponse
+	(*ChatResponse)(nil),                          // 6: talon.harness.ChatResponse
 	(*ObjectRef)(nil),                             // 7: talon.data.ObjectRef
+	(*ToolOutput)(nil),                            // 8: talon.harness.ToolOutput
 }
 var file_proto_data_session_journal_entry_proto_depIdxs = []int32{
 	6, // 0: talon.data.SessionJournalEntryPayloadLlmResponse.response:type_name -> talon.harness.ChatResponse
 	7, // 1: talon.data.SessionJournalEntryPayloadToolResult.object:type_name -> talon.data.ObjectRef
-	1, // 2: talon.data.SessionJournalEntryPayload.llm_response:type_name -> talon.data.SessionJournalEntryPayloadLlmResponse
-	2, // 3: talon.data.SessionJournalEntryPayload.tool_result:type_name -> talon.data.SessionJournalEntryPayloadToolResult
-	3, // 4: talon.data.SessionJournalEntryPayload.commit:type_name -> talon.data.SessionJournalEntryPayloadCommit
-	0, // 5: talon.data.SessionJournalEntry.phase:type_name -> talon.data.SessionExecutionPhase
-	4, // 6: talon.data.SessionJournalEntry.payload:type_name -> talon.data.SessionJournalEntryPayload
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	8, // 2: talon.data.SessionJournalEntryPayloadToolResult.tool_output:type_name -> talon.harness.ToolOutput
+	1, // 3: talon.data.SessionJournalEntryPayload.llm_response:type_name -> talon.data.SessionJournalEntryPayloadLlmResponse
+	2, // 4: talon.data.SessionJournalEntryPayload.tool_result:type_name -> talon.data.SessionJournalEntryPayloadToolResult
+	3, // 5: talon.data.SessionJournalEntryPayload.commit:type_name -> talon.data.SessionJournalEntryPayloadCommit
+	0, // 6: talon.data.SessionJournalEntry.phase:type_name -> talon.data.SessionExecutionPhase
+	4, // 7: talon.data.SessionJournalEntry.payload:type_name -> talon.data.SessionJournalEntryPayload
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_session_journal_entry_proto_init() }
@@ -534,6 +545,7 @@ func file_proto_data_session_journal_entry_proto_init() {
 		return
 	}
 	file_proto_data_data_proto_init()
+	file_proto_harness_llm_proto_init()
 	file_proto_data_session_journal_entry_proto_msgTypes[3].OneofWrappers = []any{
 		(*SessionJournalEntryPayload_LlmResponse)(nil),
 		(*SessionJournalEntryPayload_ToolResult)(nil),

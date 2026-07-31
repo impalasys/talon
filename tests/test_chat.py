@@ -341,6 +341,7 @@ def _run_cas_tool_result_turn(
     *,
     message: str,
     require_summary: bool = True,
+    poll_attempts: int = 30,
 ):
     namespace = f"talon-cas-tool-{stack.name}-{uuid.uuid4().hex[:8]}"
     agent_name = "cas-tool-agent"
@@ -394,24 +395,34 @@ def _run_cas_tool_result_turn(
 
     response = None
     assistant = None
-    for _ in range(30):
+    tool_result_message = None
+    for _ in range(poll_attempts):
         response = client.sessions.Get(
             GetSessionRequest(agent=agent_name, session_id=session_id, ns=namespace)
         )
         assistant = last_assistant_message(response.messages)
-        if assistant is not None and any(
-            part.part_type == PART_TYPE_TOOL_RESULT for part in assistant.parts
-        ):
+        tool_result_message = next(
+            (
+                message
+                for message in reversed(response.messages)
+                if any(part.part_type == PART_TYPE_TOOL_RESULT for part in message.parts)
+            ),
+            None,
+        )
+        if tool_result_message is not None:
             break
         time.sleep(1)
 
     assert response is not None
     assert assistant is not None
+    assert tool_result_message is not None
     if require_summary:
         assert "I checked blocking_lookup for docs.example.com." in message_text(assistant)
 
     tool_results = [
-        part for part in assistant.parts if part.part_type == PART_TYPE_TOOL_RESULT
+        part
+        for part in tool_result_message.parts
+        if part.part_type == PART_TYPE_TOOL_RESULT
     ]
     assert len(tool_results) == 1
     assert tool_results[0].content == ""
@@ -421,7 +432,10 @@ def _run_cas_tool_result_turn(
     payload = json.loads(tool_results[0].payload_json)
     assert "output" not in payload
     assert "output_preview" not in payload
-    assert payload["output_object_key"] == tool_results[0].object.key
+    assert (
+        payload["tool_output"]["content_parts"][0]["object_ref"]["key"]
+        == tool_results[0].object.key
+    )
     return namespace, session_id, tool_results[0]
 
 
@@ -459,6 +473,7 @@ def test_super_large_tool_result_uses_s3_object_store_on_aws_stack(
                 "super-large-docs.example.com result and summarize what you found."
             ),
             require_summary=False,
+            poll_attempts=90,
         )
 
         fetched = client.cas.GetObject(GetCasObjectRequest(key=tool_result.object.key))

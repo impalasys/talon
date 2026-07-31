@@ -5,99 +5,8 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { ObjectRef } from "../data/data_pb.js";
 import { ThinkingConfig } from "../resources/agents_pb.js";
-
-/**
- * @generated from message talon.harness.ChatImageUrl
- */
-export class ChatImageUrl extends Message<ChatImageUrl> {
-  /**
-   * @generated from field: string url = 1;
-   */
-  url = "";
-
-  /**
-   * @generated from field: optional string detail = 2;
-   */
-  detail?: string;
-
-  constructor(data?: PartialMessage<ChatImageUrl>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.harness.ChatImageUrl";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "detail", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatImageUrl {
-    return new ChatImageUrl().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatImageUrl {
-    return new ChatImageUrl().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatImageUrl {
-    return new ChatImageUrl().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ChatImageUrl | PlainMessage<ChatImageUrl> | undefined, b: ChatImageUrl | PlainMessage<ChatImageUrl> | undefined): boolean {
-    return proto3.util.equals(ChatImageUrl, a, b);
-  }
-}
-
-/**
- * @generated from message talon.harness.ChatImageData
- */
-export class ChatImageData extends Message<ChatImageData> {
-  /**
-   * @generated from field: string media_type = 1;
-   */
-  mediaType = "";
-
-  /**
-   * @generated from field: string data_base64 = 2;
-   */
-  dataBase64 = "";
-
-  /**
-   * @generated from field: optional string detail = 3;
-   */
-  detail?: string;
-
-  constructor(data?: PartialMessage<ChatImageData>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.harness.ChatImageData";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "data_base64", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "detail", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatImageData {
-    return new ChatImageData().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatImageData {
-    return new ChatImageData().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatImageData {
-    return new ChatImageData().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ChatImageData | PlainMessage<ChatImageData> | undefined, b: ChatImageData | PlainMessage<ChatImageData> | undefined): boolean {
-    return proto3.util.equals(ChatImageData, a, b);
-  }
-}
 
 /**
  * @generated from message talon.harness.ChatContentPart
@@ -114,16 +23,10 @@ export class ChatContentPart extends Message<ChatContentPart> {
     case: "text";
   } | {
     /**
-     * @generated from field: talon.harness.ChatImageUrl image_url = 2;
+     * @generated from field: talon.data.ObjectRef object_ref = 4;
      */
-    value: ChatImageUrl;
-    case: "imageUrl";
-  } | {
-    /**
-     * @generated from field: talon.harness.ChatImageData image_data = 3;
-     */
-    value: ChatImageData;
-    case: "imageData";
+    value: ObjectRef;
+    case: "objectRef";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatContentPart>) {
@@ -135,8 +38,7 @@ export class ChatContentPart extends Message<ChatContentPart> {
   static readonly typeName = "talon.harness.ChatContentPart";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "text", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "content" },
-    { no: 2, name: "image_url", kind: "message", T: ChatImageUrl, oneof: "content" },
-    { no: 3, name: "image_data", kind: "message", T: ChatImageData, oneof: "content" },
+    { no: 4, name: "object_ref", kind: "message", T: ObjectRef, oneof: "content" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatContentPart {
@@ -153,6 +55,49 @@ export class ChatContentPart extends Message<ChatContentPart> {
 
   static equals(a: ChatContentPart | PlainMessage<ChatContentPart> | undefined, b: ChatContentPart | PlainMessage<ChatContentPart> | undefined): boolean {
     return proto3.util.equals(ChatContentPart, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.harness.ToolOutput
+ */
+export class ToolOutput extends Message<ToolOutput> {
+  /**
+   * @generated from field: repeated talon.harness.ChatContentPart content_parts = 1;
+   */
+  contentParts: ChatContentPart[] = [];
+
+  /**
+   * @generated from field: string summary = 2;
+   */
+  summary = "";
+
+  constructor(data?: PartialMessage<ToolOutput>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.harness.ToolOutput";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "content_parts", kind: "message", T: ChatContentPart, repeated: true },
+    { no: 2, name: "summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutput {
+    return new ToolOutput().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolOutput {
+    return new ToolOutput().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolOutput {
+    return new ToolOutput().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolOutput | PlainMessage<ToolOutput> | undefined, b: ToolOutput | PlainMessage<ToolOutput> | undefined): boolean {
+    return proto3.util.equals(ToolOutput, a, b);
   }
 }
 

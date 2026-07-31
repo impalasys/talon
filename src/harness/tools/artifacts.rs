@@ -5,6 +5,7 @@ use anyhow::Result;
 use serde_json::{json, Value};
 
 use crate::control::ControlPlane;
+use crate::harness::llm::ToolOutput;
 use crate::harness::skills::registry::ToolRegistry;
 
 pub(super) fn register(registry: &mut ToolRegistry) {
@@ -80,18 +81,19 @@ pub(super) fn register(registry: &mut ToolRegistry) {
     );
 }
 
-pub(super) async fn execute(
+pub(super) async fn execute_output(
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
     current_session: &str,
     name: &str,
     args: &Value,
-) -> Result<Option<String>> {
+) -> Result<Option<ToolOutput>> {
     match name {
         super::CREATE_ARTIFACT_TOOL => {
             super::create_artifact(cp, current_namespace, current_agent, current_session, args)
                 .await
+                .map(ToolOutput::text)
                 .map(Some)
         }
         super::READ_ARTIFACT_TOOL => {
@@ -102,6 +104,7 @@ pub(super) async fn execute(
         super::UPDATE_ARTIFACT_TOOL => {
             super::update_artifact(cp, current_namespace, current_agent, current_session, args)
                 .await
+                .map(ToolOutput::text)
                 .map(Some)
         }
         super::GET_ARTIFACT_METADATA_TOOL => super::get_artifact_metadata(
@@ -112,10 +115,12 @@ pub(super) async fn execute(
             args,
         )
         .await
+        .map(ToolOutput::text)
         .map(Some),
         super::GRANT_ARTIFACT_TOOL => {
             super::grant_artifact(cp, current_namespace, current_agent, current_session, args)
                 .await
+                .map(ToolOutput::text)
                 .map(Some)
         }
         _ => Ok(None),

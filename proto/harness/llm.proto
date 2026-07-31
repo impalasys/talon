@@ -2,25 +2,20 @@ syntax = "proto3";
 
 package talon.harness;
 
+import "proto/data/data.proto";
 import "proto/resources/agents.proto";
-
-message ChatImageUrl {
-  string url = 1;
-  optional string detail = 2;
-}
-
-message ChatImageData {
-  string media_type = 1;
-  string data_base64 = 2;
-  optional string detail = 3;
-}
 
 message ChatContentPart {
   oneof content {
     string text = 1;
-    ChatImageUrl image_url = 2;
-    ChatImageData image_data = 3;
+    talon.data.ObjectRef object_ref = 4;
   }
+  reserved 2, 3;
+}
+
+message ToolOutput {
+  repeated ChatContentPart content_parts = 1;
+  string summary = 2;
 }
 
 message ToolCall {

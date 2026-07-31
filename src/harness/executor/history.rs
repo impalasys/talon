@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::runtime::LoopMessage;
-use crate::control::cas::decode_stored_object_bytes;
+use crate::control::cas::{decode_stored_object_bytes, object_ref_from_metadata};
 use crate::control::object_store::ObjectStore;
+use crate::control::tool_output;
 use crate::gateway::rpc::data_proto;
-use crate::harness::llm::{image_data_part, image_url_part, text_part, ChatContentPart, ToolCall};
+use crate::harness::llm::{object_ref_part, text_part, ChatContentPart, ToolCall};
 use anyhow::{anyhow, Result};
-use base64::{engine::general_purpose, Engine as _};
 use std::path::Path;
 
 pub async fn session_message_to_loop_messages(
@@ -81,46 +81,35 @@ async fn message_part_content_parts(
 
     let payload = serde_json::from_str::<serde_json::Value>(&part.payload_json)
         .unwrap_or(serde_json::Value::Null);
-    let detail = payload
-        .get("detail")
-        .and_then(|value| value.as_str())
-        .map(ToString::to_string);
     if let Some(url) = payload.get("url").and_then(|value| value.as_str()) {
-        content_parts.push(image_url_part(url.to_string(), detail));
+        content_parts.push(text_part(format!("[Image URL: {url}]")));
         return Ok(content_parts);
     }
 
     let Some(object) = part.object.as_ref() else {
         return Ok(content_parts);
     };
-    let stored = objects.get(&object.key).await?.ok_or_else(|| {
-        anyhow!(
-            "object '{}' referenced by message part is missing",
-            object.key
-        )
-    })?;
-    let mut media_type = if object.media_type.trim().is_empty() {
-        stored.metadata.media_type.trim().to_string()
-    } else {
-        object.media_type.trim().to_string()
-    };
+    let mut object_ref = object.clone();
+    if object_ref.media_type.trim().is_empty() {
+        if let Some(metadata) = objects.head(&object_ref.key).await? {
+            object_ref = object_ref_from_metadata(&object_ref.key, &metadata);
+        }
+    }
+    let mut media_type = object_ref.media_type.trim().to_string();
     if media_type.is_empty() {
-        media_type = inferred_image_media_type(&object.key)
-            .ok_or_else(|| anyhow!("missing media type for image object '{}'", object.key))?
+        media_type = inferred_image_media_type(&object_ref.key)
+            .ok_or_else(|| anyhow!("missing media type for image object '{}'", object_ref.key))?
             .to_string();
+        object_ref.media_type = media_type.clone();
     }
     if !media_type.to_ascii_lowercase().starts_with("image/") {
         return Err(anyhow!(
             "unsupported media type '{}' for image object '{}'",
             media_type,
-            object.key
+            object_ref.key
         ));
     }
-    content_parts.push(image_data_part(
-        media_type,
-        general_purpose::STANDARD.encode(stored.bytes),
-        detail,
-    ));
+    content_parts.push(object_ref_part(object_ref));
     Ok(content_parts)
 }
 
@@ -286,6 +275,22 @@ async fn tool_result_message_from_part(
     let Some(tool_call_id) = payload.get("tool_call_id").and_then(|v| v.as_str()) else {
         return Ok(None);
     };
+    if payload.get("tool_output").is_some() {
+        let Some(parsed) = tool_output::parse_tool_result_payload_json(
+            &part.payload_json,
+            part.object.as_ref(),
+            &part.content,
+        )?
+        else {
+            return Ok(None);
+        };
+        return Ok(Some(LoopMessage {
+            role: "tool".to_string(),
+            content_parts: parsed.tool_output.content_parts(),
+            tool_calls: None,
+            tool_call_id: Some(parsed.tool_call_id),
+        }));
+    }
     let inline_output = payload
         .get("output")
         .and_then(|v| v.as_str())
@@ -293,17 +298,75 @@ async fn tool_result_message_from_part(
         .map(str::to_string)
         .unwrap_or_else(|| part.content.clone());
     let output = if let Some(object) = part.object.as_ref() {
+        let mut object_ref = object.clone();
+        if object_ref.media_type.trim().is_empty() {
+            let metadata = objects
+                .head(&object_ref.key)
+                .await?
+                .ok_or_else(|| anyhow!("tool result object '{}' is missing", object_ref.key))?;
+            object_ref = object_ref_from_metadata(&object_ref.key, &metadata);
+        }
+        let mut media_type = object_ref.media_type.trim().to_string();
+        if media_type.is_empty() {
+            if let Some(inferred) = inferred_image_media_type(&object_ref.key) {
+                media_type = inferred.to_string();
+                object_ref.media_type = media_type.clone();
+            }
+        }
+        if media_type.to_ascii_lowercase().starts_with("image/") {
+            let mut message = LoopMessage {
+                role: "tool".to_string(),
+                content_parts: vec![object_ref_part(object_ref)],
+                tool_calls: None,
+                tool_call_id: Some(tool_call_id.to_string()),
+            };
+            if !inline_output.is_empty() {
+                message.content_parts.insert(0, text_part(inline_output));
+            }
+            return Ok(Some(message));
+        }
+        if media_type.to_ascii_lowercase().starts_with("video/") {
+            let label = if object_ref.filename.is_empty() {
+                object_ref.key.as_str()
+            } else {
+                object_ref.filename.as_str()
+            };
+            let mut message = LoopMessage::text(
+                "tool",
+                format!(
+                    "[Video: {} ({}; {} bytes)]",
+                    label, media_type, object_ref.size_bytes
+                ),
+            );
+            message.content_parts.push(object_ref_part(object_ref));
+            message.tool_call_id = Some(tool_call_id.to_string());
+            return Ok(Some(message));
+        }
+        if !tool_output::is_text_object_media_type(&media_type) {
+            let label = if object_ref.filename.is_empty() {
+                object_ref.key.as_str()
+            } else {
+                object_ref.filename.as_str()
+            };
+            let summary = if inline_output.is_empty() {
+                tool_output::object_ref_summary(&media_type, label, object_ref.size_bytes)
+            } else {
+                inline_output
+            };
+            let mut message = LoopMessage::text("tool", summary);
+            message.content_parts.push(object_ref_part(object_ref));
+            message.tool_call_id = Some(tool_call_id.to_string());
+            return Ok(Some(message));
+        }
         let stored = objects
             .get(&object.key)
             .await?
             .ok_or_else(|| anyhow!("tool result object '{}' is missing", object.key))?;
         let bytes = decode_stored_object_bytes(&stored, &object.key)?;
-        String::from_utf8(bytes).map_err(|err| {
-            anyhow!(
-                "tool result object '{}' is not valid UTF-8: {err}",
-                object.key
-            )
-        })?
+        let output = String::from_utf8_lossy(&bytes).into_owned();
+        let mut message = LoopMessage::text("tool", output);
+        message.tool_call_id = Some(tool_call_id.to_string());
+        return Ok(Some(message));
     } else {
         inline_output
     };
@@ -318,8 +381,9 @@ mod tests {
         message_content_parts, session_message_to_loop_messages, tool_result_message_from_part,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
+    use crate::control::tool_output;
     use crate::gateway::rpc::data_proto;
-    use crate::harness::llm::image_data_part;
+    use crate::harness::llm::{content_part_object_ref, object_ref_part, text_part, ToolOutput};
     use std::collections::HashMap;
 
     fn tool_result_part(content: String, payload_json: String) -> data_proto::SessionMessagePart {
@@ -482,6 +546,43 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn tool_result_message_replays_typed_tool_output_content_parts() {
+        let store = InMemoryObjectStore::default();
+        let object = data_proto::ObjectRef {
+            key: "cas/image.png".to_string(),
+            media_type: "image/png".to_string(),
+            size_bytes: 12,
+            sha256: "abc123".to_string(),
+            filename: "image.png".to_string(),
+            metadata: HashMap::new(),
+            content_encoding: String::new(),
+        };
+        let output = ToolOutput::from_content_parts(
+            vec![text_part("caption"), object_ref_part(object.clone())],
+            "caption",
+        );
+        let part = tool_result_part(
+            String::new(),
+            tool_output::tool_result_payload_json("tool-1", &output).unwrap(),
+        );
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.text_content(), "caption");
+        assert_eq!(
+            message
+                .content_parts
+                .iter()
+                .find_map(content_part_object_ref)
+                .map(|object| object.key.as_str()),
+            Some("cas/image.png")
+        );
+    }
+
+    #[tokio::test]
     async fn tool_result_message_hydrates_object_output() {
         let store = InMemoryObjectStore::default();
         let raw_output = "full object output".repeat(100);
@@ -513,6 +614,130 @@ mod tests {
             .unwrap();
 
         assert_eq!(message.text_content(), raw_output);
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_infers_image_media_type_from_object_key() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/acme/support/session-1/tool-results/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata::default(),
+            )
+            .await
+            .unwrap();
+        let mut part = tool_result_part(
+            String::new(),
+            serde_json::json!({
+                "tool_call_id": "tool-1",
+                "output_object_key": object.key,
+            })
+            .to_string(),
+        );
+        part.object = Some(object.clone());
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
+        assert_eq!(message.content_parts.len(), 1);
+        assert_eq!(
+            content_part_object_ref(&message.content_parts[0])
+                .unwrap()
+                .key,
+            object.key
+        );
+        assert_eq!(
+            content_part_object_ref(&message.content_parts[0])
+                .unwrap()
+                .media_type,
+            "image/png"
+        );
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_preserves_video_object_ref_on_summary() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/acme/support/session-1/tool-results/clip.mp4",
+                b"video-bytes",
+                ObjectMetadata {
+                    media_type: "video/mp4".to_string(),
+                    size_bytes: 11,
+                    filename: "clip.mp4".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let mut part = tool_result_part(
+            String::new(),
+            serde_json::json!({
+                "tool_call_id": "tool-1",
+                "output_object_key": object.key,
+            })
+            .to_string(),
+        );
+        part.object = Some(object.clone());
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
+        assert!(message.text_content().contains("[Video: clip.mp4"));
+        assert_eq!(
+            content_part_object_ref(&message.content_parts[1])
+                .unwrap()
+                .key,
+            object.key
+        );
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_preserves_binary_legacy_object_ref() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/acme/support/session-1/tool-results/blob.bin",
+                &[0x66, 0x6f, 0xff, 0x6f],
+                ObjectMetadata {
+                    media_type: "application/octet-stream".to_string(),
+                    size_bytes: 4,
+                    filename: "blob.bin".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let mut part = tool_result_part(
+            String::new(),
+            serde_json::json!({
+                "tool_call_id": "tool-1",
+                "output_object_key": object.key,
+            })
+            .to_string(),
+        );
+        part.object = Some(object.clone());
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
+        assert!(message.text_content().contains("[Object: blob.bin"));
+        assert_eq!(
+            content_part_object_ref(&message.content_parts[1])
+                .unwrap()
+                .key,
+            object.key
+        );
     }
 
     #[tokio::test]
@@ -794,14 +1019,47 @@ mod tests {
 
         let parts = message_content_parts(&message, &store).await.unwrap();
 
+        assert_eq!(parts.len(), 1);
         assert_eq!(
-            parts,
-            vec![image_data_part(
-                "image/jpeg",
-                "anBlZy1ieXRlcw==",
-                None::<String>
-            )]
+            content_part_object_ref(&parts[0]).unwrap().media_type,
+            "image/jpeg"
         );
+    }
+
+    #[tokio::test]
+    async fn message_content_parts_uses_object_ref_for_image_object() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/session-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let message = data_proto::SessionMessage {
+            id: "msg-1".to_string(),
+            role: data_proto::MessageRole::RoleUser as i32,
+            created_at: 2,
+            labels: HashMap::new(),
+            parts: vec![data_proto::SessionMessagePart {
+                id: "000001".to_string(),
+                part_type: data_proto::SessionMessagePartType::Image as i32,
+                content: String::new(),
+                name: String::new(),
+                payload_json: serde_json::json!({ "detail": "low" }).to_string(),
+                created_at: 2,
+                object: Some(object.clone()),
+            }],
+        };
+
+        let parts = message_content_parts(&message, &store).await.unwrap();
+
+        assert_eq!(parts.len(), 1);
+        assert_eq!(content_part_object_ref(&parts[0]).unwrap().key, object.key);
     }
 
     #[tokio::test]

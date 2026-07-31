@@ -31,6 +31,7 @@ message SessionJournalEntryPayloadToolResult {
   string name = 2;
   string output = 3;
   ObjectRef object = 4;
+  talon.harness.ToolOutput tool_output = 5;
 }
 
 message SessionJournalEntryPayloadCommit {

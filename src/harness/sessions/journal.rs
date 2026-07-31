@@ -7,6 +7,7 @@ use prost::Message;
 use super::submission::{ensure_submission_attempt_current, update_submission_from_entry};
 use super::SessionJournalEntry;
 use crate::control::cas::CasStore;
+use crate::control::tool_output::{self, ToolOutputStorageContext};
 use crate::control::{keys, KeyValueStore, ListOptions};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
@@ -14,8 +15,7 @@ use crate::gateway::rpc::data_proto::{
     SessionJournalEntryPayloadToolResult,
 };
 use crate::harness::llm::ChatResponse;
-
-const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
+use crate::harness::llm::ToolOutput;
 
 pub async fn append_llm_response(
     kv: &dyn KeyValueStore,
@@ -60,29 +60,25 @@ pub async fn append_tool_result(
     attempt_id: &str,
     tool_call_id: &str,
     name: &str,
-    result: &str,
+    result: &ToolOutput,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
     ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
-    let object = cas
-        .put_tool_result_if_raw_at_least(
+    let result = tool_output::normalize_for_session_storage(
+        cas,
+        ToolOutputStorageContext {
             ns,
             agent,
             session_id,
             message_id,
             part_id,
             tool_call_id,
-            name,
-            result.as_bytes(),
-            TOOL_RESULT_OBJECT_THRESHOLD_BYTES,
-        )
-        .await?;
+            tool_name: name,
+        },
+        result,
+    )
+    .await?;
     ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
-    let output = if object.is_some() {
-        String::new()
-    } else {
-        result.to_string()
-    };
     append_journal_entry(
         kv,
         ns,
@@ -96,8 +92,9 @@ pub async fn append_tool_result(
                 SessionJournalEntryPayloadToolResult {
                     tool_call_id: tool_call_id.to_string(),
                     name: name.to_string(),
-                    output,
-                    object,
+                    output: String::new(),
+                    object: None,
+                    tool_output: Some(result),
                 },
             )),
         }),
@@ -443,7 +440,7 @@ mod tests {
             "attempt-1",
             "call-1",
             "search",
-            "answer",
+            &ToolOutput::text("answer"),
             3,
         )
         .await
@@ -453,6 +450,22 @@ mod tests {
         assert_eq!(second.journal_entry_id, "000002");
         assert_eq!(first.phase, SessionExecutionPhase::LlmResponse as i32);
         assert_eq!(second.phase, SessionExecutionPhase::ToolResult as i32);
+        let Some(session_journal_entry_payload::Payload::ToolResult(tool_result)) = second
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+        else {
+            panic!("expected tool result payload");
+        };
+        assert_eq!(tool_result.output, "");
+        assert!(tool_result.object.is_none());
+        assert_eq!(
+            tool_result
+                .tool_output
+                .as_ref()
+                .map(|output| output.summary.as_str()),
+            Some("answer")
+        );
         let submission = load_submission(&kv).await.unwrap();
         assert_eq!(
             submission.current_journal_entry_id.as_deref(),

@@ -98,6 +98,23 @@ function toolCallIdFromPart(part: any, payload: Record<string, unknown>): string
 }
 
 function toolResultFromPayload(payload: Record<string, unknown>, fallback: unknown): unknown {
+  const toolOutput = payload.tool_output;
+  if (toolOutput && typeof toolOutput === 'object') {
+    const contentParts = (toolOutput as { content_parts?: unknown; contentParts?: unknown }).content_parts
+      ?? (toolOutput as { contentParts?: unknown }).contentParts;
+    if (Array.isArray(contentParts)) {
+      const text = contentParts
+        .map((part) => {
+          if (!part || typeof part !== 'object') return '';
+          const value = part as { type?: unknown; text?: unknown };
+          return value.type === 'text' && typeof value.text === 'string' ? value.text : '';
+        })
+        .join('');
+      if (text) return text;
+    }
+    const summary = (toolOutput as { summary?: unknown }).summary;
+    if (typeof summary === 'string') return summary;
+  }
   return payload.output ?? payload.output_preview ?? payload.outputPreview ?? fallback;
 }
 

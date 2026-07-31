@@ -428,7 +428,7 @@ mod tests {
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt};
     use crate::gateway::rpc::{data_proto, manifests, protobuf_value, resources_proto};
-    use crate::harness::llm::{image_data_part, text_part};
+    use crate::harness::llm::{content_part_object_ref, text_part};
     use crate::harness::mcp::McpConnectionConfig;
     use crate::test_support::MockKvStore;
     use futures::stream;
@@ -1093,7 +1093,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_runtime_build_rehydrates_image_parts_from_object_store() {
+    async fn agent_runtime_build_preserves_image_object_refs_from_history() {
         let kv = Arc::new(MockKvStore::default());
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         let config = runtime_config();
@@ -1148,7 +1148,7 @@ mod tests {
                         name: String::new(),
                         payload_json: String::new(),
                         created_at: 2,
-                        object: Some(object),
+                        object: Some(object.clone()),
                     },
                 ],
             },
@@ -1162,12 +1162,11 @@ mod tests {
 
         assert_eq!(runtime.context.history.len(), 1);
         assert_eq!(runtime.context.history[0].text_content(), "describe this");
+        let image_part = &runtime.context.history[0].content_parts[1];
         assert_eq!(
-            runtime.context.history[0].content_parts,
-            vec![
-                text_part("describe this"),
-                image_data_part("image/png", "cG5nLWJ5dGVz", None::<String>),
-            ]
+            runtime.context.history[0].content_parts[0],
+            text_part("describe this")
         );
+        assert_eq!(content_part_object_ref(image_part).unwrap().key, object.key);
     }
 }

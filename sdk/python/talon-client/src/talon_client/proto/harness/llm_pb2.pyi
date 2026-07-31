@@ -1,3 +1,4 @@
+from talon_client.proto.data import data_pb2 as _data_pb2
 from talon_client.proto.resources import agents_pb2 as _agents_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
@@ -7,33 +8,21 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class ChatImageUrl(_message.Message):
-    __slots__ = ("url", "detail")
-    URL_FIELD_NUMBER: _ClassVar[int]
-    DETAIL_FIELD_NUMBER: _ClassVar[int]
-    url: str
-    detail: str
-    def __init__(self, url: _Optional[str] = ..., detail: _Optional[str] = ...) -> None: ...
-
-class ChatImageData(_message.Message):
-    __slots__ = ("media_type", "data_base64", "detail")
-    MEDIA_TYPE_FIELD_NUMBER: _ClassVar[int]
-    DATA_BASE64_FIELD_NUMBER: _ClassVar[int]
-    DETAIL_FIELD_NUMBER: _ClassVar[int]
-    media_type: str
-    data_base64: str
-    detail: str
-    def __init__(self, media_type: _Optional[str] = ..., data_base64: _Optional[str] = ..., detail: _Optional[str] = ...) -> None: ...
-
 class ChatContentPart(_message.Message):
-    __slots__ = ("text", "image_url", "image_data")
+    __slots__ = ("text", "object_ref")
     TEXT_FIELD_NUMBER: _ClassVar[int]
-    IMAGE_URL_FIELD_NUMBER: _ClassVar[int]
-    IMAGE_DATA_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_REF_FIELD_NUMBER: _ClassVar[int]
     text: str
-    image_url: ChatImageUrl
-    image_data: ChatImageData
-    def __init__(self, text: _Optional[str] = ..., image_url: _Optional[_Union[ChatImageUrl, _Mapping]] = ..., image_data: _Optional[_Union[ChatImageData, _Mapping]] = ...) -> None: ...
+    object_ref: _data_pb2.ObjectRef
+    def __init__(self, text: _Optional[str] = ..., object_ref: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
+
+class ToolOutput(_message.Message):
+    __slots__ = ("content_parts", "summary")
+    CONTENT_PARTS_FIELD_NUMBER: _ClassVar[int]
+    SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    content_parts: _containers.RepeatedCompositeFieldContainer[ChatContentPart]
+    summary: str
+    def __init__(self, content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., summary: _Optional[str] = ...) -> None: ...
 
 class ToolCall(_message.Message):
     __slots__ = ("id", "name", "arguments")

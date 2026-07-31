@@ -1,14 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::cas::CasStore;
 use crate::harness::llm::provider::{
-    chat_content_part, chat_message_text, chat_stream_event, text_delta_event,
-    tool_call_delta_event, usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
-    ChatStream, ChatStreamEvent, ChatUsage, LlmProvider, ToolCallDelta,
+    chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
+    text_delta_event, tool_call_delta_event, usage_event, ChatContentPart, ChatMessage,
+    ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider, ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use base64::{engine::general_purpose, Engine as _};
 use futures::{stream, Stream, StreamExt};
 use serde_json::Value;
 use std::{
@@ -20,36 +22,55 @@ use std::{
 const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
 const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
 
-fn openai_content_part(part: &ChatContentPart) -> serde_json::Value {
-    match part.content.as_ref() {
+fn object_ref_text(object_ref: &crate::gateway::rpc::data_proto::ObjectRef) -> serde_json::Value {
+    serde_json::json!({
+        "type": "text",
+        "text": object_ref_fallback_text(object_ref),
+    })
+}
+
+async fn openai_content_part(cas: &CasStore, part: &ChatContentPart) -> Result<serde_json::Value> {
+    Ok(match part.content.as_ref() {
         Some(chat_content_part::Content::Text(text)) => serde_json::json!({
             "type": "text",
             "text": text,
         }),
-        Some(chat_content_part::Content::ImageUrl(image)) => {
-            let mut image_url = serde_json::json!({ "url": image.url.clone() });
-            if let Some(detail) = &image.detail {
-                image_url["detail"] = serde_json::Value::String(detail.clone());
+        Some(chat_content_part::Content::ObjectRef(object_ref)) => {
+            let object_ref_media_type = object_ref.media_type.trim();
+            if !object_ref_media_type.is_empty()
+                && !object_ref_media_type
+                    .to_ascii_lowercase()
+                    .starts_with("image/")
+            {
+                return Ok(object_ref_text(object_ref));
+            }
+            let Some(stored) = cas.get_object_decoded(&object_ref.key).await? else {
+                return Ok(serde_json::json!({
+                    "type": "text",
+                    "text": format!("[Image object '{}' is missing.]", object_ref.key),
+                }));
+            };
+            let media_type = if object_ref_media_type.is_empty() {
+                stored.metadata.media_type.trim()
+            } else {
+                object_ref_media_type
+            };
+            if !media_type.to_ascii_lowercase().starts_with("image/") {
+                return Ok(object_ref_text(object_ref));
             }
             serde_json::json!({
                 "type": "image_url",
-                "image_url": image_url,
-            })
-        }
-        Some(chat_content_part::Content::ImageData(image)) => {
-            let mut image_url = serde_json::json!({
-                "url": format!("data:{};base64,{}", image.media_type, image.data_base64),
-            });
-            if let Some(detail) = &image.detail {
-                image_url["detail"] = serde_json::Value::String(detail.clone());
-            }
-            serde_json::json!({
-                "type": "image_url",
-                "image_url": image_url,
+                "image_url": {
+                    "url": format!(
+                        "data:{};base64,{}",
+                        media_type,
+                        general_purpose::STANDARD.encode(stored.bytes)
+                    ),
+                },
             })
         }
         None => serde_json::json!({"type": "text", "text": ""}),
-    }
+    })
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -66,75 +87,153 @@ pub struct OpenAiCompatibleProvider {
     pub base_url: String,
     pub model: String,
     pub http_client: reqwest::Client,
+    cas: CasStore,
 }
 
 impl OpenAiCompatibleProvider {
-    pub fn new(api_key: String, base_url: String, model: String) -> Self {
+    pub fn new(api_key: String, base_url: String, model: String, cas: CasStore) -> Self {
         Self {
             api_key,
             base_url,
             model,
             http_client: shared_http_client(),
+            cas,
         }
     }
 
-    fn serialize_messages(messages: Vec<ChatMessage>) -> Vec<serde_json::Value> {
-        messages
-            .into_iter()
-            .map(|message| {
-                let content = match message.content_parts.as_slice() {
-                    [] => serde_json::Value::String(String::new()),
-                    [part] => match part.content.as_ref() {
-                        Some(chat_content_part::Content::Text(text)) => {
-                            serde_json::Value::String(text.clone())
-                        }
-                        _ => serde_json::Value::Array(
-                            message
-                                .content_parts
-                                .iter()
-                                .map(openai_content_part)
-                                .collect(),
-                        ),
-                    },
-                    _ => serde_json::Value::Array(
-                        message
-                            .content_parts
-                            .iter()
-                            .map(openai_content_part)
-                            .collect(),
-                    ),
-                };
-                let mut json = serde_json::json!({
-                    "role": message.role,
-                    "content": content,
-                });
+    async fn serialize_content_parts(
+        &self,
+        parts: &[ChatContentPart],
+    ) -> Result<Vec<serde_json::Value>> {
+        let mut serialized = Vec::with_capacity(parts.len());
+        for part in parts {
+            serialized.push(openai_content_part(&self.cas, part).await?);
+        }
+        Ok(serialized)
+    }
 
-                if !message.tool_calls.is_empty() {
-                    let openai_tool_calls: Vec<serde_json::Value> = message
-                        .tool_calls
-                        .into_iter()
-                        .map(|tool| {
-                            let arguments = Self::openai_tool_arguments(&tool.arguments);
-                            serde_json::json!({
-                                "id": tool.id,
-                                "type": "function",
-                                "function": {
-                                    "name": tool.name,
-                                    "arguments": arguments,
-                                }
-                            })
-                        })
-                        .collect();
-                    json["tool_calls"] = serde_json::json!(openai_tool_calls);
+    fn tool_message_content(parts: &[ChatContentPart]) -> String {
+        parts
+            .iter()
+            .filter_map(|part| match part.content.as_ref()? {
+                chat_content_part::Content::Text(text) => Some(text.clone()),
+                chat_content_part::Content::ObjectRef(object_ref) => {
+                    Some(object_ref_fallback_text(object_ref))
                 }
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
 
-                if let Some(tool_call_id) = message.tool_call_id {
+    async fn serialize_tool_result_media_message(
+        &self,
+        tool_call_id: Option<&str>,
+        parts: &[ChatContentPart],
+    ) -> Result<Option<serde_json::Value>> {
+        let mut media_parts = Vec::new();
+        for part in parts {
+            if !matches!(
+                part.content.as_ref(),
+                Some(chat_content_part::Content::ObjectRef(_))
+            ) {
+                continue;
+            }
+            let serialized = openai_content_part(&self.cas, part).await?;
+            if serialized.get("type").and_then(Value::as_str) == Some("image_url") {
+                media_parts.push(serialized);
+            }
+        }
+        if media_parts.is_empty() {
+            return Ok(None);
+        }
+
+        let label = tool_call_id
+            .map(|id| format!("Image result returned by tool call {id}."))
+            .unwrap_or_else(|| "Image result returned by a tool call.".to_string());
+        let mut content = vec![serde_json::json!({
+            "type": "text",
+            "text": label,
+        })];
+        content.extend(media_parts);
+        Ok(Some(serde_json::json!({
+            "role": "user",
+            "content": content,
+        })))
+    }
+
+    async fn serialize_messages(
+        &self,
+        messages: Vec<ChatMessage>,
+    ) -> Result<Vec<serde_json::Value>> {
+        let mut serialized = Vec::with_capacity(messages.len());
+        let mut pending_tool_media_messages = Vec::new();
+        for message in messages {
+            if message.role == "tool" {
+                let tool_call_id = message.tool_call_id.as_deref();
+                let mut json = serde_json::json!({
+                    "role": "tool",
+                    "content": Self::tool_message_content(&message.content_parts),
+                });
+                if let Some(tool_call_id) = tool_call_id {
                     json["tool_call_id"] = serde_json::json!(tool_call_id);
                 }
+                let media_message = self
+                    .serialize_tool_result_media_message(tool_call_id, &message.content_parts)
+                    .await?;
+                serialized.push(json);
+                if let Some(media_message) = media_message {
+                    pending_tool_media_messages.push(media_message);
+                }
+                continue;
+            }
 
-                json
-            })
-            .collect()
+            serialized.append(&mut pending_tool_media_messages);
+            let content = match message.content_parts.as_slice() {
+                [] => serde_json::Value::String(String::new()),
+                [part] => match part.content.as_ref() {
+                    Some(chat_content_part::Content::Text(text)) => {
+                        serde_json::Value::String(text.clone())
+                    }
+                    _ => serde_json::Value::Array(
+                        self.serialize_content_parts(&message.content_parts).await?,
+                    ),
+                },
+                _ => serde_json::Value::Array(
+                    self.serialize_content_parts(&message.content_parts).await?,
+                ),
+            };
+            let mut json = serde_json::json!({
+                "role": message.role,
+                "content": content,
+            });
+
+            if !message.tool_calls.is_empty() {
+                let openai_tool_calls: Vec<serde_json::Value> = message
+                    .tool_calls
+                    .into_iter()
+                    .map(|tool| {
+                        let arguments = Self::openai_tool_arguments(&tool.arguments);
+                        serde_json::json!({
+                            "id": tool.id,
+                            "type": "function",
+                            "function": {
+                                "name": tool.name,
+                                "arguments": arguments,
+                            }
+                        })
+                    })
+                    .collect();
+                json["tool_calls"] = serde_json::json!(openai_tool_calls);
+            }
+
+            if let Some(tool_call_id) = message.tool_call_id {
+                json["tool_call_id"] = serde_json::json!(tool_call_id);
+            }
+
+            serialized.push(json);
+        }
+        serialized.append(&mut pending_tool_media_messages);
+        Ok(serialized)
     }
 
     fn openai_tool_arguments(arguments: &str) -> String {
@@ -368,7 +467,7 @@ impl OpenAiCompatibleProvider {
         stream: bool,
     ) -> Result<reqwest::Response> {
         let url = format!("{}/chat/completions", self.base_url.trim_end_matches('/'));
-        let serialized_messages = Self::serialize_messages(request.messages.clone());
+        let serialized_messages = self.serialize_messages(request.messages.clone()).await?;
 
         let build_payload = |include_tools: bool, include_stream_options: bool| {
             let mut payload = serde_json::json!({
@@ -823,8 +922,9 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use crate::gateway::rpc::manifests::ThinkingConfig;
-    use crate::harness::llm::{image_data_part, text_part};
+    use crate::harness::llm::{object_ref_part, text_part};
     use axum::{extract::State, routing::post, Json, Router};
     use std::{
         net::SocketAddr,
@@ -855,6 +955,19 @@ mod tests {
             tool_calls: Vec::new(),
             tool_call_id: Some("call_1".to_string()),
         }
+    }
+
+    fn test_cas_store() -> CasStore {
+        CasStore::new(Arc::new(InMemoryObjectStore::default()))
+    }
+
+    fn test_provider() -> OpenAiCompatibleProvider {
+        OpenAiCompatibleProvider::new(
+            "test-key".to_string(),
+            "http://localhost".to_string(),
+            "test-model".to_string(),
+            test_cas_store(),
+        )
     }
 
     #[test]
@@ -900,14 +1013,14 @@ mod tests {
         assert!(stats.payload_chars >= stats.message_chars);
     }
 
-    #[test]
-    fn serialize_messages_preserves_tool_protocol_fields() {
+    #[tokio::test]
+    async fn serialize_messages_preserves_tool_protocol_fields() {
         let messages = vec![
             assistant_tool_call_message("mcp_conic_create_github_pr", "{\"title\":\"x\"}"),
             tool_result_message("{\"url\":\"https://github.com/example/repo/pull/2\"}"),
         ];
 
-        let serialized = OpenAiCompatibleProvider::serialize_messages(messages);
+        let serialized = test_provider().serialize_messages(messages).await.unwrap();
 
         assert_eq!(
             serialized[0]["tool_calls"][0]["function"]["name"],
@@ -916,11 +1029,11 @@ mod tests {
         assert_eq!(serialized[1]["tool_call_id"], "call_1");
     }
 
-    #[test]
-    fn serialize_messages_normalizes_invalid_tool_arguments() {
+    #[tokio::test]
+    async fn serialize_messages_normalizes_invalid_tool_arguments() {
         let messages = vec![assistant_tool_call_message("mcp_conic_list_links", "")];
 
-        let serialized = OpenAiCompatibleProvider::serialize_messages(messages);
+        let serialized = test_provider().serialize_messages(messages).await.unwrap();
 
         assert_eq!(
             serialized[0]["tool_calls"][0]["function"]["arguments"],
@@ -928,17 +1041,37 @@ mod tests {
         );
     }
 
-    #[test]
-    fn serialize_messages_emits_multimodal_content_parts() {
-        let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
-            role: "user".to_string(),
-            content_parts: vec![
-                text_part("look at this"),
-                image_data_part("image/png", "cG5nLWJ5dGVz", Some("low")),
-            ],
-            tool_calls: Vec::new(),
-            tool_call_id: None,
-        }]);
+    #[tokio::test]
+    async fn serialize_messages_emits_multimodal_content_parts() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let mut object = store
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "screenshot.png".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        object.media_type.clear();
+        let provider = OpenAiCompatibleProvider::new(
+            "test-key".to_string(),
+            "http://localhost".to_string(),
+            "test-model".to_string(),
+            CasStore::new(store),
+        );
+        let serialized = provider
+            .serialize_messages(vec![ChatMessage {
+                role: "user".to_string(),
+                content_parts: vec![text_part("look at this"), object_ref_part(object)],
+                tool_calls: Vec::new(),
+                tool_call_id: None,
+            }])
+            .await
+            .unwrap();
 
         assert_eq!(serialized[0]["content"][0]["type"], "text");
         assert_eq!(serialized[0]["content"][0]["text"], "look at this");
@@ -947,7 +1080,153 @@ mod tests {
             serialized[0]["content"][1]["image_url"]["url"],
             "data:image/png;base64,cG5nLWJ5dGVz"
         );
-        assert_eq!(serialized[0]["content"][1]["image_url"]["detail"], "low");
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_projects_tool_image_results_as_follow_up_user_media() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let object = store
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "screenshot.png".to_string(),
+                    size_bytes: 9,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let provider = OpenAiCompatibleProvider::new(
+            "test-key".to_string(),
+            "http://localhost".to_string(),
+            "test-model".to_string(),
+            CasStore::new(store),
+        );
+
+        let serialized = provider
+            .serialize_messages(vec![ChatMessage {
+                role: "tool".to_string(),
+                content_parts: vec![object_ref_part(object)],
+                tool_calls: Vec::new(),
+                tool_call_id: Some("call_1".to_string()),
+            }])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized.len(), 2);
+        assert_eq!(serialized[0]["role"], "tool");
+        assert_eq!(serialized[0]["tool_call_id"], "call_1");
+        assert_eq!(
+            serialized[0]["content"],
+            "[Object reference: image/png; 9 bytes]"
+        );
+        assert_eq!(serialized[1]["role"], "user");
+        assert_eq!(
+            serialized[1]["content"][0]["text"],
+            "Image result returned by tool call call_1."
+        );
+        assert_eq!(serialized[1]["content"][1]["type"], "image_url");
+        assert_eq!(
+            serialized[1]["content"][1]["image_url"]["url"],
+            "data:image/png;base64,cG5nLWJ5dGVz"
+        );
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_keeps_tool_text_results_as_tool_messages_only() {
+        let serialized = test_provider()
+            .serialize_messages(vec![tool_result_message("plain result")])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized.len(), 1);
+        assert_eq!(serialized[0]["role"], "tool");
+        assert_eq!(serialized[0]["content"], "plain result");
+        assert_eq!(serialized[0]["tool_call_id"], "call_1");
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_defers_tool_result_media_until_tool_batch_end() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let object = store
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "screenshot.png".to_string(),
+                    size_bytes: 9,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let provider = OpenAiCompatibleProvider::new(
+            "test-key".to_string(),
+            "http://localhost".to_string(),
+            "test-model".to_string(),
+            CasStore::new(store),
+        );
+
+        let serialized = provider
+            .serialize_messages(vec![
+                ChatMessage {
+                    role: "tool".to_string(),
+                    content_parts: vec![object_ref_part(object)],
+                    tool_calls: Vec::new(),
+                    tool_call_id: Some("call_1".to_string()),
+                },
+                ChatMessage {
+                    role: "tool".to_string(),
+                    content_parts: vec![text_part("plain result".to_string())],
+                    tool_calls: Vec::new(),
+                    tool_call_id: Some("call_2".to_string()),
+                },
+            ])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized.len(), 3);
+        assert_eq!(serialized[0]["role"], "tool");
+        assert_eq!(serialized[0]["tool_call_id"], "call_1");
+        assert_eq!(serialized[1]["role"], "tool");
+        assert_eq!(serialized[1]["tool_call_id"], "call_2");
+        assert_eq!(serialized[2]["role"], "user");
+        assert_eq!(
+            serialized[2]["content"][0]["text"],
+            "Image result returned by tool call call_1."
+        );
+        assert_eq!(serialized[2]["content"][1]["type"], "image_url");
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_keeps_non_image_tool_object_refs_as_text_only() {
+        let serialized = test_provider()
+            .serialize_messages(vec![ChatMessage {
+                role: "tool".to_string(),
+                content_parts: vec![object_ref_part(
+                    crate::gateway::rpc::data_proto::ObjectRef {
+                        key: "cas/acme/files/file-1/report.pdf".to_string(),
+                        media_type: "application/pdf".to_string(),
+                        size_bytes: 3,
+                        filename: "report.pdf".to_string(),
+                        ..Default::default()
+                    },
+                )],
+                tool_calls: Vec::new(),
+                tool_call_id: Some("call_1".to_string()),
+            }])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized.len(), 1);
+        assert_eq!(serialized[0]["role"], "tool");
+        assert_eq!(
+            serialized[0]["content"],
+            "[Object reference: application/pdf; 3 bytes]"
+        );
     }
 
     #[test]
@@ -985,6 +1264,7 @@ mod tests {
             "key".to_string(),
             "https://api.novita.ai/v3/openai".to_string(),
             "model".to_string(),
+            test_cas_store(),
         );
         let messages = vec![
             assistant_tool_call_message("mcp_conic_create_github_pr", "{\"title\":\"x\"}"),
@@ -1041,10 +1321,12 @@ mod tests {
         );
     }
 
-    #[test]
-    fn serialize_messages_omits_absent_tool_fields() {
-        let serialized =
-            OpenAiCompatibleProvider::serialize_messages(vec![chat_message_text("user", "hello")]);
+    #[tokio::test]
+    async fn serialize_messages_omits_absent_tool_fields() {
+        let serialized = test_provider()
+            .serialize_messages(vec![chat_message_text("user", "hello")])
+            .await
+            .unwrap();
 
         assert_eq!(serialized[0]["role"], "user");
         assert_eq!(serialized[0]["content"], "hello");
@@ -1052,14 +1334,17 @@ mod tests {
         assert!(serialized[0].get("tool_call_id").is_none());
     }
 
-    #[test]
-    fn serialize_messages_emits_empty_string_for_empty_content_parts() {
-        let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
-            role: "assistant".to_string(),
-            content_parts: Vec::new(),
-            tool_calls: Vec::new(),
-            tool_call_id: None,
-        }]);
+    #[tokio::test]
+    async fn serialize_messages_emits_empty_string_for_empty_content_parts() {
+        let serialized = test_provider()
+            .serialize_messages(vec![ChatMessage {
+                role: "assistant".to_string(),
+                content_parts: Vec::new(),
+                tool_calls: Vec::new(),
+                tool_call_id: None,
+            }])
+            .await
+            .unwrap();
 
         assert_eq!(serialized[0]["content"], "");
     }
@@ -1144,6 +1429,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}/novita.ai"),
             "model".to_string(),
+            test_cas_store(),
         );
         let messages = vec![
             assistant_tool_call_message("search", "{\"q\":\"x\"}"),
@@ -1241,6 +1527,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
 
         provider
@@ -1286,6 +1573,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
 
         provider
@@ -1336,6 +1624,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
         let result = provider
             .chat_completion(ChatRequest {
@@ -1386,6 +1675,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
         let result = provider
             .chat_completion(ChatRequest {
@@ -1434,6 +1724,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
         let err = provider
             .send_chat_request(
@@ -1502,6 +1793,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
 
         let response = provider
@@ -1564,6 +1856,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}/novita.ai"),
             "model".to_string(),
+            test_cas_store(),
         );
         let err = provider
             .send_chat_request(
@@ -1629,6 +1922,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
         let mut stream = provider
             .stream_chat_completion(ChatRequest {
@@ -1692,6 +1986,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
         let mut stream = provider
             .stream_chat_completion(ChatRequest {
@@ -1731,6 +2026,7 @@ mod tests {
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
+            test_cas_store(),
         );
         let text = provider.completion("hello").await.unwrap();
         assert_eq!(text, "plain completion");
