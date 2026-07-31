@@ -35,19 +35,6 @@ pub struct SessionMessageEvent {
     pub submission_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SessionControlEvent {
-    #[prost(string, tag = "1")]
-    pub session_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub agent: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub ns: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub action: ::prost::alloc::string::String,
-    #[prost(int64, tag = "5")]
-    pub timestamp: i64,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionMessagePartEvent {
     #[prost(string, tag = "1")]
     pub session_id: ::prost::alloc::string::String,

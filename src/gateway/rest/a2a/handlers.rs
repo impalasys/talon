@@ -31,9 +31,9 @@ use super::card::{
     AgentCardRoute,
 };
 use super::tasks::{
-    a2a_session_hint, ensure_a2a_session, find_a2a_task_session, list_a2a_session_task_ids,
-    load_a2a_task_for_session, load_a2a_task_from_session, mark_a2a_task_canceled,
-    prepare_a2a_session_message, publish_stop_generation, wait_for_a2a_task,
+    a2a_session_hint, cancel_generation, ensure_a2a_session, find_a2a_task_session,
+    list_a2a_session_task_ids, load_a2a_task_for_session, load_a2a_task_from_session,
+    prepare_a2a_session_message, wait_for_a2a_task,
 };
 use super::types::{
     A2aResponseEncoding, A2aTaskJson, ListTasksResponseJson, SendMessageRequestJson,
@@ -557,10 +557,7 @@ pub async fn post_task_operation(
         return response;
     }
 
-    if let Err(response) = publish_stop_generation(&gateway, &route, &task_ref.session_id).await {
-        return response;
-    }
-    if let Err(response) = mark_a2a_task_canceled(&gateway, &route, &task_ref.session_id).await {
+    if let Err(response) = cancel_generation(&gateway, &route, &task_ref.session_id).await {
         return response;
     }
     match load_a2a_task_for_session(&gateway, &route, &task_ref.session_id, task_id).await {

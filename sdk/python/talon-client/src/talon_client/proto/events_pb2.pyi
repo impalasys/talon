@@ -110,20 +110,6 @@ class SessionMessageEvent(_message.Message):
     submission_id: str
     def __init__(self, session_id: _Optional[str] = ..., message_id: _Optional[str] = ..., direction: _Optional[_Union[MessageDirection, str]] = ..., timestamp: _Optional[int] = ..., agent: _Optional[str] = ..., message: _Optional[str] = ..., ns: _Optional[str] = ..., submission_id: _Optional[str] = ...) -> None: ...
 
-class SessionControlEvent(_message.Message):
-    __slots__ = ("session_id", "agent", "ns", "action", "timestamp")
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    AGENT_FIELD_NUMBER: _ClassVar[int]
-    NS_FIELD_NUMBER: _ClassVar[int]
-    ACTION_FIELD_NUMBER: _ClassVar[int]
-    TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    session_id: str
-    agent: str
-    ns: str
-    action: str
-    timestamp: int
-    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., action: _Optional[str] = ..., timestamp: _Optional[int] = ...) -> None: ...
-
 class SessionMessagePartEvent(_message.Message):
     __slots__ = ("session_id", "kind", "part", "timestamp", "agent", "ns", "message_id")
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]

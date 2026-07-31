@@ -7,9 +7,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
-use crate::control::{
-    events, keys, session_queue, topics, ControlPlane, ListOptions, ProtoKeyValueStoreExt,
-};
+use crate::control::{keys, session_queue, ControlPlane, ListOptions, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 // Task resource label: marks a Task as created through agent delegation.
@@ -65,15 +63,14 @@ pub struct TaskDelegationRequest {
     pub delegate_name: String,
 }
 
-/// Publish the existing stop-generation event to sessions reachable through a
-/// session's open A2A agent connections. The root session is intentionally
-/// excluded because its caller publishes the original event itself.
-pub async fn publish_stop_generation_to_open_connections(
+/// Return sessions reachable through open A2A wires. The root is excluded.
+/// Session metadata is the graph source; Task records are deliberately ignored.
+pub async fn open_a2a_connection_descendants(
     cp: &ControlPlane,
     owner_namespace: &str,
     owner_name: &str,
     owner_session_id: &str,
-) -> Result<()> {
+) -> Result<Vec<(String, String, String)>> {
     let root = (
         owner_namespace.to_string(),
         owner_name.to_string(),
@@ -82,7 +79,7 @@ pub async fn publish_stop_generation_to_open_connections(
     let mut sessions_to_stop =
         open_agent_connections(cp, owner_namespace, owner_name, owner_session_id).await?;
     let mut visited_sessions = HashSet::from([root]);
-    let now = chrono::Utc::now().timestamp_micros();
+    let mut descendants = Vec::new();
 
     while let Some((namespace, agent, session_id)) = sessions_to_stop.pop() {
         let session_key = (namespace.clone(), agent.clone(), session_id.clone());
@@ -92,18 +89,9 @@ pub async fn publish_stop_generation_to_open_connections(
         // Each child has an "owner" wire back to its parent; the visited set
         // keeps that cycle, including the root session, out of the fan-out.
         sessions_to_stop.extend(open_agent_connections(cp, &namespace, &agent, &session_id).await?);
-        let event = events::SessionControlEvent {
-            session_id,
-            agent,
-            ns: namespace,
-            action: "stop_generation".to_string(),
-            timestamp: now,
-        };
-        cp.pubsub
-            .publish(topics::SESSION_CONTROL_TOPIC, &event.encode_to_vec())
-            .await?;
+        descendants.push((namespace, agent, session_id));
     }
-    Ok(())
+    Ok(descendants)
 }
 
 async fn open_agent_connections(
