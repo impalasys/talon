@@ -631,7 +631,7 @@ controllers:
         std::fs::write(
             &overlay,
             r#"
-extends = "./base.yml"
+extends = "./base.yml "
 
 [llmProviders.shared]
 type = "openai"
@@ -659,7 +659,7 @@ workers = 2
             &root,
             r#"
 extends:
-  - ./base.yml
+  - "./base.yml "
   - ./overlay.toml
   - ./json-layer.json
 

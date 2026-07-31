@@ -916,11 +916,11 @@ fn take_extends(value: &mut Value, path: &Path) -> Result<Vec<String>> {
     };
 
     match extends {
-        Value::String(path) if !path.trim().is_empty() => Ok(vec![path]),
+        Value::String(path) if !path.trim().is_empty() => Ok(vec![path.trim().to_string()]),
         Value::Array(paths) => paths
             .into_iter()
             .map(|path_value| match path_value {
-                Value::String(path) if !path.trim().is_empty() => Ok(path),
+                Value::String(path) if !path.trim().is_empty() => Ok(path.trim().to_string()),
                 _ => Err(anyhow!(
                     "Config file '{}' has an 'extends' list that must contain only non-empty path strings",
                     path.display()

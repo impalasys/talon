@@ -65,7 +65,9 @@ The optional `models` map records model metadata. This repository's
 `models.yaml` is a shared curated catalog extended by both example deployment
 configs. Model names are matched against the selected agent model;
 provider-qualified keys such as `openai/gpt-5` are also supported when the same
-model name is used by multiple providers.
+model name is used by multiple providers. When multiple entries match, a
+provider-qualified key takes precedence over the plain model key, and an entry
+with an exact provider takes precedence over one without a provider.
 
 The checked-in catalog includes major Chinese model families and routes,
 including DeepSeek, Qwen, GLM/Zhipu, Kimi/Moonshot, MiniMax, Hunyuan, Xiaomi

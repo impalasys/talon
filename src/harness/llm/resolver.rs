@@ -22,19 +22,22 @@ pub struct ResolvedLlm {
 
 /// Find model metadata by model name. Provider-qualified keys are supported
 /// for deployments that use the same model name through multiple providers:
-/// `provider/model` and `provider:model` are checked after the plain model
-/// name.
+/// `provider/model` and `provider:model` are preferred over the plain model
+/// name, and exact provider matches are preferred over entries without a
+/// provider.
 pub fn model_context_limits(config: &Config, provider: &str, model: &str) -> ModelContextLimits {
     let qualified_slash = format!("{provider}/{model}");
     let qualified_colon = format!("{provider}:{model}");
     let model_config = [
-        config.models.get(model),
-        config.models.get(&qualified_slash),
-        config.models.get(&qualified_colon),
+        (config.models.get(&qualified_slash), true),
+        (config.models.get(&qualified_colon), true),
+        (config.models.get(model), false),
     ]
     .into_iter()
-    .flatten()
-    .find(|model| model.provider.is_empty() || model.provider == provider);
+    .filter_map(|(model, qualified)| model.map(|model| (model, qualified)))
+    .filter(|(model, _)| model.provider.is_empty() || model.provider == provider)
+    .max_by_key(|(model, qualified)| (model.provider == provider, *qualified))
+    .map(|(model, _)| model);
 
     model_config
         .map(|model| ModelContextLimits {
@@ -345,8 +348,17 @@ mod tests {
     fn model_context_limits_resolve_exact_and_provider_qualified_entries() {
         let mut config = Config::default();
         config.models.insert(
+            "gpt-test".to_string(),
+            proto::ModelConfig {
+                context_window_tokens: Some(4_000),
+                max_output_tokens: Some(500),
+                ..Default::default()
+            },
+        );
+        config.models.insert(
             "openai/gpt-test".to_string(),
             proto::ModelConfig {
+                provider: "openai".to_string(),
                 context_window_tokens: Some(16_000),
                 max_output_tokens: Some(2_000),
                 ..Default::default()
