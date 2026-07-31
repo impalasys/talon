@@ -505,6 +505,80 @@ describe('TalonCopilot', () => {
     expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
   });
 
+  it('hydrates object refs nested in typed tool_output payloads', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-nested-tool-output',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'assistant-nested-tool-output',
+              role: 'ROLE_ASSISTANT',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                  toolName: 'read_file',
+                  payloadJson: JSON.stringify({
+                    tool_call_id: 'call-nested-tool-output',
+                    input: { uri: 'file://ops/docs/report.md' },
+                  }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                  toolName: 'read_file',
+                  content: '',
+                  payloadJson: JSON.stringify({
+                    tool_call_id: 'call-nested-tool-output',
+                    tool_output: {
+                      summary: '[Object: report.md (text/markdown, 42 bytes)]',
+                      content_parts: [{
+                        type: 'object_ref',
+                        object_ref: {
+                          key: 'cas/ops/files/report.md',
+                          media_type: 'text/markdown',
+                        },
+                      }],
+                    },
+                  }),
+                },
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                  content: 'Done after reading the file.',
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      cas: {
+        getObject: jest.fn().mockResolvedValue({
+          data: new TextEncoder().encode('# Hydrated report'),
+        }),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-nested-tool-output"
+      />,
+    );
+
+    expect(await screen.findByText('Done after reading the file.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Called\s+read_file/ }));
+
+    expect(await screen.findByText('# Hydrated report')).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).toHaveBeenCalledWith({ key: 'cas/ops/files/report.md' });
+  });
+
   it('does not start duplicate lazy CAS hydration while a tool result is already loading', async () => {
     const hydration = deferred<any>();
     const gatewayClient = {
