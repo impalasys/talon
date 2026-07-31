@@ -69,8 +69,8 @@ model name is used by multiple providers.
 
 The checked-in catalog includes major Chinese model families and routes,
 including DeepSeek, Qwen, GLM/Zhipu, Kimi/Moonshot, MiniMax, Hunyuan, Xiaomi
-MiMo, and InclusionAI, plus Novita, SiliconFlow, Volcengine, Baichuan, and
-OpenRouter-qualified variants.
+MiMo, InclusionAI, and Meta Muse Spark, plus Novita, SiliconFlow, Volcengine,
+Baichuan, and OpenRouter-qualified variants.
 
 Catalog entries describe limits and pricing only. They do not activate a
 provider, enable a connection, or resolve credentials. Keep provider

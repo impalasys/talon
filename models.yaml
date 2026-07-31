@@ -55,6 +55,11 @@ models:
     contextWindowTokens: 1048576
     maxOutputTokens: 65536
 
+  meta/muse-spark-1.1:
+    provider: meta
+    contextWindowTokens: 1048576
+    maxOutputTokens: 131072
+
   openrouter/openai/gpt-5:
     provider: openrouter
     contextWindowTokens: 400000

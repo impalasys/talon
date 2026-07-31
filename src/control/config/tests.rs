@@ -277,6 +277,22 @@ trust:
                 .context_window_tokens,
             Some(262144)
         );
+        assert_eq!(
+            config
+                .models
+                .get("meta/muse-spark-1.1")
+                .unwrap()
+                .context_window_tokens,
+            Some(1048576)
+        );
+        assert_eq!(
+            config
+                .models
+                .get("meta/muse-spark-1.1")
+                .unwrap()
+                .max_output_tokens,
+            Some(131072)
+        );
     }
 
     #[test]
