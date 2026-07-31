@@ -540,7 +540,33 @@ function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
 
 function objectRefFromPart(part: any): TalonChatObjectRef | undefined {
   const object = part?.object ?? part?.objectRef ?? part?.object_ref;
-  return object && typeof object === "object" ? object as TalonChatObjectRef : undefined;
+  if (object && typeof object === "object") return object as TalonChatObjectRef;
+  return objectRefFromValue(parsePayloadJson(part?.payloadJson ?? part?.payload_json));
+}
+
+function objectRefFromValue(value: unknown): TalonChatObjectRef | undefined {
+  if (!value || typeof value !== "object") return undefined;
+
+  const candidate = value as Record<string, unknown>;
+  for (const key of ["object", "objectRef", "object_ref"]) {
+    const nested = candidate[key];
+    if (nested && typeof nested === "object" && typeof (nested as TalonChatObjectRef).key === "string") {
+      return nested as TalonChatObjectRef;
+    }
+  }
+
+  const toolOutput = candidate.tool_output ?? candidate.toolOutput;
+  const output = toolOutput && typeof toolOutput === "object"
+    ? toolOutput as Record<string, unknown>
+    : candidate;
+  const contentParts = output.content_parts ?? output.contentParts;
+  if (Array.isArray(contentParts)) {
+    for (const part of contentParts) {
+      const nested = objectRefFromValue(part);
+      if (nested) return nested;
+    }
+  }
+  return undefined;
 }
 
 function objectRefKey(object: TalonChatObjectRef | undefined): string {
@@ -560,10 +586,31 @@ function isToolResultPart(part: any) {
   return type === SESSION_MESSAGE_PART_TYPE.TOOL_RESULT || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
 }
 
-function withToolResultContent(part: any, output: string) {
+function withToolResultContent(part: any, output: string, objectKey?: string) {
   const nextPart = { ...part, content: output };
   const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
   const nextPayload = { ...payload, output };
+  const toolOutputKey = "tool_output" in payload ? "tool_output" : "toolOutput";
+  const toolOutput = payload[toolOutputKey];
+  const toolOutputRecord = toolOutput && typeof toolOutput === "object"
+    ? toolOutput as Record<string, unknown>
+    : undefined;
+  if (toolOutputRecord) {
+    const outputPartsKey = "content_parts" in toolOutputRecord ? "content_parts" : "contentParts";
+    const outputParts = toolOutputRecord[outputPartsKey];
+    if (Array.isArray(outputParts)) {
+      nextPayload[toolOutputKey] = {
+        ...toolOutputRecord,
+        summary: output,
+        [outputPartsKey]: outputParts.map((outputPart) => {
+          const object = objectRefFromValue(outputPart);
+          return object && (!objectKey || object.key === objectKey)
+            ? { type: "text", text: output }
+            : outputPart;
+        }),
+      };
+    }
+  }
   if ("payload_json" in nextPart && !("payloadJson" in nextPart)) {
     nextPart.payload_json = JSON.stringify(nextPayload);
   } else {
@@ -636,7 +683,7 @@ function toolCallIdFromToolResultPart(part: any): string {
 function findHydratableToolResultPart(
   parts: unknown,
   toolCallId: string,
-): { part: any; index: number; key: string } | null {
+): { part: any; index: number; key: string; object: TalonChatObjectRef } | null {
   if (!Array.isArray(parts)) return null;
   for (let index = 0; index < parts.length; index += 1) {
     const part = parts[index] as any;
@@ -646,7 +693,9 @@ function findHydratableToolResultPart(
     if (!key) continue;
     const partToolCallId = toolCallIdFromToolResultPart(part);
     if (toolCallId && partToolCallId !== toolCallId) continue;
-    return { part, index, key };
+    const object = objectRefFromPart(part);
+    if (!object) continue;
+    return { part, index, key, object };
   }
   return null;
 }
@@ -1152,8 +1201,12 @@ export function TalonSession({
   }, []);
 
   const hydrateToolResultForExpandedItem = useCallback(
-    async (message: CopilotMessage, toolCallId: string, toolKey: string) => {
-      const match = findHydratableToolResultPart(message.parts, toolCallId);
+    async (message: CopilotMessage, toolCallId: string, toolKey: string, result?: unknown) => {
+      const partMatch = findHydratableToolResultPart(message.parts, toolCallId);
+      const resultObject = partMatch ? undefined : objectRefFromValue(result);
+      const match = partMatch ?? (resultObject
+        ? { part: undefined, index: -1, key: resultObject.key, object: resultObject }
+        : null);
       const cas = gatewayClient?.cas;
       if (!match || !cas?.getObject) return;
       if (toolResultHydrationInFlightRef.current.has(toolKey)) return;
@@ -1167,7 +1220,7 @@ export function TalonSession({
 
       try {
         const response = await cas.getObject({ key: match.key });
-        const data = await toolResultObjectData(response, objectRefFromPart(match.part));
+        const data = await toolResultObjectData(response, match.object);
         const output = new TextDecoder().decode(data);
         if (toolResultHydrationGenerationRef.current !== generation) return;
 
@@ -1176,23 +1229,32 @@ export function TalonSession({
           const nextMessages = current.map((candidate) => {
             if (candidate.id !== message.id) return candidate;
             const currentMatch = findHydratableToolResultPart(candidate.parts, toolCallId);
-            if (!currentMatch || currentMatch.key !== match.key || !Array.isArray(candidate.parts)) {
-              return candidate;
+            if (currentMatch && currentMatch.key === match.key && Array.isArray(candidate.parts)) {
+              const parts = [...candidate.parts];
+              parts[currentMatch.index] = withToolResultContent(currentMatch.part, output, match.key);
+              const timelineSource = {
+                role: candidate.role,
+                content: candidate.content,
+                parts,
+                reasoningContent: candidate.reasoningContent,
+                usage: candidate.usage,
+              };
+              return {
+                ...candidate,
+                parts,
+                content: getMessageContent(timelineSource),
+                timeline: getMessageAssistantTimeline(timelineSource),
+              };
             }
-            const parts = [...candidate.parts];
-            parts[currentMatch.index] = withToolResultContent(currentMatch.part, output);
-            const timelineSource = {
-              role: candidate.role,
-              content: candidate.content,
-              parts,
-              reasoningContent: candidate.reasoningContent,
-              usage: candidate.usage,
-            };
+
+            const timeline = getMessageAssistantTimeline(candidate).map((item) =>
+              item.type === "tool" && item.toolCallId === toolCallId
+                ? { ...item, result: output }
+                : item,
+            );
             return {
               ...candidate,
-              parts,
-              content: getMessageContent(timelineSource),
-              timeline: getMessageAssistantTimeline(timelineSource),
+              timeline,
             };
           });
           messagesRef.current = nextMessages;
@@ -1617,7 +1679,7 @@ export function TalonSession({
                             onClick={() => {
                               toggleToolItem(toolKey);
                               if (!isToolExpanded) {
-                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey);
+                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey, item.result);
                               }
                             }}
                             style={{
@@ -1857,7 +1919,7 @@ export function TalonSession({
                             onClick={() => {
                               toggleToolItem(toolKey);
                               if (!isToolExpanded) {
-                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey);
+                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey, item.result);
                               }
                             }}
                             style={{

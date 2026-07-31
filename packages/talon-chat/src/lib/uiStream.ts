@@ -344,7 +344,8 @@ export async function streamSessionPartEvents(options: {
       hasAssistantEvent = true;
       const toolCallId = typeof payload?.tool_call_id === "string" ? payload.tool_call_id : part.id || `tool-${createLocalMessageId()}`;
       setStreamEvents((prev) => [...prev, { type: "tool_result", content: toolCallId, payload }]);
-      setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, "", undefined, payload?.output ?? content, messageId));
+      const result = payload?.output ?? payload?.tool_output ?? payload?.toolOutput ?? content;
+      setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, "", undefined, result, messageId));
     } else if (partType === SESSION_MESSAGE_PART_TYPE.USAGE || partType === "SESSION_MESSAGE_PART_TYPE_USAGE") {
       hasAssistantEvent = true;
       const usage = payload && typeof payload === "object" ? payload as UsageSummary : {};
