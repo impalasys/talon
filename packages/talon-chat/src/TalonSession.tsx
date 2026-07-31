@@ -2276,8 +2276,11 @@ export function TalonSession({
   );
 
   const refreshNewestSessionPage = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }) => {
+    async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
       const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+      if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
+        return null;
+      }
       const newestPageIds = new Set(res.messages.map((message) => message.id));
       const oldestPageMessage = res.messages[0];
       const oldestPageId = oldestPageMessage?.id;
@@ -2328,8 +2331,20 @@ export function TalonSession({
       } finally {
         if (!signal?.aborted && isSameSession(currentSessionRef.current, target)) {
           const refreshed = await refreshNewestSessionPage(target).catch(() => null);
-          setIsResuming(false);
-          if (refreshed?.state !== "PROCESSING") {
+          if (refreshed?.state === "PROCESSING" && !isStoppingRef.current) {
+            const controller = new AbortController();
+            resumeAbortControllerRef.current?.abort();
+            resumeAbortControllerRef.current = controller;
+            setIsResuming(true);
+            setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
+            setLoadingNow(Date.now());
+            window.setTimeout(() => {
+              if (!controller.signal.aborted && isSameSession(currentSessionRef.current, target) && !isStoppingRef.current) {
+                void resumeStream(target, controller.signal);
+              }
+            }, 250);
+          } else {
+            setIsResuming(false);
             setLoadingStartedAt(null);
           }
         }
@@ -2467,12 +2482,18 @@ export function TalonSession({
   }, [currentSession, getSessionMessagesPage, hydrateSessionHistoryPage, isSessionLive, refreshNewestSessionPage, resumeStream]);
 
   const waitForCanonicalAssistantUpdate = useCallback(
-    async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string) => {
+    async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string, signal?: AbortSignal) => {
       for (let attempt = 0; attempt < 40; attempt += 1) {
+        if (signal?.aborted || !isSameSession(currentSessionRef.current, session)) {
+          return false;
+        }
         const sessionState = await hydrateSessionHistoryPage(await getSessionMessagesPage(session));
+        if (signal?.aborted || !isSameSession(currentSessionRef.current, session)) {
+          return false;
+        }
         const nextSignature = getAssistantSignature(sessionState.messages);
         if (nextSignature && nextSignature !== baselineSignature) {
-          await refreshNewestSessionPage(session);
+          await refreshNewestSessionPage(session, signal);
           return true;
         }
         await new Promise((resolve) => setTimeout(resolve, 250));
@@ -2852,9 +2873,9 @@ export function TalonSession({
       });
 
       if (!hasAssistantEvent) {
-        await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature);
+        await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature, submitController?.signal);
       } else {
-        await refreshNewestSessionPage(session);
+        await refreshNewestSessionPage(session, submitController?.signal);
       }
     } catch (err: any) {
       const nextError = err instanceof Error ? err : new Error(String(err));
@@ -2869,8 +2890,16 @@ export function TalonSession({
           const optimisticMessageId = submittedUserMessageId;
           messagesRef.current = messagesRef.current.filter((message) => message.id !== optimisticMessageId);
           setMessages((prev) => prev.filter((message) => message.id !== optimisticMessageId));
+          setInput((current) => current || submittedText.trim());
+          if (imageAttachmentsRef.current.length === 0 && pendingAttachments.length > 0) {
+            imageAttachmentsRef.current = pendingAttachments;
+            setImageAttachments(pendingAttachments);
+          }
         }
-        const refreshed = await refreshNewestSessionPage(session).catch(() => null);
+        const refreshed = await refreshNewestSessionPage(session, submitController?.signal).catch(() => null);
+        if (submitController?.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
+          return;
+        }
         if (isStoppingRef.current) {
           return;
         }
@@ -2891,7 +2920,7 @@ export function TalonSession({
         const baselineAssistantSignature = getAssistantSignature(
           messagesRef.current.slice(-resolvedHistoryPageSize),
         );
-        const recovered = await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature).catch(() => false);
+        const recovered = await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature, submitController?.signal).catch(() => false);
         if (recovered) {
           setError(null);
           return;
@@ -2940,16 +2969,10 @@ export function TalonSession({
         return;
       }
       if (!stopped) {
-        stopAbortControllerRef.current = null;
-        isStoppingRef.current = false;
-        setIsStopping(false);
         setError(new Error("Stop was requested, but the session is still generating."));
         return;
       }
-      await refreshNewestSessionPage(session);
-      stopAbortControllerRef.current = null;
-      isStoppingRef.current = false;
-      setIsStopping(false);
+      await refreshNewestSessionPage(session, stopController.signal);
       setIsResuming(false);
       setLoadingStartedAt(null);
       setError(null);
@@ -2957,12 +2980,9 @@ export function TalonSession({
       if (stopController.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
         return;
       }
-      stopAbortControllerRef.current = null;
-      isStoppingRef.current = false;
-      setIsStopping(false);
       const stopError = err instanceof Error ? err : new Error(String(err));
       setError(stopError);
-      const refreshed = await refreshNewestSessionPage(session).catch(() => null);
+      const refreshed = await refreshNewestSessionPage(session, stopController.signal).catch(() => null);
       if (refreshed?.state === "PROCESSING") {
         const controller = new AbortController();
         resumeAbortControllerRef.current = controller;
@@ -2970,6 +2990,14 @@ export function TalonSession({
         setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
         setLoadingNow(Date.now());
         void resumeStream(session, controller.signal);
+      }
+    } finally {
+      if (stopAbortControllerRef.current === stopController) {
+        stopAbortControllerRef.current = null;
+      }
+      if (!stopController.signal.aborted && isSameSession(currentSessionRef.current, session)) {
+        isStoppingRef.current = false;
+        setIsStopping(false);
       }
     }
   }, [gatewayClient, isSessionLive, isStopping, refreshNewestSessionPage, resumeStream, setError, waitForSessionToStop]);

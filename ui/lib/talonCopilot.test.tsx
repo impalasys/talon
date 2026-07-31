@@ -2724,6 +2724,25 @@ describe('TalonCopilot', () => {
             },
           ],
           steps: [],
+        })
+        .mockResolvedValue({
+          sessionId: 'sess-busy-submit',
+          state: 'IDLE',
+          messages: [
+            {
+              id: 'user-existing-busy',
+              role: 'ROLE_USER',
+              content: 'Existing prompt',
+              createdAt: String(Date.now() * 1000),
+            },
+            {
+              id: 'assistant-existing-busy',
+              role: 'ROLE_ASSISTANT',
+              content: 'Canonical partial response',
+              createdAt: String(Date.now() * 1000),
+            },
+          ],
+          steps: [],
         }),
       submitTurn,
       streamParts: jest.fn(async function* () {
@@ -2749,7 +2768,7 @@ describe('TalonCopilot', () => {
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
     expect(await screen.findByText(/Working for/)).toBeInTheDocument();
-    expect(screen.queryByText('new request')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ask Talon to perform a task...')).toHaveValue('new request');
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
     expect(submitTurn).toHaveBeenCalledTimes(1);
 

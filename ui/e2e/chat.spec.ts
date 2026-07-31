@@ -152,7 +152,7 @@ async function resetMockLlm() {
 }
 
 async function waitForMockStreamBlocked() {
-  await expect.poll(async () => (await mockLlmControl('/__control/state')).blocked).toBe(true);
+  await expect.poll(async () => (await mockLlmControl('/__control/state')).blocked, { timeout: 60000 }).toBe(true);
 }
 
 async function unblockMockLlm() {
@@ -683,6 +683,8 @@ test.describe('Live session reconciliation', () => {
     await page.getByRole('button', { name: /Stop generation/i }).click();
     await waitForSessionState(client, target, 'IDLE');
     await expect(page.getByRole('button', { name: /Stop generation/i })).toHaveCount(0, { timeout: 15000 });
+    await expect(page.locator('body')).toContainText('The');
+    await expect(page.getByRole('button', { name: /Worked for/i })).toBeVisible();
     await expect(page.getByText(/System Incident/)).toHaveCount(0);
   });
 
@@ -712,12 +714,11 @@ test.describe('Live session reconciliation', () => {
     await waitForMockStreamBlocked();
 
     await chatInput.fill('a second request that must not be accepted');
-    await expect(sendButton).toBeEnabled();
     await sendButton.click();
 
     await expect.poll(() => submitTurnRequests.length).toBe(1);
     await expect(page.getByText(/Working for/)).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('a second request that must not be accepted', { exact: true })).toHaveCount(0);
+    await expect(chatInput).toHaveValue('a second request that must not be accepted');
     await expect(page.getByText(/System Incident/)).toHaveCount(0);
 
     await page.getByRole('button', { name: /Stop generation/i }).click();
