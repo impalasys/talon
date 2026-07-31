@@ -545,26 +545,21 @@ function objectRefFromPart(part: any): TalonChatObjectRef | undefined {
 }
 
 function objectRefFromValue(value: unknown): TalonChatObjectRef | undefined {
-  if (typeof value === "string") {
-    try {
-      return objectRefFromValue(JSON.parse(value));
-    } catch {
-      return undefined;
-    }
-  }
   if (!value || typeof value !== "object") return undefined;
 
   const candidate = value as Record<string, unknown>;
-  if (typeof candidate.key === "string" && candidate.key.length > 0) {
-    return candidate as TalonChatObjectRef;
+  for (const key of ["object", "objectRef", "object_ref"]) {
+    const nested = candidate[key];
+    if (nested && typeof nested === "object" && typeof (nested as TalonChatObjectRef).key === "string") {
+      return nested as TalonChatObjectRef;
+    }
   }
 
-  for (const key of ["object", "objectRef", "object_ref", "tool_output", "toolOutput", "output"]) {
-    const nested = objectRefFromValue(candidate[key]);
-    if (nested) return nested;
-  }
-
-  const contentParts = candidate.content_parts ?? candidate.contentParts;
+  const toolOutput = candidate.tool_output ?? candidate.toolOutput;
+  const output = toolOutput && typeof toolOutput === "object"
+    ? toolOutput as Record<string, unknown>
+    : candidate;
+  const contentParts = output.content_parts ?? output.contentParts;
   if (Array.isArray(contentParts)) {
     for (const part of contentParts) {
       const nested = objectRefFromValue(part);

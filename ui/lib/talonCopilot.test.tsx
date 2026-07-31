@@ -579,6 +579,62 @@ describe('TalonCopilot', () => {
     expect(gatewayClient.cas.getObject).toHaveBeenCalledWith({ key: 'cas/ops/files/report.md' });
   });
 
+  it('does not hydrate ordinary streamed JSON results that contain a key field', async () => {
+    const gatewayClient = {
+      sessions: {
+        create: jest.fn().mockResolvedValue({ sessionId: 'sess-json-result' }),
+        listMessages: jest.fn().mockResolvedValue({
+          sessionId: 'sess-json-result',
+          state: 'IDLE',
+          items: [],
+          hasMore: false,
+        }),
+        submitTurn: jest.fn(async function* () {
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+            messageId: 'assistant-json-result',
+            part: {
+              partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+              id: 'call-json-result',
+              name: 'search',
+              payloadJson: JSON.stringify({ tool_call_id: 'call-json-result', input: { query: 'docs' } }),
+            },
+          };
+          yield {
+            kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DELTA',
+            messageId: 'assistant-json-result',
+            part: {
+              partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+              id: 'call-json-result',
+              name: 'search',
+              payloadJson: JSON.stringify({
+                tool_call_id: 'call-json-result',
+                output: { key: 'search-result-42', title: 'Docs' },
+              }),
+            },
+          };
+          yield { kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DONE', messageId: 'assistant-json-result' };
+        }),
+        streamParts: jest.fn(async function* () {}),
+        stopGeneration: jest.fn(),
+      },
+      cas: { getObject: jest.fn() },
+    };
+
+    render(<TalonCopilot namespace="ops" agent="copilot" gatewayClient={gatewayClient} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'search docs' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    fireEvent.click(await screen.findByRole('button', { name: /Worked/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Called\s+search/ }));
+
+    expect(await screen.findByText(/search-result-42/)).toBeInTheDocument();
+    expect(gatewayClient.cas.getObject).not.toHaveBeenCalled();
+  });
+
   it('does not start duplicate lazy CAS hydration while a tool result is already loading', async () => {
     const hydration = deferred<any>();
     const gatewayClient = {
