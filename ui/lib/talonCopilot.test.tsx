@@ -2680,8 +2680,10 @@ describe('TalonCopilot', () => {
     }));
     resumeStream.release(null);
 
-    expect(screen.queryByText('Sure')).not.toBeInTheDocument();
-    expect(gatewayClient.createSession).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByText('Sure')).not.toBeInTheDocument();
+      expect(gatewayClient.createSession).not.toHaveBeenCalled();
+    });
   });
 
   it('rolls back a busy submission and resumes the canonical session stream', async () => {
