@@ -10,6 +10,7 @@ use crate::control::config::{proto, Config, Secret};
 use crate::control::object_store::ObjectStore;
 use crate::control::ControlPlane;
 use crate::gateway::rpc::manifests::{self, AgentSpec};
+use crate::harness::executor::compaction::ModelContextLimits;
 use crate::harness::llm::LlmProvider;
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 
@@ -17,6 +18,33 @@ pub struct ResolvedLlm {
     pub provider: Arc<dyn LlmProvider + Send + Sync>,
     pub provider_key: String,
     pub model: String,
+}
+
+/// Find model metadata by model name. Provider-qualified keys are supported
+/// for deployments that use the same model name through multiple providers:
+/// `provider/model` and `provider:model` are preferred over the plain model
+/// name, and exact provider matches are preferred over entries without a
+/// provider.
+pub fn model_context_limits(config: &Config, provider: &str, model: &str) -> ModelContextLimits {
+    let qualified_slash = format!("{provider}/{model}");
+    let qualified_colon = format!("{provider}:{model}");
+    let model_config = [
+        (config.models.get(&qualified_slash), true),
+        (config.models.get(&qualified_colon), true),
+        (config.models.get(model), false),
+    ]
+    .into_iter()
+    .filter_map(|(model, qualified)| model.map(|model| (model, qualified)))
+    .filter(|(model, _)| model.provider.is_empty() || model.provider == provider)
+    .max_by_key(|(model, qualified)| (model.provider == provider, *qualified))
+    .map(|(model, _)| model);
+
+    model_config
+        .map(|model| ModelContextLimits {
+            context_window_tokens: model.context_window_tokens,
+            max_output_tokens: model.max_output_tokens,
+        })
+        .unwrap_or_default()
 }
 
 pub fn resolve_model_profile(policy: Option<&manifests::ModelPolicy>) -> Option<&manifests::Model> {
@@ -293,7 +321,8 @@ fn provider_api_key_value<'a>(
 #[cfg(test)]
 mod tests {
     use super::{
-        resolve_llm, resolve_llm_for_namespace, resolve_model_profile, API_KEYS_SECRET_NAME,
+        model_context_limits, resolve_llm, resolve_llm_for_namespace, resolve_model_profile,
+        API_KEYS_SECRET_NAME,
     };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::object_store::InMemoryObjectStore;
@@ -313,6 +342,36 @@ mod tests {
             default_provider: name.to_string(),
             ..Config::default()
         }
+    }
+
+    #[test]
+    fn model_context_limits_resolve_exact_and_provider_qualified_entries() {
+        let mut config = Config::default();
+        config.models.insert(
+            "gpt-test".to_string(),
+            proto::ModelConfig {
+                context_window_tokens: Some(4_000),
+                max_output_tokens: Some(500),
+                ..Default::default()
+            },
+        );
+        config.models.insert(
+            "openai/gpt-test".to_string(),
+            proto::ModelConfig {
+                provider: "openai".to_string(),
+                context_window_tokens: Some(16_000),
+                max_output_tokens: Some(2_000),
+                ..Default::default()
+            },
+        );
+
+        assert_eq!(
+            model_context_limits(&config, "openai", "gpt-test"),
+            crate::harness::executor::ModelContextLimits {
+                context_window_tokens: Some(16_000),
+                max_output_tokens: Some(2_000),
+            }
+        );
     }
 
     fn openai_compatible_provider(base_url: String, api_key: Option<Secret>) -> ProviderConfig {

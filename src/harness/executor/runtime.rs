@@ -5,8 +5,8 @@ use crate::control::cas::CasStore;
 use crate::control::config::Config;
 use crate::control::tool_output::{self, is_text_object_media_type, ToolOutputExt};
 use crate::control::ControlPlane;
-use crate::harness::executor::compaction::compact_history_for_llm;
-use crate::harness::llm::resolver::resolve_model_profile;
+use crate::harness::executor::compaction::compact_history_for_llm_with_model_limits;
+use crate::harness::llm::resolver::{model_context_limits, resolve_model_profile};
 use crate::harness::llm::ToolOutput;
 use crate::harness::llm::{
     chat_content_part, chat_stream_event, object_ref_part, text_part, ChatContentPart, ChatMessage,
@@ -531,7 +531,12 @@ impl AgentExecutor {
             prefix_latest_user_message(&mut history, post_history_prompt);
         }
 
-        let mut messages = compact_history_for_llm(&history)
+        let model_limits = model_context_limits(
+            self.config.as_ref(),
+            &self.llm_provider_key,
+            &self.llm_model,
+        );
+        let mut messages = compact_history_for_llm_with_model_limits(&history, model_limits)
             .iter()
             .map(|m| ChatMessage {
                 role: m.role.clone(),

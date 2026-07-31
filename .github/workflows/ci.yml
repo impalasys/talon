@@ -590,10 +590,11 @@ jobs:
           cp target/release/talon-cli "$ARTIFACT_DIR"/
           cp target/release/talon-node "$ARTIFACT_DIR"/
           cp talon.yaml "$ARTIFACT_DIR"/
+          cp models.yaml "$ARTIFACT_DIR"/
           if [ "${RUNNER_OS}" = "macOS" ]; then
             (
               cd "$ARTIFACT_DIR"
-              shasum -a 256 talon-server talon-worker talon-cli talon-node talon.yaml > SHA256SUMS
+              shasum -a 256 talon-server talon-worker talon-cli talon-node talon.yaml models.yaml > SHA256SUMS
             )
           else
             (
@@ -603,7 +604,8 @@ jobs:
                 talon-worker \
                 talon-cli \
                 talon-node \
-                talon.yaml > SHA256SUMS
+                talon.yaml \
+                models.yaml > SHA256SUMS
             )
           fi
           tar -C dist -czf "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz" "talon-${{ matrix.artifact_name }}"

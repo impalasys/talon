@@ -8,7 +8,7 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class TalonConfig(_message.Message):
-    __slots__ = ("providers", "database", "server", "default_provider", "workspace_dir", "control_plane", "controllers", "trust")
+    __slots__ = ("providers", "database", "server", "default_provider", "workspace_dir", "control_plane", "controllers", "trust", "models")
     class ProvidersEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -23,6 +23,13 @@ class TalonConfig(_message.Message):
         key: str
         value: ControllerConfig
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ControllerConfig, _Mapping]] = ...) -> None: ...
+    class ModelsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: ModelConfig
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ModelConfig, _Mapping]] = ...) -> None: ...
     PROVIDERS_FIELD_NUMBER: _ClassVar[int]
     DATABASE_FIELD_NUMBER: _ClassVar[int]
     SERVER_FIELD_NUMBER: _ClassVar[int]
@@ -31,6 +38,7 @@ class TalonConfig(_message.Message):
     CONTROL_PLANE_FIELD_NUMBER: _ClassVar[int]
     CONTROLLERS_FIELD_NUMBER: _ClassVar[int]
     TRUST_FIELD_NUMBER: _ClassVar[int]
+    MODELS_FIELD_NUMBER: _ClassVar[int]
     providers: _containers.MessageMap[str, LlmProviderConfig]
     database: DatabaseConfig
     server: ServerConfig
@@ -39,7 +47,26 @@ class TalonConfig(_message.Message):
     control_plane: ControlPlaneConfig
     controllers: _containers.MessageMap[str, ControllerConfig]
     trust: TrustConfig
-    def __init__(self, providers: _Optional[_Mapping[str, LlmProviderConfig]] = ..., database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., server: _Optional[_Union[ServerConfig, _Mapping]] = ..., default_provider: _Optional[str] = ..., workspace_dir: _Optional[str] = ..., control_plane: _Optional[_Union[ControlPlaneConfig, _Mapping]] = ..., controllers: _Optional[_Mapping[str, ControllerConfig]] = ..., trust: _Optional[_Union[TrustConfig, _Mapping]] = ...) -> None: ...
+    models: _containers.MessageMap[str, ModelConfig]
+    def __init__(self, providers: _Optional[_Mapping[str, LlmProviderConfig]] = ..., database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., server: _Optional[_Union[ServerConfig, _Mapping]] = ..., default_provider: _Optional[str] = ..., workspace_dir: _Optional[str] = ..., control_plane: _Optional[_Union[ControlPlaneConfig, _Mapping]] = ..., controllers: _Optional[_Mapping[str, ControllerConfig]] = ..., trust: _Optional[_Union[TrustConfig, _Mapping]] = ..., models: _Optional[_Mapping[str, ModelConfig]] = ...) -> None: ...
+
+class ModelConfig(_message.Message):
+    __slots__ = ("provider", "context_window_tokens", "max_output_tokens", "input_cost_per_million_tokens", "output_cost_per_million_tokens", "cache_read_cost_per_million_tokens", "cache_write_cost_per_million_tokens")
+    PROVIDER_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_WINDOW_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    MAX_OUTPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    INPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    CACHE_READ_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    provider: str
+    context_window_tokens: int
+    max_output_tokens: int
+    input_cost_per_million_tokens: float
+    output_cost_per_million_tokens: float
+    cache_read_cost_per_million_tokens: float
+    cache_write_cost_per_million_tokens: float
+    def __init__(self, provider: _Optional[str] = ..., context_window_tokens: _Optional[int] = ..., max_output_tokens: _Optional[int] = ..., input_cost_per_million_tokens: _Optional[float] = ..., output_cost_per_million_tokens: _Optional[float] = ..., cache_read_cost_per_million_tokens: _Optional[float] = ..., cache_write_cost_per_million_tokens: _Optional[float] = ...) -> None: ...
 
 class TrustConfig(_message.Message):
     __slots__ = ("oidc",)

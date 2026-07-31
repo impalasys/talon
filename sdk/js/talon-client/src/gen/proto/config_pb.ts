@@ -50,6 +50,11 @@ export class TalonConfig extends Message<TalonConfig> {
    */
   trust?: TrustConfig;
 
+  /**
+   * @generated from field: map<string, talon.config.ModelConfig> models = 9;
+   */
+  models: { [key: string]: ModelConfig } = {};
+
   constructor(data?: PartialMessage<TalonConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -66,6 +71,7 @@ export class TalonConfig extends Message<TalonConfig> {
     { no: 6, name: "control_plane", kind: "message", T: ControlPlaneConfig },
     { no: 7, name: "controllers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ControllerConfig} },
     { no: 8, name: "trust", kind: "message", T: TrustConfig },
+    { no: 9, name: "models", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ModelConfig} },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TalonConfig {
@@ -82,6 +88,83 @@ export class TalonConfig extends Message<TalonConfig> {
 
   static equals(a: TalonConfig | PlainMessage<TalonConfig> | undefined, b: TalonConfig | PlainMessage<TalonConfig> | undefined): boolean {
     return proto3.util.equals(TalonConfig, a, b);
+  }
+}
+
+/**
+ * Static metadata for a model configured in the model catalog. Costs are in
+ * USD per one million tokens. The context window includes generated output;
+ * compaction reserves max_output_tokens from it when both are configured.
+ *
+ * @generated from message talon.config.ModelConfig
+ */
+export class ModelConfig extends Message<ModelConfig> {
+  /**
+   * @generated from field: string provider = 1;
+   */
+  provider = "";
+
+  /**
+   * @generated from field: optional uint64 context_window_tokens = 2;
+   */
+  contextWindowTokens?: bigint;
+
+  /**
+   * @generated from field: optional uint64 max_output_tokens = 3;
+   */
+  maxOutputTokens?: bigint;
+
+  /**
+   * @generated from field: optional double input_cost_per_million_tokens = 4;
+   */
+  inputCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double output_cost_per_million_tokens = 5;
+   */
+  outputCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double cache_read_cost_per_million_tokens = 6;
+   */
+  cacheReadCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double cache_write_cost_per_million_tokens = 7;
+   */
+  cacheWriteCostPerMillionTokens?: number;
+
+  constructor(data?: PartialMessage<ModelConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.ModelConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "context_window_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 3, name: "max_output_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 4, name: "input_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 5, name: "output_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 6, name: "cache_read_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 7, name: "cache_write_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModelConfig {
+    return new ModelConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ModelConfig {
+    return new ModelConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ModelConfig {
+    return new ModelConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ModelConfig | PlainMessage<ModelConfig> | undefined, b: ModelConfig | PlainMessage<ModelConfig> | undefined): boolean {
+    return proto3.util.equals(ModelConfig, a, b);
   }
 }
 

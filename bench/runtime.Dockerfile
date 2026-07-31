@@ -20,6 +20,7 @@ COPY sdk/rust/talon-client ./sdk/rust/talon-client
 COPY tools/install-hooks ./tools/install-hooks
 COPY src ./src
 COPY talon.yaml ./talon.yaml
+COPY models.yaml ./models.yaml
 
 RUN if [ -n "$CARGO_FEATURES" ]; then \
         cargo build --release --locked --features "$CARGO_FEATURES" \
@@ -41,6 +42,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
+COPY --from=builder /usr/src/talon/models.yaml /data/talon/models.yaml
 
 RUN mkdir -p /data/talon
 

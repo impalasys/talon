@@ -66,6 +66,13 @@ providers:
     model: minimax-m2.7
     api_key: "direct-key"
 
+models:
+  minimax-m2.7:
+    contextWindow: 32768
+    maxOutputTokens: 4096
+    inputCostPerMillionTokens: 0.30
+    outputCostPerMillionTokens: 1.20
+
 database:
   data_dir: "./test-data"
 
@@ -97,6 +104,12 @@ server:
                 }
             }
         }
+
+        let model = config.models.get("minimax-m2.7").unwrap();
+        assert_eq!(model.context_window_tokens, Some(32768));
+        assert_eq!(model.max_output_tokens, Some(4096));
+        assert_eq!(model.input_cost_per_million_tokens, Some(0.30));
+        assert_eq!(model.output_cost_per_million_tokens, Some(1.20));
     }
 
     #[test]
@@ -188,6 +201,11 @@ trust:
         let dir = tempdir().unwrap();
         let path = dir.path().join("talon.docker-compose.yaml");
         std::fs::write(&path, include_str!("../../../talon.docker-compose.yaml")).unwrap();
+        std::fs::write(
+            dir.path().join("models.yaml"),
+            include_str!("../../../models.yaml"),
+        )
+        .unwrap();
         let config = Config::from_file(&path).unwrap();
 
         assert!(config.providers.contains_key("openai"));
@@ -242,6 +260,58 @@ trust:
         assert_eq!(
             trust.oidc[0].grants[0].kind,
             proto::oidc_trust_grant::Kind::Readwrite as i32
+        );
+        assert_eq!(
+            config
+                .models
+                .get("openai/gpt-5.4-nano")
+                .unwrap()
+                .context_window_tokens,
+            Some(400000)
+        );
+        assert_eq!(
+            config
+                .models
+                .get("novita/google/gemma-4-31b-it")
+                .unwrap()
+                .context_window_tokens,
+            Some(262144)
+        );
+        assert_eq!(
+            config
+                .models
+                .get("meta/muse-spark-1.1")
+                .unwrap()
+                .context_window_tokens,
+            Some(1048576)
+        );
+        assert_eq!(
+            config
+                .models
+                .get("meta/muse-spark-1.1")
+                .unwrap()
+                .max_output_tokens,
+            Some(131072)
+        );
+    }
+
+    #[test]
+    fn test_checked_in_talon_config_loads_shared_model_catalog() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("talon.yaml");
+        std::fs::write(&path, include_str!("../../../talon.yaml")).unwrap();
+        std::fs::write(
+            dir.path().join("models.yaml"),
+            include_str!("../../../models.yaml"),
+        )
+        .unwrap();
+
+        let config = Config::from_file(&path).unwrap();
+        assert!(config.providers.contains_key("openai"));
+        assert!(config.models.len() >= 17);
+        assert_eq!(
+            config.models.get("openai/gpt-5").unwrap().provider,
+            "openai"
         );
     }
 
@@ -524,6 +594,241 @@ api_key = "secret"
     }
 
     #[test]
+    fn test_extends_supports_strings_lists_recursive_merges_and_list_replacement() {
+        let dir = tempdir().unwrap();
+        let base = dir.path().join("base.yml");
+        std::fs::write(
+            &base,
+            r#"
+providers:
+  shared:
+    type: openai
+    model: base-model
+    api_key: base-key
+llmModels:
+  shared:
+    provider: openai
+    contextWindowTokens: 100
+    maxOutputTokens: 10
+  base-only:
+    contextWindowTokens: 50
+trust:
+  oidc:
+    - name: base
+      issuer: https://accounts.example.com
+      audiences: [base-client]
+      grants:
+        - kind: read
+controllers:
+  deployment:
+    enabled: true
+    workers: 1
+"#,
+        )
+        .unwrap();
+
+        let overlay = dir.path().join("overlay.toml");
+        std::fs::write(
+            &overlay,
+            r#"
+extends = "./base.yml "
+
+[llmProviders.shared]
+type = "openai"
+model = "overlay-model"
+api_key = "overlay-key"
+
+[models.shared]
+maxOutputTokens = 20
+
+[controllers.deployment]
+workers = 2
+"#,
+        )
+        .unwrap();
+
+        let json_layer = dir.path().join("json-layer.json");
+        std::fs::write(
+            &json_layer,
+            r#"{"models":{"json-only":{"contextWindowTokens":77}}}"#,
+        )
+        .unwrap();
+
+        let root = dir.path().join("root.yaml");
+        std::fs::write(
+            &root,
+            r#"
+extends:
+  - "./base.yml "
+  - ./overlay.toml
+  - ./json-layer.json
+
+models:
+  shared:
+    contextWindowTokens: 200
+trust:
+  oidc:
+    - name: child
+      issuer: https://accounts.example.com
+      audiences: [child-client]
+      grants:
+        - kind: readwrite
+"#,
+        )
+        .unwrap();
+
+        let config = Config::from_file(&root).unwrap();
+        let provider = config.providers.get("shared").unwrap();
+        let Some(proto::llm_provider_config::Config::Openai(provider)) = &provider.config else {
+            panic!("expected openai provider");
+        };
+        assert_eq!(provider.model, "overlay-model");
+        assert_eq!(config.models["shared"].context_window_tokens, Some(200));
+        assert_eq!(config.models["shared"].max_output_tokens, Some(20));
+        assert!(config.models.contains_key("base-only"));
+        assert_eq!(config.models["json-only"].context_window_tokens, Some(77));
+        assert_eq!(config.controllers["deployment"].workers, 2);
+        assert_eq!(config.trust.as_ref().unwrap().oidc.len(), 1);
+        assert_eq!(config.trust.as_ref().unwrap().oidc[0].name, "child");
+    }
+
+    #[test]
+    fn test_extends_resolves_parent_paths_and_expands_each_file_independently() {
+        let _guard = crate::test_support::env_lock();
+        let _parent_data = EnvVarGuard::set("TALON_PARENT_DATA_DIR", "./parent-data");
+        let _child_workspace = EnvVarGuard::set("TALON_CHILD_WORKSPACE", "./child-workspace");
+
+        let dir = tempdir().unwrap();
+        let nested = dir.path().join("nested");
+        let shared = dir.path().join("shared");
+        std::fs::create_dir_all(&nested).unwrap();
+        std::fs::create_dir_all(&shared).unwrap();
+        std::fs::write(
+            shared.join("catalog.yaml"),
+            "models:\n  shared-model:\n    contextWindowTokens: 123\n",
+        )
+        .unwrap();
+        let parent = nested.join("parent.yaml");
+        std::fs::write(
+            &parent,
+            r#"
+extends: ../shared/catalog.yaml
+workspace_dir: ${TALON_PARENT_DATA_DIR}
+control_plane:
+  database:
+    driver: sqlite
+    data_dir: ${TALON_PARENT_DATA_DIR}
+  message_broker:
+    driver: local_socket
+  object_store:
+    driver: local
+    path: ./parent-objects
+"#,
+        )
+        .unwrap();
+
+        let child = dir.path().join("child.yaml");
+        std::fs::write(
+            &child,
+            r#"
+extends: ./nested/parent.yaml
+workspace_dir: ${TALON_CHILD_WORKSPACE}
+"#,
+        )
+        .unwrap();
+
+        let config = Config::from_file(&child).unwrap();
+        assert_eq!(
+            config.workspace_dir,
+            dir.path().join("child-workspace").display().to_string()
+        );
+        assert_eq!(
+            config.models["shared-model"].context_window_tokens,
+            Some(123)
+        );
+        let control_plane = config.control_plane.unwrap();
+        assert_eq!(
+            control_plane.database.unwrap().data_dir,
+            nested.join("parent-data").display().to_string()
+        );
+        let Some(proto::object_store_config::Backend::Local(object_store)) =
+            control_plane.object_store.unwrap().backend
+        else {
+            panic!("expected local object store");
+        };
+        assert_eq!(
+            object_store.path,
+            nested.join("parent-objects").display().to_string()
+        );
+    }
+
+    #[test]
+    fn test_extends_rejects_invalid_files_paths_roots_cycles_and_depth() {
+        let dir = tempdir().unwrap();
+
+        let missing = dir.path().join("missing.yaml");
+        std::fs::write(&missing, "extends: ./does-not-exist.yaml\n").unwrap();
+        let error = Config::from_file(&missing).unwrap_err().to_string();
+        assert!(error.contains("Failed to resolve config file"));
+
+        let malformed_parent = dir.path().join("malformed.yaml");
+        std::fs::write(&malformed_parent, "providers: [\n").unwrap();
+        let malformed = dir.path().join("malformed-root.yaml");
+        std::fs::write(&malformed, "extends: ./malformed.yaml\n").unwrap();
+        let error = Config::from_file(&malformed).unwrap_err().to_string();
+        assert!(error.contains("Failed to parse YAML config"));
+
+        let unsupported_parent = dir.path().join("parent.txt");
+        std::fs::write(&unsupported_parent, "{}").unwrap();
+        let unsupported = dir.path().join("unsupported.yaml");
+        std::fs::write(&unsupported, "extends: ./parent.txt\n").unwrap();
+        let error = Config::from_file(&unsupported).unwrap_err().to_string();
+        assert!(error.contains("Unsupported config format"));
+
+        let scalar_parent = dir.path().join("scalar.yaml");
+        std::fs::write(&scalar_parent, "- one\n- two\n").unwrap();
+        let scalar = dir.path().join("scalar-root.yaml");
+        std::fs::write(&scalar, "extends: ./scalar.yaml\n").unwrap();
+        let error = Config::from_file(&scalar).unwrap_err().to_string();
+        assert!(error.contains("must contain a top-level object"));
+
+        let remote = dir.path().join("remote.yaml");
+        std::fs::write(&remote, "extends: https://example.com/models.yaml\n").unwrap();
+        let error = Config::from_file(&remote).unwrap_err().to_string();
+        assert!(error.contains("remote URLs are not supported"));
+
+        let cycle_a = dir.path().join("cycle-a.yaml");
+        let cycle_b = dir.path().join("cycle-b.yaml");
+        std::fs::write(&cycle_a, "extends: ./cycle-b.yaml\n").unwrap();
+        std::fs::write(&cycle_b, "extends: ./cycle-a.yaml\n").unwrap();
+        let error = Config::from_file(&cycle_a).unwrap_err().to_string();
+        assert!(error.contains("configuration extends cycle detected"));
+        assert!(error.contains("cycle-a.yaml") && error.contains("cycle-b.yaml"));
+
+        let max_test_depth = 33;
+        for index in 0..=max_test_depth {
+            let current = dir.path().join(format!("depth-{index}.yaml"));
+            if index == max_test_depth {
+                std::fs::write(&current, "{}\n").unwrap();
+            } else {
+                let next = dir.path().join(format!("depth-{}.yaml", index + 1));
+                std::fs::write(
+                    &current,
+                    format!(
+                        "extends: ./{}\n",
+                        next.file_name().unwrap().to_string_lossy()
+                    ),
+                )
+                .unwrap();
+            }
+        }
+        let error = Config::from_file(dir.path().join("depth-0.yaml"))
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("maximum depth"));
+    }
+
+    #[test]
     fn test_control_plane_relative_data_dir_resolves_from_config_file_directory() {
         let dir = tempdir().unwrap();
         let config_path = dir.path().join("nested").join("talon.yaml");
@@ -711,6 +1016,16 @@ control_plane:
     }
 
     #[test]
+    fn test_inline_yaml_rejects_extends() {
+        let _guard = crate::test_support::env_lock();
+        let _inline = EnvVarGuard::set("TALON_CONFIG_INLINE_YAML", "extends: ./models.yaml\n");
+        let _path = EnvVarGuard::set("TALON_CONFIG_PATH", "/does/not/exist.yaml");
+
+        let error = Config::load_default().unwrap_err().to_string();
+        assert!(error.contains("TALON_CONFIG_INLINE_YAML does not support 'extends'"));
+    }
+
+    #[test]
     fn test_provider_api_key_is_optional_in_yaml_config() {
         let file = NamedTempFile::new().expect("Failed to create temp file");
         let path = file.path().with_extension("yaml");
@@ -873,6 +1188,7 @@ control_plane:
             pubsub: None,
             controllers: std::collections::HashMap::new(),
             trust: None,
+            models: std::collections::HashMap::new(),
         };
 
         let config: Config = serde.into();

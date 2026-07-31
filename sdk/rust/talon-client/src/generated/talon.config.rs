@@ -26,6 +26,28 @@ pub struct TalonConfig {
     >,
     #[prost(message, optional, tag = "8")]
     pub trust: ::core::option::Option<TrustConfig>,
+    #[prost(map = "string, message", tag = "9")]
+    pub models: ::std::collections::HashMap<::prost::alloc::string::String, ModelConfig>,
+}
+/// Static metadata for a model configured in the model catalog. Costs are in
+/// USD per one million tokens. The context window includes generated output;
+/// compaction reserves max_output_tokens from it when both are configured.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ModelConfig {
+    #[prost(string, tag = "1")]
+    pub provider: ::prost::alloc::string::String,
+    #[prost(uint64, optional, tag = "2")]
+    pub context_window_tokens: ::core::option::Option<u64>,
+    #[prost(uint64, optional, tag = "3")]
+    pub max_output_tokens: ::core::option::Option<u64>,
+    #[prost(double, optional, tag = "4")]
+    pub input_cost_per_million_tokens: ::core::option::Option<f64>,
+    #[prost(double, optional, tag = "5")]
+    pub output_cost_per_million_tokens: ::core::option::Option<f64>,
+    #[prost(double, optional, tag = "6")]
+    pub cache_read_cost_per_million_tokens: ::core::option::Option<f64>,
+    #[prost(double, optional, tag = "7")]
+    pub cache_write_cost_per_million_tokens: ::core::option::Option<f64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TrustConfig {

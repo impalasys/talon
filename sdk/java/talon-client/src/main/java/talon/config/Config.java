@@ -181,6 +181,40 @@ talon.config.Config.ControllerConfig defaultValue);
      * <code>.talon.config.TrustConfig trust = 8;</code>
      */
     talon.config.Config.TrustConfigOrBuilder getTrustOrBuilder();
+
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    int getModelsCount();
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    boolean containsModels(
+        java.lang.String key);
+    /**
+     * Use {@link #getModelsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, talon.config.Config.ModelConfig>
+    getModels();
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    java.util.Map<java.lang.String, talon.config.Config.ModelConfig>
+    getModelsMap();
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    /* nullable */
+talon.config.Config.ModelConfig getModelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+talon.config.Config.ModelConfig defaultValue);
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    talon.config.Config.ModelConfig getModelsOrThrow(
+        java.lang.String key);
   }
   /**
    * Protobuf type {@code talon.config.TalonConfig}
@@ -227,6 +261,8 @@ talon.config.Config.ControllerConfig defaultValue);
           return internalGetProviders();
         case 7:
           return internalGetControllers();
+        case 9:
+          return internalGetModels();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -581,6 +617,85 @@ talon.config.Config.ControllerConfig defaultValue) {
       return trust_ == null ? talon.config.Config.TrustConfig.getDefaultInstance() : trust_;
     }
 
+    public static final int MODELS_FIELD_NUMBER = 9;
+    private static final class ModelsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, talon.config.Config.ModelConfig> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, talon.config.Config.ModelConfig>newDefaultInstance(
+                  talon.config.Config.internal_static_talon_config_TalonConfig_ModelsEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                  talon.config.Config.ModelConfig.getDefaultInstance());
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, talon.config.Config.ModelConfig> models_;
+    private com.google.protobuf.MapField<java.lang.String, talon.config.Config.ModelConfig>
+    internalGetModels() {
+      if (models_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            ModelsDefaultEntryHolder.defaultEntry);
+      }
+      return models_;
+    }
+    public int getModelsCount() {
+      return internalGetModels().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    @java.lang.Override
+    public boolean containsModels(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetModels().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getModelsMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, talon.config.Config.ModelConfig> getModels() {
+      return getModelsMap();
+    }
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, talon.config.Config.ModelConfig> getModelsMap() {
+      return internalGetModels().getMap();
+    }
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+talon.config.Config.ModelConfig getModelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+talon.config.Config.ModelConfig defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, talon.config.Config.ModelConfig> map =
+          internalGetModels().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.ModelConfig getModelsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, talon.config.Config.ModelConfig> map =
+          internalGetModels().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -625,6 +740,12 @@ talon.config.Config.ControllerConfig defaultValue) {
       if (((bitField0_ & 0x00000008) != 0)) {
         output.writeMessage(8, getTrust());
       }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetModels(),
+          ModelsDefaultEntryHolder.defaultEntry,
+          9);
       getUnknownFields().writeTo(output);
     }
 
@@ -676,6 +797,16 @@ talon.config.Config.ControllerConfig defaultValue) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(8, getTrust());
       }
+      for (java.util.Map.Entry<java.lang.String, talon.config.Config.ModelConfig> entry
+           : internalGetModels().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, talon.config.Config.ModelConfig>
+        models__ = ModelsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(9, models__);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -719,6 +850,8 @@ talon.config.Config.ControllerConfig defaultValue) {
         if (!getTrust()
             .equals(other.getTrust())) return false;
       }
+      if (!internalGetModels().equals(
+          other.internalGetModels())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -757,6 +890,10 @@ talon.config.Config.ControllerConfig defaultValue) {
       if (hasTrust()) {
         hash = (37 * hash) + TRUST_FIELD_NUMBER;
         hash = (53 * hash) + getTrust().hashCode();
+      }
+      if (!internalGetModels().getMap().isEmpty()) {
+        hash = (37 * hash) + MODELS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetModels().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -875,6 +1012,8 @@ talon.config.Config.ControllerConfig defaultValue) {
             return internalGetProviders();
           case 7:
             return internalGetControllers();
+          case 9:
+            return internalGetModels();
           default:
             throw new RuntimeException(
                 "Invalid map field number: " + number);
@@ -888,6 +1027,8 @@ talon.config.Config.ControllerConfig defaultValue) {
             return internalGetMutableProviders();
           case 7:
             return internalGetMutableControllers();
+          case 9:
+            return internalGetMutableModels();
           default:
             throw new RuntimeException(
                 "Invalid map field number: " + number);
@@ -948,6 +1089,7 @@ talon.config.Config.ControllerConfig defaultValue) {
           trustBuilder_.dispose();
           trustBuilder_ = null;
         }
+        internalGetMutableModels().clear();
         return this;
       }
 
@@ -1018,6 +1160,9 @@ talon.config.Config.ControllerConfig defaultValue) {
               : trustBuilder_.build();
           to_bitField0_ |= 0x00000008;
         }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.models_ = internalGetModels().build(ModelsDefaultEntryHolder.defaultEntry);
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1061,6 +1206,9 @@ talon.config.Config.ControllerConfig defaultValue) {
         if (other.hasTrust()) {
           mergeTrust(other.getTrust());
         }
+        internalGetMutableModels().mergeFrom(
+            other.internalGetModels());
+        bitField0_ |= 0x00000100;
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -1143,6 +1291,15 @@ talon.config.Config.ControllerConfig defaultValue) {
                 bitField0_ |= 0x00000080;
                 break;
               } // case 66
+              case 74: {
+                com.google.protobuf.MapEntry<java.lang.String, talon.config.Config.ModelConfig>
+                models__ = input.readMessage(
+                    ModelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableModels().ensureBuilderMap().put(
+                    models__.getKey(), models__.getValue());
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2098,6 +2255,161 @@ talon.config.Config.ControllerConfig defaultValue) {
         return trustBuilder_;
       }
 
+      private static final class ModelsConverter implements com.google.protobuf.MapFieldBuilder.Converter<java.lang.String, talon.config.Config.ModelConfigOrBuilder, talon.config.Config.ModelConfig> {
+        @java.lang.Override
+        public talon.config.Config.ModelConfig build(talon.config.Config.ModelConfigOrBuilder val) {
+          if (val instanceof talon.config.Config.ModelConfig) { return (talon.config.Config.ModelConfig) val; }
+          return ((talon.config.Config.ModelConfig.Builder) val).build();
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.MapEntry<java.lang.String, talon.config.Config.ModelConfig> defaultEntry() {
+          return ModelsDefaultEntryHolder.defaultEntry;
+        }
+      };
+      private static final ModelsConverter modelsConverter = new ModelsConverter();
+
+      private com.google.protobuf.MapFieldBuilder<
+          java.lang.String, talon.config.Config.ModelConfigOrBuilder, talon.config.Config.ModelConfig, talon.config.Config.ModelConfig.Builder> models_;
+      private com.google.protobuf.MapFieldBuilder<java.lang.String, talon.config.Config.ModelConfigOrBuilder, talon.config.Config.ModelConfig, talon.config.Config.ModelConfig.Builder>
+          internalGetModels() {
+        if (models_ == null) {
+          return new com.google.protobuf.MapFieldBuilder<>(modelsConverter);
+        }
+        return models_;
+      }
+      private com.google.protobuf.MapFieldBuilder<java.lang.String, talon.config.Config.ModelConfigOrBuilder, talon.config.Config.ModelConfig, talon.config.Config.ModelConfig.Builder>
+          internalGetMutableModels() {
+        if (models_ == null) {
+          models_ = new com.google.protobuf.MapFieldBuilder<>(modelsConverter);
+        }
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return models_;
+      }
+      public int getModelsCount() {
+        return internalGetModels().ensureBuilderMap().size();
+      }
+      /**
+       * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+       */
+      @java.lang.Override
+      public boolean containsModels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetModels().ensureBuilderMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getModelsMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, talon.config.Config.ModelConfig> getModels() {
+        return getModelsMap();
+      }
+      /**
+       * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, talon.config.Config.ModelConfig> getModelsMap() {
+        return internalGetModels().getImmutableMap();
+      }
+      /**
+       * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+talon.config.Config.ModelConfig getModelsOrDefault(
+          java.lang.String key,
+          /* nullable */
+talon.config.Config.ModelConfig defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, talon.config.Config.ModelConfigOrBuilder> map = internalGetMutableModels().ensureBuilderMap();
+        return map.containsKey(key) ? modelsConverter.build(map.get(key)) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+       */
+      @java.lang.Override
+      public talon.config.Config.ModelConfig getModelsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, talon.config.Config.ModelConfigOrBuilder> map = internalGetMutableModels().ensureBuilderMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return modelsConverter.build(map.get(key));
+      }
+      public Builder clearModels() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        internalGetMutableModels().clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+       */
+      public Builder removeModels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableModels().ensureBuilderMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, talon.config.Config.ModelConfig>
+          getMutableModels() {
+        bitField0_ |= 0x00000100;
+        return internalGetMutableModels().ensureMessageMap();
+      }
+      /**
+       * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+       */
+      public Builder putModels(
+          java.lang.String key,
+          talon.config.Config.ModelConfig value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableModels().ensureBuilderMap()
+            .put(key, value);
+        bitField0_ |= 0x00000100;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+       */
+      public Builder putAllModels(
+          java.util.Map<java.lang.String, talon.config.Config.ModelConfig> values) {
+        for (java.util.Map.Entry<java.lang.String, talon.config.Config.ModelConfig> e : values.entrySet()) {
+          if (e.getKey() == null || e.getValue() == null) {
+            throw new NullPointerException();
+          }
+        }
+        internalGetMutableModels().ensureBuilderMap()
+            .putAll(values);
+        bitField0_ |= 0x00000100;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, .talon.config.ModelConfig&gt; models = 9;</code>
+       */
+      public talon.config.Config.ModelConfig.Builder putModelsBuilderIfAbsent(
+          java.lang.String key) {
+        java.util.Map<java.lang.String, talon.config.Config.ModelConfigOrBuilder> builderMap = internalGetMutableModels().ensureBuilderMap();
+        talon.config.Config.ModelConfigOrBuilder entry = builderMap.get(key);
+        if (entry == null) {
+          entry = talon.config.Config.ModelConfig.newBuilder();
+          builderMap.put(key, entry);
+        }
+        if (entry instanceof talon.config.Config.ModelConfig) {
+          entry = ((talon.config.Config.ModelConfig) entry).toBuilder();
+          builderMap.put(key, entry);
+        }
+        return (talon.config.Config.ModelConfig.Builder) entry;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.config.TalonConfig)
     }
 
@@ -2144,6 +2456,1140 @@ talon.config.Config.ControllerConfig defaultValue) {
 
     @java.lang.Override
     public talon.config.Config.TalonConfig getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ModelConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.ModelConfig)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string provider = 1;</code>
+     * @return The provider.
+     */
+    java.lang.String getProvider();
+    /**
+     * <code>string provider = 1;</code>
+     * @return The bytes for provider.
+     */
+    com.google.protobuf.ByteString
+        getProviderBytes();
+
+    /**
+     * <code>optional uint64 context_window_tokens = 2;</code>
+     * @return Whether the contextWindowTokens field is set.
+     */
+    boolean hasContextWindowTokens();
+    /**
+     * <code>optional uint64 context_window_tokens = 2;</code>
+     * @return The contextWindowTokens.
+     */
+    long getContextWindowTokens();
+
+    /**
+     * <code>optional uint64 max_output_tokens = 3;</code>
+     * @return Whether the maxOutputTokens field is set.
+     */
+    boolean hasMaxOutputTokens();
+    /**
+     * <code>optional uint64 max_output_tokens = 3;</code>
+     * @return The maxOutputTokens.
+     */
+    long getMaxOutputTokens();
+
+    /**
+     * <code>optional double input_cost_per_million_tokens = 4;</code>
+     * @return Whether the inputCostPerMillionTokens field is set.
+     */
+    boolean hasInputCostPerMillionTokens();
+    /**
+     * <code>optional double input_cost_per_million_tokens = 4;</code>
+     * @return The inputCostPerMillionTokens.
+     */
+    double getInputCostPerMillionTokens();
+
+    /**
+     * <code>optional double output_cost_per_million_tokens = 5;</code>
+     * @return Whether the outputCostPerMillionTokens field is set.
+     */
+    boolean hasOutputCostPerMillionTokens();
+    /**
+     * <code>optional double output_cost_per_million_tokens = 5;</code>
+     * @return The outputCostPerMillionTokens.
+     */
+    double getOutputCostPerMillionTokens();
+
+    /**
+     * <code>optional double cache_read_cost_per_million_tokens = 6;</code>
+     * @return Whether the cacheReadCostPerMillionTokens field is set.
+     */
+    boolean hasCacheReadCostPerMillionTokens();
+    /**
+     * <code>optional double cache_read_cost_per_million_tokens = 6;</code>
+     * @return The cacheReadCostPerMillionTokens.
+     */
+    double getCacheReadCostPerMillionTokens();
+
+    /**
+     * <code>optional double cache_write_cost_per_million_tokens = 7;</code>
+     * @return Whether the cacheWriteCostPerMillionTokens field is set.
+     */
+    boolean hasCacheWriteCostPerMillionTokens();
+    /**
+     * <code>optional double cache_write_cost_per_million_tokens = 7;</code>
+     * @return The cacheWriteCostPerMillionTokens.
+     */
+    double getCacheWriteCostPerMillionTokens();
+  }
+  /**
+   * <pre>
+   * Static metadata for a model configured in the model catalog. Costs are in
+   * USD per one million tokens. The context window includes generated output;
+   * compaction reserves max_output_tokens from it when both are configured.
+   * </pre>
+   *
+   * Protobuf type {@code talon.config.ModelConfig}
+   */
+  public static final class ModelConfig extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.ModelConfig)
+      ModelConfigOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ModelConfig");
+    }
+    // Use ModelConfig.newBuilder() to construct.
+    private ModelConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ModelConfig() {
+      provider_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_ModelConfig_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_ModelConfig_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_ModelConfig_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.ModelConfig.class, talon.config.Config.ModelConfig.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int PROVIDER_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object provider_ = "";
+    /**
+     * <code>string provider = 1;</code>
+     * @return The provider.
+     */
+    @java.lang.Override
+    public java.lang.String getProvider() {
+      java.lang.Object ref = provider_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        provider_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string provider = 1;</code>
+     * @return The bytes for provider.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getProviderBytes() {
+      java.lang.Object ref = provider_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        provider_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CONTEXT_WINDOW_TOKENS_FIELD_NUMBER = 2;
+    private long contextWindowTokens_ = 0L;
+    /**
+     * <code>optional uint64 context_window_tokens = 2;</code>
+     * @return Whether the contextWindowTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasContextWindowTokens() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional uint64 context_window_tokens = 2;</code>
+     * @return The contextWindowTokens.
+     */
+    @java.lang.Override
+    public long getContextWindowTokens() {
+      return contextWindowTokens_;
+    }
+
+    public static final int MAX_OUTPUT_TOKENS_FIELD_NUMBER = 3;
+    private long maxOutputTokens_ = 0L;
+    /**
+     * <code>optional uint64 max_output_tokens = 3;</code>
+     * @return Whether the maxOutputTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasMaxOutputTokens() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional uint64 max_output_tokens = 3;</code>
+     * @return The maxOutputTokens.
+     */
+    @java.lang.Override
+    public long getMaxOutputTokens() {
+      return maxOutputTokens_;
+    }
+
+    public static final int INPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER = 4;
+    private double inputCostPerMillionTokens_ = 0D;
+    /**
+     * <code>optional double input_cost_per_million_tokens = 4;</code>
+     * @return Whether the inputCostPerMillionTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasInputCostPerMillionTokens() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>optional double input_cost_per_million_tokens = 4;</code>
+     * @return The inputCostPerMillionTokens.
+     */
+    @java.lang.Override
+    public double getInputCostPerMillionTokens() {
+      return inputCostPerMillionTokens_;
+    }
+
+    public static final int OUTPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER = 5;
+    private double outputCostPerMillionTokens_ = 0D;
+    /**
+     * <code>optional double output_cost_per_million_tokens = 5;</code>
+     * @return Whether the outputCostPerMillionTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasOutputCostPerMillionTokens() {
+      return ((bitField0_ & 0x00000008) != 0);
+    }
+    /**
+     * <code>optional double output_cost_per_million_tokens = 5;</code>
+     * @return The outputCostPerMillionTokens.
+     */
+    @java.lang.Override
+    public double getOutputCostPerMillionTokens() {
+      return outputCostPerMillionTokens_;
+    }
+
+    public static final int CACHE_READ_COST_PER_MILLION_TOKENS_FIELD_NUMBER = 6;
+    private double cacheReadCostPerMillionTokens_ = 0D;
+    /**
+     * <code>optional double cache_read_cost_per_million_tokens = 6;</code>
+     * @return Whether the cacheReadCostPerMillionTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasCacheReadCostPerMillionTokens() {
+      return ((bitField0_ & 0x00000010) != 0);
+    }
+    /**
+     * <code>optional double cache_read_cost_per_million_tokens = 6;</code>
+     * @return The cacheReadCostPerMillionTokens.
+     */
+    @java.lang.Override
+    public double getCacheReadCostPerMillionTokens() {
+      return cacheReadCostPerMillionTokens_;
+    }
+
+    public static final int CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER = 7;
+    private double cacheWriteCostPerMillionTokens_ = 0D;
+    /**
+     * <code>optional double cache_write_cost_per_million_tokens = 7;</code>
+     * @return Whether the cacheWriteCostPerMillionTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasCacheWriteCostPerMillionTokens() {
+      return ((bitField0_ & 0x00000020) != 0);
+    }
+    /**
+     * <code>optional double cache_write_cost_per_million_tokens = 7;</code>
+     * @return The cacheWriteCostPerMillionTokens.
+     */
+    @java.lang.Override
+    public double getCacheWriteCostPerMillionTokens() {
+      return cacheWriteCostPerMillionTokens_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(provider_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, provider_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeUInt64(2, contextWindowTokens_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeUInt64(3, maxOutputTokens_);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeDouble(4, inputCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000008) != 0)) {
+        output.writeDouble(5, outputCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000010) != 0)) {
+        output.writeDouble(6, cacheReadCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000020) != 0)) {
+        output.writeDouble(7, cacheWriteCostPerMillionTokens_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(provider_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, provider_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, contextWindowTokens_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, maxOutputTokens_);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(4, inputCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000008) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(5, outputCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000010) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(6, cacheReadCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000020) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(7, cacheWriteCostPerMillionTokens_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.ModelConfig)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.ModelConfig other = (talon.config.Config.ModelConfig) obj;
+
+      if (!getProvider()
+          .equals(other.getProvider())) return false;
+      if (hasContextWindowTokens() != other.hasContextWindowTokens()) return false;
+      if (hasContextWindowTokens()) {
+        if (getContextWindowTokens()
+            != other.getContextWindowTokens()) return false;
+      }
+      if (hasMaxOutputTokens() != other.hasMaxOutputTokens()) return false;
+      if (hasMaxOutputTokens()) {
+        if (getMaxOutputTokens()
+            != other.getMaxOutputTokens()) return false;
+      }
+      if (hasInputCostPerMillionTokens() != other.hasInputCostPerMillionTokens()) return false;
+      if (hasInputCostPerMillionTokens()) {
+        if (java.lang.Double.doubleToLongBits(getInputCostPerMillionTokens())
+            != java.lang.Double.doubleToLongBits(
+                other.getInputCostPerMillionTokens())) return false;
+      }
+      if (hasOutputCostPerMillionTokens() != other.hasOutputCostPerMillionTokens()) return false;
+      if (hasOutputCostPerMillionTokens()) {
+        if (java.lang.Double.doubleToLongBits(getOutputCostPerMillionTokens())
+            != java.lang.Double.doubleToLongBits(
+                other.getOutputCostPerMillionTokens())) return false;
+      }
+      if (hasCacheReadCostPerMillionTokens() != other.hasCacheReadCostPerMillionTokens()) return false;
+      if (hasCacheReadCostPerMillionTokens()) {
+        if (java.lang.Double.doubleToLongBits(getCacheReadCostPerMillionTokens())
+            != java.lang.Double.doubleToLongBits(
+                other.getCacheReadCostPerMillionTokens())) return false;
+      }
+      if (hasCacheWriteCostPerMillionTokens() != other.hasCacheWriteCostPerMillionTokens()) return false;
+      if (hasCacheWriteCostPerMillionTokens()) {
+        if (java.lang.Double.doubleToLongBits(getCacheWriteCostPerMillionTokens())
+            != java.lang.Double.doubleToLongBits(
+                other.getCacheWriteCostPerMillionTokens())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PROVIDER_FIELD_NUMBER;
+      hash = (53 * hash) + getProvider().hashCode();
+      if (hasContextWindowTokens()) {
+        hash = (37 * hash) + CONTEXT_WINDOW_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getContextWindowTokens());
+      }
+      if (hasMaxOutputTokens()) {
+        hash = (37 * hash) + MAX_OUTPUT_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getMaxOutputTokens());
+      }
+      if (hasInputCostPerMillionTokens()) {
+        hash = (37 * hash) + INPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getInputCostPerMillionTokens()));
+      }
+      if (hasOutputCostPerMillionTokens()) {
+        hash = (37 * hash) + OUTPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getOutputCostPerMillionTokens()));
+      }
+      if (hasCacheReadCostPerMillionTokens()) {
+        hash = (37 * hash) + CACHE_READ_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getCacheReadCostPerMillionTokens()));
+      }
+      if (hasCacheWriteCostPerMillionTokens()) {
+        hash = (37 * hash) + CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getCacheWriteCostPerMillionTokens()));
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.ModelConfig parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.ModelConfig parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.ModelConfig parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.ModelConfig parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.ModelConfig prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Static metadata for a model configured in the model catalog. Costs are in
+     * USD per one million tokens. The context window includes generated output;
+     * compaction reserves max_output_tokens from it when both are configured.
+     * </pre>
+     *
+     * Protobuf type {@code talon.config.ModelConfig}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.ModelConfig)
+        talon.config.Config.ModelConfigOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_ModelConfig_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_ModelConfig_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.ModelConfig.class, talon.config.Config.ModelConfig.Builder.class);
+      }
+
+      // Construct using talon.config.Config.ModelConfig.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        provider_ = "";
+        contextWindowTokens_ = 0L;
+        maxOutputTokens_ = 0L;
+        inputCostPerMillionTokens_ = 0D;
+        outputCostPerMillionTokens_ = 0D;
+        cacheReadCostPerMillionTokens_ = 0D;
+        cacheWriteCostPerMillionTokens_ = 0D;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_ModelConfig_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.ModelConfig getDefaultInstanceForType() {
+        return talon.config.Config.ModelConfig.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.ModelConfig build() {
+        talon.config.Config.ModelConfig result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.ModelConfig buildPartial() {
+        talon.config.Config.ModelConfig result = new talon.config.Config.ModelConfig(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.ModelConfig result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.provider_ = provider_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.contextWindowTokens_ = contextWindowTokens_;
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.maxOutputTokens_ = maxOutputTokens_;
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.inputCostPerMillionTokens_ = inputCostPerMillionTokens_;
+          to_bitField0_ |= 0x00000004;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.outputCostPerMillionTokens_ = outputCostPerMillionTokens_;
+          to_bitField0_ |= 0x00000008;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.cacheReadCostPerMillionTokens_ = cacheReadCostPerMillionTokens_;
+          to_bitField0_ |= 0x00000010;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.cacheWriteCostPerMillionTokens_ = cacheWriteCostPerMillionTokens_;
+          to_bitField0_ |= 0x00000020;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.ModelConfig) {
+          return mergeFrom((talon.config.Config.ModelConfig)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.ModelConfig other) {
+        if (other == talon.config.Config.ModelConfig.getDefaultInstance()) return this;
+        if (!other.getProvider().isEmpty()) {
+          provider_ = other.provider_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.hasContextWindowTokens()) {
+          setContextWindowTokens(other.getContextWindowTokens());
+        }
+        if (other.hasMaxOutputTokens()) {
+          setMaxOutputTokens(other.getMaxOutputTokens());
+        }
+        if (other.hasInputCostPerMillionTokens()) {
+          setInputCostPerMillionTokens(other.getInputCostPerMillionTokens());
+        }
+        if (other.hasOutputCostPerMillionTokens()) {
+          setOutputCostPerMillionTokens(other.getOutputCostPerMillionTokens());
+        }
+        if (other.hasCacheReadCostPerMillionTokens()) {
+          setCacheReadCostPerMillionTokens(other.getCacheReadCostPerMillionTokens());
+        }
+        if (other.hasCacheWriteCostPerMillionTokens()) {
+          setCacheWriteCostPerMillionTokens(other.getCacheWriteCostPerMillionTokens());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                provider_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 16: {
+                contextWindowTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                maxOutputTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 33: {
+                inputCostPerMillionTokens_ = input.readDouble();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 33
+              case 41: {
+                outputCostPerMillionTokens_ = input.readDouble();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 41
+              case 49: {
+                cacheReadCostPerMillionTokens_ = input.readDouble();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 49
+              case 57: {
+                cacheWriteCostPerMillionTokens_ = input.readDouble();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 57
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object provider_ = "";
+      /**
+       * <code>string provider = 1;</code>
+       * @return The provider.
+       */
+      public java.lang.String getProvider() {
+        java.lang.Object ref = provider_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          provider_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string provider = 1;</code>
+       * @return The bytes for provider.
+       */
+      public com.google.protobuf.ByteString
+          getProviderBytes() {
+        java.lang.Object ref = provider_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          provider_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string provider = 1;</code>
+       * @param value The provider to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProvider(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        provider_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProvider() {
+        provider_ = getDefaultInstance().getProvider();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider = 1;</code>
+       * @param value The bytes for provider to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        provider_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private long contextWindowTokens_ ;
+      /**
+       * <code>optional uint64 context_window_tokens = 2;</code>
+       * @return Whether the contextWindowTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasContextWindowTokens() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>optional uint64 context_window_tokens = 2;</code>
+       * @return The contextWindowTokens.
+       */
+      @java.lang.Override
+      public long getContextWindowTokens() {
+        return contextWindowTokens_;
+      }
+      /**
+       * <code>optional uint64 context_window_tokens = 2;</code>
+       * @param value The contextWindowTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setContextWindowTokens(long value) {
+
+        contextWindowTokens_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint64 context_window_tokens = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearContextWindowTokens() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        contextWindowTokens_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long maxOutputTokens_ ;
+      /**
+       * <code>optional uint64 max_output_tokens = 3;</code>
+       * @return Whether the maxOutputTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasMaxOutputTokens() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>optional uint64 max_output_tokens = 3;</code>
+       * @return The maxOutputTokens.
+       */
+      @java.lang.Override
+      public long getMaxOutputTokens() {
+        return maxOutputTokens_;
+      }
+      /**
+       * <code>optional uint64 max_output_tokens = 3;</code>
+       * @param value The maxOutputTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaxOutputTokens(long value) {
+
+        maxOutputTokens_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint64 max_output_tokens = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaxOutputTokens() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        maxOutputTokens_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private double inputCostPerMillionTokens_ ;
+      /**
+       * <code>optional double input_cost_per_million_tokens = 4;</code>
+       * @return Whether the inputCostPerMillionTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasInputCostPerMillionTokens() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>optional double input_cost_per_million_tokens = 4;</code>
+       * @return The inputCostPerMillionTokens.
+       */
+      @java.lang.Override
+      public double getInputCostPerMillionTokens() {
+        return inputCostPerMillionTokens_;
+      }
+      /**
+       * <code>optional double input_cost_per_million_tokens = 4;</code>
+       * @param value The inputCostPerMillionTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputCostPerMillionTokens(double value) {
+
+        inputCostPerMillionTokens_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional double input_cost_per_million_tokens = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputCostPerMillionTokens() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        inputCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private double outputCostPerMillionTokens_ ;
+      /**
+       * <code>optional double output_cost_per_million_tokens = 5;</code>
+       * @return Whether the outputCostPerMillionTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasOutputCostPerMillionTokens() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <code>optional double output_cost_per_million_tokens = 5;</code>
+       * @return The outputCostPerMillionTokens.
+       */
+      @java.lang.Override
+      public double getOutputCostPerMillionTokens() {
+        return outputCostPerMillionTokens_;
+      }
+      /**
+       * <code>optional double output_cost_per_million_tokens = 5;</code>
+       * @param value The outputCostPerMillionTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputCostPerMillionTokens(double value) {
+
+        outputCostPerMillionTokens_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional double output_cost_per_million_tokens = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputCostPerMillionTokens() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        outputCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private double cacheReadCostPerMillionTokens_ ;
+      /**
+       * <code>optional double cache_read_cost_per_million_tokens = 6;</code>
+       * @return Whether the cacheReadCostPerMillionTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasCacheReadCostPerMillionTokens() {
+        return ((bitField0_ & 0x00000020) != 0);
+      }
+      /**
+       * <code>optional double cache_read_cost_per_million_tokens = 6;</code>
+       * @return The cacheReadCostPerMillionTokens.
+       */
+      @java.lang.Override
+      public double getCacheReadCostPerMillionTokens() {
+        return cacheReadCostPerMillionTokens_;
+      }
+      /**
+       * <code>optional double cache_read_cost_per_million_tokens = 6;</code>
+       * @param value The cacheReadCostPerMillionTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCacheReadCostPerMillionTokens(double value) {
+
+        cacheReadCostPerMillionTokens_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional double cache_read_cost_per_million_tokens = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCacheReadCostPerMillionTokens() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        cacheReadCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private double cacheWriteCostPerMillionTokens_ ;
+      /**
+       * <code>optional double cache_write_cost_per_million_tokens = 7;</code>
+       * @return Whether the cacheWriteCostPerMillionTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasCacheWriteCostPerMillionTokens() {
+        return ((bitField0_ & 0x00000040) != 0);
+      }
+      /**
+       * <code>optional double cache_write_cost_per_million_tokens = 7;</code>
+       * @return The cacheWriteCostPerMillionTokens.
+       */
+      @java.lang.Override
+      public double getCacheWriteCostPerMillionTokens() {
+        return cacheWriteCostPerMillionTokens_;
+      }
+      /**
+       * <code>optional double cache_write_cost_per_million_tokens = 7;</code>
+       * @param value The cacheWriteCostPerMillionTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCacheWriteCostPerMillionTokens(double value) {
+
+        cacheWriteCostPerMillionTokens_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional double cache_write_cost_per_million_tokens = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCacheWriteCostPerMillionTokens() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        cacheWriteCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.ModelConfig)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.ModelConfig)
+    private static final talon.config.Config.ModelConfig DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.ModelConfig();
+    }
+
+    public static talon.config.Config.ModelConfig getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ModelConfig>
+        PARSER = new com.google.protobuf.AbstractParser<ModelConfig>() {
+      @java.lang.Override
+      public ModelConfig parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ModelConfig> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ModelConfig> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.ModelConfig getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -24662,6 +26108,16 @@ talon.config.Config.ControllerConfig defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_TalonConfig_ControllersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_TalonConfig_ModelsEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_TalonConfig_ModelsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_ModelConfig_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_ModelConfig_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_TrustConfig_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -24790,7 +26246,7 @@ talon.config.Config.ControllerConfig defaultValue) {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022proto/config.proto\022\014talon.config\"\242\004\n\013T" +
+      "\n\022proto/config.proto\022\014talon.config\"\243\005\n\013T" +
       "alonConfig\022;\n\tproviders\030\001 \003(\0132(.talon.co" +
       "nfig.TalonConfig.ProvidersEntry\022.\n\010datab" +
       "ase\030\002 \001(\0132\034.talon.config.DatabaseConfig\022" +
@@ -24800,86 +26256,102 @@ talon.config.Config.ControllerConfig defaultValue) {
       "lon.config.ControlPlaneConfig\022?\n\013control" +
       "lers\030\007 \003(\0132*.talon.config.TalonConfig.Co" +
       "ntrollersEntry\022(\n\005trust\030\010 \001(\0132\031.talon.co" +
-      "nfig.TrustConfig\032Q\n\016ProvidersEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022.\n\005value\030\002 \001(\0132\037.talon.config.Ll" +
-      "mProviderConfig:\0028\001\032R\n\020ControllersEntry\022" +
-      "\013\n\003key\030\001 \001(\t\022-\n\005value\030\002 \001(\0132\036.talon.conf" +
-      "ig.ControllerConfig:\0028\001\"9\n\013TrustConfig\022*" +
-      "\n\004oidc\030\001 \003(\0132\034.talon.config.OidcTrustEnt" +
-      "ry\"\316\001\n\016OidcTrustEntry\022\014\n\004name\030\001 \001(\t\022\016\n\006i" +
-      "ssuer\030\002 \001(\t\022\021\n\taudiences\030\003 \003(\t\022\027\n\017allowe" +
-      "d_domains\030\004 \003(\t\022\026\n\016allowed_emails\030\005 \003(\t\022" +
-      "\020\n\010jwks_url\030\006 \001(\t\022\032\n\022clock_skew_seconds\030" +
-      "\007 \001(\r\022,\n\006grants\030\010 \003(\0132\034.talon.config.Oid" +
-      "cTrustGrant\"\274\001\n\016OidcTrustGrant\022/\n\004kind\030\001" +
-      " \001(\0162!.talon.config.OidcTrustGrant.Kind\022" +
-      "\021\n\tnamespace\030\002 \001(\t\022\r\n\005agent\030\003 \001(\t\022\017\n\007ses" +
-      "sion\030\004 \001(\t\022\017\n\007channel\030\005 \001(\t\"5\n\004Kind\022\024\n\020K" +
-      "IND_UNSPECIFIED\020\000\022\010\n\004READ\020\001\022\r\n\tREADWRITE" +
-      "\020\002\"4\n\020ControllerConfig\022\017\n\007enabled\030\001 \001(\010\022" +
-      "\017\n\007workers\030\002 \001(\r\"\347\001\n\021LlmProviderConfig\022," +
-      "\n\006openai\030\001 \001(\0132\032.talon.config.OpenAiConf" +
-      "igH\000\0222\n\tanthropic\030\002 \001(\0132\035.talon.config.A" +
-      "nthropicConfigH\000\022,\n\006google\030\003 \001(\0132\032.talon" +
-      ".config.GoogleConfigH\000\0228\n\021openai_compati" +
-      "ble\030\004 \001(\0132\033.talon.config.GenericConfigH\000" +
-      "B\010\n\006config\"T\n\014OpenAiConfig\022\r\n\005model\030\001 \001(" +
-      "\t\022%\n\007api_key\030\002 \001(\0132\024.talon.config.Secret" +
-      "\022\016\n\006org_id\030\003 \001(\t\"G\n\017AnthropicConfig\022\r\n\005m" +
-      "odel\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talon.conf" +
-      "ig.Secret\"D\n\014GoogleConfig\022\r\n\005model\030\001 \001(\t" +
-      "\022%\n\007api_key\030\002 \001(\0132\024.talon.config.Secret\"" +
-      "e\n\rGenericConfig\022\014\n\004name\030\001 \001(\t\022\020\n\010base_u" +
-      "rl\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\022%\n\007api_key\030\004 \001(\013" +
-      "2\024.talon.config.Secret\"K\n\006Secret\022\017\n\005plai" +
-      "n\030\001 \001(\tH\000\022&\n\003ref\030\002 \001(\0132\027.talon.config.Se" +
-      "cretRefH\000B\010\n\006source\"\206\001\n\tSecretRef\022.\n\006sou" +
-      "rce\030\001 \001(\0162\036.talon.config.SecretRef.Sourc" +
-      "e\022\013\n\003key\030\002 \001(\t\"<\n\006Source\022\007\n\003ENV\020\000\022\007\n\003GCP" +
-      "\020\001\022\014\n\010KEYCHAIN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE\020\004\"U\n\016" +
-      "DatabaseConfig\022\020\n\010data_dir\030\001 \001(\t\022\016\n\006driv" +
-      "er\030\002 \001(\t\022!\n\003url\030\003 \001(\0132\024.talon.config.Sec" +
-      "ret\"%\n\023MessageBrokerConfig\022\016\n\006driver\030\001 \001" +
-      "(\t\"&\n\026LocalObjectStoreConfig\022\014\n\004path\030\001 \001" +
-      "(\t\"L\n\024GcsObjectStoreConfig\022\016\n\006bucket\030\001 \001" +
-      "(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014api_base_url\030\003 \001(\t" +
-      "\"u\n\023S3ObjectStoreConfig\022\016\n\006bucket\030\001 \001(\t\022" +
-      "\016\n\006prefix\030\002 \001(\t\022\016\n\006region\030\003 \001(\t\022\024\n\014endpo" +
-      "int_url\030\004 \001(\t\022\030\n\020force_path_style\030\005 \001(\010\"" +
-      "\271\001\n\021ObjectStoreConfig\0225\n\005local\030\001 \001(\0132$.t" +
-      "alon.config.LocalObjectStoreConfigH\000\0221\n\003" +
-      "gcs\030\002 \001(\0132\".talon.config.GcsObjectStoreC" +
-      "onfigH\000\022/\n\002s3\030\003 \001(\0132!.talon.config.S3Obj" +
-      "ectStoreConfigH\000B\t\n\007backend\"\217\001\n\033Schedule" +
-      "rCallbackAuthConfig\022-\n\rshared_secret\030\001 \001" +
-      "(\0132\024.talon.config.SecretH\000\0229\n\013google_oid" +
-      "c\030\002 \001(\0132\".talon.config.GoogleOidcAuthCon" +
-      "figH\000B\006\n\004auth\"G\n\024GoogleOidcAuthConfig\022\020\n" +
-      "\010audience\030\001 \001(\t\022\035\n\025service_account_email" +
-      "\030\002 \001(\t\"\246\001\n\031CloudTasksSchedulerConfig\022\022\n\n" +
-      "project_id\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005qu" +
-      "eue\030\003 \001(\t\022\022\n\ntarget_url\030\004 \001(\t\022@\n\rcallbac" +
-      "k_auth\030\005 \001(\0132).talon.config.SchedulerCal" +
-      "lbackAuthConfig\"\212\002\n\035AwsEventBridgeSchedu" +
-      "lerConfig\022\022\n\ngroup_name\030\001 \001(\t\022\021\n\tqueue_u" +
-      "rl\030\002 \001(\t\022\032\n\022execution_role_arn\030\003 \001(\t\022\034\n\024" +
-      "schedule_name_prefix\030\004 \001(\t\022\017\n\007dlq_arn\030\005 " +
-      "\001(\t\022!\n\031maximum_event_age_seconds\030\006 \001(\r\022#" +
-      "\n\026maximum_retry_attempts\030\007 \001(\rH\000\210\001\001\022\024\n\014e" +
-      "ndpoint_url\030\010 \001(\tB\031\n\027_maximum_retry_atte" +
-      "mpts\"\256\001\n\017SchedulerConfig\022>\n\013cloud_tasks\030" +
-      "\001 \001(\0132\'.talon.config.CloudTasksScheduler" +
-      "ConfigH\000\022P\n\031aws_eventbridge_scheduler\030\002 " +
-      "\001(\0132+.talon.config.AwsEventBridgeSchedul" +
-      "erConfigH\000B\t\n\007backend\"\231\002\n\022ControlPlaneCo" +
-      "nfig\022.\n\010database\030\001 \001(\0132\034.talon.config.Da" +
-      "tabaseConfig\0229\n\016message_broker\030\002 \001(\0132!.t" +
-      "alon.config.MessageBrokerConfig\0220\n\tsched" +
-      "uler\030\003 \001(\0132\035.talon.config.SchedulerConfi" +
-      "g\0225\n\014object_store\030\004 \001(\0132\037.talon.config.O" +
-      "bjectStoreConfig\022/\n\tdocuments\030\005 \001(\0132\034.ta" +
-      "lon.config.DatabaseConfig\"*\n\014ServerConfi" +
-      "g\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
+      "nfig.TrustConfig\0225\n\006models\030\t \003(\0132%.talon" +
+      ".config.TalonConfig.ModelsEntry\032Q\n\016Provi" +
+      "dersEntry\022\013\n\003key\030\001 \001(\t\022.\n\005value\030\002 \001(\0132\037." +
+      "talon.config.LlmProviderConfig:\0028\001\032R\n\020Co" +
+      "ntrollersEntry\022\013\n\003key\030\001 \001(\t\022-\n\005value\030\002 \001" +
+      "(\0132\036.talon.config.ControllerConfig:\0028\001\032H" +
+      "\n\013ModelsEntry\022\013\n\003key\030\001 \001(\t\022(\n\005value\030\002 \001(" +
+      "\0132\031.talon.config.ModelConfig:\0028\001\"\343\003\n\013Mod" +
+      "elConfig\022\020\n\010provider\030\001 \001(\t\022\"\n\025context_wi" +
+      "ndow_tokens\030\002 \001(\004H\000\210\001\001\022\036\n\021max_output_tok" +
+      "ens\030\003 \001(\004H\001\210\001\001\022*\n\035input_cost_per_million" +
+      "_tokens\030\004 \001(\001H\002\210\001\001\022+\n\036output_cost_per_mi" +
+      "llion_tokens\030\005 \001(\001H\003\210\001\001\022/\n\"cache_read_co" +
+      "st_per_million_tokens\030\006 \001(\001H\004\210\001\001\0220\n#cach" +
+      "e_write_cost_per_million_tokens\030\007 \001(\001H\005\210" +
+      "\001\001B\030\n\026_context_window_tokensB\024\n\022_max_out" +
+      "put_tokensB \n\036_input_cost_per_million_to" +
+      "kensB!\n\037_output_cost_per_million_tokensB" +
+      "%\n#_cache_read_cost_per_million_tokensB&" +
+      "\n$_cache_write_cost_per_million_tokens\"9" +
+      "\n\013TrustConfig\022*\n\004oidc\030\001 \003(\0132\034.talon.conf" +
+      "ig.OidcTrustEntry\"\316\001\n\016OidcTrustEntry\022\014\n\004" +
+      "name\030\001 \001(\t\022\016\n\006issuer\030\002 \001(\t\022\021\n\taudiences\030" +
+      "\003 \003(\t\022\027\n\017allowed_domains\030\004 \003(\t\022\026\n\016allowe" +
+      "d_emails\030\005 \003(\t\022\020\n\010jwks_url\030\006 \001(\t\022\032\n\022cloc" +
+      "k_skew_seconds\030\007 \001(\r\022,\n\006grants\030\010 \003(\0132\034.t" +
+      "alon.config.OidcTrustGrant\"\274\001\n\016OidcTrust" +
+      "Grant\022/\n\004kind\030\001 \001(\0162!.talon.config.OidcT" +
+      "rustGrant.Kind\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005age" +
+      "nt\030\003 \001(\t\022\017\n\007session\030\004 \001(\t\022\017\n\007channel\030\005 \001" +
+      "(\t\"5\n\004Kind\022\024\n\020KIND_UNSPECIFIED\020\000\022\010\n\004READ" +
+      "\020\001\022\r\n\tREADWRITE\020\002\"4\n\020ControllerConfig\022\017\n" +
+      "\007enabled\030\001 \001(\010\022\017\n\007workers\030\002 \001(\r\"\347\001\n\021LlmP" +
+      "roviderConfig\022,\n\006openai\030\001 \001(\0132\032.talon.co" +
+      "nfig.OpenAiConfigH\000\0222\n\tanthropic\030\002 \001(\0132\035" +
+      ".talon.config.AnthropicConfigH\000\022,\n\006googl" +
+      "e\030\003 \001(\0132\032.talon.config.GoogleConfigH\000\0228\n" +
+      "\021openai_compatible\030\004 \001(\0132\033.talon.config." +
+      "GenericConfigH\000B\010\n\006config\"T\n\014OpenAiConfi" +
+      "g\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talo" +
+      "n.config.Secret\022\016\n\006org_id\030\003 \001(\t\"G\n\017Anthr" +
+      "opicConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001" +
+      "(\0132\024.talon.config.Secret\"D\n\014GoogleConfig" +
+      "\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talon" +
+      ".config.Secret\"e\n\rGenericConfig\022\014\n\004name\030" +
+      "\001 \001(\t\022\020\n\010base_url\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\022%" +
+      "\n\007api_key\030\004 \001(\0132\024.talon.config.Secret\"K\n" +
+      "\006Secret\022\017\n\005plain\030\001 \001(\tH\000\022&\n\003ref\030\002 \001(\0132\027." +
+      "talon.config.SecretRefH\000B\010\n\006source\"\206\001\n\tS" +
+      "ecretRef\022.\n\006source\030\001 \001(\0162\036.talon.config." +
+      "SecretRef.Source\022\013\n\003key\030\002 \001(\t\"<\n\006Source\022" +
+      "\007\n\003ENV\020\000\022\007\n\003GCP\020\001\022\014\n\010KEYCHAIN\020\002\022\007\n\003AWS\020\003" +
+      "\022\t\n\005AZURE\020\004\"U\n\016DatabaseConfig\022\020\n\010data_di" +
+      "r\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t\022!\n\003url\030\003 \001(\0132\024.t" +
+      "alon.config.Secret\"%\n\023MessageBrokerConfi" +
+      "g\022\016\n\006driver\030\001 \001(\t\"&\n\026LocalObjectStoreCon" +
+      "fig\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObjectStoreConfi" +
+      "g\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014api" +
+      "_base_url\030\003 \001(\t\"u\n\023S3ObjectStoreConfig\022\016" +
+      "\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006region" +
+      "\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(\t\022\030\n\020force_pa" +
+      "th_style\030\005 \001(\010\"\271\001\n\021ObjectStoreConfig\0225\n\005" +
+      "local\030\001 \001(\0132$.talon.config.LocalObjectSt" +
+      "oreConfigH\000\0221\n\003gcs\030\002 \001(\0132\".talon.config." +
+      "GcsObjectStoreConfigH\000\022/\n\002s3\030\003 \001(\0132!.tal" +
+      "on.config.S3ObjectStoreConfigH\000B\t\n\007backe" +
+      "nd\"\217\001\n\033SchedulerCallbackAuthConfig\022-\n\rsh" +
+      "ared_secret\030\001 \001(\0132\024.talon.config.SecretH" +
+      "\000\0229\n\013google_oidc\030\002 \001(\0132\".talon.config.Go" +
+      "ogleOidcAuthConfigH\000B\006\n\004auth\"G\n\024GoogleOi" +
+      "dcAuthConfig\022\020\n\010audience\030\001 \001(\t\022\035\n\025servic" +
+      "e_account_email\030\002 \001(\t\"\246\001\n\031CloudTasksSche" +
+      "dulerConfig\022\022\n\nproject_id\030\001 \001(\t\022\020\n\010locat" +
+      "ion\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarget_url\030\004" +
+      " \001(\t\022@\n\rcallback_auth\030\005 \001(\0132).talon.conf" +
+      "ig.SchedulerCallbackAuthConfig\"\212\002\n\035AwsEv" +
+      "entBridgeSchedulerConfig\022\022\n\ngroup_name\030\001" +
+      " \001(\t\022\021\n\tqueue_url\030\002 \001(\t\022\032\n\022execution_rol" +
+      "e_arn\030\003 \001(\t\022\034\n\024schedule_name_prefix\030\004 \001(" +
+      "\t\022\017\n\007dlq_arn\030\005 \001(\t\022!\n\031maximum_event_age_" +
+      "seconds\030\006 \001(\r\022#\n\026maximum_retry_attempts\030" +
+      "\007 \001(\rH\000\210\001\001\022\024\n\014endpoint_url\030\010 \001(\tB\031\n\027_max" +
+      "imum_retry_attempts\"\256\001\n\017SchedulerConfig\022" +
+      ">\n\013cloud_tasks\030\001 \001(\0132\'.talon.config.Clou" +
+      "dTasksSchedulerConfigH\000\022P\n\031aws_eventbrid" +
+      "ge_scheduler\030\002 \001(\0132+.talon.config.AwsEve" +
+      "ntBridgeSchedulerConfigH\000B\t\n\007backend\"\231\002\n" +
+      "\022ControlPlaneConfig\022.\n\010database\030\001 \001(\0132\034." +
+      "talon.config.DatabaseConfig\0229\n\016message_b" +
+      "roker\030\002 \001(\0132!.talon.config.MessageBroker" +
+      "Config\0220\n\tscheduler\030\003 \001(\0132\035.talon.config" +
+      ".SchedulerConfig\0225\n\014object_store\030\004 \001(\0132\037" +
+      ".talon.config.ObjectStoreConfig\022/\n\tdocum" +
+      "ents\030\005 \001(\0132\034.talon.config.DatabaseConfig" +
+      "\"*\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002" +
+      " \001(\rb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -24890,7 +26362,7 @@ talon.config.Config.ControllerConfig defaultValue) {
     internal_static_talon_config_TalonConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_TalonConfig_descriptor,
-        new java.lang.String[] { "Providers", "Database", "Server", "DefaultProvider", "WorkspaceDir", "ControlPlane", "Controllers", "Trust", });
+        new java.lang.String[] { "Providers", "Database", "Server", "DefaultProvider", "WorkspaceDir", "ControlPlane", "Controllers", "Trust", "Models", });
     internal_static_talon_config_TalonConfig_ProvidersEntry_descriptor =
       internal_static_talon_config_TalonConfig_descriptor.getNestedType(0);
     internal_static_talon_config_TalonConfig_ProvidersEntry_fieldAccessorTable = new
@@ -24903,146 +26375,158 @@ talon.config.Config.ControllerConfig defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_TalonConfig_ControllersEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_config_TrustConfig_descriptor =
+    internal_static_talon_config_TalonConfig_ModelsEntry_descriptor =
+      internal_static_talon_config_TalonConfig_descriptor.getNestedType(2);
+    internal_static_talon_config_TalonConfig_ModelsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_TalonConfig_ModelsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_config_ModelConfig_descriptor =
       getDescriptor().getMessageType(1);
+    internal_static_talon_config_ModelConfig_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_ModelConfig_descriptor,
+        new java.lang.String[] { "Provider", "ContextWindowTokens", "MaxOutputTokens", "InputCostPerMillionTokens", "OutputCostPerMillionTokens", "CacheReadCostPerMillionTokens", "CacheWriteCostPerMillionTokens", });
+    internal_static_talon_config_TrustConfig_descriptor =
+      getDescriptor().getMessageType(2);
     internal_static_talon_config_TrustConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_TrustConfig_descriptor,
         new java.lang.String[] { "Oidc", });
     internal_static_talon_config_OidcTrustEntry_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(3);
     internal_static_talon_config_OidcTrustEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_OidcTrustEntry_descriptor,
         new java.lang.String[] { "Name", "Issuer", "Audiences", "AllowedDomains", "AllowedEmails", "JwksUrl", "ClockSkewSeconds", "Grants", });
     internal_static_talon_config_OidcTrustGrant_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(4);
     internal_static_talon_config_OidcTrustGrant_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_OidcTrustGrant_descriptor,
         new java.lang.String[] { "Kind", "Namespace", "Agent", "Session", "Channel", });
     internal_static_talon_config_ControllerConfig_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(5);
     internal_static_talon_config_ControllerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ControllerConfig_descriptor,
         new java.lang.String[] { "Enabled", "Workers", });
     internal_static_talon_config_LlmProviderConfig_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(6);
     internal_static_talon_config_LlmProviderConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_LlmProviderConfig_descriptor,
         new java.lang.String[] { "Openai", "Anthropic", "Google", "OpenaiCompatible", "Config", });
     internal_static_talon_config_OpenAiConfig_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(7);
     internal_static_talon_config_OpenAiConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_OpenAiConfig_descriptor,
         new java.lang.String[] { "Model", "ApiKey", "OrgId", });
     internal_static_talon_config_AnthropicConfig_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(8);
     internal_static_talon_config_AnthropicConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_AnthropicConfig_descriptor,
         new java.lang.String[] { "Model", "ApiKey", });
     internal_static_talon_config_GoogleConfig_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(9);
     internal_static_talon_config_GoogleConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GoogleConfig_descriptor,
         new java.lang.String[] { "Model", "ApiKey", });
     internal_static_talon_config_GenericConfig_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(10);
     internal_static_talon_config_GenericConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GenericConfig_descriptor,
         new java.lang.String[] { "Name", "BaseUrl", "Model", "ApiKey", });
     internal_static_talon_config_Secret_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(11);
     internal_static_talon_config_Secret_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_Secret_descriptor,
         new java.lang.String[] { "Plain", "Ref", "Source", });
     internal_static_talon_config_SecretRef_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(12);
     internal_static_talon_config_SecretRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SecretRef_descriptor,
         new java.lang.String[] { "Source", "Key", });
     internal_static_talon_config_DatabaseConfig_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(13);
     internal_static_talon_config_DatabaseConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_DatabaseConfig_descriptor,
         new java.lang.String[] { "DataDir", "Driver", "Url", });
     internal_static_talon_config_MessageBrokerConfig_descriptor =
-      getDescriptor().getMessageType(13);
+      getDescriptor().getMessageType(14);
     internal_static_talon_config_MessageBrokerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_MessageBrokerConfig_descriptor,
         new java.lang.String[] { "Driver", });
     internal_static_talon_config_LocalObjectStoreConfig_descriptor =
-      getDescriptor().getMessageType(14);
+      getDescriptor().getMessageType(15);
     internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_LocalObjectStoreConfig_descriptor,
         new java.lang.String[] { "Path", });
     internal_static_talon_config_GcsObjectStoreConfig_descriptor =
-      getDescriptor().getMessageType(15);
+      getDescriptor().getMessageType(16);
     internal_static_talon_config_GcsObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GcsObjectStoreConfig_descriptor,
         new java.lang.String[] { "Bucket", "Prefix", "ApiBaseUrl", });
     internal_static_talon_config_S3ObjectStoreConfig_descriptor =
-      getDescriptor().getMessageType(16);
+      getDescriptor().getMessageType(17);
     internal_static_talon_config_S3ObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_S3ObjectStoreConfig_descriptor,
         new java.lang.String[] { "Bucket", "Prefix", "Region", "EndpointUrl", "ForcePathStyle", });
     internal_static_talon_config_ObjectStoreConfig_descriptor =
-      getDescriptor().getMessageType(17);
+      getDescriptor().getMessageType(18);
     internal_static_talon_config_ObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ObjectStoreConfig_descriptor,
         new java.lang.String[] { "Local", "Gcs", "S3", "Backend", });
     internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor =
-      getDescriptor().getMessageType(18);
+      getDescriptor().getMessageType(19);
     internal_static_talon_config_SchedulerCallbackAuthConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor,
         new java.lang.String[] { "SharedSecret", "GoogleOidc", "Auth", });
     internal_static_talon_config_GoogleOidcAuthConfig_descriptor =
-      getDescriptor().getMessageType(19);
+      getDescriptor().getMessageType(20);
     internal_static_talon_config_GoogleOidcAuthConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GoogleOidcAuthConfig_descriptor,
         new java.lang.String[] { "Audience", "ServiceAccountEmail", });
     internal_static_talon_config_CloudTasksSchedulerConfig_descriptor =
-      getDescriptor().getMessageType(20);
+      getDescriptor().getMessageType(21);
     internal_static_talon_config_CloudTasksSchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_CloudTasksSchedulerConfig_descriptor,
         new java.lang.String[] { "ProjectId", "Location", "Queue", "TargetUrl", "CallbackAuth", });
     internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor =
-      getDescriptor().getMessageType(21);
+      getDescriptor().getMessageType(22);
     internal_static_talon_config_AwsEventBridgeSchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor,
         new java.lang.String[] { "GroupName", "QueueUrl", "ExecutionRoleArn", "ScheduleNamePrefix", "DlqArn", "MaximumEventAgeSeconds", "MaximumRetryAttempts", "EndpointUrl", });
     internal_static_talon_config_SchedulerConfig_descriptor =
-      getDescriptor().getMessageType(22);
+      getDescriptor().getMessageType(23);
     internal_static_talon_config_SchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SchedulerConfig_descriptor,
         new java.lang.String[] { "CloudTasks", "AwsEventbridgeScheduler", "Backend", });
     internal_static_talon_config_ControlPlaneConfig_descriptor =
-      getDescriptor().getMessageType(23);
+      getDescriptor().getMessageType(24);
     internal_static_talon_config_ControlPlaneConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ControlPlaneConfig_descriptor,
         new java.lang.String[] { "Database", "MessageBroker", "Scheduler", "ObjectStore", "Documents", });
     internal_static_talon_config_ServerConfig_descriptor =
-      getDescriptor().getMessageType(24);
+      getDescriptor().getMessageType(25);
     internal_static_talon_config_ServerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ServerConfig_descriptor,

@@ -1,9 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use prost::Message;
 use serde::Deserialize;
+use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::env;
 use std::path::{Component, Path, PathBuf};
@@ -44,6 +45,8 @@ pub struct SerdeConfig {
     #[serde(default)]
     pub controllers: HashMap<String, ControllerConfigWrapper>,
     pub trust: Option<TrustConfigWrapper>,
+    #[serde(default, alias = "llmModels", alias = "modelLimits")]
+    pub models: HashMap<String, ModelConfigWrapper>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -124,6 +127,29 @@ pub struct ControllerConfigWrapper {
     pub enabled: bool,
     #[serde(default)]
     pub workers: u32,
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct ModelConfigWrapper {
+    #[serde(default)]
+    pub provider: Option<String>,
+    #[serde(
+        default,
+        alias = "contextWindowTokens",
+        alias = "contextWindow",
+        alias = "contextLimit"
+    )]
+    pub context_window_tokens: Option<u64>,
+    #[serde(default, alias = "maxOutputTokens", alias = "maxOutput")]
+    pub max_output_tokens: Option<u64>,
+    #[serde(default, alias = "inputCostPerMillionTokens", alias = "inputCost")]
+    pub input_cost_per_million_tokens: Option<f64>,
+    #[serde(default, alias = "outputCostPerMillionTokens", alias = "outputCost")]
+    pub output_cost_per_million_tokens: Option<f64>,
+    #[serde(default, alias = "cacheReadCostPerMillionTokens")]
+    pub cache_read_cost_per_million_tokens: Option<f64>,
+    #[serde(default, alias = "cacheWriteCostPerMillionTokens")]
+    pub cache_write_cost_per_million_tokens: Option<f64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -355,6 +381,26 @@ impl From<SerdeConfig> for Config {
                 })
                 .collect(),
             trust: s.trust.map(Into::into),
+            models: s
+                .models
+                .into_iter()
+                .map(|(name, model)| {
+                    (
+                        name,
+                        proto::ModelConfig {
+                            provider: model.provider.unwrap_or_default(),
+                            context_window_tokens: model.context_window_tokens,
+                            max_output_tokens: model.max_output_tokens,
+                            input_cost_per_million_tokens: model.input_cost_per_million_tokens,
+                            output_cost_per_million_tokens: model.output_cost_per_million_tokens,
+                            cache_read_cost_per_million_tokens: model
+                                .cache_read_cost_per_million_tokens,
+                            cache_write_cost_per_million_tokens: model
+                                .cache_write_cost_per_million_tokens,
+                        },
+                    )
+                })
+                .collect(),
         }
     }
 }
@@ -380,84 +426,6 @@ fn normalize_path(path: PathBuf) -> PathBuf {
         }
     }
     normalized
-}
-
-fn resolve_config_relative_data_dir(path: &Path, data_dir: &mut Option<String>) {
-    let Some(raw) = data_dir.as_ref() else {
-        return;
-    };
-
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        return;
-    }
-
-    let dir = Path::new(trimmed);
-    if dir.is_absolute() {
-        return;
-    }
-
-    let base_dir = path
-        .parent()
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from("."));
-    *data_dir = Some(normalize_path(base_dir.join(dir)).display().to_string());
-}
-
-fn resolve_config_relative_string_path(path: &Path, value: &mut Option<String>) {
-    let Some(raw) = value.as_ref() else {
-        return;
-    };
-
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        return;
-    }
-
-    let resolved = if Path::new(trimmed).is_absolute() {
-        PathBuf::from(trimmed)
-    } else {
-        let base_dir = path
-            .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_else(|| PathBuf::from("."));
-        normalize_path(base_dir.join(trimmed))
-    };
-    *value = Some(resolved.display().to_string());
-}
-
-fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
-    if let Some(database) = config.database.as_mut() {
-        resolve_config_relative_data_dir(path, &mut database.data_dir);
-    }
-
-    if let Some(control_plane) = config.control_plane.as_mut() {
-        resolve_config_relative_data_dir(path, &mut control_plane.database.data_dir);
-        if let Some(documents) = control_plane.documents.as_mut() {
-            resolve_config_relative_data_dir(path, &mut documents.data_dir);
-        }
-        if let Some(ObjectStoreConfigWrapper::Local { path: object_path }) =
-            control_plane.object_store.as_mut()
-        {
-            resolve_config_relative_string_path(path, object_path);
-        }
-    }
-    if let Some(storage) = config.storage.as_mut() {
-        resolve_config_relative_data_dir(path, &mut storage.control.data_dir);
-        if let Some(data) = storage.data.as_mut() {
-            resolve_config_relative_data_dir(path, &mut data.data_dir);
-        }
-        if let Some(documents) = storage.documents.as_mut() {
-            resolve_config_relative_data_dir(path, &mut documents.data_dir);
-        }
-        if let Some(ObjectStoreConfigWrapper::Local { path: object_path }) =
-            storage.objects.as_mut()
-        {
-            resolve_config_relative_string_path(path, object_path);
-        }
-    }
-
-    resolve_config_relative_string_path(path, &mut config.workspace_dir);
 }
 
 pub(crate) fn expand_env_placeholders(input: &str) -> String {
@@ -798,19 +766,16 @@ pub trait ConfigExt {
     fn decode_binary(data: &[u8]) -> Result<Config>;
 }
 
+const MAX_CONFIG_EXTENDS_DEPTH: usize = 32;
+
 impl ConfigExt for Config {
     fn from_file<P: AsRef<Path>>(path: P) -> Result<Config> {
         let path = path.as_ref();
-        let content = expand_env_placeholders(&std::fs::read_to_string(path)?);
-        let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("toml");
-
-        let mut serde_config: SerdeConfig = match extension {
-            "toml" => toml::from_str(&content)?,
-            "yaml" | "yml" => serde_yaml::from_str(&content)?,
-            "json" => serde_json::from_str(&content)?,
-            _ => return Err(anyhow!("Unsupported config format: {}", extension)),
-        };
-        resolve_config_relative_paths(path, &mut serde_config);
+        let mut stack = Vec::new();
+        let value = load_config_value(path, &mut stack, 0)?;
+        let serde_config: SerdeConfig = serde_json::from_value(value).map_err(|error| {
+            anyhow!("Failed to deserialize merged Talon configuration: {error}")
+        })?;
         validate_trust_config(&serde_config)?;
         Ok(serde_config.into())
     }
@@ -819,7 +784,20 @@ impl ConfigExt for Config {
         if let Ok(inline_yaml) = env::var("TALON_CONFIG_INLINE_YAML") {
             if !inline_yaml.trim().is_empty() {
                 let inline_yaml = expand_env_placeholders(&inline_yaml);
-                let serde_config: SerdeConfig = serde_yaml::from_str(&inline_yaml)?;
+                let mut value: Value = serde_yaml::from_str(&inline_yaml)
+                    .context("Failed to parse TALON_CONFIG_INLINE_YAML")?;
+                normalize_config_document(&mut value)?;
+                if value
+                    .as_object()
+                    .is_some_and(|object| object.contains_key("extends"))
+                {
+                    return Err(anyhow!(
+                        "TALON_CONFIG_INLINE_YAML does not support 'extends'; use TALON_CONFIG_PATH for layered configuration"
+                    ));
+                }
+                let serde_config: SerdeConfig = serde_json::from_value(value).map_err(|error| {
+                    anyhow!("Failed to deserialize TALON_CONFIG_INLINE_YAML: {error}")
+                })?;
                 validate_trust_config(&serde_config)?;
                 return Ok(serde_config.into());
             }
@@ -853,6 +831,216 @@ impl ConfigExt for Config {
     fn decode_binary(data: &[u8]) -> Result<Config> {
         Config::decode(data).map_err(|e| anyhow!("Failed to decode binary config: {}", e))
     }
+}
+
+fn load_config_value(path: &Path, stack: &mut Vec<PathBuf>, depth: usize) -> Result<Value> {
+    if depth > MAX_CONFIG_EXTENDS_DEPTH {
+        return Err(anyhow!(
+            "configuration extends nesting exceeds maximum depth of {} (chain: {})",
+            MAX_CONFIG_EXTENDS_DEPTH,
+            format_config_chain(stack, path)
+        ));
+    }
+
+    let canonical_path = std::fs::canonicalize(path)
+        .with_context(|| format!("Failed to resolve config file '{}'", path.display()))?;
+    if let Some(cycle_start) = stack.iter().position(|entry| entry == &canonical_path) {
+        let mut cycle = stack[cycle_start..].to_vec();
+        cycle.push(canonical_path);
+        return Err(anyhow!(
+            "configuration extends cycle detected: {}",
+            cycle
+                .iter()
+                .map(|entry| entry.display().to_string())
+                .collect::<Vec<_>>()
+                .join(" -> ")
+        ));
+    }
+
+    stack.push(canonical_path);
+    let result = (|| {
+        let content = expand_env_placeholders(
+            &std::fs::read_to_string(path)
+                .with_context(|| format!("Failed to read config file '{}'", path.display()))?,
+        );
+        let mut value = parse_config_value(path, &content)?;
+        normalize_config_document(&mut value)?;
+
+        let extends = take_extends(&mut value, path)?;
+        let mut merged = Value::Object(Map::new());
+        for parent in extends {
+            let parent_path = resolve_extend_path(path, &parent)?;
+            let parent_value =
+                load_config_value(&parent_path, stack, depth + 1).map_err(|error| {
+                    anyhow!(
+                        "While loading extension '{}': {error}",
+                        parent_path.display()
+                    )
+                })?;
+            merge_config_values(&mut merged, parent_value);
+        }
+
+        resolve_config_relative_paths_value(path, &mut value);
+        merge_config_values(&mut merged, value);
+        Ok(merged)
+    })();
+    stack.pop();
+    result
+}
+
+fn parse_config_value(path: &Path, content: &str) -> Result<Value> {
+    let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("toml");
+    match extension {
+        "toml" => {
+            let value: toml::Value = toml::from_str(content)
+                .with_context(|| format!("Failed to parse TOML config '{}'", path.display()))?;
+            serde_json::to_value(value).context("Failed to convert TOML config to JSON")
+        }
+        "yaml" | "yml" => serde_yaml::from_str(content)
+            .with_context(|| format!("Failed to parse YAML config '{}'", path.display())),
+        "json" => serde_json::from_str(content)
+            .with_context(|| format!("Failed to parse JSON config '{}'", path.display())),
+        _ => Err(anyhow!("Unsupported config format: {}", extension)),
+    }
+}
+
+fn take_extends(value: &mut Value, path: &Path) -> Result<Vec<String>> {
+    let Some(object) = value.as_object_mut() else {
+        return Err(anyhow!(
+            "Config file '{}' must contain a top-level object",
+            path.display()
+        ));
+    };
+    let Some(extends) = object.remove("extends") else {
+        return Ok(Vec::new());
+    };
+
+    match extends {
+        Value::String(path) if !path.trim().is_empty() => Ok(vec![path.trim().to_string()]),
+        Value::Array(paths) => paths
+            .into_iter()
+            .map(|path_value| match path_value {
+                Value::String(path) if !path.trim().is_empty() => Ok(path.trim().to_string()),
+                _ => Err(anyhow!(
+                    "Config file '{}' has an 'extends' list that must contain only non-empty path strings",
+                    path.display()
+                )),
+            })
+            .collect(),
+        Value::Null => Ok(Vec::new()),
+        _ => Err(anyhow!(
+            "Config file '{}' must define 'extends' as a path string or list of path strings",
+            path.display()
+        )),
+    }
+}
+
+fn resolve_extend_path(path: &Path, extend: &str) -> Result<PathBuf> {
+    if extend.contains("://") {
+        return Err(anyhow!(
+            "Config extension '{}' is not a local file path; remote URLs are not supported",
+            extend
+        ));
+    }
+
+    let extend_path = Path::new(extend);
+    Ok(if extend_path.is_absolute() {
+        extend_path.to_path_buf()
+    } else {
+        path.parent()
+            .unwrap_or_else(|| Path::new("."))
+            .join(extend_path)
+    })
+}
+
+fn merge_config_values(base: &mut Value, overlay: Value) {
+    match (base, overlay) {
+        (Value::Object(base), Value::Object(overlay)) => {
+            for (key, value) in overlay {
+                if let Some(existing) = base.get_mut(&key) {
+                    merge_config_values(existing, value);
+                } else {
+                    base.insert(key, value);
+                }
+            }
+        }
+        (base, overlay) => *base = overlay,
+    }
+}
+
+fn normalize_config_document(value: &mut Value) -> Result<()> {
+    let Some(object) = value.as_object_mut() else {
+        return Ok(());
+    };
+
+    merge_top_level_alias(object, "providers", "llmProviders");
+    merge_top_level_alias(object, "models", "llmModels");
+    merge_top_level_alias(object, "models", "modelLimits");
+    Ok(())
+}
+
+fn merge_top_level_alias(object: &mut Map<String, Value>, canonical: &str, alias: &str) {
+    let Some(alias_value) = object.remove(alias) else {
+        return;
+    };
+    if let Some(canonical_value) = object.get_mut(canonical) {
+        merge_config_values(canonical_value, alias_value);
+    } else {
+        object.insert(canonical.to_string(), alias_value);
+    }
+}
+
+fn resolve_config_relative_paths_value(path: &Path, value: &mut Value) {
+    let Some(object) = value.as_object_mut() else {
+        return;
+    };
+
+    resolve_raw_path_at(path, object, &["workspace_dir"]);
+    resolve_raw_path_at(path, object, &["database", "data_dir"]);
+    resolve_raw_path_at(path, object, &["control_plane", "database", "data_dir"]);
+    resolve_raw_path_at(path, object, &["control_plane", "documents", "data_dir"]);
+    resolve_raw_path_at(path, object, &["control_plane", "object_store", "path"]);
+    resolve_raw_path_at(path, object, &["storage", "control", "data_dir"]);
+    resolve_raw_path_at(path, object, &["storage", "data", "data_dir"]);
+    resolve_raw_path_at(path, object, &["storage", "documents", "data_dir"]);
+    resolve_raw_path_at(path, object, &["storage", "objects", "path"]);
+}
+
+fn resolve_raw_path_at(path: &Path, object: &mut Map<String, Value>, segments: &[&str]) {
+    let Some(value) = value_at_mut(object, segments) else {
+        return;
+    };
+    let Some(raw) = value.as_str() else {
+        return;
+    };
+    let trimmed = raw.trim();
+    if trimmed.is_empty() || Path::new(trimmed).is_absolute() {
+        return;
+    }
+    let base_dir = path.parent().unwrap_or_else(|| Path::new("."));
+    let resolved = normalize_path(base_dir.join(trimmed));
+    *value = Value::String(resolved.display().to_string());
+}
+
+fn value_at_mut<'a>(
+    object: &'a mut Map<String, Value>,
+    segments: &[&str],
+) -> Option<&'a mut Value> {
+    let (first, rest) = segments.split_first()?;
+    let mut current = object.get_mut(*first)?;
+    for segment in rest {
+        current = current.as_object_mut()?.get_mut(*segment)?;
+    }
+    Some(current)
+}
+
+fn format_config_chain(stack: &[PathBuf], next: &Path) -> String {
+    stack
+        .iter()
+        .map(|entry| entry.display().to_string())
+        .chain(std::iter::once(next.display().to_string()))
+        .collect::<Vec<_>>()
+        .join(" -> ")
 }
 
 #[cfg(test)]
