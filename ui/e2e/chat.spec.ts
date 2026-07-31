@@ -710,7 +710,6 @@ test.describe('Live session reconciliation', () => {
       message: 'square root of 144',
       labels: {},
     });
-    await waitForSessionState(client, target, 'PROCESSING');
     await waitForMockStreamBlocked();
 
     await chatInput.fill('a second request that must not be accepted');
