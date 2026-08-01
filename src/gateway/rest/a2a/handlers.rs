@@ -31,9 +31,9 @@ use super::card::{
     AgentCardRoute,
 };
 use super::tasks::{
-    a2a_session_hint, cancel_generation, ensure_a2a_session, find_a2a_task_session,
-    list_a2a_session_task_ids, load_a2a_task_for_session, load_a2a_task_from_session,
-    prepare_a2a_session_message, wait_for_a2a_task,
+    a2a_session_hint, ensure_a2a_session, find_a2a_task_session, list_a2a_session_task_ids,
+    load_a2a_task_for_session, load_a2a_task_from_session, prepare_a2a_session_message,
+    wait_for_a2a_task,
 };
 use super::types::{
     A2aResponseEncoding, A2aTaskJson, ListTasksResponseJson, SendMessageRequestJson,
@@ -557,8 +557,16 @@ pub async fn post_task_operation(
         return response;
     }
 
-    if let Err(response) = cancel_generation(&gateway, &route, &task_ref.session_id).await {
-        return response;
+    if let Err(error) = crate::gateway::rpc::sessions::cancellation::cancel_session_generation(
+        &gateway,
+        &route.ns,
+        &route.agent,
+        &task_ref.session_id,
+    )
+    .await
+    {
+        tracing::error!(%error, "Failed to route A2A cancel");
+        return a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to cancel task");
     }
     match load_a2a_task_for_session(&gateway, &route, &task_ref.session_id, task_id).await {
         Ok(task)
