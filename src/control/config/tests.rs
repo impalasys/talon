@@ -9,8 +9,22 @@ mod tests {
     use prost::Message;
     use std::env;
     use std::io::Write;
+    use std::path::Path;
     use tempfile::tempdir;
     use tempfile::NamedTempFile;
+
+    fn copy_checked_in_model_catalog(destination: &Path) {
+        let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("models");
+        let destination = destination.join("models");
+        std::fs::create_dir_all(&destination).unwrap();
+
+        for entry in std::fs::read_dir(source).unwrap() {
+            let entry = entry.unwrap();
+            if entry.file_type().unwrap().is_file() {
+                std::fs::copy(entry.path(), destination.join(entry.file_name())).unwrap();
+            }
+        }
+    }
 
     struct EnvVarGuard {
         key: &'static str,
@@ -206,6 +220,7 @@ trust:
             include_str!("../../../models.yaml"),
         )
         .unwrap();
+        copy_checked_in_model_catalog(dir.path());
         let config = Config::from_file(&path).unwrap();
 
         assert!(config.providers.contains_key("openai"));
@@ -305,6 +320,7 @@ trust:
             include_str!("../../../models.yaml"),
         )
         .unwrap();
+        copy_checked_in_model_catalog(dir.path());
 
         let config = Config::from_file(&path).unwrap();
         assert!(config.providers.contains_key("openai"));
