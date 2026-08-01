@@ -47,9 +47,24 @@ pub struct ModelContextLimits {
 }
 
 impl ModelContextLimits {
+    /// Reserve at most 15% of the context window for output. A provider may
+    /// advertise an output limit equal to its context window (for example,
+    /// Fireworks Inkling), but reserving that whole value would leave zero
+    /// input budget for the conversation. If the provider advertises a lower
+    /// output ceiling, use that lower ceiling instead.
+    pub fn reserved_output_tokens(self) -> u64 {
+        let Some(context) = self.context_window_tokens else {
+            return self.max_output_tokens.unwrap_or_default();
+        };
+        let context_reserve = context.saturating_mul(15) / 100;
+        self.max_output_tokens
+            .map(|max_output| max_output.min(context_reserve))
+            .unwrap_or(context_reserve)
+    }
+
     pub fn effective_input_tokens(self) -> Option<u64> {
         self.context_window_tokens
-            .map(|context| context.saturating_sub(self.max_output_tokens.unwrap_or_default()))
+            .map(|context| context.saturating_sub(self.reserved_output_tokens()))
     }
 
     pub fn effective_input_chars(self) -> Option<usize> {
@@ -427,8 +442,11 @@ mod segments {
             model_limits.context_window_tokens,
             model_limits.max_output_tokens,
         ) {
-            (Some(context), Some(output)) => {
-                format!(" Model context limit: {context} tokens ({output} reserved for output).")
+            (Some(context), Some(_output)) => {
+                format!(
+                    " Model context limit: {context} tokens ({} reserved for output).",
+                    model_limits.reserved_output_tokens()
+                )
             }
             (Some(context), None) => format!(" Model context limit: {context} tokens."),
             _ => String::new(),
@@ -1006,6 +1024,17 @@ mod tests {
     }
 
     #[test]
+    fn model_context_limits_cap_provider_output_ceiling_to_runtime_reserve() {
+        let limits = ModelContextLimits {
+            context_window_tokens: Some(1_048_576),
+            max_output_tokens: Some(1_048_576),
+        };
+
+        assert_eq!(limits.reserved_output_tokens(), 157_286);
+        assert_eq!(limits.effective_input_tokens(), Some(891_290));
+    }
+
+    #[test]
     fn compaction_marker_includes_configured_model_context_limit() {
         let history = vec![
             message("user", "u".repeat(300)),
@@ -1032,7 +1061,7 @@ mod tests {
             .expect("compaction should retain an omission marker");
         assert!(marker
             .text_content()
-            .contains("Model context limit: 128 tokens (32 reserved for output)."));
+            .contains("Model context limit: 128 tokens (19 reserved for output)."));
     }
 
     #[derive(Deserialize)]
