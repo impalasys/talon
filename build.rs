@@ -282,6 +282,7 @@ fn main() -> std::io::Result<()> {
             "proto/talon/v1/sessions.proto",
             "proto/talon/v1/workflows.proto",
             "proto/talon/worker/v1/fanout.proto",
+            "proto/talon/worker/v1/session_control.proto",
         ],
         &[".", "third_party/googleapis/"],
     )?;

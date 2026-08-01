@@ -11,26 +11,6 @@ service FanoutService {
   rpc StreamWorkflowEvents(StreamWorkflowEventsRequest) returns (stream StreamWorkflowEventsResponse);
 }
 
-// Reaches the exact worker process that owns an in-flight session attempt.
-// This is intentionally separate from Pub/Sub: cancellation tokens are local
-// to that process.
-service SessionControlService {
-  rpc CancelSessionGeneration(CancelSessionGenerationRequest) returns (CancelSessionGenerationResponse);
-}
-
-message CancelSessionGenerationRequest {
-  string ns = 1;
-  string agent = 2;
-  string session_id = 3;
-  string submission_id = 4;
-  string attempt_id = 5;
-}
-
-message CancelSessionGenerationResponse {
-  // False means the worker no longer owns this exact execution attempt.
-  bool cancelled = 1;
-}
-
 message StreamSessionPartsRequest {
   string ns = 1;
   string agent = 2;
