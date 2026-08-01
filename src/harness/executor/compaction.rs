@@ -18,6 +18,7 @@
 
 use super::runtime::LoopMessage;
 use crate::control::tool_output::is_text_object_media_type;
+use crate::harness::llm::tokenizer::Tokenizer;
 use crate::harness::llm::{chat_content_part, text_part, ChatContentPart};
 use serde_json::Value;
 
@@ -110,6 +111,79 @@ pub fn compact_history_for_llm_with_model_limits_and_tool_schema(
         .with_model_limits(model_limits)
         .with_tool_schema_chars(tool_schema_chars);
     compact_history_for_llm_with_budget_and_model_limits(history, budget, model_limits)
+}
+
+/// Compact with the cheap character budget first, then use a real tokenizer to
+/// tighten the result only if the candidate still exceeds the model input
+/// budget. This keeps tokenization off the hot path for ordinary turns while
+/// making near-limit requests safe for supported model families.
+pub fn compact_history_for_llm_with_model_limits_and_tokenizer(
+    history: &[LoopMessage],
+    model_limits: ModelContextLimits,
+    tool_schema_json: &str,
+    tokenizer: &Tokenizer,
+) -> Vec<LoopMessage> {
+    let budget = ContextBudget::default()
+        .with_model_limits(model_limits)
+        .with_tool_schema_chars(tool_schema_json.len());
+    let candidate =
+        compact_history_for_llm_with_budget_and_model_limits(history, budget, model_limits);
+    let Some(token_limit) = model_limits.effective_input_tokens() else {
+        return candidate;
+    };
+    if serialized_history_token_count(&candidate, tool_schema_json, tokenizer) <= token_limit {
+        return candidate;
+    }
+
+    let mut low = 0usize;
+    let mut high = budget.total_chars;
+    let mut best = candidate;
+    while low < high {
+        let mid = low.saturating_add(high.saturating_sub(low).saturating_add(1) / 2);
+        let mut candidate_budget = budget;
+        candidate_budget.total_chars = mid;
+        let candidate = compact_history_for_llm_with_budget_and_model_limits(
+            history,
+            candidate_budget,
+            model_limits,
+        );
+        if serialized_history_token_count(&candidate, tool_schema_json, tokenizer) <= token_limit {
+            low = mid;
+            best = candidate;
+        } else {
+            high = mid.saturating_sub(1);
+        }
+    }
+    best
+}
+
+fn serialized_history_token_count(
+    history: &[LoopMessage],
+    tool_schema_json: &str,
+    tokenizer: &Tokenizer,
+) -> u64 {
+    let mut serialized = String::new();
+    for message in history {
+        serialized.push_str(&message.role);
+        serialized.push('\n');
+        serialized.push_str(&message.text_content());
+        serialized.push('\n');
+        if let Some(tool_calls) = &message.tool_calls {
+            for call in tool_calls {
+                serialized.push_str(&call.id);
+                serialized.push('\n');
+                serialized.push_str(&call.name);
+                serialized.push('\n');
+                serialized.push_str(&call.arguments);
+                serialized.push('\n');
+            }
+        }
+        if let Some(tool_call_id) = &message.tool_call_id {
+            serialized.push_str(tool_call_id);
+            serialized.push('\n');
+        }
+    }
+    tokenizer.count_text(&serialized) as u64 + tokenizer.count_text(tool_schema_json) as u64
 }
 
 pub fn compact_history_for_llm_with_budget_and_model_limits(
@@ -1045,11 +1119,13 @@ fn env_usize(key: &str, default: usize) -> usize {
 mod tests {
     use super::{
         compact_history_for_llm_with_budget, compact_history_for_llm_with_budget_and_model_limits,
-        context_metrics, replay_has_user_or_tool_anchor, serialized_message_weight,
+        compact_history_for_llm_with_model_limits_and_tokenizer, context_metrics,
+        replay_has_user_or_tool_anchor, serialized_history_token_count, serialized_message_weight,
         tool_history_is_consistent, ContextBudget, ModelContextLimits,
     };
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::LoopMessage;
+    use crate::harness::llm::tokenizer::Tokenizer;
     use crate::harness::llm::{
         content_part_object_ref, object_ref_part, text_part, ChatContentPart, ToolCall,
     };
@@ -1136,6 +1212,23 @@ mod tests {
 
         assert_eq!(limits.effective_input_chars(), Some(2_550));
         assert_eq!(budget.total_chars, 1_550);
+    }
+
+    #[test]
+    fn real_tokenizer_tightens_a_candidate_that_exceeds_the_token_budget() {
+        let history = (0..12)
+            .map(|index| message("user", format!("message {index} {}", "x".repeat(1_000))))
+            .collect::<Vec<_>>();
+        let limits = ModelContextLimits {
+            context_window_tokens: Some(1_000),
+            max_output_tokens: Some(1_000),
+        };
+        let tokenizer = Tokenizer::for_model("gpt-4o").expect("gpt-4o tokenizer");
+        let compacted = compact_history_for_llm_with_model_limits_and_tokenizer(
+            &history, limits, "[]", &tokenizer,
+        );
+
+        assert!(serialized_history_token_count(&compacted, "[]", &tokenizer) <= 850);
     }
 
     #[test]

@@ -7,6 +7,7 @@ pub mod mock;
 pub mod openai;
 pub mod provider;
 pub mod resolver;
+pub mod tokenizer;
 
 pub use anthropic::AnthropicProvider;
 pub use mock::MockLlmProvider;

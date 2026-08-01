@@ -6,9 +6,10 @@ use crate::control::config::Config;
 use crate::control::tool_output::{self, is_text_object_media_type, ToolOutputExt};
 use crate::control::ControlPlane;
 use crate::harness::executor::compaction::{
-    compact_history_for_llm_with_model_limits_and_tool_schema, context_metrics, ContextMetrics,
+    compact_history_for_llm_with_model_limits_and_tokenizer, context_metrics, ContextMetrics,
 };
 use crate::harness::llm::resolver::{model_context_limits, resolve_model_profile};
+use crate::harness::llm::tokenizer::Tokenizer;
 use crate::harness::llm::ToolOutput;
 use crate::harness::llm::{
     chat_content_part, chat_stream_event, object_ref_part, text_part, ChatContentPart, ChatMessage,
@@ -524,7 +525,7 @@ impl AgentExecutor {
         &self,
         context: &ExecutionContext,
         prompts: &ExecutionPrompts,
-        tool_schema_chars: usize,
+        tool_schema_json: &str,
     ) -> Result<(Vec<ChatMessage>, ContextMetrics)> {
         let mut history = context.history.clone();
         if let Some(system_prompt) = prompts.system_prompt.as_deref() {
@@ -539,11 +540,23 @@ impl AgentExecutor {
             &self.llm_provider_key,
             &self.llm_model,
         );
-        let compacted_history = compact_history_for_llm_with_model_limits_and_tool_schema(
-            &history,
-            model_limits,
-            tool_schema_chars,
-        );
+        let tool_schema_chars = tool_schema_json.len();
+        let compacted_history = Tokenizer::for_model(&self.llm_model)
+            .map(|tokenizer| {
+                compact_history_for_llm_with_model_limits_and_tokenizer(
+                    &history,
+                    model_limits,
+                    tool_schema_json,
+                    &tokenizer,
+                )
+            })
+            .unwrap_or_else(|| {
+                crate::harness::executor::compaction::compact_history_for_llm_with_model_limits_and_tool_schema(
+                    &history,
+                    model_limits,
+                    tool_schema_chars,
+                )
+            });
         let metrics = context_metrics(&history, &compacted_history, tool_schema_chars);
         let mut messages = compacted_history
             .iter()
@@ -663,9 +676,9 @@ impl AgentExecutor {
                 let reg = self.registry.read().await;
                 reg.to_provider_tools()
             };
-            let tool_schema_chars = telemetry::serialize_tool_definitions_json(&tools).len();
+            let tool_schema_json = telemetry::serialize_tool_definitions_json(&tools);
             let (messages, context_metrics) = self
-                .messages_for_llm(context, &prompts, tool_schema_chars)
+                .messages_for_llm(context, &prompts, &tool_schema_json)
                 .await?;
 
             let mut final_reply = String::new();
