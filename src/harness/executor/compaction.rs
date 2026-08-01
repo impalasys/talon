@@ -21,6 +21,11 @@ use crate::control::tool_output::is_text_object_media_type;
 use crate::harness::llm::{chat_content_part, text_part, ChatContentPart};
 use serde_json::Value;
 
+/// Conservative fallback for models without a locally available tokenizer.
+/// Tool-call JSON and code are denser than ordinary prose, so this intentionally
+/// leaves more headroom than a four-characters-per-token estimate.
+pub const FALLBACK_CHARS_PER_TOKEN: usize = 3;
+
 pub fn compact_history_for_llm(history: &[LoopMessage]) -> Vec<LoopMessage> {
     compact_history_for_llm_with_budget(history, ContextBudget::default())
 }
@@ -39,7 +44,7 @@ pub fn compact_history_for_llm_with_budget(
 /// Model metadata that affects the amount of history Talon can send in one
 /// request. Context limits are token limits, while the compactor operates on
 /// character weights, so the effective input limit is conservatively estimated
-/// at four characters per token.
+/// at [`FALLBACK_CHARS_PER_TOKEN`] characters per token.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ModelContextLimits {
     pub context_window_tokens: Option<u64>,
@@ -81,8 +86,11 @@ impl ModelContextLimits {
     }
 
     pub fn effective_input_chars(self) -> Option<usize> {
-        self.effective_input_tokens()
-            .map(|tokens| tokens.min((usize::MAX / 4) as u64).saturating_mul(4) as usize)
+        self.effective_input_tokens().map(|tokens| {
+            tokens
+                .min((usize::MAX / FALLBACK_CHARS_PER_TOKEN) as u64)
+                .saturating_mul(FALLBACK_CHARS_PER_TOKEN as u64) as usize
+        })
     }
 }
 
@@ -1097,7 +1105,7 @@ mod tests {
         };
 
         assert_eq!(limits.effective_input_tokens(), Some(112_000));
-        assert_eq!(limits.effective_input_chars(), Some(448_000));
+        assert_eq!(limits.effective_input_chars(), Some(336_000));
     }
 
     #[test]
@@ -1126,8 +1134,8 @@ mod tests {
         .with_model_limits(limits)
         .with_tool_schema_chars(1_000);
 
-        assert_eq!(limits.effective_input_chars(), Some(3_400));
-        assert_eq!(budget.total_chars, 2_400);
+        assert_eq!(limits.effective_input_chars(), Some(2_550));
+        assert_eq!(budget.total_chars, 1_550);
     }
 
     #[test]

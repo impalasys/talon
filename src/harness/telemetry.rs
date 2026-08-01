@@ -1,7 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::harness::executor::compaction::{ContextMetrics, ModelContextLimits};
+use crate::harness::executor::compaction::{
+    ContextMetrics, ModelContextLimits, FALLBACK_CHARS_PER_TOKEN,
+};
 use crate::harness::llm::{
     chat_content_part, ChatContentPart, ChatMessage, ChatRequest, ChatUsage, Tool, ToolCall,
 };
@@ -152,7 +154,7 @@ pub fn record_chat_operation_details(
         ),
         KeyValue::new(
             "talon.context.estimated_input_tokens",
-            (context_metrics.estimated_chars_after / 4) as i64,
+            (context_metrics.estimated_chars_after / FALLBACK_CHARS_PER_TOKEN) as i64,
         ),
         KeyValue::new(
             "talon.context.tool_schema_chars",
