@@ -855,21 +855,45 @@ impl WorkerEventHandler {
         }
 
         if completion_status == SessionCompletionStatus::Completed {
-            if let Err(err) = self
-                .maybe_auto_forward_a2a_final_message(
+            let is_delegated_task = self
+                .cp
+                .kv
+                .get_msg::<data_proto::Session>(&crate::control::keys::session(
                     ns,
                     &event.agent,
                     &event.session_id,
-                    &sink.reply_msg_key,
-                )
-                .await
-            {
-                tracing::warn!(
-                    error = %err,
+                ))
+                .await?
+                .is_some_and(|session| {
+                    session
+                        .labels
+                        .get(crate::control::delegation::LABEL_TASK_ROLE)
+                        .map(String::as_str)
+                        == Some("delegate")
+                });
+            if !is_delegated_task {
+                if let Err(err) = self
+                    .maybe_auto_forward_a2a_final_message(
+                        ns,
+                        &event.agent,
+                        &event.session_id,
+                        &sink.reply_msg_key,
+                    )
+                    .await
+                {
+                    tracing::warn!(
+                        error = %err,
+                        agent = %event.agent,
+                        session = %event.session_id,
+                        message_id = %sink.reply_msg_id,
+                        "failed to auto-forward completed A2A session reply to owner"
+                    );
+                }
+            } else {
+                tracing::debug!(
                     agent = %event.agent,
                     session = %event.session_id,
-                    message_id = %sink.reply_msg_id,
-                    "failed to auto-forward completed A2A session reply to owner"
+                    "skipping final-response A2A auto-forward for delegated Task session"
                 );
             }
 

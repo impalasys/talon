@@ -59,7 +59,7 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
 
     registry.register_builtin(
         super::AGENT_SEND_TOOL,
-        "Send a message into an opened A2A agent wire asynchronously. Child agents are expected to use target \"owner\" to respond back and finish assigned work.",
+        "Send a message into an opened A2A agent wire asynchronously. The message may be plain text or a JSON object; structured messages are serialized before delivery. Use target \"owner\" only for coordination or blockers, not normal delegated-task completion.",
         json!({
             "type": "object",
             "properties": {
@@ -68,8 +68,11 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
                     "description": "Opened wire name, such as critic-1. In child sessions, owner is the session that opened this wire and should receive completion/review replies."
                 },
                 "message": {
-                    "type": "string",
-                    "description": "Message to enqueue for the target agent session. Talon adds a sender prefix such as @owner or @critic-1 for the receiver."
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "object" }
+                    ],
+                    "description": "Message to enqueue for the target agent session. Plain text is delivered as-is; JSON objects are compact-serialized before delivery. Talon adds a sender prefix such as @owner or @critic-1 for the receiver."
                 },
                 "artifact_uri": {
                     "type": "string",
@@ -195,7 +198,7 @@ async fn agent_send(
     args: &Value,
 ) -> Result<String> {
     let target_alias = normalize_agent_uri(super::req_str(args, "target")?)?;
-    let message = super::req_str(args, "message")?;
+    let message = req_message(args, "message")?;
     let artifact_uris = requested_artifact_uris(args)?;
     let sent = send_wire_message(
         cp,
@@ -203,7 +206,7 @@ async fn agent_send(
         current_agent,
         current_session,
         &target_alias,
-        message,
+        &message,
         &artifact_uris,
         Default::default(),
     )
@@ -216,6 +219,29 @@ async fn agent_send(
         "messageId": sent.message_id,
         "artifactCount": sent.artifact_uris.len()
     }))?)
+}
+
+fn req_message(args: &Value, key: &str) -> Result<String> {
+    let value = args.get(key).ok_or_else(|| {
+        anyhow!(
+            "missing required argument '{}'; expected a string or JSON object",
+            key
+        )
+    })?;
+    match value {
+        Value::String(message) => Ok(message.clone()),
+        Value::Object(_) => serde_json::to_string(value)
+            .map_err(|err| anyhow!("failed to serialize '{}' JSON object: {}", key, err)),
+        Value::Null => Err(anyhow!(
+            "argument '{}' must be a string or JSON object, got null",
+            key
+        )),
+        other => Err(anyhow!(
+            "argument '{}' must be a string or JSON object, got {}",
+            key,
+            other
+        )),
+    }
 }
 
 async fn agent_status(
@@ -955,6 +981,33 @@ mod tests {
     fn normalize_agent_uri_accepts_wire_name() {
         assert_eq!(normalize_agent_uri("critic-1").unwrap(), "critic-1");
         assert!(normalize_agent_uri("agent://critic-1").is_err());
+    }
+
+    #[test]
+    fn req_message_accepts_text_and_serializes_json_objects() {
+        let text = req_message(&json!({"message": "Review this."}), "message").unwrap();
+        assert_eq!(text, "Review this.");
+
+        let structured = req_message(
+            &json!({
+                "message": {
+                    "verdict": "pass",
+                    "score": 90
+                }
+            }),
+            "message",
+        )
+        .unwrap();
+        assert_eq!(structured, r#"{"score":90,"verdict":"pass"}"#);
+    }
+
+    #[test]
+    fn req_message_rejects_null_and_scalar_values() {
+        let null_error = req_message(&json!({"message": null}), "message").unwrap_err();
+        assert!(null_error.to_string().contains("string or JSON object"));
+
+        let scalar_error = req_message(&json!({"message": 42}), "message").unwrap_err();
+        assert!(scalar_error.to_string().contains("string or JSON object"));
     }
 
     #[test]

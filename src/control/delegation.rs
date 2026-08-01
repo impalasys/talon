@@ -266,8 +266,10 @@ pub async fn complete_delegated_task_from_session(
     };
 
     let mut skipped_stale = false;
+    let mut transitioned_to_owner_notification = false;
     let updated =
         patch_task_status_with(&store, task_namespace, task_name, |status, generation| {
+            transitioned_to_owner_notification = false;
             let current_session_id = status
                 .execution_ref
                 .as_ref()
@@ -281,9 +283,18 @@ pub async fn complete_delegated_task_from_session(
                 return Ok(());
             }
             status.updated_at = now;
+            let next_phase = match completion_status {
+                DelegatedSessionCompletion::Completed => {
+                    resources_proto::TaskPhase::NeedsReview as i32
+                }
+                DelegatedSessionCompletion::Failed => resources_proto::TaskPhase::Failed as i32,
+            };
+            if status.phase != next_phase {
+                transitioned_to_owner_notification = true;
+                status.phase = next_phase;
+            }
             match completion_status {
                 DelegatedSessionCompletion::Completed => {
-                    status.phase = resources_proto::TaskPhase::NeedsReview as i32;
                     status.progress_summary = progress_summary.clone();
                     for uri in &propagated_output_artifact_uris {
                         if !status.output_artifact_uris.contains(uri) {
@@ -303,7 +314,6 @@ pub async fn complete_delegated_task_from_session(
                     );
                 }
                 DelegatedSessionCompletion::Failed => {
-                    status.phase = resources_proto::TaskPhase::Failed as i32;
                     status.completed_at = now;
                     status.progress_summary = progress_summary.clone();
                     set_condition(
@@ -334,13 +344,15 @@ pub async fn complete_delegated_task_from_session(
             "failed to grant delegated Task output artifacts to owner session"
         );
     }
-    if let Err(err) = notify_task_owner(cp, &task, completion_status).await {
-        tracing::warn!(
-            task_namespace = %task.namespace(),
-            task_name = %task.name(),
-            error = %err,
-            "failed to notify delegated Task owner session"
-        );
+    if transitioned_to_owner_notification {
+        if let Err(err) = notify_task_owner(cp, &task, completion_status).await {
+            tracing::warn!(
+                task_namespace = %task.namespace(),
+                task_name = %task.name(),
+                error = %err,
+                "failed to notify delegated Task owner session"
+            );
+        }
     }
     Ok(Some(task))
 }
@@ -595,7 +607,7 @@ async fn grant_output_artifacts_to_task_owner(
     Ok(())
 }
 
-async fn notify_task_owner(
+pub(crate) async fn notify_task_owner(
     cp: &ControlPlane,
     task: &resources_proto::Task,
     completion_status: DelegatedSessionCompletion,
@@ -752,7 +764,7 @@ fn set_condition(
 
 pub fn delegated_task_message(req: &TaskDelegationRequest) -> String {
     format!(
-        "You have been assigned a Talon Task.\n\nTask: {}\nTask name: {}\nTask ID: {}/{}\nOwner: {}/{}\n\nThis Task is your durable work context. Do not rely on a final assistant response to deliver results. When the work is ready for owner review, call update_task with the Task name above, set phase to NEEDS_REVIEW, include a concise progress_summary, and attach any output artifact URI with output_artifact_uri or output_artifact_uris. Task output artifact URIs automatically grant access to the owner session. Then finish the assignment by calling agent_send with target \"owner\" and a short review-ready notification. Use the Task name above for update_task.name; the full Task ID is only for display.\n\nInstructions:\n{}",
+        "You have been assigned a Talon Task.\n\nTask: {}\nTask name: {}\nTask ID: {}/{}\nOwner: {}/{}\n\nThis Task is your durable work context. Do not rely on a final assistant response to deliver results. When the work is ready for owner review, call update_task with the Task name above, set phase to NEEDS_REVIEW, include a concise progress_summary, and attach any output artifact URI with output_artifact_uri or output_artifact_uris. Task output artifact URIs automatically grant access to the owner session, and the Task transition sends one owner notification. Do not call agent_send with target \"owner\" for normal completion. Use agent_send only for child coordination, blockers, or urgent escalation. Use the Task name above for update_task.name; the full Task ID is only for display.\n\nInstructions:\n{}",
         req.title,
         req.name,
         req.namespace,

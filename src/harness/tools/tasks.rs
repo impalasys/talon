@@ -10,6 +10,7 @@ use crate::control::ControlPlane;
 use crate::control::{keys, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::{manifests, resources_proto};
+use crate::harness::native_tools::delegation;
 use crate::harness::skills::registry::ToolRegistry;
 
 fn task_namespace<'a>(args: &'a Value, current_namespace: &'a str) -> Result<&'a str> {
@@ -392,6 +393,7 @@ pub(super) async fn execute(
             )
             .await?;
             let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+            let mut transitioned_to_owner_notification = false;
             let resource = store
                 .patch_status_with(&authorized.namespace, "Task", &authorized.name, None, |_, status| {
                     let mut task_status = match status.kind.take() {
@@ -411,7 +413,15 @@ pub(super) async fn execute(
                             ));
                         }
                     }
+                    let previous_phase = task_status.phase;
                     super::update_task_status(&mut task_status, args, &output_artifact_uris)?;
+                    transitioned_to_owner_notification = authorized.delegated
+                        && previous_phase != task_status.phase
+                        && matches!(
+                            resources_proto::TaskPhase::try_from(task_status.phase).ok(),
+                            Some(resources_proto::TaskPhase::NeedsReview)
+                                | Some(resources_proto::TaskPhase::Failed)
+                        );
                     status.kind = Some(resources_proto::resource_status::Kind::Task(task_status));
                     Ok(())
                 })
@@ -426,6 +436,19 @@ pub(super) async fn execute(
                 &output_artifact_uris,
             )
             .await?;
+            if transitioned_to_owner_notification {
+                let completion_status = match task
+                    .status
+                    .as_ref()
+                    .and_then(|status| resources_proto::TaskPhase::try_from(status.phase).ok())
+                {
+                    Some(resources_proto::TaskPhase::Failed) => {
+                        delegation::DelegatedSessionCompletion::Failed
+                    }
+                    _ => delegation::DelegatedSessionCompletion::Completed,
+                };
+                delegation::notify_task_owner(cp, &task, completion_status).await?;
+            }
             Ok(Some(serde_json::to_string_pretty(&json!({
                 "task": super::task_json(&task)
             }))?))
