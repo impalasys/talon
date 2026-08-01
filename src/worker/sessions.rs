@@ -1328,8 +1328,6 @@ mod tests {
     use std::sync::Arc;
     use std::sync::Mutex;
     use tokio::net::TcpListener;
-    use tokio::sync::Mutex as AsyncMutex;
-    use tokio_util::sync::CancellationToken;
 
     struct CaptureErrorSink {
         errors: Mutex<Vec<String>>,

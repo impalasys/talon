@@ -1425,8 +1425,7 @@ mod tests {
         push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
         run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
         serve_worker_http, session_dispatch_concurrency, worker_bind_addr, worker_port,
-        worker_router, LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend,
-        PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
+        worker_router, PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
         DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES, HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
@@ -1453,8 +1452,6 @@ mod tests {
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
     };
-    use tempfile::tempdir;
-    use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
     use tower::ServiceExt;
 

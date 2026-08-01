@@ -1551,7 +1551,6 @@ mod tests {
     use rmcp::handler::server::wrapper::Parameters;
     use serde_json::json;
     use std::{collections::HashMap, pin::Pin, sync::Arc};
-    use tokio::sync::Mutex as AsyncMutex;
 
     #[derive(Default)]
     struct MockPubSub;
