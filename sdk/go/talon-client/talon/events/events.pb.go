@@ -513,82 +513,6 @@ func (x *SessionMessageEvent) GetSubmissionId() string {
 	return ""
 }
 
-type SessionControlEvent struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
-	Ns            string                 `protobuf:"bytes,3,opt,name=ns,proto3" json:"ns,omitempty"`
-	Action        string                 `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
-	Timestamp     int64                  `protobuf:"varint,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SessionControlEvent) Reset() {
-	*x = SessionControlEvent{}
-	mi := &file_proto_events_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SessionControlEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SessionControlEvent) ProtoMessage() {}
-
-func (x *SessionControlEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SessionControlEvent.ProtoReflect.Descriptor instead.
-func (*SessionControlEvent) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *SessionControlEvent) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *SessionControlEvent) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *SessionControlEvent) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
-func (x *SessionControlEvent) GetAction() string {
-	if x != nil {
-		return x.Action
-	}
-	return ""
-}
-
-func (x *SessionControlEvent) GetTimestamp() int64 {
-	if x != nil {
-		return x.Timestamp
-	}
-	return 0
-}
-
 type SessionMessagePartEvent struct {
 	state         protoimpl.MessageState      `protogen:"open.v1"`
 	SessionId     string                      `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
@@ -604,7 +528,7 @@ type SessionMessagePartEvent struct {
 
 func (x *SessionMessagePartEvent) Reset() {
 	*x = SessionMessagePartEvent{}
-	mi := &file_proto_events_proto_msgTypes[3]
+	mi := &file_proto_events_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -616,7 +540,7 @@ func (x *SessionMessagePartEvent) String() string {
 func (*SessionMessagePartEvent) ProtoMessage() {}
 
 func (x *SessionMessagePartEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[3]
+	mi := &file_proto_events_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -629,7 +553,7 @@ func (x *SessionMessagePartEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessagePartEvent.ProtoReflect.Descriptor instead.
 func (*SessionMessagePartEvent) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{3}
+	return file_proto_events_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SessionMessagePartEvent) GetSessionId() string {
@@ -698,7 +622,7 @@ type ChannelEvent struct {
 
 func (x *ChannelEvent) Reset() {
 	*x = ChannelEvent{}
-	mi := &file_proto_events_proto_msgTypes[4]
+	mi := &file_proto_events_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -710,7 +634,7 @@ func (x *ChannelEvent) String() string {
 func (*ChannelEvent) ProtoMessage() {}
 
 func (x *ChannelEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[4]
+	mi := &file_proto_events_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -723,7 +647,7 @@ func (x *ChannelEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelEvent.ProtoReflect.Descriptor instead.
 func (*ChannelEvent) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{4}
+	return file_proto_events_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ChannelEvent) GetNs() string {
@@ -804,7 +728,7 @@ type WorkflowDispatchEvent struct {
 
 func (x *WorkflowDispatchEvent) Reset() {
 	*x = WorkflowDispatchEvent{}
-	mi := &file_proto_events_proto_msgTypes[5]
+	mi := &file_proto_events_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -816,7 +740,7 @@ func (x *WorkflowDispatchEvent) String() string {
 func (*WorkflowDispatchEvent) ProtoMessage() {}
 
 func (x *WorkflowDispatchEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[5]
+	mi := &file_proto_events_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -829,7 +753,7 @@ func (x *WorkflowDispatchEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowDispatchEvent.ProtoReflect.Descriptor instead.
 func (*WorkflowDispatchEvent) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{5}
+	return file_proto_events_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *WorkflowDispatchEvent) GetNs() string {
@@ -898,7 +822,7 @@ type ResourceChangedEvent struct {
 
 func (x *ResourceChangedEvent) Reset() {
 	*x = ResourceChangedEvent{}
-	mi := &file_proto_events_proto_msgTypes[6]
+	mi := &file_proto_events_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -910,7 +834,7 @@ func (x *ResourceChangedEvent) String() string {
 func (*ResourceChangedEvent) ProtoMessage() {}
 
 func (x *ResourceChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[6]
+	mi := &file_proto_events_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -923,7 +847,7 @@ func (x *ResourceChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceChangedEvent.ProtoReflect.Descriptor instead.
 func (*ResourceChangedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{6}
+	return file_proto_events_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ResourceChangedEvent) GetNamespace() string {
@@ -1010,7 +934,7 @@ type IndexEvent struct {
 
 func (x *IndexEvent) Reset() {
 	*x = IndexEvent{}
-	mi := &file_proto_events_proto_msgTypes[7]
+	mi := &file_proto_events_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1022,7 +946,7 @@ func (x *IndexEvent) String() string {
 func (*IndexEvent) ProtoMessage() {}
 
 func (x *IndexEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_events_proto_msgTypes[7]
+	mi := &file_proto_events_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1035,7 +959,7 @@ func (x *IndexEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IndexEvent.ProtoReflect.Descriptor instead.
 func (*IndexEvent) Descriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{7}
+	return file_proto_events_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *IndexEvent) GetId() string {
@@ -1108,14 +1032,7 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x05agent\x18\x05 \x01(\tR\x05agent\x12\x18\n" +
 	"\amessage\x18\x06 \x01(\tR\amessage\x12\x0e\n" +
 	"\x02ns\x18\a \x01(\tR\x02ns\x12#\n" +
-	"\rsubmission_id\x18\b \x01(\tR\fsubmissionId\"\x90\x01\n" +
-	"\x13SessionControlEvent\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
-	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x0e\n" +
-	"\x02ns\x18\x03 \x01(\tR\x02ns\x12\x16\n" +
-	"\x06action\x18\x04 \x01(\tR\x06action\x12\x1c\n" +
-	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\x8e\x02\n" +
+	"\rsubmission_id\x18\b \x01(\tR\fsubmissionId\"\x8e\x02\n" +
 	"\x17SessionMessagePartEvent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12=\n" +
@@ -1217,7 +1134,7 @@ func file_proto_events_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_events_proto_goTypes = []any{
 	(SystemAction)(0),                // 0: talon.events.SystemAction
 	(MessageDirection)(0),            // 1: talon.events.MessageDirection
@@ -1227,22 +1144,21 @@ var file_proto_events_proto_goTypes = []any{
 	(IndexOperation)(0),              // 5: talon.events.IndexOperation
 	(*LifecycleEvent)(nil),           // 6: talon.events.LifecycleEvent
 	(*SessionMessageEvent)(nil),      // 7: talon.events.SessionMessageEvent
-	(*SessionControlEvent)(nil),      // 8: talon.events.SessionControlEvent
-	(*SessionMessagePartEvent)(nil),  // 9: talon.events.SessionMessagePartEvent
-	(*ChannelEvent)(nil),             // 10: talon.events.ChannelEvent
-	(*WorkflowDispatchEvent)(nil),    // 11: talon.events.WorkflowDispatchEvent
-	(*ResourceChangedEvent)(nil),     // 12: talon.events.ResourceChangedEvent
-	(*IndexEvent)(nil),               // 13: talon.events.IndexEvent
-	(*data.SessionMessagePart)(nil),  // 14: talon.data.SessionMessagePart
-	(*data.ChannelMessage)(nil),      // 15: talon.data.ChannelMessage
+	(*SessionMessagePartEvent)(nil),  // 8: talon.events.SessionMessagePartEvent
+	(*ChannelEvent)(nil),             // 9: talon.events.ChannelEvent
+	(*WorkflowDispatchEvent)(nil),    // 10: talon.events.WorkflowDispatchEvent
+	(*ResourceChangedEvent)(nil),     // 11: talon.events.ResourceChangedEvent
+	(*IndexEvent)(nil),               // 12: talon.events.IndexEvent
+	(*data.SessionMessagePart)(nil),  // 13: talon.data.SessionMessagePart
+	(*data.ChannelMessage)(nil),      // 14: talon.data.ChannelMessage
 }
 var file_proto_events_proto_depIdxs = []int32{
 	0,  // 0: talon.events.LifecycleEvent.action:type_name -> talon.events.SystemAction
 	1,  // 1: talon.events.SessionMessageEvent.direction:type_name -> talon.events.MessageDirection
 	2,  // 2: talon.events.SessionMessagePartEvent.kind:type_name -> talon.events.SessionMessagePartEventKind
-	14, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
+	13, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
 	3,  // 4: talon.events.ChannelEvent.kind:type_name -> talon.events.ChannelEventKind
-	15, // 5: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
+	14, // 5: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
 	4,  // 6: talon.events.ResourceChangedEvent.change_type:type_name -> talon.events.ResourceChangeType
 	5,  // 7: talon.events.IndexEvent.operation:type_name -> talon.events.IndexOperation
 	8,  // [8:8] is the sub-list for method output_type
@@ -1263,7 +1179,7 @@ func file_proto_events_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_events_proto_rawDesc), len(file_proto_events_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   8,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

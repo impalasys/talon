@@ -69,6 +69,20 @@ impl WorkerConnectionPool {
         )
     }
 
+    pub(crate) async fn session_control_client(
+        &self,
+        endpoint: &resources_proto::WorkerEndpoint,
+    ) -> std::result::Result<
+        worker_proto::session_control_service_client::SessionControlServiceClient<Channel>,
+        tonic::Status,
+    > {
+        Ok(
+            worker_proto::session_control_service_client::SessionControlServiceClient::new(
+                self.channel(endpoint).await?,
+            ),
+        )
+    }
+
     async fn channel(
         &self,
         endpoint: &resources_proto::WorkerEndpoint,

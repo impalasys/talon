@@ -1551,7 +1551,6 @@ mod tests {
     use rmcp::handler::server::wrapper::Parameters;
     use serde_json::json;
     use std::{collections::HashMap, pin::Pin, sync::Arc};
-    use tokio::sync::Mutex as AsyncMutex;
 
     #[derive(Default)]
     struct MockPubSub;
@@ -1578,7 +1577,9 @@ mod tests {
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
             fanout_hub: Arc::new(crate::worker::fanout::FanoutHub::new()),
-            session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
+            session_cancellations: Arc::new(
+                crate::worker::session_control::SessionCancellationRegistry::default(),
+            ),
         }
     }
 

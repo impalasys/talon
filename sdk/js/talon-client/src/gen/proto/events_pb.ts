@@ -346,67 +346,6 @@ export class SessionMessageEvent extends Message<SessionMessageEvent> {
 }
 
 /**
- * @generated from message talon.events.SessionControlEvent
- */
-export class SessionControlEvent extends Message<SessionControlEvent> {
-  /**
-   * @generated from field: string session_id = 1;
-   */
-  sessionId = "";
-
-  /**
-   * @generated from field: string agent = 2;
-   */
-  agent = "";
-
-  /**
-   * @generated from field: string ns = 3;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string action = 4;
-   */
-  action = "";
-
-  /**
-   * @generated from field: int64 timestamp = 5;
-   */
-  timestamp = protoInt64.zero;
-
-  constructor(data?: PartialMessage<SessionControlEvent>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.events.SessionControlEvent";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "action", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "timestamp", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionControlEvent {
-    return new SessionControlEvent().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SessionControlEvent {
-    return new SessionControlEvent().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SessionControlEvent {
-    return new SessionControlEvent().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: SessionControlEvent | PlainMessage<SessionControlEvent> | undefined, b: SessionControlEvent | PlainMessage<SessionControlEvent> | undefined): boolean {
-    return proto3.util.equals(SessionControlEvent, a, b);
-  }
-}
-
-/**
  * @generated from message talon.events.SessionMessagePartEvent
  */
 export class SessionMessagePartEvent extends Message<SessionMessagePartEvent> {

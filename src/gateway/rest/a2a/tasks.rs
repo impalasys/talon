@@ -661,58 +661,6 @@ pub(super) async fn wait_for_a2a_task(
     }
 }
 
-pub(super) async fn publish_stop_generation(
-    gateway: &Arc<Gateway>,
-    route: &AgentCardRoute,
-    task_id: &str,
-) -> Result<(), Response> {
-    let session_key = keys::session(&route.ns, &route.agent, task_id);
-    if gateway
-        .kv
-        .get_msg::<crate::gateway::rpc::data_proto::Session>(&session_key)
-        .await
-        .map_err(|err| {
-            tracing::error!(%err, "Failed to fetch A2A task before cancel");
-            a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to load task")
-        })?
-        .is_none()
-    {
-        return Err(a2a_error(StatusCode::NOT_FOUND, "task not found"));
-    }
-    let event = events::SessionControlEvent {
-        session_id: task_id.to_string(),
-        agent: route.agent.clone(),
-        ns: route.ns.clone(),
-        action: "stop_generation".to_string(),
-        timestamp: chrono::Utc::now().timestamp_micros(),
-    };
-    gateway
-        .pubsub
-        .publish(topics::SESSION_CONTROL_TOPIC, &event.encode_to_vec())
-        .await
-        .map_err(|err| {
-            tracing::error!(%err, "Failed to publish A2A cancel event");
-            a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to cancel task")
-        })?;
-    Ok(())
-}
-
-pub(super) async fn mark_a2a_task_canceled(
-    gateway: &Arc<Gateway>,
-    route: &AgentCardRoute,
-    task_id: &str,
-) -> Result<(), Response> {
-    let key = keys::session(&route.ns, &route.agent, task_id);
-    update_session(&gateway.kv, &key, |session| {
-        session.status = "CANCELED".to_string();
-        session.last_active = chrono::Utc::now().timestamp_micros();
-        session
-            .labels
-            .insert("a2a.state".to_string(), "TASK_STATE_CANCELED".to_string());
-    })
-    .await
-}
-
 async fn update_session(
     kv: &Arc<dyn crate::control::KeyValueStore + Send + Sync>,
     key: &ResourceKey,

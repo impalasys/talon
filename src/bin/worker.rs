@@ -216,7 +216,7 @@ fn worker_bind_addr(port: &str) -> String {
     format!("0.0.0.0:{}", port)
 }
 
-fn pull_subscription_specs() -> [PullSubscriptionSpec; 5] {
+fn pull_subscription_specs() -> [PullSubscriptionSpec; 4] {
     [
         PullSubscriptionSpec {
             topic_name: topics::SESSION_DISPATCH_TOPIC,
@@ -227,11 +227,6 @@ fn pull_subscription_specs() -> [PullSubscriptionSpec; 5] {
             topic_name: topics::RESOURCE_LIFECYCLE_TOPIC,
             subscription_name: "talon-resource-lifecycle-sub",
             event_type: "resource_lifecycle",
-        },
-        PullSubscriptionSpec {
-            topic_name: topics::SESSION_CONTROL_TOPIC,
-            subscription_name: "talon-session-control-sub",
-            event_type: "session_control",
         },
         PullSubscriptionSpec {
             topic_name: topics::WORKFLOW_DISPATCH_TOPIC,
@@ -298,7 +293,9 @@ fn build_worker_handler(
         scheduler_authenticator,
         worker_id,
         fanout_hub,
-        session_cancellations: Arc::new(tokio::sync::Mutex::new(std::collections::HashMap::new())),
+        session_cancellations: Arc::new(
+            talon::worker::session_control::SessionCancellationRegistry::default(),
+        ),
     }
 }
 
@@ -309,9 +306,13 @@ fn worker_router(handler: WorkerEventHandler) -> Router {
         talon::gateway::rpc::worker_proto::fanout_service_server::FanoutServiceServer::new(
             talon::worker::fanout::FanoutServiceImpl::new(handler.fanout_hub.clone()),
         );
+    let control_service = talon::gateway::rpc::worker_proto::session_control_service_server::SessionControlServiceServer::new(
+        talon::worker::session_control::SessionControlServiceImpl::new(handler.session_cancellations.clone()),
+    );
     let tonic_service = Server::builder()
         .accept_http1(true)
         .add_service(fanout_service)
+        .add_service(control_service)
         .into_service::<BoxBody>();
 
     Router::new()
@@ -1424,8 +1425,7 @@ mod tests {
         push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
         run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
         serve_worker_http, session_dispatch_concurrency, worker_bind_addr, worker_port,
-        worker_router, LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend,
-        PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
+        worker_router, PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
         DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES, HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
@@ -1443,8 +1443,8 @@ mod tests {
     use talon::control::config::Config;
     use talon::control::security::platform_jwt;
     use talon::control::{
-        events::{LifecycleEvent, SessionControlEvent},
-        keys, topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        events::LifecycleEvent, keys, topics, ControlPlane, KeyValueStore, MessagePublisher,
+        ProtoKeyValueStoreExt,
     };
     use talon::gateway::rpc::resources_proto;
     use talon::test_support::{EmptyPubSub, MockKvStore};
@@ -1452,8 +1452,6 @@ mod tests {
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
     };
-    use tempfile::tempdir;
-    use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
     use tower::ServiceExt;
 
@@ -1494,7 +1492,9 @@ mod tests {
             scheduler_authenticator: Arc::new(authenticator),
             worker_id: "test-worker".to_string(),
             fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
-            session_cancellations: Arc::new(Mutex::new(HashMap::new())),
+            session_cancellations: Arc::new(
+                talon::worker::session_control::SessionCancellationRegistry::default(),
+            ),
         }
     }
 
@@ -1653,24 +1653,23 @@ mod tests {
     #[test]
     fn pull_mode_helpers_cover_specs_and_qualified_names() {
         let specs = pull_subscription_specs();
-        assert_eq!(specs.len(), 5);
+        assert_eq!(specs.len(), 4);
         assert_eq!(
             specs[0].topic_name,
             talon::control::topics::SESSION_DISPATCH_TOPIC
         );
         assert_eq!(specs[1].event_type, "resource_lifecycle");
-        assert_eq!(specs[2].subscription_name, "talon-session-control-sub");
         assert_eq!(
-            specs[3].topic_name,
+            specs[2].topic_name,
             talon::control::topics::WORKFLOW_DISPATCH_TOPIC
         );
-        assert_eq!(specs[3].event_type, "workflow_dispatch");
+        assert_eq!(specs[2].event_type, "workflow_dispatch");
         assert_eq!(
-            specs[4].topic_name,
+            specs[3].topic_name,
             talon::control::topics::INDEX_EVENTS_TOPIC
         );
-        assert_eq!(specs[4].subscription_name, "talon-index-events-sub");
-        assert_eq!(specs[4].event_type, "index");
+        assert_eq!(specs[3].subscription_name, "talon-index-events-sub");
+        assert_eq!(specs[3].event_type, "index");
 
         assert_eq!(
             fully_qualified_topic("demo", "events"),
@@ -1722,10 +1721,10 @@ mod tests {
         assert_eq!(attempts, 0);
     }
 
-    #[test]
-    fn resolved_pull_specs_and_handler_builder_cover_startup_wiring() {
+    #[tokio::test]
+    async fn resolved_pull_specs_and_handler_builder_cover_startup_wiring() {
         let specs = resolved_pull_subscription_specs("demo");
-        assert_eq!(specs.len(), 5);
+        assert_eq!(specs.len(), 4);
         assert_eq!(
             specs[0].topic_name,
             "projects/demo/topics/talon.session.dispatch"
@@ -1734,17 +1733,16 @@ mod tests {
             specs[1].subscription_name,
             "projects/demo/subscriptions/talon-resource-lifecycle-sub"
         );
-        assert_eq!(specs[2].event_type, "session_control");
         assert_eq!(
-            specs[3].subscription_name,
+            specs[2].subscription_name,
             "projects/demo/subscriptions/talon-workflow-dispatch-sub"
         );
         assert_eq!(
-            specs[4].topic_name,
+            specs[3].topic_name,
             "projects/demo/topics/talon.index.events"
         );
         assert_eq!(
-            specs[4].subscription_name,
+            specs[3].subscription_name,
             "projects/demo/subscriptions/talon-index-events-sub"
         );
 
@@ -1764,7 +1762,7 @@ mod tests {
         assert!(Arc::ptr_eq(&handler.scheduler_authenticator, &auth));
         assert_eq!(handler.worker_id, "worker-test");
         assert!(Arc::ptr_eq(&handler.fanout_hub, &fanout_hub));
-        assert!(handler.session_cancellations.blocking_lock().is_empty());
+        assert!(handler.session_cancellations.is_empty().await);
     }
 
     #[tokio::test]
@@ -1846,7 +1844,7 @@ mod tests {
             },
         );
         let spawned = spawned.lock().expect("spawned lock poisoned");
-        assert_eq!(spawned.len(), 5);
+        assert_eq!(spawned.len(), 4);
         assert!(spawned
             .iter()
             .all(|(project_id, _, _)| project_id == "demo"));
@@ -1881,7 +1879,9 @@ mod tests {
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
             fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
-            session_cancellations: Arc::new(Mutex::new(HashMap::new())),
+            session_cancellations: Arc::new(
+                talon::worker::session_control::SessionCancellationRegistry::default(),
+            ),
         };
         let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
 
@@ -1900,12 +1900,12 @@ mod tests {
             },
         );
         let spawned = spawned.lock().expect("spawned lock poisoned");
-        assert_eq!(spawned.len(), 5);
+        assert_eq!(spawned.len(), 4);
         assert_eq!(spawned[0].0, "demo");
         assert_eq!(spawned[0].1, talon::control::topics::SESSION_DISPATCH_TOPIC);
         assert_eq!(spawned[0].2, "talon-session-dispatch-sub");
-        assert_eq!(spawned[4].1, topics::INDEX_EVENTS_TOPIC);
-        assert_eq!(spawned[4].2, "talon-index-events-sub");
+        assert_eq!(spawned[3].1, topics::INDEX_EVENTS_TOPIC);
+        assert_eq!(spawned[3].2, "talon-index-events-sub");
     }
 
     #[tokio::test]
@@ -1931,7 +1931,9 @@ mod tests {
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
             fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
-            session_cancellations: Arc::new(Mutex::new(HashMap::new())),
+            session_cancellations: Arc::new(
+                talon::worker::session_control::SessionCancellationRegistry::default(),
+            ),
         };
         let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
 
@@ -1954,63 +1956,6 @@ mod tests {
         assert_eq!(spawned[0].0, "demo");
         assert_eq!(spawned[0].1, "talon-sqs-worker-queue");
         assert_eq!(spawned[0].2, "talon-sqs-worker");
-    }
-
-    #[tokio::test]
-    async fn local_socket_pull_backend_delivers_session_control_end_to_end() {
-        let dir = tempdir().unwrap();
-        let socket_path = dir.path().join("talon-broker.sock");
-        let publisher = LocalSocketMessagePublisher::new(socket_path.clone())
-            .await
-            .unwrap();
-        let backend = LocalSocketPullSubscriptionBackend::new(
-            socket_path,
-            talon::control::topics::SESSION_CONTROL_TOPIC.to_string(),
-            "talon-session-control-sub".to_string(),
-        )
-        .await
-        .unwrap();
-
-        let cancellation = CancellationToken::new();
-        let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
-        handler
-            .session_cancellations
-            .lock()
-            .await
-            .insert("session-1".to_string(), cancellation.clone());
-
-        let shutdown = CancellationToken::new();
-        let receive_task = tokio::spawn({
-            let handler = handler.clone();
-            let shutdown = shutdown.clone();
-            async move {
-                backend
-                    .receive(handler, "session_control".to_string(), shutdown)
-                    .await
-            }
-        });
-
-        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-        publisher
-            .publish(
-                talon::control::topics::SESSION_CONTROL_TOPIC,
-                &SessionControlEvent {
-                    session_id: "session-1".to_string(),
-                    agent: "assistant".to_string(),
-                    ns: "default".to_string(),
-                    action: "stop_generation".to_string(),
-                    timestamp: 0,
-                }
-                .encode_to_vec(),
-            )
-            .await
-            .unwrap();
-
-        tokio::time::timeout(std::time::Duration::from_secs(1), cancellation.cancelled())
-            .await
-            .unwrap();
-        shutdown.cancel();
-        receive_task.abort();
     }
 
     #[tokio::test]
@@ -2248,7 +2193,9 @@ mod tests {
             )),
             worker_id: "test-worker".to_string(),
             fanout_hub: Arc::new(talon::worker::fanout::FanoutHub::new()),
-            session_cancellations: Arc::new(Mutex::new(HashMap::new())),
+            session_cancellations: Arc::new(
+                talon::worker::session_control::SessionCancellationRegistry::default(),
+            ),
         };
 
         let mut headers = HeaderMap::new();

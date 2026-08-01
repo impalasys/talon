@@ -16,6 +16,7 @@ pub mod mcp_registry;
 pub mod registration;
 pub mod runtime;
 pub mod scheduler_auth;
+pub mod session_control;
 pub mod sessions;
 pub mod sink;
 pub mod talon_ops;
@@ -31,9 +32,7 @@ pub struct WorkerEventHandler {
     pub scheduler_authenticator: Arc<scheduler_auth::SchedulerRequestAuthenticator>,
     pub worker_id: String,
     pub fanout_hub: Arc<fanout::FanoutHub>,
-    pub session_cancellations: Arc<
-        tokio::sync::Mutex<std::collections::HashMap<String, tokio_util::sync::CancellationToken>>,
-    >,
+    pub session_cancellations: Arc<session_control::SessionCancellationRegistry>,
 }
 
 impl WorkerEventHandler {
@@ -42,10 +41,6 @@ impl WorkerEventHandler {
             Some("session_dispatch") => {
                 let event = crate::control::events::SessionMessageEvent::decode(payload)?;
                 self.handle_session_message(event).await
-            }
-            Some("session_control") => {
-                let event = crate::control::events::SessionControlEvent::decode(payload)?;
-                self.handle_session_control(event).await
             }
             Some("workflow_dispatch") => {
                 let event = crate::control::events::WorkflowDispatchEvent::decode(payload)?;
@@ -69,10 +64,6 @@ impl WorkerEventHandler {
             None => {
                 if let Ok(event) = crate::control::events::SessionMessageEvent::decode(payload) {
                     return self.handle_session_message(event).await;
-                }
-
-                if let Ok(event) = crate::control::events::SessionControlEvent::decode(payload) {
-                    return self.handle_session_control(event).await;
                 }
 
                 if let Ok(event) = crate::control::events::WorkflowDispatchEvent::decode(payload) {
@@ -342,8 +333,6 @@ impl WorkerEventHandler {
     pub fn event_type_for_subscription(subscription: &str) -> Option<&'static str> {
         if subscription.contains(topics::SESSION_DISPATCH_TOPIC) {
             Some("session_dispatch")
-        } else if subscription.contains(topics::SESSION_CONTROL_TOPIC) {
-            Some("session_control")
         } else if subscription.contains(topics::WORKFLOW_DISPATCH_TOPIC) {
             Some("workflow_dispatch")
         } else if subscription.contains(topics::INDEX_EVENTS_TOPIC) {
@@ -419,7 +408,7 @@ mod tests {
     use super::WorkerEventHandler;
     use crate::control::config::Config;
     use crate::control::{
-        events::{LifecycleEvent, MessageDirection, SessionControlEvent, SessionMessageEvent},
+        events::{LifecycleEvent, MessageDirection, SessionMessageEvent},
         topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
         SharedSchedulerBackend,
     };
@@ -483,7 +472,9 @@ mod tests {
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
             fanout_hub: Arc::new(crate::worker::fanout::FanoutHub::new()),
-            session_cancellations: Arc::new(Mutex::new(HashMap::new())),
+            session_cancellations: Arc::new(
+                crate::worker::session_control::SessionCancellationRegistry::default(),
+            ),
         }
     }
 
@@ -594,13 +585,6 @@ mod tests {
         assert_eq!(
             WorkerEventHandler::event_type_for_subscription(&format!(
                 "projects/test/subscriptions/{}",
-                topics::SESSION_CONTROL_TOPIC
-            )),
-            Some("session_control")
-        );
-        assert_eq!(
-            WorkerEventHandler::event_type_for_subscription(&format!(
-                "projects/test/subscriptions/{}",
                 topics::WORKFLOW_DISPATCH_TOPIC
             )),
             Some("workflow_dispatch")
@@ -675,15 +659,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn dispatch_accepts_lifecycle_and_stop_generation_events() {
+    async fn dispatch_accepts_lifecycle_events() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(MockPubSub::default());
         let handler = handler(kv, pubsub);
-
-        handler.session_cancellations.lock().await.insert(
-            "session-1".to_string(),
-            tokio_util::sync::CancellationToken::new(),
-        );
 
         let lifecycle = LifecycleEvent {
             resource_type: "McpServer".to_string(),
@@ -696,18 +675,6 @@ mod tests {
             .dispatch(Some("resource_lifecycle"), &lifecycle.encode_to_vec())
             .await
             .expect("lifecycle event should dispatch");
-
-        let stop = SessionControlEvent {
-            session_id: "session-1".to_string(),
-            action: "stop_generation".to_string(),
-            agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
-            timestamp: 0,
-        };
-        handler
-            .dispatch(Some("session_control"), &stop.encode_to_vec())
-            .await
-            .expect("session control should dispatch");
     }
 
     #[tokio::test]

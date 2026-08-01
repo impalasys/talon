@@ -38,14 +38,6 @@ message SessionMessageEvent {
     string submission_id = 8;
 }
 
-message SessionControlEvent {
-    string session_id = 1;
-    string agent = 2;
-    string ns = 3;
-    string action = 4;
-    int64 timestamp = 5;
-}
-
 enum SessionMessagePartEventKind {
     SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED = 0;
     SESSION_MESSAGE_PART_EVENT_KIND_DELTA = 1;

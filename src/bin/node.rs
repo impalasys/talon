@@ -66,7 +66,9 @@ fn worker_handler(
         scheduler_authenticator,
         worker_id,
         fanout_hub,
-        session_cancellations: Arc::new(tokio::sync::Mutex::new(std::collections::HashMap::new())),
+        session_cancellations: Arc::new(
+            talon::worker::session_control::SessionCancellationRegistry::default(),
+        ),
     }
 }
 
@@ -131,6 +133,7 @@ async fn prepare_worker_socket(path: &Path) -> Result<()> {
 async fn serve_worker_fanout_socket(
     socket_path: PathBuf,
     fanout_hub: Arc<FanoutHub>,
+    cancellations: Arc<talon::worker::session_control::SessionCancellationRegistry>,
     shutdown: CancellationToken,
 ) -> Result<()> {
     prepare_worker_socket(&socket_path).await?;
@@ -145,12 +148,16 @@ async fn serve_worker_fanout_socket(
         talon::gateway::rpc::worker_proto::fanout_service_server::FanoutServiceServer::new(
             talon::worker::fanout::FanoutServiceImpl::new(fanout_hub),
         );
+    let control_service = talon::gateway::rpc::worker_proto::session_control_service_server::SessionControlServiceServer::new(
+        talon::worker::session_control::SessionControlServiceImpl::new(cancellations),
+    );
     tracing::info!(
         endpoint = %format!("unix://{}", socket_path.display()),
         "Starting node worker fanout service"
     );
     let result = Server::builder()
         .add_service(service)
+        .add_service(control_service)
         .serve_with_incoming_shutdown(incoming, shutdown.cancelled_owned())
         .await
         .context("node worker fanout service failed");
@@ -256,6 +263,7 @@ async fn run() -> Result<()> {
     let mut fanout_task = tokio::spawn(serve_worker_fanout_socket(
         worker_socket_path,
         fanout_hub,
+        handler.session_cancellations.clone(),
         shutdown.child_token(),
     ));
 
@@ -283,15 +291,6 @@ async fn run() -> Result<()> {
             handler.clone(),
             topics::RESOURCE_LIFECYCLE_TOPIC,
             "resource_lifecycle",
-            1,
-            shutdown.child_token(),
-        )
-        .await?,
-        spawn_subscription(
-            Arc::clone(&cp.pubsub),
-            handler.clone(),
-            topics::SESSION_CONTROL_TOPIC,
-            "session_control",
             1,
             shutdown.child_token(),
         )

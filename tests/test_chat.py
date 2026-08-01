@@ -24,6 +24,7 @@ from talon_client import (
     GetCasObjectRequest,
     GetSessionRequest,
     SendMessageRequest,
+    StopSessionGenerationRequest,
     StreamSessionPartsRequest,
     TalonClient,
 )
@@ -38,6 +39,25 @@ STREAM_TIMEOUT_SECONDS = 30
 
 
 logger = logging.getLogger(__name__)
+
+
+def mock_control(method: str, path: str, payload: dict | None = None) -> dict:
+    response = requests.request(
+        method,
+        f"http://127.0.0.1:{MOCK_LLM_PORT}{path}",
+        json=payload,
+        timeout=5,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def wait_for_mock_stream_blocked(*, attempts: int = 100, delay: float = 0.1) -> None:
+    for _ in range(attempts):
+        if mock_control("GET", "/__control/state").get("blocked"):
+            return
+        time.sleep(delay)
+    raise AssertionError("mock LLM did not block its stream")
 
 
 def _cas_response_bytes(response) -> bytes:
@@ -128,6 +148,81 @@ def test_single_turn_chat(
     assert agent_message is not None
     assert agent_message.role == 2
     assert "12" in message_text(agent_message)
+
+
+def test_stop_generation_cancels_an_inflight_worker_stream(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    """StopGeneration reaches the worker executing a blocked provider stream."""
+    namespace = f"talon-stop-{stack.name}-{uuid.uuid4().hex[:8]}"
+    agent = "stop-generation-agent"
+    ensure_namespace(client, namespace)
+    create_agent_resource(
+        client,
+        namespace,
+        agent,
+        AgentSpec(
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="mock",
+                            name="minimax-m2.7",
+                            temperature=0.7,
+                        ),
+                    }
+                ]
+            },
+            system_prompt="You are a cancellation test assistant.",
+        ),
+    )
+    session_id = client.sessions.Create(
+        CreateSessionRequest(agent=agent, ns=namespace)
+    ).session_id
+
+    mock_control("POST", "/__control/reset")
+    mock_control("POST", "/__control/block_stream_after_chunks", {"chunks": 1})
+    try:
+        client.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent,
+                session_id=session_id,
+                ns=namespace,
+                message="cancel this streaming reply " + " ".join(f"word{i}" for i in range(40)),
+            )
+        )
+        # This is the synchronization barrier: a real worker has consumed a
+        # provider chunk and is blocked waiting for the next one.
+        wait_for_mock_stream_blocked()
+
+        response = client.sessions.StopGeneration(
+            StopSessionGenerationRequest(agent=agent, session_id=session_id, ns=namespace),
+            timeout=10,
+        )
+        assert response.success
+
+        # The executor must observe its cancellation token and finish without
+        # releasing the provider's blocked stream. A normal completion cannot
+        # satisfy this assertion because the mock remains blocked.
+        for _ in range(100):
+            session = client.sessions.Get(
+                GetSessionRequest(agent=agent, session_id=session_id, ns=namespace)
+            )
+            if session.state == "IDLE":
+                break
+            time.sleep(0.1)
+        else:
+            raise AssertionError("session did not become idle after StopGeneration")
+        state = mock_control("GET", "/__control/state")
+        assert state["blocked"] is True
+        assert state["unblocked"] is False
+        assert session.state != "CANCELED"
+    finally:
+        # Keep the process-global mock server usable even if this test fails.
+        mock_control("POST", "/__control/unblock_stream")
+        mock_control("POST", "/__control/reset")
 
 
 

@@ -14,6 +14,7 @@ use serde_json::{json, Value};
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
+pub(crate) mod cancellation;
 pub(crate) mod watcher;
 
 use watcher::{session_parts_event_stream, session_submission_event_stream, SessionStreamTarget};
@@ -1650,34 +1651,13 @@ impl GrpcGatewayHandler {
             return Err(tonic::Status::not_found("Session not found"));
         }
 
-        let event = events::SessionControlEvent {
-            session_id: req.session_id.clone(),
-            agent: req.agent.clone(),
-            ns: req.ns.clone(),
-            action: "stop_generation".to_string(),
-            timestamp: chrono::Utc::now().timestamp_micros(),
-        };
-        self.gateway
-            .pubsub
-            .publish(topics::SESSION_CONTROL_TOPIC, &event.encode_to_vec())
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to publish stop event: {}", e)))?;
-
-        let control_plane = crate::control::ControlPlane::new(
-            self.gateway.kv.clone(),
-            self.gateway.pubsub.clone(),
-            self.gateway.scheduler.clone(),
-            self.gateway.objects.clone(),
-            self.gateway.documents.clone(),
-        );
-        crate::control::delegation::publish_stop_generation_to_open_connections(
-            &control_plane,
+        cancellation::cancel_session_generation(
+            &self.gateway,
             &req.ns,
             &req.agent,
             &req.session_id,
         )
-        .await
-        .map_err(|e| tonic::Status::internal(format!("Failed to stop child sessions: {}", e)))?;
+        .await?;
 
         Ok(tonic::Response::new(proto::StopSessionGenerationResponse {
             success: true,

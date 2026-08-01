@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 pub const SESSION_DISPATCH_TOPIC: &str = "talon.session.dispatch";
-pub const SESSION_CONTROL_TOPIC: &str = "talon.session.control";
 pub const WORKFLOW_DISPATCH_TOPIC: &str = "talon.workflow.dispatch";
 pub const RESOURCE_LIFECYCLE_TOPIC: &str = "talon.resource.lifecycle";
 pub const INDEX_EVENTS_TOPIC: &str = "talon.index.events";

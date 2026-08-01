@@ -493,10 +493,16 @@ impl WorkerEventHandler {
             event.timestamp,
         );
         let cancellation_token = CancellationToken::new();
+        let cancellation_key = crate::worker::session_control::SessionCancellationKey::new(
+            ns,
+            &event.agent,
+            &event.session_id,
+            &submission.submission_id,
+            &submission.attempt_id,
+        );
         self.session_cancellations
-            .lock()
-            .await
-            .insert(event.session_id.clone(), cancellation_token.clone());
+            .insert(cancellation_key.clone(), cancellation_token.clone())
+            .await;
         let reply_msg_id = crate::control::uuid::session_message_id();
         let reply_msg_key = crate::control::keys::session_message(
             ns,
@@ -601,10 +607,7 @@ impl WorkerEventHandler {
                 chrono::Utc::now().timestamp_micros(),
             )
             .await?;
-            self.session_cancellations
-                .lock()
-                .await
-                .remove(&event.session_id);
+            self.session_cancellations.remove(&cancellation_key).await;
             self.release_session_lock(
                 ns,
                 &event.agent,
@@ -808,10 +811,7 @@ impl WorkerEventHandler {
         }
         .await;
 
-        self.session_cancellations
-            .lock()
-            .await
-            .remove(&event.session_id);
+        self.session_cancellations.remove(&cancellation_key).await;
         let completion_status = outcome
             .as_ref()
             .map(|(status, _)| *status)
@@ -1113,39 +1113,6 @@ impl WorkerEventHandler {
         Ok(())
     }
 
-    pub async fn handle_session_control(
-        &self,
-        event: crate::control::events::SessionControlEvent,
-    ) -> Result<()> {
-        if event.action != "stop_generation" {
-            tracing::warn!(
-                session = %event.session_id,
-                action = %event.action,
-                "Ignoring unknown session control action"
-            );
-            return Ok(());
-        }
-
-        let cancellations = self.session_cancellations.lock().await;
-        if let Some(token) = cancellations.get(&event.session_id) {
-            tracing::info!(
-                namespace = %event.ns,
-                agent = %event.agent,
-                session = %event.session_id,
-                "Cancelling in-flight session generation"
-            );
-            token.cancel();
-        } else {
-            tracing::info!(
-                namespace = %event.ns,
-                agent = %event.agent,
-                session = %event.session_id,
-                "Session stop requested, but no in-flight generation was registered"
-            );
-        }
-        Ok(())
-    }
-
     async fn release_session_lock(
         &self,
         ns: &str,
@@ -1361,8 +1328,6 @@ mod tests {
     use std::sync::Arc;
     use std::sync::Mutex;
     use tokio::net::TcpListener;
-    use tokio::sync::Mutex as AsyncMutex;
-    use tokio_util::sync::CancellationToken;
 
     struct CaptureErrorSink {
         errors: Mutex<Vec<String>>,
@@ -1877,7 +1842,9 @@ mod tests {
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
             fanout_hub: Arc::new(crate::worker::fanout::FanoutHub::new()),
-            session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
+            session_cancellations: Arc::new(
+                crate::worker::session_control::SessionCancellationRegistry::default(),
+            ),
         }
     }
 
@@ -2020,65 +1987,6 @@ mod tests {
 
         assert_eq!(status, SessionCompletionStatus::Waiting);
         assert!(sink.errors().is_empty());
-    }
-
-    #[tokio::test]
-    async fn handle_session_control_cancels_registered_session() {
-        let kv = Arc::new(MockKvStore::default());
-        let handler = handler_with_kv(kv);
-        let token = CancellationToken::new();
-        handler
-            .session_cancellations
-            .lock()
-            .await
-            .insert("session-1".to_string(), token.clone());
-
-        handler
-            .handle_session_control(crate::control::events::SessionControlEvent {
-                session_id: "session-1".to_string(),
-                action: "stop_generation".to_string(),
-                agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
-                timestamp: 0,
-            })
-            .await
-            .expect("stop generation should succeed");
-
-        assert!(token.is_cancelled());
-    }
-
-    #[tokio::test]
-    async fn handle_session_control_ignores_unknown_actions() {
-        let kv = Arc::new(MockKvStore::default());
-        let handler = handler_with_kv(kv);
-
-        handler
-            .handle_session_control(crate::control::events::SessionControlEvent {
-                session_id: "session-1".to_string(),
-                action: "noop".to_string(),
-                agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
-                timestamp: 0,
-            })
-            .await
-            .expect("unknown action should be ignored");
-    }
-
-    #[tokio::test]
-    async fn handle_session_control_allows_missing_inflight_session() {
-        let kv = Arc::new(MockKvStore::default());
-        let handler = handler_with_kv(kv);
-
-        handler
-            .handle_session_control(crate::control::events::SessionControlEvent {
-                session_id: "missing".to_string(),
-                action: "stop_generation".to_string(),
-                agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
-                timestamp: 0,
-            })
-            .await
-            .expect("missing inflight session should be ignored");
     }
 
     #[tokio::test]
@@ -3615,12 +3523,7 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(session.status, "IDLE");
-        assert!(handler
-            .session_cancellations
-            .lock()
-            .await
-            .get("session-1")
-            .is_none());
+        assert!(handler.session_cancellations.is_empty().await);
 
         let message_keys = kv
             .list_keys(
