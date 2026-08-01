@@ -54,6 +54,7 @@ serde_json = "1.0"
 sha2 = "0.10"
 sse-stream = "0.2"
 tiktoken-rs = "0.12"
+tokenizers = { version = "0.23", default-features = false, features = ["fancy-regex"] }
 urlencoding = "2.1"
 tokio = { version = "1.0", features = ["full"] }
 tokio-tungstenite = "0.20"
