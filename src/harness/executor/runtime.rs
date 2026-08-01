@@ -5,7 +5,9 @@ use crate::control::cas::CasStore;
 use crate::control::config::Config;
 use crate::control::tool_output::{self, is_text_object_media_type, ToolOutputExt};
 use crate::control::ControlPlane;
-use crate::harness::executor::compaction::compact_history_for_llm_with_model_limits;
+use crate::harness::executor::compaction::{
+    compact_history_for_llm_with_model_limits_and_tool_schema, context_metrics, ContextMetrics,
+};
 use crate::harness::llm::resolver::{model_context_limits, resolve_model_profile};
 use crate::harness::llm::ToolOutput;
 use crate::harness::llm::{
@@ -522,7 +524,8 @@ impl AgentExecutor {
         &self,
         context: &ExecutionContext,
         prompts: &ExecutionPrompts,
-    ) -> Result<Vec<ChatMessage>> {
+        tool_schema_chars: usize,
+    ) -> Result<(Vec<ChatMessage>, ContextMetrics)> {
         let mut history = context.history.clone();
         if let Some(system_prompt) = prompts.system_prompt.as_deref() {
             history.insert(0, LoopMessage::text("system", system_prompt.to_string()));
@@ -536,7 +539,13 @@ impl AgentExecutor {
             &self.llm_provider_key,
             &self.llm_model,
         );
-        let mut messages = compact_history_for_llm_with_model_limits(&history, model_limits)
+        let compacted_history = compact_history_for_llm_with_model_limits_and_tool_schema(
+            &history,
+            model_limits,
+            tool_schema_chars,
+        );
+        let metrics = context_metrics(&history, &compacted_history, tool_schema_chars);
+        let mut messages = compacted_history
             .iter()
             .map(|m| ChatMessage {
                 role: m.role.clone(),
@@ -550,7 +559,7 @@ impl AgentExecutor {
                 .hydrate_object_ref_parts_for_llm(std::mem::take(&mut message.content_parts))
                 .await?;
         }
-        Ok(messages)
+        Ok((messages, metrics))
     }
 
     async fn hydrate_object_ref_parts_for_llm(
@@ -650,12 +659,14 @@ impl AgentExecutor {
             }
             turn_limit -= 1;
 
-            let messages = self.messages_for_llm(context, &prompts).await?;
-
             let tools = {
                 let reg = self.registry.read().await;
                 reg.to_provider_tools()
             };
+            let tool_schema_chars = telemetry::serialize_tool_definitions_json(&tools).len();
+            let (messages, context_metrics) = self
+                .messages_for_llm(context, &prompts, tool_schema_chars)
+                .await?;
 
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
@@ -686,8 +697,17 @@ impl AgentExecutor {
                 &self.session_id,
                 &self.llm_provider_key,
                 &self.llm_model,
-                &request,
                 reasoning_level,
+            );
+            telemetry::record_chat_operation_details(
+                &llm_span,
+                &request,
+                model_context_limits(
+                    self.config.as_ref(),
+                    &self.llm_provider_key,
+                    &self.llm_model,
+                ),
+                context_metrics,
             );
             let llm_started_at = Instant::now();
             let mut saw_first_chunk = false;

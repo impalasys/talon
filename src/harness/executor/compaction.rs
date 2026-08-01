@@ -46,6 +46,19 @@ pub struct ModelContextLimits {
     pub max_output_tokens: Option<u64>,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ContextMetrics {
+    pub transcript_messages_before: usize,
+    pub transcript_messages_after: usize,
+    pub transcript_message_parts_before: usize,
+    pub transcript_message_parts_after: usize,
+    pub transcript_messages_omitted: usize,
+    pub estimated_chars_before: usize,
+    pub estimated_chars_after: usize,
+    pub tool_schema_chars: usize,
+    pub compaction_applied: bool,
+}
+
 impl ModelContextLimits {
     /// Reserve at most 15% of the context window for output. A provider may
     /// advertise an output limit equal to its context window (for example,
@@ -77,7 +90,17 @@ pub fn compact_history_for_llm_with_model_limits(
     history: &[LoopMessage],
     model_limits: ModelContextLimits,
 ) -> Vec<LoopMessage> {
-    let budget = ContextBudget::default().with_model_limits(model_limits);
+    compact_history_for_llm_with_model_limits_and_tool_schema(history, model_limits, 0)
+}
+
+pub fn compact_history_for_llm_with_model_limits_and_tool_schema(
+    history: &[LoopMessage],
+    model_limits: ModelContextLimits,
+    tool_schema_chars: usize,
+) -> Vec<LoopMessage> {
+    let budget = ContextBudget::default()
+        .with_model_limits(model_limits)
+        .with_tool_schema_chars(tool_schema_chars);
     compact_history_for_llm_with_budget_and_model_limits(history, budget, model_limits)
 }
 
@@ -194,6 +217,11 @@ impl ContextBudget {
         }
         self
     }
+
+    pub fn with_tool_schema_chars(mut self, tool_schema_chars: usize) -> Self {
+        self.total_chars = self.total_chars.saturating_sub(tool_schema_chars);
+        self
+    }
 }
 
 pub fn tool_result_preview(result: &str) -> String {
@@ -284,6 +312,55 @@ fn serialized_message_weight(message: &LoopMessage) -> usize {
             .as_ref()
             .map(|id| id.len())
             .unwrap_or(0)
+}
+
+pub fn context_metrics(
+    history: &[LoopMessage],
+    compacted: &[LoopMessage],
+    tool_schema_chars: usize,
+) -> ContextMetrics {
+    let transcript_messages_omitted = compacted
+        .iter()
+        .find_map(|message| {
+            let text = message.text_content();
+            let count = text.strip_prefix('[')?.split_once(' ')?.0;
+            count.parse::<usize>().ok()
+        })
+        .unwrap_or_else(|| history.len().saturating_sub(compacted.len()));
+    let estimated_chars_before = history
+        .iter()
+        .map(serialized_message_weight)
+        .sum::<usize>()
+        .saturating_add(tool_schema_chars);
+    let estimated_chars_after = compacted
+        .iter()
+        .map(serialized_message_weight)
+        .sum::<usize>()
+        .saturating_add(tool_schema_chars);
+    let message_parts = |messages: &[LoopMessage]| {
+        messages
+            .iter()
+            .map(|message| {
+                message.content_parts.len()
+                    + message.tool_calls.as_ref().map_or(0, Vec::len)
+                    + usize::from(message.tool_call_id.is_some())
+            })
+            .sum()
+    };
+    let transcript_message_parts_before = message_parts(history);
+    let transcript_message_parts_after = message_parts(compacted);
+    ContextMetrics {
+        transcript_messages_before: history.len(),
+        transcript_messages_after: compacted.len(),
+        transcript_message_parts_before,
+        transcript_message_parts_after,
+        transcript_messages_omitted,
+        estimated_chars_before,
+        estimated_chars_after,
+        tool_schema_chars,
+        compaction_applied: estimated_chars_before != estimated_chars_after
+            || transcript_messages_omitted > 0,
+    }
 }
 
 // Segments are the unit of compaction. Keeping this logic together makes the
@@ -960,8 +1037,8 @@ fn env_usize(key: &str, default: usize) -> usize {
 mod tests {
     use super::{
         compact_history_for_llm_with_budget, compact_history_for_llm_with_budget_and_model_limits,
-        replay_has_user_or_tool_anchor, serialized_message_weight, tool_history_is_consistent,
-        ContextBudget, ModelContextLimits,
+        context_metrics, replay_has_user_or_tool_anchor, serialized_message_weight,
+        tool_history_is_consistent, ContextBudget, ModelContextLimits,
     };
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::LoopMessage;
@@ -1032,6 +1109,50 @@ mod tests {
 
         assert_eq!(limits.reserved_output_tokens(), 157_286);
         assert_eq!(limits.effective_input_tokens(), Some(891_290));
+    }
+
+    #[test]
+    fn tool_schema_chars_reduce_the_history_budget() {
+        let limits = ModelContextLimits {
+            context_window_tokens: Some(1_000),
+            max_output_tokens: Some(1_000),
+        };
+        let budget = ContextBudget {
+            total_chars: 4_000,
+            max_message_chars: 2_000,
+            max_tool_result_chars: 2_000,
+            max_tool_argument_chars: 2_000,
+        }
+        .with_model_limits(limits)
+        .with_tool_schema_chars(1_000);
+
+        assert_eq!(limits.effective_input_chars(), Some(3_400));
+        assert_eq!(budget.total_chars, 2_400);
+    }
+
+    #[test]
+    fn context_metrics_reports_omitted_messages_and_message_parts() {
+        let history = vec![
+            message("user", "first"),
+            message("assistant", "second"),
+            message("user", "latest"),
+        ];
+        let compacted = vec![
+            message(
+                "assistant",
+                "[2 earlier messages omitted to stay within budget.]",
+            ),
+            message("user", "latest"),
+        ];
+
+        let metrics = context_metrics(&history, &compacted, 0);
+
+        assert_eq!(metrics.transcript_messages_before, 3);
+        assert_eq!(metrics.transcript_messages_after, 2);
+        assert_eq!(metrics.transcript_messages_omitted, 2);
+        assert_eq!(metrics.transcript_message_parts_before, 3);
+        assert_eq!(metrics.transcript_message_parts_after, 2);
+        assert!(metrics.compaction_applied);
     }
 
     #[test]

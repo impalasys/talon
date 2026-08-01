@@ -1,11 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::harness::executor::compaction::{ContextMetrics, ModelContextLimits};
 use crate::harness::llm::{
     chat_content_part, ChatContentPart, ChatMessage, ChatRequest, ChatUsage, Tool, ToolCall,
 };
+use opentelemetry::KeyValue;
 use serde_json::{json, Value};
 use tracing::{field, Span};
+use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 const MAX_TELEMETRY_FIELD_CHARS: usize = 12_000;
 
@@ -53,7 +56,6 @@ pub fn chat_span(
     session_id: &str,
     provider_key: &str,
     model: &str,
-    request: &ChatRequest,
     reasoning_level: Option<&str>,
 ) -> Span {
     let provider = genai_provider_name(provider_key);
@@ -88,13 +90,96 @@ pub fn chat_span(
     if let Some(level) = reasoning_level.filter(|level| !level.trim().is_empty()) {
         span.record("gen_ai.request.reasoning.level", level);
     }
-    if !span.is_disabled() {
-        let input_messages = serialize_messages_json(&request.messages);
-        let tool_definitions = serialize_tool_definitions_json(&request.tools);
-        span.record("gen_ai.input.messages", input_messages.as_str());
-        span.record("gen_ai.tool.definitions", tool_definitions.as_str());
-    }
     span
+}
+
+pub fn record_chat_operation_details(
+    span: &Span,
+    request: &ChatRequest,
+    model_limits: ModelContextLimits,
+    context_metrics: ContextMetrics,
+) {
+    if span.is_disabled() {
+        return;
+    }
+
+    let mut attributes = vec![
+        KeyValue::new("gen_ai.operation.name", "chat"),
+        KeyValue::new(
+            "talon.context.request_message_count",
+            request.messages.len() as i64,
+        ),
+        KeyValue::new("talon.context.tool_count", request.tools.len() as i64),
+        KeyValue::new(
+            "talon.context.transcript_messages_before",
+            context_metrics.transcript_messages_before as i64,
+        ),
+        KeyValue::new(
+            "talon.context.transcript_messages_after",
+            context_metrics.transcript_messages_after as i64,
+        ),
+        KeyValue::new(
+            "talon.context.transcript_message_parts_before",
+            context_metrics.transcript_message_parts_before as i64,
+        ),
+        KeyValue::new(
+            "talon.context.transcript_message_parts_after",
+            context_metrics.transcript_message_parts_after as i64,
+        ),
+        KeyValue::new(
+            "talon.context.transcript_message_parts_removed",
+            context_metrics
+                .transcript_message_parts_before
+                .saturating_sub(context_metrics.transcript_message_parts_after) as i64,
+        ),
+        KeyValue::new(
+            "talon.context.transcript_messages_omitted",
+            context_metrics.transcript_messages_omitted as i64,
+        ),
+        KeyValue::new(
+            "talon.context.estimated_chars_before",
+            context_metrics.estimated_chars_before as i64,
+        ),
+        KeyValue::new(
+            "talon.context.estimated_chars_after",
+            context_metrics.estimated_chars_after as i64,
+        ),
+        KeyValue::new(
+            "talon.context.estimated_chars_removed",
+            context_metrics
+                .estimated_chars_before
+                .saturating_sub(context_metrics.estimated_chars_after) as i64,
+        ),
+        KeyValue::new(
+            "talon.context.estimated_input_tokens",
+            (context_metrics.estimated_chars_after / 4) as i64,
+        ),
+        KeyValue::new(
+            "talon.context.tool_schema_chars",
+            context_metrics.tool_schema_chars as i64,
+        ),
+        KeyValue::new(
+            "talon.context.compaction_applied",
+            context_metrics.compaction_applied,
+        ),
+        KeyValue::new(
+            "talon.context.reserved_output_tokens",
+            model_limits.reserved_output_tokens() as i64,
+        ),
+    ];
+    if let Some(context_window) = model_limits.context_window_tokens {
+        attributes.push(KeyValue::new(
+            "talon.context.context_window_tokens",
+            context_window as i64,
+        ));
+    }
+    if let Some(max_output) = model_limits.max_output_tokens {
+        attributes.push(KeyValue::new(
+            "talon.context.max_output_tokens",
+            max_output as i64,
+        ));
+    }
+    span.add_event("gen_ai.client.inference.operation.details", attributes);
 }
 
 pub fn tool_span(
