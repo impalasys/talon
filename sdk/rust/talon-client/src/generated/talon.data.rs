@@ -708,8 +708,43 @@ pub struct SessionJournalEntryPayloadCommit {
     pub committed_message_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionJournalEntryPayloadCompaction {
+    /// Replay history that must replace runtime.context.history during recovery.
+    #[prost(message, repeated, tag = "1")]
+    pub replay_history: ::prost::alloc::vec::Vec<CompactMessage>,
+    /// Journal entry id of this compaction entry (for ordering).
+    #[prost(string, tag = "2")]
+    pub compacted_through_journal_entry_id: ::prost::alloc::string::String,
+    /// Estimated character count before compaction.
+    #[prost(int64, tag = "3")]
+    pub original_estimated_size: i64,
+    /// Estimated character count after compaction.
+    #[prost(int64, tag = "4")]
+    pub compacted_estimated_size: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CompactMessage {
+    #[prost(string, tag = "1")]
+    pub role: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub text_content: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "3")]
+    pub tool_calls: ::prost::alloc::vec::Vec<CompactToolCall>,
+    #[prost(string, optional, tag = "4")]
+    pub tool_call_id: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CompactToolCall {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub arguments: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayload {
-    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3")]
+    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3, 5")]
     pub payload: ::core::option::Option<session_journal_entry_payload::Payload>,
 }
 /// Nested message and enum types in `SessionJournalEntryPayload`.
@@ -722,6 +757,8 @@ pub mod session_journal_entry_payload {
         ToolResult(super::SessionJournalEntryPayloadToolResult),
         #[prost(message, tag = "3")]
         Commit(super::SessionJournalEntryPayloadCommit),
+        #[prost(message, tag = "5")]
+        Compaction(super::SessionJournalEntryPayloadCompaction),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -762,6 +799,11 @@ pub enum SessionExecutionPhase {
     /// The submission reached a commit boundary and its canonical assistant
     /// SessionMessage was written.
     Committed = 3,
+    /// Durable model context compaction completed. Previous LLM_RESPONSE and
+    /// TOOL_RESULT entries up to this journal entry id are considered replayed
+    /// by the recovery path, which hydrates replay_history into runtime.context
+    /// before resuming the execution loop in a later turn or after reclaim.
+    Compaction = 4,
 }
 impl SessionExecutionPhase {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -774,6 +816,7 @@ impl SessionExecutionPhase {
             Self::LlmResponse => "SESSION_EXECUTION_PHASE_LLM_RESPONSE",
             Self::ToolResult => "SESSION_EXECUTION_PHASE_TOOL_RESULT",
             Self::Committed => "SESSION_EXECUTION_PHASE_COMMITTED",
+            Self::Compaction => "SESSION_EXECUTION_PHASE_COMPACTION",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -783,6 +826,7 @@ impl SessionExecutionPhase {
             "SESSION_EXECUTION_PHASE_LLM_RESPONSE" => Some(Self::LlmResponse),
             "SESSION_EXECUTION_PHASE_TOOL_RESULT" => Some(Self::ToolResult),
             "SESSION_EXECUTION_PHASE_COMMITTED" => Some(Self::Committed),
+            "SESSION_EXECUTION_PHASE_COMPACTION" => Some(Self::Compaction),
             _ => None,
         }
     }

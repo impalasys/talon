@@ -6,7 +6,7 @@ from talon_client.proto.data.data_pb2 import MessageRole, ROLE_UNSPECIFIED, ROLE
 from talon_client.proto.data.routing_pb2 import ResourceRef, SessionMessageConsumer, ChannelMessageConsumer, WorkflowMessageConsumer, MessageConsumer
 from talon_client.proto.data.search_pb2 import DocumentSource, DocumentRef, Document
 from talon_client.proto.data.session_submission_pb2 import SessionSubmissionStatus, SESSION_SUBMISSION_STATUS_UNSPECIFIED, SESSION_SUBMISSION_STATUS_PENDING, SESSION_SUBMISSION_STATUS_CLAIMED, SESSION_SUBMISSION_STATUS_COMMITTED, SESSION_SUBMISSION_STATUS_FAILED, SESSION_SUBMISSION_STATUS_INTERRUPTED, SessionSubmission
-from talon_client.proto.data.session_journal_entry_pb2 import SessionExecutionPhase, SESSION_EXECUTION_PHASE_UNSPECIFIED, SESSION_EXECUTION_PHASE_LLM_RESPONSE, SESSION_EXECUTION_PHASE_TOOL_RESULT, SESSION_EXECUTION_PHASE_COMMITTED, SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadToolResult, SessionJournalEntryPayloadCommit, SessionJournalEntryPayload, SessionJournalEntry
+from talon_client.proto.data.session_journal_entry_pb2 import SessionExecutionPhase, SESSION_EXECUTION_PHASE_UNSPECIFIED, SESSION_EXECUTION_PHASE_LLM_RESPONSE, SESSION_EXECUTION_PHASE_TOOL_RESULT, SESSION_EXECUTION_PHASE_COMMITTED, SESSION_EXECUTION_PHASE_COMPACTION, SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadToolResult, SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadCompaction, CompactMessage, CompactToolCall, SessionJournalEntryPayload, SessionJournalEntry
 
 __all__ = [
     "ApiKeyGrant",
@@ -76,9 +76,13 @@ __all__ = [
     "SESSION_EXECUTION_PHASE_LLM_RESPONSE",
     "SESSION_EXECUTION_PHASE_TOOL_RESULT",
     "SESSION_EXECUTION_PHASE_COMMITTED",
+    "SESSION_EXECUTION_PHASE_COMPACTION",
     "SessionJournalEntryPayloadLlmResponse",
     "SessionJournalEntryPayloadToolResult",
     "SessionJournalEntryPayloadCommit",
+    "SessionJournalEntryPayloadCompaction",
+    "CompactMessage",
+    "CompactToolCall",
     "SessionJournalEntryPayload",
     "SessionJournalEntry",
 ]

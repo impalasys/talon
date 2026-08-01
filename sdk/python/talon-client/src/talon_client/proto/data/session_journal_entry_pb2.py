@@ -26,23 +26,29 @@ from talon_client.proto.data import data_pb2 as proto_dot_data_dot_data__pb2
 from talon_client.proto.harness import llm_pb2 as proto_dot_harness_dot_llm__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n&proto/data/session_journal_entry.proto\x12\ntalon.data\x1a\x15proto/data/data.proto\x1a\x17proto/harness/llm.proto\"V\n%SessionJournalEntryPayloadLlmResponse\x12-\n\x08response\x18\x01 \x01(\x0b\x32\x1b.talon.harness.ChatResponse\"\xb1\x01\n$SessionJournalEntryPayloadToolResult\x12\x14\n\x0ctool_call_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06output\x18\x03 \x01(\t\x12%\n\x06object\x18\x04 \x01(\x0b\x32\x15.talon.data.ObjectRef\x12.\n\x0btool_output\x18\x05 \x01(\x0b\x32\x19.talon.harness.ToolOutput\"@\n SessionJournalEntryPayloadCommit\x12\x1c\n\x14\x63ommitted_message_id\x18\x01 \x01(\t\"\xfb\x01\n\x1aSessionJournalEntryPayload\x12I\n\x0cllm_response\x18\x01 \x01(\x0b\x32\x31.talon.data.SessionJournalEntryPayloadLlmResponseH\x00\x12G\n\x0btool_result\x18\x02 \x01(\x0b\x32\x30.talon.data.SessionJournalEntryPayloadToolResultH\x00\x12>\n\x06\x63ommit\x18\x03 \x01(\x0b\x32,.talon.data.SessionJournalEntryPayloadCommitH\x00\x42\t\n\x07payload\"\xd5\x02\n\x13SessionJournalEntry\x12\x15\n\rsubmission_id\x18\x01 \x01(\t\x12\x18\n\x10journal_entry_id\x18\x02 \x01(\t\x12\x12\n\nattempt_id\x18\x03 \x01(\t\x12\x30\n\x05phase\x18\x04 \x01(\x0e\x32!.talon.data.SessionExecutionPhase\x12\x37\n\x07payload\x18\x05 \x01(\x0b\x32&.talon.data.SessionJournalEntryPayload\x12\x12\n\ncreated_at\x18\x06 \x01(\x03\x12\x12\n\nupdated_at\x18\x07 \x01(\x03\x12\x19\n\x0c\x63ommitted_at\x18\x08 \x01(\x03H\x00\x88\x01\x01\x12!\n\x14\x63ommitted_message_id\x18\t \x01(\tH\x01\x88\x01\x01\x42\x0f\n\r_committed_atB\x17\n\x15_committed_message_id*\xba\x01\n\x15SessionExecutionPhase\x12\'\n#SESSION_EXECUTION_PHASE_UNSPECIFIED\x10\x00\x12(\n$SESSION_EXECUTION_PHASE_LLM_RESPONSE\x10\x01\x12\'\n#SESSION_EXECUTION_PHASE_TOOL_RESULT\x10\x02\x12%\n!SESSION_EXECUTION_PHASE_COMMITTED\x10\x03\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n&proto/data/session_journal_entry.proto\x12\ntalon.data\x1a\x15proto/data/data.proto\x1a\x17proto/harness/llm.proto\"V\n%SessionJournalEntryPayloadLlmResponse\x12-\n\x08response\x18\x01 \x01(\x0b\x32\x1b.talon.harness.ChatResponse\"\xb1\x01\n$SessionJournalEntryPayloadToolResult\x12\x14\n\x0ctool_call_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06output\x18\x03 \x01(\t\x12%\n\x06object\x18\x04 \x01(\x0b\x32\x15.talon.data.ObjectRef\x12.\n\x0btool_output\x18\x05 \x01(\x0b\x32\x19.talon.harness.ToolOutput\"@\n SessionJournalEntryPayloadCommit\x12\x1c\n\x14\x63ommitted_message_id\x18\x01 \x01(\t\"\xc9\x01\n$SessionJournalEntryPayloadCompaction\x12\x32\n\x0ereplay_history\x18\x01 \x03(\x0b\x32\x1a.talon.data.CompactMessage\x12*\n\"compacted_through_journal_entry_id\x18\x02 \x01(\t\x12\x1f\n\x17original_estimated_size\x18\x03 \x01(\x03\x12 \n\x18\x63ompacted_estimated_size\x18\x04 \x01(\x03\"\x91\x01\n\x0e\x43ompactMessage\x12\x0c\n\x04role\x18\x01 \x01(\t\x12\x14\n\x0ctext_content\x18\x02 \x01(\t\x12/\n\ntool_calls\x18\x03 \x03(\x0b\x32\x1b.talon.data.CompactToolCall\x12\x19\n\x0ctool_call_id\x18\x04 \x01(\tH\x00\x88\x01\x01\x42\x0f\n\r_tool_call_id\">\n\x0f\x43ompactToolCall\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x11\n\targuments\x18\x03 \x01(\t\"\xc3\x02\n\x1aSessionJournalEntryPayload\x12I\n\x0cllm_response\x18\x01 \x01(\x0b\x32\x31.talon.data.SessionJournalEntryPayloadLlmResponseH\x00\x12G\n\x0btool_result\x18\x02 \x01(\x0b\x32\x30.talon.data.SessionJournalEntryPayloadToolResultH\x00\x12>\n\x06\x63ommit\x18\x03 \x01(\x0b\x32,.talon.data.SessionJournalEntryPayloadCommitH\x00\x12\x46\n\ncompaction\x18\x05 \x01(\x0b\x32\x30.talon.data.SessionJournalEntryPayloadCompactionH\x00\x42\t\n\x07payload\"\xd5\x02\n\x13SessionJournalEntry\x12\x15\n\rsubmission_id\x18\x01 \x01(\t\x12\x18\n\x10journal_entry_id\x18\x02 \x01(\t\x12\x12\n\nattempt_id\x18\x03 \x01(\t\x12\x30\n\x05phase\x18\x04 \x01(\x0e\x32!.talon.data.SessionExecutionPhase\x12\x37\n\x07payload\x18\x05 \x01(\x0b\x32&.talon.data.SessionJournalEntryPayload\x12\x12\n\ncreated_at\x18\x06 \x01(\x03\x12\x12\n\nupdated_at\x18\x07 \x01(\x03\x12\x19\n\x0c\x63ommitted_at\x18\x08 \x01(\x03H\x00\x88\x01\x01\x12!\n\x14\x63ommitted_message_id\x18\t \x01(\tH\x01\x88\x01\x01\x42\x0f\n\r_committed_atB\x17\n\x15_committed_message_id*\xe2\x01\n\x15SessionExecutionPhase\x12\'\n#SESSION_EXECUTION_PHASE_UNSPECIFIED\x10\x00\x12(\n$SESSION_EXECUTION_PHASE_LLM_RESPONSE\x10\x01\x12\'\n#SESSION_EXECUTION_PHASE_TOOL_RESULT\x10\x02\x12%\n!SESSION_EXECUTION_PHASE_COMMITTED\x10\x03\x12&\n\"SESSION_EXECUTION_PHASE_COMPACTION\x10\x04\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.data.session_journal_entry_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_SESSIONEXECUTIONPHASE']._serialized_start=1035
-  _globals['_SESSIONEXECUTIONPHASE']._serialized_end=1221
+  _globals['_SESSIONEXECUTIONPHASE']._serialized_start=1523
+  _globals['_SESSIONEXECUTIONPHASE']._serialized_end=1749
   _globals['_SESSIONJOURNALENTRYPAYLOADLLMRESPONSE']._serialized_start=102
   _globals['_SESSIONJOURNALENTRYPAYLOADLLMRESPONSE']._serialized_end=188
   _globals['_SESSIONJOURNALENTRYPAYLOADTOOLRESULT']._serialized_start=191
   _globals['_SESSIONJOURNALENTRYPAYLOADTOOLRESULT']._serialized_end=368
   _globals['_SESSIONJOURNALENTRYPAYLOADCOMMIT']._serialized_start=370
   _globals['_SESSIONJOURNALENTRYPAYLOADCOMMIT']._serialized_end=434
-  _globals['_SESSIONJOURNALENTRYPAYLOAD']._serialized_start=437
-  _globals['_SESSIONJOURNALENTRYPAYLOAD']._serialized_end=688
-  _globals['_SESSIONJOURNALENTRY']._serialized_start=691
-  _globals['_SESSIONJOURNALENTRY']._serialized_end=1032
+  _globals['_SESSIONJOURNALENTRYPAYLOADCOMPACTION']._serialized_start=437
+  _globals['_SESSIONJOURNALENTRYPAYLOADCOMPACTION']._serialized_end=638
+  _globals['_COMPACTMESSAGE']._serialized_start=641
+  _globals['_COMPACTMESSAGE']._serialized_end=786
+  _globals['_COMPACTTOOLCALL']._serialized_start=788
+  _globals['_COMPACTTOOLCALL']._serialized_end=850
+  _globals['_SESSIONJOURNALENTRYPAYLOAD']._serialized_start=853
+  _globals['_SESSIONJOURNALENTRYPAYLOAD']._serialized_end=1176
+  _globals['_SESSIONJOURNALENTRY']._serialized_start=1179
+  _globals['_SESSIONJOURNALENTRY']._serialized_end=1520
 # @@protoc_insertion_point(module_scope)

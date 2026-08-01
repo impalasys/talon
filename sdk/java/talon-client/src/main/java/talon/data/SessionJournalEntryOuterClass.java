@@ -66,6 +66,17 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * <code>SESSION_EXECUTION_PHASE_COMMITTED = 3;</code>
      */
     SESSION_EXECUTION_PHASE_COMMITTED(3),
+    /**
+     * <pre>
+     * Durable model context compaction completed. Previous LLM_RESPONSE and
+     * TOOL_RESULT entries up to this journal entry id are considered replayed
+     * by the recovery path, which hydrates replay_history into runtime.context
+     * before resuming the execution loop in a later turn or after reclaim.
+     * </pre>
+     *
+     * <code>SESSION_EXECUTION_PHASE_COMPACTION = 4;</code>
+     */
+    SESSION_EXECUTION_PHASE_COMPACTION(4),
     UNRECOGNIZED(-1),
     ;
 
@@ -113,6 +124,17 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * <code>SESSION_EXECUTION_PHASE_COMMITTED = 3;</code>
      */
     public static final int SESSION_EXECUTION_PHASE_COMMITTED_VALUE = 3;
+    /**
+     * <pre>
+     * Durable model context compaction completed. Previous LLM_RESPONSE and
+     * TOOL_RESULT entries up to this journal entry id are considered replayed
+     * by the recovery path, which hydrates replay_history into runtime.context
+     * before resuming the execution loop in a later turn or after reclaim.
+     * </pre>
+     *
+     * <code>SESSION_EXECUTION_PHASE_COMPACTION = 4;</code>
+     */
+    public static final int SESSION_EXECUTION_PHASE_COMPACTION_VALUE = 4;
 
 
     public final int getNumber() {
@@ -143,6 +165,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         case 1: return SESSION_EXECUTION_PHASE_LLM_RESPONSE;
         case 2: return SESSION_EXECUTION_PHASE_TOOL_RESULT;
         case 3: return SESSION_EXECUTION_PHASE_COMMITTED;
+        case 4: return SESSION_EXECUTION_PHASE_COMPACTION;
         default: return null;
       }
     }
@@ -2508,6 +2531,3272 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
 
   }
 
+  public interface SessionJournalEntryPayloadCompactionOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.SessionJournalEntryPayloadCompaction)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    java.util.List<talon.data.SessionJournalEntryOuterClass.CompactMessage>
+        getReplayHistoryList();
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    talon.data.SessionJournalEntryOuterClass.CompactMessage getReplayHistory(int index);
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    int getReplayHistoryCount();
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    java.util.List<? extends talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder>
+        getReplayHistoryOrBuilderList();
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder getReplayHistoryOrBuilder(
+        int index);
+
+    /**
+     * <pre>
+     * Journal entry id of this compaction entry (for ordering).
+     * </pre>
+     *
+     * <code>string compacted_through_journal_entry_id = 2;</code>
+     * @return The compactedThroughJournalEntryId.
+     */
+    java.lang.String getCompactedThroughJournalEntryId();
+    /**
+     * <pre>
+     * Journal entry id of this compaction entry (for ordering).
+     * </pre>
+     *
+     * <code>string compacted_through_journal_entry_id = 2;</code>
+     * @return The bytes for compactedThroughJournalEntryId.
+     */
+    com.google.protobuf.ByteString
+        getCompactedThroughJournalEntryIdBytes();
+
+    /**
+     * <pre>
+     * Estimated character count before compaction.
+     * </pre>
+     *
+     * <code>int64 original_estimated_size = 3;</code>
+     * @return The originalEstimatedSize.
+     */
+    long getOriginalEstimatedSize();
+
+    /**
+     * <pre>
+     * Estimated character count after compaction.
+     * </pre>
+     *
+     * <code>int64 compacted_estimated_size = 4;</code>
+     * @return The compactedEstimatedSize.
+     */
+    long getCompactedEstimatedSize();
+  }
+  /**
+   * Protobuf type {@code talon.data.SessionJournalEntryPayloadCompaction}
+   */
+  public static final class SessionJournalEntryPayloadCompaction extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.SessionJournalEntryPayloadCompaction)
+      SessionJournalEntryPayloadCompactionOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "SessionJournalEntryPayloadCompaction");
+    }
+    // Use SessionJournalEntryPayloadCompaction.newBuilder() to construct.
+    private SessionJournalEntryPayloadCompaction(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private SessionJournalEntryPayloadCompaction() {
+      replayHistory_ = java.util.Collections.emptyList();
+      compactedThroughJournalEntryId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadCompaction_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.class, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.Builder.class);
+    }
+
+    public static final int REPLAY_HISTORY_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.data.SessionJournalEntryOuterClass.CompactMessage> replayHistory_;
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.data.SessionJournalEntryOuterClass.CompactMessage> getReplayHistoryList() {
+      return replayHistory_;
+    }
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder>
+        getReplayHistoryOrBuilderList() {
+      return replayHistory_;
+    }
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    @java.lang.Override
+    public int getReplayHistoryCount() {
+      return replayHistory_.size();
+    }
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.CompactMessage getReplayHistory(int index) {
+      return replayHistory_.get(index);
+    }
+    /**
+     * <pre>
+     * Replay history that must replace runtime.context.history during recovery.
+     * </pre>
+     *
+     * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+     */
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder getReplayHistoryOrBuilder(
+        int index) {
+      return replayHistory_.get(index);
+    }
+
+    public static final int COMPACTED_THROUGH_JOURNAL_ENTRY_ID_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object compactedThroughJournalEntryId_ = "";
+    /**
+     * <pre>
+     * Journal entry id of this compaction entry (for ordering).
+     * </pre>
+     *
+     * <code>string compacted_through_journal_entry_id = 2;</code>
+     * @return The compactedThroughJournalEntryId.
+     */
+    @java.lang.Override
+    public java.lang.String getCompactedThroughJournalEntryId() {
+      java.lang.Object ref = compactedThroughJournalEntryId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        compactedThroughJournalEntryId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Journal entry id of this compaction entry (for ordering).
+     * </pre>
+     *
+     * <code>string compacted_through_journal_entry_id = 2;</code>
+     * @return The bytes for compactedThroughJournalEntryId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getCompactedThroughJournalEntryIdBytes() {
+      java.lang.Object ref = compactedThroughJournalEntryId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        compactedThroughJournalEntryId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ORIGINAL_ESTIMATED_SIZE_FIELD_NUMBER = 3;
+    private long originalEstimatedSize_ = 0L;
+    /**
+     * <pre>
+     * Estimated character count before compaction.
+     * </pre>
+     *
+     * <code>int64 original_estimated_size = 3;</code>
+     * @return The originalEstimatedSize.
+     */
+    @java.lang.Override
+    public long getOriginalEstimatedSize() {
+      return originalEstimatedSize_;
+    }
+
+    public static final int COMPACTED_ESTIMATED_SIZE_FIELD_NUMBER = 4;
+    private long compactedEstimatedSize_ = 0L;
+    /**
+     * <pre>
+     * Estimated character count after compaction.
+     * </pre>
+     *
+     * <code>int64 compacted_estimated_size = 4;</code>
+     * @return The compactedEstimatedSize.
+     */
+    @java.lang.Override
+    public long getCompactedEstimatedSize() {
+      return compactedEstimatedSize_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < replayHistory_.size(); i++) {
+        output.writeMessage(1, replayHistory_.get(i));
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(compactedThroughJournalEntryId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, compactedThroughJournalEntryId_);
+      }
+      if (originalEstimatedSize_ != 0L) {
+        output.writeInt64(3, originalEstimatedSize_);
+      }
+      if (compactedEstimatedSize_ != 0L) {
+        output.writeInt64(4, compactedEstimatedSize_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+
+          {
+            final int count = replayHistory_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(replayHistory_.get(i));
+            }
+            size += 1 * count;
+          }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(compactedThroughJournalEntryId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, compactedThroughJournalEntryId_);
+      }
+      if (originalEstimatedSize_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, originalEstimatedSize_);
+      }
+      if (compactedEstimatedSize_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, compactedEstimatedSize_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction)) {
+        return super.equals(obj);
+      }
+      talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction other = (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) obj;
+
+      if (!getReplayHistoryList()
+          .equals(other.getReplayHistoryList())) return false;
+      if (!getCompactedThroughJournalEntryId()
+          .equals(other.getCompactedThroughJournalEntryId())) return false;
+      if (getOriginalEstimatedSize()
+          != other.getOriginalEstimatedSize()) return false;
+      if (getCompactedEstimatedSize()
+          != other.getCompactedEstimatedSize()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getReplayHistoryCount() > 0) {
+        hash = (37 * hash) + REPLAY_HISTORY_FIELD_NUMBER;
+        hash = (53 * hash) + getReplayHistoryList().hashCode();
+      }
+      hash = (37 * hash) + COMPACTED_THROUGH_JOURNAL_ENTRY_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getCompactedThroughJournalEntryId().hashCode();
+      hash = (37 * hash) + ORIGINAL_ESTIMATED_SIZE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getOriginalEstimatedSize());
+      hash = (37 * hash) + COMPACTED_ESTIMATED_SIZE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCompactedEstimatedSize());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.SessionJournalEntryPayloadCompaction}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.SessionJournalEntryPayloadCompaction)
+        talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompactionOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadCompaction_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.class, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.Builder.class);
+      }
+
+      // Construct using talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        if (replayHistoryBuilder_ == null) {
+          replayHistory_ = java.util.Collections.emptyList();
+        } else {
+          replayHistory_ = null;
+          replayHistoryBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000001);
+        compactedThroughJournalEntryId_ = "";
+        originalEstimatedSize_ = 0L;
+        compactedEstimatedSize_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction getDefaultInstanceForType() {
+        return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction build() {
+        talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction buildPartial() {
+        talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction result = new talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction result) {
+        if (replayHistoryBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0)) {
+            replayHistory_ = java.util.Collections.unmodifiableList(replayHistory_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.replayHistory_ = replayHistory_;
+        } else {
+          result.replayHistory_ = replayHistoryBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.compactedThroughJournalEntryId_ = compactedThroughJournalEntryId_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.originalEstimatedSize_ = originalEstimatedSize_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.compactedEstimatedSize_ = compactedEstimatedSize_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) {
+          return mergeFrom((talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction other) {
+        if (other == talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance()) return this;
+        if (replayHistoryBuilder_ == null) {
+          if (!other.replayHistory_.isEmpty()) {
+            if (replayHistory_.isEmpty()) {
+              replayHistory_ = other.replayHistory_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureReplayHistoryIsMutable();
+              replayHistory_.addAll(other.replayHistory_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.replayHistory_.isEmpty()) {
+            if (replayHistoryBuilder_.isEmpty()) {
+              replayHistoryBuilder_.dispose();
+              replayHistoryBuilder_ = null;
+              replayHistory_ = other.replayHistory_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              replayHistoryBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetReplayHistoryFieldBuilder() : null;
+            } else {
+              replayHistoryBuilder_.addAllMessages(other.replayHistory_);
+            }
+          }
+        }
+        if (!other.getCompactedThroughJournalEntryId().isEmpty()) {
+          compactedThroughJournalEntryId_ = other.compactedThroughJournalEntryId_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (other.getOriginalEstimatedSize() != 0L) {
+          setOriginalEstimatedSize(other.getOriginalEstimatedSize());
+        }
+        if (other.getCompactedEstimatedSize() != 0L) {
+          setCompactedEstimatedSize(other.getCompactedEstimatedSize());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                talon.data.SessionJournalEntryOuterClass.CompactMessage m =
+                    input.readMessage(
+                        talon.data.SessionJournalEntryOuterClass.CompactMessage.parser(),
+                        extensionRegistry);
+                if (replayHistoryBuilder_ == null) {
+                  ensureReplayHistoryIsMutable();
+                  replayHistory_.add(m);
+                } else {
+                  replayHistoryBuilder_.addMessage(m);
+                }
+                break;
+              } // case 10
+              case 18: {
+                compactedThroughJournalEntryId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 24: {
+                originalEstimatedSize_ = input.readInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 32: {
+                compactedEstimatedSize_ = input.readInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<talon.data.SessionJournalEntryOuterClass.CompactMessage> replayHistory_ =
+        java.util.Collections.emptyList();
+      private void ensureReplayHistoryIsMutable() {
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          replayHistory_ = new java.util.ArrayList<talon.data.SessionJournalEntryOuterClass.CompactMessage>(replayHistory_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.data.SessionJournalEntryOuterClass.CompactMessage, talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder, talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder> replayHistoryBuilder_;
+
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public java.util.List<talon.data.SessionJournalEntryOuterClass.CompactMessage> getReplayHistoryList() {
+        if (replayHistoryBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(replayHistory_);
+        } else {
+          return replayHistoryBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public int getReplayHistoryCount() {
+        if (replayHistoryBuilder_ == null) {
+          return replayHistory_.size();
+        } else {
+          return replayHistoryBuilder_.getCount();
+        }
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactMessage getReplayHistory(int index) {
+        if (replayHistoryBuilder_ == null) {
+          return replayHistory_.get(index);
+        } else {
+          return replayHistoryBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder setReplayHistory(
+          int index, talon.data.SessionJournalEntryOuterClass.CompactMessage value) {
+        if (replayHistoryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureReplayHistoryIsMutable();
+          replayHistory_.set(index, value);
+          onChanged();
+        } else {
+          replayHistoryBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder setReplayHistory(
+          int index, talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder builderForValue) {
+        if (replayHistoryBuilder_ == null) {
+          ensureReplayHistoryIsMutable();
+          replayHistory_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          replayHistoryBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder addReplayHistory(talon.data.SessionJournalEntryOuterClass.CompactMessage value) {
+        if (replayHistoryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureReplayHistoryIsMutable();
+          replayHistory_.add(value);
+          onChanged();
+        } else {
+          replayHistoryBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder addReplayHistory(
+          int index, talon.data.SessionJournalEntryOuterClass.CompactMessage value) {
+        if (replayHistoryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureReplayHistoryIsMutable();
+          replayHistory_.add(index, value);
+          onChanged();
+        } else {
+          replayHistoryBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder addReplayHistory(
+          talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder builderForValue) {
+        if (replayHistoryBuilder_ == null) {
+          ensureReplayHistoryIsMutable();
+          replayHistory_.add(builderForValue.build());
+          onChanged();
+        } else {
+          replayHistoryBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder addReplayHistory(
+          int index, talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder builderForValue) {
+        if (replayHistoryBuilder_ == null) {
+          ensureReplayHistoryIsMutable();
+          replayHistory_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          replayHistoryBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder addAllReplayHistory(
+          java.lang.Iterable<? extends talon.data.SessionJournalEntryOuterClass.CompactMessage> values) {
+        if (replayHistoryBuilder_ == null) {
+          ensureReplayHistoryIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, replayHistory_);
+          onChanged();
+        } else {
+          replayHistoryBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder clearReplayHistory() {
+        if (replayHistoryBuilder_ == null) {
+          replayHistory_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          replayHistoryBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public Builder removeReplayHistory(int index) {
+        if (replayHistoryBuilder_ == null) {
+          ensureReplayHistoryIsMutable();
+          replayHistory_.remove(index);
+          onChanged();
+        } else {
+          replayHistoryBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder getReplayHistoryBuilder(
+          int index) {
+        return internalGetReplayHistoryFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder getReplayHistoryOrBuilder(
+          int index) {
+        if (replayHistoryBuilder_ == null) {
+          return replayHistory_.get(index);  } else {
+          return replayHistoryBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public java.util.List<? extends talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder>
+           getReplayHistoryOrBuilderList() {
+        if (replayHistoryBuilder_ != null) {
+          return replayHistoryBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(replayHistory_);
+        }
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder addReplayHistoryBuilder() {
+        return internalGetReplayHistoryFieldBuilder().addBuilder(
+            talon.data.SessionJournalEntryOuterClass.CompactMessage.getDefaultInstance());
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder addReplayHistoryBuilder(
+          int index) {
+        return internalGetReplayHistoryFieldBuilder().addBuilder(
+            index, talon.data.SessionJournalEntryOuterClass.CompactMessage.getDefaultInstance());
+      }
+      /**
+       * <pre>
+       * Replay history that must replace runtime.context.history during recovery.
+       * </pre>
+       *
+       * <code>repeated .talon.data.CompactMessage replay_history = 1;</code>
+       */
+      public java.util.List<talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder>
+           getReplayHistoryBuilderList() {
+        return internalGetReplayHistoryFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.data.SessionJournalEntryOuterClass.CompactMessage, talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder, talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder>
+          internalGetReplayHistoryFieldBuilder() {
+        if (replayHistoryBuilder_ == null) {
+          replayHistoryBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.data.SessionJournalEntryOuterClass.CompactMessage, talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder, talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder>(
+                  replayHistory_,
+                  ((bitField0_ & 0x00000001) != 0),
+                  getParentForChildren(),
+                  isClean());
+          replayHistory_ = null;
+        }
+        return replayHistoryBuilder_;
+      }
+
+      private java.lang.Object compactedThroughJournalEntryId_ = "";
+      /**
+       * <pre>
+       * Journal entry id of this compaction entry (for ordering).
+       * </pre>
+       *
+       * <code>string compacted_through_journal_entry_id = 2;</code>
+       * @return The compactedThroughJournalEntryId.
+       */
+      public java.lang.String getCompactedThroughJournalEntryId() {
+        java.lang.Object ref = compactedThroughJournalEntryId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          compactedThroughJournalEntryId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Journal entry id of this compaction entry (for ordering).
+       * </pre>
+       *
+       * <code>string compacted_through_journal_entry_id = 2;</code>
+       * @return The bytes for compactedThroughJournalEntryId.
+       */
+      public com.google.protobuf.ByteString
+          getCompactedThroughJournalEntryIdBytes() {
+        java.lang.Object ref = compactedThroughJournalEntryId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          compactedThroughJournalEntryId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Journal entry id of this compaction entry (for ordering).
+       * </pre>
+       *
+       * <code>string compacted_through_journal_entry_id = 2;</code>
+       * @param value The compactedThroughJournalEntryId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCompactedThroughJournalEntryId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        compactedThroughJournalEntryId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Journal entry id of this compaction entry (for ordering).
+       * </pre>
+       *
+       * <code>string compacted_through_journal_entry_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCompactedThroughJournalEntryId() {
+        compactedThroughJournalEntryId_ = getDefaultInstance().getCompactedThroughJournalEntryId();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Journal entry id of this compaction entry (for ordering).
+       * </pre>
+       *
+       * <code>string compacted_through_journal_entry_id = 2;</code>
+       * @param value The bytes for compactedThroughJournalEntryId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCompactedThroughJournalEntryIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        compactedThroughJournalEntryId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private long originalEstimatedSize_ ;
+      /**
+       * <pre>
+       * Estimated character count before compaction.
+       * </pre>
+       *
+       * <code>int64 original_estimated_size = 3;</code>
+       * @return The originalEstimatedSize.
+       */
+      @java.lang.Override
+      public long getOriginalEstimatedSize() {
+        return originalEstimatedSize_;
+      }
+      /**
+       * <pre>
+       * Estimated character count before compaction.
+       * </pre>
+       *
+       * <code>int64 original_estimated_size = 3;</code>
+       * @param value The originalEstimatedSize to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOriginalEstimatedSize(long value) {
+
+        originalEstimatedSize_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Estimated character count before compaction.
+       * </pre>
+       *
+       * <code>int64 original_estimated_size = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOriginalEstimatedSize() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        originalEstimatedSize_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long compactedEstimatedSize_ ;
+      /**
+       * <pre>
+       * Estimated character count after compaction.
+       * </pre>
+       *
+       * <code>int64 compacted_estimated_size = 4;</code>
+       * @return The compactedEstimatedSize.
+       */
+      @java.lang.Override
+      public long getCompactedEstimatedSize() {
+        return compactedEstimatedSize_;
+      }
+      /**
+       * <pre>
+       * Estimated character count after compaction.
+       * </pre>
+       *
+       * <code>int64 compacted_estimated_size = 4;</code>
+       * @param value The compactedEstimatedSize to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCompactedEstimatedSize(long value) {
+
+        compactedEstimatedSize_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Estimated character count after compaction.
+       * </pre>
+       *
+       * <code>int64 compacted_estimated_size = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCompactedEstimatedSize() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        compactedEstimatedSize_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.SessionJournalEntryPayloadCompaction)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.SessionJournalEntryPayloadCompaction)
+    private static final talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction();
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<SessionJournalEntryPayloadCompaction>
+        PARSER = new com.google.protobuf.AbstractParser<SessionJournalEntryPayloadCompaction>() {
+      @java.lang.Override
+      public SessionJournalEntryPayloadCompaction parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<SessionJournalEntryPayloadCompaction> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<SessionJournalEntryPayloadCompaction> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface CompactMessageOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.CompactMessage)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string role = 1;</code>
+     * @return The role.
+     */
+    java.lang.String getRole();
+    /**
+     * <code>string role = 1;</code>
+     * @return The bytes for role.
+     */
+    com.google.protobuf.ByteString
+        getRoleBytes();
+
+    /**
+     * <code>string text_content = 2;</code>
+     * @return The textContent.
+     */
+    java.lang.String getTextContent();
+    /**
+     * <code>string text_content = 2;</code>
+     * @return The bytes for textContent.
+     */
+    com.google.protobuf.ByteString
+        getTextContentBytes();
+
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    java.util.List<talon.data.SessionJournalEntryOuterClass.CompactToolCall>
+        getToolCallsList();
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    talon.data.SessionJournalEntryOuterClass.CompactToolCall getToolCalls(int index);
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    int getToolCallsCount();
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    java.util.List<? extends talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder>
+        getToolCallsOrBuilderList();
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder getToolCallsOrBuilder(
+        int index);
+
+    /**
+     * <code>optional string tool_call_id = 4;</code>
+     * @return Whether the toolCallId field is set.
+     */
+    boolean hasToolCallId();
+    /**
+     * <code>optional string tool_call_id = 4;</code>
+     * @return The toolCallId.
+     */
+    java.lang.String getToolCallId();
+    /**
+     * <code>optional string tool_call_id = 4;</code>
+     * @return The bytes for toolCallId.
+     */
+    com.google.protobuf.ByteString
+        getToolCallIdBytes();
+  }
+  /**
+   * Protobuf type {@code talon.data.CompactMessage}
+   */
+  public static final class CompactMessage extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.CompactMessage)
+      CompactMessageOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "CompactMessage");
+    }
+    // Use CompactMessage.newBuilder() to construct.
+    private CompactMessage(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private CompactMessage() {
+      role_ = "";
+      textContent_ = "";
+      toolCalls_ = java.util.Collections.emptyList();
+      toolCallId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactMessage_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactMessage_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactMessage_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.SessionJournalEntryOuterClass.CompactMessage.class, talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int ROLE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object role_ = "";
+    /**
+     * <code>string role = 1;</code>
+     * @return The role.
+     */
+    @java.lang.Override
+    public java.lang.String getRole() {
+      java.lang.Object ref = role_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        role_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string role = 1;</code>
+     * @return The bytes for role.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRoleBytes() {
+      java.lang.Object ref = role_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        role_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TEXT_CONTENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object textContent_ = "";
+    /**
+     * <code>string text_content = 2;</code>
+     * @return The textContent.
+     */
+    @java.lang.Override
+    public java.lang.String getTextContent() {
+      java.lang.Object ref = textContent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        textContent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string text_content = 2;</code>
+     * @return The bytes for textContent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTextContentBytes() {
+      java.lang.Object ref = textContent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        textContent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TOOL_CALLS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.data.SessionJournalEntryOuterClass.CompactToolCall> toolCalls_;
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.data.SessionJournalEntryOuterClass.CompactToolCall> getToolCallsList() {
+      return toolCalls_;
+    }
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder>
+        getToolCallsOrBuilderList() {
+      return toolCalls_;
+    }
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    @java.lang.Override
+    public int getToolCallsCount() {
+      return toolCalls_.size();
+    }
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.CompactToolCall getToolCalls(int index) {
+      return toolCalls_.get(index);
+    }
+    /**
+     * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+     */
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder getToolCallsOrBuilder(
+        int index) {
+      return toolCalls_.get(index);
+    }
+
+    public static final int TOOL_CALL_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object toolCallId_ = "";
+    /**
+     * <code>optional string tool_call_id = 4;</code>
+     * @return Whether the toolCallId field is set.
+     */
+    @java.lang.Override
+    public boolean hasToolCallId() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional string tool_call_id = 4;</code>
+     * @return The toolCallId.
+     */
+    @java.lang.Override
+    public java.lang.String getToolCallId() {
+      java.lang.Object ref = toolCallId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        toolCallId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string tool_call_id = 4;</code>
+     * @return The bytes for toolCallId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getToolCallIdBytes() {
+      java.lang.Object ref = toolCallId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        toolCallId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(role_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, role_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(textContent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, textContent_);
+      }
+      for (int i = 0; i < toolCalls_.size(); i++) {
+        output.writeMessage(3, toolCalls_.get(i));
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, toolCallId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(role_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, role_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(textContent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, textContent_);
+      }
+
+          {
+            final int count = toolCalls_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(toolCalls_.get(i));
+            }
+            size += 1 * count;
+          }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, toolCallId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.SessionJournalEntryOuterClass.CompactMessage)) {
+        return super.equals(obj);
+      }
+      talon.data.SessionJournalEntryOuterClass.CompactMessage other = (talon.data.SessionJournalEntryOuterClass.CompactMessage) obj;
+
+      if (!getRole()
+          .equals(other.getRole())) return false;
+      if (!getTextContent()
+          .equals(other.getTextContent())) return false;
+      if (!getToolCallsList()
+          .equals(other.getToolCallsList())) return false;
+      if (hasToolCallId() != other.hasToolCallId()) return false;
+      if (hasToolCallId()) {
+        if (!getToolCallId()
+            .equals(other.getToolCallId())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ROLE_FIELD_NUMBER;
+      hash = (53 * hash) + getRole().hashCode();
+      hash = (37 * hash) + TEXT_CONTENT_FIELD_NUMBER;
+      hash = (53 * hash) + getTextContent().hashCode();
+      if (getToolCallsCount() > 0) {
+        hash = (37 * hash) + TOOL_CALLS_FIELD_NUMBER;
+        hash = (53 * hash) + getToolCallsList().hashCode();
+      }
+      if (hasToolCallId()) {
+        hash = (37 * hash) + TOOL_CALL_ID_FIELD_NUMBER;
+        hash = (53 * hash) + getToolCallId().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.SessionJournalEntryOuterClass.CompactMessage prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.CompactMessage}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.CompactMessage)
+        talon.data.SessionJournalEntryOuterClass.CompactMessageOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactMessage_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactMessage_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.SessionJournalEntryOuterClass.CompactMessage.class, talon.data.SessionJournalEntryOuterClass.CompactMessage.Builder.class);
+      }
+
+      // Construct using talon.data.SessionJournalEntryOuterClass.CompactMessage.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        role_ = "";
+        textContent_ = "";
+        if (toolCallsBuilder_ == null) {
+          toolCalls_ = java.util.Collections.emptyList();
+        } else {
+          toolCalls_ = null;
+          toolCallsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        toolCallId_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactMessage_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.CompactMessage getDefaultInstanceForType() {
+        return talon.data.SessionJournalEntryOuterClass.CompactMessage.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.CompactMessage build() {
+        talon.data.SessionJournalEntryOuterClass.CompactMessage result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.CompactMessage buildPartial() {
+        talon.data.SessionJournalEntryOuterClass.CompactMessage result = new talon.data.SessionJournalEntryOuterClass.CompactMessage(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(talon.data.SessionJournalEntryOuterClass.CompactMessage result) {
+        if (toolCallsBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0)) {
+            toolCalls_ = java.util.Collections.unmodifiableList(toolCalls_);
+            bitField0_ = (bitField0_ & ~0x00000004);
+          }
+          result.toolCalls_ = toolCalls_;
+        } else {
+          result.toolCalls_ = toolCallsBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(talon.data.SessionJournalEntryOuterClass.CompactMessage result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.role_ = role_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.textContent_ = textContent_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.toolCallId_ = toolCallId_;
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.SessionJournalEntryOuterClass.CompactMessage) {
+          return mergeFrom((talon.data.SessionJournalEntryOuterClass.CompactMessage)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.SessionJournalEntryOuterClass.CompactMessage other) {
+        if (other == talon.data.SessionJournalEntryOuterClass.CompactMessage.getDefaultInstance()) return this;
+        if (!other.getRole().isEmpty()) {
+          role_ = other.role_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getTextContent().isEmpty()) {
+          textContent_ = other.textContent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (toolCallsBuilder_ == null) {
+          if (!other.toolCalls_.isEmpty()) {
+            if (toolCalls_.isEmpty()) {
+              toolCalls_ = other.toolCalls_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+            } else {
+              ensureToolCallsIsMutable();
+              toolCalls_.addAll(other.toolCalls_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.toolCalls_.isEmpty()) {
+            if (toolCallsBuilder_.isEmpty()) {
+              toolCallsBuilder_.dispose();
+              toolCallsBuilder_ = null;
+              toolCalls_ = other.toolCalls_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+              toolCallsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetToolCallsFieldBuilder() : null;
+            } else {
+              toolCallsBuilder_.addAllMessages(other.toolCalls_);
+            }
+          }
+        }
+        if (other.hasToolCallId()) {
+          toolCallId_ = other.toolCallId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                role_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                textContent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                talon.data.SessionJournalEntryOuterClass.CompactToolCall m =
+                    input.readMessage(
+                        talon.data.SessionJournalEntryOuterClass.CompactToolCall.parser(),
+                        extensionRegistry);
+                if (toolCallsBuilder_ == null) {
+                  ensureToolCallsIsMutable();
+                  toolCalls_.add(m);
+                } else {
+                  toolCallsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 26
+              case 34: {
+                toolCallId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object role_ = "";
+      /**
+       * <code>string role = 1;</code>
+       * @return The role.
+       */
+      public java.lang.String getRole() {
+        java.lang.Object ref = role_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          role_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string role = 1;</code>
+       * @return The bytes for role.
+       */
+      public com.google.protobuf.ByteString
+          getRoleBytes() {
+        java.lang.Object ref = role_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          role_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string role = 1;</code>
+       * @param value The role to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRole(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        role_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string role = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRole() {
+        role_ = getDefaultInstance().getRole();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string role = 1;</code>
+       * @param value The bytes for role to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRoleBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        role_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object textContent_ = "";
+      /**
+       * <code>string text_content = 2;</code>
+       * @return The textContent.
+       */
+      public java.lang.String getTextContent() {
+        java.lang.Object ref = textContent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          textContent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string text_content = 2;</code>
+       * @return The bytes for textContent.
+       */
+      public com.google.protobuf.ByteString
+          getTextContentBytes() {
+        java.lang.Object ref = textContent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          textContent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string text_content = 2;</code>
+       * @param value The textContent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTextContent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        textContent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string text_content = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTextContent() {
+        textContent_ = getDefaultInstance().getTextContent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string text_content = 2;</code>
+       * @param value The bytes for textContent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTextContentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        textContent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<talon.data.SessionJournalEntryOuterClass.CompactToolCall> toolCalls_ =
+        java.util.Collections.emptyList();
+      private void ensureToolCallsIsMutable() {
+        if (!((bitField0_ & 0x00000004) != 0)) {
+          toolCalls_ = new java.util.ArrayList<talon.data.SessionJournalEntryOuterClass.CompactToolCall>(toolCalls_);
+          bitField0_ |= 0x00000004;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.data.SessionJournalEntryOuterClass.CompactToolCall, talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder, talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder> toolCallsBuilder_;
+
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public java.util.List<talon.data.SessionJournalEntryOuterClass.CompactToolCall> getToolCallsList() {
+        if (toolCallsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(toolCalls_);
+        } else {
+          return toolCallsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public int getToolCallsCount() {
+        if (toolCallsBuilder_ == null) {
+          return toolCalls_.size();
+        } else {
+          return toolCallsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactToolCall getToolCalls(int index) {
+        if (toolCallsBuilder_ == null) {
+          return toolCalls_.get(index);
+        } else {
+          return toolCallsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder setToolCalls(
+          int index, talon.data.SessionJournalEntryOuterClass.CompactToolCall value) {
+        if (toolCallsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureToolCallsIsMutable();
+          toolCalls_.set(index, value);
+          onChanged();
+        } else {
+          toolCallsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder setToolCalls(
+          int index, talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder builderForValue) {
+        if (toolCallsBuilder_ == null) {
+          ensureToolCallsIsMutable();
+          toolCalls_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          toolCallsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder addToolCalls(talon.data.SessionJournalEntryOuterClass.CompactToolCall value) {
+        if (toolCallsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureToolCallsIsMutable();
+          toolCalls_.add(value);
+          onChanged();
+        } else {
+          toolCallsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder addToolCalls(
+          int index, talon.data.SessionJournalEntryOuterClass.CompactToolCall value) {
+        if (toolCallsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureToolCallsIsMutable();
+          toolCalls_.add(index, value);
+          onChanged();
+        } else {
+          toolCallsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder addToolCalls(
+          talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder builderForValue) {
+        if (toolCallsBuilder_ == null) {
+          ensureToolCallsIsMutable();
+          toolCalls_.add(builderForValue.build());
+          onChanged();
+        } else {
+          toolCallsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder addToolCalls(
+          int index, talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder builderForValue) {
+        if (toolCallsBuilder_ == null) {
+          ensureToolCallsIsMutable();
+          toolCalls_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          toolCallsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder addAllToolCalls(
+          java.lang.Iterable<? extends talon.data.SessionJournalEntryOuterClass.CompactToolCall> values) {
+        if (toolCallsBuilder_ == null) {
+          ensureToolCallsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, toolCalls_);
+          onChanged();
+        } else {
+          toolCallsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder clearToolCalls() {
+        if (toolCallsBuilder_ == null) {
+          toolCalls_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000004);
+          onChanged();
+        } else {
+          toolCallsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public Builder removeToolCalls(int index) {
+        if (toolCallsBuilder_ == null) {
+          ensureToolCallsIsMutable();
+          toolCalls_.remove(index);
+          onChanged();
+        } else {
+          toolCallsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder getToolCallsBuilder(
+          int index) {
+        return internalGetToolCallsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder getToolCallsOrBuilder(
+          int index) {
+        if (toolCallsBuilder_ == null) {
+          return toolCalls_.get(index);  } else {
+          return toolCallsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public java.util.List<? extends talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder>
+           getToolCallsOrBuilderList() {
+        if (toolCallsBuilder_ != null) {
+          return toolCallsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(toolCalls_);
+        }
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder addToolCallsBuilder() {
+        return internalGetToolCallsFieldBuilder().addBuilder(
+            talon.data.SessionJournalEntryOuterClass.CompactToolCall.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder addToolCallsBuilder(
+          int index) {
+        return internalGetToolCallsFieldBuilder().addBuilder(
+            index, talon.data.SessionJournalEntryOuterClass.CompactToolCall.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.data.CompactToolCall tool_calls = 3;</code>
+       */
+      public java.util.List<talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder>
+           getToolCallsBuilderList() {
+        return internalGetToolCallsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.data.SessionJournalEntryOuterClass.CompactToolCall, talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder, talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder>
+          internalGetToolCallsFieldBuilder() {
+        if (toolCallsBuilder_ == null) {
+          toolCallsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.data.SessionJournalEntryOuterClass.CompactToolCall, talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder, talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder>(
+                  toolCalls_,
+                  ((bitField0_ & 0x00000004) != 0),
+                  getParentForChildren(),
+                  isClean());
+          toolCalls_ = null;
+        }
+        return toolCallsBuilder_;
+      }
+
+      private java.lang.Object toolCallId_ = "";
+      /**
+       * <code>optional string tool_call_id = 4;</code>
+       * @return Whether the toolCallId field is set.
+       */
+      public boolean hasToolCallId() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>optional string tool_call_id = 4;</code>
+       * @return The toolCallId.
+       */
+      public java.lang.String getToolCallId() {
+        java.lang.Object ref = toolCallId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          toolCallId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string tool_call_id = 4;</code>
+       * @return The bytes for toolCallId.
+       */
+      public com.google.protobuf.ByteString
+          getToolCallIdBytes() {
+        java.lang.Object ref = toolCallId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          toolCallId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string tool_call_id = 4;</code>
+       * @param value The toolCallId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setToolCallId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        toolCallId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string tool_call_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearToolCallId() {
+        toolCallId_ = getDefaultInstance().getToolCallId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string tool_call_id = 4;</code>
+       * @param value The bytes for toolCallId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setToolCallIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        toolCallId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.CompactMessage)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.CompactMessage)
+    private static final talon.data.SessionJournalEntryOuterClass.CompactMessage DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.SessionJournalEntryOuterClass.CompactMessage();
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.CompactMessage getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<CompactMessage>
+        PARSER = new com.google.protobuf.AbstractParser<CompactMessage>() {
+      @java.lang.Override
+      public CompactMessage parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<CompactMessage> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompactMessage> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.CompactMessage getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface CompactToolCallOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.CompactToolCall)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>string name = 2;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <code>string name = 2;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>string arguments = 3;</code>
+     * @return The arguments.
+     */
+    java.lang.String getArguments();
+    /**
+     * <code>string arguments = 3;</code>
+     * @return The bytes for arguments.
+     */
+    com.google.protobuf.ByteString
+        getArgumentsBytes();
+  }
+  /**
+   * Protobuf type {@code talon.data.CompactToolCall}
+   */
+  public static final class CompactToolCall extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.CompactToolCall)
+      CompactToolCallOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "CompactToolCall");
+    }
+    // Use CompactToolCall.newBuilder() to construct.
+    private CompactToolCall(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private CompactToolCall() {
+      id_ = "";
+      name_ = "";
+      arguments_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactToolCall_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactToolCall_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactToolCall_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.SessionJournalEntryOuterClass.CompactToolCall.class, talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder.class);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAME_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <code>string name = 2;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string name = 2;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ARGUMENTS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object arguments_ = "";
+    /**
+     * <code>string arguments = 3;</code>
+     * @return The arguments.
+     */
+    @java.lang.Override
+    public java.lang.String getArguments() {
+      java.lang.Object ref = arguments_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        arguments_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string arguments = 3;</code>
+     * @return The bytes for arguments.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getArgumentsBytes() {
+      java.lang.Object ref = arguments_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        arguments_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(arguments_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, arguments_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(arguments_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, arguments_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.SessionJournalEntryOuterClass.CompactToolCall)) {
+        return super.equals(obj);
+      }
+      talon.data.SessionJournalEntryOuterClass.CompactToolCall other = (talon.data.SessionJournalEntryOuterClass.CompactToolCall) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getName()
+          .equals(other.getName())) return false;
+      if (!getArguments()
+          .equals(other.getArguments())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + ARGUMENTS_FIELD_NUMBER;
+      hash = (53 * hash) + getArguments().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.SessionJournalEntryOuterClass.CompactToolCall prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.data.CompactToolCall}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.CompactToolCall)
+        talon.data.SessionJournalEntryOuterClass.CompactToolCallOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactToolCall_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactToolCall_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.SessionJournalEntryOuterClass.CompactToolCall.class, talon.data.SessionJournalEntryOuterClass.CompactToolCall.Builder.class);
+      }
+
+      // Construct using talon.data.SessionJournalEntryOuterClass.CompactToolCall.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        name_ = "";
+        arguments_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_CompactToolCall_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.CompactToolCall getDefaultInstanceForType() {
+        return talon.data.SessionJournalEntryOuterClass.CompactToolCall.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.CompactToolCall build() {
+        talon.data.SessionJournalEntryOuterClass.CompactToolCall result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.CompactToolCall buildPartial() {
+        talon.data.SessionJournalEntryOuterClass.CompactToolCall result = new talon.data.SessionJournalEntryOuterClass.CompactToolCall(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.SessionJournalEntryOuterClass.CompactToolCall result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.name_ = name_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.arguments_ = arguments_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.SessionJournalEntryOuterClass.CompactToolCall) {
+          return mergeFrom((talon.data.SessionJournalEntryOuterClass.CompactToolCall)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.SessionJournalEntryOuterClass.CompactToolCall other) {
+        if (other == talon.data.SessionJournalEntryOuterClass.CompactToolCall.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getArguments().isEmpty()) {
+          arguments_ = other.arguments_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                arguments_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>string name = 2;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string name = 2;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string name = 2;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 2;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object arguments_ = "";
+      /**
+       * <code>string arguments = 3;</code>
+       * @return The arguments.
+       */
+      public java.lang.String getArguments() {
+        java.lang.Object ref = arguments_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          arguments_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string arguments = 3;</code>
+       * @return The bytes for arguments.
+       */
+      public com.google.protobuf.ByteString
+          getArgumentsBytes() {
+        java.lang.Object ref = arguments_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          arguments_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string arguments = 3;</code>
+       * @param value The arguments to set.
+       * @return This builder for chaining.
+       */
+      public Builder setArguments(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        arguments_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string arguments = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearArguments() {
+        arguments_ = getDefaultInstance().getArguments();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string arguments = 3;</code>
+       * @param value The bytes for arguments to set.
+       * @return This builder for chaining.
+       */
+      public Builder setArgumentsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        arguments_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.CompactToolCall)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.CompactToolCall)
+    private static final talon.data.SessionJournalEntryOuterClass.CompactToolCall DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.SessionJournalEntryOuterClass.CompactToolCall();
+    }
+
+    public static talon.data.SessionJournalEntryOuterClass.CompactToolCall getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<CompactToolCall>
+        PARSER = new com.google.protobuf.AbstractParser<CompactToolCall>() {
+      @java.lang.Override
+      public CompactToolCall parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<CompactToolCall> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompactToolCall> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.CompactToolCall getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface SessionJournalEntryPayloadOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.SessionJournalEntryPayload)
       com.google.protobuf.MessageOrBuilder {
@@ -2556,6 +5845,21 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * <code>.talon.data.SessionJournalEntryPayloadCommit commit = 3;</code>
      */
     talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCommitOrBuilder getCommitOrBuilder();
+
+    /**
+     * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+     * @return Whether the compaction field is set.
+     */
+    boolean hasCompaction();
+    /**
+     * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+     * @return The compaction.
+     */
+    talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction getCompaction();
+    /**
+     * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+     */
+    talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompactionOrBuilder getCompactionOrBuilder();
 
     talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayload.PayloadCase getPayloadCase();
   }
@@ -2610,6 +5914,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       LLM_RESPONSE(1),
       TOOL_RESULT(2),
       COMMIT(3),
+      COMPACTION(5),
       PAYLOAD_NOT_SET(0);
       private final int value;
       private PayloadCase(int value) {
@@ -2630,6 +5935,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           case 1: return LLM_RESPONSE;
           case 2: return TOOL_RESULT;
           case 3: return COMMIT;
+          case 5: return COMPACTION;
           case 0: return PAYLOAD_NOT_SET;
           default: return null;
         }
@@ -2738,6 +6044,37 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCommit.getDefaultInstance();
     }
 
+    public static final int COMPACTION_FIELD_NUMBER = 5;
+    /**
+     * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+     * @return Whether the compaction field is set.
+     */
+    @java.lang.Override
+    public boolean hasCompaction() {
+      return payloadCase_ == 5;
+    }
+    /**
+     * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+     * @return The compaction.
+     */
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction getCompaction() {
+      if (payloadCase_ == 5) {
+         return (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_;
+      }
+      return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+     */
+    @java.lang.Override
+    public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompactionOrBuilder getCompactionOrBuilder() {
+      if (payloadCase_ == 5) {
+         return (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_;
+      }
+      return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance();
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2761,6 +6098,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (payloadCase_ == 3) {
         output.writeMessage(3, (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCommit) payload_);
       }
+      if (payloadCase_ == 5) {
+        output.writeMessage(5, (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -2781,6 +6121,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (payloadCase_ == 3) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCommit) payload_);
+      }
+      if (payloadCase_ == 5) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -2811,6 +6155,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           if (!getCommit()
               .equals(other.getCommit())) return false;
           break;
+        case 5:
+          if (!getCompaction()
+              .equals(other.getCompaction())) return false;
+          break;
         case 0:
         default:
       }
@@ -2837,6 +6185,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         case 3:
           hash = (37 * hash) + COMMIT_FIELD_NUMBER;
           hash = (53 * hash) + getCommit().hashCode();
+          break;
+        case 5:
+          hash = (37 * hash) + COMPACTION_FIELD_NUMBER;
+          hash = (53 * hash) + getCompaction().hashCode();
           break;
         case 0:
         default:
@@ -2981,6 +6333,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         if (commitBuilder_ != null) {
           commitBuilder_.clear();
         }
+        if (compactionBuilder_ != null) {
+          compactionBuilder_.clear();
+        }
         payloadCase_ = 0;
         payload_ = null;
         return this;
@@ -3034,6 +6389,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
             commitBuilder_ != null) {
           result.payload_ = commitBuilder_.build();
         }
+        if (payloadCase_ == 5 &&
+            compactionBuilder_ != null) {
+          result.payload_ = compactionBuilder_.build();
+        }
       }
 
       @java.lang.Override
@@ -3059,6 +6418,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           }
           case COMMIT: {
             mergeCommit(other.getCommit());
+            break;
+          }
+          case COMPACTION: {
+            mergeCompaction(other.getCompaction());
             break;
           }
           case PAYLOAD_NOT_SET: {
@@ -3112,6 +6475,13 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
                 payloadCase_ = 3;
                 break;
               } // case 26
+              case 42: {
+                input.readMessage(
+                    internalGetCompactionFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                payloadCase_ = 5;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3568,6 +6938,148 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         payloadCase_ = 3;
         onChanged();
         return commitBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.Builder, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompactionOrBuilder> compactionBuilder_;
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       * @return Whether the compaction field is set.
+       */
+      @java.lang.Override
+      public boolean hasCompaction() {
+        return payloadCase_ == 5;
+      }
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       * @return The compaction.
+       */
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction getCompaction() {
+        if (compactionBuilder_ == null) {
+          if (payloadCase_ == 5) {
+            return (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_;
+          }
+          return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance();
+        } else {
+          if (payloadCase_ == 5) {
+            return compactionBuilder_.getMessage();
+          }
+          return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       */
+      public Builder setCompaction(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction value) {
+        if (compactionBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          payload_ = value;
+          onChanged();
+        } else {
+          compactionBuilder_.setMessage(value);
+        }
+        payloadCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       */
+      public Builder setCompaction(
+          talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.Builder builderForValue) {
+        if (compactionBuilder_ == null) {
+          payload_ = builderForValue.build();
+          onChanged();
+        } else {
+          compactionBuilder_.setMessage(builderForValue.build());
+        }
+        payloadCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       */
+      public Builder mergeCompaction(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction value) {
+        if (compactionBuilder_ == null) {
+          if (payloadCase_ == 5 &&
+              payload_ != talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance()) {
+            payload_ = talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.newBuilder((talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            payload_ = value;
+          }
+          onChanged();
+        } else {
+          if (payloadCase_ == 5) {
+            compactionBuilder_.mergeFrom(value);
+          } else {
+            compactionBuilder_.setMessage(value);
+          }
+        }
+        payloadCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       */
+      public Builder clearCompaction() {
+        if (compactionBuilder_ == null) {
+          if (payloadCase_ == 5) {
+            payloadCase_ = 0;
+            payload_ = null;
+            onChanged();
+          }
+        } else {
+          if (payloadCase_ == 5) {
+            payloadCase_ = 0;
+            payload_ = null;
+          }
+          compactionBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       */
+      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.Builder getCompactionBuilder() {
+        return internalGetCompactionFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       */
+      @java.lang.Override
+      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompactionOrBuilder getCompactionOrBuilder() {
+        if ((payloadCase_ == 5) && (compactionBuilder_ != null)) {
+          return compactionBuilder_.getMessageOrBuilder();
+        } else {
+          if (payloadCase_ == 5) {
+            return (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_;
+          }
+          return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.data.SessionJournalEntryPayloadCompaction compaction = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.Builder, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompactionOrBuilder>
+          internalGetCompactionFieldBuilder() {
+        if (compactionBuilder_ == null) {
+          if (!(payloadCase_ == 5)) {
+            payload_ = talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance();
+          }
+          compactionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.Builder, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompactionOrBuilder>(
+                  (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_,
+                  getParentForChildren(),
+                  isClean());
+          payload_ = null;
+        }
+        payloadCase_ = 5;
+        onChanged();
+        return compactionBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.SessionJournalEntryPayload)
@@ -5252,6 +8764,21 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_SessionJournalEntryPayloadCommit_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_SessionJournalEntryPayloadCompaction_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_CompactMessage_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_CompactMessage_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_CompactToolCall_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_CompactToolCall_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_SessionJournalEntryPayload_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -5280,27 +8807,40 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       "\t\022%\n\006object\030\004 \001(\0132\025.talon.data.ObjectRef" +
       "\022.\n\013tool_output\030\005 \001(\0132\031.talon.harness.To" +
       "olOutput\"@\n SessionJournalEntryPayloadCo" +
-      "mmit\022\034\n\024committed_message_id\030\001 \001(\t\"\373\001\n\032S" +
-      "essionJournalEntryPayload\022I\n\014llm_respons" +
-      "e\030\001 \001(\01321.talon.data.SessionJournalEntry" +
-      "PayloadLlmResponseH\000\022G\n\013tool_result\030\002 \001(" +
-      "\01320.talon.data.SessionJournalEntryPayloa" +
-      "dToolResultH\000\022>\n\006commit\030\003 \001(\0132,.talon.da" +
-      "ta.SessionJournalEntryPayloadCommitH\000B\t\n" +
-      "\007payload\"\325\002\n\023SessionJournalEntry\022\025\n\rsubm" +
-      "ission_id\030\001 \001(\t\022\030\n\020journal_entry_id\030\002 \001(" +
-      "\t\022\022\n\nattempt_id\030\003 \001(\t\0220\n\005phase\030\004 \001(\0162!.t" +
-      "alon.data.SessionExecutionPhase\0227\n\007paylo" +
-      "ad\030\005 \001(\0132&.talon.data.SessionJournalEntr" +
-      "yPayload\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_" +
-      "at\030\007 \001(\003\022\031\n\014committed_at\030\010 \001(\003H\000\210\001\001\022!\n\024c" +
-      "ommitted_message_id\030\t \001(\tH\001\210\001\001B\017\n\r_commi" +
-      "tted_atB\027\n\025_committed_message_id*\272\001\n\025Ses" +
-      "sionExecutionPhase\022\'\n#SESSION_EXECUTION_" +
-      "PHASE_UNSPECIFIED\020\000\022(\n$SESSION_EXECUTION" +
-      "_PHASE_LLM_RESPONSE\020\001\022\'\n#SESSION_EXECUTI" +
-      "ON_PHASE_TOOL_RESULT\020\002\022%\n!SESSION_EXECUT" +
-      "ION_PHASE_COMMITTED\020\003b\006proto3"
+      "mmit\022\034\n\024committed_message_id\030\001 \001(\t\"\311\001\n$S" +
+      "essionJournalEntryPayloadCompaction\0222\n\016r" +
+      "eplay_history\030\001 \003(\0132\032.talon.data.Compact" +
+      "Message\022*\n\"compacted_through_journal_ent" +
+      "ry_id\030\002 \001(\t\022\037\n\027original_estimated_size\030\003" +
+      " \001(\003\022 \n\030compacted_estimated_size\030\004 \001(\003\"\221" +
+      "\001\n\016CompactMessage\022\014\n\004role\030\001 \001(\t\022\024\n\014text_" +
+      "content\030\002 \001(\t\022/\n\ntool_calls\030\003 \003(\0132\033.talo" +
+      "n.data.CompactToolCall\022\031\n\014tool_call_id\030\004" +
+      " \001(\tH\000\210\001\001B\017\n\r_tool_call_id\">\n\017CompactToo" +
+      "lCall\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\021\n\targum" +
+      "ents\030\003 \001(\t\"\303\002\n\032SessionJournalEntryPayloa" +
+      "d\022I\n\014llm_response\030\001 \001(\01321.talon.data.Ses" +
+      "sionJournalEntryPayloadLlmResponseH\000\022G\n\013" +
+      "tool_result\030\002 \001(\01320.talon.data.SessionJo" +
+      "urnalEntryPayloadToolResultH\000\022>\n\006commit\030" +
+      "\003 \001(\0132,.talon.data.SessionJournalEntryPa" +
+      "yloadCommitH\000\022F\n\ncompaction\030\005 \001(\01320.talo" +
+      "n.data.SessionJournalEntryPayloadCompact" +
+      "ionH\000B\t\n\007payload\"\325\002\n\023SessionJournalEntry" +
+      "\022\025\n\rsubmission_id\030\001 \001(\t\022\030\n\020journal_entry" +
+      "_id\030\002 \001(\t\022\022\n\nattempt_id\030\003 \001(\t\0220\n\005phase\030\004" +
+      " \001(\0162!.talon.data.SessionExecutionPhase\022" +
+      "7\n\007payload\030\005 \001(\0132&.talon.data.SessionJou" +
+      "rnalEntryPayload\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\n" +
+      "updated_at\030\007 \001(\003\022\031\n\014committed_at\030\010 \001(\003H\000" +
+      "\210\001\001\022!\n\024committed_message_id\030\t \001(\tH\001\210\001\001B\017" +
+      "\n\r_committed_atB\027\n\025_committed_message_id" +
+      "*\342\001\n\025SessionExecutionPhase\022\'\n#SESSION_EX" +
+      "ECUTION_PHASE_UNSPECIFIED\020\000\022(\n$SESSION_E" +
+      "XECUTION_PHASE_LLM_RESPONSE\020\001\022\'\n#SESSION" +
+      "_EXECUTION_PHASE_TOOL_RESULT\020\002\022%\n!SESSIO" +
+      "N_EXECUTION_PHASE_COMMITTED\020\003\022&\n\"SESSION" +
+      "_EXECUTION_PHASE_COMPACTION\020\004b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5326,14 +8866,32 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadCommit_descriptor,
         new java.lang.String[] { "CommittedMessageId", });
-    internal_static_talon_data_SessionJournalEntryPayload_descriptor =
+    internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor =
       getDescriptor().getMessageType(3);
+    internal_static_talon_data_SessionJournalEntryPayloadCompaction_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor,
+        new java.lang.String[] { "ReplayHistory", "CompactedThroughJournalEntryId", "OriginalEstimatedSize", "CompactedEstimatedSize", });
+    internal_static_talon_data_CompactMessage_descriptor =
+      getDescriptor().getMessageType(4);
+    internal_static_talon_data_CompactMessage_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_CompactMessage_descriptor,
+        new java.lang.String[] { "Role", "TextContent", "ToolCalls", "ToolCallId", });
+    internal_static_talon_data_CompactToolCall_descriptor =
+      getDescriptor().getMessageType(5);
+    internal_static_talon_data_CompactToolCall_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_CompactToolCall_descriptor,
+        new java.lang.String[] { "Id", "Name", "Arguments", });
+    internal_static_talon_data_SessionJournalEntryPayload_descriptor =
+      getDescriptor().getMessageType(6);
     internal_static_talon_data_SessionJournalEntryPayload_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayload_descriptor,
-        new java.lang.String[] { "LlmResponse", "ToolResult", "Commit", "Payload", });
+        new java.lang.String[] { "LlmResponse", "ToolResult", "Commit", "Compaction", "Payload", });
     internal_static_talon_data_SessionJournalEntry_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(7);
     internal_static_talon_data_SessionJournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntry_descriptor,

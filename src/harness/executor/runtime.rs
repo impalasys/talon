@@ -6,8 +6,8 @@ use crate::control::config::Config;
 use crate::control::tool_output::{self, is_text_object_media_type, ToolOutputExt};
 use crate::control::ControlPlane;
 use crate::harness::executor::compaction::{
-    compact_history_for_llm, compact_history_for_llm_with_model_limits_and_tool_schema,
-    context_metrics, serialized_message_weight, ContextMetrics,
+    compact_history_for_llm_with_model_limits_and_tool_schema, context_metrics,
+    serialized_message_weight, ContextMetrics,
 };
 use crate::harness::llm::resolver::{model_context_limits, resolve_model_profile};
 use crate::harness::llm::ToolOutput;
