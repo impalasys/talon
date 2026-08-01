@@ -6,7 +6,8 @@ use crate::control::config::Config;
 use crate::control::tool_output::{self, is_text_object_media_type, ToolOutputExt};
 use crate::control::ControlPlane;
 use crate::harness::executor::compaction::{
-    compact_history_for_llm_with_model_limits_and_tool_schema, context_metrics, ContextMetrics,
+    compact_history_for_llm, compact_history_for_llm_with_model_limits_and_tool_schema,
+    context_metrics, serialized_message_weight, ContextMetrics,
 };
 use crate::harness::llm::resolver::{model_context_limits, resolve_model_profile};
 use crate::harness::llm::ToolOutput;
@@ -44,19 +45,8 @@ const COMPACTION_THRESHOLD_CHARS: usize = 100_000;
 
 const COMPACTION_MIN_HISTORY_LEN: usize = 5;
 
-fn estimate_context_budget(context: &ExecutionContext) -> usize {
-    context
-        .history
-        .iter()
-        .map(|m| m.text_content().chars().count())
-        .sum()
-}
-
 fn history_text_chars(history: &[LoopMessage]) -> usize {
-    history
-        .iter()
-        .map(|m| m.text_content().chars().count())
-        .sum()
+    history.iter().map(LoopMessage::text_len_chars).sum()
 }
 
 fn tool_error_result(name: &str, error: &anyhow::Error) -> String {
@@ -102,6 +92,16 @@ impl LoopMessage {
 
     pub fn text_content(&self) -> String {
         crate::harness::llm::content_parts_text(&self.content_parts)
+    }
+
+    pub fn text_len_chars(&self) -> usize {
+        self.content_parts
+            .iter()
+            .filter_map(|part| match part.content.as_ref() {
+                Some(chat_content_part::Content::Text(text)) => Some(text.chars().count()),
+                _ => None,
+            })
+            .sum()
     }
 
     pub fn is_empty_content(&self) -> bool {
@@ -254,6 +254,10 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_tool_call_stream_started(&self) {}
     /// The full completed LLM response reached a durable recovery boundary.
     async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) -> Result<()> {
+        Ok(())
+    }
+    /// A compacted replay history has been durably recorded.
+    async fn on_compaction(&self, _: &[LoopMessage], _: i64, _: i64) -> Result<()> {
         Ok(())
     }
     /// The tool returned a result.
@@ -659,6 +663,34 @@ impl AgentExecutor {
         Ok(hydrated)
     }
 
+    fn estimate_context_budget(
+        &self,
+        context: &ExecutionContext,
+        prompts: &ExecutionPrompts,
+        tools: &[crate::harness::llm::Tool],
+    ) -> usize {
+        let history_weight = context
+            .history
+            .iter()
+            .map(serialized_message_weight)
+            .sum::<usize>();
+        let prompt_weight = prompts
+            .system_prompt
+            .as_ref()
+            .map(|prompt| prompt.len())
+            .unwrap_or(0)
+            + prompts
+                .post_history_prompt
+                .as_ref()
+                .map(|prompt| prompt.len() + 2)
+                .unwrap_or(0);
+        let tool_weight = tools
+            .iter()
+            .map(|tool| tool.name.len() + tool.description.len() + tool.input_schema_json.len())
+            .sum::<usize>();
+        history_weight + prompt_weight + tool_weight
+    }
+
     /// Run the prepared execution context to completion, emitting events to
     /// `sink` along the way.
     /// Returns the final reply text.
@@ -688,6 +720,7 @@ impl AgentExecutor {
     ) -> Result<String> {
         let prompts = self.render_execution_prompts(context)?;
         let mut turn_limit = DEFAULT_EXECUTION_TURN_LIMIT;
+        let mut compaction_disabled = false;
         loop {
             if turn_limit == 0 {
                 let msg = "Turn limit reached".to_string();
@@ -700,6 +733,41 @@ impl AgentExecutor {
                 reg.to_provider_tools()
             };
             let tool_schema_chars = telemetry::serialize_tool_definitions_json(&tools).len();
+
+            // Trigger durable compaction before preparing messages if the complete
+            // request estimate exceeds the model's effective window. Compaction
+            // is journaled before the in-memory history is replaced.
+            let estimated_context_budget = self.estimate_context_budget(context, &prompts, &tools);
+            let should_compact = !compaction_disabled
+                && estimated_context_budget > COMPACTION_THRESHOLD_CHARS
+                && context.history.len() >= COMPACTION_MIN_HISTORY_LEN;
+
+            if should_compact {
+                let prev_history_len = context.history.len();
+                match self.perform_durable_compaction(context, sink).await? {
+                    true => {
+                        let new_context_budget =
+                            self.estimate_context_budget(context, &prompts, &tools);
+                        if new_context_budget >= COMPACTION_THRESHOLD_CHARS {
+                            compaction_disabled = true;
+                        }
+                        tracing::info!(
+                            prev_history_len,
+                            new_history_len = context.history.len(),
+                            new_context_budget,
+                            "Durable model-context compaction completed"
+                        );
+                    }
+                    false => {
+                        compaction_disabled = true;
+                        tracing::warn!(
+                            context_len = estimated_context_budget,
+                            "Durable compaction made no progress; disabling retries for this execution"
+                        );
+                    }
+                };
+            }
+
             let (messages, context_metrics) = self
                 .messages_for_llm(context, &prompts, tool_schema_chars)
                 .await?;
@@ -986,53 +1054,80 @@ impl AgentExecutor {
     /// writes the compacted transcript as a journal entry so recovery is safe,
     /// and replaces `context.history` with the result.  Never surfaces a visible
     /// assistant message -- it is purely an internal execution boundary.
-    async fn perform_durable_compaction(&self, context: &mut ExecutionContext) -> Result<String> {
-        let before_len = context.history.len();
+    async fn perform_durable_compaction(
+        &self,
+        context: &mut ExecutionContext,
+        sink: &dyn ExecutionSink,
+    ) -> Result<bool> {
+        let replay_history = context.history.clone();
+        let before_len = replay_history.len();
+        let original_estimated_size = replay_history
+            .iter()
+            .map(serialized_message_weight)
+            .sum::<usize>();
+        let leading_system_count = replay_history
+            .iter()
+            .take_while(|message| message.role == "system")
+            .count();
 
-        // Identify which entries are safely summarisable (before the last assistant turn).
+        // Identify which entries are safely summarisable (before the last
+        // assistant turn), including assistant turns that contain only tools.
         let mut cut_index = None;
-        for idx in (0..context.history.len()).rev() {
-            if context.history[idx].role == "assistant"
-                && !context.history[idx].text_content().is_empty()
+        for idx in (0..replay_history.len()).rev() {
+            let message = &replay_history[idx];
+            if message.role == "assistant"
+                && (!message.is_empty_content()
+                    || message
+                        .tool_calls
+                        .as_ref()
+                        .is_some_and(|calls| !calls.is_empty()))
             {
                 cut_index = Some(idx);
                 break;
             }
         }
 
-        let cut_index = match cut_index {
-            _idx @ (Some(0) | None) => 0, // nothing to summarise -- skip
-            Some(idx) if idx < 2 => 0,    // not enough history to meaningfully summarise before
-            Some(idx) => idx,
+        let Some(cut_index) = cut_index.filter(|idx| *idx > leading_system_count) else {
+            return Ok(false);
         };
 
-        let replay_history = std::mem::take(&mut context.history);
+        // Preserve leading system messages, then replace the older transcript
+        // with a deterministic summary and retain the recent replayable tail.
+        let to_summarise = &replay_history[leading_system_count..cut_index];
+        let compact_summary = self.build_compaction_summary(to_summarise).await;
+        let mut compacted_history = replay_history[..leading_system_count].to_vec();
+        compacted_history.push(LoopMessage::text("assistant", compact_summary));
+        compacted_history.extend(replay_history.into_iter().skip(cut_index));
 
-        // Build the compacted replay transcript: summary + recent messages.
-        if cut_index > 0 {
-            let to_summarise = &replay_history[..cut_index];
-            let compact_summary = self.build_compaction_summary(to_summarise).await;
-
-            // Replace old context with a durable summary, then keep recent entries.
-            context.clear_history();
-            context.push(LoopMessage::text("assistant", compact_summary));
-            for msg in replay_history.into_iter().skip(cut_index) {
-                context.push(msg);
-            }
-        } else {
-            // No summarisation needed -- restore and skip (too few entries).
-            for msg in replay_history {
-                context.history.push(msg);
-            }
-            return Ok(String::new());
+        let compacted_estimated_size = compacted_history
+            .iter()
+            .map(serialized_message_weight)
+            .sum::<usize>();
+        if compacted_estimated_size >= original_estimated_size {
+            tracing::warn!(
+                original_estimated_size,
+                compacted_estimated_size,
+                "Durable compaction did not reduce the estimated history size"
+            );
+            return Ok(false);
         }
+
+        // Persist the replacement before mutating the in-memory context. If the
+        // journal append fails, recovery must continue to see the old history.
+        sink.on_compaction(
+            &compacted_history,
+            original_estimated_size as i64,
+            compacted_estimated_size as i64,
+        )
+        .await?;
+        context.history = compacted_history;
 
         tracing::info!(
             context_len_before = before_len,
             "Durable model-context compaction triggered",
         );
 
-        Ok(String::new()) // summary already added as system message above
+        Ok(true)
     }
 
     /// Build a deterministic summary of history segments that are about to be dropped.

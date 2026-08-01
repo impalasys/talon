@@ -32,33 +32,15 @@ pub async fn append_compaction(
     compacted_estimated_size: i64,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
-    ensure_submission_attempt_current(kv, ns, agent_id, session_id, submission_id, attempt_id)
-        .await?;
-
-    let max_id = kv
-        .list_keys(
-            &keys::session_journal_entry_prefix(ns, agent_id, session_id, submission_id),
-            Some(ListOptions::desc().limit(1)),
-        )
-        .await?
-        .into_iter()
-        .next()
-        .and_then(|key| key.name.parse::<u64>().ok())
-        .unwrap_or(0);
-    let journal_entry_id = format!("{:06}", max_id.saturating_add(1));
-
-    let entry_key =
-        keys::session_journal_entry(ns, agent_id, session_id, submission_id, &journal_entry_id);
-    if kv.get(&entry_key).await?.is_some() {
-        return Err(anyhow!("compaction journal entry id already exists"));
-    }
-
-    let entry = SessionJournalEntry {
-        submission_id: submission_id.to_string(),
-        journal_entry_id: journal_entry_id.clone(),
-        attempt_id: attempt_id.to_string(),
-        phase: SessionExecutionPhase::Compaction as i32,
-        payload: Some(SessionJournalEntryPayload {
+    let entry = append_journal_entry(
+        kv,
+        ns,
+        agent_id,
+        session_id,
+        submission_id,
+        attempt_id,
+        SessionExecutionPhase::Compaction as i32,
+        Some(SessionJournalEntryPayload {
             payload: Some(session_journal_entry_payload::Payload::Compaction(
                 compaction_payload(
                     replay_history,
@@ -68,27 +50,6 @@ pub async fn append_compaction(
                 ),
             )),
         }),
-        created_at: now_micros,
-        updated_at: now_micros,
-        committed_at: None,
-        committed_message_id: None,
-    };
-
-    if !kv
-        .compare_and_swap(&entry_key, None, &entry.encode_to_vec())
-        .await?
-    {
-        return Err(anyhow!("failed to append session compaction journal entry"));
-    }
-
-    update_submission_from_entry(
-        kv,
-        ns,
-        agent_id,
-        session_id,
-        submission_id,
-        &entry,
-        None,
         None,
         now_micros,
     )
@@ -96,7 +57,7 @@ pub async fn append_compaction(
 
     tracing::info!(
         submission = %submission_id,
-        journal_entry_id = %journal_entry_id,
+        journal_entry_id = %entry.journal_entry_id,
         original_size = original_estimated_size,
         compacted_size = compacted_estimated_size,
         "Compaction journal entry written",

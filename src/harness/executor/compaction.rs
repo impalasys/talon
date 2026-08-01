@@ -293,7 +293,7 @@ fn force_fit_message(message: &LoopMessage, budget: ContextBudget) -> LoopMessag
     compacted
 }
 
-fn serialized_message_weight(message: &LoopMessage) -> usize {
+pub(crate) fn serialized_message_weight(message: &LoopMessage) -> usize {
     let tool_call_weight = message
         .tool_calls
         .as_ref()

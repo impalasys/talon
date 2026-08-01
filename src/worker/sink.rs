@@ -21,7 +21,7 @@ use crate::control::{
 };
 use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
 use crate::gateway::rpc::resources_proto;
-use crate::harness::executor::{AgentEvent, ExecutionSink};
+use crate::harness::executor::{AgentEvent, ExecutionSink, LoopMessage};
 use crate::harness::llm::{ChatResponse, ChatUsage, ToolOutput};
 use crate::harness::sessions::{self, SessionSubmission};
 use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
@@ -538,6 +538,10 @@ impl PubSubSessionSink {
             let mut next = self.next_part_index.lock().unwrap();
             *next = (*next).max(index);
         }
+    }
+
+    pub(crate) fn seed_latest_journal_entry_id(&self, entry_id: Option<&str>) {
+        *self.latest_journal_entry_id.lock().unwrap() = entry_id.map(str::to_string);
     }
 
     // Record a canonical part for the final assistant SessionMessage.
@@ -1253,6 +1257,36 @@ impl ExecutionSink for PubSubSessionSink {
             &self.submission_id,
             &self.attempt_id,
             response,
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .await?;
+        *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        Ok(())
+    }
+
+    async fn on_compaction(
+        &self,
+        replay_history: &[LoopMessage],
+        original_estimated_size: i64,
+        compacted_estimated_size: i64,
+    ) -> Result<()> {
+        let compacted_through_journal_entry_id = self
+            .latest_journal_entry_id
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_else(|| "000000".to_string());
+        let entry = sessions::append_compaction(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+            &self.attempt_id,
+            replay_history,
+            &compacted_through_journal_entry_id,
+            original_estimated_size,
+            compacted_estimated_size,
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;

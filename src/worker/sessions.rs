@@ -202,13 +202,28 @@ async fn prepare_context_for_claimed_submission(
                 let replay: Vec<LoopMessage> = payl
                     .replay_history
                     .iter()
-                    .map(|cm| LoopMessage::text(cm.role.clone(), cm.text_content.clone()))
+                    .map(|cm| {
+                        let mut message =
+                            LoopMessage::text(cm.role.clone(), cm.text_content.clone());
+                        if !cm.tool_calls.is_empty() {
+                            message.tool_calls = Some(
+                                cm.tool_calls
+                                    .iter()
+                                    .map(|tool_call| crate::harness::llm::ToolCall {
+                                        id: tool_call.id.clone(),
+                                        name: tool_call.name.clone(),
+                                        arguments: tool_call.arguments.clone(),
+                                    })
+                                    .collect(),
+                            );
+                        }
+                        message.tool_call_id = cm.tool_call_id.clone();
+                        message
+                    })
                     .collect();
 
-                let original_chars: usize = replay
-                    .iter()
-                    .map(|m| m.text_content().chars().count())
-                    .sum();
+                let actual_replay_chars: usize =
+                    replay.iter().map(LoopMessage::text_len_chars).sum();
 
                 tracing::info!(
                     submission = %submission_id,
@@ -216,15 +231,17 @@ async fn prepare_context_for_claimed_submission(
                     replay_messages = replay.len(),
                     original_estimated_size = payl.original_estimated_size,
                     compacted_estimated_size = payl.compacted_estimated_size,
-                    actual_compacted_chars = original_chars,
+                    actual_replay_chars,
                     "Recovery: compaction boundary hydrated",
                 );
 
                 runtime.context.history.clear();
+                projection_parts.clear();
+                next_projection_part_index = 0;
                 for msg in replay {
                     runtime.context.push(msg);
                 }
-                // Drop accumulated projection parts since old state is no longer valid.
+                // Drop derived recovery state since the compaction boundary replaces history.
                 latest_final_response = None;
             } else {
                 return Err(anyhow!("COMPACTION entry is missing payload"));
@@ -275,11 +292,13 @@ async fn prepare_context_for_claimed_submission(
                     journal_entry_id = %entry.journal_entry_id,
                     "Unreachable: ignored unexpected journal phase during hydration",
                 );
+                index += 1;
                 continue;
             }
         };
         if response.tool_calls.is_empty() {
             latest_final_response = Some(response);
+            index += 1;
             continue;
         }
 
@@ -296,6 +315,7 @@ async fn prepare_context_for_claimed_submission(
             });
         }
 
+        index += 1;
         let mut stop_after_tool_results = false;
         let mut results_by_call_id = BTreeMap::new();
         while index < journal_entries.len() {
@@ -594,6 +614,11 @@ impl WorkerEventHandler {
             &submission.submission_id,
         )
         .await?;
+        sink.seed_latest_journal_entry_id(
+            journal_entries
+                .last()
+                .map(|entry| entry.journal_entry_id.as_str()),
+        );
         if let Some(entry) = journal_entries
             .last()
             .filter(|entry| entry.phase == SessionExecutionPhase::Committed as i32)
@@ -1352,8 +1377,12 @@ mod tests {
     };
     use crate::gateway::rpc::connectors::session_message_final_response;
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
-    use crate::harness::executor::ExecutionSink;
+    use crate::harness::executor::{
+        AgentExecutor, ContextAssembler, ExecutionContext, ExecutionSink,
+    };
+    use crate::harness::llm::MockLlmProvider;
     use crate::harness::sessions;
+    use crate::harness::skills::registry::ToolRegistry;
     use crate::test_support::MockKvStore;
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
@@ -3979,7 +4008,7 @@ mod tests {
         use crate::harness::sessions::list_journal_entries;
 
         let kv = Arc::new(MockKvStore::default());
-        let _cp = ControlPlane::builder(
+        let cp = ControlPlane::builder(
             kv.clone(),
             Arc::new(crate::test_support::RecordingPubSub::default()),
         )
@@ -3993,47 +4022,44 @@ mod tests {
             .await
             .unwrap();
 
-        let agent = resources_proto::Agent {
-            metadata: Some(resources_proto::ResourceMeta {
-                name: "a1".to_string(),
-                namespace: "ns".to_string(),
-                ..Default::default()
-            }),
-            spec: Some(resources_proto::AgentSpec {
-                system_prompt: "".to_string(),
-                post_history_prompt: "".to_string(),
-                mcp_server_refs: vec![],
-                capabilities: HashMap::new(),
-                ..Default::default()
-            }),
-            status: None,
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut runtime = super::AgentRuntime {
+            executor: AgentExecutor::new_with_session(
+                Arc::new(MockLlmProvider),
+                "test-provider".to_string(),
+                "test-model".to_string(),
+                ContextAssembler::new("."),
+                registry,
+                Arc::new(Config::default()),
+                "ns".to_string(),
+                "agent".to_string(),
+                "session-1".to_string(),
+                cp.clone(),
+                manifests::AgentSpec::default(),
+                HashMap::new(),
+            ),
+            context: ExecutionContext::new("agent"),
         };
-        let store = crate::control::resources::ResourceStore::new(kv.clone(), Arc::new(MockPubSub));
-        store
-            .upsert(
-                "ns",
-                resources_proto::Resource {
-                    api_version: "talon.impalasys.com/v1".to_string(),
-                    kind: "Agent".to_string(),
-                    metadata: agent.metadata,
-                    spec: Some(resources_proto::ResourceSpec {
-                        kind: Some(resources_proto::resource_spec::Kind::Agent(
-                            agent.spec.clone().unwrap(),
-                        )),
-                    }),
-                    status: None,
-                },
-            )
-            .await
-            .unwrap();
 
         // Create a compaction journal entry to verify hydration.
-        let compact_entries: Vec<data_proto::CompactMessage> = vec![data_proto::CompactMessage {
-            role: "system".to_string(),
-            text_content: "Compaction summary of earlier turns.".to_string(),
-            tool_calls: Vec::new(),
-            tool_call_id: None,
-        }];
+        let compact_entries: Vec<data_proto::CompactMessage> = vec![
+            data_proto::CompactMessage {
+                role: "assistant".to_string(),
+                text_content: "Here is the compacted tool call.".to_string(),
+                tool_calls: vec![data_proto::CompactToolCall {
+                    id: "tool-1".to_string(),
+                    name: "lookup".to_string(),
+                    arguments: "{\"query\":\"value\"}".to_string(),
+                }],
+                tool_call_id: None,
+            },
+            data_proto::CompactMessage {
+                role: "tool".to_string(),
+                text_content: "lookup result".to_string(),
+                tool_calls: Vec::new(),
+                tool_call_id: Some("tool-1".to_string()),
+            },
+        ];
 
         let compact_payload = data_proto::SessionJournalEntryPayloadCompaction {
             replay_history: compact_entries,
@@ -4071,14 +4097,81 @@ mod tests {
         .await
         .unwrap();
 
+        kv.set_msg(
+            &crate::control::keys::session_journal_entry(
+                "ns",
+                "agent",
+                "session-1",
+                "submission-1",
+                "000004",
+            ),
+            &SessionJournalEntry {
+                submission_id: "submission-1".to_string(),
+                journal_entry_id: "000004".to_string(),
+                attempt_id: "attempt-1".to_string(),
+                phase: DataPhase::LlmResponse as i32,
+                payload: Some(data_proto::SessionJournalEntryPayload {
+                    payload: Some(
+                        data_proto::session_journal_entry_payload::Payload::LlmResponse(
+                            data_proto::SessionJournalEntryPayloadLlmResponse {
+                                response: Some(crate::harness::llm::ChatResponse {
+                                    content: "continued after recovery".to_string(),
+                                    tool_calls: Vec::new(),
+                                    usage: None,
+                                }),
+                            },
+                        ),
+                    ),
+                }),
+                created_at: 40,
+                updated_at: 40,
+                committed_at: None,
+                committed_message_id: None,
+            },
+        )
+        .await
+        .unwrap();
+
         let entries = list_journal_entries(&*kv, "ns", "agent", "session-1", "submission-1")
             .await
             .unwrap();
 
-        assert!(entries.len() >= 1);
+        assert!(!entries.is_empty());
         let has_compaction = entries
             .iter()
             .any(|e| e.phase == DataPhase::Compaction as i32);
         assert!(has_compaction, "journal should contain compaction entry");
+
+        let prepared = super::prepare_context_for_claimed_submission(
+            &cp,
+            "ns",
+            "agent",
+            "session-1",
+            "reply-1",
+            "submission-1",
+            "attempt-1",
+            &entries,
+            &mut runtime,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            prepared.state,
+            super::PreparedSubmissionState::FinalResponseReady {
+                content: "continued after recovery".to_string(),
+            }
+        );
+        assert_eq!(runtime.context.history.len(), 2);
+        assert_eq!(runtime.context.history[0].role, "assistant");
+        assert_eq!(
+            runtime.context.history[0].tool_calls.as_ref().unwrap()[0].id,
+            "tool-1"
+        );
+        assert_eq!(runtime.context.history[1].role, "tool");
+        assert_eq!(
+            runtime.context.history[1].tool_call_id.as_deref(),
+            Some("tool-1")
+        );
     }
 }
