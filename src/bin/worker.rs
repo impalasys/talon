@@ -1724,7 +1724,7 @@ mod tests {
     #[tokio::test]
     async fn resolved_pull_specs_and_handler_builder_cover_startup_wiring() {
         let specs = resolved_pull_subscription_specs("demo");
-        assert_eq!(specs.len(), 5);
+        assert_eq!(specs.len(), 4);
         assert_eq!(
             specs[0].topic_name,
             "projects/demo/topics/talon.session.dispatch"
@@ -1844,7 +1844,7 @@ mod tests {
             },
         );
         let spawned = spawned.lock().expect("spawned lock poisoned");
-        assert_eq!(spawned.len(), 5);
+        assert_eq!(spawned.len(), 4);
         assert!(spawned
             .iter()
             .all(|(project_id, _, _)| project_id == "demo"));
@@ -1900,12 +1900,12 @@ mod tests {
             },
         );
         let spawned = spawned.lock().expect("spawned lock poisoned");
-        assert_eq!(spawned.len(), 5);
+        assert_eq!(spawned.len(), 4);
         assert_eq!(spawned[0].0, "demo");
         assert_eq!(spawned[0].1, talon::control::topics::SESSION_DISPATCH_TOPIC);
         assert_eq!(spawned[0].2, "talon-session-dispatch-sub");
-        assert_eq!(spawned[4].1, topics::INDEX_EVENTS_TOPIC);
-        assert_eq!(spawned[4].2, "talon-index-events-sub");
+        assert_eq!(spawned[3].1, topics::INDEX_EVENTS_TOPIC);
+        assert_eq!(spawned[3].2, "talon-index-events-sub");
     }
 
     #[tokio::test]
