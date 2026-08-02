@@ -108,8 +108,8 @@ export enum SessionMessagePartType {
   PERMISSION_RESULT = 12,
 
   /**
-   * Internal durable-context boundary. This is never returned through public
-   * SessionMessage APIs and points at a compacted-summary CAS object.
+   * Durable-context boundary. Public SessionMessage APIs return only a
+   * redacted marker; the canonical part points at a compacted-summary CAS object.
    *
    * @generated from enum value: SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;
    */

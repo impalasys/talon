@@ -520,8 +520,8 @@ pub enum SessionMessagePartType {
     File = 10,
     RequestPermission = 11,
     PermissionResult = 12,
-    /// Internal durable-context boundary. This is never returned through public
-    /// SessionMessage APIs and points at a compacted-summary CAS object.
+    /// Durable-context boundary. Public SessionMessage APIs return only a
+    /// redacted marker; the canonical part points at a compacted-summary CAS object.
     Compaction = 13,
 }
 impl SessionMessagePartType {

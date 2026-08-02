@@ -1170,8 +1170,18 @@ mod tests {
                 .lock()
                 .unwrap()
                 .push(request.messages.clone());
+            let is_compaction = request.messages.iter().any(|message| {
+                message.role == "system"
+                    && message
+                        .text_content()
+                        .contains("You are the Context Compactor")
+            });
             Ok(ChatResponse {
-                content: "resolved".to_string(),
+                content: if is_compaction {
+                    "<summary>\n## Task\nTest compaction.\n## Decisions\nNone recorded.\n## Modified artifacts\nNone recorded.\n## Completed work\nCompaction test completed.\n## Current state\nThe test continues.\n## Unresolved issues\nNone recorded.\n## Next actions\nNone recorded.\n</summary>".to_string()
+                } else {
+                    "resolved".to_string()
+                },
                 tool_calls: Vec::new(),
                 usage: None,
             })
