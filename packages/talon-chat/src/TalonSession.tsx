@@ -10,7 +10,6 @@ import {
   getMessageContent,
   getMessageReasoningContent,
   getMessageUsage,
-  hasMessageCompaction,
   hydrateMessagesWithSteps,
   normalizeMessageRole,
   type AssistantTimelineItem,
@@ -778,6 +777,32 @@ function coalesceAssistantTimelineForDisplay(timeline: AssistantTimelineItem[]) 
   return nextTimeline;
 }
 
+function ContextCompactionDivider({ compacting }: { compacting: boolean }) {
+  const label = compacting ? "Context compacting automatically" : "Context compacted";
+  return (
+    <div
+      className="talon-session-compaction-divider"
+      role="separator"
+      aria-label={label}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        width: "100%",
+        color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
+        fontSize: 12,
+        fontWeight: 500,
+        letterSpacing: "0.01em",
+        padding: "0.5rem 0",
+      }}
+    >
+      <span aria-hidden="true" style={{ flex: 1, borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
+      <span>{label}</span>
+      <span aria-hidden="true" style={{ flex: 1, borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
+    </div>
+  );
+}
+
 function splitFinalAssistantTimeline(timeline: AssistantTimelineItem[]) {
   const displayTimeline = coalesceAssistantTimelineForDisplay(timeline);
   let finalTextIndex = -1;
@@ -1524,7 +1549,6 @@ export function TalonSession({
   const renderedMessages = useMemo(() => {
     return messages.map((message, messageIndex) => {
       const content = getMessageContent(message);
-      const hasCompaction = hasMessageCompaction(message);
       const images = messageImageParts(message, objectUrlForRef);
       const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
       const reasoningContent = getMessageReasoningContent(message);
@@ -1574,28 +1598,6 @@ export function TalonSession({
       const isReviewActionPending = reviewActionMessageId === message.id;
       return (
         <React.Fragment key={message.id}>
-          {hasCompaction ? (
-            <div
-              className="talon-session-compaction-divider"
-              role="separator"
-              aria-label="Context compacted"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                width: "100%",
-                color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
-                fontSize: 12,
-                fontWeight: 500,
-                letterSpacing: "0.01em",
-                padding: "0.5rem 0",
-              }}
-            >
-              <span aria-hidden="true" style={{ flex: 1, borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
-              <span>Context compacted</span>
-              <span aria-hidden="true" style={{ flex: 1, borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
-            </div>
-          ) : null}
           <div
           className="talon-session-message-row"
           style={{
@@ -1666,6 +1668,15 @@ export function TalonSession({
                 {isWorkExpanded ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
                     {workTimeline.map((item, index) => {
+                      if (item.type === "compaction") {
+                        return (
+                          <ContextCompactionDivider
+                            key={`${message.id}-work-${index}`}
+                            compacting={isLiveAssistantMessage}
+                          />
+                        );
+                      }
+
                       if (item.type === "text") {
                         return (
                           <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-assistant-fg, inherit)" }}>
@@ -1906,6 +1917,15 @@ export function TalonSession({
                 {message.role === "assistant" && visibleTimeline.length > 0 ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {visibleTimeline.map((item, index) => {
+                      if (item.type === "compaction") {
+                        return (
+                          <ContextCompactionDivider
+                            key={`${message.id}-timeline-${index}`}
+                            compacting={isLiveAssistantMessage}
+                          />
+                        );
+                      }
+
                       if (item.type === "text") {
                         return (
                           <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
