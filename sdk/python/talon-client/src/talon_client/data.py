@@ -2,11 +2,11 @@
 
 from talon_client.proto.data.api_keys_pb2 import ApiKeyGrant, ApiKeyRecord
 from talon_client.proto.data.connectors_pb2 import Route
-from talon_client.proto.data.data_pb2 import MessageRole, ROLE_UNSPECIFIED, ROLE_USER, ROLE_ASSISTANT, ROLE_SYSTEM, SessionMessagePartType, SESSION_MESSAGE_PART_TYPE_UNSPECIFIED, SESSION_MESSAGE_PART_TYPE_TEXT, SESSION_MESSAGE_PART_TYPE_REASONING, SESSION_MESSAGE_PART_TYPE_TOOL_CALL, SESSION_MESSAGE_PART_TYPE_TOOL_RESULT, SESSION_MESSAGE_PART_TYPE_USAGE, SESSION_MESSAGE_PART_TYPE_ERROR, SESSION_MESSAGE_PART_TYPE_IMAGE, SESSION_MESSAGE_PART_TYPE_AUDIO, SESSION_MESSAGE_PART_TYPE_VIDEO, SESSION_MESSAGE_PART_TYPE_FILE, SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION, SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT, ObjectRef, Artifact, GoalPhase, GOAL_PHASE_UNSPECIFIED, GOAL_PHASE_RUNNING, GOAL_PHASE_PAUSED, GOAL_PHASE_NEEDS_REVIEW, GOAL_PHASE_SUCCEEDED, GOAL_PHASE_FAILED, GOAL_PHASE_BLOCKED, GOAL_PHASE_CANCELED, GOAL_PHASE_EXPIRED, Goal, ArtifactAccess, Principal, SessionMessagePart, SessionMessage, Session, ChannelMessage, Knowledge, KnowledgeSearchResult, WorkflowRun, WorkflowStepRun, WorkflowRunEvent
+from talon_client.proto.data.data_pb2 import MessageRole, ROLE_UNSPECIFIED, ROLE_USER, ROLE_ASSISTANT, ROLE_SYSTEM, SessionMessagePartType, SESSION_MESSAGE_PART_TYPE_UNSPECIFIED, SESSION_MESSAGE_PART_TYPE_TEXT, SESSION_MESSAGE_PART_TYPE_REASONING, SESSION_MESSAGE_PART_TYPE_TOOL_CALL, SESSION_MESSAGE_PART_TYPE_TOOL_RESULT, SESSION_MESSAGE_PART_TYPE_USAGE, SESSION_MESSAGE_PART_TYPE_ERROR, SESSION_MESSAGE_PART_TYPE_IMAGE, SESSION_MESSAGE_PART_TYPE_AUDIO, SESSION_MESSAGE_PART_TYPE_VIDEO, SESSION_MESSAGE_PART_TYPE_FILE, SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION, SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT, SESSION_MESSAGE_PART_TYPE_COMPACTION, ObjectRef, Artifact, GoalPhase, GOAL_PHASE_UNSPECIFIED, GOAL_PHASE_RUNNING, GOAL_PHASE_PAUSED, GOAL_PHASE_NEEDS_REVIEW, GOAL_PHASE_SUCCEEDED, GOAL_PHASE_FAILED, GOAL_PHASE_BLOCKED, GOAL_PHASE_CANCELED, GOAL_PHASE_EXPIRED, Goal, ArtifactAccess, Principal, SessionMessagePart, SessionMessage, Session, ChannelMessage, Knowledge, KnowledgeSearchResult, WorkflowRun, WorkflowStepRun, WorkflowRunEvent
 from talon_client.proto.data.routing_pb2 import ResourceRef, SessionMessageConsumer, ChannelMessageConsumer, WorkflowMessageConsumer, MessageConsumer
 from talon_client.proto.data.search_pb2 import DocumentSource, DocumentRef, Document
 from talon_client.proto.data.session_submission_pb2 import SessionSubmissionStatus, SESSION_SUBMISSION_STATUS_UNSPECIFIED, SESSION_SUBMISSION_STATUS_PENDING, SESSION_SUBMISSION_STATUS_CLAIMED, SESSION_SUBMISSION_STATUS_COMMITTED, SESSION_SUBMISSION_STATUS_FAILED, SESSION_SUBMISSION_STATUS_INTERRUPTED, SessionSubmission
-from talon_client.proto.data.session_journal_entry_pb2 import SessionExecutionPhase, SESSION_EXECUTION_PHASE_UNSPECIFIED, SESSION_EXECUTION_PHASE_LLM_RESPONSE, SESSION_EXECUTION_PHASE_TOOL_RESULT, SESSION_EXECUTION_PHASE_COMMITTED, SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadToolResult, SessionJournalEntryPayloadCommit, SessionJournalEntryPayload, SessionJournalEntry
+from talon_client.proto.data.session_journal_entry_pb2 import SessionExecutionPhase, SESSION_EXECUTION_PHASE_UNSPECIFIED, SESSION_EXECUTION_PHASE_LLM_RESPONSE, SESSION_EXECUTION_PHASE_TOOL_RESULT, SESSION_EXECUTION_PHASE_COMMITTED, SESSION_EXECUTION_PHASE_COMPACTION, SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadToolResult, SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadCompaction, SessionJournalEntryPayload, SessionJournalEntry
 
 __all__ = [
     "ApiKeyGrant",
@@ -31,6 +31,7 @@ __all__ = [
     "SESSION_MESSAGE_PART_TYPE_FILE",
     "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION",
     "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT",
+    "SESSION_MESSAGE_PART_TYPE_COMPACTION",
     "ObjectRef",
     "Artifact",
     "GoalPhase",
@@ -76,9 +77,11 @@ __all__ = [
     "SESSION_EXECUTION_PHASE_LLM_RESPONSE",
     "SESSION_EXECUTION_PHASE_TOOL_RESULT",
     "SESSION_EXECUTION_PHASE_COMMITTED",
+    "SESSION_EXECUTION_PHASE_COMPACTION",
     "SessionJournalEntryPayloadLlmResponse",
     "SessionJournalEntryPayloadToolResult",
     "SessionJournalEntryPayloadCommit",
+    "SessionJournalEntryPayloadCompaction",
     "SessionJournalEntryPayload",
     "SessionJournalEntry",
 ]

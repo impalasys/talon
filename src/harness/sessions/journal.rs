@@ -11,11 +11,102 @@ use crate::control::tool_output::{self, ToolOutputStorageContext};
 use crate::control::{keys, KeyValueStore, ListOptions};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
-    SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadLlmResponse,
-    SessionJournalEntryPayloadToolResult,
+    SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadCompaction,
+    SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadToolResult,
 };
 use crate::harness::llm::ChatResponse;
 use crate::harness::llm::ToolOutput;
+
+pub async fn append_compaction(
+    kv: &dyn KeyValueStore,
+    cas: &CasStore,
+    ns: &str,
+    agent_id: &str,
+    session_id: &str,
+    submission_id: &str,
+    attempt_id: &str,
+    summary: &str,
+    now_micros: i64,
+) -> Result<(
+    SessionJournalEntry,
+    crate::gateway::rpc::data_proto::ObjectRef,
+)> {
+    // Allocate the entry id before writing CAS so the immutable object key is
+    // shared by the journal and the canonical internal message marker. A
+    // contested append may leave an unreachable object, which session GC can
+    // safely reclaim; it never exposes a partially written context boundary.
+    let mut entry = None;
+    for _ in 0..16 {
+        ensure_submission_attempt_current(kv, ns, agent_id, session_id, submission_id, attempt_id)
+            .await?;
+        let journal_entry_id =
+            next_journal_entry_id(kv, ns, agent_id, session_id, submission_id).await?;
+        let summary_object = cas
+            .put_compaction_summary(
+                ns,
+                agent_id,
+                session_id,
+                submission_id,
+                &journal_entry_id,
+                summary,
+            )
+            .await?;
+        let candidate = SessionJournalEntry {
+            submission_id: submission_id.to_string(),
+            journal_entry_id: journal_entry_id.clone(),
+            attempt_id: attempt_id.to_string(),
+            phase: SessionExecutionPhase::Compaction as i32,
+            payload: Some(SessionJournalEntryPayload {
+                payload: Some(session_journal_entry_payload::Payload::Compaction(
+                    compaction_payload(summary_object.clone()),
+                )),
+            }),
+            created_at: now_micros,
+            updated_at: now_micros,
+            committed_at: None,
+            committed_message_id: None,
+        };
+        let key =
+            keys::session_journal_entry(ns, agent_id, session_id, submission_id, &journal_entry_id);
+        if kv
+            .compare_and_swap(&key, None, &candidate.encode_to_vec())
+            .await?
+        {
+            update_submission_from_entry(
+                kv,
+                ns,
+                agent_id,
+                session_id,
+                submission_id,
+                &candidate,
+                None,
+                None,
+                now_micros,
+            )
+            .await?;
+            entry = Some((candidate, summary_object));
+            break;
+        }
+    }
+    let (entry, summary_object) =
+        entry.ok_or_else(|| anyhow!("failed to append session compaction journal entry"))?;
+
+    tracing::info!(
+        submission = %submission_id,
+        journal_entry_id = %entry.journal_entry_id,
+        "Compaction journal entry written",
+    );
+
+    Ok((entry, summary_object))
+}
+
+fn compaction_payload(
+    summary_object: crate::gateway::rpc::data_proto::ObjectRef,
+) -> SessionJournalEntryPayloadCompaction {
+    SessionJournalEntryPayloadCompaction {
+        summary: Some(summary_object),
+    }
+}
 
 pub async fn append_llm_response(
     kv: &dyn KeyValueStore,
@@ -614,5 +705,71 @@ mod tests {
         .unwrap_err();
 
         assert!(err.to_string().contains("stale session submission attempt"));
+    }
+
+    #[tokio::test]
+    async fn compaction_entry_appends_and_updates_submission() {
+        let kv = crate::test_support::MockKvStore::default();
+        seed_claimed_submission(&kv).await;
+        let cas = CasStore::new(std::sync::Arc::new(
+            crate::control::object_store::InMemoryObjectStore::default(),
+        ));
+
+        let (compact_entry, _) = append_compaction(
+            &kv,
+            &cas,
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "# Compaction\nCompleted Step 1.",
+            10,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            compact_entry.phase,
+            SessionExecutionPhase::Compaction as i32
+        );
+        let submission = kv
+            .get_msg::<SessionSubmission>(&keys::session_submission(
+                "ns",
+                "agent",
+                "session-1",
+                "submission-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            submission.current_journal_entry_id.as_deref(),
+            Some(compact_entry.journal_entry_id.clone().as_str()),
+        );
+
+        let entries = list_journal_entries(&kv, "ns", "agent", "session-1", "submission-1")
+            .await
+            .unwrap();
+        assert_eq!(entries.len(), 1);
+        let payload = entries[0]
+            .payload
+            .as_ref()
+            .unwrap()
+            .payload
+            .as_ref()
+            .unwrap();
+        let crate::gateway::rpc::data_proto::session_journal_entry_payload::Payload::Compaction(
+            payload,
+        ) = payload
+        else {
+            panic!("expected compaction payload")
+        };
+        assert!(payload
+            .summary
+            .as_ref()
+            .unwrap()
+            .key
+            .ends_with("/000001.txt"));
     }
 }

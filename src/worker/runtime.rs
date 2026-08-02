@@ -12,14 +12,9 @@ use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::resources_proto;
 use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 use crate::harness::executor::{
-    session_message_to_loop_messages, AgentExecutor, ContextAssembler, ExecutionContext,
-    LoopMessage, RegisteredMcpTool,
-};
-use crate::harness::sessions::{
-    SESSION_LABEL_PROJECTION_STATE, SESSION_PROJECTION_STATE_COMMITTED,
+    load, AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
 };
 use crate::harness::skills::registry::ToolRegistry;
-use prost::Message;
 
 /// Fully-assembled, ready-to-run environment for one agent session.
 /// Build it from identity coordinates; it resolves everything else
@@ -87,29 +82,17 @@ impl AgentRuntime {
             })
             .unwrap_or(false);
 
-        // 2. Load session history from KV
-        let msg_prefix = crate::control::keys::session_message_prefix(ns, agent_id, session_id);
-        let msg_entries = cp.kv.list_entries(&msg_prefix, None).await?;
-
-        let mut history = Vec::new();
-        for (_, value) in msg_entries {
-            if let Ok(msg) = data_proto::SessionMessage::decode(value.as_slice()) {
-                if msg
-                    .labels
-                    .get(crate::control::delegation::LABEL_TASK_ROLE)
-                    .map(String::as_str)
-                    == Some("delegate")
-                {
-                    is_delegated_task_session = true;
-                }
-                if msg.role == data_proto::MessageRole::RoleAssistant as i32
-                    && !assistant_projection_is_replayable(&msg)
-                {
-                    continue;
-                }
-                history.extend(session_message_to_loop_messages(&msg, cp.objects.as_ref()).await?);
-            }
-        }
+        // 2. Load session history from KV.
+        let loaded = load(
+            cp.kv.as_ref(),
+            cp.objects.as_ref(),
+            ns,
+            agent_id,
+            session_id,
+        )
+        .await?;
+        let mut history = loaded.messages;
+        is_delegated_task_session |= loaded.has_delegated_task;
         if is_delegated_task_session {
             add_capability_action(&mut spec, "tasks", "update");
         }
@@ -373,18 +356,6 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::CREATE_MEMORY_TOOL,
         crate::harness::native_tools::UPDATE_MEMORY_TOOL,
     ]
-}
-
-fn assistant_projection_is_replayable(message: &data_proto::SessionMessage) -> bool {
-    match message
-        .labels
-        .get(SESSION_LABEL_PROJECTION_STATE)
-        .map(String::as_str)
-    {
-        None | Some(SESSION_PROJECTION_STATE_COMMITTED) => true,
-        Some(crate::harness::sessions::SESSION_PROJECTION_STATE_FAILED) => true,
-        Some(_) => false,
-    }
 }
 
 fn qualify_mcp_tool_name(

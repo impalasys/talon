@@ -20,6 +20,10 @@ enum SessionExecutionPhase {
   // The submission reached a commit boundary and its canonical assistant
   // SessionMessage was written.
   SESSION_EXECUTION_PHASE_COMMITTED = 3;
+
+  // Durable model context compaction completed. The journal entry references
+  // an immutable summary object without storing a provider transcript snapshot.
+  SESSION_EXECUTION_PHASE_COMPACTION = 4;
 }
 
 message SessionJournalEntryPayloadLlmResponse {
@@ -38,11 +42,17 @@ message SessionJournalEntryPayloadCommit {
   string committed_message_id = 1;
 }
 
+message SessionJournalEntryPayloadCompaction {
+  // Immutable Markdown summary shared with the internal SessionMessage part.
+  ObjectRef summary = 1;
+}
+
 message SessionJournalEntryPayload {
   oneof payload {
     SessionJournalEntryPayloadLlmResponse llm_response = 1;
     SessionJournalEntryPayloadToolResult tool_result = 2;
     SessionJournalEntryPayloadCommit commit = 3;
+    SessionJournalEntryPayloadCompaction compaction = 5;
   }
 }
 

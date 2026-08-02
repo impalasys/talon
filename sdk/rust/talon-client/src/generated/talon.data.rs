@@ -520,6 +520,9 @@ pub enum SessionMessagePartType {
     File = 10,
     RequestPermission = 11,
     PermissionResult = 12,
+    /// Durable-context boundary. The part points at the immutable compacted
+    /// summary CAS object used to reconstruct model-visible history.
+    Compaction = 13,
 }
 impl SessionMessagePartType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -541,6 +544,7 @@ impl SessionMessagePartType {
             Self::File => "SESSION_MESSAGE_PART_TYPE_FILE",
             Self::RequestPermission => "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION",
             Self::PermissionResult => "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT",
+            Self::Compaction => "SESSION_MESSAGE_PART_TYPE_COMPACTION",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -561,6 +565,7 @@ impl SessionMessagePartType {
                 Some(Self::RequestPermission)
             }
             "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT" => Some(Self::PermissionResult),
+            "SESSION_MESSAGE_PART_TYPE_COMPACTION" => Some(Self::Compaction),
             _ => None,
         }
     }
@@ -708,8 +713,14 @@ pub struct SessionJournalEntryPayloadCommit {
     pub committed_message_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionJournalEntryPayloadCompaction {
+    /// Immutable Markdown summary shared with the internal SessionMessage part.
+    #[prost(message, optional, tag = "1")]
+    pub summary: ::core::option::Option<ObjectRef>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayload {
-    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3")]
+    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3, 5")]
     pub payload: ::core::option::Option<session_journal_entry_payload::Payload>,
 }
 /// Nested message and enum types in `SessionJournalEntryPayload`.
@@ -722,6 +733,8 @@ pub mod session_journal_entry_payload {
         ToolResult(super::SessionJournalEntryPayloadToolResult),
         #[prost(message, tag = "3")]
         Commit(super::SessionJournalEntryPayloadCommit),
+        #[prost(message, tag = "5")]
+        Compaction(super::SessionJournalEntryPayloadCompaction),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -762,6 +775,9 @@ pub enum SessionExecutionPhase {
     /// The submission reached a commit boundary and its canonical assistant
     /// SessionMessage was written.
     Committed = 3,
+    /// Durable model context compaction completed. The journal entry references
+    /// an immutable summary object without storing a provider transcript snapshot.
+    Compaction = 4,
 }
 impl SessionExecutionPhase {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -774,6 +790,7 @@ impl SessionExecutionPhase {
             Self::LlmResponse => "SESSION_EXECUTION_PHASE_LLM_RESPONSE",
             Self::ToolResult => "SESSION_EXECUTION_PHASE_TOOL_RESULT",
             Self::Committed => "SESSION_EXECUTION_PHASE_COMMITTED",
+            Self::Compaction => "SESSION_EXECUTION_PHASE_COMPACTION",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -783,6 +800,7 @@ impl SessionExecutionPhase {
             "SESSION_EXECUTION_PHASE_LLM_RESPONSE" => Some(Self::LlmResponse),
             "SESSION_EXECUTION_PHASE_TOOL_RESULT" => Some(Self::ToolResult),
             "SESSION_EXECUTION_PHASE_COMMITTED" => Some(Self::Committed),
+            "SESSION_EXECUTION_PHASE_COMPACTION" => Some(Self::Compaction),
             _ => None,
         }
     }

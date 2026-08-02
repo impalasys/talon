@@ -8,6 +8,7 @@ export type ToolInvocationItem = {
 export type AssistantTimelineItem =
   | { type: "text"; text: string }
   | { type: "reasoning"; text: string }
+  | { type: "compaction" }
   | { type: "usage"; usage: UsageSummary }
   | {
       type: "tool";
@@ -181,6 +182,11 @@ function isPermissionResultPart(part: Record<string, unknown> | undefined): bool
   );
 }
 
+function isCompactionPart(part: Record<string, unknown> | undefined): boolean {
+  const type = partType(part);
+  return type === "compaction" || type === 13 || type === "SESSION_MESSAGE_PART_TYPE_COMPACTION";
+}
+
 function permissionToolCallId(payload: Record<string, unknown>): string {
   return payloadString(payload, "request_id", "requestId") ?? "";
 }
@@ -319,6 +325,11 @@ function timelineFromParts(message: Partial<CopilotMessage>): AssistantTimelineI
   for (const part of message.parts) {
     if (!part || typeof part !== "object") continue;
 
+    if (isCompactionPart(part)) {
+      timeline.push({ type: "compaction" });
+      continue;
+    }
+
     if (isTextPart(part) || isErrorPart(part)) {
       timeline = appendTextToTimeline(timeline, partContent(part));
       continue;
@@ -420,11 +431,13 @@ export function getMessageUsage(message: Partial<CopilotMessage>): UsageSummary 
 }
 
 export function getMessageAssistantTimeline(message: Partial<CopilotMessage>): AssistantTimelineItem[] {
+  const partTimeline = timelineFromParts(message);
+  if (partTimeline.some((item) => item.type === "compaction")) {
+    return partTimeline;
+  }
   if (Array.isArray(message?.timeline) && message.timeline.length > 0) {
     return message.timeline as AssistantTimelineItem[];
   }
-
-  const partTimeline = timelineFromParts(message);
   if (partTimeline.length > 0) return partTimeline;
 
   const toolInvocations = Array.isArray(message?.toolInvocations)

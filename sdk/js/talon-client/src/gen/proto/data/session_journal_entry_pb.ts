@@ -42,6 +42,14 @@ export enum SessionExecutionPhase {
    * @generated from enum value: SESSION_EXECUTION_PHASE_COMMITTED = 3;
    */
   COMMITTED = 3,
+
+  /**
+   * Durable model context compaction completed. The journal entry references
+   * an immutable summary object without storing a provider transcript snapshot.
+   *
+   * @generated from enum value: SESSION_EXECUTION_PHASE_COMPACTION = 4;
+   */
+  COMPACTION = 4,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SessionExecutionPhase)
 proto3.util.setEnumType(SessionExecutionPhase, "talon.data.SessionExecutionPhase", [
@@ -49,6 +57,7 @@ proto3.util.setEnumType(SessionExecutionPhase, "talon.data.SessionExecutionPhase
   { no: 1, name: "SESSION_EXECUTION_PHASE_LLM_RESPONSE" },
   { no: 2, name: "SESSION_EXECUTION_PHASE_TOOL_RESULT" },
   { no: 3, name: "SESSION_EXECUTION_PHASE_COMMITTED" },
+  { no: 4, name: "SESSION_EXECUTION_PHASE_COMPACTION" },
 ]);
 
 /**
@@ -187,6 +196,45 @@ export class SessionJournalEntryPayloadCommit extends Message<SessionJournalEntr
 }
 
 /**
+ * @generated from message talon.data.SessionJournalEntryPayloadCompaction
+ */
+export class SessionJournalEntryPayloadCompaction extends Message<SessionJournalEntryPayloadCompaction> {
+  /**
+   * Immutable Markdown summary shared with the internal SessionMessage part.
+   *
+   * @generated from field: talon.data.ObjectRef summary = 1;
+   */
+  summary?: ObjectRef;
+
+  constructor(data?: PartialMessage<SessionJournalEntryPayloadCompaction>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.SessionJournalEntryPayloadCompaction";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "summary", kind: "message", T: ObjectRef },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayloadCompaction {
+    return new SessionJournalEntryPayloadCompaction().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SessionJournalEntryPayloadCompaction {
+    return new SessionJournalEntryPayloadCompaction().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SessionJournalEntryPayloadCompaction {
+    return new SessionJournalEntryPayloadCompaction().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SessionJournalEntryPayloadCompaction | PlainMessage<SessionJournalEntryPayloadCompaction> | undefined, b: SessionJournalEntryPayloadCompaction | PlainMessage<SessionJournalEntryPayloadCompaction> | undefined): boolean {
+    return proto3.util.equals(SessionJournalEntryPayloadCompaction, a, b);
+  }
+}
+
+/**
  * @generated from message talon.data.SessionJournalEntryPayload
  */
 export class SessionJournalEntryPayload extends Message<SessionJournalEntryPayload> {
@@ -211,6 +259,12 @@ export class SessionJournalEntryPayload extends Message<SessionJournalEntryPaylo
      */
     value: SessionJournalEntryPayloadCommit;
     case: "commit";
+  } | {
+    /**
+     * @generated from field: talon.data.SessionJournalEntryPayloadCompaction compaction = 5;
+     */
+    value: SessionJournalEntryPayloadCompaction;
+    case: "compaction";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<SessionJournalEntryPayload>) {
@@ -224,6 +278,7 @@ export class SessionJournalEntryPayload extends Message<SessionJournalEntryPaylo
     { no: 1, name: "llm_response", kind: "message", T: SessionJournalEntryPayloadLlmResponse, oneof: "payload" },
     { no: 2, name: "tool_result", kind: "message", T: SessionJournalEntryPayloadToolResult, oneof: "payload" },
     { no: 3, name: "commit", kind: "message", T: SessionJournalEntryPayloadCommit, oneof: "payload" },
+    { no: 5, name: "compaction", kind: "message", T: SessionJournalEntryPayloadCompaction, oneof: "payload" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayload {

@@ -540,6 +540,10 @@ impl PubSubSessionSink {
         }
     }
 
+    pub(crate) fn seed_latest_journal_entry_id(&self, entry_id: Option<&str>) {
+        *self.latest_journal_entry_id.lock().unwrap() = entry_id.map(str::to_string);
+    }
+
     // Record a canonical part for the final assistant SessionMessage.
     fn record_part(
         &self,
@@ -1257,6 +1261,37 @@ impl ExecutionSink for PubSubSessionSink {
         )
         .await?;
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        Ok(())
+    }
+
+    async fn on_compaction(&self, summary: &str) -> Result<()> {
+        let (entry, summary_object) = sessions::append_compaction(
+            self.kv.as_ref(),
+            &CasStore::new(self.objects.clone()),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+            &self.attempt_id,
+            summary,
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .await?;
+        // This canonical marker carries the summary ObjectRef used by history
+        // reconstruction and is exposed to session clients unchanged.
+        self.record_part_with_id_and_object(
+            self.next_part_id(),
+            data_proto::SessionMessagePartType::Compaction,
+            String::new(),
+            String::new(),
+            String::new(),
+            Some(summary_object),
+        );
+        *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        // Make the marker visible to subsequent-session reconstruction before
+        // replacing the executor's live context. This projection is canonical;
+        // public RPC paths expose the same compaction metadata.
+        self.persist_durable_message("compaction").await;
         Ok(())
     }
 

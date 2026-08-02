@@ -193,6 +193,47 @@ async fn prepare_context_for_claimed_submission(
     let mut index = 0;
     while index < journal_entries.len() {
         let entry = &journal_entries[index];
+
+        // Hydrate the immutable summary. The journal payload intentionally has
+        // no tail anchor yet, so this in-flight recovery path restores only the
+        // summary. Exact tail reconstruction for this path requires the
+        // follow-up journal-anchor work.
+        if entry.phase == SessionExecutionPhase::Compaction as i32 {
+            if let Some(session_journal_entry_payload::Payload::Compaction(payl)) =
+                entry.payload.as_ref().and_then(|p| p.payload.as_ref())
+            {
+                let summary = payl
+                    .summary
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("COMPACTION entry is missing summary object"))?;
+                let summary = CasStore::new(cp.objects.clone())
+                    .get_session_object_by_key_decoded(&summary.key)
+                    .await?
+                    .ok_or_else(|| anyhow!("COMPACTION summary object is missing"))?;
+                let summary = String::from_utf8(summary.1.bytes)
+                    .map_err(|_| anyhow!("COMPACTION summary is not UTF-8"))?;
+
+                tracing::info!(
+                    submission = %submission_id,
+                    "Recovery: compaction boundary hydrated",
+                );
+
+                runtime.context.history.clear();
+                projection_parts.clear();
+                next_projection_part_index = 0;
+                runtime
+                    .context
+                    .push(LoopMessage::text("assistant", summary));
+                // Drop derived recovery state since the compaction boundary replaces history.
+                latest_final_response = None;
+            } else {
+                return Err(anyhow!("COMPACTION entry is missing payload"));
+            }
+
+            index += 1;
+            continue;
+        }
+
         let response = match (
             entry.phase,
             entry
@@ -228,15 +269,19 @@ async fn prepare_context_for_claimed_submission(
             (phase, None) if phase == SessionExecutionPhase::ToolResult as i32 => {
                 return Err(anyhow!("TOOL_RESULT entry is missing payload"));
             }
+            // Already handled above (commit markers are terminal; we never reach here in recovery).
             _ => {
+                tracing::warn!(
+                    journal_entry_id = %entry.journal_entry_id,
+                    "Unreachable: ignored unexpected journal phase during hydration",
+                );
                 index += 1;
                 continue;
             }
         };
-
-        index += 1;
         if response.tool_calls.is_empty() {
             latest_final_response = Some(response);
+            index += 1;
             continue;
         }
 
@@ -253,12 +298,14 @@ async fn prepare_context_for_claimed_submission(
             });
         }
 
+        index += 1;
         let mut stop_after_tool_results = false;
         let mut results_by_call_id = BTreeMap::new();
         while index < journal_entries.len() {
             let entry = &journal_entries[index];
             if entry.phase == SessionExecutionPhase::LlmResponse as i32
                 || entry.phase == SessionExecutionPhase::Committed as i32
+                || entry.phase == SessionExecutionPhase::Compaction as i32
             {
                 break;
             }
@@ -551,6 +598,11 @@ impl WorkerEventHandler {
             &submission.submission_id,
         )
         .await?;
+        sink.seed_latest_journal_entry_id(
+            journal_entries
+                .last()
+                .map(|entry| entry.journal_entry_id.as_str()),
+        );
         if let Some(entry) = journal_entries
             .last()
             .filter(|entry| entry.phase == SessionExecutionPhase::Committed as i32)
@@ -3924,5 +3976,175 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(session.status, "IDLE");
+    }
+
+    #[tokio::test]
+    async fn prepare_context_hydrates_compaction_summary_without_tail_replay() {
+        use crate::control::cas::CasStore;
+        use crate::gateway::rpc::data_proto::{
+            SessionExecutionPhase as DataPhase, SessionSubmissionStatus,
+        };
+        use crate::harness::executor::{AgentExecutor, ContextAssembler, ExecutionContext};
+        use crate::harness::llm::{ChatResponse, MockLlmProvider, ToolCall};
+        use crate::harness::sessions::list_journal_entries;
+        use crate::harness::skills::registry::ToolRegistry;
+
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(
+            kv.clone(),
+            Arc::new(crate::test_support::RecordingPubSub::default()),
+        )
+        .build();
+
+        // Seed a claimed submission.
+        let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
+        submission.status = SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(&*kv, "ns", "agent", "session-1", &submission)
+            .await
+            .unwrap();
+
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut runtime = super::AgentRuntime {
+            executor: AgentExecutor::new_with_session(
+                Arc::new(MockLlmProvider),
+                "test-provider".to_string(),
+                "test-model".to_string(),
+                ContextAssembler::new("."),
+                registry,
+                Arc::new(Config::default()),
+                "ns".to_string(),
+                "agent".to_string(),
+                "session-1".to_string(),
+                cp.clone(),
+                manifests::AgentSpec::default(),
+                HashMap::new(),
+            ),
+            context: ExecutionContext::new("agent"),
+        };
+
+        let call_response = ChatResponse {
+            content: "I will look that up.".to_string(),
+            tool_calls: vec![ToolCall {
+                id: "tool-1".to_string(),
+                name: "lookup".to_string(),
+                arguments: "{\"query\":\"value\"}".to_string(),
+            }],
+            usage: None,
+        };
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &call_response,
+            20,
+        )
+        .await
+        .unwrap();
+        sessions::append_tool_result(
+            kv.as_ref(),
+            &CasStore::new(cp.objects.clone()),
+            "ns",
+            "agent",
+            "session-1",
+            "reply-1",
+            "part-1",
+            "submission-1",
+            "attempt-1",
+            "tool-1",
+            "lookup",
+            &crate::harness::llm::ToolOutput::text("lookup result"),
+            30,
+        )
+        .await
+        .unwrap();
+        let _ = sessions::append_compaction(
+            kv.as_ref(),
+            &CasStore::new(cp.objects.clone()),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "# Compacted context\n\nThe user asked for a lookup.",
+            40,
+        )
+        .await
+        .unwrap();
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &ChatResponse {
+                content: "continued after recovery".to_string(),
+                tool_calls: Vec::new(),
+                usage: None,
+            },
+            50,
+        )
+        .await
+        .unwrap();
+
+        let entries = list_journal_entries(&*kv, "ns", "agent", "session-1", "submission-1")
+            .await
+            .unwrap();
+        let journal_shape = entries
+            .iter()
+            .map(|entry| (entry.journal_entry_id.as_str(), entry.phase))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            journal_shape,
+            vec![
+                ("000001", DataPhase::LlmResponse as i32),
+                ("000002", DataPhase::ToolResult as i32),
+                ("000003", DataPhase::Compaction as i32),
+                ("000004", DataPhase::LlmResponse as i32)
+            ]
+        );
+
+        assert!(!entries.is_empty());
+        let has_compaction = entries
+            .iter()
+            .any(|e| e.phase == DataPhase::Compaction as i32);
+        assert!(has_compaction, "journal should contain compaction entry");
+
+        let prepared = super::prepare_context_for_claimed_submission(
+            &cp,
+            "ns",
+            "agent",
+            "session-1",
+            "reply-1",
+            "submission-1",
+            "attempt-1",
+            &entries,
+            &mut runtime,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            prepared.state,
+            super::PreparedSubmissionState::FinalResponseReady {
+                content: "continued after recovery".to_string(),
+            }
+        );
+        let history_shape = runtime
+            .context
+            .history
+            .iter()
+            .map(|message| (message.role.as_str(), message.text_content()))
+            .collect::<Vec<_>>();
+        assert_eq!(runtime.context.history.len(), 1, "{history_shape:?}");
+        assert_eq!(runtime.context.history[0].role, "assistant");
+        assert_eq!(
+            runtime.context.history[0].text_content(),
+            "# Compacted context\n\nThe user asked for a lookup."
+        );
     }
 }

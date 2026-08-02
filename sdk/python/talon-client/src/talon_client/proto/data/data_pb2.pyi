@@ -29,6 +29,7 @@ class SessionMessagePartType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SESSION_MESSAGE_PART_TYPE_FILE: _ClassVar[SessionMessagePartType]
     SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION: _ClassVar[SessionMessagePartType]
     SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT: _ClassVar[SessionMessagePartType]
+    SESSION_MESSAGE_PART_TYPE_COMPACTION: _ClassVar[SessionMessagePartType]
 
 class GoalPhase(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -58,6 +59,7 @@ SESSION_MESSAGE_PART_TYPE_VIDEO: SessionMessagePartType
 SESSION_MESSAGE_PART_TYPE_FILE: SessionMessagePartType
 SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION: SessionMessagePartType
 SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT: SessionMessagePartType
+SESSION_MESSAGE_PART_TYPE_COMPACTION: SessionMessagePartType
 GOAL_PHASE_UNSPECIFIED: GoalPhase
 GOAL_PHASE_RUNNING: GoalPhase
 GOAL_PHASE_PAUSED: GoalPhase

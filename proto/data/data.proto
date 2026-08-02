@@ -23,6 +23,9 @@ enum SessionMessagePartType {
   SESSION_MESSAGE_PART_TYPE_FILE = 10;
   SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION = 11;
   SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT = 12;
+  // Durable-context boundary. The part points at the immutable compacted
+  // summary CAS object used to reconstruct model-visible history.
+  SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;
 }
 
 message ObjectRef {

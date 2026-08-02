@@ -5,12 +5,153 @@ use super::runtime::LoopMessage;
 use crate::control::cas::{decode_stored_object_bytes, object_ref_from_metadata};
 use crate::control::object_store::ObjectStore;
 use crate::control::tool_output::{self, ToolOutputExt};
+use crate::control::{KeyValueStore, ListOptions};
 use crate::gateway::rpc::data_proto;
-use crate::harness::llm::{object_ref_part, text_part, ChatContentPart, ToolCall};
+use crate::harness::llm::{
+    content_part_object_ref, object_ref_part, text_part, ChatContentPart, ToolCall,
+};
 use anyhow::{anyhow, Result};
+use prost::Message;
 use std::path::Path;
 
-pub async fn session_message_to_loop_messages(
+pub struct Loaded {
+    pub messages: Vec<LoopMessage>,
+    pub has_delegated_task: bool,
+}
+
+const SESSION_MESSAGE_LOAD_PAGE_SIZE: usize = 100;
+
+/// Rebuild the model-visible history for a session.
+///
+/// Messages are read newest first in bounded KV pages. The newest compaction
+/// part with a readable summary object is the boundary: its summary is injected
+/// first, only parts after that marker in the marker's message are replayed,
+/// and then only later messages are replayed in chronological order. If no
+/// valid marker exists, every replayable message is loaded.
+pub async fn load(
+    kv: &dyn KeyValueStore,
+    objects: &(dyn ObjectStore + Send + Sync),
+    ns: &str,
+    agent_id: &str,
+    session_id: &str,
+) -> Result<Loaded> {
+    let prefix = crate::control::keys::session_message_prefix(ns, agent_id, session_id);
+    let mut later_messages = Vec::new();
+    let mut has_delegated_task = false;
+    let mut before_name = None;
+
+    loop {
+        let page = kv
+            .list_entries(
+                &prefix,
+                Some(
+                    ListOptions::desc()
+                        .before_name(before_name.as_deref())
+                        .limit(SESSION_MESSAGE_LOAD_PAGE_SIZE),
+                ),
+            )
+            .await?;
+        if page.is_empty() {
+            break;
+        }
+        before_name = page.last().map(|(key, _)| key.name.clone());
+
+        for (_, value) in page {
+            let Ok(message) = data_proto::SessionMessage::decode(value.as_slice()) else {
+                continue;
+            };
+            if message
+                .labels
+                .get(crate::control::delegation::LABEL_TASK_ROLE)
+                .map(String::as_str)
+                == Some("delegate")
+            {
+                has_delegated_task = true;
+            }
+            if message.role == data_proto::MessageRole::RoleAssistant as i32
+                && !assistant_projection_is_replayable(&message)
+            {
+                continue;
+            }
+
+            if let Some((marker_index, summary)) = latest_valid_compaction(&message, objects).await
+            {
+                let mut messages = vec![LoopMessage::text("assistant", summary)];
+                let mut marker_tail = message;
+                marker_tail.parts = marker_tail.parts.split_off(marker_index + 1);
+                if !marker_tail.parts.is_empty() {
+                    messages.extend(session_message_to_loop_messages(&marker_tail, objects).await?);
+                }
+                later_messages.reverse();
+                for message in later_messages {
+                    messages.extend(session_message_to_loop_messages(&message, objects).await?);
+                }
+                return Ok(Loaded {
+                    messages,
+                    has_delegated_task,
+                });
+            }
+
+            later_messages.push(message);
+        }
+    }
+
+    later_messages.reverse();
+    let mut messages = Vec::new();
+    for message in later_messages {
+        messages.extend(session_message_to_loop_messages(&message, objects).await?);
+    }
+
+    Ok(Loaded {
+        messages,
+        has_delegated_task,
+    })
+}
+
+async fn latest_valid_compaction(
+    message: &data_proto::SessionMessage,
+    objects: &(dyn ObjectStore + Send + Sync),
+) -> Option<(usize, String)> {
+    for (index, part) in message.parts.iter().enumerate().rev() {
+        if part.part_type != data_proto::SessionMessagePartType::Compaction as i32 {
+            continue;
+        }
+        let Some(object) = part.object.as_ref() else {
+            tracing::warn!(message_id = %message.id, part_id = %part.id, "Ignoring compaction marker without a summary object");
+            continue;
+        };
+        let result = async {
+            let stored = objects
+                .get(&object.key)
+                .await?
+                .ok_or_else(|| anyhow!("compaction summary object '{}' is missing", object.key))?;
+            let bytes = decode_stored_object_bytes(&stored, &object.key)?;
+            String::from_utf8(bytes).map_err(|_| anyhow!("compaction summary is not UTF-8"))
+        }
+        .await;
+        match result {
+            Ok(summary) => return Some((index, summary)),
+            Err(error) => {
+                tracing::warn!(message_id = %message.id, part_id = %part.id, error = %error, "Ignoring invalid compaction marker")
+            }
+        }
+    }
+    None
+}
+
+fn assistant_projection_is_replayable(message: &data_proto::SessionMessage) -> bool {
+    match message
+        .labels
+        .get(crate::harness::sessions::SESSION_LABEL_PROJECTION_STATE)
+        .map(String::as_str)
+    {
+        None | Some(crate::harness::sessions::SESSION_PROJECTION_STATE_COMMITTED) => true,
+        Some(crate::harness::sessions::SESSION_PROJECTION_STATE_FAILED) => true,
+        Some(_) => false,
+    }
+}
+
+async fn session_message_to_loop_messages(
     message: &data_proto::SessionMessage,
     objects: &(dyn ObjectStore + Send + Sync),
 ) -> Result<Vec<LoopMessage>> {
@@ -286,7 +427,11 @@ async fn tool_result_message_from_part(
         };
         return Ok(Some(LoopMessage {
             role: "tool".to_string(),
-            content_parts: parsed.tool_output.content_parts(),
+            content_parts: materialize_tool_output_content_parts(
+                parsed.tool_output.content_parts(),
+                objects,
+            )
+            .await?,
             tool_calls: None,
             tool_call_id: Some(parsed.tool_call_id),
         }));
@@ -375,15 +520,53 @@ async fn tool_result_message_from_part(
     Ok(Some(message))
 }
 
+/// Converts text objects in a persisted typed tool result back into text before
+/// the result is replayed into model context. Non-text objects remain references
+/// so provider adapters can hydrate them in their native representation.
+async fn materialize_tool_output_content_parts(
+    parts: Vec<ChatContentPart>,
+    objects: &(dyn ObjectStore + Send + Sync),
+) -> Result<Vec<ChatContentPart>> {
+    let mut materialized = Vec::with_capacity(parts.len());
+    for part in parts {
+        let Some(mut object_ref) = content_part_object_ref(&part).cloned() else {
+            materialized.push(part);
+            continue;
+        };
+        if object_ref.media_type.trim().is_empty() {
+            let metadata = objects
+                .head(&object_ref.key)
+                .await?
+                .ok_or_else(|| anyhow!("tool result object '{}' is missing", object_ref.key))?;
+            object_ref = object_ref_from_metadata(&object_ref.key, &metadata);
+        }
+        if tool_output::is_text_object_media_type(&object_ref.media_type) {
+            let stored = objects
+                .get(&object_ref.key)
+                .await?
+                .ok_or_else(|| anyhow!("tool result object '{}' is missing", object_ref.key))?;
+            let bytes = decode_stored_object_bytes(&stored, &object_ref.key)?;
+            materialized.push(text_part(String::from_utf8_lossy(&bytes).into_owned()));
+        } else {
+            materialized.push(object_ref_part(object_ref));
+        }
+    }
+    Ok(materialized)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        message_content_parts, session_message_to_loop_messages, tool_result_message_from_part,
+        load, message_content_parts, session_message_to_loop_messages,
+        tool_result_message_from_part,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use crate::control::tool_output::{self, ToolOutputExt};
+    use crate::control::KeyValueStore;
     use crate::gateway::rpc::data_proto;
     use crate::harness::llm::{content_part_object_ref, object_ref_part, text_part, ToolOutput};
+    use crate::test_support::MockKvStore;
+    use prost::Message;
     use std::collections::HashMap;
 
     fn tool_result_part(content: String, payload_json: String) -> data_proto::SessionMessagePart {
@@ -449,6 +632,77 @@ mod tests {
             created_at: 0,
             object: None,
         }
+    }
+
+    #[tokio::test]
+    async fn load_starts_after_the_newest_valid_compaction_marker() {
+        let kv = MockKvStore::new();
+        let objects = InMemoryObjectStore::default();
+        let summary_object = objects
+            .put(
+                "cas/test/sessions/session/compactions/submission/000001.txt",
+                b"## Task\nResearch rates.",
+                ObjectMetadata {
+                    media_type: "text/markdown; charset=utf-8".to_string(),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+        let old = data_proto::SessionMessage {
+            id: "000001".to_string(),
+            role: data_proto::MessageRole::RoleUser as i32,
+            created_at: 0,
+            labels: HashMap::new(),
+            parts: vec![session_text_part("000001", "old context")],
+        };
+        let marker = data_proto::SessionMessage {
+            id: "000002".to_string(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: 0,
+            labels: HashMap::new(),
+            parts: vec![
+                data_proto::SessionMessagePart {
+                    id: "000001".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Compaction as i32,
+                    content: String::new(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 0,
+                    object: Some(summary_object),
+                },
+                session_text_part("000002", "retained assistant tail"),
+            ],
+        };
+        let recent = data_proto::SessionMessage {
+            id: "000003".to_string(),
+            role: data_proto::MessageRole::RoleUser as i32,
+            created_at: 0,
+            labels: HashMap::new(),
+            parts: vec![session_text_part("000001", "recent question")],
+        };
+        for message in [&old, &marker, &recent] {
+            kv.set(
+                &crate::control::keys::session_message("ns", "agent", "session", &message.id),
+                &message.encode_to_vec(),
+            )
+            .await
+            .unwrap();
+        }
+
+        let loaded = load(&kv, &objects, "ns", "agent", "session").await.unwrap();
+        assert_eq!(
+            loaded
+                .messages
+                .iter()
+                .map(|message| message.text_content())
+                .collect::<Vec<_>>(),
+            [
+                "## Task\nResearch rates.",
+                "retained assistant tail",
+                "recent question"
+            ]
+        );
     }
 
     fn assistant_message(parts: Vec<data_proto::SessionMessagePart>) -> data_proto::SessionMessage {
@@ -580,6 +834,41 @@ mod tests {
                 .map(|object| object.key.as_str()),
             Some("cas/image.png")
         );
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_materializes_typed_text_object_output() {
+        let store = InMemoryObjectStore::default();
+        let raw_output = "Parallel search returned the latest interest-rate reporting.";
+        let object = store
+            .put(
+                "sessions/acme/support/session-1/tool-results/search-result.txt",
+                raw_output.as_bytes(),
+                ObjectMetadata {
+                    media_type: "text/plain; charset=utf-8".to_string(),
+                    size_bytes: raw_output.len() as u64,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let output = ToolOutput::from_content_parts(vec![object_ref_part(object)], "preview");
+        let part = tool_result_part(
+            String::new(),
+            tool_output::tool_result_payload_json("tool-1", &output).unwrap(),
+        );
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
+        assert_eq!(message.text_content(), raw_output);
+        assert!(message
+            .content_parts
+            .iter()
+            .all(|part| content_part_object_ref(part).is_none()));
     }
 
     #[tokio::test]

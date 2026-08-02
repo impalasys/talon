@@ -14,10 +14,12 @@ class SessionExecutionPhase(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SESSION_EXECUTION_PHASE_LLM_RESPONSE: _ClassVar[SessionExecutionPhase]
     SESSION_EXECUTION_PHASE_TOOL_RESULT: _ClassVar[SessionExecutionPhase]
     SESSION_EXECUTION_PHASE_COMMITTED: _ClassVar[SessionExecutionPhase]
+    SESSION_EXECUTION_PHASE_COMPACTION: _ClassVar[SessionExecutionPhase]
 SESSION_EXECUTION_PHASE_UNSPECIFIED: SessionExecutionPhase
 SESSION_EXECUTION_PHASE_LLM_RESPONSE: SessionExecutionPhase
 SESSION_EXECUTION_PHASE_TOOL_RESULT: SessionExecutionPhase
 SESSION_EXECUTION_PHASE_COMMITTED: SessionExecutionPhase
+SESSION_EXECUTION_PHASE_COMPACTION: SessionExecutionPhase
 
 class SessionJournalEntryPayloadLlmResponse(_message.Message):
     __slots__ = ("response",)
@@ -45,15 +47,23 @@ class SessionJournalEntryPayloadCommit(_message.Message):
     committed_message_id: str
     def __init__(self, committed_message_id: _Optional[str] = ...) -> None: ...
 
+class SessionJournalEntryPayloadCompaction(_message.Message):
+    __slots__ = ("summary",)
+    SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    summary: _data_pb2.ObjectRef
+    def __init__(self, summary: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
+
 class SessionJournalEntryPayload(_message.Message):
-    __slots__ = ("llm_response", "tool_result", "commit")
+    __slots__ = ("llm_response", "tool_result", "commit", "compaction")
     LLM_RESPONSE_FIELD_NUMBER: _ClassVar[int]
     TOOL_RESULT_FIELD_NUMBER: _ClassVar[int]
     COMMIT_FIELD_NUMBER: _ClassVar[int]
+    COMPACTION_FIELD_NUMBER: _ClassVar[int]
     llm_response: SessionJournalEntryPayloadLlmResponse
     tool_result: SessionJournalEntryPayloadToolResult
     commit: SessionJournalEntryPayloadCommit
-    def __init__(self, llm_response: _Optional[_Union[SessionJournalEntryPayloadLlmResponse, _Mapping]] = ..., tool_result: _Optional[_Union[SessionJournalEntryPayloadToolResult, _Mapping]] = ..., commit: _Optional[_Union[SessionJournalEntryPayloadCommit, _Mapping]] = ...) -> None: ...
+    compaction: SessionJournalEntryPayloadCompaction
+    def __init__(self, llm_response: _Optional[_Union[SessionJournalEntryPayloadLlmResponse, _Mapping]] = ..., tool_result: _Optional[_Union[SessionJournalEntryPayloadToolResult, _Mapping]] = ..., commit: _Optional[_Union[SessionJournalEntryPayloadCommit, _Mapping]] = ..., compaction: _Optional[_Union[SessionJournalEntryPayloadCompaction, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntry(_message.Message):
     __slots__ = ("submission_id", "journal_entry_id", "attempt_id", "phase", "payload", "created_at", "updated_at", "committed_at", "committed_message_id")
