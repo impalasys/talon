@@ -55,19 +55,6 @@ fn merge_update_session_message_labels(
     labels
 }
 
-/// Leave compaction boundaries visible to session clients without exposing the
-/// summary object's CAS reference or the internal reconstruction anchors.
-fn redact_compaction_parts(message: &mut data_proto::SessionMessage) {
-    for part in &mut message.parts {
-        if part.part_type == data_proto::SessionMessagePartType::Compaction as i32 {
-            part.content.clear();
-            part.name.clear();
-            part.payload_json.clear();
-            part.object = None;
-        }
-    }
-}
-
 // Session creation charges namespace/agent usage; provider/model are only used
 // by LLM metrics and intentionally stay empty here.
 fn namespace_usage_subject(
@@ -323,7 +310,7 @@ async fn collect_session_tool_result_object_keys(
                 .and_then(|payload| payload.payload.as_ref())
                 .and_then(|payload| match payload {
                     data_proto::session_journal_entry_payload::Payload::Compaction(payload) => {
-                        payload.summary_object.as_ref()
+                        payload.summary.as_ref()
                     }
                     _ => None,
                 })
@@ -862,10 +849,7 @@ impl GrpcGatewayHandler {
                         }
 
                         match data_proto::SessionMessage::decode(bytes.as_slice()) {
-                            Ok(mut msg) => {
-                                redact_compaction_parts(&mut msg);
-                                messages.push(msg)
-                            }
+                            Ok(msg) => messages.push(msg),
                             Err(e) => {
                                 tracing::error!(
                                     ns = %req.ns,
@@ -1028,8 +1012,6 @@ impl GrpcGatewayHandler {
                     }
                 };
 
-                let mut message = message;
-                redact_compaction_parts(&mut message);
                 page_messages.push(message);
             }
 
@@ -2181,7 +2163,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_session_exposes_redacted_compaction_marker() {
+    async fn get_session_exposes_compaction_marker_metadata() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
@@ -2229,14 +2211,14 @@ mod tests {
             marker.part_type,
             data_proto::SessionMessagePartType::Compaction as i32
         );
-        assert!(marker.content.is_empty());
-        assert!(marker.name.is_empty());
-        assert!(marker.payload_json.is_empty());
-        assert!(marker.object.is_none());
+        assert_eq!(
+            marker.object.as_ref().map(|object| object.key.as_str()),
+            Some("cas/conic/sessions/session-1/compactions/submission-1/000001.txt")
+        );
     }
 
     #[tokio::test]
-    async fn list_session_messages_exposes_redacted_compaction_marker() {
+    async fn list_session_messages_exposes_compaction_marker_metadata() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
@@ -2286,10 +2268,10 @@ mod tests {
             marker.part_type,
             data_proto::SessionMessagePartType::Compaction as i32
         );
-        assert!(marker.content.is_empty());
-        assert!(marker.name.is_empty());
-        assert!(marker.payload_json.is_empty());
-        assert!(marker.object.is_none());
+        assert_eq!(
+            marker.object.as_ref().map(|object| object.key.as_str()),
+            Some("cas/conic/sessions/session-1/compactions/submission-1/000001.txt")
+        );
     }
 
     #[tokio::test]
