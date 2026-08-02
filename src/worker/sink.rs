@@ -1264,19 +1264,8 @@ impl ExecutionSink for PubSubSessionSink {
         Ok(())
     }
 
-    async fn on_compaction(
-        &self,
-        summary: &str,
-        original_estimated_size: i64,
-        compacted_estimated_size: i64,
-    ) -> Result<()> {
-        let tail_journal_entry_id = self
-            .latest_journal_entry_id
-            .lock()
-            .unwrap()
-            .clone()
-            .unwrap_or_else(|| "000000".to_string());
-        let entry = sessions::append_compaction(
+    async fn on_compaction(&self, summary: &str) -> Result<()> {
+        let (entry, summary_object) = sessions::append_compaction(
             self.kv.as_ref(),
             &CasStore::new(self.objects.clone()),
             &self.ns,
@@ -1285,25 +1274,11 @@ impl ExecutionSink for PubSubSessionSink {
             &self.submission_id,
             &self.attempt_id,
             summary,
-            &tail_journal_entry_id,
-            original_estimated_size,
-            compacted_estimated_size,
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
-        let summary_object = entry
-            .payload
-            .as_ref()
-            .and_then(|payload| payload.payload.as_ref())
-            .and_then(|payload| match payload {
-                data_proto::session_journal_entry_payload::Payload::Compaction(payload) => {
-                    payload.summary_object.clone()
-                }
-                _ => None,
-            })
-            .context("compaction journal entry is missing summary object")?;
-        // This marker is an internal canonical part. It has no content and is
-        // stripped from every public session representation.
+        // This canonical marker carries the summary ObjectRef used by history
+        // reconstruction and is exposed to session clients unchanged.
         self.record_part_with_id_and_object(
             self.next_part_id(),
             data_proto::SessionMessagePartType::Compaction,
@@ -1312,18 +1287,10 @@ impl ExecutionSink for PubSubSessionSink {
             String::new(),
             Some(summary_object),
         );
-        if let Some(marker) = self.durable_parts.lock().unwrap().last_mut() {
-            marker.payload_json = serde_json::json!({
-                "tail_message_id": self.reply_msg_id,
-                "tail_part_id": "",
-                "tail_journal_entry_id": tail_journal_entry_id,
-            })
-            .to_string();
-        }
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
         // Make the marker visible to subsequent-session reconstruction before
-        // replacing the executor's live context. This projection is internal;
-        // public RPC paths remove the COMPACTION part.
+        // replacing the executor's live context. This projection is canonical;
+        // public RPC paths expose the same compaction metadata.
         self.persist_durable_message("compaction").await;
         Ok(())
     }

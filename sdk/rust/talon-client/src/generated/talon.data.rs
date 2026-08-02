@@ -520,8 +520,8 @@ pub enum SessionMessagePartType {
     File = 10,
     RequestPermission = 11,
     PermissionResult = 12,
-    /// Durable-context boundary. Public SessionMessage APIs return only a
-    /// redacted marker; the canonical part points at a compacted-summary CAS object.
+    /// Durable-context boundary. The part points at the immutable compacted
+    /// summary CAS object used to reconstruct model-visible history.
     Compaction = 13,
 }
 impl SessionMessagePartType {
@@ -716,17 +716,7 @@ pub struct SessionJournalEntryPayloadCommit {
 pub struct SessionJournalEntryPayloadCompaction {
     /// Immutable Markdown summary shared with the internal SessionMessage part.
     #[prost(message, optional, tag = "1")]
-    pub summary_object: ::core::option::Option<ObjectRef>,
-    /// First journal entry retained after the compacted prefix. Empty means no
-    /// journal entry is retained.
-    #[prost(string, tag = "2")]
-    pub tail_journal_entry_id: ::prost::alloc::string::String,
-    /// Estimated character count before compaction.
-    #[prost(int64, tag = "3")]
-    pub original_estimated_size: i64,
-    /// Estimated character count after compaction.
-    #[prost(int64, tag = "4")]
-    pub compacted_estimated_size: i64,
+    pub summary: ::core::option::Option<ObjectRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayload {
@@ -785,9 +775,8 @@ pub enum SessionExecutionPhase {
     /// The submission reached a commit boundary and its canonical assistant
     /// SessionMessage was written.
     Committed = 3,
-    /// Durable model context compaction completed. The summary object plus the
-    /// exact journal tail provide recovery context without storing a provider
-    /// transcript snapshot in the journal.
+    /// Durable model context compaction completed. The journal entry references
+    /// an immutable summary object without storing a provider transcript snapshot.
     Compaction = 4,
 }
 impl SessionExecutionPhase {

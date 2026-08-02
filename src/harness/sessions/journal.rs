@@ -26,11 +26,11 @@ pub async fn append_compaction(
     submission_id: &str,
     attempt_id: &str,
     summary: &str,
-    tail_journal_entry_id: &str,
-    original_estimated_size: i64,
-    compacted_estimated_size: i64,
     now_micros: i64,
-) -> Result<SessionJournalEntry> {
+) -> Result<(
+    SessionJournalEntry,
+    crate::gateway::rpc::data_proto::ObjectRef,
+)> {
     // Allocate the entry id before writing CAS so the immutable object key is
     // shared by the journal and the canonical internal message marker. A
     // contested append may leave an unreachable object, which session GC can
@@ -58,12 +58,7 @@ pub async fn append_compaction(
             phase: SessionExecutionPhase::Compaction as i32,
             payload: Some(SessionJournalEntryPayload {
                 payload: Some(session_journal_entry_payload::Payload::Compaction(
-                    compaction_payload(
-                        summary_object,
-                        tail_journal_entry_id,
-                        original_estimated_size,
-                        compacted_estimated_size,
-                    ),
+                    compaction_payload(summary_object.clone()),
                 )),
             }),
             created_at: now_micros,
@@ -89,35 +84,27 @@ pub async fn append_compaction(
                 now_micros,
             )
             .await?;
-            entry = Some(candidate);
+            entry = Some((candidate, summary_object));
             break;
         }
     }
-    let entry =
+    let (entry, summary_object) =
         entry.ok_or_else(|| anyhow!("failed to append session compaction journal entry"))?;
 
     tracing::info!(
         submission = %submission_id,
         journal_entry_id = %entry.journal_entry_id,
-        original_size = original_estimated_size,
-        compacted_size = compacted_estimated_size,
         "Compaction journal entry written",
     );
 
-    Ok(entry)
+    Ok((entry, summary_object))
 }
 
 fn compaction_payload(
     summary_object: crate::gateway::rpc::data_proto::ObjectRef,
-    tail_journal_entry_id: &str,
-    original_estimated_size: i64,
-    compacted_estimated_size: i64,
 ) -> SessionJournalEntryPayloadCompaction {
     SessionJournalEntryPayloadCompaction {
-        summary_object: Some(summary_object),
-        tail_journal_entry_id: tail_journal_entry_id.to_string(),
-        original_estimated_size,
-        compacted_estimated_size,
+        summary: Some(summary_object),
     }
 }
 
@@ -728,7 +715,7 @@ mod tests {
             crate::control::object_store::InMemoryObjectStore::default(),
         ));
 
-        let compact_entry = append_compaction(
+        let (compact_entry, _) = append_compaction(
             &kv,
             &cas,
             "ns",
@@ -737,9 +724,6 @@ mod tests {
             "submission-1",
             "attempt-1",
             "# Compaction\nCompleted Step 1.",
-            "",
-            5_000,
-            800,
             10,
         )
         .await
@@ -782,7 +766,7 @@ mod tests {
             panic!("expected compaction payload")
         };
         assert!(payload
-            .summary_object
+            .summary
             .as_ref()
             .unwrap()
             .key

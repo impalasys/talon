@@ -44,9 +44,8 @@ export enum SessionExecutionPhase {
   COMMITTED = 3,
 
   /**
-   * Durable model context compaction completed. The summary object plus the
-   * exact journal tail provide recovery context without storing a provider
-   * transcript snapshot in the journal.
+   * Durable model context compaction completed. The journal entry references
+   * an immutable summary object without storing a provider transcript snapshot.
    *
    * @generated from enum value: SESSION_EXECUTION_PHASE_COMPACTION = 4;
    */
@@ -203,31 +202,9 @@ export class SessionJournalEntryPayloadCompaction extends Message<SessionJournal
   /**
    * Immutable Markdown summary shared with the internal SessionMessage part.
    *
-   * @generated from field: talon.data.ObjectRef summary_object = 1;
+   * @generated from field: talon.data.ObjectRef summary = 1;
    */
-  summaryObject?: ObjectRef;
-
-  /**
-   * First journal entry retained after the compacted prefix. Empty means no
-   * journal entry is retained.
-   *
-   * @generated from field: string tail_journal_entry_id = 2;
-   */
-  tailJournalEntryId = "";
-
-  /**
-   * Estimated character count before compaction.
-   *
-   * @generated from field: int64 original_estimated_size = 3;
-   */
-  originalEstimatedSize = protoInt64.zero;
-
-  /**
-   * Estimated character count after compaction.
-   *
-   * @generated from field: int64 compacted_estimated_size = 4;
-   */
-  compactedEstimatedSize = protoInt64.zero;
+  summary?: ObjectRef;
 
   constructor(data?: PartialMessage<SessionJournalEntryPayloadCompaction>) {
     super();
@@ -237,10 +214,7 @@ export class SessionJournalEntryPayloadCompaction extends Message<SessionJournal
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.data.SessionJournalEntryPayloadCompaction";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "summary_object", kind: "message", T: ObjectRef },
-    { no: 2, name: "tail_journal_entry_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "original_estimated_size", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 4, name: "compacted_estimated_size", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "summary", kind: "message", T: ObjectRef },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayloadCompaction {

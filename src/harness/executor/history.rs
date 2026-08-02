@@ -23,11 +23,11 @@ const SESSION_MESSAGE_LOAD_PAGE_SIZE: usize = 100;
 
 /// Rebuild the model-visible history for a session.
 ///
-/// Messages are read newest first in bounded KV pages. The newest committed
-/// compaction part with a readable summary object is the boundary: its summary
-/// is injected first, only parts after that marker in the marker's message are
-/// replayed, and then only later messages are replayed in chronological order.
-/// If no valid marker exists, every replayable message is loaded.
+/// Messages are read newest first in bounded KV pages. The newest compaction
+/// part with a readable summary object is the boundary: its summary is injected
+/// first, only parts after that marker in the marker's message are replayed,
+/// and then only later messages are replayed in chronological order. If no
+/// valid marker exists, every replayable message is loaded.
 pub async fn load(
     kv: &dyn KeyValueStore,
     objects: &(dyn ObjectStore + Send + Sync),

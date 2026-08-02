@@ -23,8 +23,8 @@ enum SessionMessagePartType {
   SESSION_MESSAGE_PART_TYPE_FILE = 10;
   SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION = 11;
   SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT = 12;
-  // Durable-context boundary. Public SessionMessage APIs return only a
-  // redacted marker; the canonical part points at a compacted-summary CAS object.
+  // Durable-context boundary. The part points at the immutable compacted
+  // summary CAS object used to reconstruct model-visible history.
   SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;
 }
 

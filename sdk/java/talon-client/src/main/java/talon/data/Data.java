@@ -220,8 +220,8 @@ public final class Data extends com.google.protobuf.GeneratedFile {
     SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT(12),
     /**
      * <pre>
-     * Durable-context boundary. Public SessionMessage APIs return only a
-     * redacted marker; the canonical part points at a compacted-summary CAS object.
+     * Durable-context boundary. The part points at the immutable compacted
+     * summary CAS object used to reconstruct model-visible history.
      * </pre>
      *
      * <code>SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;</code>
@@ -293,8 +293,8 @@ public final class Data extends com.google.protobuf.GeneratedFile {
     public static final int SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT_VALUE = 12;
     /**
      * <pre>
-     * Durable-context boundary. Public SessionMessage APIs return only a
-     * redacted marker; the canonical part points at a compacted-summary CAS object.
+     * Durable-context boundary. The part points at the immutable compacted
+     * summary CAS object used to reconstruct model-visible history.
      * </pre>
      *
      * <code>SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;</code>

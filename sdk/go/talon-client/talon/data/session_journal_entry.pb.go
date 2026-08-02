@@ -35,9 +35,8 @@ const (
 	// The submission reached a commit boundary and its canonical assistant
 	// SessionMessage was written.
 	SessionExecutionPhase_SESSION_EXECUTION_PHASE_COMMITTED SessionExecutionPhase = 3
-	// Durable model context compaction completed. The summary object plus the
-	// exact journal tail provide recovery context without storing a provider
-	// transcript snapshot in the journal.
+	// Durable model context compaction completed. The journal entry references
+	// an immutable summary object without storing a provider transcript snapshot.
 	SessionExecutionPhase_SESSION_EXECUTION_PHASE_COMPACTION SessionExecutionPhase = 4
 )
 
@@ -253,16 +252,9 @@ func (x *SessionJournalEntryPayloadCommit) GetCommittedMessageId() string {
 type SessionJournalEntryPayloadCompaction struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Immutable Markdown summary shared with the internal SessionMessage part.
-	SummaryObject *ObjectRef `protobuf:"bytes,1,opt,name=summary_object,json=summaryObject,proto3" json:"summary_object,omitempty"`
-	// First journal entry retained after the compacted prefix. Empty means no
-	// journal entry is retained.
-	TailJournalEntryId string `protobuf:"bytes,2,opt,name=tail_journal_entry_id,json=tailJournalEntryId,proto3" json:"tail_journal_entry_id,omitempty"`
-	// Estimated character count before compaction.
-	OriginalEstimatedSize int64 `protobuf:"varint,3,opt,name=original_estimated_size,json=originalEstimatedSize,proto3" json:"original_estimated_size,omitempty"`
-	// Estimated character count after compaction.
-	CompactedEstimatedSize int64 `protobuf:"varint,4,opt,name=compacted_estimated_size,json=compactedEstimatedSize,proto3" json:"compacted_estimated_size,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	Summary       *ObjectRef `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SessionJournalEntryPayloadCompaction) Reset() {
@@ -295,32 +287,11 @@ func (*SessionJournalEntryPayloadCompaction) Descriptor() ([]byte, []int) {
 	return file_proto_data_session_journal_entry_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *SessionJournalEntryPayloadCompaction) GetSummaryObject() *ObjectRef {
+func (x *SessionJournalEntryPayloadCompaction) GetSummary() *ObjectRef {
 	if x != nil {
-		return x.SummaryObject
+		return x.Summary
 	}
 	return nil
-}
-
-func (x *SessionJournalEntryPayloadCompaction) GetTailJournalEntryId() string {
-	if x != nil {
-		return x.TailJournalEntryId
-	}
-	return ""
-}
-
-func (x *SessionJournalEntryPayloadCompaction) GetOriginalEstimatedSize() int64 {
-	if x != nil {
-		return x.OriginalEstimatedSize
-	}
-	return 0
-}
-
-func (x *SessionJournalEntryPayloadCompaction) GetCompactedEstimatedSize() int64 {
-	if x != nil {
-		return x.CompactedEstimatedSize
-	}
-	return 0
 }
 
 type SessionJournalEntryPayload struct {
@@ -565,12 +536,9 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	"\vtool_output\x18\x05 \x01(\v2\x19.talon.harness.ToolOutputR\n" +
 	"toolOutput\"T\n" +
 	" SessionJournalEntryPayloadCommit\x120\n" +
-	"\x14committed_message_id\x18\x01 \x01(\tR\x12committedMessageId\"\x89\x02\n" +
-	"$SessionJournalEntryPayloadCompaction\x12<\n" +
-	"\x0esummary_object\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\rsummaryObject\x121\n" +
-	"\x15tail_journal_entry_id\x18\x02 \x01(\tR\x12tailJournalEntryId\x126\n" +
-	"\x17original_estimated_size\x18\x03 \x01(\x03R\x15originalEstimatedSize\x128\n" +
-	"\x18compacted_estimated_size\x18\x04 \x01(\x03R\x16compactedEstimatedSize\"\xf0\x02\n" +
+	"\x14committed_message_id\x18\x01 \x01(\tR\x12committedMessageId\"W\n" +
+	"$SessionJournalEntryPayloadCompaction\x12/\n" +
+	"\asummary\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\asummary\"\xf0\x02\n" +
 	"\x1aSessionJournalEntryPayload\x12V\n" +
 	"\fllm_response\x18\x01 \x01(\v21.talon.data.SessionJournalEntryPayloadLlmResponseH\x00R\vllmResponse\x12S\n" +
 	"\vtool_result\x18\x02 \x01(\v20.talon.data.SessionJournalEntryPayloadToolResultH\x00R\n" +
@@ -632,7 +600,7 @@ var file_proto_data_session_journal_entry_proto_depIdxs = []int32{
 	7,  // 0: talon.data.SessionJournalEntryPayloadLlmResponse.response:type_name -> talon.harness.ChatResponse
 	8,  // 1: talon.data.SessionJournalEntryPayloadToolResult.object:type_name -> talon.data.ObjectRef
 	9,  // 2: talon.data.SessionJournalEntryPayloadToolResult.tool_output:type_name -> talon.harness.ToolOutput
-	8,  // 3: talon.data.SessionJournalEntryPayloadCompaction.summary_object:type_name -> talon.data.ObjectRef
+	8,  // 3: talon.data.SessionJournalEntryPayloadCompaction.summary:type_name -> talon.data.ObjectRef
 	1,  // 4: talon.data.SessionJournalEntryPayload.llm_response:type_name -> talon.data.SessionJournalEntryPayloadLlmResponse
 	2,  // 5: talon.data.SessionJournalEntryPayload.tool_result:type_name -> talon.data.SessionJournalEntryPayloadToolResult
 	3,  // 6: talon.data.SessionJournalEntryPayload.commit:type_name -> talon.data.SessionJournalEntryPayloadCommit

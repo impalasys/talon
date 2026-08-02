@@ -247,7 +247,7 @@ pub trait ExecutionSink: Send + Sync {
         Ok(())
     }
     /// An immutable LLM-written summary has been durably recorded.
-    async fn on_compaction(&self, _: &str, _: i64, _: i64) -> Result<()> {
+    async fn on_compaction(&self, _: &str) -> Result<()> {
         Ok(())
     }
     /// The tool returned a result.
@@ -325,7 +325,7 @@ impl CaptureSink {
 
 #[async_trait]
 impl ExecutionSink for CaptureSink {
-    async fn on_compaction(&self, summary: &str, _: i64, _: i64) -> Result<()> {
+    async fn on_compaction(&self, summary: &str) -> Result<()> {
         self.compactions.lock().unwrap().push(summary.to_string());
         if self.fail_compaction {
             anyhow::bail!("injected compaction persistence failure");
@@ -1178,7 +1178,7 @@ mod tests {
             });
             Ok(ChatResponse {
                 content: if is_compaction {
-                    "<summary>\n## Task\nTest compaction.\n## Decisions\nNone recorded.\n## Modified artifacts\nNone recorded.\n## Completed work\nCompaction test completed.\n## Current state\nThe test continues.\n## Unresolved issues\nNone recorded.\n## Next actions\nNone recorded.\n</summary>".to_string()
+                    "<summary>\n## User goal\nTest compaction.\n## Requirements and constraints\nNone recorded.\n## Facts to preserve\nNone recorded.\n## Decisions and rationale\nNone recorded.\n## Completed work\nCompaction test completed.\n## Files and artifacts\nNone recorded.\n## Tool results and external facts\nNone recorded.\n## Current state\nThe test continues.\n## Open issues\nNone recorded.\n## Next action\nNone recorded.\n</summary>".to_string()
                 } else {
                     "resolved".to_string()
                 },

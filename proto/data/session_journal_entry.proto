@@ -21,9 +21,8 @@ enum SessionExecutionPhase {
   // SessionMessage was written.
   SESSION_EXECUTION_PHASE_COMMITTED = 3;
 
-  // Durable model context compaction completed. The summary object plus the
-  // exact journal tail provide recovery context without storing a provider
-  // transcript snapshot in the journal.
+  // Durable model context compaction completed. The journal entry references
+  // an immutable summary object without storing a provider transcript snapshot.
   SESSION_EXECUTION_PHASE_COMPACTION = 4;
 }
 
@@ -45,14 +44,7 @@ message SessionJournalEntryPayloadCommit {
 
 message SessionJournalEntryPayloadCompaction {
   // Immutable Markdown summary shared with the internal SessionMessage part.
-  ObjectRef summary_object = 1;
-  // First journal entry retained after the compacted prefix. Empty means no
-  // journal entry is retained.
-  string tail_journal_entry_id = 2;
-  // Estimated character count before compaction.
-  int64 original_estimated_size = 3;
-  // Estimated character count after compaction.
-  int64 compacted_estimated_size = 4;
+  ObjectRef summary = 1;
 }
 
 message SessionJournalEntryPayload {

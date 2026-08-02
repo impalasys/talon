@@ -191,31 +191,23 @@ async fn prepare_context_for_claimed_submission(
     let mut projection_parts = Vec::new();
     let mut next_projection_part_index = 0usize;
     let mut index = 0;
-    // When a compaction keeps a journal tail, replay that tail exactly once
-    // before advancing beyond the marker itself. This avoids provider calls
-    // and preserves the tool-call/result pairing from the durable journal.
-    let mut replaying_compaction_entry_id: Option<String> = None;
     while index < journal_entries.len() {
         let entry = &journal_entries[index];
 
-        // Hydrate the immutable summary and replay only the journal tail. The
-        // old snapshot payload intentionally no longer exists: canonical
-        // SessionMessage parts remain the durable transcript.
+        // Hydrate the immutable summary. The journal payload intentionally has
+        // no tail anchor yet, so this in-flight recovery path restores only the
+        // summary. Exact tail reconstruction for this path requires the
+        // follow-up journal-anchor work.
         if entry.phase == SessionExecutionPhase::Compaction as i32 {
-            if replaying_compaction_entry_id.as_deref() == Some(&entry.journal_entry_id) {
-                replaying_compaction_entry_id = None;
-                index += 1;
-                continue;
-            }
             if let Some(session_journal_entry_payload::Payload::Compaction(payl)) =
                 entry.payload.as_ref().and_then(|p| p.payload.as_ref())
             {
-                let summary_object = payl
-                    .summary_object
+                let summary = payl
+                    .summary
                     .as_ref()
                     .ok_or_else(|| anyhow!("COMPACTION entry is missing summary object"))?;
                 let summary = CasStore::new(cp.objects.clone())
-                    .get_session_object_by_key_decoded(&summary_object.key)
+                    .get_session_object_by_key_decoded(&summary.key)
                     .await?
                     .ok_or_else(|| anyhow!("COMPACTION summary object is missing"))?;
                 let summary = String::from_utf8(summary.1.bytes)
@@ -223,9 +215,6 @@ async fn prepare_context_for_claimed_submission(
 
                 tracing::info!(
                     submission = %submission_id,
-                    tail_entry = payl.tail_journal_entry_id,
-                    original_estimated_size = payl.original_estimated_size,
-                    compacted_estimated_size = payl.compacted_estimated_size,
                     "Recovery: compaction boundary hydrated",
                 );
 
@@ -237,22 +226,6 @@ async fn prepare_context_for_claimed_submission(
                     .push(LoopMessage::text("assistant", summary));
                 // Drop derived recovery state since the compaction boundary replaces history.
                 latest_final_response = None;
-                if !payl.tail_journal_entry_id.is_empty() {
-                    let tail_index = journal_entries
-                        .iter()
-                        .position(|candidate| {
-                            candidate.journal_entry_id == payl.tail_journal_entry_id
-                        })
-                        .ok_or_else(|| anyhow!("COMPACTION journal tail anchor is missing"))?;
-                    if tail_index >= index {
-                        return Err(anyhow!(
-                            "COMPACTION journal tail anchor is not before marker"
-                        ));
-                    }
-                    replaying_compaction_entry_id = Some(entry.journal_entry_id.clone());
-                    index = tail_index;
-                    continue;
-                }
             } else {
                 return Err(anyhow!("COMPACTION entry is missing payload"));
             }
@@ -4006,7 +3979,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn prepare_context_hydrates_compaction_summary_and_replays_tail() {
+    async fn prepare_context_hydrates_compaction_summary_without_tail_replay() {
         use crate::control::cas::CasStore;
         use crate::gateway::rpc::data_proto::{
             SessionExecutionPhase as DataPhase, SessionSubmissionStatus,
@@ -4088,7 +4061,7 @@ mod tests {
         )
         .await
         .unwrap();
-        sessions::append_compaction(
+        let _ = sessions::append_compaction(
             kv.as_ref(),
             &CasStore::new(cp.objects.clone()),
             "ns",
@@ -4097,9 +4070,6 @@ mod tests {
             "submission-1",
             "attempt-1",
             "# Compacted context\n\nThe user asked for a lookup.",
-            "000001",
-            50_000,
-            1_200,
             40,
         )
         .await
@@ -4170,21 +4140,11 @@ mod tests {
             .iter()
             .map(|message| (message.role.as_str(), message.text_content()))
             .collect::<Vec<_>>();
-        assert_eq!(runtime.context.history.len(), 3, "{history_shape:?}");
+        assert_eq!(runtime.context.history.len(), 1, "{history_shape:?}");
         assert_eq!(runtime.context.history[0].role, "assistant");
         assert_eq!(
             runtime.context.history[0].text_content(),
             "# Compacted context\n\nThe user asked for a lookup."
-        );
-        assert_eq!(runtime.context.history[1].role, "assistant");
-        assert_eq!(
-            runtime.context.history[1].tool_calls.as_ref().unwrap()[0].id,
-            "tool-1"
-        );
-        assert_eq!(runtime.context.history[2].role, "tool");
-        assert_eq!(
-            runtime.context.history[2].tool_call_id.as_deref(),
-            Some("tool-1")
         );
     }
 }

@@ -89,8 +89,8 @@ const (
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_FILE               SessionMessagePartType = 10
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION SessionMessagePartType = 11
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT  SessionMessagePartType = 12
-	// Durable-context boundary. Public SessionMessage APIs return only a
-	// redacted marker; the canonical part points at a compacted-summary CAS object.
+	// Durable-context boundary. The part points at the immutable compacted
+	// summary CAS object used to reconstruct model-visible history.
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_COMPACTION SessionMessagePartType = 13
 )
 

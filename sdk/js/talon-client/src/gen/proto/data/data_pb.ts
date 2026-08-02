@@ -108,8 +108,8 @@ export enum SessionMessagePartType {
   PERMISSION_RESULT = 12,
 
   /**
-   * Durable-context boundary. Public SessionMessage APIs return only a
-   * redacted marker; the canonical part points at a compacted-summary CAS object.
+   * Durable-context boundary. The part points at the immutable compacted
+   * summary CAS object used to reconstruct model-visible history.
    *
    * @generated from enum value: SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;
    */

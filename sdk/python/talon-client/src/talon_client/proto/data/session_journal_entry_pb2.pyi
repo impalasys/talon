@@ -48,16 +48,10 @@ class SessionJournalEntryPayloadCommit(_message.Message):
     def __init__(self, committed_message_id: _Optional[str] = ...) -> None: ...
 
 class SessionJournalEntryPayloadCompaction(_message.Message):
-    __slots__ = ("summary_object", "tail_journal_entry_id", "original_estimated_size", "compacted_estimated_size")
-    SUMMARY_OBJECT_FIELD_NUMBER: _ClassVar[int]
-    TAIL_JOURNAL_ENTRY_ID_FIELD_NUMBER: _ClassVar[int]
-    ORIGINAL_ESTIMATED_SIZE_FIELD_NUMBER: _ClassVar[int]
-    COMPACTED_ESTIMATED_SIZE_FIELD_NUMBER: _ClassVar[int]
-    summary_object: _data_pb2.ObjectRef
-    tail_journal_entry_id: str
-    original_estimated_size: int
-    compacted_estimated_size: int
-    def __init__(self, summary_object: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ..., tail_journal_entry_id: _Optional[str] = ..., original_estimated_size: _Optional[int] = ..., compacted_estimated_size: _Optional[int] = ...) -> None: ...
+    __slots__ = ("summary",)
+    SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    summary: _data_pb2.ObjectRef
+    def __init__(self, summary: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntryPayload(_message.Message):
     __slots__ = ("llm_response", "tool_result", "commit", "compaction")

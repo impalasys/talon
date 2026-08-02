@@ -68,9 +68,8 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     SESSION_EXECUTION_PHASE_COMMITTED(3),
     /**
      * <pre>
-     * Durable model context compaction completed. The summary object plus the
-     * exact journal tail provide recovery context without storing a provider
-     * transcript snapshot in the journal.
+     * Durable model context compaction completed. The journal entry references
+     * an immutable summary object without storing a provider transcript snapshot.
      * </pre>
      *
      * <code>SESSION_EXECUTION_PHASE_COMPACTION = 4;</code>
@@ -125,9 +124,8 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     public static final int SESSION_EXECUTION_PHASE_COMMITTED_VALUE = 3;
     /**
      * <pre>
-     * Durable model context compaction completed. The summary object plus the
-     * exact journal tail provide recovery context without storing a provider
-     * transcript snapshot in the journal.
+     * Durable model context compaction completed. The journal entry references
+     * an immutable summary object without storing a provider transcript snapshot.
      * </pre>
      *
      * <code>SESSION_EXECUTION_PHASE_COMPACTION = 4;</code>
@@ -2538,69 +2536,27 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * Immutable Markdown summary shared with the internal SessionMessage part.
      * </pre>
      *
-     * <code>.talon.data.ObjectRef summary_object = 1;</code>
-     * @return Whether the summaryObject field is set.
+     * <code>.talon.data.ObjectRef summary = 1;</code>
+     * @return Whether the summary field is set.
      */
-    boolean hasSummaryObject();
+    boolean hasSummary();
     /**
      * <pre>
      * Immutable Markdown summary shared with the internal SessionMessage part.
      * </pre>
      *
-     * <code>.talon.data.ObjectRef summary_object = 1;</code>
-     * @return The summaryObject.
+     * <code>.talon.data.ObjectRef summary = 1;</code>
+     * @return The summary.
      */
-    talon.data.Data.ObjectRef getSummaryObject();
+    talon.data.Data.ObjectRef getSummary();
     /**
      * <pre>
      * Immutable Markdown summary shared with the internal SessionMessage part.
      * </pre>
      *
-     * <code>.talon.data.ObjectRef summary_object = 1;</code>
+     * <code>.talon.data.ObjectRef summary = 1;</code>
      */
-    talon.data.Data.ObjectRefOrBuilder getSummaryObjectOrBuilder();
-
-    /**
-     * <pre>
-     * First journal entry retained after the compacted prefix. Empty means no
-     * journal entry is retained.
-     * </pre>
-     *
-     * <code>string tail_journal_entry_id = 2;</code>
-     * @return The tailJournalEntryId.
-     */
-    java.lang.String getTailJournalEntryId();
-    /**
-     * <pre>
-     * First journal entry retained after the compacted prefix. Empty means no
-     * journal entry is retained.
-     * </pre>
-     *
-     * <code>string tail_journal_entry_id = 2;</code>
-     * @return The bytes for tailJournalEntryId.
-     */
-    com.google.protobuf.ByteString
-        getTailJournalEntryIdBytes();
-
-    /**
-     * <pre>
-     * Estimated character count before compaction.
-     * </pre>
-     *
-     * <code>int64 original_estimated_size = 3;</code>
-     * @return The originalEstimatedSize.
-     */
-    long getOriginalEstimatedSize();
-
-    /**
-     * <pre>
-     * Estimated character count after compaction.
-     * </pre>
-     *
-     * <code>int64 compacted_estimated_size = 4;</code>
-     * @return The compactedEstimatedSize.
-     */
-    long getCompactedEstimatedSize();
+    talon.data.Data.ObjectRefOrBuilder getSummaryOrBuilder();
   }
   /**
    * Protobuf type {@code talon.data.SessionJournalEntryPayloadCompaction}
@@ -2624,7 +2580,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       super(builder);
     }
     private SessionJournalEntryPayloadCompaction() {
-      tailJournalEntryId_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -2646,18 +2601,18 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     }
 
     private int bitField0_;
-    public static final int SUMMARY_OBJECT_FIELD_NUMBER = 1;
-    private talon.data.Data.ObjectRef summaryObject_;
+    public static final int SUMMARY_FIELD_NUMBER = 1;
+    private talon.data.Data.ObjectRef summary_;
     /**
      * <pre>
      * Immutable Markdown summary shared with the internal SessionMessage part.
      * </pre>
      *
-     * <code>.talon.data.ObjectRef summary_object = 1;</code>
-     * @return Whether the summaryObject field is set.
+     * <code>.talon.data.ObjectRef summary = 1;</code>
+     * @return Whether the summary field is set.
      */
     @java.lang.Override
-    public boolean hasSummaryObject() {
+    public boolean hasSummary() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
@@ -2665,102 +2620,23 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * Immutable Markdown summary shared with the internal SessionMessage part.
      * </pre>
      *
-     * <code>.talon.data.ObjectRef summary_object = 1;</code>
-     * @return The summaryObject.
+     * <code>.talon.data.ObjectRef summary = 1;</code>
+     * @return The summary.
      */
     @java.lang.Override
-    public talon.data.Data.ObjectRef getSummaryObject() {
-      return summaryObject_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : summaryObject_;
+    public talon.data.Data.ObjectRef getSummary() {
+      return summary_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : summary_;
     }
     /**
      * <pre>
      * Immutable Markdown summary shared with the internal SessionMessage part.
      * </pre>
      *
-     * <code>.talon.data.ObjectRef summary_object = 1;</code>
+     * <code>.talon.data.ObjectRef summary = 1;</code>
      */
     @java.lang.Override
-    public talon.data.Data.ObjectRefOrBuilder getSummaryObjectOrBuilder() {
-      return summaryObject_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : summaryObject_;
-    }
-
-    public static final int TAIL_JOURNAL_ENTRY_ID_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object tailJournalEntryId_ = "";
-    /**
-     * <pre>
-     * First journal entry retained after the compacted prefix. Empty means no
-     * journal entry is retained.
-     * </pre>
-     *
-     * <code>string tail_journal_entry_id = 2;</code>
-     * @return The tailJournalEntryId.
-     */
-    @java.lang.Override
-    public java.lang.String getTailJournalEntryId() {
-      java.lang.Object ref = tailJournalEntryId_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        tailJournalEntryId_ = s;
-        return s;
-      }
-    }
-    /**
-     * <pre>
-     * First journal entry retained after the compacted prefix. Empty means no
-     * journal entry is retained.
-     * </pre>
-     *
-     * <code>string tail_journal_entry_id = 2;</code>
-     * @return The bytes for tailJournalEntryId.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getTailJournalEntryIdBytes() {
-      java.lang.Object ref = tailJournalEntryId_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        tailJournalEntryId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int ORIGINAL_ESTIMATED_SIZE_FIELD_NUMBER = 3;
-    private long originalEstimatedSize_ = 0L;
-    /**
-     * <pre>
-     * Estimated character count before compaction.
-     * </pre>
-     *
-     * <code>int64 original_estimated_size = 3;</code>
-     * @return The originalEstimatedSize.
-     */
-    @java.lang.Override
-    public long getOriginalEstimatedSize() {
-      return originalEstimatedSize_;
-    }
-
-    public static final int COMPACTED_ESTIMATED_SIZE_FIELD_NUMBER = 4;
-    private long compactedEstimatedSize_ = 0L;
-    /**
-     * <pre>
-     * Estimated character count after compaction.
-     * </pre>
-     *
-     * <code>int64 compacted_estimated_size = 4;</code>
-     * @return The compactedEstimatedSize.
-     */
-    @java.lang.Override
-    public long getCompactedEstimatedSize() {
-      return compactedEstimatedSize_;
+    public talon.data.Data.ObjectRefOrBuilder getSummaryOrBuilder() {
+      return summary_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : summary_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -2778,16 +2654,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(1, getSummaryObject());
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tailJournalEntryId_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, tailJournalEntryId_);
-      }
-      if (originalEstimatedSize_ != 0L) {
-        output.writeInt64(3, originalEstimatedSize_);
-      }
-      if (compactedEstimatedSize_ != 0L) {
-        output.writeInt64(4, compactedEstimatedSize_);
+        output.writeMessage(1, getSummary());
       }
       getUnknownFields().writeTo(output);
     }
@@ -2800,18 +2667,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       size = 0;
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getSummaryObject());
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tailJournalEntryId_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, tailJournalEntryId_);
-      }
-      if (originalEstimatedSize_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, originalEstimatedSize_);
-      }
-      if (compactedEstimatedSize_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, compactedEstimatedSize_);
+          .computeMessageSize(1, getSummary());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -2828,17 +2684,11 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       }
       talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction other = (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) obj;
 
-      if (hasSummaryObject() != other.hasSummaryObject()) return false;
-      if (hasSummaryObject()) {
-        if (!getSummaryObject()
-            .equals(other.getSummaryObject())) return false;
+      if (hasSummary() != other.hasSummary()) return false;
+      if (hasSummary()) {
+        if (!getSummary()
+            .equals(other.getSummary())) return false;
       }
-      if (!getTailJournalEntryId()
-          .equals(other.getTailJournalEntryId())) return false;
-      if (getOriginalEstimatedSize()
-          != other.getOriginalEstimatedSize()) return false;
-      if (getCompactedEstimatedSize()
-          != other.getCompactedEstimatedSize()) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2850,18 +2700,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasSummaryObject()) {
-        hash = (37 * hash) + SUMMARY_OBJECT_FIELD_NUMBER;
-        hash = (53 * hash) + getSummaryObject().hashCode();
+      if (hasSummary()) {
+        hash = (37 * hash) + SUMMARY_FIELD_NUMBER;
+        hash = (53 * hash) + getSummary().hashCode();
       }
-      hash = (37 * hash) + TAIL_JOURNAL_ENTRY_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getTailJournalEntryId().hashCode();
-      hash = (37 * hash) + ORIGINAL_ESTIMATED_SIZE_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getOriginalEstimatedSize());
-      hash = (37 * hash) + COMPACTED_ESTIMATED_SIZE_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getCompactedEstimatedSize());
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2992,21 +2834,18 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
-          internalGetSummaryObjectFieldBuilder();
+          internalGetSummaryFieldBuilder();
         }
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        summaryObject_ = null;
-        if (summaryObjectBuilder_ != null) {
-          summaryObjectBuilder_.dispose();
-          summaryObjectBuilder_ = null;
+        summary_ = null;
+        if (summaryBuilder_ != null) {
+          summaryBuilder_.dispose();
+          summaryBuilder_ = null;
         }
-        tailJournalEntryId_ = "";
-        originalEstimatedSize_ = 0L;
-        compactedEstimatedSize_ = 0L;
         return this;
       }
 
@@ -3042,19 +2881,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.summaryObject_ = summaryObjectBuilder_ == null
-              ? summaryObject_
-              : summaryObjectBuilder_.build();
+          result.summary_ = summaryBuilder_ == null
+              ? summary_
+              : summaryBuilder_.build();
           to_bitField0_ |= 0x00000001;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.tailJournalEntryId_ = tailJournalEntryId_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.originalEstimatedSize_ = originalEstimatedSize_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.compactedEstimatedSize_ = compactedEstimatedSize_;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -3071,19 +2901,8 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
 
       public Builder mergeFrom(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction other) {
         if (other == talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance()) return this;
-        if (other.hasSummaryObject()) {
-          mergeSummaryObject(other.getSummaryObject());
-        }
-        if (!other.getTailJournalEntryId().isEmpty()) {
-          tailJournalEntryId_ = other.tailJournalEntryId_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        if (other.getOriginalEstimatedSize() != 0L) {
-          setOriginalEstimatedSize(other.getOriginalEstimatedSize());
-        }
-        if (other.getCompactedEstimatedSize() != 0L) {
-          setCompactedEstimatedSize(other.getCompactedEstimatedSize());
+        if (other.hasSummary()) {
+          mergeSummary(other.getSummary());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -3113,26 +2932,11 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
                 break;
               case 10: {
                 input.readMessage(
-                    internalGetSummaryObjectFieldBuilder().getBuilder(),
+                    internalGetSummaryFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
-              case 18: {
-                tailJournalEntryId_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 24: {
-                originalEstimatedSize_ = input.readInt64();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 24
-              case 32: {
-                compactedEstimatedSize_ = input.readInt64();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 32
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3150,18 +2954,18 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       }
       private int bitField0_;
 
-      private talon.data.Data.ObjectRef summaryObject_;
+      private talon.data.Data.ObjectRef summary_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> summaryObjectBuilder_;
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> summaryBuilder_;
       /**
        * <pre>
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
-       * @return Whether the summaryObject field is set.
+       * <code>.talon.data.ObjectRef summary = 1;</code>
+       * @return Whether the summary field is set.
        */
-      public boolean hasSummaryObject() {
+      public boolean hasSummary() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
@@ -3169,14 +2973,14 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
-       * @return The summaryObject.
+       * <code>.talon.data.ObjectRef summary = 1;</code>
+       * @return The summary.
        */
-      public talon.data.Data.ObjectRef getSummaryObject() {
-        if (summaryObjectBuilder_ == null) {
-          return summaryObject_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : summaryObject_;
+      public talon.data.Data.ObjectRef getSummary() {
+        if (summaryBuilder_ == null) {
+          return summary_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : summary_;
         } else {
-          return summaryObjectBuilder_.getMessage();
+          return summaryBuilder_.getMessage();
         }
       }
       /**
@@ -3184,16 +2988,16 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
+       * <code>.talon.data.ObjectRef summary = 1;</code>
        */
-      public Builder setSummaryObject(talon.data.Data.ObjectRef value) {
-        if (summaryObjectBuilder_ == null) {
+      public Builder setSummary(talon.data.Data.ObjectRef value) {
+        if (summaryBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          summaryObject_ = value;
+          summary_ = value;
         } else {
-          summaryObjectBuilder_.setMessage(value);
+          summaryBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000001;
         onChanged();
@@ -3204,14 +3008,14 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
+       * <code>.talon.data.ObjectRef summary = 1;</code>
        */
-      public Builder setSummaryObject(
+      public Builder setSummary(
           talon.data.Data.ObjectRef.Builder builderForValue) {
-        if (summaryObjectBuilder_ == null) {
-          summaryObject_ = builderForValue.build();
+        if (summaryBuilder_ == null) {
+          summary_ = builderForValue.build();
         } else {
-          summaryObjectBuilder_.setMessage(builderForValue.build());
+          summaryBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000001;
         onChanged();
@@ -3222,21 +3026,21 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
+       * <code>.talon.data.ObjectRef summary = 1;</code>
        */
-      public Builder mergeSummaryObject(talon.data.Data.ObjectRef value) {
-        if (summaryObjectBuilder_ == null) {
+      public Builder mergeSummary(talon.data.Data.ObjectRef value) {
+        if (summaryBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
-            summaryObject_ != null &&
-            summaryObject_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
-            getSummaryObjectBuilder().mergeFrom(value);
+            summary_ != null &&
+            summary_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
+            getSummaryBuilder().mergeFrom(value);
           } else {
-            summaryObject_ = value;
+            summary_ = value;
           }
         } else {
-          summaryObjectBuilder_.mergeFrom(value);
+          summaryBuilder_.mergeFrom(value);
         }
-        if (summaryObject_ != null) {
+        if (summary_ != null) {
           bitField0_ |= 0x00000001;
           onChanged();
         }
@@ -3247,14 +3051,14 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
+       * <code>.talon.data.ObjectRef summary = 1;</code>
        */
-      public Builder clearSummaryObject() {
+      public Builder clearSummary() {
         bitField0_ = (bitField0_ & ~0x00000001);
-        summaryObject_ = null;
-        if (summaryObjectBuilder_ != null) {
-          summaryObjectBuilder_.dispose();
-          summaryObjectBuilder_ = null;
+        summary_ = null;
+        if (summaryBuilder_ != null) {
+          summaryBuilder_.dispose();
+          summaryBuilder_ = null;
         }
         onChanged();
         return this;
@@ -3264,26 +3068,26 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
+       * <code>.talon.data.ObjectRef summary = 1;</code>
        */
-      public talon.data.Data.ObjectRef.Builder getSummaryObjectBuilder() {
+      public talon.data.Data.ObjectRef.Builder getSummaryBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
-        return internalGetSummaryObjectFieldBuilder().getBuilder();
+        return internalGetSummaryFieldBuilder().getBuilder();
       }
       /**
        * <pre>
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
+       * <code>.talon.data.ObjectRef summary = 1;</code>
        */
-      public talon.data.Data.ObjectRefOrBuilder getSummaryObjectOrBuilder() {
-        if (summaryObjectBuilder_ != null) {
-          return summaryObjectBuilder_.getMessageOrBuilder();
+      public talon.data.Data.ObjectRefOrBuilder getSummaryOrBuilder() {
+        if (summaryBuilder_ != null) {
+          return summaryBuilder_.getMessageOrBuilder();
         } else {
-          return summaryObject_ == null ?
-              talon.data.Data.ObjectRef.getDefaultInstance() : summaryObject_;
+          return summary_ == null ?
+              talon.data.Data.ObjectRef.getDefaultInstance() : summary_;
         }
       }
       /**
@@ -3291,205 +3095,20 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
        * Immutable Markdown summary shared with the internal SessionMessage part.
        * </pre>
        *
-       * <code>.talon.data.ObjectRef summary_object = 1;</code>
+       * <code>.talon.data.ObjectRef summary = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>
-          internalGetSummaryObjectFieldBuilder() {
-        if (summaryObjectBuilder_ == null) {
-          summaryObjectBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+          internalGetSummaryFieldBuilder() {
+        if (summaryBuilder_ == null) {
+          summaryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>(
-                  getSummaryObject(),
+                  getSummary(),
                   getParentForChildren(),
                   isClean());
-          summaryObject_ = null;
+          summary_ = null;
         }
-        return summaryObjectBuilder_;
-      }
-
-      private java.lang.Object tailJournalEntryId_ = "";
-      /**
-       * <pre>
-       * First journal entry retained after the compacted prefix. Empty means no
-       * journal entry is retained.
-       * </pre>
-       *
-       * <code>string tail_journal_entry_id = 2;</code>
-       * @return The tailJournalEntryId.
-       */
-      public java.lang.String getTailJournalEntryId() {
-        java.lang.Object ref = tailJournalEntryId_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          tailJournalEntryId_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <pre>
-       * First journal entry retained after the compacted prefix. Empty means no
-       * journal entry is retained.
-       * </pre>
-       *
-       * <code>string tail_journal_entry_id = 2;</code>
-       * @return The bytes for tailJournalEntryId.
-       */
-      public com.google.protobuf.ByteString
-          getTailJournalEntryIdBytes() {
-        java.lang.Object ref = tailJournalEntryId_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          tailJournalEntryId_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <pre>
-       * First journal entry retained after the compacted prefix. Empty means no
-       * journal entry is retained.
-       * </pre>
-       *
-       * <code>string tail_journal_entry_id = 2;</code>
-       * @param value The tailJournalEntryId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setTailJournalEntryId(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        tailJournalEntryId_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * First journal entry retained after the compacted prefix. Empty means no
-       * journal entry is retained.
-       * </pre>
-       *
-       * <code>string tail_journal_entry_id = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearTailJournalEntryId() {
-        tailJournalEntryId_ = getDefaultInstance().getTailJournalEntryId();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * First journal entry retained after the compacted prefix. Empty means no
-       * journal entry is retained.
-       * </pre>
-       *
-       * <code>string tail_journal_entry_id = 2;</code>
-       * @param value The bytes for tailJournalEntryId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setTailJournalEntryIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        tailJournalEntryId_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      private long originalEstimatedSize_ ;
-      /**
-       * <pre>
-       * Estimated character count before compaction.
-       * </pre>
-       *
-       * <code>int64 original_estimated_size = 3;</code>
-       * @return The originalEstimatedSize.
-       */
-      @java.lang.Override
-      public long getOriginalEstimatedSize() {
-        return originalEstimatedSize_;
-      }
-      /**
-       * <pre>
-       * Estimated character count before compaction.
-       * </pre>
-       *
-       * <code>int64 original_estimated_size = 3;</code>
-       * @param value The originalEstimatedSize to set.
-       * @return This builder for chaining.
-       */
-      public Builder setOriginalEstimatedSize(long value) {
-
-        originalEstimatedSize_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Estimated character count before compaction.
-       * </pre>
-       *
-       * <code>int64 original_estimated_size = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearOriginalEstimatedSize() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        originalEstimatedSize_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long compactedEstimatedSize_ ;
-      /**
-       * <pre>
-       * Estimated character count after compaction.
-       * </pre>
-       *
-       * <code>int64 compacted_estimated_size = 4;</code>
-       * @return The compactedEstimatedSize.
-       */
-      @java.lang.Override
-      public long getCompactedEstimatedSize() {
-        return compactedEstimatedSize_;
-      }
-      /**
-       * <pre>
-       * Estimated character count after compaction.
-       * </pre>
-       *
-       * <code>int64 compacted_estimated_size = 4;</code>
-       * @param value The compactedEstimatedSize to set.
-       * @return This builder for chaining.
-       */
-      public Builder setCompactedEstimatedSize(long value) {
-
-        compactedEstimatedSize_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Estimated character count after compaction.
-       * </pre>
-       *
-       * <code>int64 compacted_estimated_size = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearCompactedEstimatedSize() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        compactedEstimatedSize_ = 0L;
-        onChanged();
-        return this;
+        return summaryBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.SessionJournalEntryPayloadCompaction)
@@ -6543,35 +6162,32 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       "\t\022%\n\006object\030\004 \001(\0132\025.talon.data.ObjectRef" +
       "\022.\n\013tool_output\030\005 \001(\0132\031.talon.harness.To" +
       "olOutput\"@\n SessionJournalEntryPayloadCo" +
-      "mmit\022\034\n\024committed_message_id\030\001 \001(\t\"\267\001\n$S" +
-      "essionJournalEntryPayloadCompaction\022-\n\016s" +
-      "ummary_object\030\001 \001(\0132\025.talon.data.ObjectR" +
-      "ef\022\035\n\025tail_journal_entry_id\030\002 \001(\t\022\037\n\027ori" +
-      "ginal_estimated_size\030\003 \001(\003\022 \n\030compacted_" +
-      "estimated_size\030\004 \001(\003\"\303\002\n\032SessionJournalE" +
-      "ntryPayload\022I\n\014llm_response\030\001 \001(\01321.talo" +
-      "n.data.SessionJournalEntryPayloadLlmResp" +
-      "onseH\000\022G\n\013tool_result\030\002 \001(\01320.talon.data" +
-      ".SessionJournalEntryPayloadToolResultH\000\022" +
-      ">\n\006commit\030\003 \001(\0132,.talon.data.SessionJour" +
-      "nalEntryPayloadCommitH\000\022F\n\ncompaction\030\005 " +
-      "\001(\01320.talon.data.SessionJournalEntryPayl" +
-      "oadCompactionH\000B\t\n\007payload\"\325\002\n\023SessionJo" +
-      "urnalEntry\022\025\n\rsubmission_id\030\001 \001(\t\022\030\n\020jou" +
-      "rnal_entry_id\030\002 \001(\t\022\022\n\nattempt_id\030\003 \001(\t\022" +
-      "0\n\005phase\030\004 \001(\0162!.talon.data.SessionExecu" +
-      "tionPhase\0227\n\007payload\030\005 \001(\0132&.talon.data." +
-      "SessionJournalEntryPayload\022\022\n\ncreated_at" +
-      "\030\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003\022\031\n\014committed_" +
-      "at\030\010 \001(\003H\000\210\001\001\022!\n\024committed_message_id\030\t " +
-      "\001(\tH\001\210\001\001B\017\n\r_committed_atB\027\n\025_committed_" +
-      "message_id*\342\001\n\025SessionExecutionPhase\022\'\n#" +
-      "SESSION_EXECUTION_PHASE_UNSPECIFIED\020\000\022(\n" +
-      "$SESSION_EXECUTION_PHASE_LLM_RESPONSE\020\001\022" +
-      "\'\n#SESSION_EXECUTION_PHASE_TOOL_RESULT\020\002" +
-      "\022%\n!SESSION_EXECUTION_PHASE_COMMITTED\020\003\022" +
-      "&\n\"SESSION_EXECUTION_PHASE_COMPACTION\020\004b" +
-      "\006proto3"
+      "mmit\022\034\n\024committed_message_id\030\001 \001(\t\"N\n$Se" +
+      "ssionJournalEntryPayloadCompaction\022&\n\007su" +
+      "mmary\030\001 \001(\0132\025.talon.data.ObjectRef\"\303\002\n\032S" +
+      "essionJournalEntryPayload\022I\n\014llm_respons" +
+      "e\030\001 \001(\01321.talon.data.SessionJournalEntry" +
+      "PayloadLlmResponseH\000\022G\n\013tool_result\030\002 \001(" +
+      "\01320.talon.data.SessionJournalEntryPayloa" +
+      "dToolResultH\000\022>\n\006commit\030\003 \001(\0132,.talon.da" +
+      "ta.SessionJournalEntryPayloadCommitH\000\022F\n" +
+      "\ncompaction\030\005 \001(\01320.talon.data.SessionJo" +
+      "urnalEntryPayloadCompactionH\000B\t\n\007payload" +
+      "\"\325\002\n\023SessionJournalEntry\022\025\n\rsubmission_i" +
+      "d\030\001 \001(\t\022\030\n\020journal_entry_id\030\002 \001(\t\022\022\n\natt" +
+      "empt_id\030\003 \001(\t\0220\n\005phase\030\004 \001(\0162!.talon.dat" +
+      "a.SessionExecutionPhase\0227\n\007payload\030\005 \001(\013" +
+      "2&.talon.data.SessionJournalEntryPayload" +
+      "\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003" +
+      "\022\031\n\014committed_at\030\010 \001(\003H\000\210\001\001\022!\n\024committed" +
+      "_message_id\030\t \001(\tH\001\210\001\001B\017\n\r_committed_atB" +
+      "\027\n\025_committed_message_id*\342\001\n\025SessionExec" +
+      "utionPhase\022\'\n#SESSION_EXECUTION_PHASE_UN" +
+      "SPECIFIED\020\000\022(\n$SESSION_EXECUTION_PHASE_L" +
+      "LM_RESPONSE\020\001\022\'\n#SESSION_EXECUTION_PHASE" +
+      "_TOOL_RESULT\020\002\022%\n!SESSION_EXECUTION_PHAS" +
+      "E_COMMITTED\020\003\022&\n\"SESSION_EXECUTION_PHASE" +
+      "_COMPACTION\020\004b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6602,7 +6218,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     internal_static_talon_data_SessionJournalEntryPayloadCompaction_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor,
-        new java.lang.String[] { "SummaryObject", "TailJournalEntryId", "OriginalEstimatedSize", "CompactedEstimatedSize", });
+        new java.lang.String[] { "Summary", });
     internal_static_talon_data_SessionJournalEntryPayload_descriptor =
       getDescriptor().getMessageType(4);
     internal_static_talon_data_SessionJournalEntryPayload_fieldAccessorTable = new
