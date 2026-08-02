@@ -112,11 +112,6 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
         .join("\n");
     let transcript =
         format!("<transcript>{messages}</transcript>\n\nNow produce the required factual handoff.");
-    tracing::debug!(
-        compaction_system_prompt = COMPACTION_PROMPT,
-        compaction_user_payload = %transcript,
-        "Preparing compaction LLM request"
-    );
     let response = llm
         .chat_completion(ChatRequest {
             messages: vec![
@@ -127,10 +122,6 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
             thinking: None,
         })
         .await?;
-    tracing::debug!(
-        compaction_model_response = %response.content,
-        "Received compaction LLM response"
-    );
     let response = response.content.trim();
     let summary = response
         .strip_prefix("<summary>")
