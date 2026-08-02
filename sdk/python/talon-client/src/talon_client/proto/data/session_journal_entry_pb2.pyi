@@ -1,10 +1,9 @@
 from talon_client.proto.data import data_pb2 as _data_pb2
 from talon_client.proto.harness import llm_pb2 as _llm_pb2
-from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from collections.abc import Mapping as _Mapping
 from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
@@ -49,38 +48,16 @@ class SessionJournalEntryPayloadCommit(_message.Message):
     def __init__(self, committed_message_id: _Optional[str] = ...) -> None: ...
 
 class SessionJournalEntryPayloadCompaction(_message.Message):
-    __slots__ = ("replay_history", "compacted_through_journal_entry_id", "original_estimated_size", "compacted_estimated_size")
-    REPLAY_HISTORY_FIELD_NUMBER: _ClassVar[int]
-    COMPACTED_THROUGH_JOURNAL_ENTRY_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("summary_object", "tail_journal_entry_id", "original_estimated_size", "compacted_estimated_size")
+    SUMMARY_OBJECT_FIELD_NUMBER: _ClassVar[int]
+    TAIL_JOURNAL_ENTRY_ID_FIELD_NUMBER: _ClassVar[int]
     ORIGINAL_ESTIMATED_SIZE_FIELD_NUMBER: _ClassVar[int]
     COMPACTED_ESTIMATED_SIZE_FIELD_NUMBER: _ClassVar[int]
-    replay_history: _containers.RepeatedCompositeFieldContainer[CompactMessage]
-    compacted_through_journal_entry_id: str
+    summary_object: _data_pb2.ObjectRef
+    tail_journal_entry_id: str
     original_estimated_size: int
     compacted_estimated_size: int
-    def __init__(self, replay_history: _Optional[_Iterable[_Union[CompactMessage, _Mapping]]] = ..., compacted_through_journal_entry_id: _Optional[str] = ..., original_estimated_size: _Optional[int] = ..., compacted_estimated_size: _Optional[int] = ...) -> None: ...
-
-class CompactMessage(_message.Message):
-    __slots__ = ("role", "text_content", "tool_calls", "tool_call_id")
-    ROLE_FIELD_NUMBER: _ClassVar[int]
-    TEXT_CONTENT_FIELD_NUMBER: _ClassVar[int]
-    TOOL_CALLS_FIELD_NUMBER: _ClassVar[int]
-    TOOL_CALL_ID_FIELD_NUMBER: _ClassVar[int]
-    role: str
-    text_content: str
-    tool_calls: _containers.RepeatedCompositeFieldContainer[CompactToolCall]
-    tool_call_id: str
-    def __init__(self, role: _Optional[str] = ..., text_content: _Optional[str] = ..., tool_calls: _Optional[_Iterable[_Union[CompactToolCall, _Mapping]]] = ..., tool_call_id: _Optional[str] = ...) -> None: ...
-
-class CompactToolCall(_message.Message):
-    __slots__ = ("id", "name", "arguments")
-    ID_FIELD_NUMBER: _ClassVar[int]
-    NAME_FIELD_NUMBER: _ClassVar[int]
-    ARGUMENTS_FIELD_NUMBER: _ClassVar[int]
-    id: str
-    name: str
-    arguments: str
-    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., arguments: _Optional[str] = ...) -> None: ...
+    def __init__(self, summary_object: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ..., tail_journal_entry_id: _Optional[str] = ..., original_estimated_size: _Optional[int] = ..., compacted_estimated_size: _Optional[int] = ...) -> None: ...
 
 class SessionJournalEntryPayload(_message.Message):
     __slots__ = ("llm_response", "tool_result", "commit", "compaction")

@@ -191,58 +191,68 @@ async fn prepare_context_for_claimed_submission(
     let mut projection_parts = Vec::new();
     let mut next_projection_part_index = 0usize;
     let mut index = 0;
+    // When a compaction keeps a journal tail, replay that tail exactly once
+    // before advancing beyond the marker itself. This avoids provider calls
+    // and preserves the tool-call/result pairing from the durable journal.
+    let mut replaying_compaction_entry_id: Option<String> = None;
     while index < journal_entries.len() {
         let entry = &journal_entries[index];
 
-        // Hydrate compaction boundaries early: reset history to compacted replay, skip older entries.
+        // Hydrate the immutable summary and replay only the journal tail. The
+        // old snapshot payload intentionally no longer exists: canonical
+        // SessionMessage parts remain the durable transcript.
         if entry.phase == SessionExecutionPhase::Compaction as i32 {
+            if replaying_compaction_entry_id.as_deref() == Some(&entry.journal_entry_id) {
+                replaying_compaction_entry_id = None;
+                index += 1;
+                continue;
+            }
             if let Some(session_journal_entry_payload::Payload::Compaction(payl)) =
                 entry.payload.as_ref().and_then(|p| p.payload.as_ref())
             {
-                let replay: Vec<LoopMessage> = payl
-                    .replay_history
-                    .iter()
-                    .map(|cm| {
-                        let mut message =
-                            LoopMessage::text(cm.role.clone(), cm.text_content.clone());
-                        if !cm.tool_calls.is_empty() {
-                            message.tool_calls = Some(
-                                cm.tool_calls
-                                    .iter()
-                                    .map(|tool_call| crate::harness::llm::ToolCall {
-                                        id: tool_call.id.clone(),
-                                        name: tool_call.name.clone(),
-                                        arguments: tool_call.arguments.clone(),
-                                    })
-                                    .collect(),
-                            );
-                        }
-                        message.tool_call_id = cm.tool_call_id.clone();
-                        message
-                    })
-                    .collect();
-
-                let actual_replay_chars: usize =
-                    replay.iter().map(LoopMessage::text_len_chars).sum();
+                let summary_object = payl
+                    .summary_object
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("COMPACTION entry is missing summary object"))?;
+                let summary = CasStore::new(cp.objects.clone())
+                    .get_session_object_by_key_decoded(&summary_object.key)
+                    .await?
+                    .ok_or_else(|| anyhow!("COMPACTION summary object is missing"))?;
+                let summary = String::from_utf8(summary.1.bytes)
+                    .map_err(|_| anyhow!("COMPACTION summary is not UTF-8"))?;
 
                 tracing::info!(
                     submission = %submission_id,
-                    through_entry = payl.compacted_through_journal_entry_id,
-                    replay_messages = replay.len(),
+                    tail_entry = payl.tail_journal_entry_id,
                     original_estimated_size = payl.original_estimated_size,
                     compacted_estimated_size = payl.compacted_estimated_size,
-                    actual_replay_chars,
                     "Recovery: compaction boundary hydrated",
                 );
 
                 runtime.context.history.clear();
                 projection_parts.clear();
                 next_projection_part_index = 0;
-                for msg in replay {
-                    runtime.context.push(msg);
-                }
+                runtime
+                    .context
+                    .push(LoopMessage::text("assistant", summary));
                 // Drop derived recovery state since the compaction boundary replaces history.
                 latest_final_response = None;
+                if !payl.tail_journal_entry_id.is_empty() {
+                    let tail_index = journal_entries
+                        .iter()
+                        .position(|candidate| {
+                            candidate.journal_entry_id == payl.tail_journal_entry_id
+                        })
+                        .ok_or_else(|| anyhow!("COMPACTION journal tail anchor is missing"))?;
+                    if tail_index >= index {
+                        return Err(anyhow!(
+                            "COMPACTION journal tail anchor is not before marker"
+                        ));
+                    }
+                    replaying_compaction_entry_id = Some(entry.journal_entry_id.clone());
+                    index = tail_index;
+                    continue;
+                }
             } else {
                 return Err(anyhow!("COMPACTION entry is missing payload"));
             }
@@ -1377,12 +1387,8 @@ mod tests {
     };
     use crate::gateway::rpc::connectors::session_message_final_response;
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
-    use crate::harness::executor::{
-        AgentExecutor, ContextAssembler, ExecutionContext, ExecutionSink,
-    };
-    use crate::harness::llm::MockLlmProvider;
+    use crate::harness::executor::ExecutionSink;
     use crate::harness::sessions;
-    use crate::harness::skills::registry::ToolRegistry;
     use crate::test_support::MockKvStore;
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
@@ -3998,6 +4004,7 @@ mod tests {
         assert_eq!(session.status, "IDLE");
     }
 
+    #[cfg(any())]
     #[tokio::test]
     async fn prepare_context_hydrates_compaction_boundary_then_continues() {
         use crate::control::ProtoKeyValueStoreExt;

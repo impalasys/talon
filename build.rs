@@ -165,8 +165,6 @@ fn main() -> std::io::Result<()> {
         ".talon.data.WorkflowRunEvent",
         ".talon.data.WorkflowStepRun",
         ".talon.data.SessionJournalEntryPayloadCompaction",
-        ".talon.data.CompactMessage",
-        ".talon.data.CompactToolCall",
         ".talon.events.WorkflowDispatchEvent",
         ".talon.external.ConnectorActivityRequest",
         ".talon.external.ConnectorAckResponse",

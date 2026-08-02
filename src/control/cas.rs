@@ -21,6 +21,7 @@ pub const METADATA_KIND: &str = "kind";
 pub const METADATA_KIND_TOOL_RESULT: &str = "tool_result";
 pub const METADATA_KIND_ARTIFACT: &str = "artifact";
 pub const METADATA_KIND_FILE: &str = "file";
+pub const METADATA_KIND_COMPACTION: &str = "compaction";
 pub const METADATA_AGENT: &str = "agent";
 pub const METADATA_TOOL_CALL_ID: &str = "tool_call_id";
 pub const METADATA_TOOL_NAME: &str = "tool_name";
@@ -296,6 +297,47 @@ impl CasStore {
             .await
     }
 
+    /// Store the immutable Markdown summary for a durable context compaction.
+    /// The key intentionally uses the journal entry id so the journal and
+    /// internal message marker can share one authoritative object reference.
+    pub async fn put_compaction_summary(
+        &self,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        submission_id: &str,
+        journal_entry_id: &str,
+        summary: &str,
+    ) -> Result<data_proto::ObjectRef> {
+        let key = compaction_summary_object_key(ns, session_id, submission_id, journal_entry_id);
+        let bytes = summary.as_bytes();
+        let metadata = HashMap::from([
+            (
+                METADATA_KIND.to_string(),
+                METADATA_KIND_COMPACTION.to_string(),
+            ),
+            ("namespace".to_string(), ns.to_string()),
+            (METADATA_AGENT.to_string(), agent.to_string()),
+            ("session_id".to_string(), session_id.to_string()),
+            ("submission_id".to_string(), submission_id.to_string()),
+            ("journal_entry_id".to_string(), journal_entry_id.to_string()),
+        ]);
+        self.objects
+            .put(
+                &key,
+                bytes,
+                ObjectMetadata {
+                    media_type: "text/markdown; charset=utf-8".to_string(),
+                    size_bytes: bytes.len() as u64,
+                    sha256: sha256_hex(bytes),
+                    filename: format!("{}.txt", object_key_segment(journal_entry_id)),
+                    content_encoding: String::new(),
+                    metadata,
+                },
+            )
+            .await
+    }
+
     /// Store a tool result only after the logical value crosses a raw-byte
     /// threshold. Tool results use this policy so large raw outputs never land
     /// back in session rows just because they compress well.
@@ -422,6 +464,21 @@ pub fn session_object_key_prefix(scope: &SessionCasScope) -> String {
     )
 }
 
+pub fn compaction_summary_object_key(
+    namespace: &str,
+    session_id: &str,
+    submission_id: &str,
+    journal_entry_id: &str,
+) -> String {
+    format!(
+        "cas/{}/sessions/{}/compactions/{}/{}.txt",
+        encoded_object_key_segment(namespace),
+        object_key_segment(session_id),
+        object_key_segment(submission_id),
+        object_key_segment(journal_entry_id),
+    )
+}
+
 pub fn file_object_key(namespace: &str, file_uid: &str, sha: &str) -> String {
     format!(
         "cas/{}/files/{}/{}",
@@ -459,6 +516,29 @@ pub fn ensure_session_key_scope(scope: &SessionCasScope, key: &str) -> Result<()
 
 pub fn parse_session_object_key(key: &str) -> Result<SessionObjectKey> {
     let parts: Vec<&str> = key.split('/').collect();
+    if let ["cas", encoded_ns, "sessions", session_id, "compactions", submission_id, filename] =
+        parts.as_slice()
+    {
+        let ns = urlencoding::decode(encoded_ns)
+            .map_err(|err| {
+                anyhow!("CAS object key namespace is not valid percent-encoding: {err}")
+            })?
+            .into_owned();
+        let journal_entry_id = filename
+            .strip_suffix(".txt")
+            .ok_or_else(|| anyhow!("CAS compaction key must end with .txt"))?;
+        if encoded_object_key_segment(&ns) != *encoded_ns
+            || object_key_segment(session_id) != *session_id
+            || object_key_segment(submission_id) != *submission_id
+            || object_key_segment(journal_entry_id) != journal_entry_id
+        {
+            return Err(anyhow!("CAS compaction key contains unsafe characters"));
+        }
+        return Ok(SessionObjectKey {
+            scope: SessionCasScope::new(&ns, "", session_id),
+            identity: SessionObjectIdentity::new(submission_id, journal_entry_id),
+        });
+    }
     let ["cas", encoded_ns, "sessions", session_id, "messages", message_id, filename] =
         parts.as_slice()
     else {
@@ -735,11 +815,11 @@ fn sha256_hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_session_object_key, CasStore, SessionCasScope, SessionObjectIdentity,
-        CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD, MAX_LOGICAL_OBJECT_BYTES,
-        MAX_TOOL_RESULT_LOGICAL_BYTES, METADATA_AGENT, METADATA_CONTENT_ENCODING, METADATA_KIND,
-        METADATA_KIND_ARTIFACT, METADATA_KIND_FILE, METADATA_UNCOMPRESSED_SIZE_BYTES,
-        TOOL_RESULT_TRUNCATION_MARKER,
+        compaction_summary_object_key, parse_session_object_key, CasStore, SessionCasScope,
+        SessionObjectIdentity, CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD,
+        MAX_LOGICAL_OBJECT_BYTES, MAX_TOOL_RESULT_LOGICAL_BYTES, METADATA_AGENT,
+        METADATA_CONTENT_ENCODING, METADATA_KIND, METADATA_KIND_ARTIFACT, METADATA_KIND_COMPACTION,
+        METADATA_KIND_FILE, METADATA_UNCOMPRESSED_SIZE_BYTES, TOOL_RESULT_TRUNCATION_MARKER,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use flate2::{write::GzEncoder, Compression};
@@ -758,6 +838,117 @@ mod tests {
             key,
             "cas/team%2Falpha/sessions/session_one/messages/message_1/.._part_id.txt"
         );
+    }
+
+    #[test]
+    fn compaction_summary_keys_use_the_canonical_txt_path() {
+        let key = compaction_summary_object_key(
+            "team/alpha",
+            "session one",
+            "submission#1",
+            "journal entry/1",
+        );
+
+        assert_eq!(
+            key,
+            "cas/team%2Falpha/sessions/session_one/compactions/submission_1/journal_entry_1.txt"
+        );
+    }
+
+    #[test]
+    fn parses_compaction_summary_key_and_rejects_noncanonical_fields() {
+        let parsed = parse_session_object_key(
+            "cas/team%2Falpha/sessions/session-1/compactions/submission-1/journal-1.txt",
+        )
+        .unwrap();
+        assert_eq!(parsed.scope.ns, "team/alpha");
+        assert_eq!(parsed.scope.session_id, "session-1");
+        assert_eq!(parsed.identity.message_id, "submission-1");
+        assert_eq!(parsed.identity.part_id, "journal-1");
+
+        let err = parse_session_object_key(
+            "cas/team%2falpha/sessions/session-1/compactions/submission-1/journal-1.txt",
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("unsafe characters"));
+
+        let err = parse_session_object_key(
+            "cas/team%2Falpha/sessions/session-1/compactions/submission-1/journal-1.json",
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("must end with .txt"));
+    }
+
+    #[tokio::test]
+    async fn stores_compaction_summary_with_exact_metadata_and_session_scope() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects.clone());
+        let summary = "# Compaction\n\nKeep this context.";
+        let object = store
+            .put_compaction_summary(
+                "team/alpha",
+                "agent-a",
+                "session-1",
+                "submission-1",
+                "journal-1",
+                summary,
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(
+            object.key,
+            "cas/team%2Falpha/sessions/session-1/compactions/submission-1/journal-1.txt"
+        );
+        assert_eq!(object.media_type, "text/markdown; charset=utf-8");
+        assert_eq!(object.filename, "journal-1.txt");
+        assert_eq!(object.size_bytes, summary.len() as u64);
+        assert!(object.content_encoding.is_empty());
+        assert_eq!(object.metadata[METADATA_KIND], METADATA_KIND_COMPACTION);
+        assert_eq!(object.metadata[METADATA_AGENT], "agent-a");
+        assert_eq!(object.metadata["namespace"], "team/alpha");
+        assert_eq!(object.metadata["session_id"], "session-1");
+        assert_eq!(object.metadata["submission_id"], "submission-1");
+        assert_eq!(object.metadata["journal_entry_id"], "journal-1");
+
+        let stored = objects.get(&object.key).await.unwrap().unwrap();
+        assert_eq!(stored.bytes, summary.as_bytes());
+        assert_eq!(stored.metadata.media_type, object.media_type);
+        assert_eq!(stored.metadata.size_bytes, object.size_bytes);
+        assert_eq!(stored.metadata.sha256, object.sha256);
+        assert_eq!(stored.metadata.filename, object.filename);
+        assert_eq!(stored.metadata.content_encoding, object.content_encoding);
+        assert_eq!(stored.metadata.metadata, object.metadata);
+
+        let loaded = store
+            .get_session_object(
+                &SessionCasScope::new("team/alpha", "agent-a", "session-1"),
+                &object.key,
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(loaded.bytes, summary.as_bytes());
+
+        let err = store
+            .get_session_object(
+                &SessionCasScope::new("team/alpha", "agent-a", "session-2"),
+                &object.key,
+            )
+            .await
+            .unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("outside the requested session scope"));
+
+        let err = store
+            .get_session_object(
+                &SessionCasScope::new("team/alpha", "agent-b", "session-1"),
+                &object.key,
+            )
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("metadata field 'agent'"));
     }
 
     #[tokio::test]

@@ -520,6 +520,9 @@ pub enum SessionMessagePartType {
     File = 10,
     RequestPermission = 11,
     PermissionResult = 12,
+    /// Internal durable-context boundary. This is never returned through public
+    /// SessionMessage APIs and points at a compacted-summary CAS object.
+    Compaction = 13,
 }
 impl SessionMessagePartType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -541,6 +544,7 @@ impl SessionMessagePartType {
             Self::File => "SESSION_MESSAGE_PART_TYPE_FILE",
             Self::RequestPermission => "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION",
             Self::PermissionResult => "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT",
+            Self::Compaction => "SESSION_MESSAGE_PART_TYPE_COMPACTION",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -561,6 +565,7 @@ impl SessionMessagePartType {
                 Some(Self::RequestPermission)
             }
             "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT" => Some(Self::PermissionResult),
+            "SESSION_MESSAGE_PART_TYPE_COMPACTION" => Some(Self::Compaction),
             _ => None,
         }
     }
@@ -709,38 +714,19 @@ pub struct SessionJournalEntryPayloadCommit {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayloadCompaction {
-    /// Replay history that must replace runtime.context.history during recovery.
-    #[prost(message, repeated, tag = "1")]
-    pub replay_history: ::prost::alloc::vec::Vec<CompactMessage>,
-    /// Journal entry id of this compaction entry (for ordering).
+    /// Immutable Markdown summary shared with the internal SessionMessage part.
+    #[prost(message, optional, tag = "1")]
+    pub summary_object: ::core::option::Option<ObjectRef>,
+    /// First journal entry retained after the compacted prefix. Empty means no
+    /// journal entry is retained.
     #[prost(string, tag = "2")]
-    pub compacted_through_journal_entry_id: ::prost::alloc::string::String,
+    pub tail_journal_entry_id: ::prost::alloc::string::String,
     /// Estimated character count before compaction.
     #[prost(int64, tag = "3")]
     pub original_estimated_size: i64,
     /// Estimated character count after compaction.
     #[prost(int64, tag = "4")]
     pub compacted_estimated_size: i64,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CompactMessage {
-    #[prost(string, tag = "1")]
-    pub role: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub text_content: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "3")]
-    pub tool_calls: ::prost::alloc::vec::Vec<CompactToolCall>,
-    #[prost(string, optional, tag = "4")]
-    pub tool_call_id: ::core::option::Option<::prost::alloc::string::String>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CompactToolCall {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub arguments: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayload {
@@ -799,10 +785,9 @@ pub enum SessionExecutionPhase {
     /// The submission reached a commit boundary and its canonical assistant
     /// SessionMessage was written.
     Committed = 3,
-    /// Durable model context compaction completed. Previous LLM_RESPONSE and
-    /// TOOL_RESULT entries up to this journal entry id are considered replayed
-    /// by the recovery path, which hydrates replay_history into runtime.context
-    /// before resuming the execution loop in a later turn or after reclaim.
+    /// Durable model context compaction completed. The summary object plus the
+    /// exact journal tail provide recovery context without storing a provider
+    /// transcript snapshot in the journal.
     Compaction = 4,
 }
 impl SessionExecutionPhase {

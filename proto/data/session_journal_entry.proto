@@ -21,10 +21,9 @@ enum SessionExecutionPhase {
   // SessionMessage was written.
   SESSION_EXECUTION_PHASE_COMMITTED = 3;
 
-  // Durable model context compaction completed. Previous LLM_RESPONSE and
-  // TOOL_RESULT entries up to this journal entry id are considered replayed
-  // by the recovery path, which hydrates replay_history into runtime.context
-  // before resuming the execution loop in a later turn or after reclaim.
+  // Durable model context compaction completed. The summary object plus the
+  // exact journal tail provide recovery context without storing a provider
+  // transcript snapshot in the journal.
   SESSION_EXECUTION_PHASE_COMPACTION = 4;
 }
 
@@ -45,27 +44,15 @@ message SessionJournalEntryPayloadCommit {
 }
 
 message SessionJournalEntryPayloadCompaction {
-  // Replay history that must replace runtime.context.history during recovery.
-  repeated CompactMessage replay_history = 1;
-  // Journal entry id of this compaction entry (for ordering).
-  string compacted_through_journal_entry_id = 2;
+  // Immutable Markdown summary shared with the internal SessionMessage part.
+  ObjectRef summary_object = 1;
+  // First journal entry retained after the compacted prefix. Empty means no
+  // journal entry is retained.
+  string tail_journal_entry_id = 2;
   // Estimated character count before compaction.
   int64 original_estimated_size = 3;
   // Estimated character count after compaction.
   int64 compacted_estimated_size = 4;
-}
-
-message CompactMessage {
-  string role = 1;
-  string text_content = 2;
-  repeated CompactToolCall tool_calls = 3;
-  optional string tool_call_id = 4;
-}
-
-message CompactToolCall {
-  string id = 1;
-  string name = 2;
-  string arguments = 3;
 }
 
 message SessionJournalEntryPayload {

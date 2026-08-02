@@ -44,10 +44,9 @@ export enum SessionExecutionPhase {
   COMMITTED = 3,
 
   /**
-   * Durable model context compaction completed. Previous LLM_RESPONSE and
-   * TOOL_RESULT entries up to this journal entry id are considered replayed
-   * by the recovery path, which hydrates replay_history into runtime.context
-   * before resuming the execution loop in a later turn or after reclaim.
+   * Durable model context compaction completed. The summary object plus the
+   * exact journal tail provide recovery context without storing a provider
+   * transcript snapshot in the journal.
    *
    * @generated from enum value: SESSION_EXECUTION_PHASE_COMPACTION = 4;
    */
@@ -202,18 +201,19 @@ export class SessionJournalEntryPayloadCommit extends Message<SessionJournalEntr
  */
 export class SessionJournalEntryPayloadCompaction extends Message<SessionJournalEntryPayloadCompaction> {
   /**
-   * Replay history that must replace runtime.context.history during recovery.
+   * Immutable Markdown summary shared with the internal SessionMessage part.
    *
-   * @generated from field: repeated talon.data.CompactMessage replay_history = 1;
+   * @generated from field: talon.data.ObjectRef summary_object = 1;
    */
-  replayHistory: CompactMessage[] = [];
+  summaryObject?: ObjectRef;
 
   /**
-   * Journal entry id of this compaction entry (for ordering).
+   * First journal entry retained after the compacted prefix. Empty means no
+   * journal entry is retained.
    *
-   * @generated from field: string compacted_through_journal_entry_id = 2;
+   * @generated from field: string tail_journal_entry_id = 2;
    */
-  compactedThroughJournalEntryId = "";
+  tailJournalEntryId = "";
 
   /**
    * Estimated character count before compaction.
@@ -237,8 +237,8 @@ export class SessionJournalEntryPayloadCompaction extends Message<SessionJournal
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.data.SessionJournalEntryPayloadCompaction";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "replay_history", kind: "message", T: CompactMessage, repeated: true },
-    { no: 2, name: "compacted_through_journal_entry_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "summary_object", kind: "message", T: ObjectRef },
+    { no: 2, name: "tail_journal_entry_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "original_estimated_size", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 4, name: "compacted_estimated_size", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
@@ -257,110 +257,6 @@ export class SessionJournalEntryPayloadCompaction extends Message<SessionJournal
 
   static equals(a: SessionJournalEntryPayloadCompaction | PlainMessage<SessionJournalEntryPayloadCompaction> | undefined, b: SessionJournalEntryPayloadCompaction | PlainMessage<SessionJournalEntryPayloadCompaction> | undefined): boolean {
     return proto3.util.equals(SessionJournalEntryPayloadCompaction, a, b);
-  }
-}
-
-/**
- * @generated from message talon.data.CompactMessage
- */
-export class CompactMessage extends Message<CompactMessage> {
-  /**
-   * @generated from field: string role = 1;
-   */
-  role = "";
-
-  /**
-   * @generated from field: string text_content = 2;
-   */
-  textContent = "";
-
-  /**
-   * @generated from field: repeated talon.data.CompactToolCall tool_calls = 3;
-   */
-  toolCalls: CompactToolCall[] = [];
-
-  /**
-   * @generated from field: optional string tool_call_id = 4;
-   */
-  toolCallId?: string;
-
-  constructor(data?: PartialMessage<CompactMessage>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.data.CompactMessage";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "role", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "text_content", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "tool_calls", kind: "message", T: CompactToolCall, repeated: true },
-    { no: 4, name: "tool_call_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CompactMessage {
-    return new CompactMessage().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CompactMessage {
-    return new CompactMessage().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CompactMessage {
-    return new CompactMessage().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CompactMessage | PlainMessage<CompactMessage> | undefined, b: CompactMessage | PlainMessage<CompactMessage> | undefined): boolean {
-    return proto3.util.equals(CompactMessage, a, b);
-  }
-}
-
-/**
- * @generated from message talon.data.CompactToolCall
- */
-export class CompactToolCall extends Message<CompactToolCall> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  /**
-   * @generated from field: string arguments = 3;
-   */
-  arguments = "";
-
-  constructor(data?: PartialMessage<CompactToolCall>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.data.CompactToolCall";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "arguments", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CompactToolCall {
-    return new CompactToolCall().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CompactToolCall {
-    return new CompactToolCall().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CompactToolCall {
-    return new CompactToolCall().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CompactToolCall | PlainMessage<CompactToolCall> | undefined, b: CompactToolCall | PlainMessage<CompactToolCall> | undefined): boolean {
-    return proto3.util.equals(CompactToolCall, a, b);
   }
 }
 

@@ -106,6 +106,14 @@ export enum SessionMessagePartType {
    * @generated from enum value: SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT = 12;
    */
   PERMISSION_RESULT = 12,
+
+  /**
+   * Internal durable-context boundary. This is never returned through public
+   * SessionMessage APIs and points at a compacted-summary CAS object.
+   *
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;
+   */
+  COMPACTION = 13,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SessionMessagePartType)
 proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartType", [
@@ -122,6 +130,7 @@ proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartTy
   { no: 10, name: "SESSION_MESSAGE_PART_TYPE_FILE" },
   { no: 11, name: "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION" },
   { no: 12, name: "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT" },
+  { no: 13, name: "SESSION_MESSAGE_PART_TYPE_COMPACTION" },
 ]);
 
 /**

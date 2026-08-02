@@ -181,6 +181,16 @@ function isPermissionResultPart(part: Record<string, unknown> | undefined): bool
   );
 }
 
+export function hasMessageCompaction(message: Partial<CopilotMessage>): boolean {
+  return (
+    Array.isArray(message.parts) &&
+    message.parts.some((part) => {
+      const type = partType(part);
+      return type === "compaction" || type === 13 || type === "SESSION_MESSAGE_PART_TYPE_COMPACTION";
+    })
+  );
+}
+
 function permissionToolCallId(payload: Record<string, unknown>): string {
   return payloadString(payload, "request_id", "requestId") ?? "";
 }

@@ -6,8 +6,8 @@ use crate::control::config::Config;
 use crate::control::tool_output::{self, is_text_object_media_type, ToolOutputExt};
 use crate::control::ControlPlane;
 use crate::harness::executor::compaction::{
-    compact_history_for_llm_with_model_limits_and_tool_schema, context_metrics,
-    serialized_message_weight, ContextMetrics,
+    compact, compact_history_for_llm_with_model_limits_and_tool_schema, context_metrics,
+    serialized_message_weight, ContextBudget, ContextMetrics,
 };
 use crate::harness::llm::resolver::{model_context_limits, resolve_model_profile};
 use crate::harness::llm::ToolOutput;
@@ -38,16 +38,6 @@ const LLM_PREFLIGHT_METRICS: &[&str] = &[
     crate::control::usage::METRIC_LLM_REASONING_TOKENS,
     crate::control::usage::METRIC_LLM_TOTAL_TOKENS,
 ];
-
-// Compaction thresholds: model contexts exceeding ~100k text chars trigger
-// durable compaction so that long running tool-heavy sessions can continue.
-const COMPACTION_THRESHOLD_CHARS: usize = 100_000;
-
-const COMPACTION_MIN_HISTORY_LEN: usize = 5;
-
-fn history_text_chars(history: &[LoopMessage]) -> usize {
-    history.iter().map(LoopMessage::text_len_chars).sum()
-}
 
 fn tool_error_result(name: &str, error: &anyhow::Error) -> String {
     serde_json::json!({
@@ -256,8 +246,8 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_llm_response(&self, _: &crate::harness::llm::ChatResponse) -> Result<()> {
         Ok(())
     }
-    /// A compacted replay history has been durably recorded.
-    async fn on_compaction(&self, _: &[LoopMessage], _: i64, _: i64) -> Result<()> {
+    /// An immutable LLM-written summary has been durably recorded.
+    async fn on_compaction(&self, _: &str, _: i64, _: i64) -> Result<()> {
         Ok(())
     }
     /// The tool returned a result.
@@ -303,22 +293,45 @@ impl ExecutionSink for NullSink {
 /// Test sink that captures all events for assertion.
 pub struct CaptureSink {
     pub events: std::sync::Mutex<Vec<AgentEvent>>,
+    compactions: std::sync::Mutex<Vec<String>>,
+    fail_compaction: bool,
 }
 
 impl CaptureSink {
     pub fn new() -> Self {
         Self {
             events: std::sync::Mutex::new(Vec::new()),
+            compactions: std::sync::Mutex::new(Vec::new()),
+            fail_compaction: false,
         }
     }
 
     pub fn events(&self) -> Vec<AgentEvent> {
         self.events.lock().unwrap().clone()
     }
+
+    pub fn compactions(&self) -> Vec<String> {
+        self.compactions.lock().unwrap().clone()
+    }
+
+    pub fn failing_compaction() -> Self {
+        Self {
+            events: std::sync::Mutex::new(Vec::new()),
+            compactions: std::sync::Mutex::new(Vec::new()),
+            fail_compaction: true,
+        }
+    }
 }
 
 #[async_trait]
 impl ExecutionSink for CaptureSink {
+    async fn on_compaction(&self, summary: &str, _: i64, _: i64) -> Result<()> {
+        self.compactions.lock().unwrap().push(summary.to_string());
+        if self.fail_compaction {
+            anyhow::bail!("injected compaction persistence failure");
+        }
+        Ok(())
+    }
     async fn on_token(&self, token: &str) {
         self.events
             .lock()
@@ -738,17 +751,23 @@ impl AgentExecutor {
             // request estimate exceeds the model's effective window. Compaction
             // is journaled before the in-memory history is replaced.
             let estimated_context_budget = self.estimate_context_budget(context, &prompts, &tools);
-            let should_compact = !compaction_disabled
-                && estimated_context_budget > COMPACTION_THRESHOLD_CHARS
-                && context.history.len() >= COMPACTION_MIN_HISTORY_LEN;
+            let durable_budget = ContextBudget::default()
+                .with_model_limits(model_context_limits(
+                    self.config.as_ref(),
+                    &self.llm_provider_key,
+                    &self.llm_model,
+                ))
+                .with_tool_schema_chars(tool_schema_chars)
+                .total_chars;
+            let should_compact = !compaction_disabled && estimated_context_budget > durable_budget;
 
             if should_compact {
                 let prev_history_len = context.history.len();
-                match self.perform_durable_compaction(context, sink).await? {
+                match compact(self.llm.as_ref(), context, sink).await? {
                     true => {
                         let new_context_budget =
                             self.estimate_context_budget(context, &prompts, &tools);
-                        if new_context_budget >= COMPACTION_THRESHOLD_CHARS {
+                        if new_context_budget >= durable_budget {
                             compaction_disabled = true;
                         }
                         tracing::info!(
@@ -1049,99 +1068,6 @@ impl AgentExecutor {
         }
     }
 
-    /// Perform durable model-context compaction.
-    /// Summarises the oldest replay history into a system-message replacement,
-    /// writes the compacted transcript as a journal entry so recovery is safe,
-    /// and replaces `context.history` with the result.  Never surfaces a visible
-    /// assistant message -- it is purely an internal execution boundary.
-    async fn perform_durable_compaction(
-        &self,
-        context: &mut ExecutionContext,
-        sink: &dyn ExecutionSink,
-    ) -> Result<bool> {
-        let replay_history = context.history.clone();
-        let before_len = replay_history.len();
-        let original_estimated_size = replay_history
-            .iter()
-            .map(serialized_message_weight)
-            .sum::<usize>();
-        let leading_system_count = replay_history
-            .iter()
-            .take_while(|message| message.role == "system")
-            .count();
-
-        // Identify which entries are safely summarisable (before the last
-        // assistant turn), including assistant turns that contain only tools.
-        let mut cut_index = None;
-        for idx in (0..replay_history.len()).rev() {
-            let message = &replay_history[idx];
-            if message.role == "assistant"
-                && (!message.is_empty_content()
-                    || message
-                        .tool_calls
-                        .as_ref()
-                        .is_some_and(|calls| !calls.is_empty()))
-            {
-                cut_index = Some(idx);
-                break;
-            }
-        }
-
-        let Some(cut_index) = cut_index.filter(|idx| *idx > leading_system_count) else {
-            return Ok(false);
-        };
-
-        // Preserve leading system messages, then replace the older transcript
-        // with a deterministic summary and retain the recent replayable tail.
-        let to_summarise = &replay_history[leading_system_count..cut_index];
-        let compact_summary = self.build_compaction_summary(to_summarise).await;
-        let mut compacted_history = replay_history[..leading_system_count].to_vec();
-        compacted_history.push(LoopMessage::text("assistant", compact_summary));
-        compacted_history.extend(replay_history.into_iter().skip(cut_index));
-
-        let compacted_estimated_size = compacted_history
-            .iter()
-            .map(serialized_message_weight)
-            .sum::<usize>();
-        if compacted_estimated_size >= original_estimated_size {
-            tracing::warn!(
-                original_estimated_size,
-                compacted_estimated_size,
-                "Durable compaction did not reduce the estimated history size"
-            );
-            return Ok(false);
-        }
-
-        // Persist the replacement before mutating the in-memory context. If the
-        // journal append fails, recovery must continue to see the old history.
-        sink.on_compaction(
-            &compacted_history,
-            original_estimated_size as i64,
-            compacted_estimated_size as i64,
-        )
-        .await?;
-        context.history = compacted_history;
-
-        tracing::info!(
-            context_len_before = before_len,
-            "Durable model-context compaction triggered",
-        );
-
-        Ok(true)
-    }
-
-    /// Build a deterministic summary of history segments that are about to be dropped.
-    /// The summary is inserted as an assistant message so it aligns with ephemeral
-    /// compaction expectations and the LLM transcript format.
-    async fn build_compaction_summary(&self, history: &[LoopMessage]) -> String {
-        let estimated_chars = history_text_chars(history);
-
-        format!(
-            "\nCompacted {} assistant/tool turns ({} chars).\n[earlier messages omitted to stay within Talon context budget.]\n[Prior tool interaction omitted to preserve a valid tool transcript.]",
-            history.len(), estimated_chars
-        )
-    }
-
     async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
         match self.execute_tool(&tool.name, &tool.arguments).await {
             Ok(result) => ExecutedToolCall {
@@ -1210,6 +1136,7 @@ mod tests {
         data_proto, manifests,
         protobuf_value::{value::Kind as ProtoValueKind, ListValue, Value as ProtoValue},
     };
+    use crate::harness::executor::compaction::compact;
     use crate::harness::llm::provider::{
         content_part_object_ref, object_ref_part, text_delta_event, tool_call_delta_event,
         usage_event, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse, ChatStream, ChatUsage,
@@ -2649,7 +2576,7 @@ mod tests {
             crate::harness::native_tools::register_tools(&mut reg, &spec);
         }
 
-        // Build history that exceeds COMPACTION_THRESHOLD_CHARS (100_000).
+        // Build history that exceeds the model-aware default context budget.
         let mut context = ExecutionContext::new("cmo");
         for i in 0..5 {
             context.push(LoopMessage::text(
@@ -2665,6 +2592,48 @@ mod tests {
         let sink = CaptureSink::new();
         let reply = executor.execute(&mut context, &sink, None).await.unwrap();
         assert_eq!(reply, "resolved");
+        assert_eq!(sink.compactions().len(), 1);
+        assert!(!sink.compactions()[0].trim().is_empty());
+    }
+
+    #[tokio::test]
+    async fn failed_compaction_persistence_keeps_live_history_unchanged() {
+        let executor = AgentExecutor::new(
+            Arc::new(RecordingLlmProvider::default()),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
+            Arc::new(Config::default()),
+            "ns".to_string(),
+            "agent".to_string(),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+        let mut context = ExecutionContext::new("agent");
+        for index in 0..4 {
+            context.push(LoopMessage::text(
+                "assistant",
+                format!("old {index}: {}", "x".repeat(20_000)),
+            ));
+            context.push(LoopMessage::text(
+                "user",
+                format!("new {index}: {}", "y".repeat(20_000)),
+            ));
+        }
+        let before = context.history.clone();
+        let sink = CaptureSink::failing_compaction();
+
+        let error = compact(executor.llm.as_ref(), &mut context, &sink)
+            .await
+            .unwrap_err();
+
+        assert!(error
+            .to_string()
+            .contains("injected compaction persistence failure"));
+        assert_eq!(context.history, before);
+        assert_eq!(sink.compactions().len(), 1);
     }
 
     #[tokio::test]

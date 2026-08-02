@@ -89,6 +89,9 @@ const (
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_FILE               SessionMessagePartType = 10
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION SessionMessagePartType = 11
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT  SessionMessagePartType = 12
+	// Internal durable-context boundary. This is never returned through public
+	// SessionMessage APIs and points at a compacted-summary CAS object.
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_COMPACTION SessionMessagePartType = 13
 )
 
 // Enum value maps for SessionMessagePartType.
@@ -107,6 +110,7 @@ var (
 		10: "SESSION_MESSAGE_PART_TYPE_FILE",
 		11: "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION",
 		12: "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT",
+		13: "SESSION_MESSAGE_PART_TYPE_COMPACTION",
 	}
 	SessionMessagePartType_value = map[string]int32{
 		"SESSION_MESSAGE_PART_TYPE_UNSPECIFIED":        0,
@@ -122,6 +126,7 @@ var (
 		"SESSION_MESSAGE_PART_TYPE_FILE":               10,
 		"SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION": 11,
 		"SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT":  12,
+		"SESSION_MESSAGE_PART_TYPE_COMPACTION":         13,
 	}
 )
 
@@ -2043,7 +2048,7 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tROLE_USER\x10\x01\x12\x12\n" +
 	"\x0eROLE_ASSISTANT\x10\x02\x12\x0f\n" +
-	"\vROLE_SYSTEM\x10\x03*\xa4\x04\n" +
+	"\vROLE_SYSTEM\x10\x03*\xce\x04\n" +
 	"\x16SessionMessagePartType\x12)\n" +
 	"%SESSION_MESSAGE_PART_TYPE_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eSESSION_MESSAGE_PART_TYPE_TEXT\x10\x01\x12'\n" +
@@ -2058,7 +2063,8 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x1eSESSION_MESSAGE_PART_TYPE_FILE\x10\n" +
 	"\x120\n" +
 	",SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION\x10\v\x12/\n" +
-	"+SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT\x10\f*\xed\x01\n" +
+	"+SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT\x10\f\x12(\n" +
+	"$SESSION_MESSAGE_PART_TYPE_COMPACTION\x10\r*\xed\x01\n" +
 	"\tGoalPhase\x12\x1a\n" +
 	"\x16GOAL_PHASE_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12GOAL_PHASE_RUNNING\x10\x01\x12\x15\n" +

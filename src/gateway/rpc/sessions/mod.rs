@@ -55,6 +55,19 @@ fn merge_update_session_message_labels(
     labels
 }
 
+/// Leave compaction boundaries visible to session clients without exposing the
+/// summary object's CAS reference or the internal reconstruction anchors.
+fn redact_compaction_parts(message: &mut data_proto::SessionMessage) {
+    for part in &mut message.parts {
+        if part.part_type == data_proto::SessionMessagePartType::Compaction as i32 {
+            part.content.clear();
+            part.name.clear();
+            part.payload_json.clear();
+            part.object = None;
+        }
+    }
+}
+
 // Session creation charges namespace/agent usage; provider/model are only used
 // by LLM metrics and intentionally stay empty here.
 fn namespace_usage_subject(
@@ -209,6 +222,14 @@ async fn collect_session_tool_result_object_keys(
             }
         };
         for part in &message.parts {
+            if part.part_type == data_proto::SessionMessagePartType::Compaction as i32 {
+                collect_tool_result_object_key(
+                    part.object.as_ref(),
+                    &expected_prefix,
+                    agent,
+                    &mut keys_to_delete,
+                );
+            }
             if part.part_type == data_proto::SessionMessagePartType::ToolResult as i32 {
                 collect_tool_result_object_key(
                     part.object.as_ref(),
@@ -295,6 +316,24 @@ async fn collect_session_tool_result_object_keys(
                         &mut keys_to_delete,
                     );
                 }
+            }
+            if let Some(compaction) = entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+                .and_then(|payload| match payload {
+                    data_proto::session_journal_entry_payload::Payload::Compaction(payload) => {
+                        payload.summary_object.as_ref()
+                    }
+                    _ => None,
+                })
+            {
+                collect_tool_result_object_key(
+                    Some(compaction),
+                    &expected_prefix,
+                    agent,
+                    &mut keys_to_delete,
+                );
             }
         }
     }
@@ -823,7 +862,10 @@ impl GrpcGatewayHandler {
                         }
 
                         match data_proto::SessionMessage::decode(bytes.as_slice()) {
-                            Ok(msg) => messages.push(msg),
+                            Ok(mut msg) => {
+                                redact_compaction_parts(&mut msg);
+                                messages.push(msg)
+                            }
                             Err(e) => {
                                 tracing::error!(
                                     ns = %req.ns,
@@ -939,7 +981,18 @@ impl GrpcGatewayHandler {
 
             // Continue from the last key returned, regardless of whether it was
             // a message key or another nested descendant.
-            scan_before_name = entries.last().map(|(key, _)| key.name.clone());
+            let next_scan_before_name = entries.last().map(|(key, _)| key.name.clone());
+            if next_scan_before_name == scan_before_name {
+                tracing::warn!(
+                    ns = %req.ns,
+                    agent = %req.agent,
+                    session_id = %req.session_id,
+                    cursor = ?scan_before_name,
+                    "session message pagination made no progress"
+                );
+                break;
+            }
+            scan_before_name = next_scan_before_name;
 
             let remaining = target_message_count.saturating_sub(items.len());
             let mut page_messages = Vec::with_capacity(remaining);
@@ -975,6 +1028,8 @@ impl GrpcGatewayHandler {
                     }
                 };
 
+                let mut message = message;
+                redact_compaction_parts(&mut message);
                 page_messages.push(message);
             }
 
@@ -2026,6 +2081,53 @@ mod tests {
         }
     }
 
+    fn compaction_summary_metadata(
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        submission_id: &str,
+        journal_entry_id: &str,
+    ) -> ObjectMetadata {
+        ObjectMetadata {
+            media_type: "text/markdown; charset=utf-8".to_string(),
+            filename: format!("{journal_entry_id}.txt"),
+            metadata: HashMap::from([
+                ("kind".to_string(), "session_compaction".to_string()),
+                ("namespace".to_string(), ns.to_string()),
+                ("agent".to_string(), agent.to_string()),
+                ("session_id".to_string(), session_id.to_string()),
+                ("submission_id".to_string(), submission_id.to_string()),
+                ("journal_entry_id".to_string(), journal_entry_id.to_string()),
+            ]),
+            ..Default::default()
+        }
+    }
+
+    fn text_and_compaction_parts(
+        summary_object: data_proto::ObjectRef,
+    ) -> Vec<data_proto::SessionMessagePart> {
+        vec![
+            data_proto::SessionMessagePart {
+                id: "part-text".to_string(),
+                part_type: data_proto::SessionMessagePartType::Text as i32,
+                content: "visible response".to_string(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: 1,
+                object: None,
+            },
+            data_proto::SessionMessagePart {
+                id: "part-compaction".to_string(),
+                part_type: data_proto::SessionMessagePartType::Compaction as i32,
+                content: String::new(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: 2,
+                object: Some(summary_object),
+            },
+        ]
+    }
+
     #[tokio::test]
     async fn list_sessions_orders_session_ids_by_desc_key_order() {
         let kv = Arc::new(MockKvStore::default());
@@ -2076,6 +2178,171 @@ mod tests {
             .into_inner();
 
         assert_eq!(response.session_ids, vec!["session-z", "session-a"]);
+    }
+
+    #[tokio::test]
+    async fn get_session_exposes_redacted_compaction_marker() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, "message-1"),
+            &data_proto::SessionMessage {
+                id: "message-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: Default::default(),
+                parts: text_and_compaction_parts(data_proto::ObjectRef {
+                    key: "cas/conic/sessions/session-1/compactions/submission-1/000001.txt"
+                        .to_string(),
+                    ..Default::default()
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+                message_limit: 0,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert_eq!(response.messages.len(), 1);
+        assert_eq!(response.messages[0].parts.len(), 2);
+        assert_eq!(
+            response.messages[0].parts[0].part_type,
+            data_proto::SessionMessagePartType::Text as i32
+        );
+        assert_eq!(response.messages[0].parts[0].content, "visible response");
+        let marker = &response.messages[0].parts[1];
+        assert_eq!(
+            marker.part_type,
+            data_proto::SessionMessagePartType::Compaction as i32
+        );
+        assert!(marker.content.is_empty());
+        assert!(marker.name.is_empty());
+        assert!(marker.payload_json.is_empty());
+        assert!(marker.object.is_none());
+    }
+
+    #[tokio::test]
+    async fn list_session_messages_exposes_redacted_compaction_marker() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, "message-1"),
+            &data_proto::SessionMessage {
+                id: "message-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: Default::default(),
+                parts: text_and_compaction_parts(data_proto::ObjectRef {
+                    key: "cas/conic/sessions/session-1/compactions/submission-1/000001.txt"
+                        .to_string(),
+                    ..Default::default()
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_list_session_messages(tonic::Request::new(proto::ListSessionMessagesRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+                page_size: 10,
+                before_message_id: None,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert_eq!(response.items.len(), 1);
+        let message = response.items[0].message.as_ref().unwrap();
+        assert_eq!(message.parts.len(), 2);
+        assert_eq!(
+            message.parts[0].part_type,
+            data_proto::SessionMessagePartType::Text as i32
+        );
+        assert_eq!(message.parts[0].content, "visible response");
+        let marker = &message.parts[1];
+        assert_eq!(
+            marker.part_type,
+            data_proto::SessionMessagePartType::Compaction as i32
+        );
+        assert!(marker.content.is_empty());
+        assert!(marker.name.is_empty());
+        assert!(marker.payload_json.is_empty());
+        assert!(marker.object.is_none());
+    }
+
+    #[tokio::test]
+    async fn delete_session_removes_compaction_summary_referenced_by_session_message() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let submission_id = "submission-1";
+        let journal_entry_id = "000001";
+        let object_key = "cas/conic/sessions/session-1/compactions/submission-1/000001.txt";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        let summary_object = handler
+            .gateway
+            .objects
+            .put(
+                object_key,
+                b"# Compaction summary\n\nCompleted work.",
+                compaction_summary_metadata(ns, agent, session_id, submission_id, journal_entry_id),
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, "message-1"),
+            &data_proto::SessionMessage {
+                id: "message-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: Default::default(),
+                parts: text_and_compaction_parts(summary_object),
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(handler
+            .gateway
+            .objects
+            .get(object_key)
+            .await
+            .unwrap()
+            .is_none());
     }
 
     #[tokio::test]

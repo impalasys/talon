@@ -159,20 +159,64 @@ def openrouter_parser(provider: str, item: dict[str, Any]) -> dict[str, Any] | N
 
 
 def novita_parser(provider: str, item: dict[str, Any]) -> dict[str, Any] | None:
+    if not novita_supports_tool_calling(item):
+        return None
     result = generic_parser(provider, item)
     if result is None:
         return None
-    # Novita documents these as prices per million tokens.  Keep the API's
-    # numeric unit unchanged; unlike OpenRouter its values are not per-token
-    # decimal strings.
+    # Novita reports prices in ten-thousandths of a USD per million tokens:
+    # e.g. 1400 means $0.14/M.  Talon's catalog convention is USD/M.
     for source, destination in (
         ("input_token_price_per_m", "inputCostPerMillionTokens"),
         ("output_token_price_per_m", "outputCostPerMillionTokens"),
     ):
         value = number(item.get(source))
         if value is not None:
-            result["record"][destination] = value
+            result["record"][destination] = value / 10_000
     return result
+
+
+def novita_supports_tool_calling(item: dict[str, Any]) -> bool:
+    """Return true only when Novita explicitly advertises tool calling.
+
+    Novita's catalog metadata has used both boolean capability fields and
+    feature/capability lists.  Do not infer support from a model family: an
+    unsupported model causes the OpenAI-compatible endpoint to reject the
+    entire request when tools are present.
+    """
+    boolean_fields = (
+        "function_calling",
+        "functionCalling",
+        "supports_function_calling",
+        "supportsFunctionCalling",
+        "tool_calling",
+        "toolCalling",
+        "supports_tool_calling",
+        "supportsToolCalling",
+    )
+    for container in (item, item.get("capabilities"), item.get("features")):
+        if not isinstance(container, dict):
+            continue
+        if any(container.get(field) is True for field in boolean_fields):
+            return True
+
+    tool_features = {
+        "function_calling",
+        "function-calling",
+        "functioncalling",
+        "tool_calling",
+        "tool-calling",
+        "toolcalling",
+        "tools",
+    }
+    for field in ("capabilities", "features", "supported_features", "supportedFeatures"):
+        value = item.get(field)
+        if isinstance(value, list) and any(
+            isinstance(feature, str) and feature.strip().lower() in tool_features
+            for feature in value
+        ):
+            return True
+    return False
 
 
 def fireworks_parser(provider: str, item: dict[str, Any]) -> dict[str, Any] | None:
