@@ -39,22 +39,10 @@ message ChatMessage {
   optional string tool_call_id = 4;
 }
 
-message ChatUsage {
-  // Prompt/input tokens reported by the model provider.
-  uint64 input_tokens = 1;
-  // Non-reasoning output tokens. When a provider reports completion tokens
-  // inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
-  uint64 output_tokens = 2;
-  // Reasoning/thinking output tokens reported separately by the provider.
-  uint64 reasoning_tokens = 3;
-  // Provider total tokens when available; otherwise input + output + reasoning.
-  uint64 total_tokens = 4;
-}
-
 message ChatResponse {
   string content = 1;
   repeated ToolCall tool_calls = 2;
-  optional ChatUsage usage = 3;
+  optional talon.data.TokenCounter usage = 3;
 }
 
 message Tool {
@@ -75,6 +63,6 @@ message ChatStreamEvent {
     string text_delta = 1;
     string reasoning_delta = 2;
     ToolCallDelta tool_call_delta = 3;
-    ChatUsage usage = 4;
+    talon.data.TokenCounter usage = 4;
   }
 }

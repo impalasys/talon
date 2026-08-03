@@ -567,6 +567,7 @@ mod tests {
                 last_active: 0,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await

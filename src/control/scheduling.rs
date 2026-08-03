@@ -566,6 +566,7 @@ pub async fn create_session_with_labels(
         last_active: chrono::Utc::now().timestamp_micros(),
         metadata: std::collections::HashMap::new(),
         labels,
+        context_tokens: None,
     };
     cp.kv
         .set_msg(&keys::session(ns, agent, &session_id), &session)
@@ -1378,6 +1379,7 @@ mod tests {
             last_active: 0,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            context_tokens: None,
         };
         kv.set_msg(
             &keys::session("conic:test", "assistant", "session-1"),
@@ -1487,6 +1489,7 @@ mod tests {
             last_active: 0,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            context_tokens: None,
         };
         kv.set_msg(
             &keys::session("conic:test", "assistant", "session-1"),
@@ -1793,6 +1796,7 @@ mod tests {
             last_active: 0,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            context_tokens: None,
         };
         kv.set_msg(
             &keys::session("conic:test", "assistant", "session-1"),

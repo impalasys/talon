@@ -2304,6 +2304,7 @@ mod tests {
                 last_active: 100,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
@@ -2319,6 +2320,7 @@ mod tests {
                 last_active: 200,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
