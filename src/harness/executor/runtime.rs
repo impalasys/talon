@@ -726,6 +726,7 @@ impl AgentExecutor {
     ) -> Option<u64> {
         let counter = prior_context_tokens.filter(|counter| {
             counter.usage_available
+                && counter.input_tokens > 0
                 && counter.provider == self.llm_provider_key
                 && counter.model == self.llm_model
         })?;
@@ -816,7 +817,9 @@ impl AgentExecutor {
                     estimated_context_tokens,
                     model_limits.effective_input_tokens(),
                 ) {
-                    (Some(estimated_tokens), Some(input_budget)) => estimated_tokens > input_budget,
+                    (Some(estimated_tokens), Some(input_budget)) => {
+                        estimated_tokens > input_budget || estimated_context_budget > durable_budget
+                    }
                     _ => estimated_context_budget > durable_budget,
                 };
 
@@ -2745,6 +2748,36 @@ mod tests {
         assert_eq!(
             executor.estimate_context_input_tokens(&context, Some(&counter), None),
             Some(100 + delta_tokens)
+        );
+    }
+
+    #[test]
+    fn provider_snapshot_estimate_requires_reported_input_tokens() {
+        let executor = AgentExecutor::new(
+            Arc::new(RecordingLlmProvider::default()),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
+            Arc::new(Config::default()),
+            "ns".to_string(),
+            "agent".to_string(),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+        let context =
+            ExecutionContext::with_history("agent", vec![LoopMessage::text("user", "new message")]);
+        let counter = TokenCounter {
+            usage_available: true,
+            provider: "test-provider".to_string(),
+            model: "test-model".to_string(),
+            ..Default::default()
+        };
+
+        assert_eq!(
+            executor.estimate_context_input_tokens(&context, Some(&counter), None),
+            None
         );
     }
 
