@@ -107,7 +107,7 @@ class ListSessionsResponse(_message.Message):
     def __init__(self, session_ids: _Optional[_Iterable[str]] = ..., sessions: _Optional[_Iterable[_Union[SessionListItem, _Mapping]]] = ...) -> None: ...
 
 class SessionResponse(_message.Message):
-    __slots__ = ("session_id", "agent", "state", "messages", "labels")
+    __slots__ = ("session_id", "agent", "state", "messages", "labels", "context_tokens")
     class LabelsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -120,12 +120,14 @@ class SessionResponse(_message.Message):
     STATE_FIELD_NUMBER: _ClassVar[int]
     MESSAGES_FIELD_NUMBER: _ClassVar[int]
     LABELS_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_TOKENS_FIELD_NUMBER: _ClassVar[int]
     session_id: str
     agent: str
     state: str
     messages: _containers.RepeatedCompositeFieldContainer[_data_pb2.SessionMessage]
     labels: _containers.ScalarMap[str, str]
-    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., state: _Optional[str] = ..., messages: _Optional[_Iterable[_Union[_data_pb2.SessionMessage, _Mapping]]] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    context_tokens: _data_pb2.TokenCounter
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., state: _Optional[str] = ..., messages: _Optional[_Iterable[_Union[_data_pb2.SessionMessage, _Mapping]]] = ..., labels: _Optional[_Mapping[str, str]] = ..., context_tokens: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ...) -> None: ...
 
 class DeleteSessionRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns")

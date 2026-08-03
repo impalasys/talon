@@ -119,6 +119,15 @@ pub async fn append_llm_response(
     response: &ChatResponse,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
+    ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
+    if let Some(counter) = response.usage.as_ref() {
+        if let Some(existing) =
+            existing_context_entry_for_request(kv, ns, agent, session_id, counter).await?
+        {
+            log_duplicate_context_entry(&existing.0, &existing.1, counter);
+            return Ok(existing.0);
+        }
+    }
     append_journal_entry(
         kv,
         ns,
@@ -150,6 +159,13 @@ pub async fn append_llm_usage(
     counter: &TokenCounter,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
+    ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
+    if let Some(existing) =
+        existing_context_entry_for_request(kv, ns, agent, session_id, counter).await?
+    {
+        log_duplicate_context_entry(&existing.0, &existing.1, counter);
+        return Ok(existing.0);
+    }
     append_journal_entry(
         kv,
         ns,
@@ -172,16 +188,101 @@ pub async fn append_llm_usage(
 }
 
 pub fn latest_context_tokens(entries: &[SessionJournalEntry]) -> Option<TokenCounter> {
-    entries.iter().rev().find_map(|entry| {
-        let payload = entry.payload.as_ref()?.payload.as_ref()?;
-        match payload {
-            session_journal_entry_payload::Payload::LlmResponse(response) => {
-                response.response.as_ref()?.usage.clone()
-            }
-            session_journal_entry_payload::Payload::LlmUsage(usage) => usage.context_tokens.clone(),
-            _ => None,
+    latest_context_token_entry(entries).map(|(_, counter)| counter)
+}
+
+pub fn latest_context_token_entry(
+    entries: &[SessionJournalEntry],
+) -> Option<(SessionJournalEntry, TokenCounter)> {
+    entries
+        .iter()
+        .rev()
+        .find_map(|entry| context_tokens(entry).map(|counter| (entry.clone(), counter)))
+}
+
+pub fn context_tokens(entry: &SessionJournalEntry) -> Option<TokenCounter> {
+    let payload = entry.payload.as_ref()?.payload.as_ref()?;
+    match payload {
+        session_journal_entry_payload::Payload::LlmResponse(response) => {
+            response.response.as_ref()?.usage.clone()
         }
-    })
+        session_journal_entry_payload::Payload::LlmUsage(usage) => usage.context_tokens.clone(),
+        _ => None,
+    }
+}
+
+async fn existing_context_entry_for_request(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    counter: &TokenCounter,
+) -> Result<Option<(SessionJournalEntry, TokenCounter)>> {
+    let Some(request_id) = counter
+        .provider_request_id
+        .as_deref()
+        .filter(|request_id| !request_id.is_empty())
+    else {
+        return Ok(None);
+    };
+
+    let mut matches = Vec::new();
+    for submission_key in kv
+        .list_keys(
+            &keys::session_submission_prefix(ns, agent, session_id),
+            None,
+        )
+        .await?
+    {
+        for (_, bytes) in kv
+            .list_entries(
+                &keys::session_journal_entry_prefix(ns, agent, session_id, &submission_key.name),
+                None,
+            )
+            .await?
+        {
+            let entry = SessionJournalEntry::decode(bytes.as_slice())?;
+            let Some(entry_counter) = context_tokens(&entry) else {
+                continue;
+            };
+            if entry_counter.provider_request_id.as_deref() == Some(request_id) {
+                matches.push((entry, entry_counter));
+            }
+        }
+    }
+
+    matches.sort_by(|(left, _), (right, _)| {
+        left.created_at
+            .cmp(&right.created_at)
+            .then_with(|| left.submission_id.cmp(&right.submission_id))
+            .then_with(|| {
+                journal_entry_order(&left.journal_entry_id)
+                    .cmp(&journal_entry_order(&right.journal_entry_id))
+            })
+    });
+    Ok(matches.into_iter().next())
+}
+
+fn log_duplicate_context_entry(
+    existing_entry: &SessionJournalEntry,
+    existing_counter: &TokenCounter,
+    incoming_counter: &TokenCounter,
+) {
+    if existing_counter == incoming_counter {
+        tracing::warn!(
+            provider_request_id = ?incoming_counter.provider_request_id,
+            submission = %existing_entry.submission_id,
+            journal_entry_id = %existing_entry.journal_entry_id,
+            "ignored duplicate provider token snapshot"
+        );
+    } else {
+        tracing::warn!(
+            provider_request_id = ?incoming_counter.provider_request_id,
+            submission = %existing_entry.submission_id,
+            journal_entry_id = %existing_entry.journal_entry_id,
+            "ignored conflicting duplicate provider token snapshot; preserving first journaled snapshot"
+        );
+    }
 }
 
 pub async fn append_tool_result(

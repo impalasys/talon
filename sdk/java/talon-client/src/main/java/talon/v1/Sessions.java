@@ -7588,6 +7588,21 @@ java.lang.String defaultValue);
      */
     java.lang.String getLabelsOrThrow(
         java.lang.String key);
+
+    /**
+     * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+     * @return Whether the contextTokens field is set.
+     */
+    boolean hasContextTokens();
+    /**
+     * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+     * @return The contextTokens.
+     */
+    talon.data.Data.TokenCounter getContextTokens();
+    /**
+     * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+     */
+    talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder();
   }
   /**
    * Protobuf type {@code talon.v1.SessionResponse}
@@ -7647,6 +7662,7 @@ java.lang.String defaultValue);
               talon.v1.Sessions.SessionResponse.class, talon.v1.Sessions.SessionResponse.Builder.class);
     }
 
+    private int bitField0_;
     public static final int SESSION_ID_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
     private volatile java.lang.Object sessionId_ = "";
@@ -7884,6 +7900,32 @@ java.lang.String defaultValue) {
       return map.get(key);
     }
 
+    public static final int CONTEXT_TOKENS_FIELD_NUMBER = 7;
+    private talon.data.Data.TokenCounter contextTokens_;
+    /**
+     * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+     * @return Whether the contextTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasContextTokens() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+     * @return The contextTokens.
+     */
+    @java.lang.Override
+    public talon.data.Data.TokenCounter getContextTokens() {
+      return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
+    }
+    /**
+     * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+     */
+    @java.lang.Override
+    public talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder() {
+      return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -7916,6 +7958,9 @@ java.lang.String defaultValue) {
           internalGetLabels(),
           LabelsDefaultEntryHolder.defaultEntry,
           6);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(7, getContextTokens());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -7953,6 +7998,10 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(6, labels__);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, getContextTokens());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -7978,6 +8027,11 @@ java.lang.String defaultValue) {
           .equals(other.getMessagesList())) return false;
       if (!internalGetLabels().equals(
           other.internalGetLabels())) return false;
+      if (hasContextTokens() != other.hasContextTokens()) return false;
+      if (hasContextTokens()) {
+        if (!getContextTokens()
+            .equals(other.getContextTokens())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -8002,6 +8056,10 @@ java.lang.String defaultValue) {
       if (!internalGetLabels().getMap().isEmpty()) {
         hash = (37 * hash) + LABELS_FIELD_NUMBER;
         hash = (53 * hash) + internalGetLabels().hashCode();
+      }
+      if (hasContextTokens()) {
+        hash = (37 * hash) + CONTEXT_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + getContextTokens().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -8144,13 +8202,20 @@ java.lang.String defaultValue) {
 
       // Construct using talon.v1.Sessions.SessionResponse.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetMessagesFieldBuilder();
+          internalGetContextTokensFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -8167,6 +8232,11 @@ java.lang.String defaultValue) {
         }
         bitField0_ = (bitField0_ & ~0x00000008);
         internalGetMutableLabels().clear();
+        contextTokens_ = null;
+        if (contextTokensBuilder_ != null) {
+          contextTokensBuilder_.dispose();
+          contextTokensBuilder_ = null;
+        }
         return this;
       }
 
@@ -8226,6 +8296,14 @@ java.lang.String defaultValue) {
           result.labels_ = internalGetLabels();
           result.labels_.makeImmutable();
         }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.contextTokens_ = contextTokensBuilder_ == null
+              ? contextTokens_
+              : contextTokensBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -8284,6 +8362,9 @@ java.lang.String defaultValue) {
         internalGetMutableLabels().mergeFrom(
             other.internalGetLabels());
         bitField0_ |= 0x00000010;
+        if (other.hasContextTokens()) {
+          mergeContextTokens(other.getContextTokens());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -8347,6 +8428,13 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 50
+              case 58: {
+                input.readMessage(
+                    internalGetContextTokensFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 58
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -8945,6 +9033,127 @@ java.lang.String defaultValue) {
             .putAll(values);
         bitField0_ |= 0x00000010;
         return this;
+      }
+
+      private talon.data.Data.TokenCounter contextTokens_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder> contextTokensBuilder_;
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       * @return Whether the contextTokens field is set.
+       */
+      public boolean hasContextTokens() {
+        return ((bitField0_ & 0x00000020) != 0);
+      }
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       * @return The contextTokens.
+       */
+      public talon.data.Data.TokenCounter getContextTokens() {
+        if (contextTokensBuilder_ == null) {
+          return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
+        } else {
+          return contextTokensBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       */
+      public Builder setContextTokens(talon.data.Data.TokenCounter value) {
+        if (contextTokensBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          contextTokens_ = value;
+        } else {
+          contextTokensBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       */
+      public Builder setContextTokens(
+          talon.data.Data.TokenCounter.Builder builderForValue) {
+        if (contextTokensBuilder_ == null) {
+          contextTokens_ = builderForValue.build();
+        } else {
+          contextTokensBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       */
+      public Builder mergeContextTokens(talon.data.Data.TokenCounter value) {
+        if (contextTokensBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) != 0) &&
+            contextTokens_ != null &&
+            contextTokens_ != talon.data.Data.TokenCounter.getDefaultInstance()) {
+            getContextTokensBuilder().mergeFrom(value);
+          } else {
+            contextTokens_ = value;
+          }
+        } else {
+          contextTokensBuilder_.mergeFrom(value);
+        }
+        if (contextTokens_ != null) {
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       */
+      public Builder clearContextTokens() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        contextTokens_ = null;
+        if (contextTokensBuilder_ != null) {
+          contextTokensBuilder_.dispose();
+          contextTokensBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       */
+      public talon.data.Data.TokenCounter.Builder getContextTokensBuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return internalGetContextTokensFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       */
+      public talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder() {
+        if (contextTokensBuilder_ != null) {
+          return contextTokensBuilder_.getMessageOrBuilder();
+        } else {
+          return contextTokens_ == null ?
+              talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
+        }
+      }
+      /**
+       * <code>optional .talon.data.TokenCounter context_tokens = 7;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>
+          internalGetContextTokensFieldBuilder() {
+        if (contextTokensBuilder_ == null) {
+          contextTokensBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>(
+                  getContextTokens(),
+                  getParentForChildren(),
+                  isClean());
+          contextTokens_ = null;
+        }
+        return contextTokensBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.v1.SessionResponse)
@@ -24088,88 +24297,90 @@ java.lang.String defaultValue) {
       "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"X\n\024ListSe" +
       "ssionsResponse\022\023\n\013session_ids\030\001 \003(\t\022+\n\010s" +
       "essions\030\002 \003(\0132\031.talon.v1.SessionListItem" +
-      "\"\344\001\n\017SessionResponse\022\022\n\nsession_id\030\001 \001(\t" +
+      "\"\256\002\n\017SessionResponse\022\022\n\nsession_id\030\001 \001(\t" +
       "\022\r\n\005agent\030\002 \001(\t\022\r\n\005state\030\003 \001(\t\022,\n\010messag" +
       "es\030\004 \003(\0132\032.talon.data.SessionMessage\0225\n\006" +
       "labels\030\006 \003(\0132%.talon.v1.SessionResponse." +
-      "LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001J\004\010\005\020\006R\005steps\"E\n\024Delet" +
-      "eSessionRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005a" +
-      "gent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"(\n\025DeleteSessionR" +
-      "esponse\022\017\n\007success\030\001 \001(\010\"D\n\023ClearSession" +
-      "Request\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001" +
-      "(\t\022\n\n\002ns\030\003 \001(\t\"\'\n\024ClearSessionResponse\022\017" +
-      "\n\007success\030\001 \001(\010\"\345\001\n\030SubmitSessionTurnReq" +
-      "uest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022" +
-      "\n\n\002ns\030\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.dat" +
-      "a.SessionMessage\022>\n\006labels\030\005 \003(\0132..talon" +
-      ".v1.SubmitSessionTurnRequest.LabelsEntry" +
-      "\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
-      "\001(\t:\0028\001\"\275\001\n\022SendMessageRequest\022\022\n\nsessio" +
-      "n_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\017\n" +
-      "\007message\030\004 \001(\t\0228\n\006labels\030\005 \003(\0132(.talon.v" +
-      "1.SendMessageRequest.LabelsEntry\032-\n\013Labe" +
-      "lsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"" +
-      "8\n\023SendMessageResponse\022\r\n\005reply\030\001 \001(\t\022\022\n" +
-      "\nsession_id\030\004 \001(\t\"y\n\033AppendSessionMessag" +
-      "eRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 " +
-      "\001(\t\022\n\n\002ns\030\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon" +
-      ".data.SessionMessage\"_\n\034AppendSessionMes" +
-      "sageResponse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007mess" +
-      "age\030\002 \001(\0132\032.talon.data.SessionMessage\"\201\002" +
-      "\n\033UpdateSessionMessageRequest\022\022\n\nsession" +
-      "_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\n" +
-      "message_id\030\004 \001(\t\022-\n\005parts\030\005 \003(\0132\036.talon." +
-      "data.SessionMessagePart\022A\n\006labels\030\006 \003(\0132" +
-      "1.talon.v1.UpdateSessionMessageRequest.L" +
-      "abelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r" +
-      "\n\005value\030\002 \001(\t:\0028\001\"_\n\034UpdateSessionMessag" +
-      "eResponse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007message" +
-      "\030\002 \001(\0132\032.talon.data.SessionMessage\"\233\001\n\036A" +
-      "nswerSessionPermissionRequest\022\022\n\nsession" +
-      "_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\n" +
-      "request_id\030\004 \001(\t\022\017\n\007outcome\030\005 \001(\t\022\021\n\topt" +
-      "ion_id\030\006 \001(\t\022\022\n\ndecided_by\030\007 \001(\t\"m\n\037Answ" +
-      "erSessionPermissionResponse\022\022\n\nsession_i" +
-      "d\030\001 \001(\t\022\022\n\nrequest_id\030\002 \001(\t\022\017\n\007outcome\030\003" +
-      " \001(\t\022\021\n\toption_id\030\004 \001(\t\"M\n\034StopSessionGe" +
-      "nerationRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005a" +
-      "gent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"0\n\035StopSessionGen" +
-      "erationResponse\022\017\n\007success\030\001 \001(\010\"J\n\031Stre" +
-      "amSessionPartsRequest\022\022\n\nsession_id\030\001 \001(" +
-      "\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSe" +
-      "ssionPartsBatchRequest\022\025\n\rsession_names\030" +
-      "\001 \003(\t2\302\t\n\016SessionService\022C\n\006Create\022\036.tal" +
-      "on.v1.CreateSessionRequest\032\031.talon.v1.Se" +
-      "ssionResponse\022=\n\003Get\022\033.talon.v1.GetSessi" +
-      "onRequest\032\031.talon.v1.SessionResponse\022E\n\004" +
-      "List\022\035.talon.v1.ListSessionsRequest\032\036.ta" +
-      "lon.v1.ListSessionsResponse\022[\n\014ListMessa" +
-      "ges\022$.talon.v1.ListSessionMessagesReques" +
-      "t\032%.talon.v1.ListSessionMessagesResponse" +
-      "\022I\n\006Delete\022\036.talon.v1.DeleteSessionReque" +
-      "st\032\037.talon.v1.DeleteSessionResponse\022F\n\005C" +
-      "lear\022\035.talon.v1.ClearSessionRequest\032\036.ta" +
-      "lon.v1.ClearSessionResponse\022J\n\013SendMessa" +
-      "ge\022\034.talon.v1.SendMessageRequest\032\035.talon" +
-      ".v1.SendMessageResponse\022^\n\rAppendMessage" +
-      "\022%.talon.v1.AppendSessionMessageRequest\032" +
-      "&.talon.v1.AppendSessionMessageResponse\022" +
-      "^\n\rUpdateMessage\022%.talon.v1.UpdateSessio" +
-      "nMessageRequest\032&.talon.v1.UpdateSession" +
-      "MessageResponse\022g\n\020AnswerPermission\022(.ta" +
-      "lon.v1.AnswerSessionPermissionRequest\032)." +
-      "talon.v1.AnswerSessionPermissionResponse" +
-      "\022a\n\016StopGeneration\022&.talon.v1.StopSessio" +
-      "nGenerationRequest\032\'.talon.v1.StopSessio" +
-      "nGenerationResponse\022[\n\013StreamParts\022#.tal" +
-      "on.v1.StreamSessionPartsRequest\032%.talon." +
-      "events.SessionMessagePartEvent0\001\022e\n\020Stre" +
-      "amPartsBatch\022(.talon.v1.StreamSessionPar" +
-      "tsBatchRequest\032%.talon.events.SessionMes" +
-      "sagePartEvent0\001\022Y\n\nSubmitTurn\022\".talon.v1" +
-      ".SubmitSessionTurnRequest\032%.talon.events" +
-      ".SessionMessagePartEvent0\001b\006proto3"
+      "LabelsEntry\0225\n\016context_tokens\030\007 \001(\0132\030.ta" +
+      "lon.data.TokenCounterH\000\210\001\001\032-\n\013LabelsEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\021\n\017_co" +
+      "ntext_tokensJ\004\010\005\020\006R\005steps\"E\n\024DeleteSessi" +
+      "onRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002" +
+      " \001(\t\022\n\n\002ns\030\003 \001(\t\"(\n\025DeleteSessionRespons" +
+      "e\022\017\n\007success\030\001 \001(\010\"D\n\023ClearSessionReques" +
+      "t\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
+      "ns\030\003 \001(\t\"\'\n\024ClearSessionResponse\022\017\n\007succ" +
+      "ess\030\001 \001(\010\"\345\001\n\030SubmitSessionTurnRequest\022\022" +
+      "\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030" +
+      "\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.data.Sess" +
+      "ionMessage\022>\n\006labels\030\005 \003(\0132..talon.v1.Su" +
+      "bmitSessionTurnRequest.LabelsEntry\032-\n\013La" +
+      "belsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
+      "\001\"\275\001\n\022SendMessageRequest\022\022\n\nsession_id\030\001" +
+      " \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\017\n\007messa" +
+      "ge\030\004 \001(\t\0228\n\006labels\030\005 \003(\0132(.talon.v1.Send" +
+      "MessageRequest.LabelsEntry\032-\n\013LabelsEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"8\n\023Sen" +
+      "dMessageResponse\022\r\n\005reply\030\001 \001(\t\022\022\n\nsessi" +
+      "on_id\030\004 \001(\t\"y\n\033AppendSessionMessageReque" +
+      "st\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n" +
+      "\002ns\030\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.data." +
+      "SessionMessage\"_\n\034AppendSessionMessageRe" +
+      "sponse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007message\030\002 " +
+      "\001(\0132\032.talon.data.SessionMessage\"\201\002\n\033Upda" +
+      "teSessionMessageRequest\022\022\n\nsession_id\030\001 " +
+      "\001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nmessag" +
+      "e_id\030\004 \001(\t\022-\n\005parts\030\005 \003(\0132\036.talon.data.S" +
+      "essionMessagePart\022A\n\006labels\030\006 \003(\01321.talo" +
+      "n.v1.UpdateSessionMessageRequest.LabelsE" +
+      "ntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
+      "e\030\002 \001(\t:\0028\001\"_\n\034UpdateSessionMessageRespo" +
+      "nse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007message\030\002 \001(\013" +
+      "2\032.talon.data.SessionMessage\"\233\001\n\036AnswerS" +
+      "essionPermissionRequest\022\022\n\nsession_id\030\001 " +
+      "\001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nreques" +
+      "t_id\030\004 \001(\t\022\017\n\007outcome\030\005 \001(\t\022\021\n\toption_id" +
+      "\030\006 \001(\t\022\022\n\ndecided_by\030\007 \001(\t\"m\n\037AnswerSess" +
+      "ionPermissionResponse\022\022\n\nsession_id\030\001 \001(" +
+      "\t\022\022\n\nrequest_id\030\002 \001(\t\022\017\n\007outcome\030\003 \001(\t\022\021" +
+      "\n\toption_id\030\004 \001(\t\"M\n\034StopSessionGenerati" +
+      "onRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002" +
+      " \001(\t\022\n\n\002ns\030\003 \001(\t\"0\n\035StopSessionGeneratio" +
+      "nResponse\022\017\n\007success\030\001 \001(\010\"J\n\031StreamSess" +
+      "ionPartsRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005a" +
+      "gent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSessionP" +
+      "artsBatchRequest\022\025\n\rsession_names\030\001 \003(\t2" +
+      "\302\t\n\016SessionService\022C\n\006Create\022\036.talon.v1." +
+      "CreateSessionRequest\032\031.talon.v1.SessionR" +
+      "esponse\022=\n\003Get\022\033.talon.v1.GetSessionRequ" +
+      "est\032\031.talon.v1.SessionResponse\022E\n\004List\022\035" +
+      ".talon.v1.ListSessionsRequest\032\036.talon.v1" +
+      ".ListSessionsResponse\022[\n\014ListMessages\022$." +
+      "talon.v1.ListSessionMessagesRequest\032%.ta" +
+      "lon.v1.ListSessionMessagesResponse\022I\n\006De" +
+      "lete\022\036.talon.v1.DeleteSessionRequest\032\037.t" +
+      "alon.v1.DeleteSessionResponse\022F\n\005Clear\022\035" +
+      ".talon.v1.ClearSessionRequest\032\036.talon.v1" +
+      ".ClearSessionResponse\022J\n\013SendMessage\022\034.t" +
+      "alon.v1.SendMessageRequest\032\035.talon.v1.Se" +
+      "ndMessageResponse\022^\n\rAppendMessage\022%.tal" +
+      "on.v1.AppendSessionMessageRequest\032&.talo" +
+      "n.v1.AppendSessionMessageResponse\022^\n\rUpd" +
+      "ateMessage\022%.talon.v1.UpdateSessionMessa" +
+      "geRequest\032&.talon.v1.UpdateSessionMessag" +
+      "eResponse\022g\n\020AnswerPermission\022(.talon.v1" +
+      ".AnswerSessionPermissionRequest\032).talon." +
+      "v1.AnswerSessionPermissionResponse\022a\n\016St" +
+      "opGeneration\022&.talon.v1.StopSessionGener" +
+      "ationRequest\032\'.talon.v1.StopSessionGener" +
+      "ationResponse\022[\n\013StreamParts\022#.talon.v1." +
+      "StreamSessionPartsRequest\032%.talon.events" +
+      ".SessionMessagePartEvent0\001\022e\n\020StreamPart" +
+      "sBatch\022(.talon.v1.StreamSessionPartsBatc" +
+      "hRequest\032%.talon.events.SessionMessagePa" +
+      "rtEvent0\001\022Y\n\nSubmitTurn\022\".talon.v1.Submi" +
+      "tSessionTurnRequest\032%.talon.events.Sessi" +
+      "onMessagePartEvent0\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -24242,7 +24453,7 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_SessionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SessionResponse_descriptor,
-        new java.lang.String[] { "SessionId", "Agent", "State", "Messages", "Labels", });
+        new java.lang.String[] { "SessionId", "Agent", "State", "Messages", "Labels", "ContextTokens", });
     internal_static_talon_v1_SessionResponse_LabelsEntry_descriptor =
       internal_static_talon_v1_SessionResponse_descriptor.getNestedType(0);
     internal_static_talon_v1_SessionResponse_LabelsEntry_fieldAccessorTable = new

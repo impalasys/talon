@@ -5037,750 +5037,6 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
   }
 
-  public interface ChatUsageOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.harness.ChatUsage)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <pre>
-     * Prompt/input tokens reported by the model provider.
-     * </pre>
-     *
-     * <code>uint64 input_tokens = 1;</code>
-     * @return The inputTokens.
-     */
-    long getInputTokens();
-
-    /**
-     * <pre>
-     * Non-reasoning output tokens. When a provider reports completion tokens
-     * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
-     * </pre>
-     *
-     * <code>uint64 output_tokens = 2;</code>
-     * @return The outputTokens.
-     */
-    long getOutputTokens();
-
-    /**
-     * <pre>
-     * Reasoning/thinking output tokens reported separately by the provider.
-     * </pre>
-     *
-     * <code>uint64 reasoning_tokens = 3;</code>
-     * @return The reasoningTokens.
-     */
-    long getReasoningTokens();
-
-    /**
-     * <pre>
-     * Provider total tokens when available; otherwise input + output + reasoning.
-     * </pre>
-     *
-     * <code>uint64 total_tokens = 4;</code>
-     * @return The totalTokens.
-     */
-    long getTotalTokens();
-  }
-  /**
-   * Protobuf type {@code talon.harness.ChatUsage}
-   */
-  public static final class ChatUsage extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.harness.ChatUsage)
-      ChatUsageOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ChatUsage");
-    }
-    // Use ChatUsage.newBuilder() to construct.
-    private ChatUsage(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ChatUsage() {
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatUsage_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatUsage_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.harness.Llm.internal_static_talon_harness_ChatUsage_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.harness.Llm.ChatUsage.class, talon.harness.Llm.ChatUsage.Builder.class);
-    }
-
-    public static final int INPUT_TOKENS_FIELD_NUMBER = 1;
-    private long inputTokens_ = 0L;
-    /**
-     * <pre>
-     * Prompt/input tokens reported by the model provider.
-     * </pre>
-     *
-     * <code>uint64 input_tokens = 1;</code>
-     * @return The inputTokens.
-     */
-    @java.lang.Override
-    public long getInputTokens() {
-      return inputTokens_;
-    }
-
-    public static final int OUTPUT_TOKENS_FIELD_NUMBER = 2;
-    private long outputTokens_ = 0L;
-    /**
-     * <pre>
-     * Non-reasoning output tokens. When a provider reports completion tokens
-     * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
-     * </pre>
-     *
-     * <code>uint64 output_tokens = 2;</code>
-     * @return The outputTokens.
-     */
-    @java.lang.Override
-    public long getOutputTokens() {
-      return outputTokens_;
-    }
-
-    public static final int REASONING_TOKENS_FIELD_NUMBER = 3;
-    private long reasoningTokens_ = 0L;
-    /**
-     * <pre>
-     * Reasoning/thinking output tokens reported separately by the provider.
-     * </pre>
-     *
-     * <code>uint64 reasoning_tokens = 3;</code>
-     * @return The reasoningTokens.
-     */
-    @java.lang.Override
-    public long getReasoningTokens() {
-      return reasoningTokens_;
-    }
-
-    public static final int TOTAL_TOKENS_FIELD_NUMBER = 4;
-    private long totalTokens_ = 0L;
-    /**
-     * <pre>
-     * Provider total tokens when available; otherwise input + output + reasoning.
-     * </pre>
-     *
-     * <code>uint64 total_tokens = 4;</code>
-     * @return The totalTokens.
-     */
-    @java.lang.Override
-    public long getTotalTokens() {
-      return totalTokens_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (inputTokens_ != 0L) {
-        output.writeUInt64(1, inputTokens_);
-      }
-      if (outputTokens_ != 0L) {
-        output.writeUInt64(2, outputTokens_);
-      }
-      if (reasoningTokens_ != 0L) {
-        output.writeUInt64(3, reasoningTokens_);
-      }
-      if (totalTokens_ != 0L) {
-        output.writeUInt64(4, totalTokens_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (inputTokens_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(1, inputTokens_);
-      }
-      if (outputTokens_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(2, outputTokens_);
-      }
-      if (reasoningTokens_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(3, reasoningTokens_);
-      }
-      if (totalTokens_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(4, totalTokens_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.harness.Llm.ChatUsage)) {
-        return super.equals(obj);
-      }
-      talon.harness.Llm.ChatUsage other = (talon.harness.Llm.ChatUsage) obj;
-
-      if (getInputTokens()
-          != other.getInputTokens()) return false;
-      if (getOutputTokens()
-          != other.getOutputTokens()) return false;
-      if (getReasoningTokens()
-          != other.getReasoningTokens()) return false;
-      if (getTotalTokens()
-          != other.getTotalTokens()) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + INPUT_TOKENS_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getInputTokens());
-      hash = (37 * hash) + OUTPUT_TOKENS_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getOutputTokens());
-      hash = (37 * hash) + REASONING_TOKENS_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getReasoningTokens());
-      hash = (37 * hash) + TOTAL_TOKENS_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getTotalTokens());
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.harness.Llm.ChatUsage parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.harness.Llm.ChatUsage parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.harness.Llm.ChatUsage parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.harness.Llm.ChatUsage parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.harness.Llm.ChatUsage prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.harness.ChatUsage}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.harness.ChatUsage)
-        talon.harness.Llm.ChatUsageOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatUsage_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatUsage_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.harness.Llm.ChatUsage.class, talon.harness.Llm.ChatUsage.Builder.class);
-      }
-
-      // Construct using talon.harness.Llm.ChatUsage.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        inputTokens_ = 0L;
-        outputTokens_ = 0L;
-        reasoningTokens_ = 0L;
-        totalTokens_ = 0L;
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.harness.Llm.internal_static_talon_harness_ChatUsage_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatUsage getDefaultInstanceForType() {
-        return talon.harness.Llm.ChatUsage.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatUsage build() {
-        talon.harness.Llm.ChatUsage result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.harness.Llm.ChatUsage buildPartial() {
-        talon.harness.Llm.ChatUsage result = new talon.harness.Llm.ChatUsage(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.harness.Llm.ChatUsage result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.inputTokens_ = inputTokens_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.outputTokens_ = outputTokens_;
-        }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.reasoningTokens_ = reasoningTokens_;
-        }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.totalTokens_ = totalTokens_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.harness.Llm.ChatUsage) {
-          return mergeFrom((talon.harness.Llm.ChatUsage)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.harness.Llm.ChatUsage other) {
-        if (other == talon.harness.Llm.ChatUsage.getDefaultInstance()) return this;
-        if (other.getInputTokens() != 0L) {
-          setInputTokens(other.getInputTokens());
-        }
-        if (other.getOutputTokens() != 0L) {
-          setOutputTokens(other.getOutputTokens());
-        }
-        if (other.getReasoningTokens() != 0L) {
-          setReasoningTokens(other.getReasoningTokens());
-        }
-        if (other.getTotalTokens() != 0L) {
-          setTotalTokens(other.getTotalTokens());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 8: {
-                inputTokens_ = input.readUInt64();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 8
-              case 16: {
-                outputTokens_ = input.readUInt64();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 16
-              case 24: {
-                reasoningTokens_ = input.readUInt64();
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 24
-              case 32: {
-                totalTokens_ = input.readUInt64();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 32
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private long inputTokens_ ;
-      /**
-       * <pre>
-       * Prompt/input tokens reported by the model provider.
-       * </pre>
-       *
-       * <code>uint64 input_tokens = 1;</code>
-       * @return The inputTokens.
-       */
-      @java.lang.Override
-      public long getInputTokens() {
-        return inputTokens_;
-      }
-      /**
-       * <pre>
-       * Prompt/input tokens reported by the model provider.
-       * </pre>
-       *
-       * <code>uint64 input_tokens = 1;</code>
-       * @param value The inputTokens to set.
-       * @return This builder for chaining.
-       */
-      public Builder setInputTokens(long value) {
-
-        inputTokens_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Prompt/input tokens reported by the model provider.
-       * </pre>
-       *
-       * <code>uint64 input_tokens = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearInputTokens() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        inputTokens_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long outputTokens_ ;
-      /**
-       * <pre>
-       * Non-reasoning output tokens. When a provider reports completion tokens
-       * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
-       * </pre>
-       *
-       * <code>uint64 output_tokens = 2;</code>
-       * @return The outputTokens.
-       */
-      @java.lang.Override
-      public long getOutputTokens() {
-        return outputTokens_;
-      }
-      /**
-       * <pre>
-       * Non-reasoning output tokens. When a provider reports completion tokens
-       * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
-       * </pre>
-       *
-       * <code>uint64 output_tokens = 2;</code>
-       * @param value The outputTokens to set.
-       * @return This builder for chaining.
-       */
-      public Builder setOutputTokens(long value) {
-
-        outputTokens_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Non-reasoning output tokens. When a provider reports completion tokens
-       * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
-       * </pre>
-       *
-       * <code>uint64 output_tokens = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearOutputTokens() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        outputTokens_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long reasoningTokens_ ;
-      /**
-       * <pre>
-       * Reasoning/thinking output tokens reported separately by the provider.
-       * </pre>
-       *
-       * <code>uint64 reasoning_tokens = 3;</code>
-       * @return The reasoningTokens.
-       */
-      @java.lang.Override
-      public long getReasoningTokens() {
-        return reasoningTokens_;
-      }
-      /**
-       * <pre>
-       * Reasoning/thinking output tokens reported separately by the provider.
-       * </pre>
-       *
-       * <code>uint64 reasoning_tokens = 3;</code>
-       * @param value The reasoningTokens to set.
-       * @return This builder for chaining.
-       */
-      public Builder setReasoningTokens(long value) {
-
-        reasoningTokens_ = value;
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Reasoning/thinking output tokens reported separately by the provider.
-       * </pre>
-       *
-       * <code>uint64 reasoning_tokens = 3;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearReasoningTokens() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        reasoningTokens_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long totalTokens_ ;
-      /**
-       * <pre>
-       * Provider total tokens when available; otherwise input + output + reasoning.
-       * </pre>
-       *
-       * <code>uint64 total_tokens = 4;</code>
-       * @return The totalTokens.
-       */
-      @java.lang.Override
-      public long getTotalTokens() {
-        return totalTokens_;
-      }
-      /**
-       * <pre>
-       * Provider total tokens when available; otherwise input + output + reasoning.
-       * </pre>
-       *
-       * <code>uint64 total_tokens = 4;</code>
-       * @param value The totalTokens to set.
-       * @return This builder for chaining.
-       */
-      public Builder setTotalTokens(long value) {
-
-        totalTokens_ = value;
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * Provider total tokens when available; otherwise input + output + reasoning.
-       * </pre>
-       *
-       * <code>uint64 total_tokens = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearTotalTokens() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        totalTokens_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.harness.ChatUsage)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.harness.ChatUsage)
-    private static final talon.harness.Llm.ChatUsage DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.harness.Llm.ChatUsage();
-    }
-
-    public static talon.harness.Llm.ChatUsage getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ChatUsage>
-        PARSER = new com.google.protobuf.AbstractParser<ChatUsage>() {
-      @java.lang.Override
-      public ChatUsage parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ChatUsage> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ChatUsage> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.harness.Llm.ChatUsage getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
   public interface ChatResponseOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.harness.ChatResponse)
       com.google.protobuf.MessageOrBuilder {
@@ -5822,19 +5078,19 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         int index);
 
     /**
-     * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+     * <code>optional .talon.data.TokenCounter usage = 3;</code>
      * @return Whether the usage field is set.
      */
     boolean hasUsage();
     /**
-     * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+     * <code>optional .talon.data.TokenCounter usage = 3;</code>
      * @return The usage.
      */
-    talon.harness.Llm.ChatUsage getUsage();
+    talon.data.Data.TokenCounter getUsage();
     /**
-     * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+     * <code>optional .talon.data.TokenCounter usage = 3;</code>
      */
-    talon.harness.Llm.ChatUsageOrBuilder getUsageOrBuilder();
+    talon.data.Data.TokenCounterOrBuilder getUsageOrBuilder();
   }
   /**
    * Protobuf type {@code talon.harness.ChatResponse}
@@ -5962,9 +5218,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int USAGE_FIELD_NUMBER = 3;
-    private talon.harness.Llm.ChatUsage usage_;
+    private talon.data.Data.TokenCounter usage_;
     /**
-     * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+     * <code>optional .talon.data.TokenCounter usage = 3;</code>
      * @return Whether the usage field is set.
      */
     @java.lang.Override
@@ -5972,19 +5228,19 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+     * <code>optional .talon.data.TokenCounter usage = 3;</code>
      * @return The usage.
      */
     @java.lang.Override
-    public talon.harness.Llm.ChatUsage getUsage() {
-      return usage_ == null ? talon.harness.Llm.ChatUsage.getDefaultInstance() : usage_;
+    public talon.data.Data.TokenCounter getUsage() {
+      return usage_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : usage_;
     }
     /**
-     * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+     * <code>optional .talon.data.TokenCounter usage = 3;</code>
      */
     @java.lang.Override
-    public talon.harness.Llm.ChatUsageOrBuilder getUsageOrBuilder() {
-      return usage_ == null ? talon.harness.Llm.ChatUsage.getDefaultInstance() : usage_;
+    public talon.data.Data.TokenCounterOrBuilder getUsageOrBuilder() {
+      return usage_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : usage_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -6716,31 +5972,31 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return toolCallsBuilder_;
       }
 
-      private talon.harness.Llm.ChatUsage usage_;
+      private talon.data.Data.TokenCounter usage_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.harness.Llm.ChatUsage, talon.harness.Llm.ChatUsage.Builder, talon.harness.Llm.ChatUsageOrBuilder> usageBuilder_;
+          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder> usageBuilder_;
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        * @return Whether the usage field is set.
        */
       public boolean hasUsage() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        * @return The usage.
        */
-      public talon.harness.Llm.ChatUsage getUsage() {
+      public talon.data.Data.TokenCounter getUsage() {
         if (usageBuilder_ == null) {
-          return usage_ == null ? talon.harness.Llm.ChatUsage.getDefaultInstance() : usage_;
+          return usage_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : usage_;
         } else {
           return usageBuilder_.getMessage();
         }
       }
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        */
-      public Builder setUsage(talon.harness.Llm.ChatUsage value) {
+      public Builder setUsage(talon.data.Data.TokenCounter value) {
         if (usageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -6754,10 +6010,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        */
       public Builder setUsage(
-          talon.harness.Llm.ChatUsage.Builder builderForValue) {
+          talon.data.Data.TokenCounter.Builder builderForValue) {
         if (usageBuilder_ == null) {
           usage_ = builderForValue.build();
         } else {
@@ -6768,13 +6024,13 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        */
-      public Builder mergeUsage(talon.harness.Llm.ChatUsage value) {
+      public Builder mergeUsage(talon.data.Data.TokenCounter value) {
         if (usageBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
             usage_ != null &&
-            usage_ != talon.harness.Llm.ChatUsage.getDefaultInstance()) {
+            usage_ != talon.data.Data.TokenCounter.getDefaultInstance()) {
             getUsageBuilder().mergeFrom(value);
           } else {
             usage_ = value;
@@ -6789,7 +6045,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        */
       public Builder clearUsage() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -6802,33 +6058,33 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        */
-      public talon.harness.Llm.ChatUsage.Builder getUsageBuilder() {
+      public talon.data.Data.TokenCounter.Builder getUsageBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
         return internalGetUsageFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        */
-      public talon.harness.Llm.ChatUsageOrBuilder getUsageOrBuilder() {
+      public talon.data.Data.TokenCounterOrBuilder getUsageOrBuilder() {
         if (usageBuilder_ != null) {
           return usageBuilder_.getMessageOrBuilder();
         } else {
           return usage_ == null ?
-              talon.harness.Llm.ChatUsage.getDefaultInstance() : usage_;
+              talon.data.Data.TokenCounter.getDefaultInstance() : usage_;
         }
       }
       /**
-       * <code>optional .talon.harness.ChatUsage usage = 3;</code>
+       * <code>optional .talon.data.TokenCounter usage = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.harness.Llm.ChatUsage, talon.harness.Llm.ChatUsage.Builder, talon.harness.Llm.ChatUsageOrBuilder>
+          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>
           internalGetUsageFieldBuilder() {
         if (usageBuilder_ == null) {
           usageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.harness.Llm.ChatUsage, talon.harness.Llm.ChatUsage.Builder, talon.harness.Llm.ChatUsageOrBuilder>(
+              talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>(
                   getUsage(),
                   getParentForChildren(),
                   isClean());
@@ -9128,19 +8384,19 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     talon.harness.Llm.ToolCallDeltaOrBuilder getToolCallDeltaOrBuilder();
 
     /**
-     * <code>.talon.harness.ChatUsage usage = 4;</code>
+     * <code>.talon.data.TokenCounter usage = 4;</code>
      * @return Whether the usage field is set.
      */
     boolean hasUsage();
     /**
-     * <code>.talon.harness.ChatUsage usage = 4;</code>
+     * <code>.talon.data.TokenCounter usage = 4;</code>
      * @return The usage.
      */
-    talon.harness.Llm.ChatUsage getUsage();
+    talon.data.Data.TokenCounter getUsage();
     /**
-     * <code>.talon.harness.ChatUsage usage = 4;</code>
+     * <code>.talon.data.TokenCounter usage = 4;</code>
      */
-    talon.harness.Llm.ChatUsageOrBuilder getUsageOrBuilder();
+    talon.data.Data.TokenCounterOrBuilder getUsageOrBuilder();
 
     talon.harness.Llm.ChatStreamEvent.EventCase getEventCase();
   }
@@ -9361,7 +8617,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
     public static final int USAGE_FIELD_NUMBER = 4;
     /**
-     * <code>.talon.harness.ChatUsage usage = 4;</code>
+     * <code>.talon.data.TokenCounter usage = 4;</code>
      * @return Whether the usage field is set.
      */
     @java.lang.Override
@@ -9369,25 +8625,25 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       return eventCase_ == 4;
     }
     /**
-     * <code>.talon.harness.ChatUsage usage = 4;</code>
+     * <code>.talon.data.TokenCounter usage = 4;</code>
      * @return The usage.
      */
     @java.lang.Override
-    public talon.harness.Llm.ChatUsage getUsage() {
+    public talon.data.Data.TokenCounter getUsage() {
       if (eventCase_ == 4) {
-         return (talon.harness.Llm.ChatUsage) event_;
+         return (talon.data.Data.TokenCounter) event_;
       }
-      return talon.harness.Llm.ChatUsage.getDefaultInstance();
+      return talon.data.Data.TokenCounter.getDefaultInstance();
     }
     /**
-     * <code>.talon.harness.ChatUsage usage = 4;</code>
+     * <code>.talon.data.TokenCounter usage = 4;</code>
      */
     @java.lang.Override
-    public talon.harness.Llm.ChatUsageOrBuilder getUsageOrBuilder() {
+    public talon.data.Data.TokenCounterOrBuilder getUsageOrBuilder() {
       if (eventCase_ == 4) {
-         return (talon.harness.Llm.ChatUsage) event_;
+         return (talon.data.Data.TokenCounter) event_;
       }
-      return talon.harness.Llm.ChatUsage.getDefaultInstance();
+      return talon.data.Data.TokenCounter.getDefaultInstance();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -9414,7 +8670,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         output.writeMessage(3, (talon.harness.Llm.ToolCallDelta) event_);
       }
       if (eventCase_ == 4) {
-        output.writeMessage(4, (talon.harness.Llm.ChatUsage) event_);
+        output.writeMessage(4, (talon.data.Data.TokenCounter) event_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -9437,7 +8693,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       if (eventCase_ == 4) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, (talon.harness.Llm.ChatUsage) event_);
+          .computeMessageSize(4, (talon.data.Data.TokenCounter) event_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -10134,9 +9390,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          talon.harness.Llm.ChatUsage, talon.harness.Llm.ChatUsage.Builder, talon.harness.Llm.ChatUsageOrBuilder> usageBuilder_;
+          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder> usageBuilder_;
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        * @return Whether the usage field is set.
        */
       @java.lang.Override
@@ -10144,27 +9400,27 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return eventCase_ == 4;
       }
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        * @return The usage.
        */
       @java.lang.Override
-      public talon.harness.Llm.ChatUsage getUsage() {
+      public talon.data.Data.TokenCounter getUsage() {
         if (usageBuilder_ == null) {
           if (eventCase_ == 4) {
-            return (talon.harness.Llm.ChatUsage) event_;
+            return (talon.data.Data.TokenCounter) event_;
           }
-          return talon.harness.Llm.ChatUsage.getDefaultInstance();
+          return talon.data.Data.TokenCounter.getDefaultInstance();
         } else {
           if (eventCase_ == 4) {
             return usageBuilder_.getMessage();
           }
-          return talon.harness.Llm.ChatUsage.getDefaultInstance();
+          return talon.data.Data.TokenCounter.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        */
-      public Builder setUsage(talon.harness.Llm.ChatUsage value) {
+      public Builder setUsage(talon.data.Data.TokenCounter value) {
         if (usageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -10178,10 +9434,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        */
       public Builder setUsage(
-          talon.harness.Llm.ChatUsage.Builder builderForValue) {
+          talon.data.Data.TokenCounter.Builder builderForValue) {
         if (usageBuilder_ == null) {
           event_ = builderForValue.build();
           onChanged();
@@ -10192,13 +9448,13 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        */
-      public Builder mergeUsage(talon.harness.Llm.ChatUsage value) {
+      public Builder mergeUsage(talon.data.Data.TokenCounter value) {
         if (usageBuilder_ == null) {
           if (eventCase_ == 4 &&
-              event_ != talon.harness.Llm.ChatUsage.getDefaultInstance()) {
-            event_ = talon.harness.Llm.ChatUsage.newBuilder((talon.harness.Llm.ChatUsage) event_)
+              event_ != talon.data.Data.TokenCounter.getDefaultInstance()) {
+            event_ = talon.data.Data.TokenCounter.newBuilder((talon.data.Data.TokenCounter) event_)
                 .mergeFrom(value).buildPartial();
           } else {
             event_ = value;
@@ -10215,7 +9471,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        */
       public Builder clearUsage() {
         if (usageBuilder_ == null) {
@@ -10234,38 +9490,38 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        */
-      public talon.harness.Llm.ChatUsage.Builder getUsageBuilder() {
+      public talon.data.Data.TokenCounter.Builder getUsageBuilder() {
         return internalGetUsageFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        */
       @java.lang.Override
-      public talon.harness.Llm.ChatUsageOrBuilder getUsageOrBuilder() {
+      public talon.data.Data.TokenCounterOrBuilder getUsageOrBuilder() {
         if ((eventCase_ == 4) && (usageBuilder_ != null)) {
           return usageBuilder_.getMessageOrBuilder();
         } else {
           if (eventCase_ == 4) {
-            return (talon.harness.Llm.ChatUsage) event_;
+            return (talon.data.Data.TokenCounter) event_;
           }
-          return talon.harness.Llm.ChatUsage.getDefaultInstance();
+          return talon.data.Data.TokenCounter.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.harness.ChatUsage usage = 4;</code>
+       * <code>.talon.data.TokenCounter usage = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.harness.Llm.ChatUsage, talon.harness.Llm.ChatUsage.Builder, talon.harness.Llm.ChatUsageOrBuilder>
+          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>
           internalGetUsageFieldBuilder() {
         if (usageBuilder_ == null) {
           if (!(eventCase_ == 4)) {
-            event_ = talon.harness.Llm.ChatUsage.getDefaultInstance();
+            event_ = talon.data.Data.TokenCounter.getDefaultInstance();
           }
           usageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.harness.Llm.ChatUsage, talon.harness.Llm.ChatUsage.Builder, talon.harness.Llm.ChatUsageOrBuilder>(
-                  (talon.harness.Llm.ChatUsage) event_,
+              talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>(
+                  (talon.data.Data.TokenCounter) event_,
                   getParentForChildren(),
                   isClean());
           event_ = null;
@@ -10352,11 +9608,6 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_harness_ChatMessage_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_harness_ChatUsage_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_harness_ChatUsage_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_harness_ChatResponse_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -10400,24 +9651,21 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       "\004role\030\001 \001(\t\0225\n\rcontent_parts\030\002 \003(\0132\036.tal" +
       "on.harness.ChatContentPart\022+\n\ntool_calls" +
       "\030\003 \003(\0132\027.talon.harness.ToolCall\022\031\n\014tool_" +
-      "call_id\030\004 \001(\tH\000\210\001\001B\017\n\r_tool_call_id\"h\n\tC" +
-      "hatUsage\022\024\n\014input_tokens\030\001 \001(\004\022\025\n\routput" +
-      "_tokens\030\002 \001(\004\022\030\n\020reasoning_tokens\030\003 \001(\004\022" +
-      "\024\n\014total_tokens\030\004 \001(\004\"\204\001\n\014ChatResponse\022\017" +
-      "\n\007content\030\001 \001(\t\022+\n\ntool_calls\030\002 \003(\0132\027.ta" +
-      "lon.harness.ToolCall\022,\n\005usage\030\003 \001(\0132\030.ta" +
-      "lon.harness.ChatUsageH\000\210\001\001B\010\n\006_usage\"D\n\004" +
-      "Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022" +
-      "\031\n\021input_schema_json\030\003 \001(\t\"\244\001\n\013ChatReque" +
-      "st\022,\n\010messages\030\001 \003(\0132\032.talon.harness.Cha" +
-      "tMessage\022\"\n\005tools\030\002 \003(\0132\023.talon.harness." +
-      "Tool\0226\n\010thinking\030\003 \001(\0132\037.talon.resources" +
-      ".ThinkingConfigH\000\210\001\001B\013\n\t_thinking\"\257\001\n\017Ch" +
-      "atStreamEvent\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017r" +
-      "easoning_delta\030\002 \001(\tH\000\0227\n\017tool_call_delt" +
-      "a\030\003 \001(\0132\034.talon.harness.ToolCallDeltaH\000\022" +
-      ")\n\005usage\030\004 \001(\0132\030.talon.harness.ChatUsage" +
-      "H\000B\007\n\005eventb\006proto3"
+      "call_id\030\004 \001(\tH\000\210\001\001B\017\n\r_tool_call_id\"\204\001\n\014" +
+      "ChatResponse\022\017\n\007content\030\001 \001(\t\022+\n\ntool_ca" +
+      "lls\030\002 \003(\0132\027.talon.harness.ToolCall\022,\n\005us" +
+      "age\030\003 \001(\0132\030.talon.data.TokenCounterH\000\210\001\001" +
+      "B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013desc" +
+      "ription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t" +
+      "\"\244\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
+      "on.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023." +
+      "talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.t" +
+      "alon.resources.ThinkingConfigH\000\210\001\001B\013\n\t_t" +
+      "hinking\"\257\001\n\017ChatStreamEvent\022\024\n\ntext_delt" +
+      "a\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 \001(\tH\000\0227\n\017" +
+      "tool_call_delta\030\003 \001(\0132\034.talon.harness.To" +
+      "olCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030.talon.dat" +
+      "a.TokenCounterH\000B\007\n\005eventb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10455,32 +9703,26 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatMessage_descriptor,
         new java.lang.String[] { "Role", "ContentParts", "ToolCalls", "ToolCallId", });
-    internal_static_talon_harness_ChatUsage_descriptor =
-      getDescriptor().getMessageType(5);
-    internal_static_talon_harness_ChatUsage_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_harness_ChatUsage_descriptor,
-        new java.lang.String[] { "InputTokens", "OutputTokens", "ReasoningTokens", "TotalTokens", });
     internal_static_talon_harness_ChatResponse_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(5);
     internal_static_talon_harness_ChatResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatResponse_descriptor,
         new java.lang.String[] { "Content", "ToolCalls", "Usage", });
     internal_static_talon_harness_Tool_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(6);
     internal_static_talon_harness_Tool_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_Tool_descriptor,
         new java.lang.String[] { "Name", "Description", "InputSchemaJson", });
     internal_static_talon_harness_ChatRequest_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(7);
     internal_static_talon_harness_ChatRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatRequest_descriptor,
         new java.lang.String[] { "Messages", "Tools", "Thinking", });
     internal_static_talon_harness_ChatStreamEvent_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(8);
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatStreamEvent_descriptor,

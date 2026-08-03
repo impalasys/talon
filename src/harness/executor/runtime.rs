@@ -869,11 +869,12 @@ impl AgentExecutor {
                             tracing::info!(agent_id = %context.agent_id, "Generation interrupted by user");
                             telemetry::record_chat_output(&llm_span, &final_reply, &[]);
                             context.push(LoopMessage::text("assistant", final_reply.clone()));
-                            let usage = final_usage
-                                .take()
-                                .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default()));
-                            if usage.usage_available {
-                                telemetry::record_usage(&llm_span, &usage);
+                            let usage = final_usage.take();
+                            let usage_for_event = usage.clone().unwrap_or_else(|| {
+                                self.normalize_token_counter(TokenCounter::default())
+                            });
+                            if let Some(usage) = usage.as_ref().filter(|usage| usage.usage_available) {
+                                telemetry::record_usage(&llm_span, usage);
                             } else {
                                 tracing::warn!(
                                     provider = %self.llm_provider_key,
@@ -881,12 +882,14 @@ impl AgentExecutor {
                                     "LLM request cancelled without provider token usage"
                                 );
                             }
-                            sink.on_usage(&usage).await;
-                            sink.on_llm_usage_boundary(&usage).await;
+                            sink.on_usage(&usage_for_event).await;
+                            if let Some(usage) = usage.as_ref() {
+                                sink.on_llm_usage_boundary(usage).await;
+                            }
                             crate::control::usage::charge_namespace_usage(
                                 self.control_plane.kv.as_ref(),
                                 &usage_subject,
-                                &crate::control::usage::llm_usage_charges(Some(&usage)),
+                                &crate::control::usage::llm_usage_charges(usage.as_ref()),
                                 chrono::Utc::now().timestamp(),
                             )
                             .await?;
@@ -906,6 +909,13 @@ impl AgentExecutor {
                 let chunk = match chunk {
                     Ok(chunk) => chunk,
                     Err(err) => {
+                        if let Some(usage) = final_usage.take() {
+                            if usage.usage_available {
+                                telemetry::record_usage(&llm_span, &usage);
+                            }
+                            sink.on_usage(&usage).await;
+                            sink.on_llm_usage_boundary(&usage).await;
+                        }
                         telemetry::record_error(&llm_span, &err);
                         return Err(err);
                     }

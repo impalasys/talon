@@ -56,22 +56,6 @@ pub struct ChatMessage {
     #[prost(string, optional, tag = "4")]
     pub tool_call_id: ::core::option::Option<::prost::alloc::string::String>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct ChatUsage {
-    /// Prompt/input tokens reported by the model provider.
-    #[prost(uint64, tag = "1")]
-    pub input_tokens: u64,
-    /// Non-reasoning output tokens. When a provider reports completion tokens
-    /// inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
-    #[prost(uint64, tag = "2")]
-    pub output_tokens: u64,
-    /// Reasoning/thinking output tokens reported separately by the provider.
-    #[prost(uint64, tag = "3")]
-    pub reasoning_tokens: u64,
-    /// Provider total tokens when available; otherwise input + output + reasoning.
-    #[prost(uint64, tag = "4")]
-    pub total_tokens: u64,
-}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChatResponse {
     #[prost(string, tag = "1")]
@@ -79,7 +63,7 @@ pub struct ChatResponse {
     #[prost(message, repeated, tag = "2")]
     pub tool_calls: ::prost::alloc::vec::Vec<ToolCall>,
     #[prost(message, optional, tag = "3")]
-    pub usage: ::core::option::Option<ChatUsage>,
+    pub usage: ::core::option::Option<super::data::TokenCounter>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Tool {
@@ -116,6 +100,6 @@ pub mod chat_stream_event {
         #[prost(message, tag = "3")]
         ToolCallDelta(super::ToolCallDelta),
         #[prost(message, tag = "4")]
-        Usage(super::ChatUsage),
+        Usage(super::super::data::TokenCounter),
     }
 }

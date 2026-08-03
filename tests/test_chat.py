@@ -312,7 +312,7 @@ def test_streaming_chat(
     streamed_text = "".join(event.part.content for event in token_events)
     assert "received" in streamed_text
     usage_payload = json.loads(usage_events[0].part.payload_json)
-    assert usage_payload["reasoning_tokens"] == 6
+    assert usage_payload["reasoning_output_tokens"] == 6
 
 
 def test_streaming_chat_persists_coarse_session_message_parts(
@@ -427,7 +427,7 @@ def test_streaming_chat_persists_coarse_session_message_parts(
         "Hello! I am a mock LLM. How can I assist you today?"
     )
     assert len(usage_parts) == 1
-    assert json.loads(usage_parts[0].payload_json)["reasoning_tokens"] == 6
+    assert json.loads(usage_parts[0].payload_json)["reasoning_output_tokens"] == 6
 
 
 def _run_cas_tool_result_turn(

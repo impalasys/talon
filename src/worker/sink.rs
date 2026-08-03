@@ -1250,12 +1250,17 @@ impl PubSubSessionSink {
         }
     }
 
-    async fn persist_context_tokens_best_effort(&self, counter: &TokenCounter) {
-        if let Err(error) = sessions::persist_context_tokens(
+    async fn persist_context_tokens_best_effort(
+        &self,
+        entry: &sessions::SessionJournalEntry,
+        counter: &TokenCounter,
+    ) {
+        if let Err(error) = sessions::persist_context_tokens_for_journal_entry(
             self.kv.as_ref(),
             &self.ns,
             &self.agent_id,
             &self.session_id,
+            entry,
             counter,
         )
         .await
@@ -1285,9 +1290,12 @@ impl ExecutionSink for PubSubSessionSink {
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
-        *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        if entry.submission_id == self.submission_id {
+            *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id.clone());
+        }
         if let Some(counter) = response.usage.as_ref() {
-            self.persist_context_tokens_best_effort(counter).await;
+            self.persist_context_tokens_best_effort(&entry, counter)
+                .await;
         }
         Ok(())
     }
@@ -1306,8 +1314,12 @@ impl ExecutionSink for PubSubSessionSink {
         .await
         {
             Ok(entry) => {
-                *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
-                self.persist_context_tokens_best_effort(counter).await;
+                if entry.submission_id == self.submission_id {
+                    *self.latest_journal_entry_id.lock().unwrap() =
+                        Some(entry.journal_entry_id.clone());
+                }
+                self.persist_context_tokens_best_effort(&entry, counter)
+                    .await;
             }
             Err(error) => tracing::error!(
                 error = %error,
@@ -1578,7 +1590,6 @@ impl ExecutionSink for PubSubSessionSink {
             String::new(),
             chat_usage_payload_json(usage),
         );
-        self.persist_context_tokens_best_effort(usage).await;
         self.publish_event(AgentEvent::Usage(usage.clone())).await;
     }
 
@@ -2997,6 +3008,7 @@ mod tests {
             output_tokens: 2,
             total_tokens: 12,
             usage_available: true,
+            provider_request_id: Some("request-first".to_string()),
             provider: "openai".to_string(),
             model: "gpt-test".to_string(),
             ..Default::default()
@@ -3008,6 +3020,7 @@ mod tests {
             reasoning_output_tokens: 1,
             total_tokens: 25,
             usage_available: true,
+            provider_request_id: Some("request-second".to_string()),
             provider: "anthropic".to_string(),
             model: "claude-test".to_string(),
             ..Default::default()
@@ -3021,6 +3034,13 @@ mod tests {
             .await
             .unwrap();
         }
+        sink.on_llm_response(&ChatResponse {
+            content: String::new(),
+            tool_calls: Vec::new(),
+            usage: Some(first.clone()),
+        })
+        .await
+        .unwrap();
 
         let session = kv
             .get_msg::<data_proto::Session>(&session_key)
@@ -3028,6 +3048,16 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(session.context_tokens, Some(second));
+        let journal_entries = sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap();
+        assert_eq!(journal_entries.len(), 2);
     }
 
     #[tokio::test]

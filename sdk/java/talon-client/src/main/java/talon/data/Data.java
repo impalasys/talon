@@ -2145,6 +2145,1296 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface TokenCounterOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.data.TokenCounter)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint64 input_tokens = 1;</code>
+     * @return The inputTokens.
+     */
+    long getInputTokens();
+
+    /**
+     * <code>uint64 output_tokens = 2;</code>
+     * @return The outputTokens.
+     */
+    long getOutputTokens();
+
+    /**
+     * <code>uint64 reasoning_output_tokens = 3;</code>
+     * @return The reasoningOutputTokens.
+     */
+    long getReasoningOutputTokens();
+
+    /**
+     * <code>uint64 total_tokens = 4;</code>
+     * @return The totalTokens.
+     */
+    long getTotalTokens();
+
+    /**
+     * <code>uint64 cached_input_tokens = 5;</code>
+     * @return The cachedInputTokens.
+     */
+    long getCachedInputTokens();
+
+    /**
+     * <code>bool usage_available = 6;</code>
+     * @return The usageAvailable.
+     */
+    boolean getUsageAvailable();
+
+    /**
+     * <code>optional string provider_request_id = 7;</code>
+     * @return Whether the providerRequestId field is set.
+     */
+    boolean hasProviderRequestId();
+    /**
+     * <code>optional string provider_request_id = 7;</code>
+     * @return The providerRequestId.
+     */
+    java.lang.String getProviderRequestId();
+    /**
+     * <code>optional string provider_request_id = 7;</code>
+     * @return The bytes for providerRequestId.
+     */
+    com.google.protobuf.ByteString
+        getProviderRequestIdBytes();
+
+    /**
+     * <code>string provider = 8;</code>
+     * @return The provider.
+     */
+    java.lang.String getProvider();
+    /**
+     * <code>string provider = 8;</code>
+     * @return The bytes for provider.
+     */
+    com.google.protobuf.ByteString
+        getProviderBytes();
+
+    /**
+     * <code>string model = 9;</code>
+     * @return The model.
+     */
+    java.lang.String getModel();
+    /**
+     * <code>string model = 9;</code>
+     * @return The bytes for model.
+     */
+    com.google.protobuf.ByteString
+        getModelBytes();
+  }
+  /**
+   * <pre>
+   * Provider-reported token counts for one completed model request. Fields that
+   * a provider does not return are left at their proto3 zero value; callers use
+   * usage_available to distinguish that from a provider-reported zero count.
+   * </pre>
+   *
+   * Protobuf type {@code talon.data.TokenCounter}
+   */
+  public static final class TokenCounter extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.data.TokenCounter)
+      TokenCounterOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "TokenCounter");
+    }
+    // Use TokenCounter.newBuilder() to construct.
+    private TokenCounter(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private TokenCounter() {
+      providerRequestId_ = "";
+      provider_ = "";
+      model_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.data.Data.internal_static_talon_data_TokenCounter_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.data.Data.internal_static_talon_data_TokenCounter_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.data.Data.internal_static_talon_data_TokenCounter_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.data.Data.TokenCounter.class, talon.data.Data.TokenCounter.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int INPUT_TOKENS_FIELD_NUMBER = 1;
+    private long inputTokens_ = 0L;
+    /**
+     * <code>uint64 input_tokens = 1;</code>
+     * @return The inputTokens.
+     */
+    @java.lang.Override
+    public long getInputTokens() {
+      return inputTokens_;
+    }
+
+    public static final int OUTPUT_TOKENS_FIELD_NUMBER = 2;
+    private long outputTokens_ = 0L;
+    /**
+     * <code>uint64 output_tokens = 2;</code>
+     * @return The outputTokens.
+     */
+    @java.lang.Override
+    public long getOutputTokens() {
+      return outputTokens_;
+    }
+
+    public static final int REASONING_OUTPUT_TOKENS_FIELD_NUMBER = 3;
+    private long reasoningOutputTokens_ = 0L;
+    /**
+     * <code>uint64 reasoning_output_tokens = 3;</code>
+     * @return The reasoningOutputTokens.
+     */
+    @java.lang.Override
+    public long getReasoningOutputTokens() {
+      return reasoningOutputTokens_;
+    }
+
+    public static final int TOTAL_TOKENS_FIELD_NUMBER = 4;
+    private long totalTokens_ = 0L;
+    /**
+     * <code>uint64 total_tokens = 4;</code>
+     * @return The totalTokens.
+     */
+    @java.lang.Override
+    public long getTotalTokens() {
+      return totalTokens_;
+    }
+
+    public static final int CACHED_INPUT_TOKENS_FIELD_NUMBER = 5;
+    private long cachedInputTokens_ = 0L;
+    /**
+     * <code>uint64 cached_input_tokens = 5;</code>
+     * @return The cachedInputTokens.
+     */
+    @java.lang.Override
+    public long getCachedInputTokens() {
+      return cachedInputTokens_;
+    }
+
+    public static final int USAGE_AVAILABLE_FIELD_NUMBER = 6;
+    private boolean usageAvailable_ = false;
+    /**
+     * <code>bool usage_available = 6;</code>
+     * @return The usageAvailable.
+     */
+    @java.lang.Override
+    public boolean getUsageAvailable() {
+      return usageAvailable_;
+    }
+
+    public static final int PROVIDER_REQUEST_ID_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object providerRequestId_ = "";
+    /**
+     * <code>optional string provider_request_id = 7;</code>
+     * @return Whether the providerRequestId field is set.
+     */
+    @java.lang.Override
+    public boolean hasProviderRequestId() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional string provider_request_id = 7;</code>
+     * @return The providerRequestId.
+     */
+    @java.lang.Override
+    public java.lang.String getProviderRequestId() {
+      java.lang.Object ref = providerRequestId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        providerRequestId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string provider_request_id = 7;</code>
+     * @return The bytes for providerRequestId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getProviderRequestIdBytes() {
+      java.lang.Object ref = providerRequestId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        providerRequestId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PROVIDER_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object provider_ = "";
+    /**
+     * <code>string provider = 8;</code>
+     * @return The provider.
+     */
+    @java.lang.Override
+    public java.lang.String getProvider() {
+      java.lang.Object ref = provider_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        provider_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string provider = 8;</code>
+     * @return The bytes for provider.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getProviderBytes() {
+      java.lang.Object ref = provider_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        provider_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MODEL_FIELD_NUMBER = 9;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object model_ = "";
+    /**
+     * <code>string model = 9;</code>
+     * @return The model.
+     */
+    @java.lang.Override
+    public java.lang.String getModel() {
+      java.lang.Object ref = model_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        model_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string model = 9;</code>
+     * @return The bytes for model.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getModelBytes() {
+      java.lang.Object ref = model_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        model_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (inputTokens_ != 0L) {
+        output.writeUInt64(1, inputTokens_);
+      }
+      if (outputTokens_ != 0L) {
+        output.writeUInt64(2, outputTokens_);
+      }
+      if (reasoningOutputTokens_ != 0L) {
+        output.writeUInt64(3, reasoningOutputTokens_);
+      }
+      if (totalTokens_ != 0L) {
+        output.writeUInt64(4, totalTokens_);
+      }
+      if (cachedInputTokens_ != 0L) {
+        output.writeUInt64(5, cachedInputTokens_);
+      }
+      if (usageAvailable_ != false) {
+        output.writeBool(6, usageAvailable_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, providerRequestId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(provider_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, provider_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(model_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 9, model_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (inputTokens_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(1, inputTokens_);
+      }
+      if (outputTokens_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, outputTokens_);
+      }
+      if (reasoningOutputTokens_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, reasoningOutputTokens_);
+      }
+      if (totalTokens_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(4, totalTokens_);
+      }
+      if (cachedInputTokens_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(5, cachedInputTokens_);
+      }
+      if (usageAvailable_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(6, usageAvailable_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, providerRequestId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(provider_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, provider_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(model_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, model_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.data.Data.TokenCounter)) {
+        return super.equals(obj);
+      }
+      talon.data.Data.TokenCounter other = (talon.data.Data.TokenCounter) obj;
+
+      if (getInputTokens()
+          != other.getInputTokens()) return false;
+      if (getOutputTokens()
+          != other.getOutputTokens()) return false;
+      if (getReasoningOutputTokens()
+          != other.getReasoningOutputTokens()) return false;
+      if (getTotalTokens()
+          != other.getTotalTokens()) return false;
+      if (getCachedInputTokens()
+          != other.getCachedInputTokens()) return false;
+      if (getUsageAvailable()
+          != other.getUsageAvailable()) return false;
+      if (hasProviderRequestId() != other.hasProviderRequestId()) return false;
+      if (hasProviderRequestId()) {
+        if (!getProviderRequestId()
+            .equals(other.getProviderRequestId())) return false;
+      }
+      if (!getProvider()
+          .equals(other.getProvider())) return false;
+      if (!getModel()
+          .equals(other.getModel())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + INPUT_TOKENS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getInputTokens());
+      hash = (37 * hash) + OUTPUT_TOKENS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getOutputTokens());
+      hash = (37 * hash) + REASONING_OUTPUT_TOKENS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getReasoningOutputTokens());
+      hash = (37 * hash) + TOTAL_TOKENS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTotalTokens());
+      hash = (37 * hash) + CACHED_INPUT_TOKENS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCachedInputTokens());
+      hash = (37 * hash) + USAGE_AVAILABLE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getUsageAvailable());
+      if (hasProviderRequestId()) {
+        hash = (37 * hash) + PROVIDER_REQUEST_ID_FIELD_NUMBER;
+        hash = (53 * hash) + getProviderRequestId().hashCode();
+      }
+      hash = (37 * hash) + PROVIDER_FIELD_NUMBER;
+      hash = (53 * hash) + getProvider().hashCode();
+      hash = (37 * hash) + MODEL_FIELD_NUMBER;
+      hash = (53 * hash) + getModel().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.data.Data.TokenCounter parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.data.Data.TokenCounter parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.data.Data.TokenCounter parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.data.Data.TokenCounter parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.data.Data.TokenCounter prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Provider-reported token counts for one completed model request. Fields that
+     * a provider does not return are left at their proto3 zero value; callers use
+     * usage_available to distinguish that from a provider-reported zero count.
+     * </pre>
+     *
+     * Protobuf type {@code talon.data.TokenCounter}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.data.TokenCounter)
+        talon.data.Data.TokenCounterOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.data.Data.internal_static_talon_data_TokenCounter_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.data.Data.internal_static_talon_data_TokenCounter_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.data.Data.TokenCounter.class, talon.data.Data.TokenCounter.Builder.class);
+      }
+
+      // Construct using talon.data.Data.TokenCounter.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        inputTokens_ = 0L;
+        outputTokens_ = 0L;
+        reasoningOutputTokens_ = 0L;
+        totalTokens_ = 0L;
+        cachedInputTokens_ = 0L;
+        usageAvailable_ = false;
+        providerRequestId_ = "";
+        provider_ = "";
+        model_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.data.Data.internal_static_talon_data_TokenCounter_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.TokenCounter getDefaultInstanceForType() {
+        return talon.data.Data.TokenCounter.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.data.Data.TokenCounter build() {
+        talon.data.Data.TokenCounter result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.data.Data.TokenCounter buildPartial() {
+        talon.data.Data.TokenCounter result = new talon.data.Data.TokenCounter(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.data.Data.TokenCounter result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.inputTokens_ = inputTokens_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.outputTokens_ = outputTokens_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.reasoningOutputTokens_ = reasoningOutputTokens_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.totalTokens_ = totalTokens_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.cachedInputTokens_ = cachedInputTokens_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.usageAvailable_ = usageAvailable_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.providerRequestId_ = providerRequestId_;
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.provider_ = provider_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.model_ = model_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.data.Data.TokenCounter) {
+          return mergeFrom((talon.data.Data.TokenCounter)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.data.Data.TokenCounter other) {
+        if (other == talon.data.Data.TokenCounter.getDefaultInstance()) return this;
+        if (other.getInputTokens() != 0L) {
+          setInputTokens(other.getInputTokens());
+        }
+        if (other.getOutputTokens() != 0L) {
+          setOutputTokens(other.getOutputTokens());
+        }
+        if (other.getReasoningOutputTokens() != 0L) {
+          setReasoningOutputTokens(other.getReasoningOutputTokens());
+        }
+        if (other.getTotalTokens() != 0L) {
+          setTotalTokens(other.getTotalTokens());
+        }
+        if (other.getCachedInputTokens() != 0L) {
+          setCachedInputTokens(other.getCachedInputTokens());
+        }
+        if (other.getUsageAvailable() != false) {
+          setUsageAvailable(other.getUsageAvailable());
+        }
+        if (other.hasProviderRequestId()) {
+          providerRequestId_ = other.providerRequestId_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        if (!other.getProvider().isEmpty()) {
+          provider_ = other.provider_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        if (!other.getModel().isEmpty()) {
+          model_ = other.model_;
+          bitField0_ |= 0x00000100;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                inputTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                outputTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                reasoningOutputTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 32: {
+                totalTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 40: {
+                cachedInputTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              case 48: {
+                usageAvailable_ = input.readBool();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
+              case 58: {
+                providerRequestId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              case 66: {
+                provider_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              case 74: {
+                model_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private long inputTokens_ ;
+      /**
+       * <code>uint64 input_tokens = 1;</code>
+       * @return The inputTokens.
+       */
+      @java.lang.Override
+      public long getInputTokens() {
+        return inputTokens_;
+      }
+      /**
+       * <code>uint64 input_tokens = 1;</code>
+       * @param value The inputTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputTokens(long value) {
+
+        inputTokens_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 input_tokens = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputTokens() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        inputTokens_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long outputTokens_ ;
+      /**
+       * <code>uint64 output_tokens = 2;</code>
+       * @return The outputTokens.
+       */
+      @java.lang.Override
+      public long getOutputTokens() {
+        return outputTokens_;
+      }
+      /**
+       * <code>uint64 output_tokens = 2;</code>
+       * @param value The outputTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputTokens(long value) {
+
+        outputTokens_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 output_tokens = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputTokens() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        outputTokens_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long reasoningOutputTokens_ ;
+      /**
+       * <code>uint64 reasoning_output_tokens = 3;</code>
+       * @return The reasoningOutputTokens.
+       */
+      @java.lang.Override
+      public long getReasoningOutputTokens() {
+        return reasoningOutputTokens_;
+      }
+      /**
+       * <code>uint64 reasoning_output_tokens = 3;</code>
+       * @param value The reasoningOutputTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReasoningOutputTokens(long value) {
+
+        reasoningOutputTokens_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 reasoning_output_tokens = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearReasoningOutputTokens() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        reasoningOutputTokens_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long totalTokens_ ;
+      /**
+       * <code>uint64 total_tokens = 4;</code>
+       * @return The totalTokens.
+       */
+      @java.lang.Override
+      public long getTotalTokens() {
+        return totalTokens_;
+      }
+      /**
+       * <code>uint64 total_tokens = 4;</code>
+       * @param value The totalTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTotalTokens(long value) {
+
+        totalTokens_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 total_tokens = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTotalTokens() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        totalTokens_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long cachedInputTokens_ ;
+      /**
+       * <code>uint64 cached_input_tokens = 5;</code>
+       * @return The cachedInputTokens.
+       */
+      @java.lang.Override
+      public long getCachedInputTokens() {
+        return cachedInputTokens_;
+      }
+      /**
+       * <code>uint64 cached_input_tokens = 5;</code>
+       * @param value The cachedInputTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCachedInputTokens(long value) {
+
+        cachedInputTokens_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 cached_input_tokens = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCachedInputTokens() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        cachedInputTokens_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean usageAvailable_ ;
+      /**
+       * <code>bool usage_available = 6;</code>
+       * @return The usageAvailable.
+       */
+      @java.lang.Override
+      public boolean getUsageAvailable() {
+        return usageAvailable_;
+      }
+      /**
+       * <code>bool usage_available = 6;</code>
+       * @param value The usageAvailable to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUsageAvailable(boolean value) {
+
+        usageAvailable_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool usage_available = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUsageAvailable() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        usageAvailable_ = false;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object providerRequestId_ = "";
+      /**
+       * <code>optional string provider_request_id = 7;</code>
+       * @return Whether the providerRequestId field is set.
+       */
+      public boolean hasProviderRequestId() {
+        return ((bitField0_ & 0x00000040) != 0);
+      }
+      /**
+       * <code>optional string provider_request_id = 7;</code>
+       * @return The providerRequestId.
+       */
+      public java.lang.String getProviderRequestId() {
+        java.lang.Object ref = providerRequestId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          providerRequestId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string provider_request_id = 7;</code>
+       * @return The bytes for providerRequestId.
+       */
+      public com.google.protobuf.ByteString
+          getProviderRequestIdBytes() {
+        java.lang.Object ref = providerRequestId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          providerRequestId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string provider_request_id = 7;</code>
+       * @param value The providerRequestId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderRequestId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        providerRequestId_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string provider_request_id = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProviderRequestId() {
+        providerRequestId_ = getDefaultInstance().getProviderRequestId();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string provider_request_id = 7;</code>
+       * @param value The bytes for providerRequestId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderRequestIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        providerRequestId_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object provider_ = "";
+      /**
+       * <code>string provider = 8;</code>
+       * @return The provider.
+       */
+      public java.lang.String getProvider() {
+        java.lang.Object ref = provider_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          provider_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string provider = 8;</code>
+       * @return The bytes for provider.
+       */
+      public com.google.protobuf.ByteString
+          getProviderBytes() {
+        java.lang.Object ref = provider_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          provider_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string provider = 8;</code>
+       * @param value The provider to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProvider(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        provider_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProvider() {
+        provider_ = getDefaultInstance().getProvider();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider = 8;</code>
+       * @param value The bytes for provider to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        provider_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object model_ = "";
+      /**
+       * <code>string model = 9;</code>
+       * @return The model.
+       */
+      public java.lang.String getModel() {
+        java.lang.Object ref = model_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          model_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string model = 9;</code>
+       * @return The bytes for model.
+       */
+      public com.google.protobuf.ByteString
+          getModelBytes() {
+        java.lang.Object ref = model_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          model_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string model = 9;</code>
+       * @param value The model to set.
+       * @return This builder for chaining.
+       */
+      public Builder setModel(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        model_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string model = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearModel() {
+        model_ = getDefaultInstance().getModel();
+        bitField0_ = (bitField0_ & ~0x00000100);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string model = 9;</code>
+       * @param value The bytes for model to set.
+       * @return This builder for chaining.
+       */
+      public Builder setModelBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        model_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.data.TokenCounter)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.data.TokenCounter)
+    private static final talon.data.Data.TokenCounter DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.data.Data.TokenCounter();
+    }
+
+    public static talon.data.Data.TokenCounter getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<TokenCounter>
+        PARSER = new com.google.protobuf.AbstractParser<TokenCounter>() {
+      @java.lang.Override
+      public TokenCounter parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<TokenCounter> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<TokenCounter> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.data.Data.TokenCounter getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface ArtifactOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.Artifact)
       com.google.protobuf.MessageOrBuilder {
@@ -13815,6 +15105,36 @@ java.lang.String defaultValue);
      */
     java.lang.String getLabelsOrThrow(
         java.lang.String key);
+
+    /**
+     * <pre>
+     * Latest completed provider token snapshot for this session. This is not a
+     * cumulative usage or billing record.
+     * </pre>
+     *
+     * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+     * @return Whether the contextTokens field is set.
+     */
+    boolean hasContextTokens();
+    /**
+     * <pre>
+     * Latest completed provider token snapshot for this session. This is not a
+     * cumulative usage or billing record.
+     * </pre>
+     *
+     * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+     * @return The contextTokens.
+     */
+    talon.data.Data.TokenCounter getContextTokens();
+    /**
+     * <pre>
+     * Latest completed provider token snapshot for this session. This is not a
+     * cumulative usage or billing record.
+     * </pre>
+     *
+     * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+     */
+    talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder();
   }
   /**
    * Protobuf type {@code talon.data.Session}
@@ -13876,6 +15196,7 @@ java.lang.String defaultValue);
               talon.data.Data.Session.class, talon.data.Data.Session.Builder.class);
     }
 
+    private int bitField0_;
     public static final int ID_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
     private volatile java.lang.Object id_ = "";
@@ -14220,6 +15541,47 @@ java.lang.String defaultValue) {
       return map.get(key);
     }
 
+    public static final int CONTEXT_TOKENS_FIELD_NUMBER = 9;
+    private talon.data.Data.TokenCounter contextTokens_;
+    /**
+     * <pre>
+     * Latest completed provider token snapshot for this session. This is not a
+     * cumulative usage or billing record.
+     * </pre>
+     *
+     * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+     * @return Whether the contextTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasContextTokens() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Latest completed provider token snapshot for this session. This is not a
+     * cumulative usage or billing record.
+     * </pre>
+     *
+     * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+     * @return The contextTokens.
+     */
+    @java.lang.Override
+    public talon.data.Data.TokenCounter getContextTokens() {
+      return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
+    }
+    /**
+     * <pre>
+     * Latest completed provider token snapshot for this session. This is not a
+     * cumulative usage or billing record.
+     * </pre>
+     *
+     * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+     */
+    @java.lang.Override
+    public talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder() {
+      return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -14264,6 +15626,9 @@ java.lang.String defaultValue) {
           internalGetLabels(),
           LabelsDefaultEntryHolder.defaultEntry,
           8);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(9, getContextTokens());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -14313,6 +15678,10 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(8, labels__);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(9, getContextTokens());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -14344,6 +15713,11 @@ java.lang.String defaultValue) {
           other.internalGetMetadata())) return false;
       if (!internalGetLabels().equals(
           other.internalGetLabels())) return false;
+      if (hasContextTokens() != other.hasContextTokens()) return false;
+      if (hasContextTokens()) {
+        if (!getContextTokens()
+            .equals(other.getContextTokens())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -14376,6 +15750,10 @@ java.lang.String defaultValue) {
       if (!internalGetLabels().getMap().isEmpty()) {
         hash = (37 * hash) + LABELS_FIELD_NUMBER;
         hash = (53 * hash) + internalGetLabels().hashCode();
+      }
+      if (hasContextTokens()) {
+        hash = (37 * hash) + CONTEXT_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + getContextTokens().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -14522,13 +15900,19 @@ java.lang.String defaultValue) {
 
       // Construct using talon.data.Data.Session.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetContextTokensFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -14542,6 +15926,11 @@ java.lang.String defaultValue) {
         lastActive_ = 0L;
         internalGetMutableMetadata().clear();
         internalGetMutableLabels().clear();
+        contextTokens_ = null;
+        if (contextTokensBuilder_ != null) {
+          contextTokensBuilder_.dispose();
+          contextTokensBuilder_ = null;
+        }
         return this;
       }
 
@@ -14601,6 +15990,14 @@ java.lang.String defaultValue) {
           result.labels_ = internalGetLabels();
           result.labels_.makeImmutable();
         }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.contextTokens_ = contextTokensBuilder_ == null
+              ? contextTokens_
+              : contextTokensBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -14647,6 +16044,9 @@ java.lang.String defaultValue) {
         internalGetMutableLabels().mergeFrom(
             other.internalGetLabels());
         bitField0_ |= 0x00000080;
+        if (other.hasContextTokens()) {
+          mergeContextTokens(other.getContextTokens());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -14721,6 +16121,13 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000080;
                 break;
               } // case 66
+              case 74: {
+                input.readMessage(
+                    internalGetContextTokensFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -15366,6 +16773,172 @@ java.lang.String defaultValue) {
             .putAll(values);
         bitField0_ |= 0x00000080;
         return this;
+      }
+
+      private talon.data.Data.TokenCounter contextTokens_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder> contextTokensBuilder_;
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       * @return Whether the contextTokens field is set.
+       */
+      public boolean hasContextTokens() {
+        return ((bitField0_ & 0x00000100) != 0);
+      }
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       * @return The contextTokens.
+       */
+      public talon.data.Data.TokenCounter getContextTokens() {
+        if (contextTokensBuilder_ == null) {
+          return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
+        } else {
+          return contextTokensBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       */
+      public Builder setContextTokens(talon.data.Data.TokenCounter value) {
+        if (contextTokensBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          contextTokens_ = value;
+        } else {
+          contextTokensBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       */
+      public Builder setContextTokens(
+          talon.data.Data.TokenCounter.Builder builderForValue) {
+        if (contextTokensBuilder_ == null) {
+          contextTokens_ = builderForValue.build();
+        } else {
+          contextTokensBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       */
+      public Builder mergeContextTokens(talon.data.Data.TokenCounter value) {
+        if (contextTokensBuilder_ == null) {
+          if (((bitField0_ & 0x00000100) != 0) &&
+            contextTokens_ != null &&
+            contextTokens_ != talon.data.Data.TokenCounter.getDefaultInstance()) {
+            getContextTokensBuilder().mergeFrom(value);
+          } else {
+            contextTokens_ = value;
+          }
+        } else {
+          contextTokensBuilder_.mergeFrom(value);
+        }
+        if (contextTokens_ != null) {
+          bitField0_ |= 0x00000100;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       */
+      public Builder clearContextTokens() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        contextTokens_ = null;
+        if (contextTokensBuilder_ != null) {
+          contextTokensBuilder_.dispose();
+          contextTokensBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       */
+      public talon.data.Data.TokenCounter.Builder getContextTokensBuilder() {
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return internalGetContextTokensFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       */
+      public talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder() {
+        if (contextTokensBuilder_ != null) {
+          return contextTokensBuilder_.getMessageOrBuilder();
+        } else {
+          return contextTokens_ == null ?
+              talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
+        }
+      }
+      /**
+       * <pre>
+       * Latest completed provider token snapshot for this session. This is not a
+       * cumulative usage or billing record.
+       * </pre>
+       *
+       * <code>optional .talon.data.TokenCounter context_tokens = 9;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>
+          internalGetContextTokensFieldBuilder() {
+        if (contextTokensBuilder_ == null) {
+          contextTokensBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>(
+                  getContextTokens(),
+                  getParentForChildren(),
+                  isClean());
+          contextTokens_ = null;
+        }
+        return contextTokensBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.Session)
@@ -26467,6 +28040,11 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_ObjectRef_MetadataEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_data_TokenCounter_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_data_TokenCounter_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_Artifact_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -26596,120 +28174,128 @@ java.lang.String defaultValue) {
       "\n\010filename\030\005 \001(\t\0225\n\010metadata\030\006 \003(\0132#.tal" +
       "on.data.ObjectRef.MetadataEntry\022\030\n\020conte" +
       "nt_encoding\030\007 \001(\t\032/\n\rMetadataEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\356\002\n\010Artifact\022" +
-      "\n\n\002id\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(\t\022\r\n\005title" +
-      "\030\003 \001(\t\022\022\n\nmedia_type\030\005 \001(\t\022)\n\nobject_ref" +
-      "\030\006 \001(\0132\025.talon.data.ObjectRef\022\030\n\020created" +
-      "_by_agent\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\0220\n\006l" +
-      "abels\030\t \003(\0132 .talon.data.Artifact.Labels" +
-      "Entry\0224\n\010metadata\030\n \003(\0132\".talon.data.Art" +
-      "ifact.MetadataEntry\032-\n\013LabelsEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEn" +
-      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\366\003\n\004" +
-      "Goal\022\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005a" +
-      "gent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t\022\021\n\tobject" +
-      "ive\030\005 \001(\t\022\030\n\020success_criteria\030\006 \003(\t\022$\n\005p" +
-      "hase\030\007 \001(\0162\025.talon.data.GoalPhase\022\030\n\020pro" +
-      "gress_summary\030\010 \001(\t\022\021\n\titeration\030\t \001(\005\022\026" +
-      "\n\016max_iterations\030\n \001(\005\022\022\n\ncreated_at\030\014 \001" +
-      "(\003\022\022\n\nupdated_at\030\r \001(\003\022\024\n\014completed_at\030\016" +
-      " \001(\003\022\026\n\016blocked_reason\030\017 \001(\t\022,\n\006labels\030\020" +
-      " \003(\0132\034.talon.data.Goal.LabelsEntry\0220\n\010me" +
-      "tadata\030\021 \003(\0132\036.talon.data.Goal.MetadataE" +
-      "ntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
-      "e\030\002 \001(\t:\0028\001\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\266\001\n\016ArtifactAccess\022" +
-      "\024\n\014target_agent\030\001 \001(\t\022\031\n\021target_session_" +
-      "id\030\002 \001(\t\022\022\n\noperations\030\003 \003(\t\022\022\n\nexpires_" +
-      "at\030\004 \001(\003\022\030\n\020granted_by_agent\030\005 \001(\t\022\035\n\025gr" +
-      "anted_by_session_id\030\006 \001(\t\022\022\n\ncreated_at\030" +
-      "\007 \001(\003\"\275\001\n\tPrincipal\022\023\n\013external_id\030\001 \001(\t" +
-      "\022\017\n\007address\030\002 \001(\t\022\024\n\014display_name\030\003 \001(\t\022" +
-      "\014\n\004kind\030\004 \001(\t\0225\n\010metadata\030\005 \003(\0132#.talon." +
-      "data.Principal.MetadataEntry\032/\n\rMetadata" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001" +
-      "\n\022SessionMessagePart\022\n\n\002id\030\001 \001(\t\0225\n\tpart" +
-      "_type\030\002 \001(\0162\".talon.data.SessionMessageP" +
-      "artType\022\017\n\007content\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024" +
-      "\n\014payload_json\030\005 \001(\t\022\022\n\ncreated_at\030\006 \001(\003" +
-      "\022%\n\006object\030\007 \001(\0132\025.talon.data.ObjectRef\"" +
-      "\363\001\n\016SessionMessage\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002" +
-      " \001(\0162\027.talon.data.MessageRole\022\022\n\ncreated" +
-      "_at\030\004 \001(\003\0226\n\006labels\030\005 \003(\0132&.talon.data.S" +
-      "essionMessage.LabelsEntry\022-\n\005parts\030\006 \003(\013" +
-      "2\036.talon.data.SessionMessagePart\032-\n\013Labe" +
-      "lsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J" +
-      "\004\010\003\020\004\"\257\002\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002" +
-      " \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncrea" +
-      "ted_at\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010met" +
-      "adata\030\007 \003(\0132!.talon.data.Session.Metadat" +
-      "aEntry\022/\n\006labels\030\010 \003(\0132\037.talon.data.Sess" +
-      "ion.LabelsEntry\032/\n\rMetadataEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022" +
-      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\233\002\n\016Chan" +
-      "nelMessage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007ch" +
-      "annel\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006auth" +
-      "or\030\005 \001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_at\030" +
-      "\007 \001(\003\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021source_se" +
-      "ssion_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talon.d" +
-      "ata.ChannelMessage.LabelsEntry\032-\n\013Labels" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n" +
-      "\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(" +
-      "\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t" +
-      "\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSearchResult\022" +
-      "\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030" +
-      "\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 " +
-      "\001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workf" +
-      "low\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n" +
-      "\ninput_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n" +
-      "\013output_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022" +
-      "\n\nupdated_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.tal" +
-      "on.data.WorkflowRun.LabelsEntry\022\035\n\020claim" +
-      "_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n" +
-      "\tspec_json\030\r \001(\t\022\031\n\021workflow_revision\030\016 " +
-      "\001(\004\022\023\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_attemp" +
-      "t\030\020 \001(\r\022\034\n\024last_dispatch_reason\030\021 \001(\t\032-\n" +
-      "\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t" +
-      ":\0028\001B\023\n\021_claim_expires_at\"\263\003\n\017WorkflowSt" +
-      "epRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007at" +
-      "tempt\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_jso" +
-      "n\030\005 \001(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005error\030\007 " +
-      "\001(\t\022\030\n\020child_session_id\030\010 \001(\t\022\035\n\025child_w" +
-      "orkflow_run_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(" +
-      "\t\022\024\n\014suspend_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 " +
-      "\001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retry_at" +
-      "\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022" +
-      "wait_wakeup_handle\030\020 \001(\t\022\032\n\rwait_until_a" +
-      "t\030\021 \001(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_timeo" +
-      "ut_atB\020\n\016_wait_until_at\"\245\001\n\020WorkflowRunE" +
-      "vent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow" +
-      "\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007" +
-      "step_id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payloa" +
-      "d_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013Messa" +
-      "geRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_USE" +
-      "R\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003" +
-      "*\316\004\n\026SessionMessagePartType\022)\n%SESSION_M" +
-      "ESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSIO" +
-      "N_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION_ME" +
-      "SSAGE_PART_TYPE_REASONING\020\002\022\'\n#SESSION_M" +
-      "ESSAGE_PART_TYPE_TOOL_CALL\020\003\022)\n%SESSION_" +
-      "MESSAGE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037SESSI" +
-      "ON_MESSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESSION_" +
-      "MESSAGE_PART_TYPE_ERROR\020\006\022#\n\037SESSION_MES" +
-      "SAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION_MESSAG" +
-      "E_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAGE_P" +
-      "ART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_PART" +
-      "_TYPE_FILE\020\n\0220\n,SESSION_MESSAGE_PART_TYP" +
-      "E_REQUEST_PERMISSION\020\013\022/\n+SESSION_MESSAG" +
-      "E_PART_TYPE_PERMISSION_RESULT\020\014\022(\n$SESSI" +
-      "ON_MESSAGE_PART_TYPE_COMPACTION\020\r*\355\001\n\tGo" +
-      "alPhase\022\032\n\026GOAL_PHASE_UNSPECIFIED\020\000\022\026\n\022G" +
-      "OAL_PHASE_RUNNING\020\001\022\025\n\021GOAL_PHASE_PAUSED" +
-      "\020\002\022\033\n\027GOAL_PHASE_NEEDS_REVIEW\020\003\022\030\n\024GOAL_" +
-      "PHASE_SUCCEEDED\020\004\022\025\n\021GOAL_PHASE_FAILED\020\005" +
-      "\022\026\n\022GOAL_PHASE_BLOCKED\020\006\022\027\n\023GOAL_PHASE_C" +
-      "ANCELED\020\007\022\026\n\022GOAL_PHASE_EXPIRED\020\010b\006proto" +
-      "3"
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\203\002\n\014TokenCoun" +
+      "ter\022\024\n\014input_tokens\030\001 \001(\004\022\025\n\routput_toke" +
+      "ns\030\002 \001(\004\022\037\n\027reasoning_output_tokens\030\003 \001(" +
+      "\004\022\024\n\014total_tokens\030\004 \001(\004\022\033\n\023cached_input_" +
+      "tokens\030\005 \001(\004\022\027\n\017usage_available\030\006 \001(\010\022 \n" +
+      "\023provider_request_id\030\007 \001(\tH\000\210\001\001\022\020\n\010provi" +
+      "der\030\010 \001(\t\022\r\n\005model\030\t \001(\tB\026\n\024_provider_re" +
+      "quest_id\"\356\002\n\010Artifact\022\n\n\002id\030\001 \001(\t\022\022\n\nses" +
+      "sion_id\030\002 \001(\t\022\r\n\005title\030\003 \001(\t\022\022\n\nmedia_ty" +
+      "pe\030\005 \001(\t\022)\n\nobject_ref\030\006 \001(\0132\025.talon.dat" +
+      "a.ObjectRef\022\030\n\020created_by_agent\030\007 \001(\t\022\022\n" +
+      "\ncreated_at\030\010 \001(\003\0220\n\006labels\030\t \003(\0132 .talo" +
+      "n.data.Artifact.LabelsEntry\0224\n\010metadata\030" +
+      "\n \003(\0132\".talon.data.Artifact.MetadataEntr" +
+      "y\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
+      " \001(\t:\0028\001\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r" +
+      "\n\005value\030\002 \001(\t:\0028\001\"\366\003\n\004Goal\022\n\n\002id\030\001 \001(\t\022\021" +
+      "\n\tnamespace\030\002 \001(\t\022\r\n\005agent\030\003 \001(\t\022\022\n\nsess" +
+      "ion_id\030\004 \001(\t\022\021\n\tobjective\030\005 \001(\t\022\030\n\020succe" +
+      "ss_criteria\030\006 \003(\t\022$\n\005phase\030\007 \001(\0162\025.talon" +
+      ".data.GoalPhase\022\030\n\020progress_summary\030\010 \001(" +
+      "\t\022\021\n\titeration\030\t \001(\005\022\026\n\016max_iterations\030\n" +
+      " \001(\005\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r" +
+      " \001(\003\022\024\n\014completed_at\030\016 \001(\003\022\026\n\016blocked_re" +
+      "ason\030\017 \001(\t\022,\n\006labels\030\020 \003(\0132\034.talon.data." +
+      "Goal.LabelsEntry\0220\n\010metadata\030\021 \003(\0132\036.tal" +
+      "on.data.Goal.MetadataEntry\032-\n\013LabelsEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMet" +
+      "adataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002" +
+      "8\001\"\266\001\n\016ArtifactAccess\022\024\n\014target_agent\030\001 " +
+      "\001(\t\022\031\n\021target_session_id\030\002 \001(\t\022\022\n\noperat" +
+      "ions\030\003 \003(\t\022\022\n\nexpires_at\030\004 \001(\003\022\030\n\020grante" +
+      "d_by_agent\030\005 \001(\t\022\035\n\025granted_by_session_i" +
+      "d\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\"\275\001\n\tPrincipa" +
+      "l\022\023\n\013external_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022" +
+      "\024\n\014display_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010m" +
+      "etadata\030\005 \003(\0132#.talon.data.Principal.Met" +
+      "adataEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t" +
+      "\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessagePa" +
+      "rt\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".talo" +
+      "n.data.SessionMessagePartType\022\017\n\007content" +
+      "\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 \001" +
+      "(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025" +
+      ".talon.data.ObjectRef\"\363\001\n\016SessionMessage" +
+      "\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data." +
+      "MessageRole\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006label" +
+      "s\030\005 \003(\0132&.talon.data.SessionMessage.Labe" +
+      "lsEntry\022-\n\005parts\030\006 \003(\0132\036.talon.data.Sess" +
+      "ionMessagePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001" +
+      "(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\371\002\n\007Session\022" +
+      "\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016" +
+      "\n\006status\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013la" +
+      "st_active\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.talo" +
+      "n.data.Session.MetadataEntry\022/\n\006labels\030\010" +
+      " \003(\0132\037.talon.data.Session.LabelsEntry\0225\n" +
+      "\016context_tokens\030\t \001(\0132\030.talon.data.Token" +
+      "CounterH\000\210\001\001\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001" +
+      "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003" +
+      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\021\n\017_context" +
+      "_tokens\"\233\002\n\016ChannelMessage\022\n\n\002id\030\001 \001(\t\022\n" +
+      "\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013author_ki" +
+      "nd\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007content\030\006 \001(" +
+      "\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_agent\030\010 " +
+      "\001(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n\006labels" +
+      "\030\n \003(\0132&.talon.data.ChannelMessage.Label" +
+      "sEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
+      "lue\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t" +
+      "\022\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n" +
+      "\tnamespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025Knowle" +
+      "dgeSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet" +
+      "\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003" +
+      "\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002i" +
+      "d\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n" +
+      "\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nsta" +
+      "te_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(\t\022\022\n\ncr" +
+      "eated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006la" +
+      "bels\030\n \003(\0132#.talon.data.WorkflowRun.Labe" +
+      "lsEntry\022\035\n\020claim_expires_at\030\013 \001(\003H\000\210\001\001\022\r" +
+      "\n\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022\031\n\021work" +
+      "flow_revision\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t" +
+      "\022\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_dispatch" +
+      "_reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_expires_a" +
+      "t\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007ste" +
+      "p_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006status\030\004 " +
+      "\001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output_json\030\006" +
+      " \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_session_id\030" +
+      "\010 \001(\t\022\035\n\025child_workflow_run_id\030\t \001(\t\022\023\n\013" +
+      "resume_json\030\n \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022" +
+      "\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022" +
+      "\032\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_a" +
+      "t\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handle\030\020 \001(\t" +
+      "\022\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_re" +
+      "try_atB\r\n\013_timeout_atB\020\n\016_wait_until_at\"" +
+      "\245\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002" +
+      " \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014" +
+      "\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007message" +
+      "\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\ttimestam" +
+      "p\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UNSPECIFI" +
+      "ED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022" +
+      "\017\n\013ROLE_SYSTEM\020\003*\316\004\n\026SessionMessagePartT" +
+      "ype\022)\n%SESSION_MESSAGE_PART_TYPE_UNSPECI" +
+      "FIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TYPE_TEXT" +
+      "\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_REASONIN" +
+      "G\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_TOOL_CA" +
+      "LL\020\003\022)\n%SESSION_MESSAGE_PART_TYPE_TOOL_R" +
+      "ESULT\020\004\022#\n\037SESSION_MESSAGE_PART_TYPE_USA" +
+      "GE\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE_ERROR\020" +
+      "\006\022#\n\037SESSION_MESSAGE_PART_TYPE_IMAGE\020\007\022#" +
+      "\n\037SESSION_MESSAGE_PART_TYPE_AUDIO\020\010\022#\n\037S" +
+      "ESSION_MESSAGE_PART_TYPE_VIDEO\020\t\022\"\n\036SESS" +
+      "ION_MESSAGE_PART_TYPE_FILE\020\n\0220\n,SESSION_" +
+      "MESSAGE_PART_TYPE_REQUEST_PERMISSION\020\013\022/" +
+      "\n+SESSION_MESSAGE_PART_TYPE_PERMISSION_R" +
+      "ESULT\020\014\022(\n$SESSION_MESSAGE_PART_TYPE_COM" +
+      "PACTION\020\r*\355\001\n\tGoalPhase\022\032\n\026GOAL_PHASE_UN" +
+      "SPECIFIED\020\000\022\026\n\022GOAL_PHASE_RUNNING\020\001\022\025\n\021G" +
+      "OAL_PHASE_PAUSED\020\002\022\033\n\027GOAL_PHASE_NEEDS_R" +
+      "EVIEW\020\003\022\030\n\024GOAL_PHASE_SUCCEEDED\020\004\022\025\n\021GOA" +
+      "L_PHASE_FAILED\020\005\022\026\n\022GOAL_PHASE_BLOCKED\020\006" +
+      "\022\027\n\023GOAL_PHASE_CANCELED\020\007\022\026\n\022GOAL_PHASE_" +
+      "EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -26727,8 +28313,14 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ObjectRef_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_data_Artifact_descriptor =
+    internal_static_talon_data_TokenCounter_descriptor =
       getDescriptor().getMessageType(1);
+    internal_static_talon_data_TokenCounter_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_data_TokenCounter_descriptor,
+        new java.lang.String[] { "InputTokens", "OutputTokens", "ReasoningOutputTokens", "TotalTokens", "CachedInputTokens", "UsageAvailable", "ProviderRequestId", "Provider", "Model", });
+    internal_static_talon_data_Artifact_descriptor =
+      getDescriptor().getMessageType(2);
     internal_static_talon_data_Artifact_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Artifact_descriptor,
@@ -26746,7 +28338,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Artifact_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Goal_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(3);
     internal_static_talon_data_Goal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Goal_descriptor,
@@ -26764,13 +28356,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Goal_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_ArtifactAccess_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(4);
     internal_static_talon_data_ArtifactAccess_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ArtifactAccess_descriptor,
         new java.lang.String[] { "TargetAgent", "TargetSessionId", "Operations", "ExpiresAt", "GrantedByAgent", "GrantedBySessionId", "CreatedAt", });
     internal_static_talon_data_Principal_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(5);
     internal_static_talon_data_Principal_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Principal_descriptor,
@@ -26782,13 +28374,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Principal_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_SessionMessagePart_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(6);
     internal_static_talon_data_SessionMessagePart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessagePart_descriptor,
         new java.lang.String[] { "Id", "PartType", "Content", "Name", "PayloadJson", "CreatedAt", "Object", });
     internal_static_talon_data_SessionMessage_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(7);
     internal_static_talon_data_SessionMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionMessage_descriptor,
@@ -26800,11 +28392,11 @@ java.lang.String defaultValue) {
         internal_static_talon_data_SessionMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Session_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(8);
     internal_static_talon_data_Session_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Session_descriptor,
-        new java.lang.String[] { "Id", "Agent", "Ns", "Status", "CreatedAt", "LastActive", "Metadata", "Labels", });
+        new java.lang.String[] { "Id", "Agent", "Ns", "Status", "CreatedAt", "LastActive", "Metadata", "Labels", "ContextTokens", });
     internal_static_talon_data_Session_MetadataEntry_descriptor =
       internal_static_talon_data_Session_descriptor.getNestedType(0);
     internal_static_talon_data_Session_MetadataEntry_fieldAccessorTable = new
@@ -26818,7 +28410,7 @@ java.lang.String defaultValue) {
         internal_static_talon_data_Session_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_ChannelMessage_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(9);
     internal_static_talon_data_ChannelMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_ChannelMessage_descriptor,
@@ -26830,19 +28422,19 @@ java.lang.String defaultValue) {
         internal_static_talon_data_ChannelMessage_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_Knowledge_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(10);
     internal_static_talon_data_Knowledge_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Knowledge_descriptor,
         new java.lang.String[] { "Path", "Content", "UpdatedAt", "Namespace", "Name", });
     internal_static_talon_data_KnowledgeSearchResult_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(11);
     internal_static_talon_data_KnowledgeSearchResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_KnowledgeSearchResult_descriptor,
         new java.lang.String[] { "Path", "Snippet", "Score", "Timestamp", "Namespace", });
     internal_static_talon_data_WorkflowRun_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(12);
     internal_static_talon_data_WorkflowRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRun_descriptor,
@@ -26854,13 +28446,13 @@ java.lang.String defaultValue) {
         internal_static_talon_data_WorkflowRun_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_data_WorkflowStepRun_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(13);
     internal_static_talon_data_WorkflowStepRun_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowStepRun_descriptor,
         new java.lang.String[] { "Id", "StepId", "Attempt", "Status", "InputJson", "OutputJson", "Error", "ChildSessionId", "ChildWorkflowRunId", "ResumeJson", "SuspendJson", "CreatedAt", "UpdatedAt", "NextRetryAt", "TimeoutAt", "WaitWakeupHandle", "WaitUntilAt", });
     internal_static_talon_data_WorkflowRunEvent_descriptor =
-      getDescriptor().getMessageType(13);
+      getDescriptor().getMessageType(14);
     internal_static_talon_data_WorkflowRunEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_WorkflowRunEvent_descriptor,
