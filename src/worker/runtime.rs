@@ -196,6 +196,11 @@ impl AgentRuntime {
             cp.clone(),
             spec.clone(),
             mcp_tools,
+        )
+        .with_prior_context_tokens(
+            session
+                .as_ref()
+                .and_then(|session| session.context_tokens.clone()),
         );
 
         Ok(Self {
