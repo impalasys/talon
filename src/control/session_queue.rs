@@ -343,6 +343,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                context_tokens: None,
             },
         )
         .await

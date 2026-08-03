@@ -1126,6 +1126,7 @@ mod tests {
             last_active: 2,
             metadata: HashMap::new(),
             labels: HashMap::from([("env".to_string(), "test".to_string())]),
+            context_tokens: None,
         };
         let session_key = keys::session("ns", "agent", "session-1");
         kv.set_msg(&session_key, &session).await.unwrap();

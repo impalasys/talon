@@ -4,8 +4,9 @@
 use crate::control::cas::CasStore;
 use crate::harness::llm::provider::{
     chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
-    text_delta_event, tool_call_delta_event, usage_event, ChatContentPart, ChatMessage,
-    ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider, ToolCallDelta,
+    provider_request_error, text_delta_event, tool_call_delta_event, usage_event, ChatContentPart,
+    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider, TokenCounter,
+    ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -629,18 +630,15 @@ impl OpenAiCompatibleProvider {
                     retry_without_tools_status,
                     &retry_without_tools_err_text,
                 );
-                return Err(anyhow!(
-                    "OpenAI API error after retry_without_stream_options_or_tools: initial={}, retry_without_stream_options={}, retry_without_stream_options_or_tools={}",
-                    err_text,
-                    retry_err_text,
-                    retry_without_tools_err_text
+                return Err(openai_api_error(
+                    "OpenAI-compatible API request failed after retries",
+                    &retry_without_tools_err_text,
                 ));
             }
 
-            return Err(anyhow!(
-                "OpenAI API error after retry_without_stream_options: initial={}, retry_without_stream_options={}",
-                err_text,
-                retry_err_text
+            return Err(openai_api_error(
+                "OpenAI-compatible API request failed after retry",
+                &retry_err_text,
             ));
         }
         if self.supports_tool_retry_without_tools(
@@ -681,20 +679,29 @@ impl OpenAiCompatibleProvider {
                 retry_status,
                 &retry_err_text,
             );
-            return Err(anyhow!(
-                "OpenAI API error after Novita retry_without_tools: initial={}, retry_without_tools={}",
-                err_text,
-                retry_err_text
+            return Err(openai_api_error(
+                "OpenAI-compatible API request failed after retry",
+                &retry_err_text,
             ));
         }
 
-        Err(anyhow!("OpenAI API error: {}", err_text))
+        Err(openai_api_error(
+            "OpenAI-compatible API request failed",
+            &err_text,
+        ))
     }
 }
 
 fn shared_http_client() -> reqwest::Client {
     static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
     CLIENT.get_or_init(reqwest::Client::new).clone()
+}
+
+fn openai_api_error(message: &str, response_body: &str) -> anyhow::Error {
+    let token_counter = serde_json::from_str(response_body)
+        .ok()
+        .and_then(|value| extract_usage(&value));
+    provider_request_error(message, token_counter)
 }
 
 #[async_trait]
@@ -735,10 +742,18 @@ impl LlmProvider for OpenAiCompatibleProvider {
             vec![]
         };
 
+        let usage = extract_usage(&result).map(|mut counter| {
+            counter.provider = "openai_compatible".to_string();
+            if counter.model.is_empty() {
+                counter.model = self.model.clone();
+            }
+            counter
+        });
+
         Ok(ChatResponse {
             content,
             tool_calls,
-            usage: extract_usage(&result),
+            usage,
         })
     }
 
@@ -758,6 +773,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
         // Simple SSE state machine
         let mut buffer = String::new();
         let mut saw_first_chunk = false;
+        let stream_model = self.model.clone();
         let sse_stream = line_stream.flat_map(move |result| match result {
             Ok(bytes) => {
                 let text = String::from_utf8_lossy(&bytes);
@@ -828,7 +844,11 @@ impl LlmProvider for OpenAiCompatibleProvider {
                                     }
                                 }
                             }
-                            if let Some(usage) = extract_usage(&value) {
+                            if let Some(mut usage) = extract_usage(&value) {
+                                usage.provider = "openai_compatible".to_string();
+                                if usage.model.is_empty() {
+                                    usage.model = stream_model.clone();
+                                }
                                 items.push(Ok(usage_event(usage)));
                             }
                         }
@@ -871,7 +891,7 @@ impl Stream for SpanInstrumentedChatStream {
     }
 }
 
-fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
+fn extract_usage(value: &serde_json::Value) -> Option<TokenCounter> {
     let usage = value.get("usage")?;
     if !usage.is_object() {
         return None;
@@ -909,13 +929,30 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
     let total_tokens = usage
         .get("total_tokens")
         .and_then(|v| v.as_u64())
-        .unwrap_or(input_tokens + completion_tokens);
+        .unwrap_or(0);
+    let cached_input_tokens = usage
+        .pointer("/prompt_tokens_details/cached_tokens")
+        .or_else(|| usage.pointer("/input_tokens_details/cached_tokens"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
 
-    Some(ChatUsage {
+    Some(TokenCounter {
         input_tokens,
         output_tokens,
-        reasoning_tokens,
+        reasoning_output_tokens: reasoning_tokens,
         total_tokens,
+        cached_input_tokens,
+        usage_available: true,
+        provider_request_id: value
+            .get("id")
+            .and_then(|v| v.as_str())
+            .map(ToString::to_string),
+        provider: String::new(),
+        model: value
+            .get("model")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string(),
     })
 }
 
@@ -1462,18 +1499,26 @@ mod tests {
     #[test]
     fn extract_usage_does_not_double_count_reasoning_tokens() {
         let usage = extract_usage(&serde_json::json!({
+            "id": "chatcmpl-1",
+            "model": "gpt-test",
             "usage": {
                 "prompt_tokens": 10,
                 "completion_tokens": 20,
-                "reasoning_tokens": 6
+                "reasoning_tokens": 6,
+                "total_tokens": 30,
+                "prompt_tokens_details": { "cached_tokens": 4 }
             }
         }))
         .unwrap();
 
         assert_eq!(usage.input_tokens, 10);
         assert_eq!(usage.output_tokens, 14);
-        assert_eq!(usage.reasoning_tokens, 6);
+        assert_eq!(usage.reasoning_output_tokens, 6);
+        assert_eq!(usage.cached_input_tokens, 4);
         assert_eq!(usage.total_tokens, 30);
+        assert!(usage.usage_available);
+        assert_eq!(usage.provider_request_id.as_deref(), Some("chatcmpl-1"));
+        assert_eq!(usage.model, "gpt-test");
     }
 
     #[test]
@@ -1489,8 +1534,9 @@ mod tests {
 
         assert_eq!(usage.input_tokens, 10);
         assert_eq!(usage.output_tokens, 14);
-        assert_eq!(usage.reasoning_tokens, 6);
-        assert_eq!(usage.total_tokens, 30);
+        assert_eq!(usage.reasoning_output_tokens, 6);
+        assert_eq!(usage.total_tokens, 0);
+        assert!(usage.usage_available);
     }
 
     #[test]
@@ -1738,8 +1784,9 @@ mod tests {
             .await
             .unwrap_err();
 
-        assert!(err.to_string().contains("OpenAI API error"));
-        assert!(err.to_string().contains("bad request"));
+        assert!(err
+            .to_string()
+            .contains("OpenAI-compatible API request failed"));
         server.abort();
     }
 
@@ -1878,9 +1925,7 @@ mod tests {
             .unwrap_err();
 
         let text = err.to_string();
-        assert!(text.contains("retry_without_tools"));
-        assert!(text.contains("internal_server_error"));
-        assert!(text.contains("retry still failed"));
+        assert!(text.contains("OpenAI-compatible API request failed after retry"));
         assert_eq!(hits.load(Ordering::SeqCst), 2);
         server.abort();
     }

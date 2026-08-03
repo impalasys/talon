@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::{keys, KeyValueStore};
-use crate::gateway::rpc::{harness_proto, resources_proto};
+use crate::gateway::rpc::{data_proto, resources_proto};
 use anyhow::{anyhow, bail, Context, Result};
 use prost::Message;
 use std::error::Error;
@@ -78,7 +78,7 @@ pub fn is_quota_exceeded_error(err: &anyhow::Error) -> bool {
     err.downcast_ref::<UsageQuotaExceeded>().is_some()
 }
 
-pub fn llm_usage_charges(usage: Option<&harness_proto::ChatUsage>) -> Vec<UsageCharge> {
+pub fn llm_usage_charges(usage: Option<&data_proto::TokenCounter>) -> Vec<UsageCharge> {
     let mut charges = vec![UsageCharge {
         metric: METRIC_LLM_REQUESTS,
         delta: 1,
@@ -89,7 +89,7 @@ pub fn llm_usage_charges(usage: Option<&harness_proto::ChatUsage>) -> Vec<UsageC
         push_nonzero(
             &mut charges,
             METRIC_LLM_REASONING_TOKENS,
-            usage.reasoning_tokens,
+            usage.reasoning_output_tokens,
         );
         push_nonzero(&mut charges, METRIC_LLM_TOTAL_TOKENS, usage.total_tokens);
     }

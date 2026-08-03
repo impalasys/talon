@@ -603,6 +603,24 @@ impl WorkerEventHandler {
                 .last()
                 .map(|entry| entry.journal_entry_id.as_str()),
         );
+        if let Some(counter) = sessions::latest_context_tokens(&journal_entries) {
+            if let Err(error) = sessions::persist_context_tokens(
+                self.cp.kv.as_ref(),
+                ns,
+                &event.agent,
+                &event.session_id,
+                &counter,
+            )
+            .await
+            {
+                tracing::error!(
+                    error = %error,
+                    agent = %event.agent,
+                    session = %event.session_id,
+                    "failed to recover session context token snapshot"
+                );
+            }
+        }
         if let Some(entry) = journal_entries
             .last()
             .filter(|entry| entry.phase == SessionExecutionPhase::Committed as i32)
@@ -1403,7 +1421,7 @@ mod tests {
         async fn on_reasoning(&self, _: &str) {}
         async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
         async fn on_tool_result(&self, _: &str, _: &str, _: &crate::harness::llm::ToolOutput) {}
-        async fn on_usage(&self, _: &crate::harness::llm::ChatUsage) {}
+        async fn on_usage(&self, _: &crate::harness::llm::TokenCounter) {}
         async fn on_done(&self) {}
         async fn on_error(&self, err: &str) {
             self.errors.lock().unwrap().push(err.to_string());
@@ -1470,6 +1488,7 @@ mod tests {
                 last_active: 1,
                 metadata,
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
@@ -1774,6 +1793,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: session_labels,
+                context_tokens: None,
             },
         )
         .await
@@ -2054,6 +2074,7 @@ mod tests {
             last_active: 123,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            context_tokens: None,
         };
         kv.set_msg(
             &crate::control::keys::session("conic:test", "assistant", "session-1"),
@@ -2097,6 +2118,7 @@ mod tests {
             last_active: 123,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            context_tokens: None,
         };
         kv.set_msg(
             &crate::control::keys::session("conic:test", "assistant", "session-1"),
@@ -2140,6 +2162,7 @@ mod tests {
             last_active: 123,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            context_tokens: None,
         };
         kv.set_msg(
             &crate::control::keys::session("conic:test", "assistant", "session-1"),
@@ -2350,6 +2373,7 @@ mod tests {
             last_active: 456,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            context_tokens: None,
         };
         kv.set_msg(
             &crate::control::keys::session("conic:test", "assistant", "session-1"),
@@ -2426,6 +2450,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
@@ -2644,6 +2669,7 @@ mod tests {
                         "T123".to_string(),
                     ),
                 ]),
+                context_tokens: None,
             },
         )
         .await
@@ -2771,6 +2797,7 @@ mod tests {
                         "1710000000.000100".to_string(),
                     ),
                 ]),
+                context_tokens: None,
             },
         )
         .await
@@ -2941,6 +2968,7 @@ mod tests {
                 ("talon.impalasys.com/connector-class", "stale-class"),
                 ("talon.impalasys.com/connector-match/teamId", "stale-team"),
             ]),
+            context_tokens: None,
         };
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
@@ -3383,6 +3411,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
@@ -3546,6 +3575,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
@@ -3768,6 +3798,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
@@ -3842,6 +3873,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await

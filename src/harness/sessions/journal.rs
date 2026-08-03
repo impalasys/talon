@@ -12,10 +12,11 @@ use crate::control::{keys, KeyValueStore, ListOptions};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
     SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadCompaction,
-    SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadToolResult,
+    SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadLlmUsage,
+    SessionJournalEntryPayloadToolResult,
 };
-use crate::harness::llm::ChatResponse;
 use crate::harness::llm::ToolOutput;
+use crate::harness::llm::{ChatResponse, TokenCounter};
 
 pub async fn append_compaction(
     kv: &dyn KeyValueStore,
@@ -137,6 +138,50 @@ pub async fn append_llm_response(
         now_micros,
     )
     .await
+}
+
+pub async fn append_llm_usage(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    submission_id: &str,
+    attempt_id: &str,
+    counter: &TokenCounter,
+    now_micros: i64,
+) -> Result<SessionJournalEntry> {
+    append_journal_entry(
+        kv,
+        ns,
+        agent,
+        session_id,
+        submission_id,
+        attempt_id,
+        SessionExecutionPhase::LlmUsage as i32,
+        Some(SessionJournalEntryPayload {
+            payload: Some(session_journal_entry_payload::Payload::LlmUsage(
+                SessionJournalEntryPayloadLlmUsage {
+                    context_tokens: Some(counter.clone()),
+                },
+            )),
+        }),
+        None,
+        now_micros,
+    )
+    .await
+}
+
+pub fn latest_context_tokens(entries: &[SessionJournalEntry]) -> Option<TokenCounter> {
+    entries.iter().rev().find_map(|entry| {
+        let payload = entry.payload.as_ref()?.payload.as_ref()?;
+        match payload {
+            session_journal_entry_payload::Payload::LlmResponse(response) => {
+                response.response.as_ref()?.usage.clone()
+            }
+            session_journal_entry_payload::Payload::LlmUsage(usage) => usage.context_tokens.clone(),
+            _ => None,
+        }
+    })
 }
 
 pub async fn append_tool_result(
@@ -470,7 +515,7 @@ mod tests {
     use crate::control::tool_output::ToolOutputExt;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::gateway::rpc::data_proto::{SessionExecutionPhase, SessionSubmissionStatus};
-    use crate::harness::llm::{ChatResponse, ToolCall};
+    use crate::harness::llm::{ChatResponse, TokenCounter, ToolCall};
     use crate::harness::sessions::{
         create_submission_if_absent, pending_submission, SessionSubmission,
     };
@@ -567,6 +612,42 @@ mod tests {
             submission.current_phase,
             SessionExecutionPhase::ToolResult as i32
         );
+    }
+
+    #[tokio::test]
+    async fn usage_boundary_is_recoverable_as_latest_context_tokens() {
+        let kv = crate::test_support::MockKvStore::default();
+        seed_claimed_submission(&kv).await;
+        let counter = TokenCounter {
+            input_tokens: 12,
+            cached_input_tokens: 3,
+            output_tokens: 4,
+            reasoning_output_tokens: 1,
+            total_tokens: 17,
+            usage_available: true,
+            provider_request_id: Some("provider-request".to_string()),
+            provider: "openai".to_string(),
+            model: "gpt-test".to_string(),
+        };
+
+        let entry = append_llm_usage(
+            &kv,
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &counter,
+            2,
+        )
+        .await
+        .unwrap();
+        assert_eq!(entry.phase, SessionExecutionPhase::LlmUsage as i32);
+
+        let entries = list_journal_entries(&kv, "ns", "agent", "session-1", "submission-1")
+            .await
+            .unwrap();
+        assert_eq!(latest_context_tokens(&entries), Some(counter));
     }
 
     #[tokio::test]

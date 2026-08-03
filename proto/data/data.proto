@@ -38,6 +38,21 @@ message ObjectRef {
   string content_encoding = 7;
 }
 
+// Provider-reported token counts for one completed model request. Fields that
+// a provider does not return are left at their proto3 zero value; callers use
+// usage_available to distinguish that from a provider-reported zero count.
+message TokenCounter {
+  uint64 input_tokens = 1;
+  uint64 output_tokens = 2;
+  uint64 reasoning_output_tokens = 3;
+  uint64 total_tokens = 4;
+  uint64 cached_input_tokens = 5;
+  bool usage_available = 6;
+  optional string provider_request_id = 7;
+  string provider = 8;
+  string model = 9;
+}
+
 // Session-scoped immutable output produced by an agent.
 //
 // Artifacts are not namespace-level File resources. They live under the
@@ -198,6 +213,9 @@ message Session {
   int64 last_active = 6;
   map<string, string> metadata = 7;
   map<string, string> labels = 8;
+  // Latest completed provider token snapshot for this session. This is not a
+  // cumulative usage or billing record.
+  optional TokenCounter context_tokens = 9;
 }
 
 message ChannelMessage {

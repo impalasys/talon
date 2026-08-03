@@ -2,16 +2,48 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::harness::memory::Embedding;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use futures::Stream;
 use std::pin::Pin;
+use std::{error::Error, fmt};
 
 use crate::gateway::rpc::data_proto;
+pub use crate::gateway::rpc::data_proto::TokenCounter;
 pub use crate::gateway::rpc::harness_proto::{
     chat_content_part, chat_stream_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
-    ChatStreamEvent, ChatUsage, Tool, ToolCall, ToolCallDelta, ToolOutput,
+    ChatStreamEvent, Tool, ToolCall, ToolCallDelta, ToolOutput,
 };
+
+#[derive(Debug)]
+pub struct ProviderRequestError {
+    message: String,
+    pub token_counter: Option<TokenCounter>,
+}
+
+impl fmt::Display for ProviderRequestError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl Error for ProviderRequestError {}
+
+pub fn provider_request_error(
+    message: impl Into<String>,
+    token_counter: Option<TokenCounter>,
+) -> anyhow::Error {
+    anyhow!(ProviderRequestError {
+        message: message.into(),
+        token_counter,
+    })
+}
+
+pub fn provider_error_token_counter(error: &anyhow::Error) -> Option<&TokenCounter> {
+    error
+        .downcast_ref::<ProviderRequestError>()
+        .and_then(|error| error.token_counter.as_ref())
+}
 
 pub fn text_part(text: impl Into<String>) -> ChatContentPart {
     ChatContentPart {
@@ -109,7 +141,7 @@ pub fn tool_call_delta_event(delta: ToolCallDelta) -> ChatStreamEvent {
     }
 }
 
-pub fn usage_event(usage: ChatUsage) -> ChatStreamEvent {
+pub fn usage_event(usage: TokenCounter) -> ChatStreamEvent {
     ChatStreamEvent {
         event: Some(chat_stream_event::Event::Usage(usage)),
     }

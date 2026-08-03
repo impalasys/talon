@@ -24,10 +24,18 @@ enum SessionExecutionPhase {
   // Durable model context compaction completed. The journal entry references
   // an immutable summary object without storing a provider transcript snapshot.
   SESSION_EXECUTION_PHASE_COMPACTION = 4;
+
+  // A provider request ended without a complete assistant response, but did
+  // report token usage (for example, cancellation after a final usage event).
+  SESSION_EXECUTION_PHASE_LLM_USAGE = 5;
 }
 
 message SessionJournalEntryPayloadLlmResponse {
   talon.harness.ChatResponse response = 1;
+}
+
+message SessionJournalEntryPayloadLlmUsage {
+  talon.data.TokenCounter context_tokens = 1;
 }
 
 message SessionJournalEntryPayloadToolResult {
@@ -53,6 +61,7 @@ message SessionJournalEntryPayload {
     SessionJournalEntryPayloadToolResult tool_result = 2;
     SessionJournalEntryPayloadCommit commit = 3;
     SessionJournalEntryPayloadCompaction compaction = 5;
+    SessionJournalEntryPayloadLlmUsage llm_usage = 6;
   }
 }
 

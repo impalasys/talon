@@ -87,6 +87,7 @@ message SessionResponse {
   string state = 3;
   repeated talon.data.SessionMessage messages = 4;
   map<string, string> labels = 6;
+  optional talon.data.TokenCounter context_tokens = 7;
 }
 
 message DeleteSessionRequest {

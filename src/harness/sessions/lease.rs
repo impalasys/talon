@@ -180,6 +180,7 @@ mod tests {
                 last_active: 200,
                 metadata: std::collections::HashMap::new(),
                 labels: std::collections::HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
@@ -212,6 +213,7 @@ mod tests {
                 last_active: 100,
                 metadata: std::collections::HashMap::new(),
                 labels: std::collections::HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
