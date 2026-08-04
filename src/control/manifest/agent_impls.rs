@@ -180,7 +180,11 @@ impl ModelManifest {
             provider: self.provider,
             name: self.name,
             temperature: self.temperature,
-            thinking: None,
+            thinking: self.thinking.map(|thinking| manifests::ThinkingConfig {
+                enabled: thinking.enabled,
+                budget_tokens: thinking.budget_tokens,
+                effort: thinking.effort,
+            }),
         }
     }
 
@@ -189,6 +193,13 @@ impl ModelManifest {
             provider: model.provider.clone(),
             name: model.name.clone(),
             temperature: model.temperature,
+            thinking: model.thinking.as_ref().map(|thinking| {
+                ThinkingConfigManifest {
+                    enabled: thinking.enabled,
+                    budget_tokens: thinking.budget_tokens,
+                    effort: thinking.effort.clone(),
+                }
+            }),
         }
     }
 }
@@ -212,6 +223,7 @@ impl ModelProfileManifest {
                     provider: String::new(),
                     name: String::new(),
                     temperature: 0.0,
+                    thinking: None,
                 }),
         }
     }
