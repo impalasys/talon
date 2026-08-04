@@ -193,6 +193,9 @@ impl AgentRuntime {
             ns.to_string(),
             agent_id.to_string(),
             session_id.to_string(),
+            session
+                .as_ref()
+                .and_then(|session| session.context_tokens.clone()),
             cp.clone(),
             spec.clone(),
             mcp_tools,

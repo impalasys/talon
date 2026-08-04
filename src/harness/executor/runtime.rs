@@ -461,6 +461,7 @@ pub struct AgentExecutor {
     pub namespace: String,
     pub agent_id: String,
     pub session_id: String,
+    pub context_tokens: Option<TokenCounter>,
     pub control_plane: ControlPlane,
     pub agent_spec: crate::gateway::rpc::manifests::AgentSpec,
     pub mcp_tools: HashMap<String, RegisteredMcpTool>,
@@ -502,6 +503,7 @@ impl AgentExecutor {
             namespace,
             agent_id,
             String::new(),
+            None,
             control_plane,
             agent_spec,
             mcp_tools,
@@ -518,6 +520,7 @@ impl AgentExecutor {
         namespace: String,
         agent_id: String,
         session_id: String,
+        context_tokens: Option<TokenCounter>,
         control_plane: ControlPlane,
         agent_spec: crate::gateway::rpc::manifests::AgentSpec,
         mcp_tools: HashMap<String, RegisteredMcpTool>,
@@ -532,6 +535,7 @@ impl AgentExecutor {
             namespace,
             agent_id,
             session_id,
+            context_tokens,
             control_plane,
             agent_spec,
             mcp_tools,
@@ -711,6 +715,37 @@ impl AgentExecutor {
         history_weight + prompt_weight + tool_weight
     }
 
+    fn estimate_context_input_tokens(
+        &self,
+        context: &ExecutionContext,
+        context_tokens: Option<&TokenCounter>,
+        prior_request_history_len: Option<usize>,
+    ) -> Option<u64> {
+        let counter = context_tokens.filter(|counter| {
+            counter.usage_available
+                && counter.input_tokens > 0
+                && counter.provider == self.llm_provider_key
+                && counter.model == self.llm_model
+        })?;
+
+        let delta_start = prior_request_history_len.unwrap_or_else(|| {
+            context
+                .history
+                .iter()
+                .rposition(|message| message.role == "user")
+                .unwrap_or(context.history.len())
+        });
+        let delta_chars = context
+            .history
+            .get(delta_start..)
+            .unwrap_or_default()
+            .iter()
+            .map(serialized_message_weight)
+            .sum::<usize>();
+        let delta_tokens = (delta_chars as u64).saturating_add(3) / 4;
+        Some(counter.input_tokens.saturating_add(delta_tokens))
+    }
+
     /// Run the prepared execution context to completion, emitting events to
     /// `sink` along the way.
     /// Returns the final reply text.
@@ -741,6 +776,8 @@ impl AgentExecutor {
         let prompts = self.render_execution_prompts(context)?;
         let mut turn_limit = DEFAULT_EXECUTION_TURN_LIMIT;
         let mut compaction_disabled = false;
+        let mut context_tokens = self.context_tokens.clone();
+        let mut prior_request_history_len = None;
         loop {
             if turn_limit == 0 {
                 let msg = "Turn limit reached".to_string();
@@ -757,16 +794,31 @@ impl AgentExecutor {
             // Trigger durable compaction before preparing messages if the complete
             // request estimate exceeds the model's effective window. Compaction
             // is journaled before the in-memory history is replaced.
+            let model_limits = model_context_limits(
+                self.config.as_ref(),
+                &self.llm_provider_key,
+                &self.llm_model,
+            );
             let estimated_context_budget = self.estimate_context_budget(context, &prompts, &tools);
             let durable_budget = ContextBudget::default()
-                .with_model_limits(model_context_limits(
-                    self.config.as_ref(),
-                    &self.llm_provider_key,
-                    &self.llm_model,
-                ))
+                .with_model_limits(model_limits)
                 .with_tool_schema_chars(tool_schema_chars)
                 .total_chars;
-            let should_compact = !compaction_disabled && estimated_context_budget > durable_budget;
+            let estimated_context_tokens = self.estimate_context_input_tokens(
+                context,
+                context_tokens.as_ref(),
+                prior_request_history_len,
+            );
+            let should_compact = !compaction_disabled
+                && match (
+                    estimated_context_tokens,
+                    model_limits.effective_input_tokens(),
+                ) {
+                    (Some(estimated_tokens), Some(input_budget)) => {
+                        estimated_tokens > input_budget || estimated_context_budget > durable_budget
+                    }
+                    _ => estimated_context_budget > durable_budget,
+                };
 
             if should_compact {
                 let prev_history_len = context.history.len();
@@ -817,6 +869,7 @@ impl AgentExecutor {
                 tools,
                 thinking,
             };
+            prior_request_history_len = Some(context.history.len());
             let reasoning_level = request
                 .thinking
                 .as_ref()
@@ -981,6 +1034,7 @@ impl AgentExecutor {
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
             };
+            context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
                 &llm_span,
                 &llm_response.content,
@@ -1166,8 +1220,8 @@ pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> Loop
 #[cfg(test)]
 mod tests {
     use super::{
-        AgentEvent, AgentExecutor, CaptureSink, ContextAssembler, ExecutionContext, ExecutionSink,
-        LoopMessage,
+        serialized_message_weight, AgentEvent, AgentExecutor, CaptureSink, ContextAssembler,
+        ExecutionContext, ExecutionSink, LoopMessage,
     };
     use crate::control::config::Config;
     use crate::control::object_store::ObjectMetadata;
@@ -2303,6 +2357,7 @@ mod tests {
             "Tenant:acme:Workspace:main".to_string(),
             "writer".to_string(),
             "writer-session".to_string(),
+            None,
             control_plane_with_wire().await,
             spec.clone(),
             HashMap::new(),
@@ -2349,6 +2404,7 @@ mod tests {
             "Tenant:acme:Workspace:main".to_string(),
             "writer".to_string(),
             "writer-session".to_string(),
+            None,
             ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
@@ -2383,6 +2439,7 @@ mod tests {
             "Tenant:acme:Workspace:main".to_string(),
             "writer".to_string(),
             "writer-session".to_string(),
+            None,
             control_plane_with_wire().await,
             spec.clone(),
             HashMap::new(),
@@ -2628,6 +2685,7 @@ mod tests {
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             "session-1".to_string(),
+            None,
             ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
@@ -2655,6 +2713,122 @@ mod tests {
         assert_eq!(reply, "resolved");
         assert_eq!(sink.compactions().len(), 1);
         assert!(!sink.compactions()[0].trim().is_empty());
+    }
+
+    #[test]
+    fn provider_snapshot_estimate_adds_the_new_message() {
+        let executor = AgentExecutor::new(
+            Arc::new(RecordingLlmProvider::default()),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
+            Arc::new(Config::default()),
+            "ns".to_string(),
+            "agent".to_string(),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+        let context = ExecutionContext::with_history(
+            "agent",
+            vec![
+                LoopMessage::text("assistant", "prior response"),
+                LoopMessage::text("user", "new message"),
+            ],
+        );
+        let counter = TokenCounter {
+            input_tokens: 100,
+            usage_available: true,
+            provider: "test-provider".to_string(),
+            model: "test-model".to_string(),
+            ..Default::default()
+        };
+        let delta_tokens = (serialized_message_weight(&context.history[1]) as u64 + 3) / 4;
+
+        assert_eq!(
+            executor.estimate_context_input_tokens(&context, Some(&counter), None),
+            Some(100 + delta_tokens)
+        );
+    }
+
+    #[test]
+    fn provider_snapshot_estimate_requires_reported_input_tokens() {
+        let executor = AgentExecutor::new(
+            Arc::new(RecordingLlmProvider::default()),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
+            Arc::new(Config::default()),
+            "ns".to_string(),
+            "agent".to_string(),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+        let context =
+            ExecutionContext::with_history("agent", vec![LoopMessage::text("user", "new message")]);
+        let counter = TokenCounter {
+            usage_available: true,
+            provider: "test-provider".to_string(),
+            model: "test-model".to_string(),
+            ..Default::default()
+        };
+
+        assert_eq!(
+            executor.estimate_context_input_tokens(&context, Some(&counter), None),
+            None
+        );
+    }
+
+    #[tokio::test]
+    async fn provider_snapshot_can_trigger_compaction_before_character_budget() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut config = Config::default();
+        config.models.insert(
+            "test-model".to_string(),
+            crate::control::config::proto::ModelConfig {
+                context_window_tokens: Some(1_000),
+                ..Default::default()
+            },
+        );
+        let executor = AgentExecutor::new_with_session(
+            llm,
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(config),
+            "ns".to_string(),
+            "agent".to_string(),
+            String::new(),
+            Some(TokenCounter {
+                input_tokens: 900,
+                usage_available: true,
+                provider: "test-provider".to_string(),
+                model: "test-model".to_string(),
+                ..Default::default()
+            }),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+        let mut context = ExecutionContext::with_history(
+            "agent",
+            vec![
+                LoopMessage::text("system", "system"),
+                LoopMessage::text("user", "initial ".to_string() + &"x".repeat(2_000)),
+                LoopMessage::text("assistant", "prior response"),
+                LoopMessage::text("user", "new message"),
+            ],
+        );
+        let sink = CaptureSink::new();
+
+        executor.execute(&mut context, &sink, None).await.unwrap();
+
+        assert_eq!(sink.compactions().len(), 1);
     }
 
     #[tokio::test]
@@ -2712,6 +2886,7 @@ mod tests {
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             "session-1".to_string(),
+            None,
             ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
@@ -2746,6 +2921,7 @@ mod tests {
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             "session-1".to_string(),
+            None,
             ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
