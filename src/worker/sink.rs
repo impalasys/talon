@@ -2993,6 +2993,7 @@ mod tests {
                 content: String::new(),
                 tool_calls: Vec::new(),
                 usage: Some(counter.clone()),
+                provider_state_json: String::new(),
             })
             .await
             .unwrap();

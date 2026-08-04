@@ -2513,6 +2513,6 @@ mod tests {
         .unwrap();
         assert_eq!(response.content, "done");
         assert_eq!(response.tool_calls[0].id, "call_1");
-        assert_eq!(response.usage.unwrap().reasoning_tokens, 3);
+        assert_eq!(response.usage.unwrap().reasoning_output_tokens, 3);
     }
 }
