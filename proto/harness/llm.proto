@@ -37,12 +37,14 @@ message ChatMessage {
   repeated ChatContentPart content_parts = 2;
   repeated ToolCall tool_calls = 3;
   optional string tool_call_id = 4;
+  string provider_state_json = 5;
 }
 
 message ChatResponse {
   string content = 1;
   repeated ToolCall tool_calls = 2;
   optional talon.data.TokenCounter usage = 3;
+  string provider_state_json = 4;
 }
 
 message Tool {
@@ -64,5 +66,6 @@ message ChatStreamEvent {
     string reasoning_delta = 2;
     ToolCallDelta tool_call_delta = 3;
     talon.data.TokenCounter usage = 4;
+    string provider_state_json = 5;
   }
 }

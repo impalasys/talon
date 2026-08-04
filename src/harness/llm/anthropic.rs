@@ -257,6 +257,7 @@ impl LlmProvider for AnthropicProvider {
             content,
             tool_calls: vec![],
             usage,
+            provider_state_json: String::new(),
         })
     }
 
@@ -589,6 +590,7 @@ mod tests {
                 content_parts: Vec::new(),
                 tool_calls: Vec::new(),
                 tool_call_id: None,
+                provider_state_json: String::new(),
             })
             .await
             .unwrap();

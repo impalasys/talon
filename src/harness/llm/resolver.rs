@@ -144,14 +144,28 @@ async fn resolve_llm_with_credentials(
                 .filter(|s| !s.is_empty())
                 .unwrap_or(&openai.model)
                 .to_string();
+            let api = match openai.api.trim() {
+                "" => "responses",
+                "responses" | "chat_completions" => openai.api.trim(),
+                value => {
+                    return Err(anyhow!(
+                        "OpenAI provider '{}' has invalid api '{}'; expected 'responses' or 'chat_completions'",
+                        provider_name,
+                        value
+                    ));
+                }
+            };
 
             Ok(ResolvedLlm {
-                provider: Arc::new(crate::harness::llm::openai::OpenAiCompatibleProvider::new(
-                    api_key,
-                    base_url,
-                    model.clone(),
-                    cas,
-                )),
+                provider: Arc::new(
+                    crate::harness::llm::openai::OpenAiCompatibleProvider::with_api(
+                        api_key,
+                        base_url,
+                        model.clone(),
+                        cas,
+                        api,
+                    ),
+                ),
                 provider_key: provider_name.to_string(),
                 model,
             })
@@ -601,7 +615,7 @@ mod tests {
                         model: "config-model".to_string(),
                         api_key: None,
                         org_id: String::new(),
-                        api: String::new(),
+                        api: "chat_completions".to_string(),
                     },
                 )),
             },
@@ -692,7 +706,7 @@ mod tests {
                         model: "config-model".to_string(),
                         api_key: None,
                         org_id: String::new(),
-                        api: String::new(),
+                        api: "chat_completions".to_string(),
                     },
                 )),
             },
@@ -733,7 +747,7 @@ mod tests {
                             )),
                         }),
                         org_id: String::new(),
-                        api: String::new(),
+                        api: "chat_completions".to_string(),
                     },
                 )),
             },
