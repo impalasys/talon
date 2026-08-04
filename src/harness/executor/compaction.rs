@@ -490,6 +490,7 @@ fn compact_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopMes
         content_parts,
         tool_calls,
         tool_call_id: message.tool_call_id.clone(),
+        provider_state_json: message.provider_state_json.clone(),
     }
 }
 
@@ -1328,6 +1329,7 @@ mod tests {
                 content: self.content.clone(),
                 tool_calls: Vec::new(),
                 usage: None,
+                provider_state_json: String::new(),
             })
         }
 

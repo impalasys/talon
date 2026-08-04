@@ -58,6 +58,8 @@ pub struct LoopMessage {
     pub content_parts: Vec<ChatContentPart>,
     pub tool_calls: Option<Vec<ToolCall>>,
     pub tool_call_id: Option<String>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub provider_state_json: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -78,6 +80,7 @@ impl LoopMessage {
             },
             tool_calls: None,
             tool_call_id: None,
+            provider_state_json: String::new(),
         }
     }
 
@@ -616,6 +619,7 @@ impl AgentExecutor {
                 content_parts: m.content_parts.clone(),
                 tool_calls: m.tool_calls.clone().unwrap_or_default(),
                 tool_call_id: m.tool_call_id.clone(),
+                provider_state_json: m.provider_state_json.clone(),
             })
             .collect::<Vec<_>>();
         for message in &mut messages {
@@ -853,6 +857,7 @@ impl AgentExecutor {
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
             let mut final_usage: Option<TokenCounter> = None;
+            let mut provider_state_json = String::new();
             let mut saw_tool_call_delta = false;
             let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
                 .and_then(|model| model.thinking.clone());
@@ -1017,6 +1022,11 @@ impl AgentExecutor {
                     } => {
                         final_usage = Some(self.normalize_token_counter(usage));
                     }
+                    ChatStreamEvent {
+                        event: Some(chat_stream_event::Event::ProviderStateJson(state)),
+                    } => {
+                        provider_state_json = state;
+                    }
                     ChatStreamEvent { event: None } => {}
                 }
             }
@@ -1033,6 +1043,7 @@ impl AgentExecutor {
                     final_usage
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
+                provider_state_json: provider_state_json.clone(),
             };
             context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
@@ -1232,6 +1243,7 @@ pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> Loop
         content_parts: result.content_parts(),
         tool_calls: None,
         tool_call_id: Some(tool_call_id.to_string()),
+        provider_state_json: String::new(),
     }
 }
 
@@ -1307,6 +1319,7 @@ mod tests {
                 },
                 tool_calls: Vec::new(),
                 usage: None,
+                provider_state_json: String::new(),
             })
         }
 
@@ -1909,6 +1922,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            provider_state_json: String::new(),
         });
         let original_user_message = context.history[0].clone();
 
@@ -1969,6 +1983,7 @@ mod tests {
             content_parts: vec![object_ref_part(object.clone())],
             tool_calls: None,
             tool_call_id: None,
+            provider_state_json: String::new(),
         });
 
         executor
@@ -2023,6 +2038,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            provider_state_json: String::new(),
         });
 
         executor
@@ -2078,6 +2094,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            provider_state_json: String::new(),
         });
 
         executor
@@ -2117,6 +2134,7 @@ mod tests {
             })],
             tool_calls: None,
             tool_call_id: None,
+            provider_state_json: String::new(),
         });
 
         executor
@@ -2160,6 +2178,7 @@ mod tests {
             })],
             tool_calls: None,
             tool_call_id: None,
+            provider_state_json: String::new(),
         });
 
         executor

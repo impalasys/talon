@@ -2401,7 +2401,7 @@ mod tests {
                                 model: "gpt-test".to_string(),
                                 api_key: None,
                                 org_id: String::new(),
-                                api: String::new(),
+                                api: "chat_completions".to_string(),
                             },
                         )),
                     },
@@ -2579,7 +2579,7 @@ mod tests {
                                 model: "gpt-test".to_string(),
                                 api_key: None,
                                 org_id: String::new(),
-                                api: String::new(),
+                                api: "chat_completions".to_string(),
                             },
                         )),
                     },
@@ -4048,6 +4048,7 @@ mod tests {
                 arguments: "{\"query\":\"value\"}".to_string(),
             }],
             usage: None,
+            provider_state_json: String::new(),
         };
         sessions::append_llm_response(
             kv.as_ref(),
@@ -4102,6 +4103,7 @@ mod tests {
                 content: "continued after recovery".to_string(),
                 tool_calls: Vec::new(),
                 usage: None,
+                provider_state_json: String::new(),
             },
             50,
         )

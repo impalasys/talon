@@ -451,6 +451,7 @@ mod tests {
                 arguments: r#"{"query":"plan"}"#.to_string(),
             }],
             tool_call_id: None,
+            provider_state_json: String::new(),
         };
 
         let json = serialize_messages_json(&[message]);

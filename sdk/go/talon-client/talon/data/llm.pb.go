@@ -286,13 +286,14 @@ func (x *ToolCallDelta) GetArguments() string {
 }
 
 type ChatMessage struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Role          string                 `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
-	ContentParts  []*ChatContentPart     `protobuf:"bytes,2,rep,name=content_parts,json=contentParts,proto3" json:"content_parts,omitempty"`
-	ToolCalls     []*ToolCall            `protobuf:"bytes,3,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
-	ToolCallId    *string                `protobuf:"bytes,4,opt,name=tool_call_id,json=toolCallId,proto3,oneof" json:"tool_call_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Role              string                 `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	ContentParts      []*ChatContentPart     `protobuf:"bytes,2,rep,name=content_parts,json=contentParts,proto3" json:"content_parts,omitempty"`
+	ToolCalls         []*ToolCall            `protobuf:"bytes,3,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
+	ToolCallId        *string                `protobuf:"bytes,4,opt,name=tool_call_id,json=toolCallId,proto3,oneof" json:"tool_call_id,omitempty"`
+	ProviderStateJson string                 `protobuf:"bytes,5,opt,name=provider_state_json,json=providerStateJson,proto3" json:"provider_state_json,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ChatMessage) Reset() {
@@ -353,13 +354,21 @@ func (x *ChatMessage) GetToolCallId() string {
 	return ""
 }
 
+func (x *ChatMessage) GetProviderStateJson() string {
+	if x != nil {
+		return x.ProviderStateJson
+	}
+	return ""
+}
+
 type ChatResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	ToolCalls     []*ToolCall            `protobuf:"bytes,2,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
-	Usage         *TokenCounter          `protobuf:"bytes,3,opt,name=usage,proto3,oneof" json:"usage,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Content           string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	ToolCalls         []*ToolCall            `protobuf:"bytes,2,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
+	Usage             *TokenCounter          `protobuf:"bytes,3,opt,name=usage,proto3,oneof" json:"usage,omitempty"`
+	ProviderStateJson string                 `protobuf:"bytes,4,opt,name=provider_state_json,json=providerStateJson,proto3" json:"provider_state_json,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ChatResponse) Reset() {
@@ -411,6 +420,13 @@ func (x *ChatResponse) GetUsage() *TokenCounter {
 		return x.Usage
 	}
 	return nil
+}
+
+func (x *ChatResponse) GetProviderStateJson() string {
+	if x != nil {
+		return x.ProviderStateJson
+	}
+	return ""
 }
 
 type Tool struct {
@@ -542,6 +558,7 @@ type ChatStreamEvent struct {
 	//	*ChatStreamEvent_ReasoningDelta
 	//	*ChatStreamEvent_ToolCallDelta
 	//	*ChatStreamEvent_Usage
+	//	*ChatStreamEvent_ProviderStateJson
 	Event         isChatStreamEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -620,6 +637,15 @@ func (x *ChatStreamEvent) GetUsage() *TokenCounter {
 	return nil
 }
 
+func (x *ChatStreamEvent) GetProviderStateJson() string {
+	if x != nil {
+		if x, ok := x.Event.(*ChatStreamEvent_ProviderStateJson); ok {
+			return x.ProviderStateJson
+		}
+	}
+	return ""
+}
+
 type isChatStreamEvent_Event interface {
 	isChatStreamEvent_Event()
 }
@@ -640,6 +666,10 @@ type ChatStreamEvent_Usage struct {
 	Usage *TokenCounter `protobuf:"bytes,4,opt,name=usage,proto3,oneof"`
 }
 
+type ChatStreamEvent_ProviderStateJson struct {
+	ProviderStateJson string `protobuf:"bytes,5,opt,name=provider_state_json,json=providerStateJson,proto3,oneof"`
+}
+
 func (*ChatStreamEvent_TextDelta) isChatStreamEvent_Event() {}
 
 func (*ChatStreamEvent_ReasoningDelta) isChatStreamEvent_Event() {}
@@ -647,6 +677,8 @@ func (*ChatStreamEvent_ReasoningDelta) isChatStreamEvent_Event() {}
 func (*ChatStreamEvent_ToolCallDelta) isChatStreamEvent_Event() {}
 
 func (*ChatStreamEvent_Usage) isChatStreamEvent_Event() {}
+
+func (*ChatStreamEvent_ProviderStateJson) isChatStreamEvent_Event() {}
 
 var File_proto_harness_llm_proto protoreflect.FileDescriptor
 
@@ -674,20 +706,22 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\x03_idB\a\n" +
 	"\x05_nameB\f\n" +
 	"\n" +
-	"_arguments\"\xd6\x01\n" +
+	"_arguments\"\x86\x02\n" +
 	"\vChatMessage\x12\x12\n" +
 	"\x04role\x18\x01 \x01(\tR\x04role\x12C\n" +
 	"\rcontent_parts\x18\x02 \x03(\v2\x1e.talon.harness.ChatContentPartR\fcontentParts\x126\n" +
 	"\n" +
 	"tool_calls\x18\x03 \x03(\v2\x17.talon.harness.ToolCallR\ttoolCalls\x12%\n" +
 	"\ftool_call_id\x18\x04 \x01(\tH\x00R\n" +
-	"toolCallId\x88\x01\x01B\x0f\n" +
-	"\r_tool_call_id\"\x9f\x01\n" +
+	"toolCallId\x88\x01\x01\x12.\n" +
+	"\x13provider_state_json\x18\x05 \x01(\tR\x11providerStateJsonB\x0f\n" +
+	"\r_tool_call_id\"\xcf\x01\n" +
 	"\fChatResponse\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x126\n" +
 	"\n" +
 	"tool_calls\x18\x02 \x03(\v2\x17.talon.harness.ToolCallR\ttoolCalls\x123\n" +
-	"\x05usage\x18\x03 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x88\x01\x01B\b\n" +
+	"\x05usage\x18\x03 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x88\x01\x01\x12.\n" +
+	"\x13provider_state_json\x18\x04 \x01(\tR\x11providerStateJsonB\b\n" +
 	"\x06_usage\"h\n" +
 	"\x04Tool\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
@@ -697,13 +731,14 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\bmessages\x18\x01 \x03(\v2\x1a.talon.harness.ChatMessageR\bmessages\x12)\n" +
 	"\x05tools\x18\x02 \x03(\v2\x13.talon.harness.ToolR\x05tools\x12@\n" +
 	"\bthinking\x18\x03 \x01(\v2\x1f.talon.resources.ThinkingConfigH\x00R\bthinking\x88\x01\x01B\v\n" +
-	"\t_thinking\"\xe0\x01\n" +
+	"\t_thinking\"\x92\x02\n" +
 	"\x0fChatStreamEvent\x12\x1f\n" +
 	"\n" +
 	"text_delta\x18\x01 \x01(\tH\x00R\ttextDelta\x12)\n" +
 	"\x0freasoning_delta\x18\x02 \x01(\tH\x00R\x0ereasoningDelta\x12F\n" +
 	"\x0ftool_call_delta\x18\x03 \x01(\v2\x1c.talon.harness.ToolCallDeltaH\x00R\rtoolCallDelta\x120\n" +
-	"\x05usage\x18\x04 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usageB\a\n" +
+	"\x05usage\x18\x04 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x120\n" +
+	"\x13provider_state_json\x18\x05 \x01(\tH\x00R\x11providerStateJsonB\a\n" +
 	"\x05eventb\x06proto3"
 
 var (
@@ -771,6 +806,7 @@ func file_proto_harness_llm_proto_init() {
 		(*ChatStreamEvent_ReasoningDelta)(nil),
 		(*ChatStreamEvent_ToolCallDelta)(nil),
 		(*ChatStreamEvent_Usage)(nil),
+		(*ChatStreamEvent_ProviderStateJson)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

@@ -231,6 +231,11 @@ export class ChatMessage extends Message<ChatMessage> {
    */
   toolCallId?: string;
 
+  /**
+   * @generated from field: string provider_state_json = 5;
+   */
+  providerStateJson = "";
+
   constructor(data?: PartialMessage<ChatMessage>) {
     super();
     proto3.util.initPartial(data, this);
@@ -243,6 +248,7 @@ export class ChatMessage extends Message<ChatMessage> {
     { no: 2, name: "content_parts", kind: "message", T: ChatContentPart, repeated: true },
     { no: 3, name: "tool_calls", kind: "message", T: ToolCall, repeated: true },
     { no: 4, name: "tool_call_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "provider_state_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMessage {
@@ -281,6 +287,11 @@ export class ChatResponse extends Message<ChatResponse> {
    */
   usage?: TokenCounter;
 
+  /**
+   * @generated from field: string provider_state_json = 4;
+   */
+  providerStateJson = "";
+
   constructor(data?: PartialMessage<ChatResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -292,6 +303,7 @@ export class ChatResponse extends Message<ChatResponse> {
     { no: 1, name: "content", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "tool_calls", kind: "message", T: ToolCall, repeated: true },
     { no: 3, name: "usage", kind: "message", T: TokenCounter, opt: true },
+    { no: 4, name: "provider_state_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatResponse {
@@ -442,6 +454,12 @@ export class ChatStreamEvent extends Message<ChatStreamEvent> {
      */
     value: TokenCounter;
     case: "usage";
+  } | {
+    /**
+     * @generated from field: string provider_state_json = 5;
+     */
+    value: string;
+    case: "providerStateJson";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatStreamEvent>) {
@@ -456,6 +474,7 @@ export class ChatStreamEvent extends Message<ChatStreamEvent> {
     { no: 2, name: "reasoning_delta", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "event" },
     { no: 3, name: "tool_call_delta", kind: "message", T: ToolCallDelta, oneof: "event" },
     { no: 4, name: "usage", kind: "message", T: TokenCounter, oneof: "event" },
+    { no: 5, name: "provider_state_json", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "event" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatStreamEvent {
