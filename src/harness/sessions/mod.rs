@@ -25,8 +25,7 @@ pub use journal::{
     append_compaction, list_journal_entries, mark_terminal, repair_submission_pointer_to_latest,
 };
 pub use journal::{
-    append_llm_response, append_llm_usage, append_tool_result, context_tokens,
-    latest_context_token_entry, latest_context_tokens,
+    append_llm_response, append_tool_result, context_tokens, latest_context_token_entry,
 };
 pub use lease::{SubmissionLease, SubmissionLeaseRenewer};
 pub use submission::{

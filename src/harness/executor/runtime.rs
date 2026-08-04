@@ -257,8 +257,6 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
         Ok(())
     }
-    /// A usage-bearing request ended without a complete LLM response boundary.
-    async fn on_llm_usage_boundary(&self, _: &TokenCounter) {}
     /// The agent requested permission from the user/client.
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     /// The permission request was answered or cancelled.
@@ -855,7 +853,6 @@ impl AgentExecutor {
                         let counter = self.normalize_token_counter(counter);
                         telemetry::record_usage(&llm_span, &counter);
                         sink.on_usage(&counter).await;
-                        sink.on_llm_usage_boundary(&counter).await;
                     }
                     telemetry::record_error(&llm_span, &err);
                     return Err(err);
@@ -883,9 +880,6 @@ impl AgentExecutor {
                                 );
                             }
                             sink.on_usage(&usage_for_event).await;
-                            if let Some(usage) = usage.as_ref() {
-                                sink.on_llm_usage_boundary(usage).await;
-                            }
                             crate::control::usage::charge_namespace_usage(
                                 self.control_plane.kv.as_ref(),
                                 &usage_subject,
@@ -914,7 +908,6 @@ impl AgentExecutor {
                                 telemetry::record_usage(&llm_span, &usage);
                             }
                             sink.on_usage(&usage).await;
-                            sink.on_llm_usage_boundary(&usage).await;
                         }
                         telemetry::record_error(&llm_span, &err);
                         return Err(err);

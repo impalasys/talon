@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { ChatResponse, ToolOutput } from "../harness/llm_pb.js";
-import { ObjectRef, TokenCounter } from "./data_pb.js";
+import { ObjectRef } from "./data_pb.js";
 
 /**
  * @generated from enum talon.data.SessionExecutionPhase
@@ -50,14 +50,6 @@ export enum SessionExecutionPhase {
    * @generated from enum value: SESSION_EXECUTION_PHASE_COMPACTION = 4;
    */
   COMPACTION = 4,
-
-  /**
-   * A provider request ended without a complete assistant response, but did
-   * report token usage (for example, cancellation after a final usage event).
-   *
-   * @generated from enum value: SESSION_EXECUTION_PHASE_LLM_USAGE = 5;
-   */
-  LLM_USAGE = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SessionExecutionPhase)
 proto3.util.setEnumType(SessionExecutionPhase, "talon.data.SessionExecutionPhase", [
@@ -66,7 +58,6 @@ proto3.util.setEnumType(SessionExecutionPhase, "talon.data.SessionExecutionPhase
   { no: 2, name: "SESSION_EXECUTION_PHASE_TOOL_RESULT" },
   { no: 3, name: "SESSION_EXECUTION_PHASE_COMMITTED" },
   { no: 4, name: "SESSION_EXECUTION_PHASE_COMPACTION" },
-  { no: 5, name: "SESSION_EXECUTION_PHASE_LLM_USAGE" },
 ]);
 
 /**
@@ -103,43 +94,6 @@ export class SessionJournalEntryPayloadLlmResponse extends Message<SessionJourna
 
   static equals(a: SessionJournalEntryPayloadLlmResponse | PlainMessage<SessionJournalEntryPayloadLlmResponse> | undefined, b: SessionJournalEntryPayloadLlmResponse | PlainMessage<SessionJournalEntryPayloadLlmResponse> | undefined): boolean {
     return proto3.util.equals(SessionJournalEntryPayloadLlmResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.data.SessionJournalEntryPayloadLlmUsage
- */
-export class SessionJournalEntryPayloadLlmUsage extends Message<SessionJournalEntryPayloadLlmUsage> {
-  /**
-   * @generated from field: talon.data.TokenCounter context_tokens = 1;
-   */
-  contextTokens?: TokenCounter;
-
-  constructor(data?: PartialMessage<SessionJournalEntryPayloadLlmUsage>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.data.SessionJournalEntryPayloadLlmUsage";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "context_tokens", kind: "message", T: TokenCounter },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayloadLlmUsage {
-    return new SessionJournalEntryPayloadLlmUsage().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SessionJournalEntryPayloadLlmUsage {
-    return new SessionJournalEntryPayloadLlmUsage().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SessionJournalEntryPayloadLlmUsage {
-    return new SessionJournalEntryPayloadLlmUsage().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: SessionJournalEntryPayloadLlmUsage | PlainMessage<SessionJournalEntryPayloadLlmUsage> | undefined, b: SessionJournalEntryPayloadLlmUsage | PlainMessage<SessionJournalEntryPayloadLlmUsage> | undefined): boolean {
-    return proto3.util.equals(SessionJournalEntryPayloadLlmUsage, a, b);
   }
 }
 
@@ -311,12 +265,6 @@ export class SessionJournalEntryPayload extends Message<SessionJournalEntryPaylo
      */
     value: SessionJournalEntryPayloadCompaction;
     case: "compaction";
-  } | {
-    /**
-     * @generated from field: talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;
-     */
-    value: SessionJournalEntryPayloadLlmUsage;
-    case: "llmUsage";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<SessionJournalEntryPayload>) {
@@ -331,7 +279,6 @@ export class SessionJournalEntryPayload extends Message<SessionJournalEntryPaylo
     { no: 2, name: "tool_result", kind: "message", T: SessionJournalEntryPayloadToolResult, oneof: "payload" },
     { no: 3, name: "commit", kind: "message", T: SessionJournalEntryPayloadCommit, oneof: "payload" },
     { no: 5, name: "compaction", kind: "message", T: SessionJournalEntryPayloadCompaction, oneof: "payload" },
-    { no: 6, name: "llm_usage", kind: "message", T: SessionJournalEntryPayloadLlmUsage, oneof: "payload" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayload {

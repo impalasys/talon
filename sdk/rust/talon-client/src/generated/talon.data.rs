@@ -723,11 +723,6 @@ pub struct SessionJournalEntryPayloadLlmResponse {
     pub response: ::core::option::Option<super::harness::ChatResponse>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SessionJournalEntryPayloadLlmUsage {
-    #[prost(message, optional, tag = "1")]
-    pub context_tokens: ::core::option::Option<TokenCounter>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayloadToolResult {
     #[prost(string, tag = "1")]
     pub tool_call_id: ::prost::alloc::string::String,
@@ -753,7 +748,7 @@ pub struct SessionJournalEntryPayloadCompaction {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayload {
-    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3, 5, 6")]
+    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3, 5")]
     pub payload: ::core::option::Option<session_journal_entry_payload::Payload>,
 }
 /// Nested message and enum types in `SessionJournalEntryPayload`.
@@ -768,8 +763,6 @@ pub mod session_journal_entry_payload {
         Commit(super::SessionJournalEntryPayloadCommit),
         #[prost(message, tag = "5")]
         Compaction(super::SessionJournalEntryPayloadCompaction),
-        #[prost(message, tag = "6")]
-        LlmUsage(super::SessionJournalEntryPayloadLlmUsage),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -813,9 +806,6 @@ pub enum SessionExecutionPhase {
     /// Durable model context compaction completed. The journal entry references
     /// an immutable summary object without storing a provider transcript snapshot.
     Compaction = 4,
-    /// A provider request ended without a complete assistant response, but did
-    /// report token usage (for example, cancellation after a final usage event).
-    LlmUsage = 5,
 }
 impl SessionExecutionPhase {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -829,7 +819,6 @@ impl SessionExecutionPhase {
             Self::ToolResult => "SESSION_EXECUTION_PHASE_TOOL_RESULT",
             Self::Committed => "SESSION_EXECUTION_PHASE_COMMITTED",
             Self::Compaction => "SESSION_EXECUTION_PHASE_COMPACTION",
-            Self::LlmUsage => "SESSION_EXECUTION_PHASE_LLM_USAGE",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -840,7 +829,6 @@ impl SessionExecutionPhase {
             "SESSION_EXECUTION_PHASE_TOOL_RESULT" => Some(Self::ToolResult),
             "SESSION_EXECUTION_PHASE_COMMITTED" => Some(Self::Committed),
             "SESSION_EXECUTION_PHASE_COMPACTION" => Some(Self::Compaction),
-            "SESSION_EXECUTION_PHASE_LLM_USAGE" => Some(Self::LlmUsage),
             _ => None,
         }
     }

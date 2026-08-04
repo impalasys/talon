@@ -1300,37 +1300,6 @@ impl ExecutionSink for PubSubSessionSink {
         Ok(())
     }
 
-    async fn on_llm_usage_boundary(&self, counter: &TokenCounter) {
-        match sessions::append_llm_usage(
-            self.kv.as_ref(),
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            &self.submission_id,
-            &self.attempt_id,
-            counter,
-            chrono::Utc::now().timestamp_micros(),
-        )
-        .await
-        {
-            Ok(entry) => {
-                if entry.submission_id == self.submission_id {
-                    *self.latest_journal_entry_id.lock().unwrap() =
-                        Some(entry.journal_entry_id.clone());
-                }
-                self.persist_context_tokens_best_effort(&entry, counter)
-                    .await;
-            }
-            Err(error) => tracing::error!(
-                error = %error,
-                namespace = %self.ns,
-                agent = %self.agent_id,
-                session = %self.session_id,
-                "failed to journal session context token snapshot"
-            ),
-        }
-    }
-
     async fn on_compaction(&self, summary: &str) -> Result<()> {
         let (entry, summary_object) = sessions::append_compaction(
             self.kv.as_ref(),

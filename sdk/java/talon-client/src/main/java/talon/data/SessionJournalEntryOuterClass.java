@@ -75,15 +75,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * <code>SESSION_EXECUTION_PHASE_COMPACTION = 4;</code>
      */
     SESSION_EXECUTION_PHASE_COMPACTION(4),
-    /**
-     * <pre>
-     * A provider request ended without a complete assistant response, but did
-     * report token usage (for example, cancellation after a final usage event).
-     * </pre>
-     *
-     * <code>SESSION_EXECUTION_PHASE_LLM_USAGE = 5;</code>
-     */
-    SESSION_EXECUTION_PHASE_LLM_USAGE(5),
     UNRECOGNIZED(-1),
     ;
 
@@ -140,15 +131,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * <code>SESSION_EXECUTION_PHASE_COMPACTION = 4;</code>
      */
     public static final int SESSION_EXECUTION_PHASE_COMPACTION_VALUE = 4;
-    /**
-     * <pre>
-     * A provider request ended without a complete assistant response, but did
-     * report token usage (for example, cancellation after a final usage event).
-     * </pre>
-     *
-     * <code>SESSION_EXECUTION_PHASE_LLM_USAGE = 5;</code>
-     */
-    public static final int SESSION_EXECUTION_PHASE_LLM_USAGE_VALUE = 5;
 
 
     public final int getNumber() {
@@ -180,7 +162,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         case 2: return SESSION_EXECUTION_PHASE_TOOL_RESULT;
         case 3: return SESSION_EXECUTION_PHASE_COMMITTED;
         case 4: return SESSION_EXECUTION_PHASE_COMPACTION;
-        case 5: return SESSION_EXECUTION_PHASE_LLM_USAGE;
         default: return null;
       }
     }
@@ -807,581 +788,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
 
     @java.lang.Override
     public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmResponse getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface SessionJournalEntryPayloadLlmUsageOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.data.SessionJournalEntryPayloadLlmUsage)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-     * @return Whether the contextTokens field is set.
-     */
-    boolean hasContextTokens();
-    /**
-     * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-     * @return The contextTokens.
-     */
-    talon.data.Data.TokenCounter getContextTokens();
-    /**
-     * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-     */
-    talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder();
-  }
-  /**
-   * Protobuf type {@code talon.data.SessionJournalEntryPayloadLlmUsage}
-   */
-  public static final class SessionJournalEntryPayloadLlmUsage extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.data.SessionJournalEntryPayloadLlmUsage)
-      SessionJournalEntryPayloadLlmUsageOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "SessionJournalEntryPayloadLlmUsage");
-    }
-    // Use SessionJournalEntryPayloadLlmUsage.newBuilder() to construct.
-    private SessionJournalEntryPayloadLlmUsage(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private SessionJournalEntryPayloadLlmUsage() {
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.class, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int CONTEXT_TOKENS_FIELD_NUMBER = 1;
-    private talon.data.Data.TokenCounter contextTokens_;
-    /**
-     * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-     * @return Whether the contextTokens field is set.
-     */
-    @java.lang.Override
-    public boolean hasContextTokens() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-     * @return The contextTokens.
-     */
-    @java.lang.Override
-    public talon.data.Data.TokenCounter getContextTokens() {
-      return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
-    }
-    /**
-     * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-     */
-    @java.lang.Override
-    public talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder() {
-      return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(1, getContextTokens());
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getContextTokens());
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage)) {
-        return super.equals(obj);
-      }
-      talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage other = (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) obj;
-
-      if (hasContextTokens() != other.hasContextTokens()) return false;
-      if (hasContextTokens()) {
-        if (!getContextTokens()
-            .equals(other.getContextTokens())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasContextTokens()) {
-        hash = (37 * hash) + CONTEXT_TOKENS_FIELD_NUMBER;
-        hash = (53 * hash) + getContextTokens().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.data.SessionJournalEntryPayloadLlmUsage}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.data.SessionJournalEntryPayloadLlmUsage)
-        talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsageOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.class, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.Builder.class);
-      }
-
-      // Construct using talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetContextTokensFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        contextTokens_ = null;
-        if (contextTokensBuilder_ != null) {
-          contextTokensBuilder_.dispose();
-          contextTokensBuilder_ = null;
-        }
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.data.SessionJournalEntryOuterClass.internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage getDefaultInstanceForType() {
-        return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage build() {
-        talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage buildPartial() {
-        talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage result = new talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage result) {
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.contextTokens_ = contextTokensBuilder_ == null
-              ? contextTokens_
-              : contextTokensBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) {
-          return mergeFrom((talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage other) {
-        if (other == talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance()) return this;
-        if (other.hasContextTokens()) {
-          mergeContextTokens(other.getContextTokens());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                input.readMessage(
-                    internalGetContextTokensFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private talon.data.Data.TokenCounter contextTokens_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder> contextTokensBuilder_;
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       * @return Whether the contextTokens field is set.
-       */
-      public boolean hasContextTokens() {
-        return ((bitField0_ & 0x00000001) != 0);
-      }
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       * @return The contextTokens.
-       */
-      public talon.data.Data.TokenCounter getContextTokens() {
-        if (contextTokensBuilder_ == null) {
-          return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
-        } else {
-          return contextTokensBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       */
-      public Builder setContextTokens(talon.data.Data.TokenCounter value) {
-        if (contextTokensBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          contextTokens_ = value;
-        } else {
-          contextTokensBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       */
-      public Builder setContextTokens(
-          talon.data.Data.TokenCounter.Builder builderForValue) {
-        if (contextTokensBuilder_ == null) {
-          contextTokens_ = builderForValue.build();
-        } else {
-          contextTokensBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       */
-      public Builder mergeContextTokens(talon.data.Data.TokenCounter value) {
-        if (contextTokensBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0) &&
-            contextTokens_ != null &&
-            contextTokens_ != talon.data.Data.TokenCounter.getDefaultInstance()) {
-            getContextTokensBuilder().mergeFrom(value);
-          } else {
-            contextTokens_ = value;
-          }
-        } else {
-          contextTokensBuilder_.mergeFrom(value);
-        }
-        if (contextTokens_ != null) {
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       */
-      public Builder clearContextTokens() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        contextTokens_ = null;
-        if (contextTokensBuilder_ != null) {
-          contextTokensBuilder_.dispose();
-          contextTokensBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       */
-      public talon.data.Data.TokenCounter.Builder getContextTokensBuilder() {
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return internalGetContextTokensFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       */
-      public talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder() {
-        if (contextTokensBuilder_ != null) {
-          return contextTokensBuilder_.getMessageOrBuilder();
-        } else {
-          return contextTokens_ == null ?
-              talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
-        }
-      }
-      /**
-       * <code>.talon.data.TokenCounter context_tokens = 1;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>
-          internalGetContextTokensFieldBuilder() {
-        if (contextTokensBuilder_ == null) {
-          contextTokensBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.data.Data.TokenCounter, talon.data.Data.TokenCounter.Builder, talon.data.Data.TokenCounterOrBuilder>(
-                  getContextTokens(),
-                  getParentForChildren(),
-                  isClean());
-          contextTokens_ = null;
-        }
-        return contextTokensBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.data.SessionJournalEntryPayloadLlmUsage)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.data.SessionJournalEntryPayloadLlmUsage)
-    private static final talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage();
-    }
-
-    public static talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<SessionJournalEntryPayloadLlmUsage>
-        PARSER = new com.google.protobuf.AbstractParser<SessionJournalEntryPayloadLlmUsage>() {
-      @java.lang.Override
-      public SessionJournalEntryPayloadLlmUsage parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<SessionJournalEntryPayloadLlmUsage> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<SessionJournalEntryPayloadLlmUsage> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -3820,21 +3226,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      */
     talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompactionOrBuilder getCompactionOrBuilder();
 
-    /**
-     * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-     * @return Whether the llmUsage field is set.
-     */
-    boolean hasLlmUsage();
-    /**
-     * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-     * @return The llmUsage.
-     */
-    talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage getLlmUsage();
-    /**
-     * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-     */
-    talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsageOrBuilder getLlmUsageOrBuilder();
-
     talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayload.PayloadCase getPayloadCase();
   }
   /**
@@ -3889,7 +3280,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       TOOL_RESULT(2),
       COMMIT(3),
       COMPACTION(5),
-      LLM_USAGE(6),
       PAYLOAD_NOT_SET(0);
       private final int value;
       private PayloadCase(int value) {
@@ -3911,7 +3301,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           case 2: return TOOL_RESULT;
           case 3: return COMMIT;
           case 5: return COMPACTION;
-          case 6: return LLM_USAGE;
           case 0: return PAYLOAD_NOT_SET;
           default: return null;
         }
@@ -4051,37 +3440,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction.getDefaultInstance();
     }
 
-    public static final int LLM_USAGE_FIELD_NUMBER = 6;
-    /**
-     * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-     * @return Whether the llmUsage field is set.
-     */
-    @java.lang.Override
-    public boolean hasLlmUsage() {
-      return payloadCase_ == 6;
-    }
-    /**
-     * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-     * @return The llmUsage.
-     */
-    @java.lang.Override
-    public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage getLlmUsage() {
-      if (payloadCase_ == 6) {
-         return (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) payload_;
-      }
-      return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance();
-    }
-    /**
-     * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-     */
-    @java.lang.Override
-    public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsageOrBuilder getLlmUsageOrBuilder() {
-      if (payloadCase_ == 6) {
-         return (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) payload_;
-      }
-      return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance();
-    }
-
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -4108,9 +3466,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (payloadCase_ == 5) {
         output.writeMessage(5, (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_);
       }
-      if (payloadCase_ == 6) {
-        output.writeMessage(6, (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) payload_);
-      }
       getUnknownFields().writeTo(output);
     }
 
@@ -4135,10 +3490,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (payloadCase_ == 5) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadCompaction) payload_);
-      }
-      if (payloadCase_ == 6) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) payload_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -4173,10 +3524,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           if (!getCompaction()
               .equals(other.getCompaction())) return false;
           break;
-        case 6:
-          if (!getLlmUsage()
-              .equals(other.getLlmUsage())) return false;
-          break;
         case 0:
         default:
       }
@@ -4207,10 +3554,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         case 5:
           hash = (37 * hash) + COMPACTION_FIELD_NUMBER;
           hash = (53 * hash) + getCompaction().hashCode();
-          break;
-        case 6:
-          hash = (37 * hash) + LLM_USAGE_FIELD_NUMBER;
-          hash = (53 * hash) + getLlmUsage().hashCode();
           break;
         case 0:
         default:
@@ -4358,9 +3701,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         if (compactionBuilder_ != null) {
           compactionBuilder_.clear();
         }
-        if (llmUsageBuilder_ != null) {
-          llmUsageBuilder_.clear();
-        }
         payloadCase_ = 0;
         payload_ = null;
         return this;
@@ -4418,10 +3758,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
             compactionBuilder_ != null) {
           result.payload_ = compactionBuilder_.build();
         }
-        if (payloadCase_ == 6 &&
-            llmUsageBuilder_ != null) {
-          result.payload_ = llmUsageBuilder_.build();
-        }
       }
 
       @java.lang.Override
@@ -4451,10 +3787,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           }
           case COMPACTION: {
             mergeCompaction(other.getCompaction());
-            break;
-          }
-          case LLM_USAGE: {
-            mergeLlmUsage(other.getLlmUsage());
             break;
           }
           case PAYLOAD_NOT_SET: {
@@ -4515,13 +3847,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
                 payloadCase_ = 5;
                 break;
               } // case 42
-              case 50: {
-                input.readMessage(
-                    internalGetLlmUsageFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                payloadCase_ = 6;
-                break;
-              } // case 50
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -5120,148 +4445,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         payloadCase_ = 5;
         onChanged();
         return compactionBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.Builder, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsageOrBuilder> llmUsageBuilder_;
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       * @return Whether the llmUsage field is set.
-       */
-      @java.lang.Override
-      public boolean hasLlmUsage() {
-        return payloadCase_ == 6;
-      }
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       * @return The llmUsage.
-       */
-      @java.lang.Override
-      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage getLlmUsage() {
-        if (llmUsageBuilder_ == null) {
-          if (payloadCase_ == 6) {
-            return (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) payload_;
-          }
-          return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance();
-        } else {
-          if (payloadCase_ == 6) {
-            return llmUsageBuilder_.getMessage();
-          }
-          return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       */
-      public Builder setLlmUsage(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage value) {
-        if (llmUsageBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          payload_ = value;
-          onChanged();
-        } else {
-          llmUsageBuilder_.setMessage(value);
-        }
-        payloadCase_ = 6;
-        return this;
-      }
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       */
-      public Builder setLlmUsage(
-          talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.Builder builderForValue) {
-        if (llmUsageBuilder_ == null) {
-          payload_ = builderForValue.build();
-          onChanged();
-        } else {
-          llmUsageBuilder_.setMessage(builderForValue.build());
-        }
-        payloadCase_ = 6;
-        return this;
-      }
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       */
-      public Builder mergeLlmUsage(talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage value) {
-        if (llmUsageBuilder_ == null) {
-          if (payloadCase_ == 6 &&
-              payload_ != talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance()) {
-            payload_ = talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.newBuilder((talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) payload_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            payload_ = value;
-          }
-          onChanged();
-        } else {
-          if (payloadCase_ == 6) {
-            llmUsageBuilder_.mergeFrom(value);
-          } else {
-            llmUsageBuilder_.setMessage(value);
-          }
-        }
-        payloadCase_ = 6;
-        return this;
-      }
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       */
-      public Builder clearLlmUsage() {
-        if (llmUsageBuilder_ == null) {
-          if (payloadCase_ == 6) {
-            payloadCase_ = 0;
-            payload_ = null;
-            onChanged();
-          }
-        } else {
-          if (payloadCase_ == 6) {
-            payloadCase_ = 0;
-            payload_ = null;
-          }
-          llmUsageBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       */
-      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.Builder getLlmUsageBuilder() {
-        return internalGetLlmUsageFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       */
-      @java.lang.Override
-      public talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsageOrBuilder getLlmUsageOrBuilder() {
-        if ((payloadCase_ == 6) && (llmUsageBuilder_ != null)) {
-          return llmUsageBuilder_.getMessageOrBuilder();
-        } else {
-          if (payloadCase_ == 6) {
-            return (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) payload_;
-          }
-          return talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>.talon.data.SessionJournalEntryPayloadLlmUsage llm_usage = 6;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.Builder, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsageOrBuilder>
-          internalGetLlmUsageFieldBuilder() {
-        if (llmUsageBuilder_ == null) {
-          if (!(payloadCase_ == 6)) {
-            payload_ = talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.getDefaultInstance();
-          }
-          llmUsageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage.Builder, talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsageOrBuilder>(
-                  (talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmUsage) payload_,
-                  getParentForChildren(),
-                  isClean());
-          payload_ = null;
-        }
-        payloadCase_ = 6;
-        onChanged();
-        return llmUsageBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.SessionJournalEntryPayload)
@@ -6936,11 +6119,6 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_data_SessionJournalEntryPayloadLlmResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_data_SessionJournalEntryPayloadToolResult_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -6978,43 +6156,39 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       "\022\ntalon.data\032\025proto/data/data.proto\032\027pro" +
       "to/harness/llm.proto\"V\n%SessionJournalEn" +
       "tryPayloadLlmResponse\022-\n\010response\030\001 \001(\0132" +
-      "\033.talon.harness.ChatResponse\"V\n\"SessionJ" +
-      "ournalEntryPayloadLlmUsage\0220\n\016context_to" +
-      "kens\030\001 \001(\0132\030.talon.data.TokenCounter\"\261\001\n" +
-      "$SessionJournalEntryPayloadToolResult\022\024\n" +
-      "\014tool_call_id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\016\n\006out" +
-      "put\030\003 \001(\t\022%\n\006object\030\004 \001(\0132\025.talon.data.O" +
-      "bjectRef\022.\n\013tool_output\030\005 \001(\0132\031.talon.ha" +
-      "rness.ToolOutput\"@\n SessionJournalEntryP" +
-      "ayloadCommit\022\034\n\024committed_message_id\030\001 \001" +
-      "(\t\"N\n$SessionJournalEntryPayloadCompacti" +
-      "on\022&\n\007summary\030\001 \001(\0132\025.talon.data.ObjectR" +
-      "ef\"\210\003\n\032SessionJournalEntryPayload\022I\n\014llm" +
-      "_response\030\001 \001(\01321.talon.data.SessionJour" +
-      "nalEntryPayloadLlmResponseH\000\022G\n\013tool_res" +
-      "ult\030\002 \001(\01320.talon.data.SessionJournalEnt" +
-      "ryPayloadToolResultH\000\022>\n\006commit\030\003 \001(\0132,." +
-      "talon.data.SessionJournalEntryPayloadCom" +
-      "mitH\000\022F\n\ncompaction\030\005 \001(\01320.talon.data.S" +
-      "essionJournalEntryPayloadCompactionH\000\022C\n" +
-      "\tllm_usage\030\006 \001(\0132..talon.data.SessionJou" +
-      "rnalEntryPayloadLlmUsageH\000B\t\n\007payload\"\325\002" +
-      "\n\023SessionJournalEntry\022\025\n\rsubmission_id\030\001" +
-      " \001(\t\022\030\n\020journal_entry_id\030\002 \001(\t\022\022\n\nattemp" +
-      "t_id\030\003 \001(\t\0220\n\005phase\030\004 \001(\0162!.talon.data.S" +
-      "essionExecutionPhase\0227\n\007payload\030\005 \001(\0132&." +
-      "talon.data.SessionJournalEntryPayload\022\022\n" +
-      "\ncreated_at\030\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003\022\031\n" +
-      "\014committed_at\030\010 \001(\003H\000\210\001\001\022!\n\024committed_me" +
-      "ssage_id\030\t \001(\tH\001\210\001\001B\017\n\r_committed_atB\027\n\025" +
-      "_committed_message_id*\211\002\n\025SessionExecuti" +
-      "onPhase\022\'\n#SESSION_EXECUTION_PHASE_UNSPE" +
-      "CIFIED\020\000\022(\n$SESSION_EXECUTION_PHASE_LLM_" +
-      "RESPONSE\020\001\022\'\n#SESSION_EXECUTION_PHASE_TO" +
-      "OL_RESULT\020\002\022%\n!SESSION_EXECUTION_PHASE_C" +
-      "OMMITTED\020\003\022&\n\"SESSION_EXECUTION_PHASE_CO" +
-      "MPACTION\020\004\022%\n!SESSION_EXECUTION_PHASE_LL" +
-      "M_USAGE\020\005b\006proto3"
+      "\033.talon.harness.ChatResponse\"\261\001\n$Session" +
+      "JournalEntryPayloadToolResult\022\024\n\014tool_ca" +
+      "ll_id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\016\n\006output\030\003 \001(" +
+      "\t\022%\n\006object\030\004 \001(\0132\025.talon.data.ObjectRef" +
+      "\022.\n\013tool_output\030\005 \001(\0132\031.talon.harness.To" +
+      "olOutput\"@\n SessionJournalEntryPayloadCo" +
+      "mmit\022\034\n\024committed_message_id\030\001 \001(\t\"N\n$Se" +
+      "ssionJournalEntryPayloadCompaction\022&\n\007su" +
+      "mmary\030\001 \001(\0132\025.talon.data.ObjectRef\"\324\002\n\032S" +
+      "essionJournalEntryPayload\022I\n\014llm_respons" +
+      "e\030\001 \001(\01321.talon.data.SessionJournalEntry" +
+      "PayloadLlmResponseH\000\022G\n\013tool_result\030\002 \001(" +
+      "\01320.talon.data.SessionJournalEntryPayloa" +
+      "dToolResultH\000\022>\n\006commit\030\003 \001(\0132,.talon.da" +
+      "ta.SessionJournalEntryPayloadCommitH\000\022F\n" +
+      "\ncompaction\030\005 \001(\01320.talon.data.SessionJo" +
+      "urnalEntryPayloadCompactionH\000B\t\n\007payload" +
+      "J\004\010\006\020\007R\tllm_usage\"\325\002\n\023SessionJournalEntr" +
+      "y\022\025\n\rsubmission_id\030\001 \001(\t\022\030\n\020journal_entr" +
+      "y_id\030\002 \001(\t\022\022\n\nattempt_id\030\003 \001(\t\0220\n\005phase\030" +
+      "\004 \001(\0162!.talon.data.SessionExecutionPhase" +
+      "\0227\n\007payload\030\005 \001(\0132&.talon.data.SessionJo" +
+      "urnalEntryPayload\022\022\n\ncreated_at\030\006 \001(\003\022\022\n" +
+      "\nupdated_at\030\007 \001(\003\022\031\n\014committed_at\030\010 \001(\003H" +
+      "\000\210\001\001\022!\n\024committed_message_id\030\t \001(\tH\001\210\001\001B" +
+      "\017\n\r_committed_atB\027\n\025_committed_message_i" +
+      "d*\213\002\n\025SessionExecutionPhase\022\'\n#SESSION_E" +
+      "XECUTION_PHASE_UNSPECIFIED\020\000\022(\n$SESSION_" +
+      "EXECUTION_PHASE_LLM_RESPONSE\020\001\022\'\n#SESSIO" +
+      "N_EXECUTION_PHASE_TOOL_RESULT\020\002\022%\n!SESSI" +
+      "ON_EXECUTION_PHASE_COMMITTED\020\003\022&\n\"SESSIO" +
+      "N_EXECUTION_PHASE_COMPACTION\020\004\"\004\010\005\020\005*!SE" +
+      "SSION_EXECUTION_PHASE_LLM_USAGEb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -7028,38 +6202,32 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadLlmResponse_descriptor,
         new java.lang.String[] { "Response", });
-    internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_descriptor =
-      getDescriptor().getMessageType(1);
-    internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_data_SessionJournalEntryPayloadLlmUsage_descriptor,
-        new java.lang.String[] { "ContextTokens", });
     internal_static_talon_data_SessionJournalEntryPayloadToolResult_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(1);
     internal_static_talon_data_SessionJournalEntryPayloadToolResult_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadToolResult_descriptor,
         new java.lang.String[] { "ToolCallId", "Name", "Output", "Object", "ToolOutput", });
     internal_static_talon_data_SessionJournalEntryPayloadCommit_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(2);
     internal_static_talon_data_SessionJournalEntryPayloadCommit_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadCommit_descriptor,
         new java.lang.String[] { "CommittedMessageId", });
     internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(3);
     internal_static_talon_data_SessionJournalEntryPayloadCompaction_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadCompaction_descriptor,
         new java.lang.String[] { "Summary", });
     internal_static_talon_data_SessionJournalEntryPayload_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(4);
     internal_static_talon_data_SessionJournalEntryPayload_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayload_descriptor,
-        new java.lang.String[] { "LlmResponse", "ToolResult", "Commit", "Compaction", "LlmUsage", "Payload", });
+        new java.lang.String[] { "LlmResponse", "ToolResult", "Commit", "Compaction", "Payload", });
     internal_static_talon_data_SessionJournalEntry_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(5);
     internal_static_talon_data_SessionJournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntry_descriptor,

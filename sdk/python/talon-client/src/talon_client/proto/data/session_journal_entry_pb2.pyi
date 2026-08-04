@@ -15,25 +15,17 @@ class SessionExecutionPhase(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SESSION_EXECUTION_PHASE_TOOL_RESULT: _ClassVar[SessionExecutionPhase]
     SESSION_EXECUTION_PHASE_COMMITTED: _ClassVar[SessionExecutionPhase]
     SESSION_EXECUTION_PHASE_COMPACTION: _ClassVar[SessionExecutionPhase]
-    SESSION_EXECUTION_PHASE_LLM_USAGE: _ClassVar[SessionExecutionPhase]
 SESSION_EXECUTION_PHASE_UNSPECIFIED: SessionExecutionPhase
 SESSION_EXECUTION_PHASE_LLM_RESPONSE: SessionExecutionPhase
 SESSION_EXECUTION_PHASE_TOOL_RESULT: SessionExecutionPhase
 SESSION_EXECUTION_PHASE_COMMITTED: SessionExecutionPhase
 SESSION_EXECUTION_PHASE_COMPACTION: SessionExecutionPhase
-SESSION_EXECUTION_PHASE_LLM_USAGE: SessionExecutionPhase
 
 class SessionJournalEntryPayloadLlmResponse(_message.Message):
     __slots__ = ("response",)
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: _llm_pb2.ChatResponse
     def __init__(self, response: _Optional[_Union[_llm_pb2.ChatResponse, _Mapping]] = ...) -> None: ...
-
-class SessionJournalEntryPayloadLlmUsage(_message.Message):
-    __slots__ = ("context_tokens",)
-    CONTEXT_TOKENS_FIELD_NUMBER: _ClassVar[int]
-    context_tokens: _data_pb2.TokenCounter
-    def __init__(self, context_tokens: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntryPayloadToolResult(_message.Message):
     __slots__ = ("tool_call_id", "name", "output", "object", "tool_output")
@@ -62,18 +54,16 @@ class SessionJournalEntryPayloadCompaction(_message.Message):
     def __init__(self, summary: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntryPayload(_message.Message):
-    __slots__ = ("llm_response", "tool_result", "commit", "compaction", "llm_usage")
+    __slots__ = ("llm_response", "tool_result", "commit", "compaction")
     LLM_RESPONSE_FIELD_NUMBER: _ClassVar[int]
     TOOL_RESULT_FIELD_NUMBER: _ClassVar[int]
     COMMIT_FIELD_NUMBER: _ClassVar[int]
     COMPACTION_FIELD_NUMBER: _ClassVar[int]
-    LLM_USAGE_FIELD_NUMBER: _ClassVar[int]
     llm_response: SessionJournalEntryPayloadLlmResponse
     tool_result: SessionJournalEntryPayloadToolResult
     commit: SessionJournalEntryPayloadCommit
     compaction: SessionJournalEntryPayloadCompaction
-    llm_usage: SessionJournalEntryPayloadLlmUsage
-    def __init__(self, llm_response: _Optional[_Union[SessionJournalEntryPayloadLlmResponse, _Mapping]] = ..., tool_result: _Optional[_Union[SessionJournalEntryPayloadToolResult, _Mapping]] = ..., commit: _Optional[_Union[SessionJournalEntryPayloadCommit, _Mapping]] = ..., compaction: _Optional[_Union[SessionJournalEntryPayloadCompaction, _Mapping]] = ..., llm_usage: _Optional[_Union[SessionJournalEntryPayloadLlmUsage, _Mapping]] = ...) -> None: ...
+    def __init__(self, llm_response: _Optional[_Union[SessionJournalEntryPayloadLlmResponse, _Mapping]] = ..., tool_result: _Optional[_Union[SessionJournalEntryPayloadToolResult, _Mapping]] = ..., commit: _Optional[_Union[SessionJournalEntryPayloadCommit, _Mapping]] = ..., compaction: _Optional[_Union[SessionJournalEntryPayloadCompaction, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntry(_message.Message):
     __slots__ = ("submission_id", "journal_entry_id", "attempt_id", "phase", "payload", "created_at", "updated_at", "committed_at", "committed_message_id")
