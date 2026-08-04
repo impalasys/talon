@@ -45,7 +45,7 @@ reqwest = { version = "0.11", features = ["json", "stream"] }
 # rand 0.10 coexists with older workspace rand versions, so crate_universe emits
 # a versioned alias; keep talon/BUILD.bazel on @crates//:rand-0.10.1.
 rand = "0.10"
-rmcp = { version = "1.4", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
+rmcp = { version = "1.8", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
 prost = "0.13"
 prost-types = "0.13"

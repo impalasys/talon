@@ -1409,6 +1409,8 @@ mod tests {
     async fn test_authenticated_reqwest_client_post_message_handles_accepted_json_and_sse() {
         let accepted_app =
             Router::new().route("/accepted", post(|| async { StatusCode::ACCEPTED }));
+        let no_content_app =
+            Router::new().route("/no-content", post(|| async { StatusCode::NO_CONTENT }));
         let json_app = Router::new().route(
             "/json",
             post(|| async {
@@ -1444,6 +1446,7 @@ mod tests {
         }
 
         let accepted_addr = serve(accepted_app).await;
+        let no_content_addr = serve(no_content_app).await;
         let json_addr = serve(json_app).await;
         let sse_addr = serve(sse_app).await;
         let client = AuthenticatedReqwestClient::new(reqwest::Client::default(), None);
@@ -1459,6 +1462,18 @@ mod tests {
             .await
             .unwrap();
         assert!(matches!(accepted, StreamableHttpPostResponse::Accepted));
+
+        let no_content = client
+            .post_message(
+                format!("http://{no_content_addr}/no-content").into(),
+                ping_message(),
+                None,
+                None,
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
+        assert!(matches!(no_content, StreamableHttpPostResponse::Accepted));
 
         let json_response = client
             .post_message(

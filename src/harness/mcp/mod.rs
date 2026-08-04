@@ -397,7 +397,10 @@ impl StreamableHttpClient for AuthenticatedReqwestClient {
             .map_err(StreamableHttpError::Client)?
             .error_for_status()
             .map_err(StreamableHttpError::Client)?;
-        if response.status() == reqwest::StatusCode::ACCEPTED {
+        if matches!(
+            response.status(),
+            reqwest::StatusCode::ACCEPTED | reqwest::StatusCode::NO_CONTENT
+        ) {
             return Ok(StreamableHttpPostResponse::Accepted);
         }
 
