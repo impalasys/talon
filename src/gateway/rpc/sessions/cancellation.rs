@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use crate::control::keys;
 use crate::gateway::rpc::{data_proto, worker_proto};
 use crate::gateway::server::Gateway;
