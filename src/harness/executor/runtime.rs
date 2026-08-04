@@ -461,7 +461,7 @@ pub struct AgentExecutor {
     pub namespace: String,
     pub agent_id: String,
     pub session_id: String,
-    pub prior_context_tokens: Option<TokenCounter>,
+    pub context_tokens: Option<TokenCounter>,
     pub control_plane: ControlPlane,
     pub agent_spec: crate::gateway::rpc::manifests::AgentSpec,
     pub mcp_tools: HashMap<String, RegisteredMcpTool>,
@@ -520,7 +520,7 @@ impl AgentExecutor {
         namespace: String,
         agent_id: String,
         session_id: String,
-        prior_context_tokens: Option<TokenCounter>,
+        context_tokens: Option<TokenCounter>,
         control_plane: ControlPlane,
         agent_spec: crate::gateway::rpc::manifests::AgentSpec,
         mcp_tools: HashMap<String, RegisteredMcpTool>,
@@ -535,7 +535,7 @@ impl AgentExecutor {
             namespace,
             agent_id,
             session_id,
-            prior_context_tokens,
+            context_tokens,
             control_plane,
             agent_spec,
             mcp_tools,
@@ -718,10 +718,10 @@ impl AgentExecutor {
     fn estimate_context_input_tokens(
         &self,
         context: &ExecutionContext,
-        prior_context_tokens: Option<&TokenCounter>,
+        context_tokens: Option<&TokenCounter>,
         prior_request_history_len: Option<usize>,
     ) -> Option<u64> {
-        let counter = prior_context_tokens.filter(|counter| {
+        let counter = context_tokens.filter(|counter| {
             counter.usage_available
                 && counter.input_tokens > 0
                 && counter.provider == self.llm_provider_key
@@ -776,7 +776,7 @@ impl AgentExecutor {
         let prompts = self.render_execution_prompts(context)?;
         let mut turn_limit = DEFAULT_EXECUTION_TURN_LIMIT;
         let mut compaction_disabled = false;
-        let mut prior_context_tokens = self.prior_context_tokens.clone();
+        let mut context_tokens = self.context_tokens.clone();
         let mut prior_request_history_len = None;
         loop {
             if turn_limit == 0 {
@@ -806,7 +806,7 @@ impl AgentExecutor {
                 .total_chars;
             let estimated_context_tokens = self.estimate_context_input_tokens(
                 context,
-                prior_context_tokens.as_ref(),
+                context_tokens.as_ref(),
                 prior_request_history_len,
             );
             let should_compact = !compaction_disabled
@@ -1034,7 +1034,7 @@ impl AgentExecutor {
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
             };
-            prior_context_tokens = llm_response.usage.clone();
+            context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
                 &llm_span,
                 &llm_response.content,
