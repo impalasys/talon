@@ -1259,20 +1259,6 @@ impl PubSubSessionSink {
             usage_events: *self.usage_events.lock().unwrap(),
         }
     }
-
-    async fn persist_context_tokens_best_effort(&self, counter: &TokenCounter) {
-        if let Err(error) =
-            sessions::persist_context_tokens(self.kv.as_ref(), &self.claim, counter).await
-        {
-            tracing::error!(
-                error = %error,
-                namespace = %self.ns,
-                agent = %self.agent_id,
-                session = %self.session_id,
-                "failed to persist session context token snapshot"
-            );
-        }
-    }
 }
 
 #[async_trait]
@@ -1293,7 +1279,17 @@ impl ExecutionSink for PubSubSessionSink {
             *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id.clone());
         }
         if let Some(counter) = response.usage.as_ref() {
-            self.persist_context_tokens_best_effort(counter).await;
+            if let Err(error) =
+                sessions::persist_context_tokens(self.kv.as_ref(), &self.claim, counter).await
+            {
+                tracing::error!(
+                    error = %error,
+                    namespace = %self.ns,
+                    agent = %self.agent_id,
+                    session = %self.session_id,
+                    "failed to persist session context token snapshot"
+                );
+            }
         }
         Ok(())
     }
