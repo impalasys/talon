@@ -538,7 +538,7 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	" SessionJournalEntryPayloadCommit\x120\n" +
 	"\x14committed_message_id\x18\x01 \x01(\tR\x12committedMessageId\"W\n" +
 	"$SessionJournalEntryPayloadCompaction\x12/\n" +
-	"\asummary\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\asummary\"\x81\x03\n" +
+	"\asummary\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\asummary\"\xf0\x02\n" +
 	"\x1aSessionJournalEntryPayload\x12V\n" +
 	"\fllm_response\x18\x01 \x01(\v21.talon.data.SessionJournalEntryPayloadLlmResponseH\x00R\vllmResponse\x12S\n" +
 	"\vtool_result\x18\x02 \x01(\v20.talon.data.SessionJournalEntryPayloadToolResultH\x00R\n" +
@@ -547,7 +547,7 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	"\n" +
 	"compaction\x18\x05 \x01(\v20.talon.data.SessionJournalEntryPayloadCompactionH\x00R\n" +
 	"compactionB\t\n" +
-	"\apayloadJ\x04\b\x06\x10\aR\tllm_usage\"\xc5\x03\n" +
+	"\apayload\"\xc5\x03\n" +
 	"\x13SessionJournalEntry\x12#\n" +
 	"\rsubmission_id\x18\x01 \x01(\tR\fsubmissionId\x12(\n" +
 	"\x10journal_entry_id\x18\x02 \x01(\tR\x0ejournalEntryId\x12\x1d\n" +
@@ -562,13 +562,13 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	"\fcommitted_at\x18\b \x01(\x03H\x00R\vcommittedAt\x88\x01\x01\x125\n" +
 	"\x14committed_message_id\x18\t \x01(\tH\x01R\x12committedMessageId\x88\x01\x01B\x0f\n" +
 	"\r_committed_atB\x17\n" +
-	"\x15_committed_message_id*\x8b\x02\n" +
+	"\x15_committed_message_id*\xe2\x01\n" +
 	"\x15SessionExecutionPhase\x12'\n" +
 	"#SESSION_EXECUTION_PHASE_UNSPECIFIED\x10\x00\x12(\n" +
 	"$SESSION_EXECUTION_PHASE_LLM_RESPONSE\x10\x01\x12'\n" +
 	"#SESSION_EXECUTION_PHASE_TOOL_RESULT\x10\x02\x12%\n" +
 	"!SESSION_EXECUTION_PHASE_COMMITTED\x10\x03\x12&\n" +
-	"\"SESSION_EXECUTION_PHASE_COMPACTION\x10\x04\"\x04\b\x05\x10\x05*!SESSION_EXECUTION_PHASE_LLM_USAGEb\x06proto3"
+	"\"SESSION_EXECUTION_PHASE_COMPACTION\x10\x04b\x06proto3"
 
 var (
 	file_proto_data_session_journal_entry_proto_rawDescOnce sync.Once

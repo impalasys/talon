@@ -6164,7 +6164,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       "olOutput\"@\n SessionJournalEntryPayloadCo" +
       "mmit\022\034\n\024committed_message_id\030\001 \001(\t\"N\n$Se" +
       "ssionJournalEntryPayloadCompaction\022&\n\007su" +
-      "mmary\030\001 \001(\0132\025.talon.data.ObjectRef\"\324\002\n\032S" +
+      "mmary\030\001 \001(\0132\025.talon.data.ObjectRef\"\303\002\n\032S" +
       "essionJournalEntryPayload\022I\n\014llm_respons" +
       "e\030\001 \001(\01321.talon.data.SessionJournalEntry" +
       "PayloadLlmResponseH\000\022G\n\013tool_result\030\002 \001(" +
@@ -6173,22 +6173,21 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       "ta.SessionJournalEntryPayloadCommitH\000\022F\n" +
       "\ncompaction\030\005 \001(\01320.talon.data.SessionJo" +
       "urnalEntryPayloadCompactionH\000B\t\n\007payload" +
-      "J\004\010\006\020\007R\tllm_usage\"\325\002\n\023SessionJournalEntr" +
-      "y\022\025\n\rsubmission_id\030\001 \001(\t\022\030\n\020journal_entr" +
-      "y_id\030\002 \001(\t\022\022\n\nattempt_id\030\003 \001(\t\0220\n\005phase\030" +
-      "\004 \001(\0162!.talon.data.SessionExecutionPhase" +
-      "\0227\n\007payload\030\005 \001(\0132&.talon.data.SessionJo" +
-      "urnalEntryPayload\022\022\n\ncreated_at\030\006 \001(\003\022\022\n" +
-      "\nupdated_at\030\007 \001(\003\022\031\n\014committed_at\030\010 \001(\003H" +
-      "\000\210\001\001\022!\n\024committed_message_id\030\t \001(\tH\001\210\001\001B" +
-      "\017\n\r_committed_atB\027\n\025_committed_message_i" +
-      "d*\213\002\n\025SessionExecutionPhase\022\'\n#SESSION_E" +
-      "XECUTION_PHASE_UNSPECIFIED\020\000\022(\n$SESSION_" +
-      "EXECUTION_PHASE_LLM_RESPONSE\020\001\022\'\n#SESSIO" +
-      "N_EXECUTION_PHASE_TOOL_RESULT\020\002\022%\n!SESSI" +
-      "ON_EXECUTION_PHASE_COMMITTED\020\003\022&\n\"SESSIO" +
-      "N_EXECUTION_PHASE_COMPACTION\020\004\"\004\010\005\020\005*!SE" +
-      "SSION_EXECUTION_PHASE_LLM_USAGEb\006proto3"
+      "\"\325\002\n\023SessionJournalEntry\022\025\n\rsubmission_i" +
+      "d\030\001 \001(\t\022\030\n\020journal_entry_id\030\002 \001(\t\022\022\n\natt" +
+      "empt_id\030\003 \001(\t\0220\n\005phase\030\004 \001(\0162!.talon.dat" +
+      "a.SessionExecutionPhase\0227\n\007payload\030\005 \001(\013" +
+      "2&.talon.data.SessionJournalEntryPayload" +
+      "\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003" +
+      "\022\031\n\014committed_at\030\010 \001(\003H\000\210\001\001\022!\n\024committed" +
+      "_message_id\030\t \001(\tH\001\210\001\001B\017\n\r_committed_atB" +
+      "\027\n\025_committed_message_id*\342\001\n\025SessionExec" +
+      "utionPhase\022\'\n#SESSION_EXECUTION_PHASE_UN" +
+      "SPECIFIED\020\000\022(\n$SESSION_EXECUTION_PHASE_L" +
+      "LM_RESPONSE\020\001\022\'\n#SESSION_EXECUTION_PHASE" +
+      "_TOOL_RESULT\020\002\022%\n!SESSION_EXECUTION_PHAS" +
+      "E_COMMITTED\020\003\022&\n\"SESSION_EXECUTION_PHASE" +
+      "_COMPACTION\020\004b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

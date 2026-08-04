@@ -24,9 +24,6 @@ enum SessionExecutionPhase {
   // Durable model context compaction completed. The journal entry references
   // an immutable summary object without storing a provider transcript snapshot.
   SESSION_EXECUTION_PHASE_COMPACTION = 4;
-
-  reserved 5;
-  reserved "SESSION_EXECUTION_PHASE_LLM_USAGE";
 }
 
 message SessionJournalEntryPayloadLlmResponse {
@@ -57,8 +54,6 @@ message SessionJournalEntryPayload {
     SessionJournalEntryPayloadCommit commit = 3;
     SessionJournalEntryPayloadCompaction compaction = 5;
   }
-  reserved 6;
-  reserved "llm_usage";
 }
 
 message SessionJournalEntry {
