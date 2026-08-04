@@ -78,12 +78,17 @@ export function secretManifestFromEntries(resource: SecretResource, type: string
   }
 
   const metadata = resource.metadata || {};
+  const name = metadata.name?.trim() || '';
+  const namespace = metadata.namespace?.trim() || '';
+  if (!name) throw new Error('Secret metadata.name is required.');
+  if (!namespace) throw new Error('Secret metadata.namespace is required.');
+
   return {
     apiVersion: resource.apiVersion || 'talon.impalasys.com/v1',
     kind: 'Secret',
     metadata: {
-      name: metadata.name || '',
-      namespace: metadata.namespace || '',
+      name,
+      namespace,
       labels: metadata.labels || {},
       annotations: metadata.annotations || {},
     },
@@ -200,14 +205,22 @@ export function SecretInspector({
                   aria-label="Secret key"
                 />
                 <div className="flex gap-2">
-                  <input
-                    className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
-                    type={isVisible ? 'text' : 'password'}
-                    value={entry.value}
-                    onChange={(event) => updateEntry(entry.id, { value: event.target.value })}
-                    placeholder="Value"
-                    aria-label={`Secret value for ${entry.key || 'new key'}`}
-                  />
+                  {isVisible ? (
+                    <textarea
+                      className="min-h-20 min-w-0 flex-1 resize-y rounded-md border border-border bg-background px-2 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+                      value={entry.value}
+                      onChange={(event) => updateEntry(entry.id, { value: event.target.value })}
+                      placeholder="Value"
+                      aria-label={`Secret value for ${entry.key || 'new key'}`}
+                    />
+                  ) : (
+                    <div
+                      className="flex min-h-9 min-w-0 flex-1 items-center rounded-md border border-border bg-background px-2 text-sm tracking-widest text-muted-foreground"
+                      aria-label={`Secret value for ${entry.key || 'new key'}`}
+                    >
+                      {'•'.repeat(Math.max(8, Math.min(24, entry.value.length || 8)))}
+                    </div>
+                  )}
                   <button
                     type="button"
                     className="rounded-md border border-border px-2 text-muted-foreground hover:bg-muted hover:text-foreground"

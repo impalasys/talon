@@ -34,4 +34,35 @@ describe('SecretInspector helpers', () => {
       stringData: { token: 'changed', region: 'us-west-2' },
     });
   });
+
+  it('preserves newlines in edited values', () => {
+    const secret = {
+      apiVersion: 'talon.impalasys.com/v1',
+      kind: 'Secret',
+      metadata: { name: 'certificate', namespace: 'demo' },
+      spec: { type: 'Opaque', data: { pem: 'bGluZTEKbGluZTI=' } },
+    };
+    const entries = secretEntriesFromResource(secret).map((entry) => ({
+      ...entry,
+      value: 'updated line 1\nupdated line 2',
+    }));
+
+    expect(secretManifestFromEntries(secret, 'Opaque', entries).spec.stringData).toEqual({
+      pem: 'updated line 1\nupdated line 2',
+    });
+  });
+
+  it('rejects Secrets without a name or namespace', () => {
+    const secret = {
+      apiVersion: 'talon.impalasys.com/v1',
+      kind: 'Secret',
+      metadata: { name: '', namespace: 'demo' },
+      spec: { type: 'Opaque', data: {} },
+    };
+
+    expect(() => secretManifestFromEntries(secret, 'Opaque', [])).toThrow('Secret metadata.name is required.');
+    expect(() => secretManifestFromEntries({ ...secret, metadata: { name: 'credentials', namespace: '' } }, 'Opaque', [])).toThrow(
+      'Secret metadata.namespace is required.',
+    );
+  });
 });
