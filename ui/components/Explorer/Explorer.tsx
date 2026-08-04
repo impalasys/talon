@@ -11,6 +11,7 @@ import {
   FolderOpen,
   FolderSimple,
   Hash,
+  Key,
   Plug,
   Robot,
   ShieldCheck,
@@ -80,6 +81,7 @@ const LEAF_TYPES: SelectionType[] = [
   'sandbox-class',
   'sandbox-policy',
   'sandbox',
+  'secret',
 ];
 const LIST_PREVIEW_LIMIT = 10;
 
@@ -110,6 +112,7 @@ function NodeIcon({ type, selected, expanded }: { type: SelectionType; selected:
     sandbox: Cube,
     'mcp-server': Plug,
     file: FileText,
+    secret: Key,
   };
   const colorByType: Partial<Record<SelectionType, string>> = {
     namespace: selected ? 'text-slate-900 dark:text-slate-50' : 'text-slate-500',
@@ -127,6 +130,7 @@ function NodeIcon({ type, selected, expanded }: { type: SelectionType; selected:
     sandbox: 'text-orange-500',
     'mcp-server': 'text-blue-600',
     file: 'text-violet-500',
+    secret: 'text-amber-600',
   };
   const IconComponent = iconByType[type] || Cube;
   return (

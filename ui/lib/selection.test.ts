@@ -80,6 +80,7 @@ describe('selection helpers', () => {
       ['sandbox-class', { name: 'node' }, 'demo:sandbox-class:node'],
       ['sandbox-policy', { name: 'default' }, 'demo:sandbox-policy:default'],
       ['sandbox', { name: 'box' }, 'demo:sandbox:box'],
+      ['secret', { name: 'credentials' }, 'demo:secret:credentials'],
     ];
 
     for (const [type, extra, fullPath] of cases) {
@@ -163,6 +164,7 @@ describe('selection helpers', () => {
       [{ type: 'sandbox-class', ns: 'demo', resourceName: 'node', fullPath: 'demo:sandbox-class:node' }, 'node', 'demo / SandboxClass'],
       [{ type: 'sandbox-policy', ns: 'demo', resourceName: 'default', fullPath: 'demo:sandbox-policy:default' }, 'default', 'demo / SandboxPolicy'],
       [{ type: 'sandbox', ns: 'demo', resourceName: 'box', fullPath: 'demo:sandbox:box' }, 'box', 'demo / Sandbox'],
+      [{ type: 'secret', ns: 'demo', resourceName: 'credentials', fullPath: 'demo:secret:credentials' }, 'credentials', 'demo / Secret'],
     ];
 
     for (const [selection, title, subtitle] of selections) {

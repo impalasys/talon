@@ -16,6 +16,7 @@ type ResourceInspectorProps = {
   document?: any;
   yaml: string;
   dedicatedInspector?: ReactNode;
+  preferInspector?: boolean;
 };
 
 type InspectorMode = 'yaml' | 'inspector';
@@ -299,12 +300,17 @@ export function ResourceInspector({
   document,
   yaml,
   dedicatedInspector,
+  preferInspector = false,
 }: ResourceInspectorProps) {
   const [mode, setMode] = useState<InspectorMode>('yaml');
 
   useEffect(() => {
     setMode('yaml');
   }, [selectedNode?.fullPath]);
+
+  useEffect(() => {
+    if (preferInspector) setMode('inspector');
+  }, [preferInspector, selectedNode?.fullPath]);
 
   const fileInspectorDescriptor = selectedNode?.type === 'file' && document ? fileDescriptor(document) : null;
   const inspector =

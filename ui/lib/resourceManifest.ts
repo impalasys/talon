@@ -116,6 +116,11 @@ function manifestSpec(caseName: string | undefined, value: any) {
         classRef: resourceRef(spec.classRef),
         runtimeTemplate: runtimeTemplate(spec.runtimeTemplate),
       });
+    case 'secret':
+      return yamlSafeValue({
+        type: spec.type || '',
+        data: spec.data || {},
+      });
     case 'permissionRequest':
       return yamlSafeValue({
         agent: spec.agent || '',

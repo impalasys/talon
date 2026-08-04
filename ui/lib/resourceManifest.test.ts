@@ -2,6 +2,25 @@ import { dump } from 'js-yaml';
 import { resourceToManifestDocument } from './resourceManifest';
 
 describe('resourceToManifestDocument', () => {
+  it('renders Secret data in manifest form', () => {
+    expect(resourceToManifestDocument({
+      apiVersion: 'talon.impalasys.com/v1',
+      kind: 'Secret',
+      metadata: { name: 'credentials', namespace: 'demo' },
+      spec: {
+        kind: {
+          case: 'secret',
+          value: { type: 'Opaque', data: { token: 'dG9rZW4=' } },
+        },
+      },
+    } as any)).toEqual({
+      apiVersion: 'talon.impalasys.com/v1',
+      kind: 'Secret',
+      metadata: { name: 'credentials', namespace: 'demo', labels: {}, annotations: {} },
+      spec: { type: 'Opaque', data: { token: 'dG9rZW4=' } },
+    });
+  });
+
   it('renders File enum fields as symbolic YAML values', () => {
     const document = resourceToManifestDocument({
       apiVersion: 'talon.impalasys.com/v1',
