@@ -421,6 +421,33 @@ trust:
     }
 
     #[test]
+    fn test_native_openai_api_is_parsed_and_validated() {
+        let dir = tempdir().unwrap();
+        let valid = dir.path().join("valid.yaml");
+        std::fs::write(
+            &valid,
+            "providers:\n  openai:\n    type: openai\n    model: gpt-5.6-luna\n    api: responses\n",
+        )
+        .unwrap();
+        let config = Config::from_file(&valid).unwrap();
+        let Some(proto::llm_provider_config::Config::Openai(openai)) =
+            &config.providers["openai"].config
+        else {
+            panic!("expected native OpenAI provider");
+        };
+        assert_eq!(openai.api, "responses");
+
+        let invalid = dir.path().join("invalid.yaml");
+        std::fs::write(
+            &invalid,
+            "providers:\n  openai:\n    type: openai\n    model: gpt-5.6-luna\n    api: unknown\n",
+        )
+        .unwrap();
+        let error = Config::from_file(&invalid).unwrap_err().to_string();
+        assert!(error.contains("expected 'responses' or 'chat_completions'"));
+    }
+
+    #[test]
     fn test_binary_decode() {
         let mut config = Config::default();
         config.providers.insert(
@@ -433,6 +460,7 @@ trust:
                             source: Some(proto::secret::Source::Plain("key".to_string())),
                         }),
                         org_id: "".to_string(),
+                        api: "".to_string(),
                     },
                 )),
             },

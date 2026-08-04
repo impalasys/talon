@@ -52,6 +52,15 @@ struct ModelManifest {
     provider: String,
     name: String,
     temperature: f32,
+    thinking: Option<ThinkingConfigManifest>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(rename_all = "camelCase", default)]
+struct ThinkingConfigManifest {
+    enabled: bool,
+    budget_tokens: Option<u32>,
+    effort: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

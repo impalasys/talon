@@ -497,6 +497,11 @@ export class OpenAiConfig extends Message<OpenAiConfig> {
    */
   orgId = "";
 
+  /**
+   * @generated from field: string api = 4;
+   */
+  api = "";
+
   constructor(data?: PartialMessage<OpenAiConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -508,6 +513,7 @@ export class OpenAiConfig extends Message<OpenAiConfig> {
     { no: 1, name: "model", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "api_key", kind: "message", T: Secret },
     { no: 3, name: "org_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "api", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OpenAiConfig {
