@@ -162,5 +162,43 @@ async def test_mock_llm_chat_completions_endpoint_covers_json_and_streaming_path
         assert "data:" in stream.text
 
 
+@pytest.mark.anyio
+async def test_mock_llm_responses_endpoint_covers_json_and_streaming_paths() -> None:
+    transport = httpx.ASGITransport(app=mock_llm.app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+        standard = await client.post(
+            "/responses",
+            json={
+                "model": "mock-model",
+                "input": [{"role": "user", "content": [{"type": "input_text", "text": "hello"}]}],
+            },
+        )
+        assert standard.status_code == 200
+        assert standard.json()["output"][0]["content"][0]["text"].startswith("Hello!")
+
+        tool = await client.post(
+            "/responses",
+            json={
+                "model": "mock-model",
+                "input": [{"role": "user", "content": [{"type": "input_text", "text": "lookup docs.example.com"}]}],
+                "tools": [{"type": "function", "name": mock_llm.TOOL_NAME}],
+            },
+        )
+        assert tool.status_code == 200
+        assert tool.json()["output"][1]["name"] == mock_llm.TOOL_NAME
+
+        stream = await client.post(
+            "/responses",
+            json={
+                "model": "mock-model",
+                "stream": True,
+                "input": [{"role": "user", "content": [{"type": "input_text", "text": "hello"}]}],
+            },
+        )
+        assert stream.status_code == 200
+        assert "response.output_text.delta" in stream.text
+        assert "response.completed" in stream.text
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v"]))
