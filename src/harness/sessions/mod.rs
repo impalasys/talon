@@ -3,6 +3,7 @@
 
 mod journal;
 mod lease;
+mod session;
 mod submission;
 
 pub const SESSION_LABEL_SUBMISSION_ID: &str = "talon.session.submission_id";
@@ -21,6 +22,7 @@ pub use journal::{
 };
 pub use journal::{append_llm_response, append_tool_result};
 pub use lease::{SubmissionLease, SubmissionLeaseRenewer};
+pub use session::persist_context_tokens;
 pub use submission::{
     claim_submission, create_submission_if_absent, pending_submission, renew_submission_claim,
     submission_is_terminal, ClaimOutcome, RenewOutcome,

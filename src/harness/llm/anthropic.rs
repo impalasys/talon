@@ -5,8 +5,8 @@ use crate::control::cas::CasStore;
 use crate::gateway::rpc::manifests;
 use crate::harness::llm::provider::{
     chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
-    text_delta_event, usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
-    ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
+    provider_request_error, text_delta_event, usage_event, ChatContentPart, ChatMessage,
+    ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider, TokenCounter,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -232,17 +232,31 @@ impl LlmProvider for AnthropicProvider {
 
         if !resp.status().is_success() {
             let err_text = resp.text().await?;
-            return Err(anyhow!("Anthropic API error: {}", err_text));
+            let token_counter = serde_json::from_str(&err_text)
+                .ok()
+                .and_then(|value| extract_usage(&value));
+            return Err(provider_request_error(
+                "Anthropic API request failed",
+                token_counter,
+            ));
         }
 
         let result: serde_json::Value = resp.json().await?;
         let content = Self::extract_text_content(&result)
             .ok_or_else(|| anyhow!("Invalid Anthropic response format"))?;
 
+        let usage = extract_usage(&result).map(|mut counter| {
+            counter.provider = "anthropic".to_string();
+            if counter.model.is_empty() {
+                counter.model = self.model.clone();
+            }
+            counter
+        });
+
         Ok(ChatResponse {
             content,
             tool_calls: vec![],
-            usage: extract_usage(&result),
+            usage,
         })
     }
 
@@ -276,7 +290,13 @@ impl LlmProvider for AnthropicProvider {
 
         if !resp.status().is_success() {
             let err_text = resp.text().await?;
-            return Err(anyhow!("Anthropic API error: {}", err_text));
+            let token_counter = serde_json::from_str(&err_text)
+                .ok()
+                .and_then(|value| extract_usage(&value));
+            return Err(provider_request_error(
+                "Anthropic API request failed",
+                token_counter,
+            ));
         }
 
         let byte_stream = resp.bytes_stream();
@@ -284,7 +304,8 @@ impl LlmProvider for AnthropicProvider {
 
         let mut buffer = String::new();
         let mut last_event = String::new();
-        let mut current_usage = ChatUsage::default();
+        let mut current_usage = TokenCounter::default();
+        let stream_model = self.model.clone();
 
         let sse_stream = line_stream.flat_map(move |result| match result {
             Ok(bytes) => {
@@ -323,20 +344,37 @@ impl LlmProvider for AnthropicProvider {
                             }
                         } else if last_event == "message_start" || last_event == "message_delta" {
                             if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
-                                if let Some(usage) = extract_usage(&value) {
+                                if let Some(mut usage) = extract_usage(&value) {
+                                    usage.provider = "anthropic".to_string();
+                                    if usage.model.is_empty() {
+                                        usage.model = stream_model.clone();
+                                    }
                                     if usage.input_tokens > 0 {
                                         current_usage.input_tokens = usage.input_tokens;
                                     }
                                     if usage.output_tokens > 0 {
                                         current_usage.output_tokens = usage.output_tokens;
                                     }
-                                    if usage.reasoning_tokens > 0 {
-                                        current_usage.reasoning_tokens = usage.reasoning_tokens;
+                                    if usage.reasoning_output_tokens > 0 {
+                                        current_usage.reasoning_output_tokens =
+                                            usage.reasoning_output_tokens;
                                     }
-                                    current_usage.total_tokens = current_usage
-                                        .input_tokens
-                                        .saturating_add(current_usage.output_tokens)
-                                        .saturating_add(current_usage.reasoning_tokens);
+                                    if usage.cached_input_tokens > 0 {
+                                        current_usage.cached_input_tokens =
+                                            usage.cached_input_tokens;
+                                    }
+                                    if usage.total_tokens > 0 {
+                                        current_usage.total_tokens = usage.total_tokens;
+                                    }
+                                    if usage.provider_request_id.is_some() {
+                                        current_usage.provider_request_id =
+                                            usage.provider_request_id;
+                                    }
+                                    current_usage.provider = usage.provider;
+                                    if !usage.model.is_empty() {
+                                        current_usage.model = usage.model;
+                                    }
+                                    current_usage.usage_available = true;
                                     items.push(Ok(usage_event(current_usage.clone())));
                                 }
                             }
@@ -364,7 +402,7 @@ impl LlmProvider for AnthropicProvider {
     }
 }
 
-fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
+fn extract_usage(result: &serde_json::Value) -> Option<TokenCounter> {
     let usage = result
         .get("usage")
         .or_else(|| result.pointer("/message/usage"))?;
@@ -385,13 +423,31 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
     let total_tokens = usage
         .get("total_tokens")
         .and_then(|v| v.as_u64())
-        .unwrap_or(input_tokens + completion_tokens);
+        .unwrap_or(0);
+    let cached_input_tokens = usage
+        .get("cache_read_input_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
 
-    Some(ChatUsage {
+    Some(TokenCounter {
         input_tokens,
         output_tokens,
-        reasoning_tokens,
+        reasoning_output_tokens: reasoning_tokens,
         total_tokens,
+        cached_input_tokens,
+        usage_available: true,
+        provider_request_id: result
+            .get("id")
+            .or_else(|| result.pointer("/message/id"))
+            .and_then(|v| v.as_str())
+            .map(ToString::to_string),
+        provider: String::new(),
+        model: result
+            .get("model")
+            .or_else(|| result.pointer("/message/model"))
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string(),
     })
 }
 
@@ -555,6 +611,30 @@ mod tests {
         }
     }
 
+    #[test]
+    fn extract_usage_normalizes_cache_and_request_identifiers() {
+        let usage = extract_usage(&serde_json::json!({
+            "id": "msg_1",
+            "model": "claude-test",
+            "usage": {
+                "input_tokens": 10,
+                "cache_read_input_tokens": 4,
+                "output_tokens": 7,
+                "thinking_tokens": 3
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(usage.input_tokens, 10);
+        assert_eq!(usage.cached_input_tokens, 4);
+        assert_eq!(usage.output_tokens, 4);
+        assert_eq!(usage.reasoning_output_tokens, 3);
+        assert_eq!(usage.total_tokens, 0);
+        assert!(usage.usage_available);
+        assert_eq!(usage.provider_request_id.as_deref(), Some("msg_1"));
+        assert_eq!(usage.model, "claude-test");
+    }
+
     #[tokio::test]
     async fn test_anthropic_sse_parsing() {
         let sse_data = "event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"hi\"}}\n\nevent: message_stop\ndata: {}\n";
@@ -608,7 +688,7 @@ mod tests {
 
         let mut buffer = String::new();
         let mut last_event = String::new();
-        let mut current_usage = ChatUsage::default();
+        let mut current_usage = TokenCounter::default();
         let mut usage_events = Vec::new();
 
         buffer.push_str(sse_data);
@@ -634,13 +714,11 @@ mod tests {
                             if usage.output_tokens > 0 {
                                 current_usage.output_tokens = usage.output_tokens;
                             }
-                            if usage.reasoning_tokens > 0 {
-                                current_usage.reasoning_tokens = usage.reasoning_tokens;
+                            if usage.reasoning_output_tokens > 0 {
+                                current_usage.reasoning_output_tokens =
+                                    usage.reasoning_output_tokens;
                             }
-                            current_usage.total_tokens = current_usage
-                                .input_tokens
-                                .saturating_add(current_usage.output_tokens)
-                                .saturating_add(current_usage.reasoning_tokens);
+                            current_usage.usage_available = true;
                             usage_events.push(current_usage.clone());
                         }
                     }
@@ -653,23 +731,29 @@ mod tests {
         assert_eq!(
             usage_events,
             vec![
-                ChatUsage {
+                TokenCounter {
                     input_tokens: 10,
                     output_tokens: 0,
-                    reasoning_tokens: 0,
-                    total_tokens: 10,
+                    reasoning_output_tokens: 0,
+                    total_tokens: 0,
+                    usage_available: true,
+                    ..Default::default()
                 },
-                ChatUsage {
+                TokenCounter {
                     input_tokens: 10,
                     output_tokens: 2,
-                    reasoning_tokens: 2,
-                    total_tokens: 14,
+                    reasoning_output_tokens: 2,
+                    total_tokens: 0,
+                    usage_available: true,
+                    ..Default::default()
                 },
-                ChatUsage {
+                TokenCounter {
                     input_tokens: 10,
                     output_tokens: 4,
-                    reasoning_tokens: 3,
-                    total_tokens: 17,
+                    reasoning_output_tokens: 3,
+                    total_tokens: 0,
+                    usage_available: true,
+                    ..Default::default()
                 },
             ]
         );
@@ -738,7 +822,7 @@ mod tests {
             })
             .await
             .unwrap_err();
-        assert!(api_err.to_string().contains("Anthropic API error"));
+        assert!(api_err.to_string().contains("Anthropic API request failed"));
 
         let format_err = provider
             .chat_completion(ChatRequest {
@@ -834,7 +918,7 @@ mod tests {
             Ok(_) => panic!("expected stream error"),
             Err(err) => err,
         };
-        assert!(err.to_string().contains("Anthropic API error"));
+        assert!(err.to_string().contains("Anthropic API request failed"));
     }
 
     #[tokio::test]

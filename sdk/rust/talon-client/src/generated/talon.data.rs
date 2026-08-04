@@ -96,6 +96,30 @@ pub struct ObjectRef {
     #[prost(string, tag = "7")]
     pub content_encoding: ::prost::alloc::string::String,
 }
+/// Provider-reported token counts for one completed model request. Fields that
+/// a provider does not return are left at their proto3 zero value; callers use
+/// usage_available to distinguish that from a provider-reported zero count.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TokenCounter {
+    #[prost(uint64, tag = "1")]
+    pub input_tokens: u64,
+    #[prost(uint64, tag = "2")]
+    pub output_tokens: u64,
+    #[prost(uint64, tag = "3")]
+    pub reasoning_output_tokens: u64,
+    #[prost(uint64, tag = "4")]
+    pub total_tokens: u64,
+    #[prost(uint64, tag = "5")]
+    pub cached_input_tokens: u64,
+    #[prost(bool, tag = "6")]
+    pub usage_available: bool,
+    #[prost(string, optional, tag = "7")]
+    pub provider_request_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, tag = "8")]
+    pub provider: ::prost::alloc::string::String,
+    #[prost(string, tag = "9")]
+    pub model: ::prost::alloc::string::String,
+}
 /// Session-scoped immutable output produced by an agent.
 ///
 /// Artifacts are not namespace-level File resources. They live under the
@@ -310,6 +334,10 @@ pub struct Session {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// Latest completed provider token snapshot for this session. This is not a
+    /// cumulative usage or billing record.
+    #[prost(message, optional, tag = "9")]
+    pub context_tokens: ::core::option::Option<TokenCounter>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChannelMessage {

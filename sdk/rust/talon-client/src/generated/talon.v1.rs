@@ -572,6 +572,8 @@ pub struct SessionResponse {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    #[prost(message, optional, tag = "7")]
+    pub context_tokens: ::core::option::Option<super::data::TokenCounter>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteSessionRequest {

@@ -664,6 +664,7 @@ impl GrpcGatewayHandler {
             last_active: chrono::Utc::now().timestamp_micros(),
             metadata: std::collections::HashMap::new(),
             labels: req.labels.clone(),
+            context_tokens: None,
         };
 
         let session_db_key = keys::session(&req.ns, &req.agent, &session_id);
@@ -713,6 +714,7 @@ impl GrpcGatewayHandler {
             state: "ACTIVE".to_string(),
             messages: vec![],
             labels: req.labels,
+            context_tokens: None,
         }))
     }
 
@@ -899,6 +901,7 @@ impl GrpcGatewayHandler {
             state: session.status,
             messages,
             labels: session.labels,
+            context_tokens: session.context_tokens,
         }))
     }
 
@@ -2034,6 +2037,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                context_tokens: None,
             },
         )
         .await
@@ -2129,6 +2133,7 @@ mod tests {
                 last_active: 10,
                 metadata: Default::default(),
                 labels: Default::default(),
+                context_tokens: None,
             },
         )
         .await
@@ -2145,6 +2150,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                context_tokens: None,
             },
         )
         .await
@@ -2838,6 +2844,7 @@ mod tests {
                 last_active: 20,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                context_tokens: None,
             },
         )
         .await
@@ -3025,6 +3032,7 @@ mod tests {
                 last_active: 2,
                 metadata: std::collections::HashMap::new(),
                 labels: std::collections::HashMap::new(),
+                context_tokens: None,
             },
         )
         .await

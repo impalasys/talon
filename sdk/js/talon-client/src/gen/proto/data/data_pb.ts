@@ -289,6 +289,95 @@ export class ObjectRef extends Message<ObjectRef> {
 }
 
 /**
+ * Provider-reported token counts for one completed model request. Fields that
+ * a provider does not return are left at their proto3 zero value; callers use
+ * usage_available to distinguish that from a provider-reported zero count.
+ *
+ * @generated from message talon.data.TokenCounter
+ */
+export class TokenCounter extends Message<TokenCounter> {
+  /**
+   * @generated from field: uint64 input_tokens = 1;
+   */
+  inputTokens = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 output_tokens = 2;
+   */
+  outputTokens = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 reasoning_output_tokens = 3;
+   */
+  reasoningOutputTokens = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 total_tokens = 4;
+   */
+  totalTokens = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 cached_input_tokens = 5;
+   */
+  cachedInputTokens = protoInt64.zero;
+
+  /**
+   * @generated from field: bool usage_available = 6;
+   */
+  usageAvailable = false;
+
+  /**
+   * @generated from field: optional string provider_request_id = 7;
+   */
+  providerRequestId?: string;
+
+  /**
+   * @generated from field: string provider = 8;
+   */
+  provider = "";
+
+  /**
+   * @generated from field: string model = 9;
+   */
+  model = "";
+
+  constructor(data?: PartialMessage<TokenCounter>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.TokenCounter";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "input_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "output_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "reasoning_output_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "total_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 5, name: "cached_input_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "usage_available", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 7, name: "provider_request_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 8, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "model", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TokenCounter {
+    return new TokenCounter().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TokenCounter {
+    return new TokenCounter().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TokenCounter {
+    return new TokenCounter().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TokenCounter | PlainMessage<TokenCounter> | undefined, b: TokenCounter | PlainMessage<TokenCounter> | undefined): boolean {
+    return proto3.util.equals(TokenCounter, a, b);
+  }
+}
+
+/**
  * Session-scoped immutable output produced by an agent.
  *
  * Artifacts are not namespace-level File resources. They live under the
@@ -911,6 +1000,14 @@ export class Session extends Message<Session> {
    */
   labels: { [key: string]: string } = {};
 
+  /**
+   * Latest completed provider token snapshot for this session. This is not a
+   * cumulative usage or billing record.
+   *
+   * @generated from field: optional talon.data.TokenCounter context_tokens = 9;
+   */
+  contextTokens?: TokenCounter;
+
   constructor(data?: PartialMessage<Session>) {
     super();
     proto3.util.initPartial(data, this);
@@ -927,6 +1024,7 @@ export class Session extends Message<Session> {
     { no: 6, name: "last_active", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 7, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
     { no: 8, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 9, name: "context_tokens", kind: "message", T: TokenCounter, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Session {

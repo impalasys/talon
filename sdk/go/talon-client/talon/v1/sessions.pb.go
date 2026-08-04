@@ -526,6 +526,7 @@ type SessionResponse struct {
 	State         string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
 	Messages      []*data.SessionMessage `protobuf:"bytes,4,rep,name=messages,proto3" json:"messages,omitempty"`
 	Labels        map[string]string      `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ContextTokens *data.TokenCounter     `protobuf:"bytes,7,opt,name=context_tokens,json=contextTokens,proto3,oneof" json:"context_tokens,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -591,6 +592,13 @@ func (x *SessionResponse) GetMessages() []*data.SessionMessage {
 func (x *SessionResponse) GetLabels() map[string]string {
 	if x != nil {
 		return x.Labels
+	}
+	return nil
+}
+
+func (x *SessionResponse) GetContextTokens() *data.TokenCounter {
+	if x != nil {
+		return x.ContextTokens
 	}
 	return nil
 }
@@ -1684,17 +1692,19 @@ const file_proto_talon_v1_sessions_proto_rawDesc = "" +
 	"\x14ListSessionsResponse\x12\x1f\n" +
 	"\vsession_ids\x18\x01 \x03(\tR\n" +
 	"sessionIds\x125\n" +
-	"\bsessions\x18\x02 \x03(\v2\x19.talon.v1.SessionListItemR\bsessions\"\x9b\x02\n" +
+	"\bsessions\x18\x02 \x03(\v2\x19.talon.v1.SessionListItemR\bsessions\"\xf4\x02\n" +
 	"\x0fSessionResponse\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x14\n" +
 	"\x05state\x18\x03 \x01(\tR\x05state\x126\n" +
 	"\bmessages\x18\x04 \x03(\v2\x1a.talon.data.SessionMessageR\bmessages\x12=\n" +
-	"\x06labels\x18\x06 \x03(\v2%.talon.v1.SessionResponse.LabelsEntryR\x06labels\x1a9\n" +
+	"\x06labels\x18\x06 \x03(\v2%.talon.v1.SessionResponse.LabelsEntryR\x06labels\x12D\n" +
+	"\x0econtext_tokens\x18\a \x01(\v2\x18.talon.data.TokenCounterH\x00R\rcontextTokens\x88\x01\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x05\x10\x06R\x05steps\"[\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x11\n" +
+	"\x0f_context_tokensJ\x04\b\x05\x10\x06R\x05steps\"[\n" +
 	"\x14DeleteSessionRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
@@ -1855,8 +1865,9 @@ var file_proto_talon_v1_sessions_proto_goTypes = []any{
 	nil,                                     // 30: talon.v1.SendMessageRequest.LabelsEntry
 	nil,                                     // 31: talon.v1.UpdateSessionMessageRequest.LabelsEntry
 	(*data.SessionMessage)(nil),             // 32: talon.data.SessionMessage
-	(*data.SessionMessagePart)(nil),         // 33: talon.data.SessionMessagePart
-	(*events.SessionMessagePartEvent)(nil),  // 34: talon.events.SessionMessagePartEvent
+	(*data.TokenCounter)(nil),               // 33: talon.data.TokenCounter
+	(*data.SessionMessagePart)(nil),         // 34: talon.data.SessionMessagePart
+	(*events.SessionMessagePartEvent)(nil),  // 35: talon.events.SessionMessagePartEvent
 }
 var file_proto_talon_v1_sessions_proto_depIdxs = []int32{
 	26, // 0: talon.v1.CreateSessionRequest.labels:type_name -> talon.v1.CreateSessionRequest.LabelsEntry
@@ -1866,47 +1877,48 @@ var file_proto_talon_v1_sessions_proto_depIdxs = []int32{
 	6,  // 4: talon.v1.ListSessionsResponse.sessions:type_name -> talon.v1.SessionListItem
 	32, // 5: talon.v1.SessionResponse.messages:type_name -> talon.data.SessionMessage
 	28, // 6: talon.v1.SessionResponse.labels:type_name -> talon.v1.SessionResponse.LabelsEntry
-	32, // 7: talon.v1.SubmitSessionTurnRequest.message:type_name -> talon.data.SessionMessage
-	29, // 8: talon.v1.SubmitSessionTurnRequest.labels:type_name -> talon.v1.SubmitSessionTurnRequest.LabelsEntry
-	30, // 9: talon.v1.SendMessageRequest.labels:type_name -> talon.v1.SendMessageRequest.LabelsEntry
-	32, // 10: talon.v1.AppendSessionMessageRequest.message:type_name -> talon.data.SessionMessage
-	32, // 11: talon.v1.AppendSessionMessageResponse.message:type_name -> talon.data.SessionMessage
-	33, // 12: talon.v1.UpdateSessionMessageRequest.parts:type_name -> talon.data.SessionMessagePart
-	31, // 13: talon.v1.UpdateSessionMessageRequest.labels:type_name -> talon.v1.UpdateSessionMessageRequest.LabelsEntry
-	32, // 14: talon.v1.UpdateSessionMessageResponse.message:type_name -> talon.data.SessionMessage
-	0,  // 15: talon.v1.SessionService.Create:input_type -> talon.v1.CreateSessionRequest
-	1,  // 16: talon.v1.SessionService.Get:input_type -> talon.v1.GetSessionRequest
-	5,  // 17: talon.v1.SessionService.List:input_type -> talon.v1.ListSessionsRequest
-	2,  // 18: talon.v1.SessionService.ListMessages:input_type -> talon.v1.ListSessionMessagesRequest
-	9,  // 19: talon.v1.SessionService.Delete:input_type -> talon.v1.DeleteSessionRequest
-	11, // 20: talon.v1.SessionService.Clear:input_type -> talon.v1.ClearSessionRequest
-	14, // 21: talon.v1.SessionService.SendMessage:input_type -> talon.v1.SendMessageRequest
-	16, // 22: talon.v1.SessionService.AppendMessage:input_type -> talon.v1.AppendSessionMessageRequest
-	18, // 23: talon.v1.SessionService.UpdateMessage:input_type -> talon.v1.UpdateSessionMessageRequest
-	20, // 24: talon.v1.SessionService.AnswerPermission:input_type -> talon.v1.AnswerSessionPermissionRequest
-	22, // 25: talon.v1.SessionService.StopGeneration:input_type -> talon.v1.StopSessionGenerationRequest
-	24, // 26: talon.v1.SessionService.StreamParts:input_type -> talon.v1.StreamSessionPartsRequest
-	25, // 27: talon.v1.SessionService.StreamPartsBatch:input_type -> talon.v1.StreamSessionPartsBatchRequest
-	13, // 28: talon.v1.SessionService.SubmitTurn:input_type -> talon.v1.SubmitSessionTurnRequest
-	8,  // 29: talon.v1.SessionService.Create:output_type -> talon.v1.SessionResponse
-	8,  // 30: talon.v1.SessionService.Get:output_type -> talon.v1.SessionResponse
-	7,  // 31: talon.v1.SessionService.List:output_type -> talon.v1.ListSessionsResponse
-	4,  // 32: talon.v1.SessionService.ListMessages:output_type -> talon.v1.ListSessionMessagesResponse
-	10, // 33: talon.v1.SessionService.Delete:output_type -> talon.v1.DeleteSessionResponse
-	12, // 34: talon.v1.SessionService.Clear:output_type -> talon.v1.ClearSessionResponse
-	15, // 35: talon.v1.SessionService.SendMessage:output_type -> talon.v1.SendMessageResponse
-	17, // 36: talon.v1.SessionService.AppendMessage:output_type -> talon.v1.AppendSessionMessageResponse
-	19, // 37: talon.v1.SessionService.UpdateMessage:output_type -> talon.v1.UpdateSessionMessageResponse
-	21, // 38: talon.v1.SessionService.AnswerPermission:output_type -> talon.v1.AnswerSessionPermissionResponse
-	23, // 39: talon.v1.SessionService.StopGeneration:output_type -> talon.v1.StopSessionGenerationResponse
-	34, // 40: talon.v1.SessionService.StreamParts:output_type -> talon.events.SessionMessagePartEvent
-	34, // 41: talon.v1.SessionService.StreamPartsBatch:output_type -> talon.events.SessionMessagePartEvent
-	34, // 42: talon.v1.SessionService.SubmitTurn:output_type -> talon.events.SessionMessagePartEvent
-	29, // [29:43] is the sub-list for method output_type
-	15, // [15:29] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	33, // 7: talon.v1.SessionResponse.context_tokens:type_name -> talon.data.TokenCounter
+	32, // 8: talon.v1.SubmitSessionTurnRequest.message:type_name -> talon.data.SessionMessage
+	29, // 9: talon.v1.SubmitSessionTurnRequest.labels:type_name -> talon.v1.SubmitSessionTurnRequest.LabelsEntry
+	30, // 10: talon.v1.SendMessageRequest.labels:type_name -> talon.v1.SendMessageRequest.LabelsEntry
+	32, // 11: talon.v1.AppendSessionMessageRequest.message:type_name -> talon.data.SessionMessage
+	32, // 12: talon.v1.AppendSessionMessageResponse.message:type_name -> talon.data.SessionMessage
+	34, // 13: talon.v1.UpdateSessionMessageRequest.parts:type_name -> talon.data.SessionMessagePart
+	31, // 14: talon.v1.UpdateSessionMessageRequest.labels:type_name -> talon.v1.UpdateSessionMessageRequest.LabelsEntry
+	32, // 15: talon.v1.UpdateSessionMessageResponse.message:type_name -> talon.data.SessionMessage
+	0,  // 16: talon.v1.SessionService.Create:input_type -> talon.v1.CreateSessionRequest
+	1,  // 17: talon.v1.SessionService.Get:input_type -> talon.v1.GetSessionRequest
+	5,  // 18: talon.v1.SessionService.List:input_type -> talon.v1.ListSessionsRequest
+	2,  // 19: talon.v1.SessionService.ListMessages:input_type -> talon.v1.ListSessionMessagesRequest
+	9,  // 20: talon.v1.SessionService.Delete:input_type -> talon.v1.DeleteSessionRequest
+	11, // 21: talon.v1.SessionService.Clear:input_type -> talon.v1.ClearSessionRequest
+	14, // 22: talon.v1.SessionService.SendMessage:input_type -> talon.v1.SendMessageRequest
+	16, // 23: talon.v1.SessionService.AppendMessage:input_type -> talon.v1.AppendSessionMessageRequest
+	18, // 24: talon.v1.SessionService.UpdateMessage:input_type -> talon.v1.UpdateSessionMessageRequest
+	20, // 25: talon.v1.SessionService.AnswerPermission:input_type -> talon.v1.AnswerSessionPermissionRequest
+	22, // 26: talon.v1.SessionService.StopGeneration:input_type -> talon.v1.StopSessionGenerationRequest
+	24, // 27: talon.v1.SessionService.StreamParts:input_type -> talon.v1.StreamSessionPartsRequest
+	25, // 28: talon.v1.SessionService.StreamPartsBatch:input_type -> talon.v1.StreamSessionPartsBatchRequest
+	13, // 29: talon.v1.SessionService.SubmitTurn:input_type -> talon.v1.SubmitSessionTurnRequest
+	8,  // 30: talon.v1.SessionService.Create:output_type -> talon.v1.SessionResponse
+	8,  // 31: talon.v1.SessionService.Get:output_type -> talon.v1.SessionResponse
+	7,  // 32: talon.v1.SessionService.List:output_type -> talon.v1.ListSessionsResponse
+	4,  // 33: talon.v1.SessionService.ListMessages:output_type -> talon.v1.ListSessionMessagesResponse
+	10, // 34: talon.v1.SessionService.Delete:output_type -> talon.v1.DeleteSessionResponse
+	12, // 35: talon.v1.SessionService.Clear:output_type -> talon.v1.ClearSessionResponse
+	15, // 36: talon.v1.SessionService.SendMessage:output_type -> talon.v1.SendMessageResponse
+	17, // 37: talon.v1.SessionService.AppendMessage:output_type -> talon.v1.AppendSessionMessageResponse
+	19, // 38: talon.v1.SessionService.UpdateMessage:output_type -> talon.v1.UpdateSessionMessageResponse
+	21, // 39: talon.v1.SessionService.AnswerPermission:output_type -> talon.v1.AnswerSessionPermissionResponse
+	23, // 40: talon.v1.SessionService.StopGeneration:output_type -> talon.v1.StopSessionGenerationResponse
+	35, // 41: talon.v1.SessionService.StreamParts:output_type -> talon.events.SessionMessagePartEvent
+	35, // 42: talon.v1.SessionService.StreamPartsBatch:output_type -> talon.events.SessionMessagePartEvent
+	35, // 43: talon.v1.SessionService.SubmitTurn:output_type -> talon.events.SessionMessagePartEvent
+	30, // [30:44] is the sub-list for method output_type
+	16, // [16:30] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_sessions_proto_init() }
@@ -1916,6 +1928,7 @@ func file_proto_talon_v1_sessions_proto_init() {
 	}
 	file_proto_talon_v1_sessions_proto_msgTypes[2].OneofWrappers = []any{}
 	file_proto_talon_v1_sessions_proto_msgTypes[4].OneofWrappers = []any{}
+	file_proto_talon_v1_sessions_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -118,6 +118,7 @@ pub async fn append_llm_response(
     response: &ChatResponse,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
+    ensure_submission_attempt_current(kv, ns, agent, session_id, submission_id, attempt_id).await?;
     append_journal_entry(
         kv,
         ns,

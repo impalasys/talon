@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { SessionMessage, SessionMessagePart } from "../../data/data_pb.js";
+import { SessionMessage, SessionMessagePart, TokenCounter } from "../../data/data_pb.js";
 
 /**
  * @generated from message talon.v1.CreateSessionRequest
@@ -440,6 +440,11 @@ export class SessionResponse extends Message<SessionResponse> {
    */
   labels: { [key: string]: string } = {};
 
+  /**
+   * @generated from field: optional talon.data.TokenCounter context_tokens = 7;
+   */
+  contextTokens?: TokenCounter;
+
   constructor(data?: PartialMessage<SessionResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -453,6 +458,7 @@ export class SessionResponse extends Message<SessionResponse> {
     { no: 3, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "messages", kind: "message", T: SessionMessage, repeated: true },
     { no: 6, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 7, name: "context_tokens", kind: "message", T: TokenCounter, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionResponse {

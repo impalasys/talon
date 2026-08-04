@@ -12,8 +12,9 @@ use crate::harness::executor::compaction::{
 use crate::harness::llm::resolver::{model_context_limits, resolve_model_profile};
 use crate::harness::llm::ToolOutput;
 use crate::harness::llm::{
-    chat_content_part, chat_stream_event, object_ref_part, text_part, ChatContentPart, ChatMessage,
-    ChatRequest, ChatResponse, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall,
+    chat_content_part, chat_stream_event, object_ref_part, provider_error_token_counter, text_part,
+    ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStreamEvent, LlmProvider,
+    TokenCounter, ToolCall,
 };
 use crate::harness::mcp::{call_tool_for_config, McpConnectionConfig};
 use crate::harness::skills::registry::ToolRegistry;
@@ -130,7 +131,7 @@ pub enum AgentEvent {
         outcome: serde_json::Value,
     },
     Token(String),
-    Usage(ChatUsage),
+    Usage(TokenCounter),
     Done,
     Error(String),
 }
@@ -261,7 +262,7 @@ pub trait ExecutionSink: Send + Sync {
     /// The permission request was answered or cancelled.
     async fn on_permission_result(&self, _: &str, _: &Value) {}
     /// Usage metadata for the completed model turn.
-    async fn on_usage(&self, usage: &ChatUsage);
+    async fn on_usage(&self, usage: &TokenCounter);
     /// The execution completed successfully.
     async fn on_done(&self);
     /// The execution failed.
@@ -285,7 +286,7 @@ impl ExecutionSink for NullSink {
     }
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     async fn on_permission_result(&self, _: &str, _: &Value) {}
-    async fn on_usage(&self, _: &ChatUsage) {}
+    async fn on_usage(&self, _: &TokenCounter) {}
     async fn on_done(&self) {}
     async fn on_error(&self, _: &str) {}
 }
@@ -380,7 +381,7 @@ impl ExecutionSink for CaptureSink {
                 outcome: outcome.clone(),
             });
     }
-    async fn on_usage(&self, usage: &ChatUsage) {
+    async fn on_usage(&self, usage: &TokenCounter) {
         self.events
             .lock()
             .unwrap()
@@ -542,6 +543,12 @@ impl AgentExecutor {
             "system",
             self.assembler.assemble().await?,
         ))
+    }
+
+    fn normalize_token_counter(&self, mut counter: TokenCounter) -> TokenCounter {
+        counter.provider = self.llm_provider_key.clone();
+        counter.model = self.llm_model.clone();
+        counter
     }
 
     fn render_execution_prompts(&self, context: &ExecutionContext) -> Result<ExecutionPrompts> {
@@ -793,7 +800,7 @@ impl AgentExecutor {
 
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
-            let mut final_usage: Option<ChatUsage> = None;
+            let mut final_usage: Option<TokenCounter> = None;
             let mut saw_tool_call_delta = false;
             let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
                 .and_then(|model| model.thinking.clone());
@@ -842,6 +849,11 @@ impl AgentExecutor {
             {
                 Ok(stream) => stream,
                 Err(err) => {
+                    if let Some(counter) = provider_error_token_counter(&err).cloned() {
+                        let counter = self.normalize_token_counter(counter);
+                        telemetry::record_usage(&llm_span, &counter);
+                        sink.on_usage(&counter).await;
+                    }
                     telemetry::record_error(&llm_span, &err);
                     return Err(err);
                 }
@@ -854,17 +866,27 @@ impl AgentExecutor {
                             tracing::info!(agent_id = %context.agent_id, "Generation interrupted by user");
                             telemetry::record_chat_output(&llm_span, &final_reply, &[]);
                             context.push(LoopMessage::text("assistant", final_reply.clone()));
-                            if let Some(usage) = final_usage.as_ref() {
+                            let usage = final_usage.take();
+                            let usage_for_event = usage.clone().unwrap_or_else(|| {
+                                self.normalize_token_counter(TokenCounter::default())
+                            });
+                            if let Some(usage) = usage.as_ref().filter(|usage| usage.usage_available) {
                                 telemetry::record_usage(&llm_span, usage);
-                                sink.on_usage(usage).await;
-                                crate::control::usage::charge_namespace_usage(
-                                    self.control_plane.kv.as_ref(),
-                                    &usage_subject,
-                                    &crate::control::usage::llm_usage_charges(Some(usage)),
-                                    chrono::Utc::now().timestamp(),
-                                )
-                                .await?;
+                            } else {
+                                tracing::warn!(
+                                    provider = %self.llm_provider_key,
+                                    model = %self.llm_model,
+                                    "LLM request cancelled without provider token usage"
+                                );
                             }
+                            sink.on_usage(&usage_for_event).await;
+                            crate::control::usage::charge_namespace_usage(
+                                self.control_plane.kv.as_ref(),
+                                &usage_subject,
+                                &crate::control::usage::llm_usage_charges(usage.as_ref()),
+                                chrono::Utc::now().timestamp(),
+                            )
+                            .await?;
                             sink.on_done().await;
                             return Ok(final_reply);
                         }
@@ -881,6 +903,12 @@ impl AgentExecutor {
                 let chunk = match chunk {
                     Ok(chunk) => chunk,
                     Err(err) => {
+                        if let Some(usage) = final_usage.take() {
+                            if usage.usage_available {
+                                telemetry::record_usage(&llm_span, &usage);
+                            }
+                            sink.on_usage(&usage).await;
+                        }
                         telemetry::record_error(&llm_span, &err);
                         return Err(err);
                     }
@@ -934,7 +962,7 @@ impl AgentExecutor {
                     ChatStreamEvent {
                         event: Some(chat_stream_event::Event::Usage(usage)),
                     } => {
-                        final_usage = Some(usage.clone());
+                        final_usage = Some(self.normalize_token_counter(usage));
                     }
                     ChatStreamEvent { event: None } => {}
                 }
@@ -948,15 +976,28 @@ impl AgentExecutor {
             let llm_response = ChatResponse {
                 content: final_reply.clone(),
                 tool_calls: tool_calls.clone(),
-                usage: final_usage,
+                usage: Some(
+                    final_usage
+                        .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
+                ),
             };
             telemetry::record_chat_output(
                 &llm_span,
                 &llm_response.content,
                 &llm_response.tool_calls,
             );
-            if let Some(usage) = llm_response.usage.as_ref() {
+            if let Some(usage) = llm_response
+                .usage
+                .as_ref()
+                .filter(|usage| usage.usage_available)
+            {
                 telemetry::record_usage(&llm_span, usage);
+            } else {
+                tracing::warn!(
+                    provider = %self.llm_provider_key,
+                    model = %self.llm_model,
+                    "LLM provider completed without token usage"
+                );
             }
             sink.on_llm_response(&llm_response).await?;
             if let Some(usage) = llm_response.usage.as_ref() {
@@ -1139,8 +1180,8 @@ mod tests {
     use crate::harness::executor::compaction::compact;
     use crate::harness::llm::provider::{
         content_part_object_ref, object_ref_part, text_delta_event, tool_call_delta_event,
-        usage_event, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse, ChatStream, ChatUsage,
-        LlmProvider,
+        usage_event, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse, ChatStream,
+        LlmProvider, TokenCounter,
     };
     use crate::harness::llm::ToolOutput;
     use crate::harness::memory::Embedding;
@@ -1384,6 +1425,7 @@ mod tests {
                 .into_iter()
                 .collect(),
                 labels: Default::default(),
+                context_tokens: None,
             },
         )
         .await
@@ -1399,6 +1441,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                context_tokens: None,
             },
         )
         .await
@@ -1435,18 +1478,22 @@ mod tests {
         async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
             Ok(Box::pin(futures::stream::iter(vec![
                 Ok(text_delta_event("hello ".to_string())),
-                Ok(usage_event(ChatUsage {
+                Ok(usage_event(TokenCounter {
                     input_tokens: 10,
                     output_tokens: 1,
-                    reasoning_tokens: 0,
+                    reasoning_output_tokens: 0,
                     total_tokens: 11,
+                    usage_available: true,
+                    ..Default::default()
                 })),
                 Ok(text_delta_event("world".to_string())),
-                Ok(usage_event(ChatUsage {
+                Ok(usage_event(TokenCounter {
                     input_tokens: 10,
                     output_tokens: 2,
-                    reasoning_tokens: 0,
+                    reasoning_output_tokens: 0,
                     total_tokens: 12,
+                    usage_available: true,
+                    ..Default::default()
                 })),
             ])))
         }
@@ -2470,11 +2517,15 @@ mod tests {
             vec![
                 AgentEvent::Token("hello ".to_string()),
                 AgentEvent::Token("world".to_string()),
-                AgentEvent::Usage(ChatUsage {
+                AgentEvent::Usage(TokenCounter {
                     input_tokens: 10,
                     output_tokens: 2,
-                    reasoning_tokens: 0,
+                    reasoning_output_tokens: 0,
                     total_tokens: 12,
+                    usage_available: true,
+                    provider: "test-provider".to_string(),
+                    model: "test-model".to_string(),
+                    ..Default::default()
                 }),
                 AgentEvent::Done,
             ]

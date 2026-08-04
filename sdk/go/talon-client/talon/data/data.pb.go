@@ -327,6 +327,117 @@ func (x *ObjectRef) GetContentEncoding() string {
 	return ""
 }
 
+// Provider-reported token counts for one completed model request. Fields that
+// a provider does not return are left at their proto3 zero value; callers use
+// usage_available to distinguish that from a provider-reported zero count.
+type TokenCounter struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	InputTokens           uint64                 `protobuf:"varint,1,opt,name=input_tokens,json=inputTokens,proto3" json:"input_tokens,omitempty"`
+	OutputTokens          uint64                 `protobuf:"varint,2,opt,name=output_tokens,json=outputTokens,proto3" json:"output_tokens,omitempty"`
+	ReasoningOutputTokens uint64                 `protobuf:"varint,3,opt,name=reasoning_output_tokens,json=reasoningOutputTokens,proto3" json:"reasoning_output_tokens,omitempty"`
+	TotalTokens           uint64                 `protobuf:"varint,4,opt,name=total_tokens,json=totalTokens,proto3" json:"total_tokens,omitempty"`
+	CachedInputTokens     uint64                 `protobuf:"varint,5,opt,name=cached_input_tokens,json=cachedInputTokens,proto3" json:"cached_input_tokens,omitempty"`
+	UsageAvailable        bool                   `protobuf:"varint,6,opt,name=usage_available,json=usageAvailable,proto3" json:"usage_available,omitempty"`
+	ProviderRequestId     *string                `protobuf:"bytes,7,opt,name=provider_request_id,json=providerRequestId,proto3,oneof" json:"provider_request_id,omitempty"`
+	Provider              string                 `protobuf:"bytes,8,opt,name=provider,proto3" json:"provider,omitempty"`
+	Model                 string                 `protobuf:"bytes,9,opt,name=model,proto3" json:"model,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *TokenCounter) Reset() {
+	*x = TokenCounter{}
+	mi := &file_proto_data_data_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TokenCounter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TokenCounter) ProtoMessage() {}
+
+func (x *TokenCounter) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_data_data_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TokenCounter.ProtoReflect.Descriptor instead.
+func (*TokenCounter) Descriptor() ([]byte, []int) {
+	return file_proto_data_data_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *TokenCounter) GetInputTokens() uint64 {
+	if x != nil {
+		return x.InputTokens
+	}
+	return 0
+}
+
+func (x *TokenCounter) GetOutputTokens() uint64 {
+	if x != nil {
+		return x.OutputTokens
+	}
+	return 0
+}
+
+func (x *TokenCounter) GetReasoningOutputTokens() uint64 {
+	if x != nil {
+		return x.ReasoningOutputTokens
+	}
+	return 0
+}
+
+func (x *TokenCounter) GetTotalTokens() uint64 {
+	if x != nil {
+		return x.TotalTokens
+	}
+	return 0
+}
+
+func (x *TokenCounter) GetCachedInputTokens() uint64 {
+	if x != nil {
+		return x.CachedInputTokens
+	}
+	return 0
+}
+
+func (x *TokenCounter) GetUsageAvailable() bool {
+	if x != nil {
+		return x.UsageAvailable
+	}
+	return false
+}
+
+func (x *TokenCounter) GetProviderRequestId() string {
+	if x != nil && x.ProviderRequestId != nil {
+		return *x.ProviderRequestId
+	}
+	return ""
+}
+
+func (x *TokenCounter) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *TokenCounter) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
 // Session-scoped immutable output produced by an agent.
 //
 // Artifacts are not namespace-level File resources. They live under the
@@ -359,7 +470,7 @@ type Artifact struct {
 
 func (x *Artifact) Reset() {
 	*x = Artifact{}
-	mi := &file_proto_data_data_proto_msgTypes[1]
+	mi := &file_proto_data_data_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -371,7 +482,7 @@ func (x *Artifact) String() string {
 func (*Artifact) ProtoMessage() {}
 
 func (x *Artifact) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[1]
+	mi := &file_proto_data_data_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -384,7 +495,7 @@ func (x *Artifact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Artifact.ProtoReflect.Descriptor instead.
 func (*Artifact) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{1}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Artifact) GetId() string {
@@ -490,7 +601,7 @@ type Goal struct {
 
 func (x *Goal) Reset() {
 	*x = Goal{}
-	mi := &file_proto_data_data_proto_msgTypes[2]
+	mi := &file_proto_data_data_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -502,7 +613,7 @@ func (x *Goal) String() string {
 func (*Goal) ProtoMessage() {}
 
 func (x *Goal) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[2]
+	mi := &file_proto_data_data_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -515,7 +626,7 @@ func (x *Goal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Goal.ProtoReflect.Descriptor instead.
 func (*Goal) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{2}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Goal) GetId() string {
@@ -658,7 +769,7 @@ type ArtifactAccess struct {
 
 func (x *ArtifactAccess) Reset() {
 	*x = ArtifactAccess{}
-	mi := &file_proto_data_data_proto_msgTypes[3]
+	mi := &file_proto_data_data_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -670,7 +781,7 @@ func (x *ArtifactAccess) String() string {
 func (*ArtifactAccess) ProtoMessage() {}
 
 func (x *ArtifactAccess) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[3]
+	mi := &file_proto_data_data_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -683,7 +794,7 @@ func (x *ArtifactAccess) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArtifactAccess.ProtoReflect.Descriptor instead.
 func (*ArtifactAccess) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{3}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ArtifactAccess) GetTargetAgent() string {
@@ -756,7 +867,7 @@ type Principal struct {
 
 func (x *Principal) Reset() {
 	*x = Principal{}
-	mi := &file_proto_data_data_proto_msgTypes[4]
+	mi := &file_proto_data_data_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -768,7 +879,7 @@ func (x *Principal) String() string {
 func (*Principal) ProtoMessage() {}
 
 func (x *Principal) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[4]
+	mi := &file_proto_data_data_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -781,7 +892,7 @@ func (x *Principal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Principal.ProtoReflect.Descriptor instead.
 func (*Principal) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{4}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Principal) GetExternalId() string {
@@ -835,7 +946,7 @@ type SessionMessagePart struct {
 
 func (x *SessionMessagePart) Reset() {
 	*x = SessionMessagePart{}
-	mi := &file_proto_data_data_proto_msgTypes[5]
+	mi := &file_proto_data_data_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -847,7 +958,7 @@ func (x *SessionMessagePart) String() string {
 func (*SessionMessagePart) ProtoMessage() {}
 
 func (x *SessionMessagePart) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[5]
+	mi := &file_proto_data_data_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -860,7 +971,7 @@ func (x *SessionMessagePart) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessagePart.ProtoReflect.Descriptor instead.
 func (*SessionMessagePart) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{5}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SessionMessagePart) GetId() string {
@@ -926,7 +1037,7 @@ type SessionMessage struct {
 
 func (x *SessionMessage) Reset() {
 	*x = SessionMessage{}
-	mi := &file_proto_data_data_proto_msgTypes[6]
+	mi := &file_proto_data_data_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -938,7 +1049,7 @@ func (x *SessionMessage) String() string {
 func (*SessionMessage) ProtoMessage() {}
 
 func (x *SessionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[6]
+	mi := &file_proto_data_data_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -951,7 +1062,7 @@ func (x *SessionMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessage.ProtoReflect.Descriptor instead.
 func (*SessionMessage) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{6}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SessionMessage) GetId() string {
@@ -998,16 +1109,19 @@ type Session struct {
 	// Unix timestamp in microseconds.
 	CreatedAt int64 `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// Unix timestamp in microseconds.
-	LastActive    int64             `protobuf:"varint,6,opt,name=last_active,json=lastActive,proto3" json:"last_active,omitempty"`
-	Metadata      map[string]string `protobuf:"bytes,7,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Labels        map[string]string `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	LastActive int64             `protobuf:"varint,6,opt,name=last_active,json=lastActive,proto3" json:"last_active,omitempty"`
+	Metadata   map[string]string `protobuf:"bytes,7,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Labels     map[string]string `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Latest completed provider token snapshot for this session. This is not a
+	// cumulative usage or billing record.
+	ContextTokens *TokenCounter `protobuf:"bytes,9,opt,name=context_tokens,json=contextTokens,proto3,oneof" json:"context_tokens,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_data_data_proto_msgTypes[7]
+	mi := &file_proto_data_data_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1019,7 +1133,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[7]
+	mi := &file_proto_data_data_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1032,7 +1146,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{7}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Session) GetId() string {
@@ -1091,6 +1205,13 @@ func (x *Session) GetLabels() map[string]string {
 	return nil
 }
 
+func (x *Session) GetContextTokens() *TokenCounter {
+	if x != nil {
+		return x.ContextTokens
+	}
+	return nil
+}
+
 type ChannelMessage struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	Id         string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1110,7 +1231,7 @@ type ChannelMessage struct {
 
 func (x *ChannelMessage) Reset() {
 	*x = ChannelMessage{}
-	mi := &file_proto_data_data_proto_msgTypes[8]
+	mi := &file_proto_data_data_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1122,7 +1243,7 @@ func (x *ChannelMessage) String() string {
 func (*ChannelMessage) ProtoMessage() {}
 
 func (x *ChannelMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[8]
+	mi := &file_proto_data_data_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1135,7 +1256,7 @@ func (x *ChannelMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelMessage.ProtoReflect.Descriptor instead.
 func (*ChannelMessage) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{8}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ChannelMessage) GetId() string {
@@ -1222,7 +1343,7 @@ type Knowledge struct {
 
 func (x *Knowledge) Reset() {
 	*x = Knowledge{}
-	mi := &file_proto_data_data_proto_msgTypes[9]
+	mi := &file_proto_data_data_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1234,7 +1355,7 @@ func (x *Knowledge) String() string {
 func (*Knowledge) ProtoMessage() {}
 
 func (x *Knowledge) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[9]
+	mi := &file_proto_data_data_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1247,7 +1368,7 @@ func (x *Knowledge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Knowledge.ProtoReflect.Descriptor instead.
 func (*Knowledge) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{9}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Knowledge) GetPath() string {
@@ -1299,7 +1420,7 @@ type KnowledgeSearchResult struct {
 
 func (x *KnowledgeSearchResult) Reset() {
 	*x = KnowledgeSearchResult{}
-	mi := &file_proto_data_data_proto_msgTypes[10]
+	mi := &file_proto_data_data_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1311,7 +1432,7 @@ func (x *KnowledgeSearchResult) String() string {
 func (*KnowledgeSearchResult) ProtoMessage() {}
 
 func (x *KnowledgeSearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[10]
+	mi := &file_proto_data_data_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1324,7 +1445,7 @@ func (x *KnowledgeSearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KnowledgeSearchResult.ProtoReflect.Descriptor instead.
 func (*KnowledgeSearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{10}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *KnowledgeSearchResult) GetPath() string {
@@ -1390,7 +1511,7 @@ type WorkflowRun struct {
 
 func (x *WorkflowRun) Reset() {
 	*x = WorkflowRun{}
-	mi := &file_proto_data_data_proto_msgTypes[11]
+	mi := &file_proto_data_data_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1402,7 +1523,7 @@ func (x *WorkflowRun) String() string {
 func (*WorkflowRun) ProtoMessage() {}
 
 func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[11]
+	mi := &file_proto_data_data_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1415,7 +1536,7 @@ func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRun.ProtoReflect.Descriptor instead.
 func (*WorkflowRun) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{11}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *WorkflowRun) GetId() string {
@@ -1567,7 +1688,7 @@ type WorkflowStepRun struct {
 
 func (x *WorkflowStepRun) Reset() {
 	*x = WorkflowStepRun{}
-	mi := &file_proto_data_data_proto_msgTypes[12]
+	mi := &file_proto_data_data_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1579,7 +1700,7 @@ func (x *WorkflowStepRun) String() string {
 func (*WorkflowStepRun) ProtoMessage() {}
 
 func (x *WorkflowStepRun) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[12]
+	mi := &file_proto_data_data_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1592,7 +1713,7 @@ func (x *WorkflowStepRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowStepRun.ProtoReflect.Descriptor instead.
 func (*WorkflowStepRun) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{12}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *WorkflowStepRun) GetId() string {
@@ -1731,7 +1852,7 @@ type WorkflowRunEvent struct {
 
 func (x *WorkflowRunEvent) Reset() {
 	*x = WorkflowRunEvent{}
-	mi := &file_proto_data_data_proto_msgTypes[13]
+	mi := &file_proto_data_data_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1743,7 +1864,7 @@ func (x *WorkflowRunEvent) String() string {
 func (*WorkflowRunEvent) ProtoMessage() {}
 
 func (x *WorkflowRunEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_data_proto_msgTypes[13]
+	mi := &file_proto_data_data_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1756,7 +1877,7 @@ func (x *WorkflowRunEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRunEvent.ProtoReflect.Descriptor instead.
 func (*WorkflowRunEvent) Descriptor() ([]byte, []int) {
-	return file_proto_data_data_proto_rawDescGZIP(), []int{13}
+	return file_proto_data_data_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *WorkflowRunEvent) GetId() string {
@@ -1840,7 +1961,18 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x10content_encoding\x18\a \x01(\tR\x0fcontentEncoding\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xdf\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x89\x03\n" +
+	"\fTokenCounter\x12!\n" +
+	"\finput_tokens\x18\x01 \x01(\x04R\vinputTokens\x12#\n" +
+	"\routput_tokens\x18\x02 \x01(\x04R\foutputTokens\x126\n" +
+	"\x17reasoning_output_tokens\x18\x03 \x01(\x04R\x15reasoningOutputTokens\x12!\n" +
+	"\ftotal_tokens\x18\x04 \x01(\x04R\vtotalTokens\x12.\n" +
+	"\x13cached_input_tokens\x18\x05 \x01(\x04R\x11cachedInputTokens\x12'\n" +
+	"\x0fusage_available\x18\x06 \x01(\bR\x0eusageAvailable\x123\n" +
+	"\x13provider_request_id\x18\a \x01(\tH\x00R\x11providerRequestId\x88\x01\x01\x12\x1a\n" +
+	"\bprovider\x18\b \x01(\tR\bprovider\x12\x14\n" +
+	"\x05model\x18\t \x01(\tR\x05modelB\x16\n" +
+	"\x14_provider_request_id\"\xdf\x03\n" +
 	"\bArtifact\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -1929,7 +2061,7 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x05parts\x18\x06 \x03(\v2\x1e.talon.data.SessionMessagePartR\x05parts\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x03\x10\x04\"\x87\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x03\x10\x04\"\xe0\x03\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x0e\n" +
@@ -1940,13 +2072,15 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\vlast_active\x18\x06 \x01(\x03R\n" +
 	"lastActive\x12=\n" +
 	"\bmetadata\x18\a \x03(\v2!.talon.data.Session.MetadataEntryR\bmetadata\x127\n" +
-	"\x06labels\x18\b \x03(\v2\x1f.talon.data.Session.LabelsEntryR\x06labels\x1a;\n" +
+	"\x06labels\x18\b \x03(\v2\x1f.talon.data.Session.LabelsEntryR\x06labels\x12D\n" +
+	"\x0econtext_tokens\x18\t \x01(\v2\x18.talon.data.TokenCounterH\x00R\rcontextTokens\x88\x01\x01\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x86\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x11\n" +
+	"\x0f_context_tokens\"\x86\x03\n" +
 	"\x0eChannelMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" +
 	"\x02ns\x18\x02 \x01(\tR\x02ns\x12\x18\n" +
@@ -2089,60 +2223,62 @@ func file_proto_data_data_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_data_data_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_proto_data_data_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_proto_data_data_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_proto_data_data_proto_goTypes = []any{
 	(MessageRole)(0),              // 0: talon.data.MessageRole
 	(SessionMessagePartType)(0),   // 1: talon.data.SessionMessagePartType
 	(GoalPhase)(0),                // 2: talon.data.GoalPhase
 	(*ObjectRef)(nil),             // 3: talon.data.ObjectRef
-	(*Artifact)(nil),              // 4: talon.data.Artifact
-	(*Goal)(nil),                  // 5: talon.data.Goal
-	(*ArtifactAccess)(nil),        // 6: talon.data.ArtifactAccess
-	(*Principal)(nil),             // 7: talon.data.Principal
-	(*SessionMessagePart)(nil),    // 8: talon.data.SessionMessagePart
-	(*SessionMessage)(nil),        // 9: talon.data.SessionMessage
-	(*Session)(nil),               // 10: talon.data.Session
-	(*ChannelMessage)(nil),        // 11: talon.data.ChannelMessage
-	(*Knowledge)(nil),             // 12: talon.data.Knowledge
-	(*KnowledgeSearchResult)(nil), // 13: talon.data.KnowledgeSearchResult
-	(*WorkflowRun)(nil),           // 14: talon.data.WorkflowRun
-	(*WorkflowStepRun)(nil),       // 15: talon.data.WorkflowStepRun
-	(*WorkflowRunEvent)(nil),      // 16: talon.data.WorkflowRunEvent
-	nil,                           // 17: talon.data.ObjectRef.MetadataEntry
-	nil,                           // 18: talon.data.Artifact.LabelsEntry
-	nil,                           // 19: talon.data.Artifact.MetadataEntry
-	nil,                           // 20: talon.data.Goal.LabelsEntry
-	nil,                           // 21: talon.data.Goal.MetadataEntry
-	nil,                           // 22: talon.data.Principal.MetadataEntry
-	nil,                           // 23: talon.data.SessionMessage.LabelsEntry
-	nil,                           // 24: talon.data.Session.MetadataEntry
-	nil,                           // 25: talon.data.Session.LabelsEntry
-	nil,                           // 26: talon.data.ChannelMessage.LabelsEntry
-	nil,                           // 27: talon.data.WorkflowRun.LabelsEntry
+	(*TokenCounter)(nil),          // 4: talon.data.TokenCounter
+	(*Artifact)(nil),              // 5: talon.data.Artifact
+	(*Goal)(nil),                  // 6: talon.data.Goal
+	(*ArtifactAccess)(nil),        // 7: talon.data.ArtifactAccess
+	(*Principal)(nil),             // 8: talon.data.Principal
+	(*SessionMessagePart)(nil),    // 9: talon.data.SessionMessagePart
+	(*SessionMessage)(nil),        // 10: talon.data.SessionMessage
+	(*Session)(nil),               // 11: talon.data.Session
+	(*ChannelMessage)(nil),        // 12: talon.data.ChannelMessage
+	(*Knowledge)(nil),             // 13: talon.data.Knowledge
+	(*KnowledgeSearchResult)(nil), // 14: talon.data.KnowledgeSearchResult
+	(*WorkflowRun)(nil),           // 15: talon.data.WorkflowRun
+	(*WorkflowStepRun)(nil),       // 16: talon.data.WorkflowStepRun
+	(*WorkflowRunEvent)(nil),      // 17: talon.data.WorkflowRunEvent
+	nil,                           // 18: talon.data.ObjectRef.MetadataEntry
+	nil,                           // 19: talon.data.Artifact.LabelsEntry
+	nil,                           // 20: talon.data.Artifact.MetadataEntry
+	nil,                           // 21: talon.data.Goal.LabelsEntry
+	nil,                           // 22: talon.data.Goal.MetadataEntry
+	nil,                           // 23: talon.data.Principal.MetadataEntry
+	nil,                           // 24: talon.data.SessionMessage.LabelsEntry
+	nil,                           // 25: talon.data.Session.MetadataEntry
+	nil,                           // 26: talon.data.Session.LabelsEntry
+	nil,                           // 27: talon.data.ChannelMessage.LabelsEntry
+	nil,                           // 28: talon.data.WorkflowRun.LabelsEntry
 }
 var file_proto_data_data_proto_depIdxs = []int32{
-	17, // 0: talon.data.ObjectRef.metadata:type_name -> talon.data.ObjectRef.MetadataEntry
+	18, // 0: talon.data.ObjectRef.metadata:type_name -> talon.data.ObjectRef.MetadataEntry
 	3,  // 1: talon.data.Artifact.object_ref:type_name -> talon.data.ObjectRef
-	18, // 2: talon.data.Artifact.labels:type_name -> talon.data.Artifact.LabelsEntry
-	19, // 3: talon.data.Artifact.metadata:type_name -> talon.data.Artifact.MetadataEntry
+	19, // 2: talon.data.Artifact.labels:type_name -> talon.data.Artifact.LabelsEntry
+	20, // 3: talon.data.Artifact.metadata:type_name -> talon.data.Artifact.MetadataEntry
 	2,  // 4: talon.data.Goal.phase:type_name -> talon.data.GoalPhase
-	20, // 5: talon.data.Goal.labels:type_name -> talon.data.Goal.LabelsEntry
-	21, // 6: talon.data.Goal.metadata:type_name -> talon.data.Goal.MetadataEntry
-	22, // 7: talon.data.Principal.metadata:type_name -> talon.data.Principal.MetadataEntry
+	21, // 5: talon.data.Goal.labels:type_name -> talon.data.Goal.LabelsEntry
+	22, // 6: talon.data.Goal.metadata:type_name -> talon.data.Goal.MetadataEntry
+	23, // 7: talon.data.Principal.metadata:type_name -> talon.data.Principal.MetadataEntry
 	1,  // 8: talon.data.SessionMessagePart.part_type:type_name -> talon.data.SessionMessagePartType
 	3,  // 9: talon.data.SessionMessagePart.object:type_name -> talon.data.ObjectRef
 	0,  // 10: talon.data.SessionMessage.role:type_name -> talon.data.MessageRole
-	23, // 11: talon.data.SessionMessage.labels:type_name -> talon.data.SessionMessage.LabelsEntry
-	8,  // 12: talon.data.SessionMessage.parts:type_name -> talon.data.SessionMessagePart
-	24, // 13: talon.data.Session.metadata:type_name -> talon.data.Session.MetadataEntry
-	25, // 14: talon.data.Session.labels:type_name -> talon.data.Session.LabelsEntry
-	26, // 15: talon.data.ChannelMessage.labels:type_name -> talon.data.ChannelMessage.LabelsEntry
-	27, // 16: talon.data.WorkflowRun.labels:type_name -> talon.data.WorkflowRun.LabelsEntry
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	24, // 11: talon.data.SessionMessage.labels:type_name -> talon.data.SessionMessage.LabelsEntry
+	9,  // 12: talon.data.SessionMessage.parts:type_name -> talon.data.SessionMessagePart
+	25, // 13: talon.data.Session.metadata:type_name -> talon.data.Session.MetadataEntry
+	26, // 14: talon.data.Session.labels:type_name -> talon.data.Session.LabelsEntry
+	4,  // 15: talon.data.Session.context_tokens:type_name -> talon.data.TokenCounter
+	27, // 16: talon.data.ChannelMessage.labels:type_name -> talon.data.ChannelMessage.LabelsEntry
+	28, // 17: talon.data.WorkflowRun.labels:type_name -> talon.data.WorkflowRun.LabelsEntry
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_data_proto_init() }
@@ -2150,15 +2286,17 @@ func file_proto_data_data_proto_init() {
 	if File_proto_data_data_proto != nil {
 		return
 	}
-	file_proto_data_data_proto_msgTypes[11].OneofWrappers = []any{}
+	file_proto_data_data_proto_msgTypes[1].OneofWrappers = []any{}
+	file_proto_data_data_proto_msgTypes[8].OneofWrappers = []any{}
 	file_proto_data_data_proto_msgTypes[12].OneofWrappers = []any{}
+	file_proto_data_data_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_data_data_proto_rawDesc), len(file_proto_data_data_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   25,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

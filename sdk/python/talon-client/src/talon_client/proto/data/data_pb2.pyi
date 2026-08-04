@@ -95,6 +95,28 @@ class ObjectRef(_message.Message):
     content_encoding: str
     def __init__(self, key: _Optional[str] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ..., content_encoding: _Optional[str] = ...) -> None: ...
 
+class TokenCounter(_message.Message):
+    __slots__ = ("input_tokens", "output_tokens", "reasoning_output_tokens", "total_tokens", "cached_input_tokens", "usage_available", "provider_request_id", "provider", "model")
+    INPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    REASONING_OUTPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    CACHED_INPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    USAGE_AVAILABLE_FIELD_NUMBER: _ClassVar[int]
+    PROVIDER_REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
+    PROVIDER_FIELD_NUMBER: _ClassVar[int]
+    MODEL_FIELD_NUMBER: _ClassVar[int]
+    input_tokens: int
+    output_tokens: int
+    reasoning_output_tokens: int
+    total_tokens: int
+    cached_input_tokens: int
+    usage_available: bool
+    provider_request_id: str
+    provider: str
+    model: str
+    def __init__(self, input_tokens: _Optional[int] = ..., output_tokens: _Optional[int] = ..., reasoning_output_tokens: _Optional[int] = ..., total_tokens: _Optional[int] = ..., cached_input_tokens: _Optional[int] = ..., usage_available: bool = ..., provider_request_id: _Optional[str] = ..., provider: _Optional[str] = ..., model: _Optional[str] = ...) -> None: ...
+
 class Artifact(_message.Message):
     __slots__ = ("id", "session_id", "title", "media_type", "object_ref", "created_by_agent", "created_at", "labels", "metadata")
     class LabelsEntry(_message.Message):
@@ -260,7 +282,7 @@ class SessionMessage(_message.Message):
     def __init__(self, id: _Optional[str] = ..., role: _Optional[_Union[MessageRole, str]] = ..., created_at: _Optional[int] = ..., labels: _Optional[_Mapping[str, str]] = ..., parts: _Optional[_Iterable[_Union[SessionMessagePart, _Mapping]]] = ...) -> None: ...
 
 class Session(_message.Message):
-    __slots__ = ("id", "agent", "ns", "status", "created_at", "last_active", "metadata", "labels")
+    __slots__ = ("id", "agent", "ns", "status", "created_at", "last_active", "metadata", "labels", "context_tokens")
     class MetadataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -283,6 +305,7 @@ class Session(_message.Message):
     LAST_ACTIVE_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
     LABELS_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_TOKENS_FIELD_NUMBER: _ClassVar[int]
     id: str
     agent: str
     ns: str
@@ -291,7 +314,8 @@ class Session(_message.Message):
     last_active: int
     metadata: _containers.ScalarMap[str, str]
     labels: _containers.ScalarMap[str, str]
-    def __init__(self, id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., status: _Optional[str] = ..., created_at: _Optional[int] = ..., last_active: _Optional[int] = ..., metadata: _Optional[_Mapping[str, str]] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    context_tokens: TokenCounter
+    def __init__(self, id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., status: _Optional[str] = ..., created_at: _Optional[int] = ..., last_active: _Optional[int] = ..., metadata: _Optional[_Mapping[str, str]] = ..., labels: _Optional[_Mapping[str, str]] = ..., context_tokens: _Optional[_Union[TokenCounter, _Mapping]] = ...) -> None: ...
 
 class ChannelMessage(_message.Message):
     __slots__ = ("id", "ns", "channel", "author_kind", "author", "content", "created_at", "source_agent", "source_session_id", "labels")

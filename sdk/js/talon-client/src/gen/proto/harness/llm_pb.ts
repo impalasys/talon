@@ -4,8 +4,8 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ObjectRef } from "../data/data_pb.js";
+import { Message, proto3 } from "@bufbuild/protobuf";
+import { ObjectRef, TokenCounter } from "../data/data_pb.js";
 import { ThinkingConfig } from "../resources/agents_pb.js";
 
 /**
@@ -263,70 +263,6 @@ export class ChatMessage extends Message<ChatMessage> {
 }
 
 /**
- * @generated from message talon.harness.ChatUsage
- */
-export class ChatUsage extends Message<ChatUsage> {
-  /**
-   * Prompt/input tokens reported by the model provider.
-   *
-   * @generated from field: uint64 input_tokens = 1;
-   */
-  inputTokens = protoInt64.zero;
-
-  /**
-   * Non-reasoning output tokens. When a provider reports completion tokens
-   * inclusive of reasoning tokens, Talon subtracts reasoning_tokens here.
-   *
-   * @generated from field: uint64 output_tokens = 2;
-   */
-  outputTokens = protoInt64.zero;
-
-  /**
-   * Reasoning/thinking output tokens reported separately by the provider.
-   *
-   * @generated from field: uint64 reasoning_tokens = 3;
-   */
-  reasoningTokens = protoInt64.zero;
-
-  /**
-   * Provider total tokens when available; otherwise input + output + reasoning.
-   *
-   * @generated from field: uint64 total_tokens = 4;
-   */
-  totalTokens = protoInt64.zero;
-
-  constructor(data?: PartialMessage<ChatUsage>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.harness.ChatUsage";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "input_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 2, name: "output_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 3, name: "reasoning_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 4, name: "total_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatUsage {
-    return new ChatUsage().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatUsage {
-    return new ChatUsage().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatUsage {
-    return new ChatUsage().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ChatUsage | PlainMessage<ChatUsage> | undefined, b: ChatUsage | PlainMessage<ChatUsage> | undefined): boolean {
-    return proto3.util.equals(ChatUsage, a, b);
-  }
-}
-
-/**
  * @generated from message talon.harness.ChatResponse
  */
 export class ChatResponse extends Message<ChatResponse> {
@@ -341,9 +277,9 @@ export class ChatResponse extends Message<ChatResponse> {
   toolCalls: ToolCall[] = [];
 
   /**
-   * @generated from field: optional talon.harness.ChatUsage usage = 3;
+   * @generated from field: optional talon.data.TokenCounter usage = 3;
    */
-  usage?: ChatUsage;
+  usage?: TokenCounter;
 
   constructor(data?: PartialMessage<ChatResponse>) {
     super();
@@ -355,7 +291,7 @@ export class ChatResponse extends Message<ChatResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "content", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "tool_calls", kind: "message", T: ToolCall, repeated: true },
-    { no: 3, name: "usage", kind: "message", T: ChatUsage, opt: true },
+    { no: 3, name: "usage", kind: "message", T: TokenCounter, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatResponse {
@@ -502,9 +438,9 @@ export class ChatStreamEvent extends Message<ChatStreamEvent> {
     case: "toolCallDelta";
   } | {
     /**
-     * @generated from field: talon.harness.ChatUsage usage = 4;
+     * @generated from field: talon.data.TokenCounter usage = 4;
      */
-    value: ChatUsage;
+    value: TokenCounter;
     case: "usage";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
@@ -519,7 +455,7 @@ export class ChatStreamEvent extends Message<ChatStreamEvent> {
     { no: 1, name: "text_delta", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "event" },
     { no: 2, name: "reasoning_delta", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "event" },
     { no: 3, name: "tool_call_delta", kind: "message", T: ToolCallDelta, oneof: "event" },
-    { no: 4, name: "usage", kind: "message", T: ChatUsage, oneof: "event" },
+    { no: 4, name: "usage", kind: "message", T: TokenCounter, oneof: "event" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatStreamEvent {

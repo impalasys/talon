@@ -3,7 +3,7 @@
 
 use crate::harness::executor::compaction::{ContextMetrics, ModelContextLimits};
 use crate::harness::llm::{
-    chat_content_part, ChatContentPart, ChatMessage, ChatRequest, ChatUsage, Tool, ToolCall,
+    chat_content_part, ChatContentPart, ChatMessage, ChatRequest, TokenCounter, Tool, ToolCall,
 };
 use opentelemetry::KeyValue;
 use serde_json::{json, Value};
@@ -73,8 +73,9 @@ pub fn chat_span(
         "gen_ai.tool.definitions" = field::Empty,
         "gen_ai.output.messages" = field::Empty,
         "gen_ai.usage.input_tokens" = field::Empty,
+        "gen_ai.usage.input_tokens.cached" = field::Empty,
         "gen_ai.usage.output_tokens" = field::Empty,
-        "gen_ai.usage.reasoning.output_tokens" = field::Empty,
+        "gen_ai.usage.output_tokens.reasoning" = field::Empty,
         "gen_ai.usage.total_tokens" = field::Empty,
         "gen_ai.response.time_to_first_chunk" = field::Empty,
         "talon.namespace" = namespace,
@@ -212,12 +213,16 @@ pub fn tool_span(
     span
 }
 
-pub fn record_usage(span: &Span, usage: &ChatUsage) {
+pub fn record_usage(span: &Span, usage: &TokenCounter) {
     span.record("gen_ai.usage.input_tokens", usage.input_tokens);
+    span.record(
+        "gen_ai.usage.input_tokens.cached",
+        usage.cached_input_tokens,
+    );
     span.record("gen_ai.usage.output_tokens", usage.output_tokens);
     span.record(
-        "gen_ai.usage.reasoning.output_tokens",
-        usage.reasoning_tokens,
+        "gen_ai.usage.output_tokens.reasoning",
+        usage.reasoning_output_tokens,
     );
     span.record("gen_ai.usage.total_tokens", usage.total_tokens);
 }

@@ -207,6 +207,7 @@ mod tests {
                     "wire.a2a.talon.impalasys.com/child".into(),
                     "ns/child/child-session".into(),
                 )]),
+                context_tokens: None,
                 ..Default::default()
             },
         )
@@ -222,6 +223,7 @@ mod tests {
                     "wire.a2a.talon.impalasys.com/owner".into(),
                     "ns/agent/session".into(),
                 )]),
+                context_tokens: None,
                 ..Default::default()
             },
         )

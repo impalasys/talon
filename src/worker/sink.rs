@@ -22,17 +22,22 @@ use crate::control::{
 use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
-use crate::harness::llm::{ChatResponse, ChatUsage, ToolOutput};
+use crate::harness::llm::{ChatResponse, TokenCounter, ToolOutput};
 use crate::harness::sessions::{self, SessionSubmission};
 use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
 
-fn chat_usage_payload_json(usage: &ChatUsage) -> String {
+fn chat_usage_payload_json(usage: &TokenCounter) -> String {
     serde_json::to_string(&serde_json::json!({
         "input_tokens": usage.input_tokens,
+        "cached_input_tokens": usage.cached_input_tokens,
         "output_tokens": usage.output_tokens,
-        "reasoning_tokens": usage.reasoning_tokens,
+        "reasoning_output_tokens": usage.reasoning_output_tokens,
         "total_tokens": usage.total_tokens,
+        "usage_available": usage.usage_available,
+        "provider_request_id": usage.provider_request_id,
+        "provider": usage.provider,
+        "model": usage.model,
     }))
     .unwrap_or_else(|_| "{}".to_string())
 }
@@ -340,6 +345,7 @@ pub struct PubSubSessionSink {
 
     // Durable work identity. Journal writes are fenced by `attempt_id` so a
     // worker whose lease expired cannot keep appending state after reclaim.
+    pub(crate) claim: sessions::SubmissionLease,
     pub submission_id: String,
     pub attempt_id: String,
 
@@ -484,6 +490,14 @@ impl PubSubSessionSink {
         let agent_id = agent_id.into();
         let submission_id = submission_id.into();
         let attempt_id = attempt_id.into();
+        let claim = sessions::SubmissionLease {
+            ns: ns.clone(),
+            agent: agent_id.clone(),
+            session_id: session_id.clone(),
+            submission_id: submission_id.clone(),
+            attempt_id: attempt_id.clone(),
+            ttl_micros: 0,
+        };
         let fanout_key = fanout_key.unwrap_or_else(|| {
             SessionFanoutKey::new(
                 ns.clone(),
@@ -504,6 +518,7 @@ impl PubSubSessionSink {
             agent_id,
             reply_msg_id: reply_msg_id.into(),
             reply_msg_key,
+            claim,
             submission_id,
             attempt_id,
             token_publish_interval,
@@ -1261,6 +1276,19 @@ impl ExecutionSink for PubSubSessionSink {
         )
         .await?;
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        if let Some(counter) = response.usage.as_ref() {
+            if let Err(error) =
+                sessions::persist_context_tokens(self.kv.as_ref(), &self.claim, counter).await
+            {
+                tracing::error!(
+                    error = %error,
+                    namespace = %self.ns,
+                    agent = %self.agent_id,
+                    session = %self.session_id,
+                    "failed to persist session context token snapshot"
+                );
+            }
+        }
         Ok(())
     }
 
@@ -1513,7 +1541,7 @@ impl ExecutionSink for PubSubSessionSink {
         .await;
     }
 
-    async fn on_usage(&self, usage: &ChatUsage) {
+    async fn on_usage(&self, usage: &TokenCounter) {
         *self.usage_events.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
@@ -1708,7 +1736,7 @@ mod tests {
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::ExecutionSink;
-    use crate::harness::llm::ChatUsage;
+    use crate::harness::llm::TokenCounter;
     use crate::harness::llm::ToolOutput;
     use crate::harness::sessions;
     use async_trait::async_trait;
@@ -2420,11 +2448,12 @@ mod tests {
             .await;
         sink.on_reasoning("checking ").await;
         sink.on_token("final").await;
-        sink.on_usage(&ChatUsage {
+        sink.on_usage(&TokenCounter {
             input_tokens: 10,
             output_tokens: 5,
-            reasoning_tokens: 2,
+            reasoning_output_tokens: 2,
             total_tokens: 17,
+            ..Default::default()
         })
         .await;
         sink.on_done().await;
@@ -2885,6 +2914,103 @@ mod tests {
             stored_submission.current_phase,
             data_proto::SessionExecutionPhase::Committed as i32
         );
+    }
+
+    #[tokio::test]
+    async fn latest_llm_response_replaces_session_context_tokens() {
+        use crate::control::ProtoKeyValueStoreExt;
+        use crate::harness::llm::ChatResponse;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let session_key = keys::session("conic", "infra", "session-1");
+        kv.set_msg(
+            &session_key,
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "infra".to_string(),
+                ns: "conic".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 1,
+                metadata: Default::default(),
+                labels: Default::default(),
+                context_tokens: None,
+            },
+        )
+        .await
+        .unwrap();
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+        let first = TokenCounter {
+            input_tokens: 10,
+            output_tokens: 2,
+            total_tokens: 12,
+            usage_available: true,
+            provider_request_id: Some("request-first".to_string()),
+            provider: "openai".to_string(),
+            model: "gpt-test".to_string(),
+            ..Default::default()
+        };
+        let second = TokenCounter {
+            input_tokens: 21,
+            cached_input_tokens: 5,
+            output_tokens: 3,
+            reasoning_output_tokens: 1,
+            total_tokens: 25,
+            usage_available: true,
+            provider_request_id: Some("request-second".to_string()),
+            provider: "anthropic".to_string(),
+            model: "claude-test".to_string(),
+            ..Default::default()
+        };
+        for counter in [&first, &second] {
+            sink.on_llm_response(&ChatResponse {
+                content: String::new(),
+                tool_calls: Vec::new(),
+                usage: Some(counter.clone()),
+            })
+            .await
+            .unwrap();
+        }
+        let session = kv
+            .get_msg::<data_proto::Session>(&session_key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.context_tokens, Some(second));
+        let journal_entries = sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap();
+        assert_eq!(journal_entries.len(), 2);
     }
 
     #[tokio::test]
