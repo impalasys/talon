@@ -1275,9 +1275,7 @@ impl ExecutionSink for PubSubSessionSink {
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
-        if entry.submission_id == self.submission_id {
-            *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id.clone());
-        }
+        *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
         if let Some(counter) = response.usage.as_ref() {
             if let Err(error) =
                 sessions::persist_context_tokens(self.kv.as_ref(), &self.claim, counter).await
