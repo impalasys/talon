@@ -74,6 +74,7 @@ message OpenAiConfig {
   string model = 1;
   Secret api_key = 2;
   string org_id = 3;
+  string api = 4;
 }
 
 message AnthropicConfig {

@@ -56,6 +56,8 @@ pub enum SerdeProviderConfig {
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
+        #[serde(default)]
+        api: Option<String>,
     },
     Anthropic {
         model: String,
@@ -271,12 +273,17 @@ impl From<SerdeConfig> for Config {
             .into_iter()
             .map(|(name, p)| {
                 let p_proto = match p {
-                    SerdeProviderConfig::Openai { model, api_key } => ProviderConfig {
+                    SerdeProviderConfig::Openai {
+                        model,
+                        api_key,
+                        api,
+                    } => ProviderConfig {
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
                                 model,
                                 api_key: api_key.map(Into::into),
                                 org_id: "".to_string(),
+                                api: api.unwrap_or_default(),
                             },
                         )),
                     },
@@ -508,6 +515,23 @@ fn validate_trust_config(config: &SerdeConfig) -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+fn validate_provider_config(config: &SerdeConfig) -> Result<()> {
+    for (name, provider) in config.providers.iter().chain(config.llm_providers.iter()) {
+        let SerdeProviderConfig::Openai { api, .. } = provider else {
+            continue;
+        };
+        let value = api.as_deref().unwrap_or_default().trim();
+        if !value.is_empty() && !matches!(value, "responses" | "chat_completions") {
+            return Err(anyhow!(
+                "provider '{}' has invalid api '{}'; expected 'responses' or 'chat_completions'",
+                name,
+                value
+            ));
+        }
+    }
     Ok(())
 }
 
@@ -777,6 +801,7 @@ impl ConfigExt for Config {
             anyhow!("Failed to deserialize merged Talon configuration: {error}")
         })?;
         validate_trust_config(&serde_config)?;
+        validate_provider_config(&serde_config)?;
         Ok(serde_config.into())
     }
 
@@ -799,6 +824,7 @@ impl ConfigExt for Config {
                     anyhow!("Failed to deserialize TALON_CONFIG_INLINE_YAML: {error}")
                 })?;
                 validate_trust_config(&serde_config)?;
+                validate_provider_config(&serde_config)?;
                 return Ok(serde_config.into());
             }
         }

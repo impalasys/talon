@@ -9329,6 +9329,18 @@ talon.config.Config.ModelConfig defaultValue) {
      */
     com.google.protobuf.ByteString
         getOrgIdBytes();
+
+    /**
+     * <code>string api = 4;</code>
+     * @return The api.
+     */
+    java.lang.String getApi();
+    /**
+     * <code>string api = 4;</code>
+     * @return The bytes for api.
+     */
+    com.google.protobuf.ByteString
+        getApiBytes();
   }
   /**
    * Protobuf type {@code talon.config.OpenAiConfig}
@@ -9354,6 +9366,7 @@ talon.config.Config.ModelConfig defaultValue) {
     private OpenAiConfig() {
       model_ = "";
       orgId_ = "";
+      api_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -9479,6 +9492,45 @@ talon.config.Config.ModelConfig defaultValue) {
       }
     }
 
+    public static final int API_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object api_ = "";
+    /**
+     * <code>string api = 4;</code>
+     * @return The api.
+     */
+    @java.lang.Override
+    public java.lang.String getApi() {
+      java.lang.Object ref = api_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        api_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string api = 4;</code>
+     * @return The bytes for api.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getApiBytes() {
+      java.lang.Object ref = api_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        api_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -9502,6 +9554,9 @@ talon.config.Config.ModelConfig defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(orgId_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, orgId_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(api_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, api_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -9520,6 +9575,9 @@ talon.config.Config.ModelConfig defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(orgId_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(3, orgId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(api_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, api_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -9545,6 +9603,8 @@ talon.config.Config.ModelConfig defaultValue) {
       }
       if (!getOrgId()
           .equals(other.getOrgId())) return false;
+      if (!getApi()
+          .equals(other.getApi())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -9564,6 +9624,8 @@ talon.config.Config.ModelConfig defaultValue) {
       }
       hash = (37 * hash) + ORG_ID_FIELD_NUMBER;
       hash = (53 * hash) + getOrgId().hashCode();
+      hash = (37 * hash) + API_FIELD_NUMBER;
+      hash = (53 * hash) + getApi().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -9708,6 +9770,7 @@ talon.config.Config.ModelConfig defaultValue) {
           apiKeyBuilder_ = null;
         }
         orgId_ = "";
+        api_ = "";
         return this;
       }
 
@@ -9754,6 +9817,9 @@ talon.config.Config.ModelConfig defaultValue) {
         if (((from_bitField0_ & 0x00000004) != 0)) {
           result.orgId_ = orgId_;
         }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.api_ = api_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -9780,6 +9846,11 @@ talon.config.Config.ModelConfig defaultValue) {
         if (!other.getOrgId().isEmpty()) {
           orgId_ = other.orgId_;
           bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getApi().isEmpty()) {
+          api_ = other.api_;
+          bitField0_ |= 0x00000008;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -9825,6 +9896,11 @@ talon.config.Config.ModelConfig defaultValue) {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                api_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -10103,6 +10179,78 @@ talon.config.Config.ModelConfig defaultValue) {
         checkByteStringIsUtf8(value);
         orgId_ = value;
         bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object api_ = "";
+      /**
+       * <code>string api = 4;</code>
+       * @return The api.
+       */
+      public java.lang.String getApi() {
+        java.lang.Object ref = api_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          api_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string api = 4;</code>
+       * @return The bytes for api.
+       */
+      public com.google.protobuf.ByteString
+          getApiBytes() {
+        java.lang.Object ref = api_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          api_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string api = 4;</code>
+       * @param value The api to set.
+       * @return This builder for chaining.
+       */
+      public Builder setApi(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        api_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string api = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearApi() {
+        api_ = getDefaultInstance().getApi();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string api = 4;</code>
+       * @param value The bytes for api to set.
+       * @return This builder for chaining.
+       */
+      public Builder setApiBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        api_ = value;
+        bitField0_ |= 0x00000008;
         onChanged();
         return this;
       }
@@ -26294,64 +26442,64 @@ talon.config.Config.ModelConfig defaultValue) {
       ".talon.config.AnthropicConfigH\000\022,\n\006googl" +
       "e\030\003 \001(\0132\032.talon.config.GoogleConfigH\000\0228\n" +
       "\021openai_compatible\030\004 \001(\0132\033.talon.config." +
-      "GenericConfigH\000B\010\n\006config\"T\n\014OpenAiConfi" +
+      "GenericConfigH\000B\010\n\006config\"a\n\014OpenAiConfi" +
       "g\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talo" +
-      "n.config.Secret\022\016\n\006org_id\030\003 \001(\t\"G\n\017Anthr" +
-      "opicConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001" +
-      "(\0132\024.talon.config.Secret\"D\n\014GoogleConfig" +
-      "\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talon" +
-      ".config.Secret\"e\n\rGenericConfig\022\014\n\004name\030" +
-      "\001 \001(\t\022\020\n\010base_url\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\022%" +
-      "\n\007api_key\030\004 \001(\0132\024.talon.config.Secret\"K\n" +
-      "\006Secret\022\017\n\005plain\030\001 \001(\tH\000\022&\n\003ref\030\002 \001(\0132\027." +
-      "talon.config.SecretRefH\000B\010\n\006source\"\206\001\n\tS" +
-      "ecretRef\022.\n\006source\030\001 \001(\0162\036.talon.config." +
-      "SecretRef.Source\022\013\n\003key\030\002 \001(\t\"<\n\006Source\022" +
-      "\007\n\003ENV\020\000\022\007\n\003GCP\020\001\022\014\n\010KEYCHAIN\020\002\022\007\n\003AWS\020\003" +
-      "\022\t\n\005AZURE\020\004\"U\n\016DatabaseConfig\022\020\n\010data_di" +
-      "r\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t\022!\n\003url\030\003 \001(\0132\024.t" +
-      "alon.config.Secret\"%\n\023MessageBrokerConfi" +
-      "g\022\016\n\006driver\030\001 \001(\t\"&\n\026LocalObjectStoreCon" +
-      "fig\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObjectStoreConfi" +
-      "g\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014api" +
-      "_base_url\030\003 \001(\t\"u\n\023S3ObjectStoreConfig\022\016" +
-      "\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006region" +
-      "\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(\t\022\030\n\020force_pa" +
-      "th_style\030\005 \001(\010\"\271\001\n\021ObjectStoreConfig\0225\n\005" +
-      "local\030\001 \001(\0132$.talon.config.LocalObjectSt" +
-      "oreConfigH\000\0221\n\003gcs\030\002 \001(\0132\".talon.config." +
-      "GcsObjectStoreConfigH\000\022/\n\002s3\030\003 \001(\0132!.tal" +
-      "on.config.S3ObjectStoreConfigH\000B\t\n\007backe" +
-      "nd\"\217\001\n\033SchedulerCallbackAuthConfig\022-\n\rsh" +
-      "ared_secret\030\001 \001(\0132\024.talon.config.SecretH" +
-      "\000\0229\n\013google_oidc\030\002 \001(\0132\".talon.config.Go" +
-      "ogleOidcAuthConfigH\000B\006\n\004auth\"G\n\024GoogleOi" +
-      "dcAuthConfig\022\020\n\010audience\030\001 \001(\t\022\035\n\025servic" +
-      "e_account_email\030\002 \001(\t\"\246\001\n\031CloudTasksSche" +
-      "dulerConfig\022\022\n\nproject_id\030\001 \001(\t\022\020\n\010locat" +
-      "ion\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarget_url\030\004" +
-      " \001(\t\022@\n\rcallback_auth\030\005 \001(\0132).talon.conf" +
-      "ig.SchedulerCallbackAuthConfig\"\212\002\n\035AwsEv" +
-      "entBridgeSchedulerConfig\022\022\n\ngroup_name\030\001" +
-      " \001(\t\022\021\n\tqueue_url\030\002 \001(\t\022\032\n\022execution_rol" +
-      "e_arn\030\003 \001(\t\022\034\n\024schedule_name_prefix\030\004 \001(" +
-      "\t\022\017\n\007dlq_arn\030\005 \001(\t\022!\n\031maximum_event_age_" +
-      "seconds\030\006 \001(\r\022#\n\026maximum_retry_attempts\030" +
-      "\007 \001(\rH\000\210\001\001\022\024\n\014endpoint_url\030\010 \001(\tB\031\n\027_max" +
-      "imum_retry_attempts\"\256\001\n\017SchedulerConfig\022" +
-      ">\n\013cloud_tasks\030\001 \001(\0132\'.talon.config.Clou" +
-      "dTasksSchedulerConfigH\000\022P\n\031aws_eventbrid" +
-      "ge_scheduler\030\002 \001(\0132+.talon.config.AwsEve" +
-      "ntBridgeSchedulerConfigH\000B\t\n\007backend\"\231\002\n" +
-      "\022ControlPlaneConfig\022.\n\010database\030\001 \001(\0132\034." +
-      "talon.config.DatabaseConfig\0229\n\016message_b" +
-      "roker\030\002 \001(\0132!.talon.config.MessageBroker" +
-      "Config\0220\n\tscheduler\030\003 \001(\0132\035.talon.config" +
-      ".SchedulerConfig\0225\n\014object_store\030\004 \001(\0132\037" +
-      ".talon.config.ObjectStoreConfig\022/\n\tdocum" +
-      "ents\030\005 \001(\0132\034.talon.config.DatabaseConfig" +
-      "\"*\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002" +
-      " \001(\rb\006proto3"
+      "n.config.Secret\022\016\n\006org_id\030\003 \001(\t\022\013\n\003api\030\004" +
+      " \001(\t\"G\n\017AnthropicConfig\022\r\n\005model\030\001 \001(\t\022%" +
+      "\n\007api_key\030\002 \001(\0132\024.talon.config.Secret\"D\n" +
+      "\014GoogleConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030" +
+      "\002 \001(\0132\024.talon.config.Secret\"e\n\rGenericCo" +
+      "nfig\022\014\n\004name\030\001 \001(\t\022\020\n\010base_url\030\002 \001(\t\022\r\n\005" +
+      "model\030\003 \001(\t\022%\n\007api_key\030\004 \001(\0132\024.talon.con" +
+      "fig.Secret\"K\n\006Secret\022\017\n\005plain\030\001 \001(\tH\000\022&\n" +
+      "\003ref\030\002 \001(\0132\027.talon.config.SecretRefH\000B\010\n" +
+      "\006source\"\206\001\n\tSecretRef\022.\n\006source\030\001 \001(\0162\036." +
+      "talon.config.SecretRef.Source\022\013\n\003key\030\002 \001" +
+      "(\t\"<\n\006Source\022\007\n\003ENV\020\000\022\007\n\003GCP\020\001\022\014\n\010KEYCHA" +
+      "IN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE\020\004\"U\n\016DatabaseConf" +
+      "ig\022\020\n\010data_dir\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t\022!\n\003" +
+      "url\030\003 \001(\0132\024.talon.config.Secret\"%\n\023Messa" +
+      "geBrokerConfig\022\016\n\006driver\030\001 \001(\t\"&\n\026LocalO" +
+      "bjectStoreConfig\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObj" +
+      "ectStoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix" +
+      "\030\002 \001(\t\022\024\n\014api_base_url\030\003 \001(\t\"u\n\023S3Object" +
+      "StoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 " +
+      "\001(\t\022\016\n\006region\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(" +
+      "\t\022\030\n\020force_path_style\030\005 \001(\010\"\271\001\n\021ObjectSt" +
+      "oreConfig\0225\n\005local\030\001 \001(\0132$.talon.config." +
+      "LocalObjectStoreConfigH\000\0221\n\003gcs\030\002 \001(\0132\"." +
+      "talon.config.GcsObjectStoreConfigH\000\022/\n\002s" +
+      "3\030\003 \001(\0132!.talon.config.S3ObjectStoreConf" +
+      "igH\000B\t\n\007backend\"\217\001\n\033SchedulerCallbackAut" +
+      "hConfig\022-\n\rshared_secret\030\001 \001(\0132\024.talon.c" +
+      "onfig.SecretH\000\0229\n\013google_oidc\030\002 \001(\0132\".ta" +
+      "lon.config.GoogleOidcAuthConfigH\000B\006\n\004aut" +
+      "h\"G\n\024GoogleOidcAuthConfig\022\020\n\010audience\030\001 " +
+      "\001(\t\022\035\n\025service_account_email\030\002 \001(\t\"\246\001\n\031C" +
+      "loudTasksSchedulerConfig\022\022\n\nproject_id\030\001" +
+      " \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n" +
+      "\ntarget_url\030\004 \001(\t\022@\n\rcallback_auth\030\005 \001(\013" +
+      "2).talon.config.SchedulerCallbackAuthCon" +
+      "fig\"\212\002\n\035AwsEventBridgeSchedulerConfig\022\022\n" +
+      "\ngroup_name\030\001 \001(\t\022\021\n\tqueue_url\030\002 \001(\t\022\032\n\022" +
+      "execution_role_arn\030\003 \001(\t\022\034\n\024schedule_nam" +
+      "e_prefix\030\004 \001(\t\022\017\n\007dlq_arn\030\005 \001(\t\022!\n\031maxim" +
+      "um_event_age_seconds\030\006 \001(\r\022#\n\026maximum_re" +
+      "try_attempts\030\007 \001(\rH\000\210\001\001\022\024\n\014endpoint_url\030" +
+      "\010 \001(\tB\031\n\027_maximum_retry_attempts\"\256\001\n\017Sch" +
+      "edulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'.talo" +
+      "n.config.CloudTasksSchedulerConfigH\000\022P\n\031" +
+      "aws_eventbridge_scheduler\030\002 \001(\0132+.talon." +
+      "config.AwsEventBridgeSchedulerConfigH\000B\t" +
+      "\n\007backend\"\231\002\n\022ControlPlaneConfig\022.\n\010data" +
+      "base\030\001 \001(\0132\034.talon.config.DatabaseConfig" +
+      "\0229\n\016message_broker\030\002 \001(\0132!.talon.config." +
+      "MessageBrokerConfig\0220\n\tscheduler\030\003 \001(\0132\035" +
+      ".talon.config.SchedulerConfig\0225\n\014object_" +
+      "store\030\004 \001(\0132\037.talon.config.ObjectStoreCo" +
+      "nfig\022/\n\tdocuments\030\005 \001(\0132\034.talon.config.D" +
+      "atabaseConfig\"*\n\014ServerConfig\022\014\n\004host\030\001 " +
+      "\001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -26422,7 +26570,7 @@ talon.config.Config.ModelConfig defaultValue) {
     internal_static_talon_config_OpenAiConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_OpenAiConfig_descriptor,
-        new java.lang.String[] { "Model", "ApiKey", "OrgId", });
+        new java.lang.String[] { "Model", "ApiKey", "OrgId", "Api", });
     internal_static_talon_config_AnthropicConfig_descriptor =
       getDescriptor().getMessageType(8);
     internal_static_talon_config_AnthropicConfig_fieldAccessorTable = new
