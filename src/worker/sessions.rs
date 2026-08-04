@@ -4030,6 +4030,7 @@ mod tests {
                 "ns".to_string(),
                 "agent".to_string(),
                 "session-1".to_string(),
+                None,
                 cp.clone(),
                 manifests::AgentSpec::default(),
                 HashMap::new(),

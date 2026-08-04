@@ -503,6 +503,7 @@ impl AgentExecutor {
             namespace,
             agent_id,
             String::new(),
+            None,
             control_plane,
             agent_spec,
             mcp_tools,
@@ -519,6 +520,7 @@ impl AgentExecutor {
         namespace: String,
         agent_id: String,
         session_id: String,
+        prior_context_tokens: Option<TokenCounter>,
         control_plane: ControlPlane,
         agent_spec: crate::gateway::rpc::manifests::AgentSpec,
         mcp_tools: HashMap<String, RegisteredMcpTool>,
@@ -533,16 +535,11 @@ impl AgentExecutor {
             namespace,
             agent_id,
             session_id,
-            prior_context_tokens: None,
+            prior_context_tokens,
             control_plane,
             agent_spec,
             mcp_tools,
         }
-    }
-
-    pub fn with_prior_context_tokens(mut self, tokens: Option<TokenCounter>) -> Self {
-        self.prior_context_tokens = tokens;
-        self
     }
 
     pub async fn system_loop_message(&self) -> Result<LoopMessage> {
@@ -2360,6 +2357,7 @@ mod tests {
             "Tenant:acme:Workspace:main".to_string(),
             "writer".to_string(),
             "writer-session".to_string(),
+            None,
             control_plane_with_wire().await,
             spec.clone(),
             HashMap::new(),
@@ -2406,6 +2404,7 @@ mod tests {
             "Tenant:acme:Workspace:main".to_string(),
             "writer".to_string(),
             "writer-session".to_string(),
+            None,
             ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
@@ -2440,6 +2439,7 @@ mod tests {
             "Tenant:acme:Workspace:main".to_string(),
             "writer".to_string(),
             "writer-session".to_string(),
+            None,
             control_plane_with_wire().await,
             spec.clone(),
             HashMap::new(),
@@ -2685,6 +2685,7 @@ mod tests {
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             "session-1".to_string(),
+            None,
             ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
@@ -2793,7 +2794,7 @@ mod tests {
                 ..Default::default()
             },
         );
-        let executor = AgentExecutor::new(
+        let executor = AgentExecutor::new_with_session(
             llm,
             "test-provider".to_string(),
             "test-model".to_string(),
@@ -2802,17 +2803,18 @@ mod tests {
             Arc::new(config),
             "ns".to_string(),
             "agent".to_string(),
+            String::new(),
+            Some(TokenCounter {
+                input_tokens: 900,
+                usage_available: true,
+                provider: "test-provider".to_string(),
+                model: "test-model".to_string(),
+                ..Default::default()
+            }),
             ControlPlane::noop(),
             manifests::AgentSpec::default(),
             HashMap::new(),
-        )
-        .with_prior_context_tokens(Some(TokenCounter {
-            input_tokens: 900,
-            usage_available: true,
-            provider: "test-provider".to_string(),
-            model: "test-model".to_string(),
-            ..Default::default()
-        }));
+        );
         let mut context = ExecutionContext::with_history(
             "agent",
             vec![
@@ -2884,6 +2886,7 @@ mod tests {
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             "session-1".to_string(),
+            None,
             ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
@@ -2918,6 +2921,7 @@ mod tests {
             "conic:wks:13".to_string(),
             "cmo".to_string(),
             "session-1".to_string(),
+            None,
             ControlPlane::noop(),
             spec.clone(),
             HashMap::new(),
