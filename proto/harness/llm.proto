@@ -37,6 +37,7 @@ message ChatMessage {
   repeated ChatContentPart content_parts = 2;
   repeated ToolCall tool_calls = 3;
   optional string tool_call_id = 4;
+  string provider_state_json = 5;
 }
 
 message ChatUsage {
@@ -55,6 +56,7 @@ message ChatResponse {
   string content = 1;
   repeated ToolCall tool_calls = 2;
   optional ChatUsage usage = 3;
+  string provider_state_json = 4;
 }
 
 message Tool {
@@ -76,5 +78,6 @@ message ChatStreamEvent {
     string reasoning_delta = 2;
     ToolCallDelta tool_call_delta = 3;
     ChatUsage usage = 4;
+    string provider_state_json = 5;
   }
 }

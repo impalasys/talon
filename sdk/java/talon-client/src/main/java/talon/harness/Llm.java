@@ -3663,6 +3663,18 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getToolCallIdBytes();
+
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return The providerStateJson.
+     */
+    java.lang.String getProviderStateJson();
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return The bytes for providerStateJson.
+     */
+    com.google.protobuf.ByteString
+        getProviderStateJsonBytes();
   }
   /**
    * Protobuf type {@code talon.harness.ChatMessage}
@@ -3690,6 +3702,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       contentParts_ = java.util.Collections.emptyList();
       toolCalls_ = java.util.Collections.emptyList();
       toolCallId_ = "";
+      providerStateJson_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -3879,6 +3892,45 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int PROVIDER_STATE_JSON_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object providerStateJson_ = "";
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return The providerStateJson.
+     */
+    @java.lang.Override
+    public java.lang.String getProviderStateJson() {
+      java.lang.Object ref = providerStateJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        providerStateJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return The bytes for providerStateJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getProviderStateJsonBytes() {
+      java.lang.Object ref = providerStateJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        providerStateJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -3904,6 +3956,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 4, toolCallId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(providerStateJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, providerStateJson_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3938,6 +3993,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(4, toolCallId_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(providerStateJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, providerStateJson_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -3964,6 +4022,8 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (!getToolCallId()
             .equals(other.getToolCallId())) return false;
       }
+      if (!getProviderStateJson()
+          .equals(other.getProviderStateJson())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -3989,6 +4049,8 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         hash = (37 * hash) + TOOL_CALL_ID_FIELD_NUMBER;
         hash = (53 * hash) + getToolCallId().hashCode();
       }
+      hash = (37 * hash) + PROVIDER_STATE_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getProviderStateJson().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -4136,6 +4198,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
         bitField0_ = (bitField0_ & ~0x00000004);
         toolCallId_ = "";
+        providerStateJson_ = "";
         return this;
       }
 
@@ -4198,6 +4261,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000008) != 0)) {
           result.toolCallId_ = toolCallId_;
           to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.providerStateJson_ = providerStateJson_;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -4276,6 +4342,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000008;
           onChanged();
         }
+        if (!other.getProviderStateJson().isEmpty()) {
+          providerStateJson_ = other.providerStateJson_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -4338,6 +4409,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 42: {
+                providerStateJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -4982,6 +5058,78 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         checkByteStringIsUtf8(value);
         toolCallId_ = value;
         bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object providerStateJson_ = "";
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @return The providerStateJson.
+       */
+      public java.lang.String getProviderStateJson() {
+        java.lang.Object ref = providerStateJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          providerStateJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @return The bytes for providerStateJson.
+       */
+      public com.google.protobuf.ByteString
+          getProviderStateJsonBytes() {
+        java.lang.Object ref = providerStateJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          providerStateJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @param value The providerStateJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderStateJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        providerStateJson_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProviderStateJson() {
+        providerStateJson_ = getDefaultInstance().getProviderStateJson();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @param value The bytes for providerStateJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderStateJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        providerStateJson_ = value;
+        bitField0_ |= 0x00000010;
         onChanged();
         return this;
       }
@@ -5835,6 +5983,18 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      * <code>optional .talon.harness.ChatUsage usage = 3;</code>
      */
     talon.harness.Llm.ChatUsageOrBuilder getUsageOrBuilder();
+
+    /**
+     * <code>string provider_state_json = 4;</code>
+     * @return The providerStateJson.
+     */
+    java.lang.String getProviderStateJson();
+    /**
+     * <code>string provider_state_json = 4;</code>
+     * @return The bytes for providerStateJson.
+     */
+    com.google.protobuf.ByteString
+        getProviderStateJsonBytes();
   }
   /**
    * Protobuf type {@code talon.harness.ChatResponse}
@@ -5860,6 +6020,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     private ChatResponse() {
       content_ = "";
       toolCalls_ = java.util.Collections.emptyList();
+      providerStateJson_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -5987,6 +6148,45 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       return usage_ == null ? talon.harness.Llm.ChatUsage.getDefaultInstance() : usage_;
     }
 
+    public static final int PROVIDER_STATE_JSON_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object providerStateJson_ = "";
+    /**
+     * <code>string provider_state_json = 4;</code>
+     * @return The providerStateJson.
+     */
+    @java.lang.Override
+    public java.lang.String getProviderStateJson() {
+      java.lang.Object ref = providerStateJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        providerStateJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string provider_state_json = 4;</code>
+     * @return The bytes for providerStateJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getProviderStateJsonBytes() {
+      java.lang.Object ref = providerStateJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        providerStateJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -6009,6 +6209,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(3, getUsage());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(providerStateJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, providerStateJson_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -6035,6 +6238,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, getUsage());
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(providerStateJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, providerStateJson_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -6059,6 +6265,8 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (!getUsage()
             .equals(other.getUsage())) return false;
       }
+      if (!getProviderStateJson()
+          .equals(other.getProviderStateJson())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -6080,6 +6288,8 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         hash = (37 * hash) + USAGE_FIELD_NUMBER;
         hash = (53 * hash) + getUsage().hashCode();
       }
+      hash = (37 * hash) + PROVIDER_STATE_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getProviderStateJson().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -6231,6 +6441,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           usageBuilder_.dispose();
           usageBuilder_ = null;
         }
+        providerStateJson_ = "";
         return this;
       }
 
@@ -6287,6 +6498,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
               : usageBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.providerStateJson_ = providerStateJson_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -6335,6 +6549,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
         if (other.hasUsage()) {
           mergeUsage(other.getUsage());
+        }
+        if (!other.getProviderStateJson().isEmpty()) {
+          providerStateJson_ = other.providerStateJson_;
+          bitField0_ |= 0x00000008;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -6387,6 +6606,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                providerStateJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -6835,6 +7059,78 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           usage_ = null;
         }
         return usageBuilder_;
+      }
+
+      private java.lang.Object providerStateJson_ = "";
+      /**
+       * <code>string provider_state_json = 4;</code>
+       * @return The providerStateJson.
+       */
+      public java.lang.String getProviderStateJson() {
+        java.lang.Object ref = providerStateJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          providerStateJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string provider_state_json = 4;</code>
+       * @return The bytes for providerStateJson.
+       */
+      public com.google.protobuf.ByteString
+          getProviderStateJsonBytes() {
+        java.lang.Object ref = providerStateJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          providerStateJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string provider_state_json = 4;</code>
+       * @param value The providerStateJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderStateJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        providerStateJson_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider_state_json = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProviderStateJson() {
+        providerStateJson_ = getDefaultInstance().getProviderStateJson();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider_state_json = 4;</code>
+       * @param value The bytes for providerStateJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderStateJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        providerStateJson_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.harness.ChatResponse)
@@ -9142,6 +9438,23 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      */
     talon.harness.Llm.ChatUsageOrBuilder getUsageOrBuilder();
 
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return Whether the providerStateJson field is set.
+     */
+    boolean hasProviderStateJson();
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return The providerStateJson.
+     */
+    java.lang.String getProviderStateJson();
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return The bytes for providerStateJson.
+     */
+    com.google.protobuf.ByteString
+        getProviderStateJsonBytes();
+
     talon.harness.Llm.ChatStreamEvent.EventCase getEventCase();
   }
   /**
@@ -9196,6 +9509,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       REASONING_DELTA(2),
       TOOL_CALL_DELTA(3),
       USAGE(4),
+      PROVIDER_STATE_JSON(5),
       EVENT_NOT_SET(0);
       private final int value;
       private EventCase(int value) {
@@ -9217,6 +9531,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           case 2: return REASONING_DELTA;
           case 3: return TOOL_CALL_DELTA;
           case 4: return USAGE;
+          case 5: return PROVIDER_STATE_JSON;
           case 0: return EVENT_NOT_SET;
           default: return null;
         }
@@ -9390,6 +9705,54 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       return talon.harness.Llm.ChatUsage.getDefaultInstance();
     }
 
+    public static final int PROVIDER_STATE_JSON_FIELD_NUMBER = 5;
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return Whether the providerStateJson field is set.
+     */
+    public boolean hasProviderStateJson() {
+      return eventCase_ == 5;
+    }
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return The providerStateJson.
+     */
+    public java.lang.String getProviderStateJson() {
+      if (eventCase_ != 5) {
+        return "";
+      }
+      java.lang.Object ref = event_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        event_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string provider_state_json = 5;</code>
+     * @return The bytes for providerStateJson.
+     */
+    public com.google.protobuf.ByteString
+        getProviderStateJsonBytes() {
+      if (eventCase_ != 5) {
+        return com.google.protobuf.ByteString.copyFromUtf8("");
+      }
+      java.lang.Object ref = event_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        event_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -9416,6 +9779,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (eventCase_ == 4) {
         output.writeMessage(4, (talon.harness.Llm.ChatUsage) event_);
       }
+      if (eventCase_ == 5) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, event_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -9438,6 +9804,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (eventCase_ == 4) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, (talon.harness.Llm.ChatUsage) event_);
+      }
+      if (eventCase_ == 5) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, event_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -9472,6 +9841,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           if (!getUsage()
               .equals(other.getUsage())) return false;
           break;
+        case 5:
+          if (!getProviderStateJson()
+              .equals(other.getProviderStateJson())) return false;
+          break;
         case 0:
         default:
       }
@@ -9502,6 +9875,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         case 4:
           hash = (37 * hash) + USAGE_FIELD_NUMBER;
           hash = (53 * hash) + getUsage().hashCode();
+          break;
+        case 5:
+          hash = (37 * hash) + PROVIDER_STATE_JSON_FIELD_NUMBER;
+          hash = (53 * hash) + getProviderStateJson().hashCode();
           break;
         case 0:
         default:
@@ -9727,6 +10104,12 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
             mergeUsage(other.getUsage());
             break;
           }
+          case PROVIDER_STATE_JSON: {
+            eventCase_ = 5;
+            event_ = other.event_;
+            onChanged();
+            break;
+          }
           case EVENT_NOT_SET: {
             break;
           }
@@ -9781,6 +10164,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 eventCase_ = 4;
                 break;
               } // case 34
+              case 42: {
+                eventCase_ = 5;
+                event_ = input.readStringRequireUtf8();
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -10275,6 +10663,95 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return usageBuilder_;
       }
 
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @return Whether the providerStateJson field is set.
+       */
+      @java.lang.Override
+      public boolean hasProviderStateJson() {
+        return eventCase_ == 5;
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @return The providerStateJson.
+       */
+      @java.lang.Override
+      public java.lang.String getProviderStateJson() {
+        if (eventCase_ != 5) {
+          return "";
+        }
+        java.lang.Object ref = event_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+            event_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @return The bytes for providerStateJson.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getProviderStateJsonBytes() {
+        if (eventCase_ != 5) {
+          return com.google.protobuf.ByteString.copyFromUtf8(        "");
+        }
+        java.lang.Object ref = event_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          event_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @param value The providerStateJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderStateJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        eventCase_ = 5;
+        event_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProviderStateJson() {
+        if (eventCase_ == 5) {
+          eventCase_ = 0;
+          event_ = null;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>string provider_state_json = 5;</code>
+       * @param value The bytes for providerStateJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderStateJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        eventCase_ = 5;
+        event_ = value;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.harness.ChatStreamEvent)
     }
 
@@ -10396,28 +10873,30 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       "\022\021\n\targuments\030\003 \001(\t\"x\n\rToolCallDelta\022\r\n\005" +
       "index\030\001 \001(\r\022\017\n\002id\030\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001" +
       "(\tH\001\210\001\001\022\026\n\targuments\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007" +
-      "\n\005_nameB\014\n\n_arguments\"\253\001\n\013ChatMessage\022\014\n" +
+      "\n\005_nameB\014\n\n_arguments\"\310\001\n\013ChatMessage\022\014\n" +
       "\004role\030\001 \001(\t\0225\n\rcontent_parts\030\002 \003(\0132\036.tal" +
       "on.harness.ChatContentPart\022+\n\ntool_calls" +
       "\030\003 \003(\0132\027.talon.harness.ToolCall\022\031\n\014tool_" +
-      "call_id\030\004 \001(\tH\000\210\001\001B\017\n\r_tool_call_id\"h\n\tC" +
-      "hatUsage\022\024\n\014input_tokens\030\001 \001(\004\022\025\n\routput" +
-      "_tokens\030\002 \001(\004\022\030\n\020reasoning_tokens\030\003 \001(\004\022" +
-      "\024\n\014total_tokens\030\004 \001(\004\"\204\001\n\014ChatResponse\022\017" +
-      "\n\007content\030\001 \001(\t\022+\n\ntool_calls\030\002 \003(\0132\027.ta" +
-      "lon.harness.ToolCall\022,\n\005usage\030\003 \001(\0132\030.ta" +
-      "lon.harness.ChatUsageH\000\210\001\001B\010\n\006_usage\"D\n\004" +
-      "Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022" +
-      "\031\n\021input_schema_json\030\003 \001(\t\"\244\001\n\013ChatReque" +
-      "st\022,\n\010messages\030\001 \003(\0132\032.talon.harness.Cha" +
-      "tMessage\022\"\n\005tools\030\002 \003(\0132\023.talon.harness." +
-      "Tool\0226\n\010thinking\030\003 \001(\0132\037.talon.resources" +
-      ".ThinkingConfigH\000\210\001\001B\013\n\t_thinking\"\257\001\n\017Ch" +
-      "atStreamEvent\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017r" +
-      "easoning_delta\030\002 \001(\tH\000\0227\n\017tool_call_delt" +
-      "a\030\003 \001(\0132\034.talon.harness.ToolCallDeltaH\000\022" +
-      ")\n\005usage\030\004 \001(\0132\030.talon.harness.ChatUsage" +
-      "H\000B\007\n\005eventb\006proto3"
+      "call_id\030\004 \001(\tH\000\210\001\001\022\033\n\023provider_state_jso" +
+      "n\030\005 \001(\tB\017\n\r_tool_call_id\"h\n\tChatUsage\022\024\n" +
+      "\014input_tokens\030\001 \001(\004\022\025\n\routput_tokens\030\002 \001" +
+      "(\004\022\030\n\020reasoning_tokens\030\003 \001(\004\022\024\n\014total_to" +
+      "kens\030\004 \001(\004\"\241\001\n\014ChatResponse\022\017\n\007content\030\001" +
+      " \001(\t\022+\n\ntool_calls\030\002 \003(\0132\027.talon.harness" +
+      ".ToolCall\022,\n\005usage\030\003 \001(\0132\030.talon.harness" +
+      ".ChatUsageH\000\210\001\001\022\033\n\023provider_state_json\030\004" +
+      " \001(\tB\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013" +
+      "description\030\002 \001(\t\022\031\n\021input_schema_json\030\003" +
+      " \001(\t\"\244\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032" +
+      ".talon.harness.ChatMessage\022\"\n\005tools\030\002 \003(" +
+      "\0132\023.talon.harness.Tool\0226\n\010thinking\030\003 \001(\013" +
+      "2\037.talon.resources.ThinkingConfigH\000\210\001\001B\013" +
+      "\n\t_thinking\"\316\001\n\017ChatStreamEvent\022\024\n\ntext_" +
+      "delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 \001(\tH\000" +
+      "\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon.harnes" +
+      "s.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030.talon" +
+      ".harness.ChatUsageH\000\022\035\n\023provider_state_j" +
+      "son\030\005 \001(\tH\000B\007\n\005eventb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10454,7 +10933,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     internal_static_talon_harness_ChatMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatMessage_descriptor,
-        new java.lang.String[] { "Role", "ContentParts", "ToolCalls", "ToolCallId", });
+        new java.lang.String[] { "Role", "ContentParts", "ToolCalls", "ToolCallId", "ProviderStateJson", });
     internal_static_talon_harness_ChatUsage_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_harness_ChatUsage_fieldAccessorTable = new
@@ -10466,7 +10945,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     internal_static_talon_harness_ChatResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatResponse_descriptor,
-        new java.lang.String[] { "Content", "ToolCalls", "Usage", });
+        new java.lang.String[] { "Content", "ToolCalls", "Usage", "ProviderStateJson", });
     internal_static_talon_harness_Tool_descriptor =
       getDescriptor().getMessageType(7);
     internal_static_talon_harness_Tool_fieldAccessorTable = new
@@ -10484,7 +10963,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatStreamEvent_descriptor,
-        new java.lang.String[] { "TextDelta", "ReasoningDelta", "ToolCallDelta", "Usage", "Event", });
+        new java.lang.String[] { "TextDelta", "ReasoningDelta", "ToolCallDelta", "Usage", "ProviderStateJson", "Event", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
     talon.resources.Agents.getDescriptor();

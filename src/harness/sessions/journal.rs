@@ -507,6 +507,7 @@ mod tests {
             content: "hello".to_string(),
             tool_calls: Vec::new(),
             usage: None,
+            provider_state_json: String::new(),
         };
         let first = append_llm_response(
             &kv,
@@ -689,6 +690,7 @@ mod tests {
                 arguments: "{}".to_string(),
             }],
             usage: None,
+            provider_state_json: String::new(),
         };
 
         let err = append_llm_response(

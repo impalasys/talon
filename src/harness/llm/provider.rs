@@ -67,6 +67,7 @@ pub fn chat_message_text(role: impl Into<String>, content: impl Into<String>) ->
         },
         tool_calls: Vec::new(),
         tool_call_id: None,
+        provider_state_json: String::new(),
     }
 }
 
