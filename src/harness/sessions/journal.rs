@@ -14,8 +14,8 @@ use crate::gateway::rpc::data_proto::{
     SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadCompaction,
     SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadToolResult,
 };
+use crate::harness::llm::ChatResponse;
 use crate::harness::llm::ToolOutput;
-use crate::harness::llm::{ChatResponse, TokenCounter};
 
 pub async fn append_compaction(
     kv: &dyn KeyValueStore,
@@ -138,25 +138,6 @@ pub async fn append_llm_response(
         now_micros,
     )
     .await
-}
-
-pub fn latest_context_token_entry(
-    entries: &[SessionJournalEntry],
-) -> Option<(SessionJournalEntry, TokenCounter)> {
-    entries
-        .iter()
-        .rev()
-        .find_map(|entry| context_tokens(entry).map(|counter| (entry.clone(), counter)))
-}
-
-pub fn context_tokens(entry: &SessionJournalEntry) -> Option<TokenCounter> {
-    let payload = entry.payload.as_ref()?.payload.as_ref()?;
-    match payload {
-        session_journal_entry_payload::Payload::LlmResponse(response) => {
-            response.response.as_ref()?.usage.clone()
-        }
-        _ => None,
-    }
 }
 
 pub async fn append_tool_result(

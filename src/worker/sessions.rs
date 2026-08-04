@@ -603,18 +603,6 @@ impl WorkerEventHandler {
                 .last()
                 .map(|entry| entry.journal_entry_id.as_str()),
         );
-        if let Some((_entry, counter)) = sessions::latest_context_token_entry(&journal_entries) {
-            if let Err(error) =
-                sessions::persist_context_tokens(self.cp.kv.as_ref(), &sink.claim, &counter).await
-            {
-                tracing::error!(
-                    error = %error,
-                    agent = %event.agent,
-                    session = %event.session_id,
-                    "failed to recover session context token snapshot"
-                );
-            }
-        }
         if let Some(entry) = journal_entries
             .last()
             .filter(|entry| entry.phase == SessionExecutionPhase::Committed as i32)
