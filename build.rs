@@ -152,7 +152,6 @@ fn main() -> std::io::Result<()> {
         ".talon.data.SessionSubmission",
         ".talon.data.SessionJournalEntry",
         ".talon.data.SessionJournalEntryPayloadLlmResponse",
-        ".talon.data.SessionJournalEntryPayloadLlmUsage",
         ".talon.data.SessionJournalEntryPayloadToolResult",
         ".talon.data.SessionJournalEntryPayloadCommit",
         ".talon.harness.ChatMessage",
