@@ -2928,10 +2928,9 @@ export function TalonSession({
       }
       setError(nextError);
     } finally {
-      if (submitController?.signal.aborted || (submittedSession && !isSameSession(currentSessionRef.current, submittedSession))) {
-        return;
-      }
-      if (!submitController || abortControllerRef.current === submitController) {
+      const staleSession = submitController?.signal.aborted
+        || (submittedSession && !isSameSession(currentSessionRef.current, submittedSession));
+      if (!staleSession && (!submitController || abortControllerRef.current === submitController)) {
         abortControllerRef.current = null;
         setIsLoading(false);
         if (!resumedAfterBusyFailure) {
@@ -2958,18 +2957,33 @@ export function TalonSession({
     setIsResuming(false);
     setLoadingStartedAt(null);
 
+    const resumeIfStillProcessing = async () => {
+      const refreshed = await refreshNewestSessionPage(session, stopController.signal).catch(() => null);
+      if (refreshed?.state !== "PROCESSING") {
+        return;
+      }
+      const controller = new AbortController();
+      resumeAbortControllerRef.current?.abort();
+      resumeAbortControllerRef.current = controller;
+      setIsResuming(true);
+      setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
+      setLoadingNow(Date.now());
+      void resumeStream(session, controller.signal);
+    };
+
     try {
       const sessions = gatewayClient?.sessions;
       if (!sessions?.stopGeneration) {
         throw new Error("TalonSession requires a Talon clientset with sessions.stopGeneration().");
       }
-      await sessions.stopGeneration(session);
+      await sessions.stopGeneration(session, { signal: stopController.signal });
       const stopped = await waitForSessionToStop(session, stopController.signal);
       if (stopController.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
         return;
       }
       if (!stopped) {
         setError(new Error("Stop was requested, but the session is still generating."));
+        await resumeIfStillProcessing();
         return;
       }
       await refreshNewestSessionPage(session, stopController.signal);
@@ -2982,15 +2996,7 @@ export function TalonSession({
       }
       const stopError = err instanceof Error ? err : new Error(String(err));
       setError(stopError);
-      const refreshed = await refreshNewestSessionPage(session, stopController.signal).catch(() => null);
-      if (refreshed?.state === "PROCESSING") {
-        const controller = new AbortController();
-        resumeAbortControllerRef.current = controller;
-        setIsResuming(true);
-        setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
-        setLoadingNow(Date.now());
-        void resumeStream(session, controller.signal);
-      }
+      await resumeIfStillProcessing();
     } finally {
       if (stopAbortControllerRef.current === stopController) {
         stopAbortControllerRef.current = null;

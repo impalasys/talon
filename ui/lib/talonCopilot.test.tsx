@@ -2673,11 +2673,14 @@ describe('TalonCopilot', () => {
     fireEvent.click(screen.getByRole('button', { name: /stop generation/i }));
 
     await waitFor(() => expect(resumeSignal.aborted).toBe(true));
-    await waitFor(() => expect(stopGeneration).toHaveBeenCalledWith({
-      ns: 'ops',
-      agent: 'copilot',
-      sessionId: 'sess-existing-processing',
-    }));
+    await waitFor(() => expect(stopGeneration).toHaveBeenCalledWith(
+      {
+        ns: 'ops',
+        agent: 'copilot',
+        sessionId: 'sess-existing-processing',
+      },
+      { signal: expect.any(AbortSignal) },
+    ));
     resumeStream.release(null);
 
     await waitFor(() => {
