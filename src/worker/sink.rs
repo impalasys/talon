@@ -559,18 +559,6 @@ impl PubSubSessionSink {
         *self.latest_journal_entry_id.lock().unwrap() = entry_id.map(str::to_string);
     }
 
-    fn record_latest_journal_entry_id(&self, entry_id: &str) -> bool {
-        let mut latest = self.latest_journal_entry_id.lock().unwrap();
-        let is_current = latest
-            .as_deref()
-            .and_then(|current| current.parse::<u64>().ok())
-            .is_none_or(|current| entry_id.parse::<u64>().unwrap_or(0) >= current);
-        if is_current {
-            *latest = Some(entry_id.to_string());
-        }
-        is_current
-    }
-
     // Record a canonical part for the final assistant SessionMessage.
     fn record_part(
         &self,
@@ -1301,12 +1289,11 @@ impl ExecutionSink for PubSubSessionSink {
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
-        let is_latest_entry = entry.submission_id == self.submission_id
-            && self.record_latest_journal_entry_id(&entry.journal_entry_id);
-        if is_latest_entry {
-            if let Some(counter) = response.usage.as_ref() {
-                self.persist_context_tokens_best_effort(counter).await;
-            }
+        if entry.submission_id == self.submission_id {
+            *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id.clone());
+        }
+        if let Some(counter) = response.usage.as_ref() {
+            self.persist_context_tokens_best_effort(counter).await;
         }
         Ok(())
     }
@@ -3014,14 +3001,6 @@ mod tests {
             .await
             .unwrap();
         }
-        sink.on_llm_response(&ChatResponse {
-            content: String::new(),
-            tool_calls: Vec::new(),
-            usage: Some(first.clone()),
-        })
-        .await
-        .unwrap();
-
         let session = kv
             .get_msg::<data_proto::Session>(&session_key)
             .await
