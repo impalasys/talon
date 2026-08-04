@@ -345,6 +345,7 @@ pub struct PubSubSessionSink {
 
     // Durable work identity. Journal writes are fenced by `attempt_id` so a
     // worker whose lease expired cannot keep appending state after reclaim.
+    pub(crate) claim: sessions::SubmissionLease,
     pub submission_id: String,
     pub attempt_id: String,
 
@@ -489,6 +490,14 @@ impl PubSubSessionSink {
         let agent_id = agent_id.into();
         let submission_id = submission_id.into();
         let attempt_id = attempt_id.into();
+        let claim = sessions::SubmissionLease {
+            ns: ns.clone(),
+            agent: agent_id.clone(),
+            session_id: session_id.clone(),
+            submission_id: submission_id.clone(),
+            attempt_id: attempt_id.clone(),
+            ttl_micros: 0,
+        };
         let fanout_key = fanout_key.unwrap_or_else(|| {
             SessionFanoutKey::new(
                 ns.clone(),
@@ -509,6 +518,7 @@ impl PubSubSessionSink {
             agent_id,
             reply_msg_id: reply_msg_id.into(),
             reply_msg_key,
+            claim,
             submission_id,
             attempt_id,
             token_publish_interval,
@@ -547,6 +557,18 @@ impl PubSubSessionSink {
 
     pub(crate) fn seed_latest_journal_entry_id(&self, entry_id: Option<&str>) {
         *self.latest_journal_entry_id.lock().unwrap() = entry_id.map(str::to_string);
+    }
+
+    fn record_latest_journal_entry_id(&self, entry_id: &str) -> bool {
+        let mut latest = self.latest_journal_entry_id.lock().unwrap();
+        let is_current = latest
+            .as_deref()
+            .and_then(|current| current.parse::<u64>().ok())
+            .is_none_or(|current| entry_id.parse::<u64>().unwrap_or(0) >= current);
+        if is_current {
+            *latest = Some(entry_id.to_string());
+        }
+        is_current
     }
 
     // Record a canonical part for the final assistant SessionMessage.
@@ -1250,20 +1272,9 @@ impl PubSubSessionSink {
         }
     }
 
-    async fn persist_context_tokens_best_effort(
-        &self,
-        entry: &sessions::SessionJournalEntry,
-        counter: &TokenCounter,
-    ) {
-        if let Err(error) = sessions::persist_context_tokens_for_journal_entry(
-            self.kv.as_ref(),
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            entry,
-            counter,
-        )
-        .await
+    async fn persist_context_tokens_best_effort(&self, counter: &TokenCounter) {
+        if let Err(error) =
+            sessions::persist_context_tokens(self.kv.as_ref(), &self.claim, counter).await
         {
             tracing::error!(
                 error = %error,
@@ -1290,12 +1301,12 @@ impl ExecutionSink for PubSubSessionSink {
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
-        if entry.submission_id == self.submission_id {
-            *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id.clone());
-        }
-        if let Some(counter) = response.usage.as_ref() {
-            self.persist_context_tokens_best_effort(&entry, counter)
-                .await;
+        let is_latest_entry = entry.submission_id == self.submission_id
+            && self.record_latest_journal_entry_id(&entry.journal_entry_id);
+        if is_latest_entry {
+            if let Some(counter) = response.usage.as_ref() {
+                self.persist_context_tokens_best_effort(counter).await;
+            }
         }
         Ok(())
     }

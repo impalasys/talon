@@ -603,16 +603,9 @@ impl WorkerEventHandler {
                 .last()
                 .map(|entry| entry.journal_entry_id.as_str()),
         );
-        if let Some((entry, counter)) = sessions::latest_context_token_entry(&journal_entries) {
-            if let Err(error) = sessions::persist_context_tokens_for_journal_entry(
-                self.cp.kv.as_ref(),
-                ns,
-                &event.agent,
-                &event.session_id,
-                &entry,
-                &counter,
-            )
-            .await
+        if let Some((_entry, counter)) = sessions::latest_context_token_entry(&journal_entries) {
+            if let Err(error) =
+                sessions::persist_context_tokens(self.cp.kv.as_ref(), &sink.claim, &counter).await
             {
                 tracing::error!(
                     error = %error,
