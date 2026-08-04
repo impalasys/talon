@@ -59,6 +59,20 @@ Provider config defines model backends and secrets. The config schema supports:
 Provider maps may be written as `providers` or `llmProviders`. If both are
 present, Talon merges them before building the runtime config.
 
+Native OpenAI providers use the Responses API by default. Set `api` to
+`chat_completions` only for an explicit compatibility fallback:
+
+```yaml
+providers:
+  openai:
+    type: openai
+    model: gpt-5.6-luna
+    api: responses
+```
+
+The accepted values are `responses` and `chat_completions`. Generic
+OpenAI-compatible providers continue to use Chat Completions.
+
 ## Model catalog
 
 The optional `models` map records model metadata. This repository's
