@@ -359,6 +359,43 @@ spec:
     }
 
     #[test]
+    fn agent_manifest_round_trips_thinking_policy() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: reasoning-agent
+  namespace: customers
+spec:
+  modelPolicy:
+    profiles:
+      - name: default
+        model:
+          provider: openai
+          name: gpt-5.6-luna
+          temperature: 0.2
+          thinking:
+            enabled: true
+            budgetTokens: 2048
+            effort: high
+"#,
+        )
+        .expect("agent manifest parses");
+
+        let Some(resource_spec::Kind::Agent(spec)) = manifest.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected Agent spec");
+        };
+        let policy = spec.model_policy.unwrap();
+        let model = policy.profiles[0].model.as_ref().unwrap();
+        let thinking = model.thinking.as_ref().expect("thinking policy");
+        assert!(thinking.enabled);
+        assert_eq!(thinking.budget_tokens, Some(2048));
+        assert_eq!(thinking.effort, "high");
+    }
+
+    #[test]
     fn sandbox_policy_manifest_accepts_and_renders_template_spec_shape() {
         let manifest = parse_resource_manifest(
             r#"
