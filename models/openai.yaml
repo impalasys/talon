@@ -5,9 +5,8 @@ models:
     provider: openai
     contextWindowTokens: 1050000
     maxOutputTokens: 128000
-    inputCostPerMillionTokens: 1.0
-    outputCostPerMillionTokens: 6.0
-    cacheReadCostPerMillionTokens: 0.1
+    inputCostPerMillionTokens: 0.2
+    outputCostPerMillionTokens: 1.2
   "openai/gpt-5.6-sol":
     provider: openai
     contextWindowTokens: 1050000
