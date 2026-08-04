@@ -719,6 +719,7 @@ type OpenAiConfig struct {
 	Model         string                 `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
 	ApiKey        *Secret                `protobuf:"bytes,2,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
 	OrgId         string                 `protobuf:"bytes,3,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
+	Api           string                 `protobuf:"bytes,4,opt,name=api,proto3" json:"api,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -770,6 +771,13 @@ func (x *OpenAiConfig) GetApiKey() *Secret {
 func (x *OpenAiConfig) GetOrgId() string {
 	if x != nil {
 		return x.OrgId
+	}
+	return ""
+}
+
+func (x *OpenAiConfig) GetApi() string {
+	if x != nil {
+		return x.Api
 	}
 	return ""
 }
@@ -2049,11 +2057,12 @@ const file_proto_config_proto_rawDesc = "" +
 	"\tanthropic\x18\x02 \x01(\v2\x1d.talon.config.AnthropicConfigH\x00R\tanthropic\x124\n" +
 	"\x06google\x18\x03 \x01(\v2\x1a.talon.config.GoogleConfigH\x00R\x06google\x12J\n" +
 	"\x11openai_compatible\x18\x04 \x01(\v2\x1b.talon.config.GenericConfigH\x00R\x10openaiCompatibleB\b\n" +
-	"\x06config\"j\n" +
+	"\x06config\"|\n" +
 	"\fOpenAiConfig\x12\x14\n" +
 	"\x05model\x18\x01 \x01(\tR\x05model\x12-\n" +
 	"\aapi_key\x18\x02 \x01(\v2\x14.talon.config.SecretR\x06apiKey\x12\x15\n" +
-	"\x06org_id\x18\x03 \x01(\tR\x05orgId\"V\n" +
+	"\x06org_id\x18\x03 \x01(\tR\x05orgId\x12\x10\n" +
+	"\x03api\x18\x04 \x01(\tR\x03api\"V\n" +
 	"\x0fAnthropicConfig\x12\x14\n" +
 	"\x05model\x18\x01 \x01(\tR\x05model\x12-\n" +
 	"\aapi_key\x18\x02 \x01(\v2\x14.talon.config.SecretR\x06apiKey\"S\n" +
