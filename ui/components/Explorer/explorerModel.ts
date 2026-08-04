@@ -286,7 +286,7 @@ export function buildNamespaceContents({
     }
   }
 
-  for (const title of ['Deployments', 'Connectors', 'Sandboxes', 'Templates', 'MCP Servers']) {
+  for (const title of ['Deployments', 'Connectors', 'Sandboxes', 'Secrets', 'Templates', 'MCP Servers']) {
     const nodes = (descriptorGroups.get(title) || []).sort(compareByName);
     if (nodes.length > 0) {
       groups.push({ id: title.toLowerCase().replace(/\s+/g, '-'), title, nodes });

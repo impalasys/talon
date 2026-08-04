@@ -10,6 +10,7 @@ export type ExplorerIconKey =
   | 'file'
   | 'folder'
   | 'hash'
+  | 'key'
   | 'layers'
   | 'message'
   | 'package'
@@ -127,6 +128,19 @@ export const RESOURCE_DESCRIPTORS: ResourceDescriptor[] = [
     badge: (resource) => {
       const status = resourceStatus(resource, 'sandbox');
       return status.lease?.ownerSessionId ? 'leased' : status.phase || 'sandbox';
+    },
+  },
+  {
+    kind: 'Secret',
+    selectionType: 'secret',
+    sortPrefix: 'secret',
+    sortWeight: 3,
+    icon: 'key',
+    appearsInTree: true,
+    badge: (resource) => {
+      const spec = resourceSpec(resource, 'secret') as { data?: Record<string, string> };
+      const count = Object.keys(spec.data || {}).length;
+      return `${count} ${count === 1 ? 'key' : 'keys'}`;
     },
   },
 ];

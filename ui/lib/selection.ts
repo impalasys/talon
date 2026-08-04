@@ -16,6 +16,7 @@ export type SelectionType =
   | 'sandbox-class'
   | 'sandbox-policy'
   | 'sandbox'
+  | 'secret'
   | 'mcp-server'
   | 'file';
 
@@ -43,6 +44,7 @@ export const RESOURCE_KIND_BY_SELECTION: Partial<Record<SelectionType, string>> 
   'sandbox-class': 'SandboxClass',
   'sandbox-policy': 'SandboxPolicy',
   sandbox: 'Sandbox',
+  secret: 'Secret',
   'mcp-server': 'McpServer',
   file: 'File',
 };
@@ -184,7 +186,8 @@ export function selectionFromSearchParams(searchParams: URLSearchParams): Select
       type === 'connector' ||
       type === 'sandbox-class' ||
       type === 'sandbox-policy' ||
-      type === 'sandbox'
+      type === 'sandbox' ||
+      type === 'secret'
     ) &&
     resourceName
   ) {
@@ -262,5 +265,6 @@ export function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'sandbox-class') return `${selection.ns} / SandboxClass`;
   if (selection.type === 'sandbox-policy') return `${selection.ns} / SandboxPolicy`;
   if (selection.type === 'sandbox') return `${selection.ns} / Sandbox`;
+  if (selection.type === 'secret') return `${selection.ns} / Secret`;
   return 'Sys / MCPServer';
 }

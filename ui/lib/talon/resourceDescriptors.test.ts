@@ -11,6 +11,7 @@ describe('resource descriptors', () => {
     expect(RESOURCE_DESCRIPTOR_BY_SELECTION.connector?.kind).toBe('Connector');
     expect(RESOURCE_DESCRIPTOR_BY_SELECTION.template?.kind).toBe('Template');
     expect(RESOURCE_DESCRIPTOR_BY_SELECTION.sandbox?.sortPrefix).toBe('sandbox');
+    expect(RESOURCE_DESCRIPTOR_BY_SELECTION.secret?.kind).toBe('Secret');
   });
 
   it('maps resource badges without rendering the explorer', () => {
@@ -39,5 +40,13 @@ describe('resource descriptors', () => {
         spec: { kind: { case: 'connector', value: { classRef: { name: 'slack' }, enabled: true } } },
       }),
     ).toBe('slack');
+
+    expect(
+      RESOURCE_DESCRIPTOR_BY_SELECTION.secret!.badge({
+        kind: 'Secret',
+        metadata: { name: 'credentials', namespace: 'demo' },
+        spec: { kind: { case: 'secret', value: { type: 'Opaque', data: { token: 'dG9rZW4=' } } } },
+      }),
+    ).toBe('1 key');
   });
 });

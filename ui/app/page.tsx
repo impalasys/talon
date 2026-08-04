@@ -13,6 +13,7 @@ import { ConnectionConfigScreen } from '../screens/ConnectionConfigScreen';
 import { MainHeader } from '../components/MainPanel/MainHeader';
 import { MainPanel } from '../components/MainPanel/MainPanel';
 import { ResourceInspector } from '../components/MainPanel/ResourceInspector';
+import { SecretInspector } from '../components/MainPanel/SecretInspector';
 import { YamlEditor } from '../components/MainPanel/YamlEditor';
 import {
   getDefaultGatewayUrl,
@@ -34,6 +35,8 @@ import {
   channelSubscriptionDocumentFromResource,
   type ResourceEnvelope,
 } from '../lib/talon/resourceMappers';
+import { createResource } from '../lib/talon/client';
+import { talonQueryKeys } from '../lib/talon/queryKeys';
 import { useResourceDocument } from '../hooks/useResourceDocument';
 
 const CONNECT_TIMEOUT_MS = 8000;
@@ -791,6 +794,19 @@ function DebuggerPageContent() {
       : 'Failed to load resource'
     : null;
 
+  const saveSecret = useCallback(async (manifest: any) => {
+    if (!selectedNamespace || selectedNamespace.type !== 'secret') {
+      throw new Error('No Secret is selected.');
+    }
+    await createResource(selectedNamespace.ns, manifest);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: talonQueryKeys.resources(queryScope, selectedNamespace.ns, 'Secret') }),
+      queryClient.invalidateQueries({
+        queryKey: talonQueryKeys.resource(queryScope, selectedNamespace.ns, 'Secret', selectedNamespace.resourceName || ''),
+      }),
+    ]);
+  }, [queryClient, queryScope, selectedNamespace]);
+
   const handleSelectionChange = useCallback(
     (selection: Selection | null, historyMode: 'push' | 'replace' = 'push') => {
       nextHistoryModeRef.current = historyMode;
@@ -1468,8 +1484,14 @@ function DebuggerPageContent() {
               error={resourceError}
               document={resourceDocument}
               yaml={resourceYaml}
+              preferInspector={selectedNamespace?.type === 'secret'}
               dedicatedInspector={
-                selectedNamespace?.type === 'schedule' && resourceDocument ? (
+                selectedNamespace?.type === 'secret' && resourceDocument ? (
+                  <SecretInspector
+                    secret={resourceDocument as any}
+                    onSave={saveSecret}
+                  />
+                ) : selectedNamespace?.type === 'schedule' && resourceDocument ? (
                   <ScheduleInspector
                     schedule={resourceDocument as ScheduleDocument}
                     resourceYaml={resourceYaml}
