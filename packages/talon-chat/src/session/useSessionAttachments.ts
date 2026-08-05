@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 export type SessionAttachment = {
   id: string;
@@ -9,8 +10,8 @@ export type SessionAttachment = {
   error?: string;
 };
 
-export function useSessionAttachments(initial: SessionAttachment[] = []) {
-  const [attachments, setAttachments] = useState(initial);
+export function useSessionAttachments<T extends SessionAttachment = SessionAttachment>(initial: T[] = []) {
+  const [attachments, setAttachments] = useState<T[]>(initial);
   const attachmentsRef = useRef(attachments);
   attachmentsRef.current = attachments;
 
@@ -22,7 +23,7 @@ export function useSessionAttachments(initial: SessionAttachment[] = []) {
     });
   }, []);
 
-  const replace = useCallback((next: SessionAttachment[] | ((current: SessionAttachment[]) => SessionAttachment[])) => {
+  const replace = useCallback<Dispatch<SetStateAction<T[]>>>((next) => {
     setAttachments(next);
   }, []);
 

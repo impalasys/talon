@@ -51,6 +51,8 @@ import { useSessionRuntime } from "./session/useSessionRuntime";
 import type { SessionTarget } from "./session/types";
 import { SessionTranscript } from "./session/SessionTranscript";
 import { SessionComposerDock } from "./session/SessionComposerDock";
+import { useSessionAttachments } from "./session/useSessionAttachments";
+import { useResourcePane } from "./session/useResourcePane";
 import {
   canCompareCanonicalMessageIds,
   historyMessageTimestamp,
@@ -851,7 +853,11 @@ export function TalonSession({
     setServerState(value === "PROCESSING" ? "PROCESSING" : value === "ERROR" ? "ERROR" : value ? "IDLE" : "UNKNOWN");
   }, [setServerState]);
   const [input, setInput] = useState("");
-  const [imageAttachments, setImageAttachments] = useState<TalonSessionPendingImageAttachment[]>([]);
+  const {
+    attachments: imageAttachments,
+    attachmentsRef: imageAttachmentsRef,
+    replace: setImageAttachments,
+  } = useSessionAttachments<TalonSessionPendingImageAttachment>();
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [loadingNow, setLoadingNow] = useState(Date.now());
   const error = sessionRuntimeState.error;
@@ -859,13 +865,6 @@ export function TalonSession({
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
   const [toolResultHydration, setToolResultHydration] = useState<Record<string, "loading" | "error">>({});
-  const [openResourceUri, setOpenResourceUri] = useState<string | null>(null);
-  /** False while the pane plays its close transition before unmount. */
-  const [resourcePaneOpen, setResourcePaneOpen] = useState(false);
-  const [resourceView, setResourceView] = useState<ResourceViewModel | null>(null);
-  const [resourceLoading, setResourceLoading] = useState(false);
-  const [resourceError, setResourceError] = useState<Error | null>(null);
-  const resourceAbortRef = useRef<AbortController | null>(null);
   const missingResourceClientWarnedRef = useRef(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageValue, setEditingMessageValue] = useState("");
@@ -880,8 +879,31 @@ export function TalonSession({
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
   const stopAbortControllerRef = useRef<AbortController | null>(null);
   const currentSessionRef = useRef<SessionTarget | null>(null);
+  const resourceLoader = useCallback(
+    (uri: string, signal: AbortSignal) => fetchResource
+      ? fetchResource(uri, signal)
+      : fetchResourceFromGateway({
+          uri,
+          gatewayClient,
+          agent,
+          sessionId: currentSession?.sessionId ?? sessionId ?? null,
+          signal,
+        }),
+    [agent, currentSession?.sessionId, fetchResource, gatewayClient, sessionId],
+  );
+  const {
+    openResourceUri,
+    resourcePaneOpen,
+    resourceView,
+    resourceLoading,
+    resourceError,
+    open: openResource,
+    close: closeResourcePane,
+    reset: clearResourcePaneState,
+    completeClose: handleResourcePaneExitComplete,
+    abortRef: resourceAbortRef,
+  } = useResourcePane(resourceLoader);
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
-  const imageAttachmentsRef = useRef<TalonSessionPendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
   const toolResultHydrationInFlightRef = useRef<Set<string>>(new Set());
   const toolResultHydrationGenerationRef = useRef(0);
@@ -1234,66 +1256,6 @@ export function TalonSession({
     [updateSessionMessage],
   );
 
-  const loadResource = useCallback(
-    async (uri: string) => {
-      resourceAbortRef.current?.abort();
-      const controller = new AbortController();
-      resourceAbortRef.current = controller;
-      setResourceLoading(true);
-      setResourceError(null);
-      setResourceView(null);
-
-      try {
-        let view: ResourceViewModel;
-        if (fetchResource) {
-          view = await fetchResource(uri, controller.signal);
-        } else {
-          view = await fetchResourceFromGateway({
-            uri,
-            gatewayClient,
-            agent,
-            sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
-            signal: controller.signal,
-          });
-        }
-        if (controller.signal.aborted) return;
-        setResourceView(view);
-      } catch (err) {
-        if (controller.signal.aborted) return;
-        setResourceError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        if (!controller.signal.aborted) {
-          setResourceLoading(false);
-        }
-      }
-    },
-    [agent, fetchResource, gatewayClient, sessionId],
-  );
-
-  const clearResourcePaneState = useCallback(() => {
-    resourceAbortRef.current?.abort();
-    resourceAbortRef.current = null;
-    setOpenResourceUri(null);
-    setResourcePaneOpen(false);
-    setResourceView(null);
-    setResourceError(null);
-    setResourceLoading(false);
-  }, []);
-
-  const closeResourcePane = useCallback(() => {
-    // Animate closed; unmount after ResourcePane fires onExitComplete.
-    resourceAbortRef.current?.abort();
-    resourceAbortRef.current = null;
-    setResourcePaneOpen(false);
-  }, []);
-
-  const handleResourcePaneExitComplete = useCallback(() => {
-    setOpenResourceUri(null);
-    setResourceView(null);
-    setResourceError(null);
-    setResourceLoading(false);
-  }, []);
-
   const handleResourceClick = useCallback(
     (uri: string) => {
       if (onResourceClickProp) {
@@ -1326,15 +1288,13 @@ export function TalonSession({
         return;
       }
 
-      setOpenResourceUri(parsed.uri);
-      setResourcePaneOpen(true);
-      void loadResource(parsed.uri);
+      void openResource(parsed.uri);
     },
     [
       closeResourcePane,
       fetchResource,
       gatewayClient,
-      loadResource,
+      openResource,
       onResourceClickProp,
       openResourceUri,
       resourcePaneOpen,
@@ -1344,7 +1304,7 @@ export function TalonSession({
   // Reset open resource pane when the session identity changes.
   useEffect(() => {
     clearResourcePaneState();
-  }, [namespace, agent, sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agent, clearResourcePaneState, currentSession?.sessionId, namespace, sessionId]);
 
   const copyMessageContent = useCallback(async (message: CopilotMessage) => {
     const nextContent = editableMessageContent(message);
@@ -2149,12 +2109,9 @@ export function TalonSession({
     setExpandedThinkingMessages({});
     setExpandedToolItems({});
     invalidateToolResultHydration();
-    setOpenResourceUri(null);
-    setResourceView(null);
-    setResourceError(null);
-    setResourceLoading(false);
+    clearResourcePaneState();
     autoScrollPinnedRef.current = true;
-  }, [clearRuntime, invalidateToolResultHydration]);
+  }, [clearResourcePaneState, clearRuntime, invalidateToolResultHydration]);
 
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;
