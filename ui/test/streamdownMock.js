@@ -1,10 +1,15 @@
 const React = require('react');
 
-function renderInline(text) {
+function renderInline(text, components) {
+  const link = text.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+  if (link) {
+    const Anchor = components?.a || 'a';
+    return React.createElement(Anchor, { href: link[2] }, link[1]);
+  }
   return text;
 }
 
-function Streamdown({ children }) {
+function Streamdown({ children, components }) {
   const source = typeof children === 'string' ? children : '';
   const blocks = source.split(/\n\n+/);
 
@@ -32,12 +37,12 @@ function Streamdown({ children }) {
           'ul',
           { key: index },
           trimmed.split('\n').map((line, itemIndex) =>
-            React.createElement('li', { key: itemIndex }, renderInline(line.slice(2))),
-          ),
-        );
-      }
+          React.createElement('li', { key: itemIndex }, renderInline(line.slice(2), components)),
+        ),
+      );
+    }
 
-      return React.createElement('p', { key: index }, renderInline(trimmed));
+      return React.createElement('p', { key: index }, renderInline(trimmed, components));
     }),
   );
 }
