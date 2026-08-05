@@ -822,10 +822,14 @@ export function TalonSession({
       return normalizeHistoryPage(response);
     },
   }), [gatewayClient]);
+  const runtimeSubmitRef = useRef<((input: any, context: any) => Promise<void>) | null>(null);
+  const runtimeStopRef = useRef<((context: any) => Promise<void>) | null>(null);
   const sessionRuntime = useSessionRuntime({
     target: initialSessionTarget,
     client: runtimeClient,
     pageSize: Math.max(1, Math.trunc(historyPageSize || historyMessageLimit || DEFAULT_HISTORY_PAGE_SIZE)),
+    submit: (input, context) => runtimeSubmitRef.current?.(input, context) ?? Promise.resolve(),
+    stop: (_input, context) => runtimeStopRef.current?.(context) ?? Promise.resolve(),
   });
   const {
     state: sessionRuntimeState,
@@ -2272,11 +2276,11 @@ export function TalonSession({
     return nextAttachments;
   }, [onImageUpload]);
 
-  const submitMessage = useCallback(async (submittedText: string) => {
+  const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
     let text = submittedText.trim();
     const pendingAttachments = imageAttachmentsRef.current;
     const hasImages = pendingAttachments.length > 0;
-    if ((!text && !hasImages) || isSessionLive || disabled) return;
+    if ((!text && !hasImages) || (!invokedByRuntime && isSessionLive) || disabled) return;
     let submitTurnStarted = false;
     let resumedAfterBusyFailure = false;
     let submittedUserMessageId: string | null = null;
@@ -2376,6 +2380,7 @@ export function TalonSession({
     resumeAbortControllerRef.current = null;
     setIsResuming(false);
 
+    let removeRuntimeAbort = () => undefined;
     try {
       let session = currentSessionRef.current;
       const baselineAssistantSignature = getAssistantSignature(
@@ -2386,6 +2391,12 @@ export function TalonSession({
       submittedSession = session;
 
       const controller = new AbortController();
+      const abortFromRuntime = () => controller.abort();
+      if (runtimeSignal) {
+        if (runtimeSignal.aborted) controller.abort();
+        else runtimeSignal.addEventListener("abort", abortFromRuntime, { once: true });
+      }
+      removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
       submitController = controller;
       abortControllerRef.current = controller;
       const uploadedImages = await uploadQueuedImages(session, controller.signal);
@@ -2509,6 +2520,7 @@ export function TalonSession({
     } finally {
       const staleSession = submitController?.signal.aborted
         || (submittedSession && !isSameSession(currentSessionRef.current, submittedSession));
+      removeRuntimeAbort();
       if (!staleSession && (!submitController || abortControllerRef.current === submitController)) {
         abortControllerRef.current = null;
         setIsLoading(false);
@@ -2519,12 +2531,18 @@ export function TalonSession({
     }
   }, [agent, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, resumeStream, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
 
-  const stopGeneration = useCallback(async () => {
-    if (!currentSessionRef.current || !isSessionLive || isStopping) return;
+  const stopGeneration = useCallback(async (invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
+    if (!currentSessionRef.current || !isSessionLive || (!invokedByRuntime && isStopping)) return;
 
     const session = currentSessionRef.current;
     const messagesBeforeStop = messagesRef.current;
     const stopController = new AbortController();
+    const abortFromRuntime = () => stopController.abort();
+    if (runtimeSignal) {
+      if (runtimeSignal.aborted) stopController.abort();
+      else runtimeSignal.addEventListener("abort", abortFromRuntime, { once: true });
+    }
+    const removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
     stopAbortControllerRef.current?.abort();
     stopAbortControllerRef.current = stopController;
     isStoppingRef.current = true;
@@ -2582,12 +2600,16 @@ export function TalonSession({
       if (stopAbortControllerRef.current === stopController) {
         stopAbortControllerRef.current = null;
       }
+      removeRuntimeAbort();
       if (!stopController.signal.aborted && isSameSession(currentSessionRef.current, session)) {
         isStoppingRef.current = false;
         setIsStopping(false);
       }
     }
   }, [gatewayClient, isSessionLive, isStopping, refreshNewestSessionPage, resumeStream, setError, waitForSessionToStop]);
+
+  runtimeSubmitRef.current = (input, context) => submitMessage(input.text, true, context.signal);
+  runtimeStopRef.current = (context) => stopGeneration(true, context.signal);
 
   const handleTranscriptScroll = useCallback(() => {
     updateTranscriptScrollThumb();
@@ -2716,7 +2738,9 @@ export function TalonSession({
             disabled={disabled}
             value={input}
             onValueChange={setInput}
-            onSubmit={(nextInput) => void submitMessage(nextInput)}
+            onSubmit={(nextInput) => void (currentSession
+              ? sessionRuntime.submit({ text: nextInput, imageAttachments })
+              : submitMessage(nextInput))}
             placeholder={placeholder}
             variant={composerVariant}
             autoFocus={autoFocus}
@@ -2739,7 +2763,7 @@ export function TalonSession({
             onImageFilesSelected={addImageFiles}
             onRemoveImageAttachment={removeImageAttachment}
             onStop={() => {
-              void stopGeneration().catch((err: any) =>
+              void sessionRuntime.stop().catch((err: any) =>
                 setError(err instanceof Error ? err : new Error("Failed to stop generation")),
               );
             }}
