@@ -47,6 +47,16 @@ import {
   objectRefSizeBytes,
 } from "./session/objectRefs";
 import type { TalonChatObjectRef, TalonSessionHandle } from "./session/types";
+import {
+  canCompareCanonicalMessageIds,
+  historyMessageTimestamp,
+  isLocalMessageId,
+  mergeNewestCanonicalPage,
+  normalizeHistoryPage,
+  normalizeMessageLabels,
+  normalizeRawSessionMessage,
+  type SessionHistoryPage,
+} from "./session/history";
 
 const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -394,43 +404,11 @@ function getAssistantSignature(messages: any[] | undefined) {
     .join("|");
 }
 
-type SessionHistoryPage = {
-  messages: CopilotMessage[];
-  state: string;
-  hasMore: boolean;
-  nextBeforeMessageId: string | null;
-};
-
 type ScrollThumbState = {
   visible: boolean;
   top: number;
   height: number;
 };
-
-function stableStringHash(value: string) {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  }
-  return hash.toString(36);
-}
-
-function stableHistoryMessageId(message: any, index: number) {
-  if (typeof message?.id === "string" && message.id.length > 0) {
-    return message.id;
-  }
-  const role = normalizeMessageRole(message?.role);
-  const createdAt = message?.createdAt ?? message?.created_at ?? "unknown";
-  const content = getMessageContent(message);
-  return `history-${role}-${createdAt}-${index}-${stableStringHash(content)}`;
-}
-
-function normalizeMessageLabels(labels: unknown): Record<string, string> | undefined {
-  if (!labels || typeof labels !== "object" || Array.isArray(labels)) return undefined;
-  const entries = Object.entries(labels as Record<string, unknown>)
-    .filter((entry): entry is [string, string] => typeof entry[1] === "string");
-  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
-}
 
 function replaceMessageTextPart(message: CopilotMessage, text: string) {
   const sourceParts = Array.isArray(message.parts) ? message.parts : [];
@@ -705,10 +683,6 @@ function isNearScrollBottom(container: HTMLElement) {
   return container.scrollHeight - container.scrollTop - container.clientHeight <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
 }
 
-function historyMessageTimestamp(message: Pick<CopilotMessage, "createdAt">) {
-  return normalizeEpochToMilliseconds(message.createdAt);
-}
-
 function formatMessageActionTimestamp(message: CopilotMessage) {
   const timestampMs = historyMessageTimestamp(message);
   if (timestampMs === null) {
@@ -795,107 +769,6 @@ function editableMessageContent(message: CopilotMessage) {
     }
   }
   return getMessageContent(message);
-}
-
-function isLocalMessageId(id: string) {
-  return id.startsWith("local-") || id.startsWith("msg-");
-}
-
-function canCompareCanonicalMessageIds(left: string, right: string) {
-  const isFallbackId = (id: string) => id.startsWith("history-") || isLocalMessageId(id);
-  return !isFallbackId(left) && !isFallbackId(right);
-}
-
-function historyItemsFromResponse(response: any) {
-  if (Array.isArray(response?.items)) {
-    return response.items as Array<{ message?: any; steps?: any[] }>;
-  }
-  if (Array.isArray(response?.messages)) {
-    const stepsByMessage = new Map<string, any[]>();
-    for (const step of response.steps || []) {
-      const messageId = step?.messageId ?? step?.message_id;
-      if (!messageId) continue;
-      const existing = stepsByMessage.get(messageId) ?? [];
-      existing.push(step);
-      stepsByMessage.set(messageId, existing);
-    }
-    return response.messages.map((message: any) => ({
-      message,
-      steps: stepsByMessage.get(message?.id) ?? [],
-    }));
-  }
-  return [];
-}
-
-function normalizeRawSessionMessage(message: any, index: number): CopilotMessage {
-  return {
-    id: stableHistoryMessageId(message, index),
-    role: normalizeMessageRole(message.role),
-    content: getMessageContent(message),
-    labels: normalizeMessageLabels(message.labels),
-    parts: Array.isArray(message.parts) ? message.parts : undefined,
-    createdAt: message.createdAt ?? message.created_at,
-  };
-}
-
-function normalizeHistoryPage(response: any): SessionHistoryPage {
-  const items = historyItemsFromResponse(response);
-  const rawMessages = items
-    .map((item) => item?.message)
-    .filter(Boolean)
-    .map((message: any, index: number) => normalizeRawSessionMessage(message, index));
-  const steps = items.flatMap((item) => item?.steps || []);
-  return {
-    messages: hydrateMessagesWithSteps(rawMessages, steps),
-    state: typeof response?.state === "string" ? response.state : "IDLE",
-    hasMore: Boolean(response?.hasMore ?? response?.has_more),
-    nextBeforeMessageId:
-      typeof response?.nextBeforeMessageId === "string"
-        ? response.nextBeforeMessageId
-        : typeof response?.next_before_message_id === "string"
-          ? response.next_before_message_id
-          : null,
-  };
-}
-
-function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPageMessages: CopilotMessage[]) {
-  if (newestPageMessages.length === 0) {
-    return existingMessages;
-  }
-  const newestIds = new Set(newestPageMessages.map((message) => message.id));
-  const oldestPageId = newestPageMessages[0]?.id;
-  const newestPageId = newestPageMessages[newestPageMessages.length - 1]?.id;
-  const oldestPageTimestamp = historyMessageTimestamp(newestPageMessages[0]);
-  const newestPageTimestamp = historyMessageTimestamp(newestPageMessages[newestPageMessages.length - 1]);
-  const preservedOlderMessages = existingMessages.filter((message) => {
-    if (message.id === "1") return true;
-    if (isLocalMessageId(message.id)) return false;
-    if (newestIds.has(message.id)) return false;
-    const messageTimestamp = historyMessageTimestamp(message);
-    if (messageTimestamp !== null && oldestPageTimestamp !== null) {
-      return messageTimestamp < oldestPageTimestamp;
-    }
-    // Only canonical backend IDs are sortable. Fallback IDs include content/index data and must not order pages.
-    return oldestPageId && canCompareCanonicalMessageIds(message.id, oldestPageId) ? message.id < oldestPageId : false;
-  });
-  const preservedNewerMessages = existingMessages.filter((message) => {
-    if (message.id === "1") return false;
-    if (isLocalMessageId(message.id)) return false;
-    if (newestIds.has(message.id)) return false;
-    const messageTimestamp = historyMessageTimestamp(message);
-    if (messageTimestamp !== null && newestPageTimestamp !== null) {
-      return messageTimestamp > newestPageTimestamp;
-    }
-    return newestPageId && canCompareCanonicalMessageIds(message.id, newestPageId) ? message.id > newestPageId : false;
-  });
-  const mergedMessages = [...preservedOlderMessages, ...newestPageMessages, ...preservedNewerMessages];
-  const dedupedMessages = new Map<string, CopilotMessage>();
-  for (const message of mergedMessages) {
-    if (!dedupedMessages.has(message.id)) {
-      dedupedMessages.set(message.id, message);
-    }
-  }
-  return Array.from(dedupedMessages.values());
 }
 
 export function TalonSession({
@@ -1217,7 +1090,7 @@ export function TalonSession({
         labels,
       });
       const updated = response?.message
-        ? { ...message, ...normalizeRawSessionMessage(response.message, 0) }
+        ? { ...message, ...normalizeRawSessionMessage(response.message) }
         : { ...message, parts, labels, content: getMessageContent({ ...message, parts }) };
       setMessages((current) => {
         const nextMessages = current.map((item) => item.id === message.id ? updated : item);
