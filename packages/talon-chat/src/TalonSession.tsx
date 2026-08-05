@@ -49,6 +49,8 @@ import {
 import type { TalonChatObjectRef, TalonSessionHandle } from "./session/types";
 import { useSessionRuntime } from "./session/useSessionRuntime";
 import type { SessionTarget } from "./session/types";
+import { SessionTranscript } from "./session/SessionTranscript";
+import { SessionComposerDock } from "./session/SessionComposerDock";
 import {
   canCompareCanonicalMessageIds,
   historyMessageTimestamp,
@@ -2738,111 +2740,51 @@ export function TalonSession({
             transition: "flex 280ms cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         >
-          <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
-            <div
-              className="talon-session-transcript"
-              data-testid="copilot-transcript"
-              ref={scrollContainerRef}
-              onScroll={handleTranscriptScroll}
-              style={{ height: "100%", overflowY: "auto", overflowX: "hidden", minHeight: 0 }}
-            >
-              <div style={{ maxWidth: 896, margin: "0 auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
-              {renderedMessages}
+          <SessionTranscript
+            isLive={isSessionLive}
+            hasTrailingUserMessage={messages[messages.length - 1]?.role === "user"}
+            workingLabel={formatWorkingDuration(loadingStartedAt, loadingNow)}
+            error={error}
+            scrollThumb={scrollThumb}
+            transcriptRef={scrollContainerRef}
+            bottomRef={bottomRef}
+            onScroll={handleTranscriptScroll}
+          >
+            {renderedMessages}
+          </SessionTranscript>
 
-              {isSessionLive && messages[messages.length - 1]?.role === "user" ? (
-                <div style={{ width: "100%" }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                    {formatWorkingDuration(loadingStartedAt, loadingNow)}
-                  </div>
-                </div>
-              ) : null}
-
-              {error ? (
-                <div style={{ display: "flex", gap: "1rem" }}>
-                  <div style={{ flexShrink: 0 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(254,226,226,1)", border: border("rgba(252,165,165,1)") }}>
-                      <Activity size="14" color="rgba(220,38,38,1)" strokeWidth={1.75} />
-                    </div>
-                  </div>
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(220,38,38,1)" }}>System Incident</span>
-                    <div style={{ fontSize: 13, borderRadius: 10, background: "rgba(254,242,242,1)", border: border("rgba(252,165,165,0.6)"), color: "rgba(220,38,38,1)", padding: 12, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
-                      {error.message || "An error occurred while connecting to the agent."}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-              <div ref={bottomRef} />
-              </div>
-            </div>
-            {scrollThumb.visible ? (
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  top: scrollThumb.top,
-                  right: 2,
-                  width: 5,
-                  height: scrollThumb.height,
-                  borderRadius: 999,
-                  background: "var(--talon-chat-scrollbar-thumb, rgba(113,113,122,0.52))",
-                  pointerEvents: "none",
-                }}
-              />
-            ) : null}
-          </div>
-
-          {disabled ? null : (
-            <div
-              style={{
-                position: "sticky",
-                bottom: 0,
-                zIndex: 10,
-                flexShrink: 0,
-                display: "flex",
-                justifyContent: "center",
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "1.5rem",
-                background: "var(--talon-chat-composer-bg, linear-gradient(to top, rgba(255,255,255,0.94), rgba(255,255,255,0.72) 58%, rgba(255,255,255,0)))",
-                backdropFilter: "blur(10px)",
-              }}
-            >
-              <div style={{ width: "100%", maxWidth: "var(--talon-chat-composer-max-width, 896px)", paddingBottom: 8 }}>
-                <TalonChatComposer
-                  value={input}
-                  onValueChange={setInput}
-                  onSubmit={(nextInput) => void submitMessage(nextInput)}
-                  placeholder={placeholder}
-                  variant={composerVariant}
-                  autoFocus={autoFocus}
-                  rows={inputRows}
-                  canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isSessionLive}
-                  isGenerating={isSessionLive}
-                  canStop={Boolean(currentSession) && !isStopping}
-                  commandMenuItems={commandMenuItems}
-                  startAdornment={composerStartAdornment}
-                  endAdornment={composerEndAdornment}
-                  imageAttachments={imageAttachments.map((attachment) => ({
-                    id: attachment.id,
-                    filename: attachment.file.name,
-                    previewUrl: attachment.previewUrl,
-                    status: attachment.status,
-                    error: attachment.error,
-                  }))}
-                  imageUploadEnabled={Boolean(onImageUpload)}
-                  imageAccept={imageAccept}
-                  onImageFilesSelected={addImageFiles}
-                  onRemoveImageAttachment={removeImageAttachment}
-                  onStop={() => {
-                    void stopGeneration().catch((err: any) =>
-                      setError(err instanceof Error ? err : new Error("Failed to stop generation")),
-                    );
-                  }}
-                />
-              </div>
-            </div>
-          )}
+          <SessionComposerDock
+            disabled={disabled}
+            value={input}
+            onValueChange={setInput}
+            onSubmit={(nextInput) => void submitMessage(nextInput)}
+            placeholder={placeholder}
+            variant={composerVariant}
+            autoFocus={autoFocus}
+            rows={inputRows}
+            canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isSessionLive}
+            isGenerating={isSessionLive}
+            canStop={Boolean(currentSession) && !isStopping}
+            commandMenuItems={commandMenuItems}
+            startAdornment={composerStartAdornment}
+            endAdornment={composerEndAdornment}
+            imageAttachments={imageAttachments.map((attachment) => ({
+              id: attachment.id,
+              filename: attachment.file.name,
+              previewUrl: attachment.previewUrl,
+              status: attachment.status,
+              error: attachment.error,
+            }))}
+            imageUploadEnabled={Boolean(onImageUpload)}
+            imageAccept={imageAccept}
+            onImageFilesSelected={addImageFiles}
+            onRemoveImageAttachment={removeImageAttachment}
+            onStop={() => {
+              void stopGeneration().catch((err: any) =>
+                setError(err instanceof Error ? err : new Error("Failed to stop generation")),
+              );
+            }}
+          />
         </div>
 
         {openResourceUri ? (
