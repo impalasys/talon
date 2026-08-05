@@ -47,6 +47,8 @@ import {
   objectRefSizeBytes,
 } from "./session/objectRefs";
 import type { TalonChatObjectRef, TalonSessionHandle } from "./session/types";
+import { useSessionRuntime } from "./session/useSessionRuntime";
+import type { SessionTarget } from "./session/types";
 import {
   canCompareCanonicalMessageIds,
   historyMessageTimestamp,
@@ -802,16 +804,55 @@ export function TalonSession({
   onResourceClick: onResourceClickProp,
   fetchResource,
 }: TalonSessionProps) {
-  const [messages, setMessages] = useState<CopilotMessage[]>(emptyMessages);
+  const initialSessionTarget = useMemo<SessionTarget | null>(
+    () => sessionId ? { ns: namespace, agent, sessionId } : null,
+    [agent, namespace, sessionId],
+  );
+  const runtimeClient = useMemo(() => ({
+    listMessages: async (target: SessionTarget, options?: { beforeMessageId?: string | null; pageSize?: number; signal?: AbortSignal }) => {
+      const response = await gatewayClient.sessions.listMessages({
+        ...target,
+        pageSize: options?.pageSize,
+        beforeMessageId: options?.beforeMessageId || undefined,
+      });
+      return normalizeHistoryPage(response);
+    },
+  }), [gatewayClient]);
+  const sessionRuntime = useSessionRuntime({
+    target: initialSessionTarget,
+    client: runtimeClient,
+    pageSize: Math.max(1, Math.trunc(historyPageSize || historyMessageLimit || DEFAULT_HISTORY_PAGE_SIZE)),
+  });
+  const {
+    state: sessionRuntimeState,
+    isLive: runtimeIsLive,
+    setMessages,
+    setPhase,
+    setServerState,
+    setError,
+    refresh: refreshRuntime,
+    loadOlder: loadOlderRuntime,
+    clear: clearRuntime,
+    activateTarget,
+  } = sessionRuntime;
+  const messages = sessionRuntimeState.messages;
+  const currentSession = sessionRuntimeState.target;
+  const isLoading = sessionRuntimeState.phase === "submitting";
+  const isResuming = sessionRuntimeState.phase === "resuming";
+  const isStopping = sessionRuntimeState.phase === "stopping";
+  const sessionState = sessionRuntimeState.serverState === "UNKNOWN" ? null : sessionRuntimeState.serverState;
+  const isSessionLive = runtimeIsLive;
+  const setIsLoading = useCallback((value: boolean) => setPhase(value ? "submitting" : "idle"), [setPhase]);
+  const setIsResuming = useCallback((value: boolean) => setPhase(value ? "resuming" : "idle"), [setPhase]);
+  const setIsStopping = useCallback((value: boolean) => setPhase(value ? "stopping" : "idle"), [setPhase]);
+  const setSessionState = useCallback((value: string | null) => {
+    setServerState(value === "PROCESSING" ? "PROCESSING" : value === "ERROR" ? "ERROR" : value ? "IDLE" : "UNKNOWN");
+  }, [setServerState]);
   const [input, setInput] = useState("");
   const [imageAttachments, setImageAttachments] = useState<TalonSessionPendingImageAttachment[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResuming, setIsResuming] = useState(false);
-  const [sessionState, setSessionState] = useState<string | null>(null);
-  const [isStopping, setIsStopping] = useState(false);
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [loadingNow, setLoadingNow] = useState(Date.now());
-  const [error, setError] = useState<Error | null>(null);
+  const error = sessionRuntimeState.error;
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
@@ -827,9 +868,8 @@ export function TalonSession({
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageValue, setEditingMessageValue] = useState("");
   const [reviewActionMessageId, setReviewActionMessageId] = useState<string | null>(null);
-  const [currentSession, setCurrentSession] = useState<{ ns: string; agent: string; sessionId: string } | null>(null);
-  const [hasMoreHistory, setHasMoreHistory] = useState(false);
-  const [nextBeforeMessageId, setNextBeforeMessageId] = useState<string | null>(null);
+  const hasMoreHistory = sessionRuntimeState.history.hasMoreOlder;
+  const nextBeforeMessageId = sessionRuntimeState.history.beforeMessageId;
   const [isLoadingOlderHistory, setIsLoadingOlderHistory] = useState(false);
   const [scrollThumb, setScrollThumb] = useState<ScrollThumbState>({ visible: false, top: 0, height: 0 });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -837,7 +877,7 @@ export function TalonSession({
   const abortControllerRef = useRef<AbortController | null>(null);
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
   const stopAbortControllerRef = useRef<AbortController | null>(null);
-  const currentSessionRef = useRef<{ ns: string; agent: string; sessionId: string } | null>(null);
+  const currentSessionRef = useRef<SessionTarget | null>(null);
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
   const imageAttachmentsRef = useRef<TalonSessionPendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
@@ -848,7 +888,6 @@ export function TalonSession({
   const autoScrollPinnedRef = useRef(true);
   const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
   const isLoadingOlderHistoryRef = useRef(false);
-  const isSessionLive = isLoading || isResuming || sessionState === "PROCESSING" || isStopping;
 
   const invalidateToolResultHydration = useCallback(() => {
     toolResultHydrationGenerationRef.current += 1;
@@ -894,6 +933,27 @@ export function TalonSession({
   useEffect(() => {
     currentSessionRef.current = currentSession;
   }, [currentSession]);
+
+  const previousSessionTargetRef = useRef<SessionTarget | null>(null);
+  useEffect(() => {
+    const previousTarget = previousSessionTargetRef.current;
+    previousSessionTargetRef.current = currentSession;
+    if (!previousTarget || !currentSession || isSameSession(previousTarget, currentSession)) return;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    resumeAbortControllerRef.current?.abort();
+    resumeAbortControllerRef.current = null;
+    stopAbortControllerRef.current?.abort();
+    stopAbortControllerRef.current = null;
+    isStoppingRef.current = false;
+    setIsStopping(false);
+    setIsLoading(false);
+    setIsResuming(false);
+    setLoadingStartedAt(null);
+    setStreamEvents([]);
+    setExpandedThinkingMessages({});
+    invalidateToolResultHydration();
+  }, [currentSession?.agent, currentSession?.ns, currentSession?.sessionId, invalidateToolResultHydration, setIsLoading, setIsResuming, setIsStopping]);
 
   const scrollTranscriptToBottom = useCallback((behavior: ScrollBehavior) => {
     autoScrollPinnedRef.current = true;
@@ -1914,22 +1974,6 @@ export function TalonSession({
     Math.trunc(historyPageSize || historyMessageLimit || DEFAULT_HISTORY_PAGE_SIZE),
   );
 
-  const getSessionMessagesPage = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }, beforeMessageId?: string | null) => {
-      const sessions = gatewayClient?.sessions;
-      if (sessions?.listMessages) {
-        return sessions.listMessages({
-          ...target,
-          pageSize: resolvedHistoryPageSize,
-          beforeMessageId: beforeMessageId || undefined,
-        });
-      }
-
-      throw new Error("TalonSession requires a Talon clientset with sessions.listMessages().");
-    },
-    [gatewayClient, resolvedHistoryPageSize],
-  );
-
   const createSession = useCallback(
     async (target: { ns: string; agent: string }) => {
       const sessions = gatewayClient?.sessions;
@@ -1940,39 +1984,6 @@ export function TalonSession({
       throw new Error("TalonSession requires a Talon clientset with sessions.create().");
     },
     [gatewayClient],
-  );
-
-  const hydrateSessionHistoryPage = useCallback(
-    async (
-      response: any,
-    ): Promise<SessionHistoryPage> => {
-      return normalizeHistoryPage(response);
-    },
-    [],
-  );
-
-  const loadInitialSessionPage = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }) => {
-      const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
-      if (!isSameSession(currentSessionRef.current, target)) {
-        return res;
-      }
-      autoScrollPinnedRef.current = true;
-      setMessages(res.messages);
-      setHasMoreHistory(res.hasMore);
-      setNextBeforeMessageId(res.nextBeforeMessageId);
-      setStreamEvents([]);
-      currentSessionRef.current = target;
-      setCurrentSession(target);
-      setSessionState(res.state);
-      const isProcessing = res.state === "PROCESSING";
-      setIsLoading(false);
-      setIsResuming(isProcessing);
-      setLoadingStartedAt(isProcessing ? sessionProcessingStartTime(res.messages) ?? Date.now() : null);
-      setLoadingNow(Date.now());
-      return res;
-    },
-    [getSessionMessagesPage, hydrateSessionHistoryPage],
   );
 
   const loadOlderHistoryPage = useCallback(
@@ -1990,26 +2001,11 @@ export function TalonSession({
       isLoadingOlderHistoryRef.current = true;
       setIsLoadingOlderHistory(true);
       try {
-        const res = await hydrateSessionHistoryPage(
-          await getSessionMessagesPage(target, nextBeforeMessageId),
-        );
-        const existingIds = new Set(messagesRef.current.map((message) => message.id));
-        const olderMessages = res.messages.filter((message) => !existingIds.has(message.id));
-        if (olderMessages.length === 0) {
+        const res = await loadOlderRuntime(target);
+        if (!res) {
           prependScrollRestoreRef.current = null;
           skipNextAutoScrollRef.current = false;
-        } else {
-          setMessages((prev) => {
-            const currentIds = new Set(prev.map((message) => message.id));
-            const filteredOlderMessages = olderMessages.filter((message) => !currentIds.has(message.id));
-            if (filteredOlderMessages.length === 0) {
-              return prev;
-            }
-            return [...filteredOlderMessages, ...prev];
-          });
         }
-        setHasMoreHistory(res.hasMore);
-        setNextBeforeMessageId(res.nextBeforeMessageId);
       } catch (err) {
         prependScrollRestoreRef.current = null;
         skipNextAutoScrollRef.current = false;
@@ -2019,43 +2015,15 @@ export function TalonSession({
         setIsLoadingOlderHistory(false);
       }
     },
-    [getSessionMessagesPage, hydrateSessionHistoryPage, nextBeforeMessageId],
+    [loadOlderRuntime, nextBeforeMessageId],
   );
 
   const refreshNewestSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
-      const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
-      if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
-        return null;
-      }
-      const newestPageIds = new Set(res.messages.map((message) => message.id));
-      const oldestPageMessage = res.messages[0];
-      const oldestPageId = oldestPageMessage?.id;
-      const oldestPageTimestamp = oldestPageMessage ? historyMessageTimestamp(oldestPageMessage) : null;
-      const hasLoadedOlderHistory = messagesRef.current.some((message) => {
-        if (message.id === "1") return false;
-        if (isLocalMessageId(message.id)) return false;
-        if (newestPageIds.has(message.id)) return false;
-        const messageTimestamp = historyMessageTimestamp(message);
-        if (messageTimestamp !== null && oldestPageTimestamp !== null) {
-          return messageTimestamp < oldestPageTimestamp;
-        }
-        return oldestPageId && canCompareCanonicalMessageIds(message.id, oldestPageId) ? message.id < oldestPageId : false;
-      });
-      setMessages((prev) => {
-        const merged = mergeNewestCanonicalPage(prev, res.messages);
-        return merged;
-      });
-      if (!hasLoadedOlderHistory) {
-        setHasMoreHistory(res.hasMore);
-        setNextBeforeMessageId(res.nextBeforeMessageId);
-      }
       setStreamEvents([]);
-      setSessionState(res.state);
-      setCurrentSession(target);
-      return res;
+      return refreshRuntime(target, signal);
     },
-    [getSessionMessagesPage, hydrateSessionHistoryPage],
+    [refreshRuntime],
   );
 
   const resumeStream = useCallback(
@@ -2106,127 +2074,33 @@ export function TalonSession({
         if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
           return null;
         }
-        const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+        const res = await refreshRuntime(target, signal);
         if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
           return null;
         }
-        setSessionState(res.state);
-        if (res.state !== "PROCESSING") {
+        if (res?.state !== "PROCESSING") {
           return res;
         }
         await new Promise((resolve) => setTimeout(resolve, 250));
       }
       return null;
     },
-    [getSessionMessagesPage, hydrateSessionHistoryPage],
+    [refreshRuntime],
   );
 
   useEffect(() => {
-    const nextSession = sessionId ? { ns: namespace, agent, sessionId } : null;
-    if (!nextSession) {
-      if (currentSessionRef.current && currentSessionRef.current.ns === namespace && currentSessionRef.current.agent === agent) {
-        return;
-      }
-      stopAbortControllerRef.current?.abort();
-      stopAbortControllerRef.current = null;
-      currentSessionRef.current = null;
-      setCurrentSession(null);
-      setSessionState(null);
-      isStoppingRef.current = false;
-      setMessages(emptyMessages);
-      setHasMoreHistory(false);
-      setNextBeforeMessageId(null);
-      setIsLoadingOlderHistory(false);
-      setStreamEvents([]);
-      invalidateToolResultHydration();
-      setError(null);
+    if (!currentSession || sessionRuntimeState.serverState !== "PROCESSING" || isStoppingRef.current) {
       return;
     }
-
-    if (isSameSession(currentSessionRef.current, nextSession)) {
-      return;
-    }
-
-    let cancelled = false;
+    if (resumeAbortControllerRef.current && !resumeAbortControllerRef.current.signal.aborted) return;
     const controller = new AbortController();
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-    resumeAbortControllerRef.current?.abort();
     resumeAbortControllerRef.current = controller;
-    stopAbortControllerRef.current?.abort();
-    stopAbortControllerRef.current = null;
-    currentSessionRef.current = nextSession;
-    invalidateToolResultHydration();
-    setIsLoading(false);
-    setIsResuming(false);
-    setSessionState(null);
-    isStoppingRef.current = false;
-    setIsStopping(false);
-    setLoadingStartedAt(null);
+    setIsResuming(true);
+    setLoadingStartedAt(sessionProcessingStartTime(messagesRef.current) ?? Date.now());
     setLoadingNow(Date.now());
-    setExpandedThinkingMessages({});
-    loadInitialSessionPage(nextSession)
-      .then((res) => {
-        if (!cancelled && res.state === "PROCESSING") {
-          void resumeStream(nextSession, controller.signal);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setMessages([{ id: "1", role: "system", content: `[Error loading session history: ${err.message}]` }]);
-          setError(err instanceof Error ? err : new Error(String(err)));
-        }
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-      stopAbortControllerRef.current?.abort();
-      stopAbortControllerRef.current = null;
-    };
-  }, [agent, invalidateToolResultHydration, loadInitialSessionPage, namespace, resumeStream, sessionId]);
-
-  useEffect(() => {
-    const target = currentSession;
-    if (!target || isSessionLive) {
-      return;
-    }
-
-    let cancelled = false;
-    let requestInFlight = false;
-    const pollForExternalGeneration = async () => {
-      if (cancelled || requestInFlight || !isSameSession(currentSessionRef.current, target)) {
-        return;
-      }
-      requestInFlight = true;
-      try {
-        const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
-        if (cancelled || !isSameSession(currentSessionRef.current, target) || res.state !== "PROCESSING") {
-          return;
-        }
-        await refreshNewestSessionPage(target);
-        if (cancelled || !isSameSession(currentSessionRef.current, target)) {
-          return;
-        }
-        const controller = new AbortController();
-        resumeAbortControllerRef.current?.abort();
-        resumeAbortControllerRef.current = controller;
-        setIsResuming(true);
-        setLoadingStartedAt(sessionProcessingStartTime(res.messages) ?? Date.now());
-        setLoadingNow(Date.now());
-        void resumeStream(target, controller.signal);
-      } catch {
-        // The normal stream/error path reports actionable failures once work is live.
-      } finally {
-        requestInFlight = false;
-      }
-    };
-
-    const intervalId = window.setInterval(() => void pollForExternalGeneration(), 1000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, [currentSession, getSessionMessagesPage, hydrateSessionHistoryPage, isSessionLive, refreshNewestSessionPage, resumeStream]);
+    void resumeStream(currentSession, controller.signal);
+    return () => controller.abort();
+  }, [currentSession, messagesRef, resumeStream, sessionRuntimeState.serverState, setIsResuming]);
 
   const waitForCanonicalAssistantUpdate = useCallback(
     async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string, signal?: AbortSignal) => {
@@ -2234,10 +2108,11 @@ export function TalonSession({
         if (signal?.aborted || !isSameSession(currentSessionRef.current, session)) {
           return false;
         }
-        const sessionState = await hydrateSessionHistoryPage(await getSessionMessagesPage(session));
+        const sessionState = await refreshRuntime(session, signal);
         if (signal?.aborted || !isSameSession(currentSessionRef.current, session)) {
           return false;
         }
+        if (!sessionState) return false;
         const nextSignature = getAssistantSignature(sessionState.messages);
         if (nextSignature && nextSignature !== baselineSignature) {
           await refreshNewestSessionPage(session, signal);
@@ -2247,7 +2122,7 @@ export function TalonSession({
       }
       return false;
     },
-    [getSessionMessagesPage, hydrateSessionHistoryPage, refreshNewestSessionPage],
+    [refreshNewestSessionPage, refreshRuntime],
   );
 
   const clearLocalSession = useCallback(() => {
@@ -2259,12 +2134,10 @@ export function TalonSession({
     stopAbortControllerRef.current = null;
     resourceAbortRef.current?.abort();
     resourceAbortRef.current = null;
-    setMessages(emptyMessages);
+    clearRuntime();
     messagesRef.current = emptyMessages;
     setStreamEvents([]);
     setError(null);
-    setHasMoreHistory(false);
-    setNextBeforeMessageId(null);
     setIsLoading(false);
     setIsResuming(false);
     setSessionState(null);
@@ -2279,7 +2152,7 @@ export function TalonSession({
     setResourceError(null);
     setResourceLoading(false);
     autoScrollPinnedRef.current = true;
-  }, [invalidateToolResultHydration]);
+  }, [clearRuntime, invalidateToolResultHydration]);
 
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;
@@ -2457,12 +2330,12 @@ export function TalonSession({
         if (sessionId) {
           session = { ns: namespace, agent, sessionId };
           currentSessionRef.current = session;
-          setCurrentSession(session);
+          activateTarget(session, { hydrate: false });
         } else {
           const sessionRes = await createSession({ ns: namespace, agent });
           session = { ns: namespace, agent, sessionId: sessionRes.sessionId };
           currentSessionRef.current = session;
-          setCurrentSession(session);
+          activateTarget(session, { hydrate: false });
           onSessionChange?.(session.sessionId);
         }
       }
