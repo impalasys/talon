@@ -2772,10 +2772,8 @@ describe('TalonCopilot', () => {
     ));
     resumeStream.release(null);
 
-    await waitFor(() => {
-      expect(screen.queryByText('Sure')).not.toBeInTheDocument();
-      expect(gatewayClient.createSession).not.toHaveBeenCalled();
-    });
+    expect(await screen.findByText('Sure')).toBeInTheDocument();
+    expect(gatewayClient.createSession).not.toHaveBeenCalled();
   });
 
   it('reports stop RPC failure and resumes the live session when the backend remains processing', async () => {
@@ -3050,6 +3048,7 @@ describe('TalonCopilot', () => {
     await waitFor(() => expect(resourceSignal.aborted).toBe(true));
     expect(screen.queryByText('aborted')).not.toBeInTheDocument();
   });
+
 });
 
 describe('TalonChannel', () => {

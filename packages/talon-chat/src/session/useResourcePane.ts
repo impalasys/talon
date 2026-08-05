@@ -19,12 +19,19 @@ export function useResourcePane(fetchResource?: ResourcePaneLoader) {
     setResourcePaneOpen(true);
     setResourceLoading(true);
     setResourceError(null);
+    setResourceView(null);
     try {
-      if (fetchResource) setResourceView(await fetchResource(uri, controller.signal));
+      if (fetchResource) {
+        const view = await fetchResource(uri, controller.signal);
+        if (controller.signal.aborted || abortRef.current !== controller) return;
+        setResourceView(view);
+      }
     } catch (error) {
-      if (!controller.signal.aborted) setResourceError(error instanceof Error ? error : new Error(String(error)));
+      if (!controller.signal.aborted && abortRef.current === controller) {
+        setResourceError(error instanceof Error ? error : new Error(String(error)));
+      }
     } finally {
-      if (!controller.signal.aborted) setResourceLoading(false);
+      if (!controller.signal.aborted && abortRef.current === controller) setResourceLoading(false);
     }
   }, [fetchResource]);
 

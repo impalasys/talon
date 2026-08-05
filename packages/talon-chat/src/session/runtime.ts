@@ -152,6 +152,7 @@ export function sessionRuntimeReducer(
             serverState: action.page.state === "PROCESSING"
               ? "PROCESSING"
               : action.page.state === "ERROR" ? "ERROR" : "IDLE",
+            error: action.page.state === "IDLE" ? null : state.error,
             phase: action.page.state === "PROCESSING"
               ? "resuming"
               : state.phase === "submitting" || state.phase === "stopping" ? state.phase : "idle",

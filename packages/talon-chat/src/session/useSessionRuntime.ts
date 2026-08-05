@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   emptySessionRuntimeState,
@@ -113,7 +113,7 @@ export function useSessionRuntime({
     if (options.hydrate !== false) void hydrate(nextTarget, epoch);
   }, [hydrate]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (inputTargetKeyRef.current === inputTargetKey && !target && activeTargetRef.current) return;
     if (inputTargetKeyRef.current === inputTargetKey && stateRef.current.target === target) return;
     inputTargetKeyRef.current = inputTargetKey;
