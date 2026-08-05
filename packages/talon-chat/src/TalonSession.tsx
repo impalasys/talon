@@ -384,6 +384,11 @@ function normalizeEpochToMilliseconds(value: unknown) {
   return null;
 }
 
+function sessionProcessingStartTime(messages: CopilotMessage[]) {
+  const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
+  return latestUserMessage ? normalizeEpochToMilliseconds(latestUserMessage.createdAt) : null;
+}
+
 function getAssistantSignature(messages: any[] | undefined) {
   if (!Array.isArray(messages)) return "";
   return messages
@@ -870,6 +875,11 @@ function formatWorkingDuration(start: unknown, now = Date.now()) {
   return seconds > 0 ? `Working for ${minutes}m ${seconds}s` : `Working for ${minutes}m`;
 }
 
+function isSessionBusyError(error: unknown) {
+  const candidate = error as { message?: unknown } | null;
+  return typeof candidate?.message === "string" && /session is currently generating|session is busy/i.test(candidate.message);
+}
+
 function messageWithEditedContent(message: CopilotMessage, nextContent: string): CopilotMessage {
   const nextMessage: CopilotMessage = { ...message, content: nextContent };
   if (Array.isArray(nextMessage.parts)) {
@@ -1049,6 +1059,9 @@ export function TalonSession({
   const [input, setInput] = useState("");
   const [imageAttachments, setImageAttachments] = useState<TalonSessionPendingImageAttachment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
+  const [sessionState, setSessionState] = useState<string | null>(null);
+  const [isStopping, setIsStopping] = useState(false);
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [loadingNow, setLoadingNow] = useState(Date.now());
   const [error, setError] = useState<Error | null>(null);
@@ -1076,16 +1089,19 @@ export function TalonSession({
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
+  const stopAbortControllerRef = useRef<AbortController | null>(null);
   const currentSessionRef = useRef<{ ns: string; agent: string; sessionId: string } | null>(null);
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
   const imageAttachmentsRef = useRef<TalonSessionPendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
   const toolResultHydrationInFlightRef = useRef<Set<string>>(new Set());
   const toolResultHydrationGenerationRef = useRef(0);
+  const isStoppingRef = useRef(false);
   const skipNextAutoScrollRef = useRef(false);
   const autoScrollPinnedRef = useRef(true);
   const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
   const isLoadingOlderHistoryRef = useRef(false);
+  const isSessionLive = isLoading || isResuming || sessionState === "PROCESSING" || isStopping;
 
   const invalidateToolResultHydration = useCallback(() => {
     toolResultHydrationGenerationRef.current += 1;
@@ -1168,7 +1184,7 @@ export function TalonSession({
       updateTranscriptScrollThumb();
     });
     return () => window.cancelAnimationFrame(rafId);
-  }, [currentSession?.sessionId, messages, streamEvents, isLoading, error, scrollTranscriptToBottom, updateTranscriptScrollThumb]);
+  }, [currentSession?.sessionId, messages, streamEvents, isSessionLive, error, scrollTranscriptToBottom, updateTranscriptScrollThumb]);
 
   useEffect(() => {
     updateTranscriptScrollThumb();
@@ -1178,16 +1194,16 @@ export function TalonSession({
 
   useSafeLayoutEffect(() => {
     updateTranscriptScrollThumb();
-  }, [messages, expandedThinkingMessages, expandedToolItems, toolResultHydration, isLoading, error, streamEvents, updateTranscriptScrollThumb]);
+  }, [messages, expandedThinkingMessages, expandedToolItems, toolResultHydration, isSessionLive, error, streamEvents, updateTranscriptScrollThumb]);
 
   useEffect(() => {
-    if (!isLoading || loadingStartedAt === null) {
+    if (!isSessionLive || loadingStartedAt === null) {
       return;
     }
     setLoadingNow(Date.now());
     const intervalId = window.setInterval(() => setLoadingNow(Date.now()), 250);
     return () => window.clearInterval(intervalId);
-  }, [isLoading, loadingStartedAt]);
+  }, [isSessionLive, loadingStartedAt]);
 
   useEffect(() => {
     return () => {
@@ -1556,22 +1572,16 @@ export function TalonSession({
       const usageSummary = formatUsageSummary(usage);
       const isUserMessage = message.role === "user";
       const isLatestMessage = messageIndex === messages.length - 1;
-      const isLiveAssistantMessage = isLoading && isLatestMessage && message.role === "assistant";
+      const isLiveAssistantMessage = isSessionLive && isLatestMessage && message.role === "assistant";
       const isEditableMessage =
         (allowMessageEditing || enableDebugMessageEditing) &&
         (message.role === "user" || message.role === "assistant") &&
         !isLiveAssistantMessage;
       const isEditingMessage = editingMessageId === message.id;
       const messageActionTimestamp = isEditableMessage ? formatMessageActionTimestamp(message) : null;
-      const finalizedTimeline = isLiveAssistantMessage
-        ? { workTimeline: [], finalTimeline: timeline }
-        : splitFinalAssistantTimeline(timeline);
-      const visibleTimeline = isLiveAssistantMessage
-        ? timeline
-        : finalizedTimeline.finalTimeline;
-      const workTimeline = isLiveAssistantMessage
-        ? []
-        : finalizedTimeline.workTimeline;
+      const finalizedTimeline = splitFinalAssistantTimeline(timeline);
+      const visibleTimeline = finalizedTimeline.finalTimeline;
+      const workTimeline = finalizedTimeline.workTimeline;
       const workHasReasoning = workTimeline.some((item) => item.type === "reasoning");
       const workHasUsage = workTimeline.some((item) => item.type === "usage");
       const hasExpandedWorkDetails =
@@ -1591,7 +1601,7 @@ export function TalonSession({
       const workLabel = isLiveAssistantMessage
         ? formatWorkingDuration(loadingStartedAt, loadingNow)
         : formatWorkDuration(previousUserMessage?.createdAt, message.createdAt);
-      const isWorkExpanded = expandedThinkingMessages[message.id] ?? false;
+      const isWorkExpanded = isLiveAssistantMessage || (expandedThinkingMessages[message.id] ?? false);
       const deliveryStatus = message.labels?.[LABEL_CONNECTOR_DELIVERY_STATUS];
       const isPendingConnectorDelivery =
         enableDebugMessageEditing && deliveryStatus === CONNECTOR_DELIVERY_PENDING_REVIEW;
@@ -2150,7 +2160,7 @@ export function TalonSession({
         </React.Fragment>
       );
     });
-  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, isLoading, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultHydration, updateConnectorDeliveryStatus]);
+  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, isLoading, isResuming, isSessionLive, isStopping, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultHydration, updateConnectorDeliveryStatus]);
 
   const resolvedHistoryPageSize = Math.max(
     1,
@@ -2197,12 +2207,22 @@ export function TalonSession({
   const loadInitialSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
       const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+      if (!isSameSession(currentSessionRef.current, target)) {
+        return res;
+      }
       autoScrollPinnedRef.current = true;
       setMessages(res.messages);
       setHasMoreHistory(res.hasMore);
       setNextBeforeMessageId(res.nextBeforeMessageId);
       setStreamEvents([]);
+      currentSessionRef.current = target;
       setCurrentSession(target);
+      setSessionState(res.state);
+      const isProcessing = res.state === "PROCESSING";
+      setIsLoading(false);
+      setIsResuming(isProcessing);
+      setLoadingStartedAt(isProcessing ? sessionProcessingStartTime(res.messages) ?? Date.now() : null);
+      setLoadingNow(Date.now());
       return res;
     },
     [getSessionMessagesPage, hydrateSessionHistoryPage],
@@ -2256,8 +2276,11 @@ export function TalonSession({
   );
 
   const refreshNewestSessionPage = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }) => {
+    async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
       const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+      if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
+        return null;
+      }
       const newestPageIds = new Set(res.messages.map((message) => message.id));
       const oldestPageMessage = res.messages[0];
       const oldestPageId = oldestPageMessage?.id;
@@ -2281,6 +2304,7 @@ export function TalonSession({
         setNextBeforeMessageId(res.nextBeforeMessageId);
       }
       setStreamEvents([]);
+      setSessionState(res.state);
       setCurrentSession(target);
       return res;
     },
@@ -2304,9 +2328,50 @@ export function TalonSession({
         if (!signal?.aborted) {
           setError(err instanceof Error ? err : new Error(String(err)));
         }
+      } finally {
+        if (!signal?.aborted && isSameSession(currentSessionRef.current, target)) {
+          const refreshed = await refreshNewestSessionPage(target).catch(() => null);
+          if (refreshed?.state === "PROCESSING" && !isStoppingRef.current) {
+            const controller = new AbortController();
+            resumeAbortControllerRef.current?.abort();
+            resumeAbortControllerRef.current = controller;
+            setIsResuming(true);
+            setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
+            setLoadingNow(Date.now());
+            window.setTimeout(() => {
+              if (!controller.signal.aborted && isSameSession(currentSessionRef.current, target) && !isStoppingRef.current) {
+                void resumeStream(target, controller.signal);
+              }
+            }, 250);
+          } else {
+            setIsResuming(false);
+            setLoadingStartedAt(null);
+          }
+        }
       }
     },
-    [gatewayClient],
+    [gatewayClient, refreshNewestSessionPage],
+  );
+
+  const waitForSessionToStop = useCallback(
+    async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
+          return null;
+        }
+        const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+        if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
+          return null;
+        }
+        setSessionState(res.state);
+        if (res.state !== "PROCESSING") {
+          return res;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      return null;
+    },
+    [getSessionMessagesPage, hydrateSessionHistoryPage],
   );
 
   useEffect(() => {
@@ -2315,7 +2380,12 @@ export function TalonSession({
       if (currentSessionRef.current && currentSessionRef.current.ns === namespace && currentSessionRef.current.agent === agent) {
         return;
       }
+      stopAbortControllerRef.current?.abort();
+      stopAbortControllerRef.current = null;
+      currentSessionRef.current = null;
       setCurrentSession(null);
+      setSessionState(null);
+      isStoppingRef.current = false;
       setMessages(emptyMessages);
       setHasMoreHistory(false);
       setNextBeforeMessageId(null);
@@ -2332,9 +2402,22 @@ export function TalonSession({
 
     let cancelled = false;
     const controller = new AbortController();
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
     resumeAbortControllerRef.current?.abort();
     resumeAbortControllerRef.current = controller;
+    stopAbortControllerRef.current?.abort();
+    stopAbortControllerRef.current = null;
+    currentSessionRef.current = nextSession;
     invalidateToolResultHydration();
+    setIsLoading(false);
+    setIsResuming(false);
+    setSessionState(null);
+    isStoppingRef.current = false;
+    setIsStopping(false);
+    setLoadingStartedAt(null);
+    setLoadingNow(Date.now());
+    setExpandedThinkingMessages({});
     loadInitialSessionPage(nextSession)
       .then((res) => {
         if (!cancelled && res.state === "PROCESSING") {
@@ -2350,16 +2433,67 @@ export function TalonSession({
     return () => {
       cancelled = true;
       controller.abort();
+      stopAbortControllerRef.current?.abort();
+      stopAbortControllerRef.current = null;
     };
   }, [agent, invalidateToolResultHydration, loadInitialSessionPage, namespace, resumeStream, sessionId]);
 
+  useEffect(() => {
+    const target = currentSession;
+    if (!target || isSessionLive) {
+      return;
+    }
+
+    let cancelled = false;
+    let requestInFlight = false;
+    const pollForExternalGeneration = async () => {
+      if (cancelled || requestInFlight || !isSameSession(currentSessionRef.current, target)) {
+        return;
+      }
+      requestInFlight = true;
+      try {
+        const res = await hydrateSessionHistoryPage(await getSessionMessagesPage(target));
+        if (cancelled || !isSameSession(currentSessionRef.current, target) || res.state !== "PROCESSING") {
+          return;
+        }
+        await refreshNewestSessionPage(target);
+        if (cancelled || !isSameSession(currentSessionRef.current, target)) {
+          return;
+        }
+        const controller = new AbortController();
+        resumeAbortControllerRef.current?.abort();
+        resumeAbortControllerRef.current = controller;
+        setIsResuming(true);
+        setLoadingStartedAt(sessionProcessingStartTime(res.messages) ?? Date.now());
+        setLoadingNow(Date.now());
+        void resumeStream(target, controller.signal);
+      } catch {
+        // The normal stream/error path reports actionable failures once work is live.
+      } finally {
+        requestInFlight = false;
+      }
+    };
+
+    const intervalId = window.setInterval(() => void pollForExternalGeneration(), 1000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [currentSession, getSessionMessagesPage, hydrateSessionHistoryPage, isSessionLive, refreshNewestSessionPage, resumeStream]);
+
   const waitForCanonicalAssistantUpdate = useCallback(
-    async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string) => {
+    async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string, signal?: AbortSignal) => {
       for (let attempt = 0; attempt < 40; attempt += 1) {
+        if (signal?.aborted || !isSameSession(currentSessionRef.current, session)) {
+          return false;
+        }
         const sessionState = await hydrateSessionHistoryPage(await getSessionMessagesPage(session));
+        if (signal?.aborted || !isSameSession(currentSessionRef.current, session)) {
+          return false;
+        }
         const nextSignature = getAssistantSignature(sessionState.messages);
         if (nextSignature && nextSignature !== baselineSignature) {
-          await refreshNewestSessionPage(session);
+          await refreshNewestSessionPage(session, signal);
           return true;
         }
         await new Promise((resolve) => setTimeout(resolve, 250));
@@ -2372,6 +2506,10 @@ export function TalonSession({
   const clearLocalSession = useCallback(() => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
+    resumeAbortControllerRef.current?.abort();
+    resumeAbortControllerRef.current = null;
+    stopAbortControllerRef.current?.abort();
+    stopAbortControllerRef.current = null;
     resourceAbortRef.current?.abort();
     resourceAbortRef.current = null;
     setMessages(emptyMessages);
@@ -2381,6 +2519,10 @@ export function TalonSession({
     setHasMoreHistory(false);
     setNextBeforeMessageId(null);
     setIsLoading(false);
+    setIsResuming(false);
+    setSessionState(null);
+    isStoppingRef.current = false;
+    setIsStopping(false);
     setLoadingStartedAt(null);
     setExpandedThinkingMessages({});
     setExpandedToolItems({});
@@ -2555,8 +2697,12 @@ export function TalonSession({
     let text = submittedText.trim();
     const pendingAttachments = imageAttachmentsRef.current;
     const hasImages = pendingAttachments.length > 0;
-    if ((!text && !hasImages) || isLoading || disabled) return;
+    if ((!text && !hasImages) || isSessionLive || disabled) return;
     let submitTurnStarted = false;
+    let resumedAfterBusyFailure = false;
+    let submittedUserMessageId: string | null = null;
+    let submittedSession: TalonSessionHandle | null = null;
+    let submitController: AbortController | null = null;
 
     const ensureSession = async (): Promise<TalonSessionHandle> => {
       let session = currentSessionRef.current;
@@ -2649,6 +2795,7 @@ export function TalonSession({
     setStreamEvents([]);
     resumeAbortControllerRef.current?.abort();
     resumeAbortControllerRef.current = null;
+    setIsResuming(false);
 
     try {
       let session = currentSessionRef.current;
@@ -2657,8 +2804,10 @@ export function TalonSession({
       );
 
       session = await ensureSession();
+      submittedSession = session;
 
       const controller = new AbortController();
+      submitController = controller;
       abortControllerRef.current = controller;
       const uploadedImages = await uploadQueuedImages(session, controller.signal);
       const imageParts = uploadedImages.map((attachment) => {
@@ -2688,6 +2837,7 @@ export function TalonSession({
         parts: messageParts,
         createdAt: String(Date.now() * 1000),
       };
+      submittedUserMessageId = userMessage.id;
 
       setInput("");
       submittedPreviewUrlsRef.current.push(...uploadedImages.map((attachment) => attachment.previewUrl));
@@ -2723,18 +2873,54 @@ export function TalonSession({
       });
 
       if (!hasAssistantEvent) {
-        await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature);
+        await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature, submitController?.signal);
       } else {
-        await refreshNewestSessionPage(session);
+        await refreshNewestSessionPage(session, submitController?.signal);
       }
     } catch (err: any) {
       const nextError = err instanceof Error ? err : new Error(String(err));
-      const session = currentSessionRef.current;
-      if (session && submitTurnStarted) {
+      const session = submittedSession && isSameSession(currentSessionRef.current, submittedSession)
+        ? submittedSession
+        : null;
+      if (submitController?.signal.aborted || (submittedSession && !session)) {
+        return;
+      }
+      if (session && isSessionBusyError(nextError)) {
+        if (submittedUserMessageId) {
+          const optimisticMessageId = submittedUserMessageId;
+          messagesRef.current = messagesRef.current.filter((message) => message.id !== optimisticMessageId);
+          setMessages((prev) => prev.filter((message) => message.id !== optimisticMessageId));
+          setInput((current) => current || submittedText.trim());
+          if (imageAttachmentsRef.current.length === 0 && pendingAttachments.length > 0) {
+            imageAttachmentsRef.current = pendingAttachments;
+            setImageAttachments(pendingAttachments);
+          }
+        }
+        const refreshed = await refreshNewestSessionPage(session, submitController?.signal).catch(() => null);
+        if (submitController?.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
+          return;
+        }
+        if (isStoppingRef.current) {
+          return;
+        }
+        if (refreshed?.state === "PROCESSING") {
+          const controller = new AbortController();
+          resumeAbortControllerRef.current?.abort();
+          resumeAbortControllerRef.current = controller;
+          resumedAfterBusyFailure = true;
+          setIsResuming(true);
+          setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
+          setLoadingNow(Date.now());
+          setError(null);
+          void resumeStream(session, controller.signal);
+          return;
+        }
+      }
+      if (session && submitTurnStarted && !isSessionBusyError(nextError)) {
         const baselineAssistantSignature = getAssistantSignature(
           messagesRef.current.slice(-resolvedHistoryPageSize),
         );
-        const recovered = await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature).catch(() => false);
+        const recovered = await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature, submitController?.signal).catch(() => false);
         if (recovered) {
           setError(null);
           return;
@@ -2742,31 +2928,85 @@ export function TalonSession({
       }
       setError(nextError);
     } finally {
-      abortControllerRef.current = null;
-      setIsLoading(false);
-      setLoadingStartedAt(null);
+      const staleSession = submitController?.signal.aborted
+        || (submittedSession && !isSameSession(currentSessionRef.current, submittedSession));
+      if (!staleSession && (!submitController || abortControllerRef.current === submitController)) {
+        abortControllerRef.current = null;
+        setIsLoading(false);
+        if (!resumedAfterBusyFailure) {
+          setLoadingStartedAt(null);
+        }
+      }
     }
-  }, [agent, clearSession, createSession, disabled, gatewayClient, isLoading, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
+  }, [agent, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, resumeStream, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
 
   const stopGeneration = useCallback(async () => {
-    if (!currentSessionRef.current || !isLoading) return;
+    if (!currentSessionRef.current || !isSessionLive || isStopping) return;
 
+    const session = currentSessionRef.current;
+    const stopController = new AbortController();
+    stopAbortControllerRef.current?.abort();
+    stopAbortControllerRef.current = stopController;
+    isStoppingRef.current = true;
+    setIsStopping(true);
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
+    resumeAbortControllerRef.current?.abort();
+    resumeAbortControllerRef.current = null;
     setIsLoading(false);
+    setIsResuming(false);
     setLoadingStartedAt(null);
 
+    const resumeIfStillProcessing = async () => {
+      const refreshed = await refreshNewestSessionPage(session, stopController.signal).catch(() => null);
+      if (refreshed?.state !== "PROCESSING") {
+        return;
+      }
+      const controller = new AbortController();
+      resumeAbortControllerRef.current?.abort();
+      resumeAbortControllerRef.current = controller;
+      setIsResuming(true);
+      setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
+      setLoadingNow(Date.now());
+      void resumeStream(session, controller.signal);
+    };
+
     try {
-      const session = currentSessionRef.current;
       const sessions = gatewayClient?.sessions;
       if (!sessions?.stopGeneration) {
         throw new Error("TalonSession requires a Talon clientset with sessions.stopGeneration().");
       }
-      await sessions.stopGeneration(session);
+      await sessions.stopGeneration(session, { signal: stopController.signal });
+      const stopped = await waitForSessionToStop(session, stopController.signal);
+      if (stopController.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
+        return;
+      }
+      if (!stopped) {
+        setError(new Error("Stop was requested, but the session is still generating."));
+        await resumeIfStillProcessing();
+        return;
+      }
+      await refreshNewestSessionPage(session, stopController.signal);
+      setIsResuming(false);
+      setLoadingStartedAt(null);
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
+      if (stopController.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
+        return;
+      }
+      const stopError = err instanceof Error ? err : new Error(String(err));
+      setError(stopError);
+      await resumeIfStillProcessing();
+    } finally {
+      if (stopAbortControllerRef.current === stopController) {
+        stopAbortControllerRef.current = null;
+      }
+      if (!stopController.signal.aborted && isSameSession(currentSessionRef.current, session)) {
+        isStoppingRef.current = false;
+        setIsStopping(false);
+      }
     }
-  }, [gatewayClient, isLoading, setError]);
+  }, [gatewayClient, isSessionLive, isStopping, refreshNewestSessionPage, resumeStream, setError, waitForSessionToStop]);
 
   const handleTranscriptScroll = useCallback(() => {
     updateTranscriptScrollThumb();
@@ -2889,7 +3129,7 @@ export function TalonSession({
               <div style={{ maxWidth: 896, margin: "0 auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
               {renderedMessages}
 
-              {isLoading && messages[messages.length - 1]?.role === "user" ? (
+              {isSessionLive && messages[messages.length - 1]?.role === "user" ? (
                 <div style={{ width: "100%" }}>
                   <div style={{ fontSize: 13, fontWeight: 500, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
                     {formatWorkingDuration(loadingStartedAt, loadingNow)}
@@ -2957,9 +3197,9 @@ export function TalonSession({
                   variant={composerVariant}
                   autoFocus={autoFocus}
                   rows={inputRows}
-                  canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isLoading}
-                  isGenerating={isLoading}
-                  canStop={Boolean(currentSession)}
+                  canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isSessionLive}
+                  isGenerating={isSessionLive}
+                  canStop={Boolean(currentSession) && !isStopping}
                   commandMenuItems={commandMenuItems}
                   startAdornment={composerStartAdornment}
                   endAdornment={composerEndAdornment}
