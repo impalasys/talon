@@ -4,6 +4,8 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+packageExtensionsChecksum: sha256-+1TyLxVKay60mb3ycmdVSD90Sij+lav1YifPk6v06So=
+
 importers:
 
   docs-site:
@@ -9008,6 +9010,7 @@ snapshots:
       '@svgr/core': 8.1.0(supports-color@8.1.1)(typescript@5.9.3)
       '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@5.9.3))(supports-color@8.1.1)
       fs-extra: 11.3.5
+      react: 19.2.3
     transitivePeerDependencies:
       - supports-color
       - typescript

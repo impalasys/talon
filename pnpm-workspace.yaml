@@ -14,3 +14,8 @@ onlyBuiltDependencies:
   - sharp
   - unrs-resolver
   - workerd
+
+packageExtensions:
+  '@tailgrids/icons@2.0.0':
+    dependencies:
+      react: 19.2.3
