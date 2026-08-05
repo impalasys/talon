@@ -2090,7 +2090,7 @@ export function TalonSession({
     [refreshRuntime],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!currentSession || sessionRuntimeState.serverState !== "PROCESSING" || isStoppingRef.current) {
       return;
     }
@@ -2566,6 +2566,7 @@ export function TalonSession({
     if (!currentSessionRef.current || !isSessionLive || isStopping) return;
 
     const session = currentSessionRef.current;
+    const messagesBeforeStop = messagesRef.current;
     const stopController = new AbortController();
     stopAbortControllerRef.current?.abort();
     stopAbortControllerRef.current = stopController;
@@ -2609,6 +2610,7 @@ export function TalonSession({
         return;
       }
       await refreshNewestSessionPage(session, stopController.signal);
+      setMessages(messagesBeforeStop);
       setIsResuming(false);
       setLoadingStartedAt(null);
       setError(null);

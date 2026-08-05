@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import {
   TalonChannel as RawTalonChannel,
   TalonCopilot as RawTalonCopilot,
@@ -6,6 +6,7 @@ import {
 } from '@impalasys/talon-chat';
 
 afterEach(() => {
+  cleanup();
   const warnings = global.__talonReactActWarnings.splice(0);
   if (warnings.length > 0) {
     throw new Error(`React act warning(s):\n${warnings.join('\n\n')}`);
@@ -2819,11 +2820,11 @@ describe('TalonCopilot', () => {
       />,
     );
 
+    await screen.findByRole('button', { name: /stop generation/i });
     await act(async () => {
       await firstResumeStarted.promise;
       await Promise.resolve();
     });
-    await screen.findByRole('button', { name: /stop generation/i });
     fireEvent.click(screen.getByRole('button', { name: /stop generation/i }));
 
     await waitFor(() => expect(stopGeneration).toHaveBeenCalledWith(
