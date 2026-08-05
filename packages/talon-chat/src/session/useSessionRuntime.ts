@@ -5,8 +5,10 @@ import {
   sameSessionTarget,
   SessionOperationRegistry,
   sessionRuntimeReducer,
+  type RuntimeCommandHandler,
   type RuntimeOperationKind,
   type SessionRuntimeState,
+  type SubmitInput,
 } from "./runtime";
 import type { SessionHistoryPage } from "./history";
 import { mergeNewestCanonicalPage } from "./history";
@@ -19,6 +21,8 @@ export type UseSessionRuntimeOptions = {
   client: Pick<SessionClient, "listMessages">;
   pageSize: number;
   pollIntervalMs?: number;
+  submit?: RuntimeCommandHandler<SubmitInput>;
+  stop?: RuntimeCommandHandler;
 };
 
 export type SessionRuntimeController = {
@@ -34,6 +38,8 @@ export type SessionRuntimeController = {
   cancelAllOperations: () => void;
   beginOperation: (kind: RuntimeOperationKind, target?: SessionTarget) => AbortSignal;
   activateTarget: (target: SessionTarget, options?: { hydrate?: boolean }) => void;
+  submit: (input: SubmitInput) => Promise<void>;
+  stop: () => Promise<void>;
 };
 
 function linkAbortSignal(source: AbortSignal | undefined, controller: AbortController): () => void {
@@ -49,6 +55,8 @@ export function useSessionRuntime({
   client,
   pageSize,
   pollIntervalMs = 1000,
+  submit: submitHandler,
+  stop: stopHandler,
 }: UseSessionRuntimeOptions): SessionRuntimeController {
   const [state, dispatch] = useReducer(sessionRuntimeReducer, emptySessionRuntimeState);
   const registryRef = useRef(new SessionOperationRegistry());
@@ -59,9 +67,13 @@ export function useSessionRuntime({
   const inputTargetKeyRef = useRef<string | null>(inputTargetKey);
   const clientRef = useRef(client);
   const pageSizeRef = useRef(pageSize);
+  const submitHandlerRef = useRef(submitHandler);
+  const stopHandlerRef = useRef(stopHandler);
   stateRef.current = state;
   clientRef.current = client;
   pageSizeRef.current = pageSize;
+  submitHandlerRef.current = submitHandler;
+  stopHandlerRef.current = stopHandler;
 
   const beginOperation = useCallback((kind: RuntimeOperationKind, operationTarget?: SessionTarget) => {
     const nextTarget = operationTarget ?? stateRef.current.target ?? target;
@@ -193,6 +205,34 @@ export function useSessionRuntime({
   }, []);
   const cancelAllOperations = useCallback(() => registryRef.current.cancelAll(), []);
 
+  const runCommand = useCallback(async <Input,>(
+    kind: "submit" | "stop",
+    phase: "submitting" | "stopping",
+    input: Input,
+    handler: RuntimeCommandHandler<Input> | undefined,
+  ) => {
+    const operationTarget = stateRef.current.target ?? activeTargetRef.current;
+    if (!operationTarget) throw new Error("Cannot run a session command without an active session.");
+    if (!handler) throw new Error(`Session runtime does not have a ${kind} handler.`);
+    const operation = registryRef.current.begin(kind, operationTarget, epochRef.current);
+    dispatch({ type: "phase", phase, epoch: epochRef.current });
+    try {
+      await handler(input, {
+        target: operationTarget,
+        epoch: epochRef.current,
+        signal: operation.controller.signal,
+      });
+    } finally {
+      const wasCurrent = registryRef.current.isCurrent(operation);
+      registryRef.current.finish(operation);
+      if (!operation.controller.signal.aborted && wasCurrent) {
+        dispatch({ type: "phase", phase: "idle", epoch: epochRef.current });
+      }
+    }
+  }, []);
+  const submit = useCallback((input: SubmitInput) => runCommand("submit", "submitting", input, submitHandlerRef.current), [runCommand]);
+  const stop = useCallback(() => runCommand("stop", "stopping", undefined, stopHandlerRef.current), [runCommand]);
+
   return {
     state,
     isLive: state.phase === "submitting" || state.phase === "resuming" || state.phase === "stopping" || state.serverState === "PROCESSING",
@@ -206,5 +246,7 @@ export function useSessionRuntime({
     cancelAllOperations,
     beginOperation,
     activateTarget,
+    submit,
+    stop,
   };
 }
