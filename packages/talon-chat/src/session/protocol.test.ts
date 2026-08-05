@@ -7,6 +7,7 @@ import {
   parseToolResultPayload,
   protoSessionPartsFromChatParts,
   SESSION_MESSAGE_PART_TYPE,
+  toolResultObjectRef,
   wireMessageToChatMessage,
 } from "./protocol.ts";
 
@@ -15,6 +16,16 @@ describe("session protocol codecs", () => {
     assert.deepEqual(parseToolResultPayload("not-json"), {});
     assert.deepEqual(parseToolResultPayload(JSON.stringify(["not an object"])), {});
     assert.deepEqual(parseToolResultPayload(undefined), {});
+  });
+
+  it("does not recurse when a tool result has no object reference payload", () => {
+    assert.doesNotThrow(() => toolResultObjectRef({ type: "tool-result" }));
+    assert.equal(toolResultObjectRef({ type: "tool-result" }), undefined);
+    assert.equal(toolResultObjectRef({ payloadJson: "{}" }), undefined);
+    assert.deepEqual(
+      toolResultObjectRef({ payloadJson: JSON.stringify({ object: { key: "cas/result" } }) }),
+      { key: "cas/result" },
+    );
   });
 
   it("keeps image object refs while removing UI-only preview URLs from RPC parts", () => {

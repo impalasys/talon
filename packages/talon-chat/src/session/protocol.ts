@@ -105,6 +105,9 @@ export function toolResultObjectRef(value: unknown, parsePayload = parseToolResu
   if (direct && typeof direct === "object" && typeof (direct as TalonChatObjectRef).key === "string") {
     return direct as TalonChatObjectRef;
   }
-  const payload = parsePayload(candidate.payloadJson ?? candidate.payload_json);
+  const payloadJson = candidate.payloadJson ?? candidate.payload_json;
+  if (typeof payloadJson !== "string" || payloadJson.length === 0) return undefined;
+  const payload = parsePayload(payloadJson);
+  if (Object.keys(payload).length === 0) return undefined;
   return toolResultObjectRef(payload, parsePayload);
 }
