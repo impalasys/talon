@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   emptySessionRuntimeState,
@@ -90,7 +90,8 @@ export function useSessionRuntime({
     dispatch({ type: "operation-started", kind, epoch });
     try {
       const page = await clientRef.current.listMessages(nextTarget, { pageSize: pageSizeRef.current, signal: operation.controller.signal });
-      if (!registryRef.current.isCurrent(operation) || epoch !== epochRef.current || !sameSessionTarget(stateRef.current.target, nextTarget)) return null;
+      const effectiveTarget = stateRef.current.target ?? activeTargetRef.current;
+      if (!registryRef.current.isCurrent(operation) || epoch !== epochRef.current || !sameSessionTarget(effectiveTarget, nextTarget)) return null;
       dispatch({ type: kind === "hydrate" ? "hydrated" : "history-updated", target: nextTarget, page, messages: page.messages, epoch } as any);
       return page;
     } catch (error) {
@@ -112,7 +113,7 @@ export function useSessionRuntime({
     if (options.hydrate !== false) void hydrate(nextTarget, epoch);
   }, [hydrate]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (inputTargetKeyRef.current === inputTargetKey && !target && activeTargetRef.current) return;
     if (inputTargetKeyRef.current === inputTargetKey && stateRef.current.target === target) return;
     inputTargetKeyRef.current = inputTargetKey;
