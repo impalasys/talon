@@ -782,7 +782,7 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\x03_idB\a\n" +
 	"\x05_nameB\f\n" +
 	"\n" +
-	"_arguments\"\xf1\x01\n" +
+	"_arguments\"\xd6\x01\n" +
 	"\vChatMessage\x12\x12\n" +
 	"\x04role\x18\x01 \x01(\tR\x04role\x12C\n" +
 	"\rcontent_parts\x18\x02 \x03(\v2\x1e.talon.harness.ChatContentPartR\fcontentParts\x126\n" +
@@ -790,14 +790,14 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"tool_calls\x18\x03 \x03(\v2\x17.talon.harness.ToolCallR\ttoolCalls\x12%\n" +
 	"\ftool_call_id\x18\x04 \x01(\tH\x00R\n" +
 	"toolCallId\x88\x01\x01B\x0f\n" +
-	"\r_tool_call_idJ\x04\b\x05\x10\x06R\x13provider_state_json\"\xff\x01\n" +
+	"\r_tool_call_id\"\xe4\x01\n" +
 	"\fChatResponse\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x126\n" +
 	"\n" +
 	"tool_calls\x18\x02 \x03(\v2\x17.talon.harness.ToolCallR\ttoolCalls\x123\n" +
 	"\x05usage\x18\x03 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x88\x01\x01\x12C\n" +
 	"\rcontent_parts\x18\x05 \x03(\v2\x1e.talon.harness.ChatContentPartR\fcontentPartsB\b\n" +
-	"\x06_usageJ\x04\b\x04\x10\x05R\x13provider_state_json\"h\n" +
+	"\x06_usage\"h\n" +
 	"\x04Tool\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12*\n" +
@@ -806,7 +806,7 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\bmessages\x18\x01 \x03(\v2\x1a.talon.harness.ChatMessageR\bmessages\x12)\n" +
 	"\x05tools\x18\x02 \x03(\v2\x13.talon.harness.ToolR\x05tools\x12@\n" +
 	"\bthinking\x18\x03 \x01(\v2\x1f.talon.resources.ThinkingConfigH\x00R\bthinking\x88\x01\x01B\v\n" +
-	"\t_thinking\"\xc0\x02\n" +
+	"\t_thinking\"\xa5\x02\n" +
 	"\x0fChatStreamEvent\x12\x1f\n" +
 	"\n" +
 	"text_delta\x18\x01 \x01(\tH\x00R\ttextDelta\x12)\n" +
@@ -814,7 +814,7 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\x0ftool_call_delta\x18\x03 \x01(\v2\x1c.talon.harness.ToolCallDeltaH\x00R\rtoolCallDelta\x120\n" +
 	"\x05usage\x18\x04 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x12C\n" +
 	"\fcontent_part\x18\x06 \x01(\v2\x1e.talon.harness.ChatContentPartH\x00R\vcontentPartB\a\n" +
-	"\x05eventJ\x04\b\x05\x10\x06R\x13provider_state_jsonb\x06proto3"
+	"\x05eventb\x06proto3"
 
 var (
 	file_proto_harness_llm_proto_rawDescOnce sync.Once
