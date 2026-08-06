@@ -46,8 +46,6 @@ message ChatMessage {
   repeated ChatContentPart content_parts = 2;
   repeated ToolCall tool_calls = 3;
   optional string tool_call_id = 4;
-  reserved 5;
-  reserved "provider_state_json";
 }
 
 message ChatResponse {
@@ -55,8 +53,6 @@ message ChatResponse {
   repeated ToolCall tool_calls = 2;
   optional talon.data.TokenCounter usage = 3;
   repeated ChatContentPart content_parts = 5;
-  reserved 4;
-  reserved "provider_state_json";
 }
 
 message Tool {
@@ -80,6 +76,4 @@ message ChatStreamEvent {
     talon.data.TokenCounter usage = 4;
     ChatContentPart content_part = 6;
   }
-  reserved 5;
-  reserved "provider_state_json";
 }

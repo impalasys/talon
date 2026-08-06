@@ -11228,30 +11228,28 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       " \001(\t\"x\n\rToolCallDelta\022\r\n\005index\030\001 \001(\r\022\017\n\002" +
       "id\030\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001(\tH\001\210\001\001\022\026\n\targu" +
       "ments\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007\n\005_nameB\014\n\n_arg" +
-      "uments\"\306\001\n\013ChatMessage\022\014\n\004role\030\001 \001(\t\0225\n\r" +
+      "uments\"\253\001\n\013ChatMessage\022\014\n\004role\030\001 \001(\t\0225\n\r" +
       "content_parts\030\002 \003(\0132\036.talon.harness.Chat" +
       "ContentPart\022+\n\ntool_calls\030\003 \003(\0132\027.talon." +
       "harness.ToolCall\022\031\n\014tool_call_id\030\004 \001(\tH\000" +
-      "\210\001\001B\017\n\r_tool_call_idJ\004\010\005\020\006R\023provider_sta" +
-      "te_json\"\326\001\n\014ChatResponse\022\017\n\007content\030\001 \001(" +
-      "\t\022+\n\ntool_calls\030\002 \003(\0132\027.talon.harness.To" +
-      "olCall\022,\n\005usage\030\003 \001(\0132\030.talon.data.Token" +
-      "CounterH\000\210\001\001\0225\n\rcontent_parts\030\005 \003(\0132\036.ta" +
-      "lon.harness.ChatContentPartB\010\n\006_usageJ\004\010" +
-      "\004\020\005R\023provider_state_json\"D\n\004Tool\022\014\n\004name" +
-      "\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022\031\n\021input_sch" +
-      "ema_json\030\003 \001(\t\"\244\001\n\013ChatRequest\022,\n\010messag" +
-      "es\030\001 \003(\0132\032.talon.harness.ChatMessage\022\"\n\005" +
-      "tools\030\002 \003(\0132\023.talon.harness.Tool\0226\n\010thin" +
-      "king\030\003 \001(\0132\037.talon.resources.ThinkingCon" +
-      "figH\000\210\001\001B\013\n\t_thinking\"\202\002\n\017ChatStreamEven" +
-      "t\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017reasoning_del" +
-      "ta\030\002 \001(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.ta" +
-      "lon.harness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001" +
-      "(\0132\030.talon.data.TokenCounterH\000\0226\n\014conten" +
-      "t_part\030\006 \001(\0132\036.talon.harness.ChatContent" +
-      "PartH\000B\007\n\005eventJ\004\010\005\020\006R\023provider_state_js" +
-      "onb\006proto3"
+      "\210\001\001B\017\n\r_tool_call_id\"\273\001\n\014ChatResponse\022\017\n" +
+      "\007content\030\001 \001(\t\022+\n\ntool_calls\030\002 \003(\0132\027.tal" +
+      "on.harness.ToolCall\022,\n\005usage\030\003 \001(\0132\030.tal" +
+      "on.data.TokenCounterH\000\210\001\001\0225\n\rcontent_par" +
+      "ts\030\005 \003(\0132\036.talon.harness.ChatContentPart" +
+      "B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013desc" +
+      "ription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t" +
+      "\"\244\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
+      "on.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023." +
+      "talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.t" +
+      "alon.resources.ThinkingConfigH\000\210\001\001B\013\n\t_t" +
+      "hinking\"\347\001\n\017ChatStreamEvent\022\024\n\ntext_delt" +
+      "a\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 \001(\tH\000\0227\n\017" +
+      "tool_call_delta\030\003 \001(\0132\034.talon.harness.To" +
+      "olCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030.talon.dat" +
+      "a.TokenCounterH\000\0226\n\014content_part\030\006 \001(\0132\036" +
+      ".talon.harness.ChatContentPartH\000B\007\n\005even" +
+      "tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

@@ -323,10 +323,10 @@ impl OpenAiCompatibleProvider {
         }
     }
 
-    fn redact_provider_state(value: &Value) -> Value {
+    fn redact_provider_reasoning(value: &Value) -> Value {
         match value {
             Value::Array(items) => {
-                Value::Array(items.iter().map(Self::redact_provider_state).collect())
+                Value::Array(items.iter().map(Self::redact_provider_reasoning).collect())
             }
             Value::Object(map) => {
                 let reasoning_item = matches!(
@@ -342,9 +342,9 @@ impl OpenAiCompatibleProvider {
                             (
                                 key.clone(),
                                 if sensitive {
-                                    Value::String("<redacted-provider-state>".to_string())
+                                    Value::String("<redacted-provider-reasoning>".to_string())
                                 } else {
-                                    Self::redact_provider_state(child)
+                                    Self::redact_provider_reasoning(child)
                                 },
                             )
                         })
@@ -357,7 +357,7 @@ impl OpenAiCompatibleProvider {
 
     fn payload_json_for_debug(payload: &Value) -> String {
         let payload = Self::redact_data_urls(payload);
-        serde_json::to_string(&Self::redact_provider_state(&payload)).unwrap_or_default()
+        serde_json::to_string(&Self::redact_provider_reasoning(&payload)).unwrap_or_default()
     }
 
     fn sanitize_tool_schema_for_openai(value: &mut Value) {
@@ -2575,7 +2575,7 @@ mod tests {
     }
 
     #[test]
-    fn debug_payload_redacts_provider_reasoning_state() {
+    fn debug_payload_redacts_provider_reasoning() {
         let payload = serde_json::json!({
             "input": [{
                 "type": "reasoning",
@@ -2586,7 +2586,7 @@ mod tests {
 
         let debug = OpenAiCompatibleProvider::payload_json_for_debug(&payload);
         assert!(!debug.contains("ciphertext"));
-        assert!(debug.contains("<redacted-provider-state>"));
+        assert!(debug.contains("<redacted-provider-reasoning>"));
         assert!(debug.contains("safe summary"));
     }
 
