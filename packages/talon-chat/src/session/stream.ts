@@ -57,6 +57,22 @@ function eventKind(value: unknown): string | number | undefined {
   return undefined;
 }
 
+function usageFromPayload(value: Record<string, unknown>): UsageSummary {
+  const numberValue = (...keys: string[]) => {
+    for (const key of keys) {
+      const candidate = value[key];
+      if (typeof candidate === "number" && Number.isFinite(candidate)) return candidate;
+    }
+    return undefined;
+  };
+  return {
+    inputTokens: numberValue("input_tokens", "inputTokens"),
+    outputTokens: numberValue("output_tokens", "outputTokens"),
+    reasoningTokens: numberValue("reasoning_tokens", "reasoningTokens"),
+    totalTokens: numberValue("total_tokens", "totalTokens"),
+  };
+}
+
 function isKind(value: unknown, numeric: number, named: string): boolean {
   return value === numeric || value === named;
 }
@@ -107,7 +123,7 @@ export async function* streamSessionPartEvents(
           };
         }
       } else if (partType === SESSION_MESSAGE_PART_TYPE.USAGE || partType === "SESSION_MESSAGE_PART_TYPE_USAGE") {
-        yield { type: "usage", messageId, usage: parsedPayload as UsageSummary };
+        yield { type: "usage", messageId, usage: usageFromPayload(parsedPayload) };
       }
     }
     if (!signal?.aborted) yield { type: "stream-completed" };
