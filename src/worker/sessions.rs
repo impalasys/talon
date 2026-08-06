@@ -4048,7 +4048,6 @@ mod tests {
                 arguments: "{\"query\":\"value\"}".to_string(),
             }],
             usage: None,
-            content_parts: Vec::new(),
         };
         sessions::append_llm_response(
             kv.as_ref(),
@@ -4103,7 +4102,6 @@ mod tests {
                 content: "continued after recovery".to_string(),
                 tool_calls: Vec::new(),
                 usage: None,
-                content_parts: Vec::new(),
             },
             50,
         )

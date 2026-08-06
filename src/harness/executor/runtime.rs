@@ -238,8 +238,6 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_token(&self, token: &str);
     /// A reasoning chunk from the model.
     async fn on_reasoning(&self, reasoning: &str);
-    /// A completed opaque provider-native content part.
-    async fn on_content_part(&self, _: &ChatContentPart) {}
     /// The agent chose to call a tool.
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value);
     /// The model has started emitting tool-call deltas. Implementations can
@@ -557,6 +555,24 @@ impl AgentExecutor {
         counter
     }
 
+    fn previous_response_id(&self, context_tokens: Option<&TokenCounter>) -> Option<String> {
+        let counter = context_tokens.filter(|counter| {
+            counter.provider == self.llm_provider_key
+                && counter.model == self.llm_model
+                && counter.provider_request_id.is_some()
+        })?;
+        let provider = self.config.providers.get(&self.llm_provider_key)?;
+        let crate::control::config::proto::llm_provider_config::Config::Openai(openai) =
+            provider.config.as_ref()?
+        else {
+            return None;
+        };
+        if openai.api.trim().eq_ignore_ascii_case("chat_completions") {
+            return None;
+        }
+        counter.provider_request_id.clone()
+    }
+
     fn render_execution_prompts(&self, context: &ExecutionContext) -> Result<ExecutionPrompts> {
         let system_prompt = self.agent_spec.system_prompt.trim();
         let system_prompt = if !system_prompt.is_empty() && !context.has_system_message() {
@@ -826,6 +842,9 @@ impl AgentExecutor {
                 let prev_history_len = context.history.len();
                 match compact(self.llm.as_ref(), context, sink).await? {
                     true => {
+                        if let Some(counter) = context_tokens.as_mut() {
+                            counter.provider_request_id = None;
+                        }
                         let new_context_budget =
                             self.estimate_context_budget(context, &prompts, &tools);
                         if new_context_budget >= durable_budget {
@@ -855,7 +874,6 @@ impl AgentExecutor {
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
             let mut final_usage: Option<TokenCounter> = None;
-            let mut response_content_parts: Vec<ChatContentPart> = Vec::new();
             let mut saw_tool_call_delta = false;
             let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
                 .and_then(|model| model.thinking.clone());
@@ -871,6 +889,7 @@ impl AgentExecutor {
                 messages,
                 tools,
                 thinking,
+                previous_response_id: self.previous_response_id(context_tokens.as_ref()),
             };
             prior_request_history_len = Some(context.history.len());
             let reasoning_level = request
@@ -983,17 +1002,6 @@ impl AgentExecutor {
                         event: Some(chat_stream_event::Event::TextDelta(token)),
                     } => {
                         final_reply.push_str(&token);
-                        if let Some(last) = response_content_parts.last_mut() {
-                            if let Some(chat_content_part::Content::Text(text)) =
-                                last.content.as_mut()
-                            {
-                                text.push_str(&token);
-                            } else {
-                                response_content_parts.push(text_part(token.clone()));
-                            }
-                        } else {
-                            response_content_parts.push(text_part(token.clone()));
-                        }
                         sink.on_token(&token).await;
                     }
                     ChatStreamEvent {
@@ -1031,12 +1039,6 @@ impl AgentExecutor {
                     } => {
                         final_usage = Some(self.normalize_token_counter(usage));
                     }
-                    ChatStreamEvent {
-                        event: Some(chat_stream_event::Event::ContentPart(part)),
-                    } => {
-                        sink.on_content_part(&part).await;
-                        response_content_parts.push(part);
-                    }
                     ChatStreamEvent { event: None } => {}
                 }
             }
@@ -1053,7 +1055,6 @@ impl AgentExecutor {
                     final_usage
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
-                content_parts: response_content_parts.clone(),
             };
             context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
@@ -1088,7 +1089,6 @@ impl AgentExecutor {
 
             // Record assistant turn
             let mut assistant_message = LoopMessage::text("assistant", final_reply.clone());
-            assistant_message.content_parts = response_content_parts;
             assistant_message.tool_calls = if tool_calls.is_empty() {
                 None
             } else {
@@ -1329,7 +1329,6 @@ mod tests {
                 },
                 tool_calls: Vec::new(),
                 usage: None,
-                content_parts: Vec::new(),
             })
         }
 

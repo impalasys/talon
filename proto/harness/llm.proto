@@ -9,22 +9,9 @@ message ChatContentPart {
   oneof content {
     string text = 1;
     talon.data.ObjectRef object_ref = 4;
-    EncryptedReasoning encrypted_reasoning = 5;
   }
-  reserved 2, 3;
-}
-
-// Opaque provider-native reasoning content that must be replayed unchanged.
-// The raw JSON is intentionally not exposed as ordinary text content.
-message EncryptedReasoning {
-  // Provider that produced this opaque reasoning item, such as "openai" or
-  // "anthropic".
-  string provider = 1;
-  // Provider-specific reasoning block type, such as "reasoning", "thinking",
-  // or "redacted_thinking".
-  string block_type = 2;
-  // Serialized provider output item or block, retained verbatim for replay.
-  bytes raw_json = 3;
+  reserved 2, 3, 5;
+  reserved "encrypted_reasoning";
 }
 
 message ToolOutput {
@@ -57,7 +44,8 @@ message ChatResponse {
   string content = 1;
   repeated ToolCall tool_calls = 2;
   optional talon.data.TokenCounter usage = 3;
-  repeated ChatContentPart content_parts = 5;
+  reserved 5;
+  reserved "content_parts";
 }
 
 message Tool {
@@ -71,6 +59,7 @@ message ChatRequest {
   repeated ChatMessage messages = 1;
   repeated Tool tools = 2;
   optional talon.resources.ThinkingConfig thinking = 3;
+  optional string previous_response_id = 4;
 }
 
 message ChatStreamEvent {
@@ -79,6 +68,7 @@ message ChatStreamEvent {
     string reasoning_delta = 2;
     ToolCallDelta tool_call_delta = 3;
     talon.data.TokenCounter usage = 4;
-    ChatContentPart content_part = 6;
   }
+  reserved 6;
+  reserved "content_part";
 }

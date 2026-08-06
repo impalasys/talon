@@ -166,6 +166,7 @@ mod tests {
                 messages: vec![],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -207,7 +208,6 @@ mod tests {
                     content: "chat ok".to_string(),
                     tool_calls: vec![],
                     usage: None,
-                    content_parts: Vec::new(),
                 })
             }
         }
@@ -254,6 +254,7 @@ mod tests {
                 messages: vec![],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -265,6 +266,7 @@ mod tests {
                 messages: vec![],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();

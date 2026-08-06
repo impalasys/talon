@@ -21,7 +21,6 @@ impl LlmProvider for MockLlmProvider {
             content: format!("Mock response to {} messages", request.messages.len()),
             tool_calls: vec![],
             usage: None,
-            content_parts: Vec::new(),
         })
     }
 
@@ -56,6 +55,7 @@ mod tests {
                 messages: vec![crate::harness::llm::chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .expect("chat completion should succeed");
@@ -68,6 +68,7 @@ mod tests {
                 messages: vec![crate::harness::llm::chat_message_text("user", "stream")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .expect("streaming should succeed");
