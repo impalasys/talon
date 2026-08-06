@@ -183,6 +183,23 @@ impl OpenAiCompatibleProvider {
         })))
     }
 
+    fn responses_input_content_part(part: &Value) -> Value {
+        if part.get("type").and_then(Value::as_str) == Some("image_url") {
+            serde_json::json!({
+                "type": "input_image",
+                "image_url": part.pointer("/image_url/url").cloned().unwrap_or(Value::Null),
+            })
+        } else {
+            serde_json::json!({
+                "type": "input_text",
+                "text": part
+                    .get("text")
+                    .cloned()
+                    .unwrap_or_else(|| Value::String(String::new())),
+            })
+        }
+    }
+
     async fn serialize_messages(
         &self,
         messages: Vec<ChatMessage>,
@@ -752,10 +769,27 @@ impl OpenAiCompatibleProvider {
         let mut input = Vec::new();
         for message in messages {
             if message.role == "tool" {
+                let tool_call_id = message.tool_call_id.as_deref();
+                let media_message = self
+                    .serialize_tool_result_media_message(tool_call_id, &message.content_parts)
+                    .await?;
+                let output = if let Some(media_message) = media_message {
+                    let content = media_message
+                        .get("content")
+                        .and_then(Value::as_array)
+                        .cloned()
+                        .unwrap_or_default()
+                        .iter()
+                        .map(Self::responses_input_content_part)
+                        .collect::<Vec<_>>();
+                    Value::Array(content)
+                } else {
+                    Value::String(Self::tool_message_content(&message.content_parts))
+                };
                 input.push(serde_json::json!({
                     "type": "function_call_output",
-                    "call_id": message.tool_call_id.unwrap_or_default(),
-                    "output": Self::tool_message_content(&message.content_parts),
+                    "call_id": tool_call_id.unwrap_or_default(),
+                    "output": output,
                 }));
                 continue;
             }
@@ -786,19 +820,7 @@ impl OpenAiCompatibleProvider {
 
                 has_regular_content = true;
                 let part = openai_content_part(&self.cas, part).await?;
-                content.push(
-                    if part.get("type").and_then(Value::as_str) == Some("image_url") {
-                        serde_json::json!({
-                            "type": "input_image",
-                            "image_url": part.pointer("/image_url/url").cloned().unwrap_or(Value::Null),
-                        })
-                    } else {
-                        serde_json::json!({
-                            "type": "input_text",
-                            "text": part.get("text").cloned().unwrap_or_else(|| Value::String(String::new())),
-                        })
-                    },
-                );
+                content.push(Self::responses_input_content_part(&part));
             }
 
             if !content.is_empty() || (message.tool_calls.is_empty() && has_regular_content) {
@@ -1636,6 +1658,55 @@ mod tests {
         assert_eq!(serialized[1]["content"][1]["type"], "image_url");
         assert_eq!(
             serialized[1]["content"][1]["image_url"]["url"],
+            "data:image/png;base64,cG5nLWJ5dGVz"
+        );
+    }
+
+    #[tokio::test]
+    async fn serialize_responses_input_projects_tool_image_results_as_follow_up_user_media() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let object = store
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "screenshot.png".to_string(),
+                    size_bytes: 9,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let provider = OpenAiCompatibleProvider::with_api(
+            "test-key".to_string(),
+            "http://localhost".to_string(),
+            "test-model".to_string(),
+            CasStore::new(store),
+            "responses",
+        );
+
+        let input = provider
+            .serialize_responses_input(vec![ChatMessage {
+                role: "tool".to_string(),
+                content_parts: vec![object_ref_part(object)],
+                tool_calls: Vec::new(),
+                tool_call_id: Some("call_1".to_string()),
+            }])
+            .await
+            .unwrap();
+
+        assert_eq!(input.len(), 1);
+        assert_eq!(input[0]["type"], "function_call_output");
+        assert_eq!(input[0]["call_id"], "call_1");
+        assert_eq!(input[0]["output"][0]["type"], "input_text");
+        assert_eq!(
+            input[0]["output"][0]["text"],
+            "Image result returned by tool call call_1."
+        );
+        assert_eq!(input[0]["output"][1]["type"], "input_image");
+        assert_eq!(
+            input[0]["output"][1]["image_url"],
             "data:image/png;base64,cG5nLWJ5dGVz"
         );
     }
