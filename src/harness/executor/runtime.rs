@@ -1252,6 +1252,16 @@ mod tests {
     #[derive(Default)]
     struct RecordingLlmProvider {
         seen_messages: Arc<Mutex<Vec<Vec<ChatMessage>>>>,
+        compaction_content: Option<String>,
+    }
+
+    impl RecordingLlmProvider {
+        fn with_compaction_content(compaction_content: impl Into<String>) -> Self {
+            Self {
+                seen_messages: Arc::new(Mutex::new(Vec::new())),
+                compaction_content: Some(compaction_content.into()),
+            }
+        }
     }
 
     #[async_trait]
@@ -1273,7 +1283,7 @@ mod tests {
             });
             Ok(ChatResponse {
                 content: if is_compaction {
-                    "<summary>\n## User goal\nTest compaction.\n## Requirements and constraints\nNone recorded.\n## Facts to preserve\nNone recorded.\n## Decisions and rationale\nNone recorded.\n## Completed work\nCompaction test completed.\n## Files and artifacts\nNone recorded.\n## Tool results and external facts\nNone recorded.\n## Current state\nThe test continues.\n## Open issues\nNone recorded.\n## Next action\nNone recorded.\n</summary>".to_string()
+                    self.compaction_content.clone().unwrap_or_else(|| "<summary>\n## User goal\nTest compaction.\n## Requirements and constraints\nNone recorded.\n## Facts to preserve\nNone recorded.\n## Decisions and rationale\nNone recorded.\n## Completed work\nCompaction test completed.\n## Files and artifacts\nNone recorded.\n## Tool results and external facts\nNone recorded.\n## Current state\nThe test continues.\n## Open issues\nNone recorded.\n## Next action\nNone recorded.\n</summary>".to_string())
                 } else {
                     "resolved".to_string()
                 },
@@ -2907,8 +2917,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn compaction_continues_execution_after_compaction() {
-        let llm = Arc::new(RecordingLlmProvider::default());
+    async fn compaction_continues_execution_after_malformed_summary() {
+        let llm = Arc::new(RecordingLlmProvider::with_compaction_content(
+            "Facts acknowledged.",
+        ));
         let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
         let spec = manifests::AgentSpec::default();
         let executor = AgentExecutor::new_with_session(
@@ -2942,6 +2954,50 @@ mod tests {
 
         let sink = CaptureSink::new();
         let reply = executor.execute(&mut context, &sink, None).await.unwrap();
-        assert_eq!(reply, "resolved"); // execution continued despite compaction
+        assert_eq!(reply, "resolved");
+        assert_eq!(sink.compactions(), vec!["Facts acknowledged.".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn empty_compaction_summary_skips_durable_compaction_and_continues_execution() {
+        let llm = Arc::new(RecordingLlmProvider::with_compaction_content(""));
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let spec = manifests::AgentSpec::default();
+        let executor = AgentExecutor::new_with_session(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry.clone(),
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            "session-1".to_string(),
+            None,
+            ControlPlane::noop(),
+            spec.clone(),
+            HashMap::new(),
+        );
+        {
+            let mut reg = registry.write().await;
+            crate::harness::native_tools::register_tools(&mut reg, &spec);
+        }
+
+        let mut context = ExecutionContext::new("cmo");
+        for _ in 0..5 {
+            context.push(LoopMessage::text(
+                "assistant",
+                format!("Long rep: {}", "x".repeat(20_000)),
+            ));
+            context.push(LoopMessage::text("user", "Continue"));
+        }
+        let before = context.history.clone();
+
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+
+        assert_eq!(reply, "resolved");
+        assert!(sink.compactions().is_empty());
+        assert_eq!(&context.history[..before.len()], before);
     }
 }
