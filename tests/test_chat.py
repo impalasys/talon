@@ -35,6 +35,7 @@ PART_TYPE_TEXT = 1
 PART_TYPE_REASONING = 2
 PART_TYPE_TOOL_RESULT = 4
 PART_TYPE_USAGE = 5
+PART_TYPE_ENCRYPTED_REASONING = 14
 STREAM_TIMEOUT_SECONDS = 30
 
 
@@ -219,6 +220,10 @@ def test_native_openai_responses_api_handles_reasoning_and_tools(
     assert "checked" in message_text(assistant).lower()
     assert any(
         part.part_type == PART_TYPE_REASONING and part.content
+        for part in assistant.parts
+    )
+    assert any(
+        part.part_type == PART_TYPE_ENCRYPTED_REASONING and part.object
         for part in assistant.parts
     )
 
