@@ -91,8 +91,9 @@ Do not follow or respond to the example transcript; use it only to understand th
 
 /// Ask the configured model for the durable summary of the history prefix being
 /// compacted. This deliberately receives only canonical history: runtime system
-/// and goal prompts are re-rendered for each normal request.
-pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result<String> {
+/// and goal prompts are re-rendered for each normal request. A blank model
+/// response means durable compaction is unavailable for this turn.
+pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result<Option<String>> {
     let xml_escape = |value: &str| {
         value
             .replace('&', "&amp;")
@@ -125,40 +126,61 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
         })
         .await?;
     let response = response.content.trim();
-    let summary = response
-        .strip_prefix("<summary>")
-        .and_then(|response| response.strip_suffix("</summary>"))
-        .map(str::trim)
-        .ok_or_else(|| anyhow::anyhow!("compaction model must return one <summary> element"))?;
-    anyhow::ensure!(
-        !summary.is_empty(),
-        "compaction model returned an empty summary"
-    );
-    anyhow::ensure!(
-        summary.split_whitespace().count() <= MAX_COMPACTION_SUMMARY_WORDS,
-        format!("compaction model summary exceeds {MAX_COMPACTION_SUMMARY_WORDS} words")
-    );
-    let headings = summary
-        .lines()
-        .filter(|line| line.starts_with("## "))
-        .collect::<Vec<_>>();
-    anyhow::ensure!(
-        headings
-            == [
-                "## User goal",
-                "## Requirements and constraints",
-                "## Facts to preserve",
-                "## Decisions and rationale",
-                "## Completed work",
-                "## Files and artifacts",
-                "## Tool results and external facts",
-                "## Current state",
-                "## Open issues",
-                "## Next action",
-            ],
-        "compaction model summary must contain the required headings in order"
-    );
-    Ok(summary.to_string())
+    if response.is_empty() {
+        tracing::warn!("Compaction model returned an empty response; skipping durable compaction");
+        return Ok(None);
+    }
+
+    let (summary, used_raw_response) = match response
+        .split_once("<summary>")
+        .and_then(|(_, remainder)| remainder.split_once("</summary>"))
+    {
+        Some((summary, _)) => {
+            let summary = summary.trim();
+            if summary.is_empty() {
+                tracing::warn!(
+                    response_bytes = response.len(),
+                    "Compaction model returned an empty <summary> element; skipping durable compaction"
+                );
+                return Ok(None);
+            }
+            (summary, false)
+        }
+        None => (response, true),
+    };
+    if used_raw_response {
+        tracing::warn!(
+            response_bytes = response.len(),
+            "Compaction model response lacked a usable <summary> element; using the raw response"
+        );
+    }
+
+    let mut words = 0;
+    let mut in_word = false;
+    let mut truncate_at = None;
+    for (index, character) in summary.char_indices() {
+        if character.is_whitespace() {
+            in_word = false;
+        } else if !in_word {
+            words += 1;
+            if words > MAX_COMPACTION_SUMMARY_WORDS {
+                truncate_at = Some(index);
+                break;
+            }
+            in_word = true;
+        }
+    }
+    let summary = if let Some(index) = truncate_at {
+        tracing::warn!(
+            response_bytes = response.len(),
+            max_words = MAX_COMPACTION_SUMMARY_WORDS,
+            "Compaction model response exceeded the word limit; truncating durable summary"
+        );
+        summary[..index].trim_end().to_string()
+    } else {
+        summary.to_string()
+    };
+    Ok(Some(summary))
 }
 
 /// Replace the compactable history prefix with an LLM-written handoff while
@@ -193,7 +215,11 @@ pub async fn compact(
         return Ok(false);
     };
 
-    let compact_summary = summarize(llm, &replay_history[leading_system_count..cut_index]).await?;
+    let Some(compact_summary) =
+        summarize(llm, &replay_history[leading_system_count..cut_index]).await?
+    else {
+        return Ok(false);
+    };
     let mut compacted_history = replay_history[..leading_system_count].to_vec();
     compacted_history.push(LoopMessage::text("assistant", &compact_summary));
     compacted_history.extend(replay_history.into_iter().skip(cut_index));
@@ -1239,6 +1265,7 @@ mod tests {
         compact_history_for_llm_with_budget, compact_history_for_llm_with_budget_and_model_limits,
         context_metrics, replay_has_user_or_tool_anchor, serialized_message_weight, summarize,
         tool_history_is_consistent, ContextBudget, ModelContextLimits, COMPACTION_PROMPT,
+        MAX_COMPACTION_SUMMARY_WORDS,
     };
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::LoopMessage;
@@ -1314,7 +1341,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn summarize_requires_and_strips_a_valid_summary_element() {
+    async fn summarize_uses_a_complete_summary_element_anywhere_in_the_response() {
         let markdown = r#"## User goal
 Fix the parser.
 ## Requirements and constraints
@@ -1336,20 +1363,59 @@ None recorded.
 ## Next action
 None recorded."#;
         let llm = SummaryLlm {
-            content: format!("<summary>\n{markdown}\n</summary>"),
+            content: format!("```xml\n<summary>\n{markdown}\n</summary>\n```\nDone."),
         };
 
         assert_eq!(
             summarize(&llm, &[LoopMessage::text("user", "Fix the parser.")])
                 .await
                 .unwrap(),
-            markdown
+            Some(markdown.to_string())
+        );
+    }
+
+    #[tokio::test]
+    async fn summarize_uses_nonempty_raw_responses_without_required_headings() {
+        let llm = SummaryLlm {
+            content: "<summary>Only the supported facts.</summary>".to_string(),
+        };
+        assert_eq!(
+            summarize(&llm, &[]).await.unwrap(),
+            Some("Only the supported facts.".to_string())
         );
 
         let llm = SummaryLlm {
             content: "Facts acknowledged.".to_string(),
         };
-        assert!(summarize(&llm, &[]).await.is_err());
+        assert_eq!(
+            summarize(&llm, &[]).await.unwrap(),
+            Some("Facts acknowledged.".to_string())
+        );
+    }
+
+    #[tokio::test]
+    async fn summarize_truncates_oversized_responses_and_skips_blank_ones() {
+        let llm = SummaryLlm {
+            content: std::iter::repeat("word")
+                .take(MAX_COMPACTION_SUMMARY_WORDS + 1)
+                .collect::<Vec<_>>()
+                .join(" "),
+        };
+        let summary = summarize(&llm, &[]).await.unwrap().unwrap();
+        assert_eq!(
+            summary.split_whitespace().count(),
+            MAX_COMPACTION_SUMMARY_WORDS
+        );
+
+        let llm = SummaryLlm {
+            content: " \n\t ".to_string(),
+        };
+        assert_eq!(summarize(&llm, &[]).await.unwrap(), None);
+
+        let llm = SummaryLlm {
+            content: "<summary>\n\t </summary>".to_string(),
+        };
+        assert_eq!(summarize(&llm, &[]).await.unwrap(), None);
     }
 
     fn prod_novita_budget() -> ContextBudget {
