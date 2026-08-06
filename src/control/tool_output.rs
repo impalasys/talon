@@ -333,6 +333,9 @@ fn content_part_json(part: &ChatContentPart) -> Value {
             "type": "object_ref",
             "object_ref": object_ref_json(object_ref),
         }),
+        Some(chat_content_part::Content::EncryptedReasoning(_)) => json!({
+            "type": "empty",
+        }),
         None => json!({
             "type": "empty",
         }),

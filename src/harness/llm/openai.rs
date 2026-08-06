@@ -3,10 +3,11 @@
 
 use crate::control::cas::CasStore;
 use crate::harness::llm::provider::{
-    chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
-    provider_request_error, reasoning_delta_event, text_delta_event, tool_call_delta_event,
-    usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream,
-    ChatStreamEvent, LlmProvider, TokenCounter, ToolCallDelta,
+    chat_content_part, chat_message_text, chat_stream_event, content_part_event,
+    encrypted_reasoning_part, object_ref_fallback_text, provider_request_error,
+    reasoning_delta_event, text_delta_event, tool_call_delta_event, usage_event, ChatContentPart,
+    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider, TokenCounter,
+    ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -69,6 +70,9 @@ async fn openai_content_part(cas: &CasStore, part: &ChatContentPart) -> Result<s
                     ),
                 },
             })
+        }
+        Some(chat_content_part::Content::EncryptedReasoning(_)) => {
+            serde_json::json!({"type": "text", "text": ""})
         }
         None => serde_json::json!({"type": "text", "text": ""}),
     })
@@ -137,6 +141,7 @@ impl OpenAiCompatibleProvider {
                 chat_content_part::Content::ObjectRef(object_ref) => {
                     Some(object_ref_fallback_text(object_ref))
                 }
+                chat_content_part::Content::EncryptedReasoning(_) => None,
             })
             .collect::<Vec<_>>()
             .join("\n")
@@ -318,8 +323,41 @@ impl OpenAiCompatibleProvider {
         }
     }
 
+    fn redact_provider_state(value: &Value) -> Value {
+        match value {
+            Value::Array(items) => {
+                Value::Array(items.iter().map(Self::redact_provider_state).collect())
+            }
+            Value::Object(map) => {
+                let reasoning_item = matches!(
+                    map.get("type").and_then(Value::as_str),
+                    Some("reasoning") | Some("thinking") | Some("redacted_thinking")
+                );
+                Value::Object(
+                    map.iter()
+                        .map(|(key, child)| {
+                            let sensitive = key == "encrypted_content"
+                                || (reasoning_item
+                                    && matches!(key.as_str(), "thinking" | "signature" | "data"));
+                            (
+                                key.clone(),
+                                if sensitive {
+                                    Value::String("<redacted-provider-state>".to_string())
+                                } else {
+                                    Self::redact_provider_state(child)
+                                },
+                            )
+                        })
+                        .collect(),
+                )
+            }
+            other => other.clone(),
+        }
+    }
+
     fn payload_json_for_debug(payload: &Value) -> String {
-        serde_json::to_string(&Self::redact_data_urls(payload)).unwrap_or_default()
+        let payload = Self::redact_data_urls(payload);
+        serde_json::to_string(&Self::redact_provider_state(&payload)).unwrap_or_default()
     }
 
     fn sanitize_tool_schema_for_openai(value: &mut Value) {
@@ -722,10 +760,33 @@ impl OpenAiCompatibleProvider {
                 continue;
             }
 
-            let content = self.serialize_content_parts(&message.content_parts).await?;
-            let content = content
-                .into_iter()
-                .map(|part| {
+            let mut content = Vec::new();
+            let mut has_regular_content = false;
+            for part in &message.content_parts {
+                if let Some(chat_content_part::Content::EncryptedReasoning(reasoning)) =
+                    part.content.as_ref()
+                {
+                    if !content.is_empty() {
+                        input.push(serde_json::json!({
+                            "role": message.role,
+                            "content": std::mem::take(&mut content),
+                        }));
+                    }
+                    let raw: Value =
+                        serde_json::from_slice(&reasoning.raw_json).map_err(|error| {
+                            anyhow!(
+                                "invalid {} reasoning content: {}",
+                                reasoning.provider,
+                                error
+                            )
+                        })?;
+                    input.push(raw);
+                    continue;
+                }
+
+                has_regular_content = true;
+                let part = openai_content_part(&self.cas, part).await?;
+                content.push(
                     if part.get("type").and_then(Value::as_str) == Some("image_url") {
                         serde_json::json!({
                             "type": "input_image",
@@ -736,11 +797,11 @@ impl OpenAiCompatibleProvider {
                             "type": "input_text",
                             "text": part.get("text").cloned().unwrap_or_else(|| Value::String(String::new())),
                         })
-                    }
-                })
-                .collect::<Vec<_>>();
+                    },
+                );
+            }
 
-            if !content.is_empty() || message.tool_calls.is_empty() {
+            if !content.is_empty() || (message.tool_calls.is_empty() && has_regular_content) {
                 input.push(serde_json::json!({
                     "role": message.role,
                     "content": content,
@@ -908,10 +969,14 @@ impl LlmProvider for OpenAiCompatibleProvider {
         });
 
         Ok(ChatResponse {
-            content,
+            content: content.clone(),
             tool_calls,
             usage,
-            provider_state_json: String::new(),
+            content_parts: if content.is_empty() {
+                Vec::new()
+            } else {
+                vec![crate::harness::llm::text_part(content.clone())]
+            },
         })
     }
 
@@ -1058,6 +1123,7 @@ fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
     use crate::harness::llm::provider::ToolCall;
 
     let mut content = String::new();
+    let mut content_parts = Vec::new();
     let mut tool_calls = Vec::new();
     for item in value
         .get("output")
@@ -1075,7 +1141,14 @@ fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
                 {
                     if let Some(text) = part.get("text").and_then(Value::as_str) {
                         content.push_str(text);
+                        content_parts.push(crate::harness::llm::text_part(text));
                     }
+                }
+            }
+            Some("reasoning") => {
+                if item.get("encrypted_content").is_some() {
+                    let raw_json = serde_json::to_vec(item)?;
+                    content_parts.push(encrypted_reasoning_part("openai", "reasoning", raw_json));
                 }
             }
             Some("function_call") => {
@@ -1105,7 +1178,7 @@ fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
         content,
         tool_calls,
         usage: extract_responses_usage(value),
-        provider_state_json: String::new(),
+        content_parts,
     })
 }
 
@@ -1249,6 +1322,20 @@ fn parse_responses_stream(response: reqwest::Response, parent_span: tracing::Spa
                             })));
                         }
                     }
+                    "response.output_item.done" => {
+                        let Some(item) = value.get("item") else {
+                            continue;
+                        };
+                        if item.get("type").and_then(Value::as_str) == Some("reasoning")
+                            && item.get("encrypted_content").is_some()
+                        {
+                            items.push(Ok(content_part_event(encrypted_reasoning_part(
+                                "openai",
+                                "reasoning",
+                                serde_json::to_vec(item).unwrap_or_default(),
+                            ))));
+                        }
+                    }
                     "response.completed" => {
                         if let Some(response) = value.get("response") {
                             if let Some(usage) = extract_responses_usage(response) {
@@ -1364,7 +1451,6 @@ mod tests {
                 arguments: arguments.to_string(),
             }],
             tool_call_id: None,
-            provider_state_json: String::new(),
         }
     }
 
@@ -1374,7 +1460,6 @@ mod tests {
             content_parts: vec![text_part(content.to_string())],
             tool_calls: Vec::new(),
             tool_call_id: Some("call_1".to_string()),
-            provider_state_json: String::new(),
         }
     }
 
@@ -1490,7 +1575,6 @@ mod tests {
                 content_parts: vec![text_part("look at this"), object_ref_part(object)],
                 tool_calls: Vec::new(),
                 tool_call_id: None,
-                provider_state_json: String::new(),
             }])
             .await
             .unwrap();
@@ -1533,7 +1617,6 @@ mod tests {
                 content_parts: vec![object_ref_part(object)],
                 tool_calls: Vec::new(),
                 tool_call_id: Some("call_1".to_string()),
-                provider_state_json: String::new(),
             }])
             .await
             .unwrap();
@@ -1600,14 +1683,12 @@ mod tests {
                     content_parts: vec![object_ref_part(object)],
                     tool_calls: Vec::new(),
                     tool_call_id: Some("call_1".to_string()),
-                    provider_state_json: String::new(),
                 },
                 ChatMessage {
                     role: "tool".to_string(),
                     content_parts: vec![text_part("plain result".to_string())],
                     tool_calls: Vec::new(),
                     tool_call_id: Some("call_2".to_string()),
-                    provider_state_json: String::new(),
                 },
             ])
             .await
@@ -1642,7 +1723,6 @@ mod tests {
                 )],
                 tool_calls: Vec::new(),
                 tool_call_id: Some("call_1".to_string()),
-                provider_state_json: String::new(),
             }])
             .await
             .unwrap();
@@ -1768,7 +1848,6 @@ mod tests {
                 content_parts: Vec::new(),
                 tool_calls: Vec::new(),
                 tool_call_id: None,
-                provider_state_json: String::new(),
             }])
             .await
             .unwrap();
@@ -2496,10 +2575,27 @@ mod tests {
     }
 
     #[test]
-    fn parse_responses_response_extracts_text_tools_usage_and_state() {
+    fn debug_payload_redacts_provider_reasoning_state() {
+        let payload = serde_json::json!({
+            "input": [{
+                "type": "reasoning",
+                "encrypted_content": "ciphertext",
+                "summary": [{"text": "safe summary"}]
+            }]
+        });
+
+        let debug = OpenAiCompatibleProvider::payload_json_for_debug(&payload);
+        assert!(!debug.contains("ciphertext"));
+        assert!(debug.contains("<redacted-provider-state>"));
+        assert!(debug.contains("safe summary"));
+    }
+
+    #[test]
+    fn parse_responses_response_extracts_text_tools_usage_and_reasoning() {
         let response = parse_responses_response(&serde_json::json!({
             "id": "resp_1",
             "output": [
+                {"type": "reasoning", "encrypted_content": "ciphertext"},
                 {"type": "message", "content": [{"type": "output_text", "text": "done"}]},
                 {"type": "function_call", "call_id": "call_1", "name": "lookup", "arguments": "{\"q\":\"x\"}"}
             ],
@@ -2514,5 +2610,46 @@ mod tests {
         assert_eq!(response.content, "done");
         assert_eq!(response.tool_calls[0].id, "call_1");
         assert_eq!(response.usage.unwrap().reasoning_output_tokens, 3);
+        assert!(matches!(
+            response.content_parts[0].content,
+            Some(chat_content_part::Content::EncryptedReasoning(_))
+        ));
+    }
+
+    #[tokio::test]
+    async fn responses_input_replays_provider_output_items() {
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            "http://localhost".to_string(),
+            "model".to_string(),
+            test_cas_store(),
+            "responses",
+        );
+        let raw_json = serde_json::json!({
+            "type": "reasoning",
+            "id": "rs_1",
+            "encrypted_content": "ciphertext"
+        })
+        .to_string()
+        .into_bytes();
+        let message = ChatMessage {
+            role: "assistant".to_string(),
+            content_parts: vec![
+                crate::harness::llm::text_part("before"),
+                crate::harness::llm::encrypted_reasoning_part("openai", "reasoning", raw_json),
+                crate::harness::llm::text_part("after"),
+            ],
+            tool_calls: Vec::new(),
+            tool_call_id: None,
+        };
+        let input = provider
+            .serialize_responses_input(vec![message])
+            .await
+            .unwrap();
+        assert_eq!(input.len(), 3);
+        assert_eq!(input[0]["content"][0]["text"], "before");
+        assert_eq!(input[1]["type"], "reasoning");
+        assert_eq!(input[1]["encrypted_content"], "ciphertext");
+        assert_eq!(input[2]["content"][0]["text"], "after");
     }
 }

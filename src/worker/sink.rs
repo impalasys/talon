@@ -2823,7 +2823,6 @@ mod tests {
             content: "first".to_string(),
             tool_calls: tool_calls.clone(),
             usage: None,
-            provider_state_json: String::new(),
         })
         .await
         .unwrap();
@@ -2834,7 +2833,6 @@ mod tests {
             content: "final".to_string(),
             tool_calls: Vec::new(),
             usage: None,
-            provider_state_json: String::new(),
         })
         .await
         .unwrap();
@@ -2993,7 +2991,6 @@ mod tests {
                 content: String::new(),
                 tool_calls: Vec::new(),
                 usage: Some(counter.clone()),
-                provider_state_json: String::new(),
             })
             .await
             .unwrap();

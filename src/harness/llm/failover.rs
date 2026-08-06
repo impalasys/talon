@@ -207,7 +207,7 @@ mod tests {
                     content: "chat ok".to_string(),
                     tool_calls: vec![],
                     usage: None,
-                    provider_state_json: String::new(),
+                    content_parts: Vec::new(),
                 })
             }
         }

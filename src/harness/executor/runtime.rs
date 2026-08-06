@@ -58,8 +58,6 @@ pub struct LoopMessage {
     pub content_parts: Vec<ChatContentPart>,
     pub tool_calls: Option<Vec<ToolCall>>,
     pub tool_call_id: Option<String>,
-    #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub provider_state_json: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -80,7 +78,6 @@ impl LoopMessage {
             },
             tool_calls: None,
             tool_call_id: None,
-            provider_state_json: String::new(),
         }
     }
 
@@ -241,6 +238,8 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_token(&self, token: &str);
     /// A reasoning chunk from the model.
     async fn on_reasoning(&self, reasoning: &str);
+    /// A completed opaque provider-native content part.
+    async fn on_content_part(&self, _: &ChatContentPart) {}
     /// The agent chose to call a tool.
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value);
     /// The model has started emitting tool-call deltas. Implementations can
@@ -619,7 +618,6 @@ impl AgentExecutor {
                 content_parts: m.content_parts.clone(),
                 tool_calls: m.tool_calls.clone().unwrap_or_default(),
                 tool_call_id: m.tool_call_id.clone(),
-                provider_state_json: m.provider_state_json.clone(),
             })
             .collect::<Vec<_>>();
         for message in &mut messages {
@@ -857,7 +855,7 @@ impl AgentExecutor {
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
             let mut final_usage: Option<TokenCounter> = None;
-            let mut provider_state_json = String::new();
+            let mut response_content_parts: Vec<ChatContentPart> = Vec::new();
             let mut saw_tool_call_delta = false;
             let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
                 .and_then(|model| model.thinking.clone());
@@ -985,6 +983,17 @@ impl AgentExecutor {
                         event: Some(chat_stream_event::Event::TextDelta(token)),
                     } => {
                         final_reply.push_str(&token);
+                        if let Some(last) = response_content_parts.last_mut() {
+                            if let Some(chat_content_part::Content::Text(text)) =
+                                last.content.as_mut()
+                            {
+                                text.push_str(&token);
+                            } else {
+                                response_content_parts.push(text_part(token.clone()));
+                            }
+                        } else {
+                            response_content_parts.push(text_part(token.clone()));
+                        }
                         sink.on_token(&token).await;
                     }
                     ChatStreamEvent {
@@ -1023,9 +1032,10 @@ impl AgentExecutor {
                         final_usage = Some(self.normalize_token_counter(usage));
                     }
                     ChatStreamEvent {
-                        event: Some(chat_stream_event::Event::ProviderStateJson(state)),
+                        event: Some(chat_stream_event::Event::ContentPart(part)),
                     } => {
-                        provider_state_json = state;
+                        sink.on_content_part(&part).await;
+                        response_content_parts.push(part);
                     }
                     ChatStreamEvent { event: None } => {}
                 }
@@ -1043,7 +1053,7 @@ impl AgentExecutor {
                     final_usage
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
-                provider_state_json: provider_state_json.clone(),
+                content_parts: response_content_parts.clone(),
             };
             context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
@@ -1078,6 +1088,7 @@ impl AgentExecutor {
 
             // Record assistant turn
             let mut assistant_message = LoopMessage::text("assistant", final_reply.clone());
+            assistant_message.content_parts = response_content_parts;
             assistant_message.tool_calls = if tool_calls.is_empty() {
                 None
             } else {
@@ -1225,7 +1236,6 @@ pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> Loop
         content_parts: result.content_parts(),
         tool_calls: None,
         tool_call_id: Some(tool_call_id.to_string()),
-        provider_state_json: String::new(),
     }
 }
 
@@ -1291,7 +1301,7 @@ mod tests {
                 },
                 tool_calls: Vec::new(),
                 usage: None,
-                provider_state_json: String::new(),
+                content_parts: Vec::new(),
             })
         }
 
@@ -1894,7 +1904,6 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
-            provider_state_json: String::new(),
         });
         let original_user_message = context.history[0].clone();
 
@@ -1955,7 +1964,6 @@ mod tests {
             content_parts: vec![object_ref_part(object.clone())],
             tool_calls: None,
             tool_call_id: None,
-            provider_state_json: String::new(),
         });
 
         executor
@@ -2010,7 +2018,6 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
-            provider_state_json: String::new(),
         });
 
         executor
@@ -2066,7 +2073,6 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
-            provider_state_json: String::new(),
         });
 
         executor
@@ -2106,7 +2112,6 @@ mod tests {
             })],
             tool_calls: None,
             tool_call_id: None,
-            provider_state_json: String::new(),
         });
 
         executor
@@ -2150,7 +2155,6 @@ mod tests {
             })],
             tool_calls: None,
             tool_call_id: None,
-            provider_state_json: String::new(),
         });
 
         executor

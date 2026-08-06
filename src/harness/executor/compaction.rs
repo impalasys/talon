@@ -464,7 +464,6 @@ fn compact_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopMes
         content_parts,
         tool_calls,
         tool_call_id: message.tool_call_id.clone(),
-        provider_state_json: message.provider_state_json.clone(),
     }
 }
 
@@ -936,6 +935,7 @@ fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatC
                     truncated.push(text_part(next));
                 }
             }
+            Some(chat_content_part::Content::EncryptedReasoning(_)) | None => {}
             _ => truncated.push(part.clone()),
         }
     }
@@ -975,6 +975,7 @@ fn fit_content_parts_to_weight(
                     remaining = remaining.saturating_sub(marker.len());
                 }
             }
+            Some(chat_content_part::Content::EncryptedReasoning(_)) => {}
             None => {}
         }
     }
@@ -996,6 +997,7 @@ fn content_part_weight(part: &ChatContentPart) -> usize {
                 .saturating_add(object.key.len())
                 .saturating_add(object.filename.len())
         }
+        Some(chat_content_part::Content::EncryptedReasoning(reasoning)) => reasoning.raw_json.len(),
         None => 0,
     }
 }
@@ -1302,7 +1304,7 @@ mod tests {
                 content: self.content.clone(),
                 tool_calls: Vec::new(),
                 usage: None,
-                provider_state_json: String::new(),
+                content_parts: Vec::new(),
             })
         }
 

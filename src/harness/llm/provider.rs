@@ -12,7 +12,7 @@ use crate::gateway::rpc::data_proto;
 pub use crate::gateway::rpc::data_proto::TokenCounter;
 pub use crate::gateway::rpc::harness_proto::{
     chat_content_part, chat_stream_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
-    ChatStreamEvent, Tool, ToolCall, ToolCallDelta, ToolOutput,
+    ChatStreamEvent, EncryptedReasoning, Tool, ToolCall, ToolCallDelta, ToolOutput,
 };
 
 #[derive(Debug)]
@@ -54,6 +54,22 @@ pub fn text_part(text: impl Into<String>) -> ChatContentPart {
 pub fn object_ref_part(object_ref: data_proto::ObjectRef) -> ChatContentPart {
     ChatContentPart {
         content: Some(chat_content_part::Content::ObjectRef(object_ref)),
+    }
+}
+
+pub fn encrypted_reasoning_part(
+    provider: impl Into<String>,
+    block_type: impl Into<String>,
+    raw_json: Vec<u8>,
+) -> ChatContentPart {
+    ChatContentPart {
+        content: Some(chat_content_part::Content::EncryptedReasoning(
+            EncryptedReasoning {
+                provider: provider.into(),
+                block_type: block_type.into(),
+                raw_json,
+            },
+        )),
     }
 }
 
@@ -99,7 +115,6 @@ pub fn chat_message_text(role: impl Into<String>, content: impl Into<String>) ->
         },
         tool_calls: Vec::new(),
         tool_call_id: None,
-        provider_state_json: String::new(),
     }
 }
 
@@ -145,6 +160,12 @@ pub fn tool_call_delta_event(delta: ToolCallDelta) -> ChatStreamEvent {
 pub fn usage_event(usage: TokenCounter) -> ChatStreamEvent {
     ChatStreamEvent {
         event: Some(chat_stream_event::Event::Usage(usage)),
+    }
+}
+
+pub fn content_part_event(part: ChatContentPart) -> ChatStreamEvent {
+    ChatStreamEvent {
+        event: Some(chat_stream_event::Event::ContentPart(part)),
     }
 }
 

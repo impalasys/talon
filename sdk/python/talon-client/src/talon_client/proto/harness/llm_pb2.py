@@ -26,29 +26,31 @@ from talon_client.proto.data import data_pb2 as proto_dot_data_dot_data__pb2
 from talon_client.proto.resources import agents_pb2 as proto_dot_resources_dot_agents__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17proto/harness/llm.proto\x12\rtalon.harness\x1a\x15proto/data/data.proto\x1a\x1cproto/resources/agents.proto\"e\n\x0f\x43hatContentPart\x12\x0e\n\x04text\x18\x01 \x01(\tH\x00\x12+\n\nobject_ref\x18\x04 \x01(\x0b\x32\x15.talon.data.ObjectRefH\x00\x42\t\n\x07\x63ontentJ\x04\x08\x02\x10\x03J\x04\x08\x03\x10\x04\"T\n\nToolOutput\x12\x35\n\rcontent_parts\x18\x01 \x03(\x0b\x32\x1e.talon.harness.ChatContentPart\x12\x0f\n\x07summary\x18\x02 \x01(\t\"7\n\x08ToolCall\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x11\n\targuments\x18\x03 \x01(\t\"x\n\rToolCallDelta\x12\r\n\x05index\x18\x01 \x01(\r\x12\x0f\n\x02id\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04name\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x16\n\targuments\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x05\n\x03_idB\x07\n\x05_nameB\x0c\n\n_arguments\"\xc8\x01\n\x0b\x43hatMessage\x12\x0c\n\x04role\x18\x01 \x01(\t\x12\x35\n\rcontent_parts\x18\x02 \x03(\x0b\x32\x1e.talon.harness.ChatContentPart\x12+\n\ntool_calls\x18\x03 \x03(\x0b\x32\x17.talon.harness.ToolCall\x12\x19\n\x0ctool_call_id\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\x1b\n\x13provider_state_json\x18\x05 \x01(\tB\x0f\n\r_tool_call_id\"\xa1\x01\n\x0c\x43hatResponse\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\t\x12+\n\ntool_calls\x18\x02 \x03(\x0b\x32\x17.talon.harness.ToolCall\x12,\n\x05usage\x18\x03 \x01(\x0b\x32\x18.talon.data.TokenCounterH\x00\x88\x01\x01\x12\x1b\n\x13provider_state_json\x18\x04 \x01(\tB\x08\n\x06_usage\"D\n\x04Tool\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x19\n\x11input_schema_json\x18\x03 \x01(\t\"\xa4\x01\n\x0b\x43hatRequest\x12,\n\x08messages\x18\x01 \x03(\x0b\x32\x1a.talon.harness.ChatMessage\x12\"\n\x05tools\x18\x02 \x03(\x0b\x32\x13.talon.harness.Tool\x12\x36\n\x08thinking\x18\x03 \x01(\x0b\x32\x1f.talon.resources.ThinkingConfigH\x00\x88\x01\x01\x42\x0b\n\t_thinking\"\xce\x01\n\x0f\x43hatStreamEvent\x12\x14\n\ntext_delta\x18\x01 \x01(\tH\x00\x12\x19\n\x0freasoning_delta\x18\x02 \x01(\tH\x00\x12\x37\n\x0ftool_call_delta\x18\x03 \x01(\x0b\x32\x1c.talon.harness.ToolCallDeltaH\x00\x12)\n\x05usage\x18\x04 \x01(\x0b\x32\x18.talon.data.TokenCounterH\x00\x12\x1d\n\x13provider_state_json\x18\x05 \x01(\tH\x00\x42\x07\n\x05\x65ventb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17proto/harness/llm.proto\x12\rtalon.harness\x1a\x15proto/data/data.proto\x1a\x1cproto/resources/agents.proto\"\xa7\x01\n\x0f\x43hatContentPart\x12\x0e\n\x04text\x18\x01 \x01(\tH\x00\x12+\n\nobject_ref\x18\x04 \x01(\x0b\x32\x15.talon.data.ObjectRefH\x00\x12@\n\x13\x65ncrypted_reasoning\x18\x05 \x01(\x0b\x32!.talon.harness.EncryptedReasoningH\x00\x42\t\n\x07\x63ontentJ\x04\x08\x02\x10\x03J\x04\x08\x03\x10\x04\"L\n\x12\x45ncryptedReasoning\x12\x10\n\x08provider\x18\x01 \x01(\t\x12\x12\n\nblock_type\x18\x02 \x01(\t\x12\x10\n\x08raw_json\x18\x03 \x01(\x0c\"T\n\nToolOutput\x12\x35\n\rcontent_parts\x18\x01 \x03(\x0b\x32\x1e.talon.harness.ChatContentPart\x12\x0f\n\x07summary\x18\x02 \x01(\t\"7\n\x08ToolCall\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x11\n\targuments\x18\x03 \x01(\t\"x\n\rToolCallDelta\x12\r\n\x05index\x18\x01 \x01(\r\x12\x0f\n\x02id\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04name\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x16\n\targuments\x18\x04 \x01(\tH\x02\x88\x01\x01\x42\x05\n\x03_idB\x07\n\x05_nameB\x0c\n\n_arguments\"\xc6\x01\n\x0b\x43hatMessage\x12\x0c\n\x04role\x18\x01 \x01(\t\x12\x35\n\rcontent_parts\x18\x02 \x03(\x0b\x32\x1e.talon.harness.ChatContentPart\x12+\n\ntool_calls\x18\x03 \x03(\x0b\x32\x17.talon.harness.ToolCall\x12\x19\n\x0ctool_call_id\x18\x04 \x01(\tH\x00\x88\x01\x01\x42\x0f\n\r_tool_call_idJ\x04\x08\x05\x10\x06R\x13provider_state_json\"\xd6\x01\n\x0c\x43hatResponse\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\t\x12+\n\ntool_calls\x18\x02 \x03(\x0b\x32\x17.talon.harness.ToolCall\x12,\n\x05usage\x18\x03 \x01(\x0b\x32\x18.talon.data.TokenCounterH\x00\x88\x01\x01\x12\x35\n\rcontent_parts\x18\x05 \x03(\x0b\x32\x1e.talon.harness.ChatContentPartB\x08\n\x06_usageJ\x04\x08\x04\x10\x05R\x13provider_state_json\"D\n\x04Tool\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x19\n\x11input_schema_json\x18\x03 \x01(\t\"\xa4\x01\n\x0b\x43hatRequest\x12,\n\x08messages\x18\x01 \x03(\x0b\x32\x1a.talon.harness.ChatMessage\x12\"\n\x05tools\x18\x02 \x03(\x0b\x32\x13.talon.harness.Tool\x12\x36\n\x08thinking\x18\x03 \x01(\x0b\x32\x1f.talon.resources.ThinkingConfigH\x00\x88\x01\x01\x42\x0b\n\t_thinking\"\x82\x02\n\x0f\x43hatStreamEvent\x12\x14\n\ntext_delta\x18\x01 \x01(\tH\x00\x12\x19\n\x0freasoning_delta\x18\x02 \x01(\tH\x00\x12\x37\n\x0ftool_call_delta\x18\x03 \x01(\x0b\x32\x1c.talon.harness.ToolCallDeltaH\x00\x12)\n\x05usage\x18\x04 \x01(\x0b\x32\x18.talon.data.TokenCounterH\x00\x12\x36\n\x0c\x63ontent_part\x18\x06 \x01(\x0b\x32\x1e.talon.harness.ChatContentPartH\x00\x42\x07\n\x05\x65ventJ\x04\x08\x05\x10\x06R\x13provider_state_jsonb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.harness.llm_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_CHATCONTENTPART']._serialized_start=95
-  _globals['_CHATCONTENTPART']._serialized_end=196
-  _globals['_TOOLOUTPUT']._serialized_start=198
-  _globals['_TOOLOUTPUT']._serialized_end=282
-  _globals['_TOOLCALL']._serialized_start=284
-  _globals['_TOOLCALL']._serialized_end=339
-  _globals['_TOOLCALLDELTA']._serialized_start=341
-  _globals['_TOOLCALLDELTA']._serialized_end=461
-  _globals['_CHATMESSAGE']._serialized_start=464
-  _globals['_CHATMESSAGE']._serialized_end=664
-  _globals['_CHATRESPONSE']._serialized_start=667
-  _globals['_CHATRESPONSE']._serialized_end=828
-  _globals['_TOOL']._serialized_start=830
-  _globals['_TOOL']._serialized_end=898
-  _globals['_CHATREQUEST']._serialized_start=901
-  _globals['_CHATREQUEST']._serialized_end=1065
-  _globals['_CHATSTREAMEVENT']._serialized_start=1068
-  _globals['_CHATSTREAMEVENT']._serialized_end=1274
+  _globals['_CHATCONTENTPART']._serialized_start=96
+  _globals['_CHATCONTENTPART']._serialized_end=263
+  _globals['_ENCRYPTEDREASONING']._serialized_start=265
+  _globals['_ENCRYPTEDREASONING']._serialized_end=341
+  _globals['_TOOLOUTPUT']._serialized_start=343
+  _globals['_TOOLOUTPUT']._serialized_end=427
+  _globals['_TOOLCALL']._serialized_start=429
+  _globals['_TOOLCALL']._serialized_end=484
+  _globals['_TOOLCALLDELTA']._serialized_start=486
+  _globals['_TOOLCALLDELTA']._serialized_end=606
+  _globals['_CHATMESSAGE']._serialized_start=609
+  _globals['_CHATMESSAGE']._serialized_end=807
+  _globals['_CHATRESPONSE']._serialized_start=810
+  _globals['_CHATRESPONSE']._serialized_end=1024
+  _globals['_TOOL']._serialized_start=1026
+  _globals['_TOOL']._serialized_end=1094
+  _globals['_CHATREQUEST']._serialized_start=1097
+  _globals['_CHATREQUEST']._serialized_end=1261
+  _globals['_CHATSTREAMEVENT']._serialized_start=1264
+  _globals['_CHATSTREAMEVENT']._serialized_end=1522
 # @@protoc_insertion_point(module_scope)
