@@ -125,14 +125,10 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
             thinking: None,
         })
         .await?;
-    Ok(best_effort_summary(&response.content))
-}
-
-fn best_effort_summary(response: &str) -> Option<String> {
-    let response = response.trim();
+    let response = response.content.trim();
     if response.is_empty() {
         tracing::warn!("Compaction model returned an empty response; skipping durable compaction");
-        return None;
+        return Ok(None);
     }
 
     let summary = response
@@ -151,32 +147,32 @@ fn best_effort_summary(response: &str) -> Option<String> {
         );
     }
 
-    let (summary, truncated) = truncate_summary_words(summary, MAX_COMPACTION_SUMMARY_WORDS);
-    if truncated {
-        tracing::warn!(
-            response_chars = response.len(),
-            max_words = MAX_COMPACTION_SUMMARY_WORDS,
-            "Compaction model response exceeded the word limit; truncating durable summary"
-        );
-    }
-    Some(summary)
-}
-
-fn truncate_summary_words(summary: &str, max_words: usize) -> (String, bool) {
     let mut words = 0;
     let mut in_word = false;
+    let mut truncate_at = None;
     for (index, character) in summary.char_indices() {
         if character.is_whitespace() {
             in_word = false;
         } else if !in_word {
             words += 1;
-            if words > max_words {
-                return (summary[..index].trim_end().to_string(), true);
+            if words > MAX_COMPACTION_SUMMARY_WORDS {
+                truncate_at = Some(index);
+                break;
             }
             in_word = true;
         }
     }
-    (summary.to_string(), false)
+    let summary = if let Some(index) = truncate_at {
+        tracing::warn!(
+            response_chars = response.len(),
+            max_words = MAX_COMPACTION_SUMMARY_WORDS,
+            "Compaction model response exceeded the word limit; truncating durable summary"
+        );
+        summary[..index].trim_end().to_string()
+    } else {
+        summary.to_string()
+    };
+    Ok(Some(summary))
 }
 
 /// Replace the compactable history prefix with an LLM-written handoff while
