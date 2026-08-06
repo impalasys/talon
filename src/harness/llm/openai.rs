@@ -1663,7 +1663,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn serialize_responses_input_projects_tool_image_results_as_follow_up_user_media() {
+    async fn serialize_responses_input_embeds_tool_image_results_in_function_call_output() {
         let store = Arc::new(InMemoryObjectStore::default());
         let object = store
             .put(
