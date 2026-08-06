@@ -17,8 +17,13 @@ message ChatContentPart {
 // Opaque provider-native reasoning content that must be replayed unchanged.
 // The raw JSON is intentionally not exposed as ordinary text content.
 message EncryptedReasoning {
+  // Provider that produced this opaque reasoning item, such as "openai" or
+  // "anthropic".
   string provider = 1;
+  // Provider-specific reasoning block type, such as "reasoning", "thinking",
+  // or "redacted_thinking".
   string block_type = 2;
+  // Serialized provider output item or block, retained verbatim for replay.
   bytes raw_json = 3;
 }
 
