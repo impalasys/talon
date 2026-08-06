@@ -29,14 +29,26 @@ import {
   type ResourceViewModel,
 } from "./lib/resourceUris";
 import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
+import {
+  SESSION_MESSAGE_PART_TYPE,
+  messagePartsForSessionUpdate,
+  parsePayloadJson,
+  protoSessionPartsFromChatParts,
+  isSessionTextPart,
+} from "./session/protocol";
+import {
+  normalizeImageUploadResult,
+  normalizeObjectRefForJson,
+  objectRefContentEncoding,
+  objectRefFromPart,
+  objectRefFromValue,
+  objectRefKey,
+  objectRefMediaType,
+  objectRefSizeBytes,
+} from "./session/objectRefs";
+import type { TalonChatObjectRef, TalonSessionHandle } from "./session/types";
 
 const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
-const SESSION_MESSAGE_PART_TYPE = {
-  TEXT: (data.SessionMessagePartType?.TEXT ?? "SESSION_MESSAGE_PART_TYPE_TEXT") as data.SessionMessagePartType,
-  TOOL_RESULT: (data.SessionMessagePartType?.TOOL_RESULT ?? "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT") as data.SessionMessagePartType,
-  IMAGE: (data.SessionMessagePartType?.IMAGE ?? "SESSION_MESSAGE_PART_TYPE_IMAGE") as data.SessionMessagePartType,
-};
 
 export type SessionServiceClientLike = {
   sessions: Pick<
@@ -75,16 +87,7 @@ export type TalonSessionCommandTarget = {
 
 export type TalonSessionCommand = TalonChatCommand<TalonSessionCommandTarget, CopilotMessage>;
 
-export type TalonChatObjectRef = {
-  key: string;
-  mediaType?: string;
-  media_type?: string;
-  sizeBytes?: number | bigint | string;
-  size_bytes?: number | bigint | string;
-  sha256?: string;
-  filename?: string;
-  metadata?: Record<string, string>;
-};
+export type { TalonChatObjectRef } from "./session/types";
 
 export type TalonImageUploadContext = {
   file: File;
@@ -97,12 +100,6 @@ export type TalonImageUploadContext = {
 export type TalonImageUploadResult = TalonChatObjectRef | {
   object: TalonChatObjectRef;
   url?: string;
-};
-
-type TalonSessionHandle = {
-  ns: string;
-  agent: string;
-  sessionId: string;
 };
 
 export type TalonSessionPendingImageAttachment = {
@@ -435,65 +432,6 @@ function normalizeMessageLabels(labels: unknown): Record<string, string> | undef
   return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 
-function objectRefMediaType(object: TalonChatObjectRef | undefined) {
-  return object?.mediaType || object?.media_type || "";
-}
-
-function objectRefSizeBytes(object: TalonChatObjectRef): number {
-  const value = object.sizeBytes ?? object.size_bytes ?? 0;
-  if (typeof value === "bigint") return Number(value);
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return Number.isFinite(value) ? value : 0;
-}
-
-function normalizeObjectRefForJson(object: TalonChatObjectRef) {
-  return {
-    key: object.key,
-    mediaType: object.mediaType ?? object.media_type ?? "",
-    sizeBytes: objectRefSizeBytes(object),
-    sha256: object.sha256 ?? "",
-    filename: object.filename ?? "",
-    metadata: object.metadata ?? {},
-  };
-}
-
-function normalizeImageUploadResult(result: TalonImageUploadResult) {
-  return "object" in result ? result.object : result;
-}
-
-function serializableMessageParts(parts: unknown) {
-  if (!Array.isArray(parts)) return [];
-  return parts.map((part: any) => {
-    if (!part || typeof part !== "object") return part;
-    const { previewUrl: _previewUrl, ...serializablePart } = part;
-    return serializablePart;
-  });
-}
-
-function protoSessionPartsFromChatParts(parts: unknown) {
-  return (serializableMessageParts(parts) || []).map((part: any) => {
-    if (part?.type === "image") {
-      return {
-        partType: SESSION_MESSAGE_PART_TYPE.IMAGE,
-        payloadJson: part.payloadJson ?? part.payload_json ?? "",
-        object: part.object,
-      };
-    }
-    return {
-      partType: SESSION_MESSAGE_PART_TYPE.TEXT,
-      content: String(part?.text ?? part?.content ?? ""),
-    };
-  });
-}
-
-function isSessionTextPart(part: any) {
-  const type = part?.type ?? part?.partType ?? part?.part_type;
-  return type === "text" || type === SESSION_MESSAGE_PART_TYPE.TEXT || type === "SESSION_MESSAGE_PART_TYPE_TEXT";
-}
-
 function replaceMessageTextPart(message: CopilotMessage, text: string) {
   const sourceParts = Array.isArray(message.parts) ? message.parts : [];
   const parts = sourceParts.map((part: any) => part && typeof part === "object" ? { ...part } : part);
@@ -520,70 +458,6 @@ function replaceMessageTextPart(message: CopilotMessage, text: string) {
       content: text,
     },
   ];
-}
-
-function messagePartsForSessionUpdate(message: CopilotMessage) {
-  return Array.isArray(message.parts) && message.parts.length > 0
-    ? message.parts
-    : [
-        {
-          partType: SESSION_MESSAGE_PART_TYPE.TEXT,
-          content: getMessageContent(message),
-        },
-      ];
-}
-
-function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
-  if (typeof payloadJson !== "string" || payloadJson.length === 0) return {};
-  try {
-    const value = JSON.parse(payloadJson);
-    return value && typeof value === "object" ? value as Record<string, unknown> : {};
-  } catch {
-    return {};
-  }
-}
-
-function objectRefFromPart(part: any): TalonChatObjectRef | undefined {
-  const object = part?.object ?? part?.objectRef ?? part?.object_ref;
-  if (object && typeof object === "object") return object as TalonChatObjectRef;
-  return objectRefFromValue(parsePayloadJson(part?.payloadJson ?? part?.payload_json));
-}
-
-function objectRefFromValue(value: unknown): TalonChatObjectRef | undefined {
-  if (!value || typeof value !== "object") return undefined;
-
-  const candidate = value as Record<string, unknown>;
-  for (const key of ["object", "objectRef", "object_ref"]) {
-    const nested = candidate[key];
-    if (nested && typeof nested === "object" && typeof (nested as TalonChatObjectRef).key === "string") {
-      return nested as TalonChatObjectRef;
-    }
-  }
-
-  const toolOutput = candidate.tool_output ?? candidate.toolOutput;
-  const output = toolOutput && typeof toolOutput === "object"
-    ? toolOutput as Record<string, unknown>
-    : candidate;
-  const contentParts = output.content_parts ?? output.contentParts;
-  if (Array.isArray(contentParts)) {
-    for (const part of contentParts) {
-      const nested = objectRefFromValue(part);
-      if (nested) return nested;
-    }
-  }
-  return undefined;
-}
-
-function objectRefKey(object: TalonChatObjectRef | undefined): string {
-  return typeof object?.key === "string" ? object.key : "";
-}
-
-function objectRefContentEncoding(object: TalonChatObjectRef | undefined): string {
-  return (object as any)?.contentEncoding
-    ?? (object as any)?.content_encoding
-    ?? object?.metadata?.content_encoding
-    ?? object?.metadata?.contentEncoding
-    ?? "";
 }
 
 function isToolResultPart(part: any) {
