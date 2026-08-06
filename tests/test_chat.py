@@ -160,6 +160,89 @@ def test_single_turn_chat(
     assert "12" in message_text(agent_message)
 
 
+def test_native_openai_responses_api_handles_reasoning_and_tools(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    namespace = f"talon-responses-{stack.name}-{uuid.uuid4().hex[:8]}"
+    ensure_namespace(client, namespace)
+    agent_name = "responses-api-agent"
+    create_agent_resource(
+        client,
+        namespace,
+        agent_name,
+        AgentSpec(
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="openai",
+                            name="minimax/m2.7",
+                            temperature=0.0,
+                            thinking={
+                                "enabled": True,
+                                "budget_tokens": 2048,
+                                "effort": "high",
+                            },
+                        ),
+                    }
+                ]
+            },
+            system_prompt="Use tools when needed.",
+        ),
+    )
+    mock_control("POST", "/__control/reset")
+    session_id = client.sessions.Create(
+        CreateSessionRequest(agent=agent_name, ns=namespace)
+    ).session_id
+    client.sessions.SendMessage(
+        SendMessageRequest(
+            agent=agent_name,
+            session_id=session_id,
+            ns=namespace,
+            message="lookup docs.example.com",
+        )
+    )
+
+    for _ in range(30):
+        time.sleep(1)
+        session = client.sessions.Get(
+            GetSessionRequest(agent=agent_name, session_id=session_id, ns=namespace)
+        )
+        assistant = last_assistant_message(session.messages)
+        if session.state == "IDLE" and assistant is not None:
+            break
+    else:
+        raise AssertionError("Responses API agent did not complete")
+
+    state = mock_control("GET", "/__control/state")
+    assert state["responses_requests"]
+    assert state["responses_requests"][0]["toolNames"]
+    assert not state["chat_requests"]
+    assert state["responses_requests"][0]["previousResponseId"] is None
+    assert state["responses_requests"][0]["input"]
+    assert state["responses_requests"][0]["input"][-1]["role"] == "user"
+    assert len(state["responses_requests"]) >= 2
+    assert state["responses_requests"][1]["previousResponseId"] == "resp_mock_1"
+    assert any(
+        item.get("type") == "function_call_output"
+        for request in state["responses_requests"]
+        for item in request["input"]
+    )
+    assert all(
+        "encrypted_content" not in json.dumps(request)
+        for request in state["responses_requests"]
+    )
+    assert assistant is not None
+    assert "checked" in message_text(assistant).lower()
+    assert session.context_tokens.provider_request_id == "resp_mock_2"
+    assert any(
+        part.part_type == PART_TYPE_REASONING and part.content
+        for part in assistant.parts
+    )
+
+
 def test_stop_generation_cancels_an_inflight_worker_stream(
     stack: E2EStack,
     client: TalonClient,
