@@ -2823,6 +2823,7 @@ mod tests {
             content: "first".to_string(),
             tool_calls: tool_calls.clone(),
             usage: None,
+            content_parts: Vec::new(),
         })
         .await
         .unwrap();
@@ -2833,6 +2834,7 @@ mod tests {
             content: "final".to_string(),
             tool_calls: Vec::new(),
             usage: None,
+            content_parts: Vec::new(),
         })
         .await
         .unwrap();
@@ -2991,6 +2993,7 @@ mod tests {
                 content: String::new(),
                 tool_calls: Vec::new(),
                 usage: Some(counter.clone()),
+                content_parts: Vec::new(),
             })
             .await
             .unwrap();
