@@ -73,16 +73,24 @@ export class ChatContentPart extends Message<ChatContentPart> {
  */
 export class EncryptedReasoning extends Message<EncryptedReasoning> {
   /**
+   * Provider that produced this opaque reasoning item, such as "openai" or
+   * "anthropic".
+   *
    * @generated from field: string provider = 1;
    */
   provider = "";
 
   /**
+   * Provider-specific reasoning block type, such as "reasoning", "thinking",
+   * or "redacted_thinking".
+   *
    * @generated from field: string block_type = 2;
    */
   blockType = "";
 
   /**
+   * Serialized provider output item or block, retained verbatim for replay.
+   *
    * @generated from field: bytes raw_json = 3;
    */
   rawJson = new Uint8Array(0);
