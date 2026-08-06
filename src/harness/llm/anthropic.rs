@@ -4,9 +4,10 @@
 use crate::control::cas::CasStore;
 use crate::gateway::rpc::manifests;
 use crate::harness::llm::provider::{
-    chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
-    provider_request_error, text_delta_event, usage_event, ChatContentPart, ChatMessage,
-    ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider, TokenCounter,
+    chat_content_part, chat_message_text, chat_stream_event, content_part_event,
+    encrypted_reasoning_part, object_ref_fallback_text, provider_request_error, text_delta_event,
+    usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream,
+    ChatStreamEvent, LlmProvider, TokenCounter,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -79,6 +80,23 @@ impl AnthropicProvider {
                     .join("")
             })
             .filter(|content| !content.is_empty())
+    }
+
+    fn extract_content_parts(value: &serde_json::Value) -> Vec<ChatContentPart> {
+        value["content"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|part| match part["type"].as_str() {
+                Some("text") => part["text"].as_str().map(crate::harness::llm::text_part),
+                Some("thinking") | Some("redacted_thinking") => Some(encrypted_reasoning_part(
+                    "anthropic",
+                    part["type"].as_str().unwrap_or("thinking"),
+                    serde_json::to_vec(part).unwrap_or_default(),
+                )),
+                _ => None,
+            })
+            .collect()
     }
 
     async fn serialize_content_parts(
@@ -191,6 +209,15 @@ async fn anthropic_content_part(
                 }
             })
         }
+        Some(chat_content_part::Content::EncryptedReasoning(reasoning)) => {
+            serde_json::from_slice(&reasoning.raw_json).unwrap_or_else(|_| {
+                json!({
+                    "type": reasoning.block_type,
+                    "thinking": "",
+                    "signature": "",
+                })
+            })
+        }
         None => json!({"type": "text", "text": ""}),
     })
 }
@@ -253,11 +280,12 @@ impl LlmProvider for AnthropicProvider {
             counter
         });
 
+        let content_parts = Self::extract_content_parts(&result);
         Ok(ChatResponse {
-            content,
+            content: content.clone(),
             tool_calls: vec![],
             usage,
-            provider_state_json: String::new(),
+            content_parts,
         })
     }
 
@@ -307,6 +335,7 @@ impl LlmProvider for AnthropicProvider {
         let mut last_event = String::new();
         let mut current_usage = TokenCounter::default();
         let stream_model = self.model.clone();
+        let mut active_block: Option<serde_json::Value> = None;
 
         let sse_stream = line_stream.flat_map(move |result| match result {
             Ok(bytes) => {
@@ -326,7 +355,11 @@ impl LlmProvider for AnthropicProvider {
                     }
 
                     if let Some(data) = line.strip_prefix("data: ") {
-                        if last_event == "content_block_delta" {
+                        if last_event == "content_block_start" {
+                            if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
+                                active_block = value.get("content_block").cloned();
+                            }
+                        } else if last_event == "content_block_delta" {
                             if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
                                 if let Some(text) =
                                     value.pointer("/delta/text").and_then(|v| v.as_str())
@@ -336,11 +369,57 @@ impl LlmProvider for AnthropicProvider {
                                 if let Some(thinking) =
                                     value.pointer("/delta/thinking").and_then(|v| v.as_str())
                                 {
+                                    if let Some(block) = active_block.as_mut() {
+                                        let current = block
+                                            .get("thinking")
+                                            .and_then(|value| value.as_str())
+                                            .unwrap_or_default();
+                                        block["thinking"] = json!(format!("{current}{thinking}"));
+                                    }
                                     items.push(Ok(ChatStreamEvent {
                                         event: Some(chat_stream_event::Event::ReasoningDelta(
                                             thinking.to_string(),
                                         )),
                                     }));
+                                }
+                                if let Some(signature) =
+                                    value.pointer("/delta/signature").and_then(|v| v.as_str())
+                                {
+                                    if let Some(block) = active_block.as_mut() {
+                                        let current = block
+                                            .get("signature")
+                                            .and_then(|value| value.as_str())
+                                            .unwrap_or_default();
+                                        block["signature"] = json!(format!("{current}{signature}"));
+                                    }
+                                }
+                                if let Some(data) =
+                                    value.pointer("/delta/data").and_then(|v| v.as_str())
+                                {
+                                    if let Some(block) = active_block.as_mut() {
+                                        let current = block
+                                            .get("data")
+                                            .and_then(|value| value.as_str())
+                                            .unwrap_or_default();
+                                        block["data"] = json!(format!("{current}{data}"));
+                                    }
+                                }
+                            }
+                        } else if last_event == "content_block_stop" {
+                            if let Some(block) = active_block.take() {
+                                if matches!(
+                                    block.get("type").and_then(|value| value.as_str()),
+                                    Some("thinking") | Some("redacted_thinking")
+                                ) {
+                                    let block_type = block
+                                        .get("type")
+                                        .and_then(|value| value.as_str())
+                                        .unwrap_or("thinking");
+                                    items.push(Ok(content_part_event(encrypted_reasoning_part(
+                                        "anthropic",
+                                        block_type,
+                                        serde_json::to_vec(&block).unwrap_or_default(),
+                                    ))));
                                 }
                             }
                         } else if last_event == "message_start" || last_event == "message_delta" {
@@ -523,6 +602,32 @@ mod tests {
         );
     }
 
+    #[test]
+    fn extract_content_parts_preserves_opaque_reasoning_order() {
+        let response = json!({
+            "content": [
+                { "type": "thinking", "thinking": "first", "signature": "sig" },
+                { "type": "text", "text": "answer" },
+                { "type": "redacted_thinking", "data": "opaque" }
+            ]
+        });
+
+        let parts = AnthropicProvider::extract_content_parts(&response);
+        assert_eq!(parts.len(), 3);
+        assert!(matches!(
+            parts[0].content,
+            Some(chat_content_part::Content::EncryptedReasoning(_))
+        ));
+        assert!(matches!(
+            parts[1].content,
+            Some(chat_content_part::Content::Text(ref text)) if text == "answer"
+        ));
+        assert!(matches!(
+            parts[2].content,
+            Some(chat_content_part::Content::EncryptedReasoning(_))
+        ));
+    }
+
     #[tokio::test]
     async fn anthropic_content_part_falls_back_to_text_for_non_images() {
         assert_eq!(
@@ -590,7 +695,6 @@ mod tests {
                 content_parts: Vec::new(),
                 tool_calls: Vec::new(),
                 tool_call_id: None,
-                provider_state_json: String::new(),
             })
             .await
             .unwrap();

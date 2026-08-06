@@ -186,6 +186,7 @@ fn main() -> std::io::Result<()> {
         ".talon.data.SessionJournalEntryPayload",
         ".talon.harness.ChatContentPart",
         ".talon.harness.ChatContentPart.Content",
+        ".talon.harness.EncryptedReasoning",
         ".talon.harness.ChatStreamEvent",
         ".talon.harness.ChatStreamEvent.Event",
     ];

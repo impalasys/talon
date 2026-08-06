@@ -12,9 +12,10 @@ pub use anthropic::AnthropicProvider;
 pub use mock::MockLlmProvider;
 pub use openai::OpenAiCompatibleProvider;
 pub use provider::{
-    chat_content_part, chat_message_text, chat_stream_event, content_part_object_ref,
-    content_parts_text, object_ref_part, provider_error_token_counter, provider_request_error,
-    reasoning_delta_event, text_delta_event, text_part, tool_call_delta_event, usage_event,
-    ChatContentPart, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse, ChatStream,
-    ChatStreamEvent, LlmProvider, TokenCounter, Tool, ToolCall, ToolCallDelta, ToolOutput,
+    chat_content_part, chat_message_text, chat_stream_event, content_part_event,
+    content_part_object_ref, content_parts_text, encrypted_reasoning_part, object_ref_part,
+    provider_error_token_counter, provider_request_error, reasoning_delta_event, text_delta_event,
+    text_part, tool_call_delta_event, usage_event, ChatContentPart, ChatMessage, ChatMessageExt,
+    ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, EncryptedReasoning, LlmProvider,
+    TokenCounter, Tool, ToolCall, ToolCallDelta, ToolOutput,
 };

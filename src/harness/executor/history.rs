@@ -169,7 +169,6 @@ async fn session_message_to_loop_messages(
         content_parts: message_content_parts(message, objects).await?,
         tool_calls: None,
         tool_call_id: None,
-        provider_state_json: String::new(),
     }])
 }
 
@@ -326,7 +325,6 @@ fn flush_assistant_content(
         content_parts: std::mem::take(content_parts),
         tool_calls: None,
         tool_call_id: None,
-        provider_state_json: String::new(),
     });
 }
 
@@ -376,7 +374,6 @@ fn flush_tool_batch(
         content_parts: std::mem::take(content_parts),
         tool_calls: Some(matched_calls),
         tool_call_id: None,
-        provider_state_json: String::new(),
     });
     history.extend(matched_results);
     tool_calls.clear();
@@ -437,7 +434,6 @@ async fn tool_result_message_from_part(
             .await?,
             tool_calls: None,
             tool_call_id: Some(parsed.tool_call_id),
-            provider_state_json: String::new(),
         }));
     }
     let inline_output = payload
@@ -468,7 +464,6 @@ async fn tool_result_message_from_part(
                 content_parts: vec![object_ref_part(object_ref)],
                 tool_calls: None,
                 tool_call_id: Some(tool_call_id.to_string()),
-                provider_state_json: String::new(),
             };
             if !inline_output.is_empty() {
                 message.content_parts.insert(0, text_part(inline_output));

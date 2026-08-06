@@ -508,7 +508,7 @@ mod tests {
             content: "hello".to_string(),
             tool_calls: Vec::new(),
             usage: None,
-            provider_state_json: String::new(),
+            content_parts: Vec::new(),
         };
         let first = append_llm_response(
             &kv,
@@ -544,6 +544,19 @@ mod tests {
         assert_eq!(second.journal_entry_id, "000002");
         assert_eq!(first.phase, SessionExecutionPhase::LlmResponse as i32);
         assert_eq!(second.phase, SessionExecutionPhase::ToolResult as i32);
+        let Some(session_journal_entry_payload::Payload::LlmResponse(llm_response)) = first
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+        else {
+            panic!("expected LLM response payload");
+        };
+        assert!(llm_response
+            .response
+            .as_ref()
+            .unwrap()
+            .content_parts
+            .is_empty());
         let Some(session_journal_entry_payload::Payload::ToolResult(tool_result)) = second
             .payload
             .as_ref()
@@ -691,7 +704,7 @@ mod tests {
                 arguments: "{}".to_string(),
             }],
             usage: None,
-            provider_state_json: String::new(),
+            content_parts: Vec::new(),
         };
 
         let err = append_llm_response(
