@@ -40,6 +40,20 @@ export type RuntimeOperation = {
   controller: AbortController;
 };
 
+export type SubmitInput = {
+  text: string;
+  imageAttachments?: readonly unknown[];
+};
+
+export type RuntimeOperationContext = {
+  target: SessionTarget;
+  epoch: number;
+  signal: AbortSignal;
+};
+
+export type RuntimeCommandHandler<Input = void> =
+  (input: Input, context: RuntimeOperationContext) => Promise<void>;
+
 export const emptyHistoryState: HistoryState = {
   messages: [],
   hasMoreOlder: false,
