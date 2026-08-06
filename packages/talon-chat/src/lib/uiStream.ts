@@ -11,6 +11,9 @@ import {
   type CopilotMessage,
   type UsageSummary,
 } from "./chatTimeline";
+import {
+  streamSessionPartEvents as parseSessionPartEvents,
+} from "../session/stream";
 
 export type StreamEventItem = {
   type: "status" | "tool_call" | "tool_result" | "reasoning" | "usage" | "error";
@@ -308,23 +311,35 @@ export async function streamSessionPartEvents(options: {
     return nextMessageId;
   };
 
-  for await (const event of events) {
-    if (signal?.aborted) break;
-    const kind = event?.kind;
-    if (kind === 3 || kind === "SESSION_MESSAGE_PART_EVENT_KIND_ERROR") {
-      const error = new Error(event?.part?.content || "Session stream error");
-      throw error;
+  for await (const event of parseSessionPartEvents(events, signal)) {
+    if (event.type === "stream-failed") {
+      throw event.error;
     }
-    if (kind === 2 || kind === "SESSION_MESSAGE_PART_EVENT_KIND_DONE") {
+    if (event.type === "stream-completed") {
       break;
     }
+    if (event.type === "tool-started" || event.type === "tool-result") {
+      // The assistant-part event carries the complete part and is the single
+      // source used to update the UI. These events remain available to the
+      // runtime for lifecycle bookkeeping.
+      continue;
+    }
+    if (event.type === "usage") {
+      hasAssistantEvent = true;
+      const messageId = ensureLiveAssistant(event.messageId);
+      setStreamEvents((prev) => [
+        ...prev,
+        { type: "usage", content: formatUsageSummary(event.usage), payload: event.usage },
+      ]);
+      setMessages((prev) => applyUsageToMessages(prev, messageId, event.usage));
+      continue;
+    }
 
-    const part = event?.part;
-    if (!part) continue;
+    const { part } = event;
     const partType = part.partType ?? part.part_type;
     const content = String(part.content ?? "");
     const payload = parsePayload(part.payloadJson ?? part.payload_json);
-    const messageId = ensureLiveAssistant(event?.messageId ?? event?.message_id);
+    const messageId = ensureLiveAssistant(event.messageId);
 
     if (partType === SESSION_MESSAGE_PART_TYPE.TEXT || partType === "SESSION_MESSAGE_PART_TYPE_TEXT") {
       hasAssistantEvent = true;
@@ -346,14 +361,6 @@ export async function streamSessionPartEvents(options: {
       setStreamEvents((prev) => [...prev, { type: "tool_result", content: toolCallId, payload }]);
       const result = payload?.output ?? payload?.tool_output ?? payload?.toolOutput ?? content;
       setMessages((prev) => applyToolInvocationToMessages(prev, toolCallId, "", undefined, result, messageId));
-    } else if (partType === SESSION_MESSAGE_PART_TYPE.USAGE || partType === "SESSION_MESSAGE_PART_TYPE_USAGE") {
-      hasAssistantEvent = true;
-      const usage = payload && typeof payload === "object" ? payload as UsageSummary : {};
-      setStreamEvents((prev) => [...prev, { type: "usage", content: formatUsageSummary(usage), payload: usage }]);
-      setMessages((prev) => applyUsageToMessages(prev, messageId, usage));
-    } else if (partType === SESSION_MESSAGE_PART_TYPE.ERROR || partType === "SESSION_MESSAGE_PART_TYPE_ERROR") {
-      const error = new Error(content || "Session stream error");
-      throw error;
     } else if (partType === SESSION_MESSAGE_PART_TYPE.IMAGE || partType === "SESSION_MESSAGE_PART_TYPE_IMAGE") {
       hasAssistantEvent = true;
       setMessages((prev) => appendAssistantPart(prev, messageId, part));
