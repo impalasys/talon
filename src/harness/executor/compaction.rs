@@ -131,18 +131,26 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
         return Ok(None);
     }
 
-    let summary = response
+    let (summary, used_raw_response) = match response
         .split_once("<summary>")
         .and_then(|(_, remainder)| remainder.split_once("</summary>"))
-        .map(|(summary, _)| summary.trim())
-        .filter(|summary| !summary.is_empty());
-    let (summary, used_raw_response) = match summary {
-        Some(summary) => (summary, false),
+    {
+        Some((summary, _)) => {
+            let summary = summary.trim();
+            if summary.is_empty() {
+                tracing::warn!(
+                    response_bytes = response.len(),
+                    "Compaction model returned an empty <summary> element; skipping durable compaction"
+                );
+                return Ok(None);
+            }
+            (summary, false)
+        }
         None => (response, true),
     };
     if used_raw_response {
         tracing::warn!(
-            response_chars = response.len(),
+            response_bytes = response.len(),
             "Compaction model response lacked a usable <summary> element; using the raw response"
         );
     }
@@ -164,7 +172,7 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
     }
     let summary = if let Some(index) = truncate_at {
         tracing::warn!(
-            response_chars = response.len(),
+            response_bytes = response.len(),
             max_words = MAX_COMPACTION_SUMMARY_WORDS,
             "Compaction model response exceeded the word limit; truncating durable summary"
         );
@@ -1401,6 +1409,11 @@ None recorded."#;
 
         let llm = SummaryLlm {
             content: " \n\t ".to_string(),
+        };
+        assert_eq!(summarize(&llm, &[]).await.unwrap(), None);
+
+        let llm = SummaryLlm {
+            content: "<summary>\n\t </summary>".to_string(),
         };
         assert_eq!(summarize(&llm, &[]).await.unwrap(), None);
     }
