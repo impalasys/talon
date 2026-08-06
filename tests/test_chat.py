@@ -217,7 +217,10 @@ def test_native_openai_responses_api_handles_reasoning_and_tools(
     )
     assert assistant is not None
     assert "checked" in message_text(assistant).lower()
-    assert any(part.part_type == 14 and part.object for part in assistant.parts)
+    assert any(
+        part.part_type == PART_TYPE_REASONING and part.content
+        for part in assistant.parts
+    )
 
 
 def test_stop_generation_cancels_an_inflight_worker_stream(
