@@ -130,29 +130,34 @@ export function sessionRuntimeReducer(
           }
         : { ...emptySessionRuntimeState, epoch: action.epoch };
     case "operation-started":
-      return acceptsEpoch(state, action.epoch) ? { ...state, error: null } : state;
+      return state;
     case "hydrated":
       return acceptsEpoch(state, action.epoch) && sameSessionTarget(state.target, action.target)
         ? stateForPage(action.page, action.target, action.epoch)
         : state;
     case "history-updated":
-      return acceptsEpoch(state, action.epoch) && sameSessionTarget(state.target, action.target)
-        ? {
+      if (!acceptsEpoch(state, action.epoch) || !sameSessionTarget(state.target, action.target)) return state;
+      {
+        const messages = action.page.messages.length === 0 && state.messages.length > 0
+          ? state.messages
+          : action.messages;
+        return {
             ...state,
-            messages: action.messages,
+            messages,
             history: {
-              messages: action.messages,
+              messages,
               hasMoreOlder: action.page.hasMoreOlder,
               beforeMessageId: action.page.beforeMessageId,
             },
             serverState: action.page.state === "PROCESSING"
               ? "PROCESSING"
               : action.page.state === "ERROR" ? "ERROR" : "IDLE",
+            error: action.page.state === "IDLE" ? null : state.error,
             phase: action.page.state === "PROCESSING"
               ? "resuming"
               : state.phase === "submitting" || state.phase === "stopping" ? state.phase : "idle",
-          }
-        : state;
+          };
+      }
     case "messages-replaced":
       if (!acceptsEpoch(state, action.epoch)) return state;
       {

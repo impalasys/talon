@@ -49,6 +49,10 @@ import {
 import type { TalonChatObjectRef, TalonSessionHandle } from "./session/types";
 import { useSessionRuntime } from "./session/useSessionRuntime";
 import type { SessionTarget } from "./session/types";
+import { SessionTranscript } from "./session/SessionTranscript";
+import { SessionComposerDock } from "./session/SessionComposerDock";
+import { useSessionAttachments } from "./session/useSessionAttachments";
+import { useResourcePane } from "./session/useResourcePane";
 import {
   canCompareCanonicalMessageIds,
   historyMessageTimestamp,
@@ -818,10 +822,14 @@ export function TalonSession({
       return normalizeHistoryPage(response);
     },
   }), [gatewayClient]);
+  const runtimeSubmitRef = useRef<((input: any, context: any) => Promise<void>) | null>(null);
+  const runtimeStopRef = useRef<((context: any) => Promise<void>) | null>(null);
   const sessionRuntime = useSessionRuntime({
     target: initialSessionTarget,
     client: runtimeClient,
     pageSize: Math.max(1, Math.trunc(historyPageSize || historyMessageLimit || DEFAULT_HISTORY_PAGE_SIZE)),
+    submit: (input, context) => runtimeSubmitRef.current?.(input, context) ?? Promise.resolve(),
+    stop: (_input, context) => runtimeStopRef.current?.(context) ?? Promise.resolve(),
   });
   const {
     state: sessionRuntimeState,
@@ -849,7 +857,11 @@ export function TalonSession({
     setServerState(value === "PROCESSING" ? "PROCESSING" : value === "ERROR" ? "ERROR" : value ? "IDLE" : "UNKNOWN");
   }, [setServerState]);
   const [input, setInput] = useState("");
-  const [imageAttachments, setImageAttachments] = useState<TalonSessionPendingImageAttachment[]>([]);
+  const {
+    attachments: imageAttachments,
+    attachmentsRef: imageAttachmentsRef,
+    replace: setImageAttachments,
+  } = useSessionAttachments<TalonSessionPendingImageAttachment>();
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [loadingNow, setLoadingNow] = useState(Date.now());
   const error = sessionRuntimeState.error;
@@ -857,13 +869,6 @@ export function TalonSession({
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
   const [toolResultHydration, setToolResultHydration] = useState<Record<string, "loading" | "error">>({});
-  const [openResourceUri, setOpenResourceUri] = useState<string | null>(null);
-  /** False while the pane plays its close transition before unmount. */
-  const [resourcePaneOpen, setResourcePaneOpen] = useState(false);
-  const [resourceView, setResourceView] = useState<ResourceViewModel | null>(null);
-  const [resourceLoading, setResourceLoading] = useState(false);
-  const [resourceError, setResourceError] = useState<Error | null>(null);
-  const resourceAbortRef = useRef<AbortController | null>(null);
   const missingResourceClientWarnedRef = useRef(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageValue, setEditingMessageValue] = useState("");
@@ -878,8 +883,31 @@ export function TalonSession({
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
   const stopAbortControllerRef = useRef<AbortController | null>(null);
   const currentSessionRef = useRef<SessionTarget | null>(null);
+  const resourceLoader = useCallback(
+    (uri: string, signal: AbortSignal) => fetchResource
+      ? fetchResource(uri, signal)
+      : fetchResourceFromGateway({
+          uri,
+          gatewayClient,
+          agent,
+          sessionId: currentSession?.sessionId ?? sessionId ?? null,
+          signal,
+        }),
+    [agent, currentSession?.sessionId, fetchResource, gatewayClient, sessionId],
+  );
+  const {
+    openResourceUri,
+    resourcePaneOpen,
+    resourceView,
+    resourceLoading,
+    resourceError,
+    open: openResource,
+    close: closeResourcePane,
+    reset: clearResourcePaneState,
+    completeClose: handleResourcePaneExitComplete,
+    abortRef: resourceAbortRef,
+  } = useResourcePane(resourceLoader);
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
-  const imageAttachmentsRef = useRef<TalonSessionPendingImageAttachment[]>([]);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
   const toolResultHydrationInFlightRef = useRef<Set<string>>(new Set());
   const toolResultHydrationGenerationRef = useRef(0);
@@ -1232,66 +1260,6 @@ export function TalonSession({
     [updateSessionMessage],
   );
 
-  const loadResource = useCallback(
-    async (uri: string) => {
-      resourceAbortRef.current?.abort();
-      const controller = new AbortController();
-      resourceAbortRef.current = controller;
-      setResourceLoading(true);
-      setResourceError(null);
-      setResourceView(null);
-
-      try {
-        let view: ResourceViewModel;
-        if (fetchResource) {
-          view = await fetchResource(uri, controller.signal);
-        } else {
-          view = await fetchResourceFromGateway({
-            uri,
-            gatewayClient,
-            agent,
-            sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
-            signal: controller.signal,
-          });
-        }
-        if (controller.signal.aborted) return;
-        setResourceView(view);
-      } catch (err) {
-        if (controller.signal.aborted) return;
-        setResourceError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        if (!controller.signal.aborted) {
-          setResourceLoading(false);
-        }
-      }
-    },
-    [agent, fetchResource, gatewayClient, sessionId],
-  );
-
-  const clearResourcePaneState = useCallback(() => {
-    resourceAbortRef.current?.abort();
-    resourceAbortRef.current = null;
-    setOpenResourceUri(null);
-    setResourcePaneOpen(false);
-    setResourceView(null);
-    setResourceError(null);
-    setResourceLoading(false);
-  }, []);
-
-  const closeResourcePane = useCallback(() => {
-    // Animate closed; unmount after ResourcePane fires onExitComplete.
-    resourceAbortRef.current?.abort();
-    resourceAbortRef.current = null;
-    setResourcePaneOpen(false);
-  }, []);
-
-  const handleResourcePaneExitComplete = useCallback(() => {
-    setOpenResourceUri(null);
-    setResourceView(null);
-    setResourceError(null);
-    setResourceLoading(false);
-  }, []);
-
   const handleResourceClick = useCallback(
     (uri: string) => {
       if (onResourceClickProp) {
@@ -1324,15 +1292,13 @@ export function TalonSession({
         return;
       }
 
-      setOpenResourceUri(parsed.uri);
-      setResourcePaneOpen(true);
-      void loadResource(parsed.uri);
+      void openResource(parsed.uri);
     },
     [
       closeResourcePane,
       fetchResource,
       gatewayClient,
-      loadResource,
+      openResource,
       onResourceClickProp,
       openResourceUri,
       resourcePaneOpen,
@@ -1342,7 +1308,7 @@ export function TalonSession({
   // Reset open resource pane when the session identity changes.
   useEffect(() => {
     clearResourcePaneState();
-  }, [namespace, agent, sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agent, clearResourcePaneState, currentSession?.sessionId, namespace, sessionId]);
 
   const copyMessageContent = useCallback(async (message: CopilotMessage) => {
     const nextContent = editableMessageContent(message);
@@ -2088,7 +2054,7 @@ export function TalonSession({
     [refreshRuntime],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!currentSession || sessionRuntimeState.serverState !== "PROCESSING" || isStoppingRef.current) {
       return;
     }
@@ -2147,12 +2113,9 @@ export function TalonSession({
     setExpandedThinkingMessages({});
     setExpandedToolItems({});
     invalidateToolResultHydration();
-    setOpenResourceUri(null);
-    setResourceView(null);
-    setResourceError(null);
-    setResourceLoading(false);
+    clearResourcePaneState();
     autoScrollPinnedRef.current = true;
-  }, [clearRuntime, invalidateToolResultHydration]);
+  }, [clearResourcePaneState, clearRuntime, invalidateToolResultHydration]);
 
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;
@@ -2313,11 +2276,11 @@ export function TalonSession({
     return nextAttachments;
   }, [onImageUpload]);
 
-  const submitMessage = useCallback(async (submittedText: string) => {
+  const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
     let text = submittedText.trim();
     const pendingAttachments = imageAttachmentsRef.current;
     const hasImages = pendingAttachments.length > 0;
-    if ((!text && !hasImages) || isSessionLive || disabled) return;
+    if ((!text && !hasImages) || (!invokedByRuntime && isSessionLive) || disabled) return;
     let submitTurnStarted = false;
     let resumedAfterBusyFailure = false;
     let submittedUserMessageId: string | null = null;
@@ -2417,6 +2380,7 @@ export function TalonSession({
     resumeAbortControllerRef.current = null;
     setIsResuming(false);
 
+    let removeRuntimeAbort = () => undefined;
     try {
       let session = currentSessionRef.current;
       const baselineAssistantSignature = getAssistantSignature(
@@ -2427,6 +2391,12 @@ export function TalonSession({
       submittedSession = session;
 
       const controller = new AbortController();
+      const abortFromRuntime = () => controller.abort();
+      if (runtimeSignal) {
+        if (runtimeSignal.aborted) controller.abort();
+        else runtimeSignal.addEventListener("abort", abortFromRuntime, { once: true });
+      }
+      removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
       submitController = controller;
       abortControllerRef.current = controller;
       const uploadedImages = await uploadQueuedImages(session, controller.signal);
@@ -2550,6 +2520,7 @@ export function TalonSession({
     } finally {
       const staleSession = submitController?.signal.aborted
         || (submittedSession && !isSameSession(currentSessionRef.current, submittedSession));
+      removeRuntimeAbort();
       if (!staleSession && (!submitController || abortControllerRef.current === submitController)) {
         abortControllerRef.current = null;
         setIsLoading(false);
@@ -2560,11 +2531,17 @@ export function TalonSession({
     }
   }, [agent, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, resumeStream, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
 
-  const stopGeneration = useCallback(async () => {
-    if (!currentSessionRef.current || !isSessionLive || isStopping) return;
+  const stopGeneration = useCallback(async (invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
+    if (!currentSessionRef.current || !isSessionLive || (!invokedByRuntime && isStopping)) return;
 
     const session = currentSessionRef.current;
     const stopController = new AbortController();
+    const abortFromRuntime = () => stopController.abort();
+    if (runtimeSignal) {
+      if (runtimeSignal.aborted) stopController.abort();
+      else runtimeSignal.addEventListener("abort", abortFromRuntime, { once: true });
+    }
+    const removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
     stopAbortControllerRef.current?.abort();
     stopAbortControllerRef.current = stopController;
     isStoppingRef.current = true;
@@ -2621,12 +2598,16 @@ export function TalonSession({
       if (stopAbortControllerRef.current === stopController) {
         stopAbortControllerRef.current = null;
       }
+      removeRuntimeAbort();
       if (!stopController.signal.aborted && isSameSession(currentSessionRef.current, session)) {
         isStoppingRef.current = false;
         setIsStopping(false);
       }
     }
   }, [gatewayClient, isSessionLive, isStopping, refreshNewestSessionPage, resumeStream, setError, waitForSessionToStop]);
+
+  runtimeSubmitRef.current = (input, context) => submitMessage(input.text, true, context.signal);
+  runtimeStopRef.current = (context) => stopGeneration(true, context.signal);
 
   const handleTranscriptScroll = useCallback(() => {
     updateTranscriptScrollThumb();
@@ -2738,111 +2719,53 @@ export function TalonSession({
             transition: "flex 280ms cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         >
-          <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
-            <div
-              className="talon-session-transcript"
-              data-testid="copilot-transcript"
-              ref={scrollContainerRef}
-              onScroll={handleTranscriptScroll}
-              style={{ height: "100%", overflowY: "auto", overflowX: "hidden", minHeight: 0 }}
-            >
-              <div style={{ maxWidth: 896, margin: "0 auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
-              {renderedMessages}
+          <SessionTranscript
+            isLive={isSessionLive}
+            hasTrailingUserMessage={messages[messages.length - 1]?.role === "user"}
+            workingLabel={formatWorkingDuration(loadingStartedAt, loadingNow)}
+            error={error}
+            scrollThumb={scrollThumb}
+            transcriptRef={scrollContainerRef}
+            bottomRef={bottomRef}
+            onScroll={handleTranscriptScroll}
+          >
+            {renderedMessages}
+          </SessionTranscript>
 
-              {isSessionLive && messages[messages.length - 1]?.role === "user" ? (
-                <div style={{ width: "100%" }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                    {formatWorkingDuration(loadingStartedAt, loadingNow)}
-                  </div>
-                </div>
-              ) : null}
-
-              {error ? (
-                <div style={{ display: "flex", gap: "1rem" }}>
-                  <div style={{ flexShrink: 0 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(254,226,226,1)", border: border("rgba(252,165,165,1)") }}>
-                      <Activity size="14" color="rgba(220,38,38,1)" strokeWidth={1.75} />
-                    </div>
-                  </div>
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(220,38,38,1)" }}>System Incident</span>
-                    <div style={{ fontSize: 13, borderRadius: 10, background: "rgba(254,242,242,1)", border: border("rgba(252,165,165,0.6)"), color: "rgba(220,38,38,1)", padding: 12, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
-                      {error.message || "An error occurred while connecting to the agent."}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-              <div ref={bottomRef} />
-              </div>
-            </div>
-            {scrollThumb.visible ? (
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  top: scrollThumb.top,
-                  right: 2,
-                  width: 5,
-                  height: scrollThumb.height,
-                  borderRadius: 999,
-                  background: "var(--talon-chat-scrollbar-thumb, rgba(113,113,122,0.52))",
-                  pointerEvents: "none",
-                }}
-              />
-            ) : null}
-          </div>
-
-          {disabled ? null : (
-            <div
-              style={{
-                position: "sticky",
-                bottom: 0,
-                zIndex: 10,
-                flexShrink: 0,
-                display: "flex",
-                justifyContent: "center",
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "1.5rem",
-                background: "var(--talon-chat-composer-bg, linear-gradient(to top, rgba(255,255,255,0.94), rgba(255,255,255,0.72) 58%, rgba(255,255,255,0)))",
-                backdropFilter: "blur(10px)",
-              }}
-            >
-              <div style={{ width: "100%", maxWidth: "var(--talon-chat-composer-max-width, 896px)", paddingBottom: 8 }}>
-                <TalonChatComposer
-                  value={input}
-                  onValueChange={setInput}
-                  onSubmit={(nextInput) => void submitMessage(nextInput)}
-                  placeholder={placeholder}
-                  variant={composerVariant}
-                  autoFocus={autoFocus}
-                  rows={inputRows}
-                  canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isSessionLive}
-                  isGenerating={isSessionLive}
-                  canStop={Boolean(currentSession) && !isStopping}
-                  commandMenuItems={commandMenuItems}
-                  startAdornment={composerStartAdornment}
-                  endAdornment={composerEndAdornment}
-                  imageAttachments={imageAttachments.map((attachment) => ({
-                    id: attachment.id,
-                    filename: attachment.file.name,
-                    previewUrl: attachment.previewUrl,
-                    status: attachment.status,
-                    error: attachment.error,
-                  }))}
-                  imageUploadEnabled={Boolean(onImageUpload)}
-                  imageAccept={imageAccept}
-                  onImageFilesSelected={addImageFiles}
-                  onRemoveImageAttachment={removeImageAttachment}
-                  onStop={() => {
-                    void stopGeneration().catch((err: any) =>
-                      setError(err instanceof Error ? err : new Error("Failed to stop generation")),
-                    );
-                  }}
-                />
-              </div>
-            </div>
-          )}
+          <SessionComposerDock
+            disabled={disabled}
+            value={input}
+            onValueChange={setInput}
+            onSubmit={(nextInput) => void (currentSession
+              ? sessionRuntime.submit({ text: nextInput, imageAttachments })
+              : submitMessage(nextInput))}
+            placeholder={placeholder}
+            variant={composerVariant}
+            autoFocus={autoFocus}
+            rows={inputRows}
+            canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isSessionLive}
+            isGenerating={isSessionLive}
+            canStop={Boolean(currentSession) && !isStopping}
+            commandMenuItems={commandMenuItems}
+            startAdornment={composerStartAdornment}
+            endAdornment={composerEndAdornment}
+            imageAttachments={imageAttachments.map((attachment) => ({
+              id: attachment.id,
+              filename: attachment.file.name,
+              previewUrl: attachment.previewUrl,
+              status: attachment.status,
+              error: attachment.error,
+            }))}
+            imageUploadEnabled={Boolean(onImageUpload)}
+            imageAccept={imageAccept}
+            onImageFilesSelected={addImageFiles}
+            onRemoveImageAttachment={removeImageAttachment}
+            onStop={() => {
+              void sessionRuntime.stop().catch((err: any) =>
+                setError(err instanceof Error ? err : new Error("Failed to stop generation")),
+              );
+            }}
+          />
         </div>
 
         {openResourceUri ? (

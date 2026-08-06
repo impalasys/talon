@@ -74,3 +74,21 @@ test("runtime state retains canonical history while replacing messages", () => {
   assert.equal(next.history.hasMoreOlder, true);
   assert.deepEqual(next.history.messages, next.messages);
 });
+
+test("a successful idle history update clears a stale runtime error", () => {
+  const errored: SessionRuntimeState = {
+    ...emptySessionRuntimeState,
+    target,
+    epoch: 1,
+    error: new Error("stale"),
+    serverState: "ERROR",
+  };
+  const next = sessionRuntimeReducer(errored, {
+    type: "history-updated",
+    target,
+    page: { ...page, state: "IDLE" },
+    messages: page.messages,
+    epoch: 1,
+  });
+  assert.equal(next.error, null);
+});
