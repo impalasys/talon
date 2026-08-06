@@ -833,6 +833,8 @@ def responses_input_to_chat_messages(items):
                 "content": str(output),
             })
             continue
+        if item.get("type") == "reasoning":
+            continue
         if item.get("type") == "function_call":
             messages.append({
                 "role": "assistant",
@@ -867,7 +869,12 @@ def responses_tools_to_chat_tools(tools):
 
 
 def responses_payload(model, *, content="", tool_call=None):
-    output = []
+    output = [{
+        "type": "reasoning",
+        "id": "rs_mock_1",
+        "encrypted_content": "mock-encrypted-reasoning",
+        "summary": [{"type": "summary_text", "text": "Inspecting the request."}],
+    }]
     if content:
         output.append({
             "type": "message",
@@ -904,7 +911,20 @@ async def stream_responses_payload(response, *, tool_call=None):
         )
         await asyncio.sleep(0.02)
 
-    message = response.get("output", [{}])[0] if response.get("output") else {}
+    reasoning = next(
+        (item for item in response.get("output", []) if item.get("type") == "reasoning"),
+        None,
+    )
+    if reasoning is not None:
+        yield (
+            "event: response.output_item.done\n"
+            f"data: {json.dumps({'type': 'response.output_item.done', 'output_index': 0, 'item': reasoning})}\n\n"
+        )
+
+    message = next(
+        (item for item in response.get("output", []) if item.get("type") == "message"),
+        {},
+    )
     text = ""
     if message.get("type") == "message":
         text = message.get("content", [{}])[0].get("text", "")
@@ -920,16 +940,16 @@ async def stream_responses_payload(response, *, tool_call=None):
         call_id, tool_name, arguments = tool_call
         yield (
             "event: response.output_item.added\n"
-            f"data: {json.dumps({'type': 'response.output_item.added', 'output_index': 1, 'item': {'type': 'function_call', 'call_id': call_id, 'name': tool_name, 'arguments': ''}})}\n\n"
+            f"data: {json.dumps({'type': 'response.output_item.added', 'output_index': 2, 'item': {'type': 'function_call', 'call_id': call_id, 'name': tool_name, 'arguments': ''}})}\n\n"
         )
         argument_text = json.dumps(arguments)
         yield (
             "event: response.function_call_arguments.delta\n"
-            f"data: {json.dumps({'type': 'response.function_call_arguments.delta', 'output_index': 1, 'call_id': call_id, 'name': tool_name, 'delta': argument_text})}\n\n"
+            f"data: {json.dumps({'type': 'response.function_call_arguments.delta', 'output_index': 2, 'call_id': call_id, 'name': tool_name, 'delta': argument_text})}\n\n"
         )
         yield (
             "event: response.function_call_arguments.done\n"
-            f"data: {json.dumps({'type': 'response.function_call_arguments.done', 'output_index': 1, 'call_id': call_id, 'name': tool_name, 'arguments': argument_text})}\n\n"
+            f"data: {json.dumps({'type': 'response.function_call_arguments.done', 'output_index': 2, 'call_id': call_id, 'name': tool_name, 'arguments': argument_text})}\n\n"
         )
 
     yield (

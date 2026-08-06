@@ -174,7 +174,8 @@ async def test_mock_llm_responses_endpoint_covers_json_and_streaming_paths() -> 
             },
         )
         assert standard.status_code == 200
-        assert standard.json()["output"][0]["content"][0]["text"].startswith("Hello!")
+        assert standard.json()["output"][0]["type"] == "reasoning"
+        assert standard.json()["output"][1]["content"][0]["text"].startswith("Hello!")
 
         tool = await client.post(
             "/responses",
@@ -185,7 +186,7 @@ async def test_mock_llm_responses_endpoint_covers_json_and_streaming_paths() -> 
             },
         )
         assert tool.status_code == 200
-        assert tool.json()["output"][1]["name"] == mock_llm.TOOL_NAME
+        assert tool.json()["output"][2]["name"] == mock_llm.TOOL_NAME
 
         stream = await client.post(
             "/responses",
@@ -197,6 +198,7 @@ async def test_mock_llm_responses_endpoint_covers_json_and_streaming_paths() -> 
         )
         assert stream.status_code == 200
         assert "response.output_text.delta" in stream.text
+        assert "response.output_item.done" in stream.text
         assert "response.completed" in stream.text
 
 

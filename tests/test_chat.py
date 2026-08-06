@@ -210,8 +210,14 @@ def test_native_openai_responses_api_handles_reasoning_and_tools(
     assert state["responses_requests"]
     assert state["responses_requests"][0]["toolNames"]
     assert not state["chat_requests"]
+    assert any(
+        item.get("type") == "function_call_output"
+        for request in state["responses_requests"]
+        for item in request["input"]
+    )
     assert assistant is not None
     assert "checked" in message_text(assistant).lower()
+    assert any(part.part_type == 14 and part.object for part in assistant.parts)
 
 
 def test_stop_generation_cancels_an_inflight_worker_stream(
