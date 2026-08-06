@@ -1102,11 +1102,21 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Provider that produced this opaque reasoning item, such as "openai" or
+     * "anthropic".
+     * </pre>
+     *
      * <code>string provider = 1;</code>
      * @return The provider.
      */
     java.lang.String getProvider();
     /**
+     * <pre>
+     * Provider that produced this opaque reasoning item, such as "openai" or
+     * "anthropic".
+     * </pre>
+     *
      * <code>string provider = 1;</code>
      * @return The bytes for provider.
      */
@@ -1114,11 +1124,21 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         getProviderBytes();
 
     /**
+     * <pre>
+     * Provider-specific reasoning block type, such as "reasoning", "thinking",
+     * or "redacted_thinking".
+     * </pre>
+     *
      * <code>string block_type = 2;</code>
      * @return The blockType.
      */
     java.lang.String getBlockType();
     /**
+     * <pre>
+     * Provider-specific reasoning block type, such as "reasoning", "thinking",
+     * or "redacted_thinking".
+     * </pre>
+     *
      * <code>string block_type = 2;</code>
      * @return The bytes for blockType.
      */
@@ -1126,6 +1146,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         getBlockTypeBytes();
 
     /**
+     * <pre>
+     * Serialized provider output item or block, retained verbatim for replay.
+     * </pre>
+     *
      * <code>bytes raw_json = 3;</code>
      * @return The rawJson.
      */
@@ -1185,6 +1209,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object provider_ = "";
     /**
+     * <pre>
+     * Provider that produced this opaque reasoning item, such as "openai" or
+     * "anthropic".
+     * </pre>
+     *
      * <code>string provider = 1;</code>
      * @return The provider.
      */
@@ -1202,6 +1231,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Provider that produced this opaque reasoning item, such as "openai" or
+     * "anthropic".
+     * </pre>
+     *
      * <code>string provider = 1;</code>
      * @return The bytes for provider.
      */
@@ -1224,6 +1258,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object blockType_ = "";
     /**
+     * <pre>
+     * Provider-specific reasoning block type, such as "reasoning", "thinking",
+     * or "redacted_thinking".
+     * </pre>
+     *
      * <code>string block_type = 2;</code>
      * @return The blockType.
      */
@@ -1241,6 +1280,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Provider-specific reasoning block type, such as "reasoning", "thinking",
+     * or "redacted_thinking".
+     * </pre>
+     *
      * <code>string block_type = 2;</code>
      * @return The bytes for blockType.
      */
@@ -1262,6 +1306,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     public static final int RAW_JSON_FIELD_NUMBER = 3;
     private com.google.protobuf.ByteString rawJson_ = com.google.protobuf.ByteString.EMPTY;
     /**
+     * <pre>
+     * Serialized provider output item or block, retained verbatim for replay.
+     * </pre>
+     *
      * <code>bytes raw_json = 3;</code>
      * @return The rawJson.
      */
@@ -1618,6 +1666,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object provider_ = "";
       /**
+       * <pre>
+       * Provider that produced this opaque reasoning item, such as "openai" or
+       * "anthropic".
+       * </pre>
+       *
        * <code>string provider = 1;</code>
        * @return The provider.
        */
@@ -1634,6 +1687,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Provider that produced this opaque reasoning item, such as "openai" or
+       * "anthropic".
+       * </pre>
+       *
        * <code>string provider = 1;</code>
        * @return The bytes for provider.
        */
@@ -1651,6 +1709,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Provider that produced this opaque reasoning item, such as "openai" or
+       * "anthropic".
+       * </pre>
+       *
        * <code>string provider = 1;</code>
        * @param value The provider to set.
        * @return This builder for chaining.
@@ -1664,6 +1727,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider that produced this opaque reasoning item, such as "openai" or
+       * "anthropic".
+       * </pre>
+       *
        * <code>string provider = 1;</code>
        * @return This builder for chaining.
        */
@@ -1674,6 +1742,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider that produced this opaque reasoning item, such as "openai" or
+       * "anthropic".
+       * </pre>
+       *
        * <code>string provider = 1;</code>
        * @param value The bytes for provider to set.
        * @return This builder for chaining.
@@ -1690,6 +1763,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object blockType_ = "";
       /**
+       * <pre>
+       * Provider-specific reasoning block type, such as "reasoning", "thinking",
+       * or "redacted_thinking".
+       * </pre>
+       *
        * <code>string block_type = 2;</code>
        * @return The blockType.
        */
@@ -1706,6 +1784,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Provider-specific reasoning block type, such as "reasoning", "thinking",
+       * or "redacted_thinking".
+       * </pre>
+       *
        * <code>string block_type = 2;</code>
        * @return The bytes for blockType.
        */
@@ -1723,6 +1806,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Provider-specific reasoning block type, such as "reasoning", "thinking",
+       * or "redacted_thinking".
+       * </pre>
+       *
        * <code>string block_type = 2;</code>
        * @param value The blockType to set.
        * @return This builder for chaining.
@@ -1736,6 +1824,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider-specific reasoning block type, such as "reasoning", "thinking",
+       * or "redacted_thinking".
+       * </pre>
+       *
        * <code>string block_type = 2;</code>
        * @return This builder for chaining.
        */
@@ -1746,6 +1839,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Provider-specific reasoning block type, such as "reasoning", "thinking",
+       * or "redacted_thinking".
+       * </pre>
+       *
        * <code>string block_type = 2;</code>
        * @param value The bytes for blockType to set.
        * @return This builder for chaining.
@@ -1762,6 +1860,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       private com.google.protobuf.ByteString rawJson_ = com.google.protobuf.ByteString.EMPTY;
       /**
+       * <pre>
+       * Serialized provider output item or block, retained verbatim for replay.
+       * </pre>
+       *
        * <code>bytes raw_json = 3;</code>
        * @return The rawJson.
        */
@@ -1770,6 +1872,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return rawJson_;
       }
       /**
+       * <pre>
+       * Serialized provider output item or block, retained verbatim for replay.
+       * </pre>
+       *
        * <code>bytes raw_json = 3;</code>
        * @param value The rawJson to set.
        * @return This builder for chaining.
@@ -1782,6 +1888,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Serialized provider output item or block, retained verbatim for replay.
+       * </pre>
+       *
        * <code>bytes raw_json = 3;</code>
        * @return This builder for chaining.
        */

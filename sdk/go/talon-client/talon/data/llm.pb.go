@@ -123,10 +123,15 @@ func (*ChatContentPart_EncryptedReasoning) isChatContentPart_Content() {}
 // Opaque provider-native reasoning content that must be replayed unchanged.
 // The raw JSON is intentionally not exposed as ordinary text content.
 type EncryptedReasoning struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
-	BlockType     string                 `protobuf:"bytes,2,opt,name=block_type,json=blockType,proto3" json:"block_type,omitempty"`
-	RawJson       []byte                 `protobuf:"bytes,3,opt,name=raw_json,json=rawJson,proto3" json:"raw_json,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Provider that produced this opaque reasoning item, such as "openai" or
+	// "anthropic".
+	Provider string `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	// Provider-specific reasoning block type, such as "reasoning", "thinking",
+	// or "redacted_thinking".
+	BlockType string `protobuf:"bytes,2,opt,name=block_type,json=blockType,proto3" json:"block_type,omitempty"`
+	// Serialized provider output item or block, retained verbatim for replay.
+	RawJson       []byte `protobuf:"bytes,3,opt,name=raw_json,json=rawJson,proto3" json:"raw_json,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

@@ -23,10 +23,15 @@ pub mod chat_content_part {
 /// The raw JSON is intentionally not exposed as ordinary text content.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EncryptedReasoning {
+    /// Provider that produced this opaque reasoning item, such as "openai" or
+    /// "anthropic".
     #[prost(string, tag = "1")]
     pub provider: ::prost::alloc::string::String,
+    /// Provider-specific reasoning block type, such as "reasoning", "thinking",
+    /// or "redacted_thinking".
     #[prost(string, tag = "2")]
     pub block_type: ::prost::alloc::string::String,
+    /// Serialized provider output item or block, retained verbatim for replay.
     #[prost(bytes = "vec", tag = "3")]
     pub raw_json: ::prost::alloc::vec::Vec<u8>,
 }
