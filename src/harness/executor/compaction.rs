@@ -122,6 +122,7 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
             ],
             tools: Vec::new(),
             thinking: None,
+            previous_response_id: None,
         })
         .await?;
     let response = response.content.trim();
@@ -935,7 +936,7 @@ fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatC
                     truncated.push(text_part(next));
                 }
             }
-            Some(chat_content_part::Content::EncryptedReasoning(_)) | None => {}
+            None => {}
             _ => truncated.push(part.clone()),
         }
     }
@@ -975,7 +976,6 @@ fn fit_content_parts_to_weight(
                     remaining = remaining.saturating_sub(marker.len());
                 }
             }
-            Some(chat_content_part::Content::EncryptedReasoning(_)) => {}
             None => {}
         }
     }
@@ -997,7 +997,6 @@ fn content_part_weight(part: &ChatContentPart) -> usize {
                 .saturating_add(object.key.len())
                 .saturating_add(object.filename.len())
         }
-        Some(chat_content_part::Content::EncryptedReasoning(reasoning)) => reasoning.raw_json.len(),
         None => 0,
     }
 }
@@ -1304,7 +1303,6 @@ mod tests {
                 content: self.content.clone(),
                 tool_calls: Vec::new(),
                 usage: None,
-                content_parts: Vec::new(),
             })
         }
 

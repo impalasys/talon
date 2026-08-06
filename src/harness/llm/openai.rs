@@ -3,11 +3,10 @@
 
 use crate::control::cas::CasStore;
 use crate::harness::llm::provider::{
-    chat_content_part, chat_message_text, chat_stream_event, content_part_event,
-    encrypted_reasoning_part, object_ref_fallback_text, provider_request_error,
-    reasoning_delta_event, text_delta_event, tool_call_delta_event, usage_event, ChatContentPart,
-    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider, TokenCounter,
-    ToolCallDelta,
+    chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
+    provider_request_error, reasoning_delta_event, text_delta_event, tool_call_delta_event,
+    usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream,
+    ChatStreamEvent, LlmProvider, TokenCounter, ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -70,9 +69,6 @@ async fn openai_content_part(cas: &CasStore, part: &ChatContentPart) -> Result<s
                     ),
                 },
             })
-        }
-        Some(chat_content_part::Content::EncryptedReasoning(_)) => {
-            serde_json::json!({"type": "text", "text": ""})
         }
         None => serde_json::json!({"type": "text", "text": ""}),
     })
@@ -141,7 +137,6 @@ impl OpenAiCompatibleProvider {
                 chat_content_part::Content::ObjectRef(object_ref) => {
                     Some(object_ref_fallback_text(object_ref))
                 }
-                chat_content_part::Content::EncryptedReasoning(_) => None,
             })
             .collect::<Vec<_>>()
             .join("\n")
@@ -340,41 +335,8 @@ impl OpenAiCompatibleProvider {
         }
     }
 
-    fn redact_provider_reasoning(value: &Value) -> Value {
-        match value {
-            Value::Array(items) => {
-                Value::Array(items.iter().map(Self::redact_provider_reasoning).collect())
-            }
-            Value::Object(map) => {
-                let reasoning_item = matches!(
-                    map.get("type").and_then(Value::as_str),
-                    Some("reasoning") | Some("thinking") | Some("redacted_thinking")
-                );
-                Value::Object(
-                    map.iter()
-                        .map(|(key, child)| {
-                            let sensitive = key == "encrypted_content"
-                                || (reasoning_item
-                                    && matches!(key.as_str(), "thinking" | "signature" | "data"));
-                            (
-                                key.clone(),
-                                if sensitive {
-                                    Value::String("<redacted-provider-reasoning>".to_string())
-                                } else {
-                                    Self::redact_provider_reasoning(child)
-                                },
-                            )
-                        })
-                        .collect(),
-                )
-            }
-            other => other.clone(),
-        }
-    }
-
     fn payload_json_for_debug(payload: &Value) -> String {
-        let payload = Self::redact_data_urls(payload);
-        serde_json::to_string(&Self::redact_provider_reasoning(&payload)).unwrap_or_default()
+        serde_json::to_string(&Self::redact_data_urls(payload)).unwrap_or_default()
     }
 
     fn sanitize_tool_schema_for_openai(value: &mut Value) {
@@ -765,7 +727,27 @@ impl OpenAiCompatibleProvider {
     async fn serialize_responses_input(
         &self,
         messages: Vec<ChatMessage>,
+        previous_response_id: Option<&str>,
     ) -> Result<Vec<serde_json::Value>> {
+        let messages = if previous_response_id.is_some() {
+            let suffix_start = messages
+                .iter()
+                .rposition(|message| message.role == "assistant")
+                .map(|index| index.saturating_add(1))
+                .unwrap_or(0);
+            messages
+                .into_iter()
+                .enumerate()
+                .filter(|(index, message)| {
+                    message.role == "system"
+                        || message.role == "developer"
+                        || *index >= suffix_start
+                })
+                .map(|(_, message)| message)
+                .collect()
+        } else {
+            messages
+        };
         let mut input = Vec::new();
         for message in messages {
             if message.role == "tool" {
@@ -797,27 +779,6 @@ impl OpenAiCompatibleProvider {
             let mut content = Vec::new();
             let mut has_regular_content = false;
             for part in &message.content_parts {
-                if let Some(chat_content_part::Content::EncryptedReasoning(reasoning)) =
-                    part.content.as_ref()
-                {
-                    if !content.is_empty() {
-                        input.push(serde_json::json!({
-                            "role": message.role,
-                            "content": std::mem::take(&mut content),
-                        }));
-                    }
-                    let raw: Value =
-                        serde_json::from_slice(&reasoning.raw_json).map_err(|error| {
-                            anyhow!(
-                                "invalid {} reasoning content: {}",
-                                reasoning.provider,
-                                error
-                            )
-                        })?;
-                    input.push(raw);
-                    continue;
-                }
-
                 has_regular_content = true;
                 let part = openai_content_part(&self.cas, part).await?;
                 content.push(Self::responses_input_content_part(&part));
@@ -848,43 +809,51 @@ impl OpenAiCompatibleProvider {
         stream: bool,
     ) -> Result<reqwest::Response> {
         let url = format!("{}/responses", self.base_url.trim_end_matches('/'));
-        let input = self.serialize_responses_input(request.messages).await?;
-        let mut payload = serde_json::json!({
-            "model": self.model,
-            "input": input,
-            "stream": stream,
-            "include": ["reasoning.encrypted_content"],
-        });
-
-        if !request.tools.is_empty() {
-            payload["tools"] = serde_json::json!(request
-                .tools
-                .iter()
-                .map(|tool| serde_json::json!({
-                    "type": "function",
-                    "name": tool.name,
-                    "description": tool.description,
-                    "parameters": Self::openai_tool_parameters(&tool.input_schema_json),
-                    "strict": false,
-                }))
-                .collect::<Vec<_>>());
-        }
-
-        if let Some(thinking) = request
-            .thinking
-            .as_ref()
-            .filter(|thinking| thinking.enabled)
-        {
-            let mut reasoning = serde_json::json!({"summary": "auto"});
-            if !thinking.effort.trim().is_empty() {
-                reasoning["effort"] = serde_json::json!(thinking.effort);
+        let messages = request.messages;
+        let previous_response_id = request.previous_response_id.clone();
+        let build_payload = |input: Vec<serde_json::Value>, previous_response_id: Option<&str>| {
+            let mut payload = serde_json::json!({
+                "model": self.model,
+                "input": input,
+                "stream": stream,
+            });
+            if let Some(previous_response_id) = previous_response_id {
+                payload["previous_response_id"] = serde_json::json!(previous_response_id);
             }
-            payload["reasoning"] = reasoning;
-            payload["max_output_tokens"] = serde_json::json!(thinking
-                .budget_tokens
-                .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS)
-                .saturating_add(THINKING_COMPLETION_BUFFER_TOKENS));
-        }
+            if !request.tools.is_empty() {
+                payload["tools"] = serde_json::json!(request
+                    .tools
+                    .iter()
+                    .map(|tool| serde_json::json!({
+                        "type": "function",
+                        "name": tool.name,
+                        "description": tool.description,
+                        "parameters": Self::openai_tool_parameters(&tool.input_schema_json),
+                        "strict": false,
+                    }))
+                    .collect::<Vec<_>>());
+            }
+            if let Some(thinking) = request
+                .thinking
+                .as_ref()
+                .filter(|thinking| thinking.enabled)
+            {
+                let mut reasoning = serde_json::json!({"summary": "auto"});
+                if !thinking.effort.trim().is_empty() {
+                    reasoning["effort"] = serde_json::json!(thinking.effort);
+                }
+                payload["reasoning"] = reasoning;
+                payload["max_output_tokens"] = serde_json::json!(thinking
+                    .budget_tokens
+                    .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS)
+                    .saturating_add(THINKING_COMPLETION_BUFFER_TOKENS));
+            }
+            payload
+        };
+        let input = self
+            .serialize_responses_input(messages.clone(), previous_response_id.as_deref())
+            .await?;
+        let mut payload = build_payload(input, previous_response_id.as_deref());
 
         let stats_messages = payload
             .get("input")
@@ -921,7 +890,35 @@ impl OpenAiCompatibleProvider {
                 status,
                 &error,
             );
-            Err(anyhow!("OpenAI Responses API error: {}", error))
+            if previous_response_id.is_some() && is_stale_previous_response_id(status, &error) {
+                tracing::warn!(
+                    model = %self.model,
+                    "Retrying Responses request without stale previous_response_id"
+                );
+                let full_input = self.serialize_responses_input(messages, None).await?;
+                payload = build_payload(full_input, None);
+                let retry_response = self
+                    .http_client
+                    .post(&url)
+                    .header("Authorization", format!("Bearer {}", self.api_key))
+                    .json(&payload)
+                    .send()
+                    .await?;
+                if retry_response.status().is_success() {
+                    return Ok(retry_response);
+                }
+                let retry_status = retry_response.status();
+                let retry_error = retry_response.text().await?;
+                return Err(openai_api_error(
+                    "OpenAI Responses API error after stale previous_response_id retry",
+                    &retry_error,
+                ))
+                .map_err(|error| {
+                    tracing::error!(%retry_status, error = %error, "Responses retry failed");
+                    error
+                });
+            }
+            Err(openai_api_error("OpenAI Responses API error", &error))
         }
     }
 }
@@ -936,6 +933,21 @@ fn openai_api_error(message: &str, response_body: &str) -> anyhow::Error {
         .ok()
         .and_then(|value| extract_usage(&value));
     provider_request_error(message, token_counter)
+}
+
+fn is_stale_previous_response_id(status: reqwest::StatusCode, body: &str) -> bool {
+    if !matches!(
+        status,
+        reqwest::StatusCode::BAD_REQUEST | reqwest::StatusCode::NOT_FOUND
+    ) {
+        return false;
+    }
+    let body = body.to_ascii_lowercase();
+    (body.contains("previous_response_id") || body.contains("previous response"))
+        && (body.contains("invalid")
+            || body.contains("expired")
+            || body.contains("not found")
+            || body.contains("does not exist"))
 }
 
 #[async_trait]
@@ -994,11 +1006,6 @@ impl LlmProvider for OpenAiCompatibleProvider {
             content: content.clone(),
             tool_calls,
             usage,
-            content_parts: if content.is_empty() {
-                Vec::new()
-            } else {
-                vec![crate::harness::llm::text_part(content.clone())]
-            },
         })
     }
 
@@ -1120,6 +1127,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
             messages: vec![chat_message_text("user", prompt)],
             tools: vec![],
             thinking: None,
+            previous_response_id: None,
         })
         .await
         .map(|r| r.content)
@@ -1145,7 +1153,6 @@ fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
     use crate::harness::llm::provider::ToolCall;
 
     let mut content = String::new();
-    let mut content_parts = Vec::new();
     let mut tool_calls = Vec::new();
     for item in value
         .get("output")
@@ -1163,14 +1170,7 @@ fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
                 {
                     if let Some(text) = part.get("text").and_then(Value::as_str) {
                         content.push_str(text);
-                        content_parts.push(crate::harness::llm::text_part(text));
                     }
-                }
-            }
-            Some("reasoning") => {
-                if item.get("encrypted_content").is_some() {
-                    let raw_json = serde_json::to_vec(item)?;
-                    content_parts.push(encrypted_reasoning_part("openai", "reasoning", raw_json));
                 }
             }
             Some("function_call") => {
@@ -1200,12 +1200,11 @@ fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
         content,
         tool_calls,
         usage: extract_responses_usage(value),
-        content_parts,
     })
 }
 
 fn extract_responses_usage(value: &Value) -> Option<TokenCounter> {
-    let usage = value.get("usage")?;
+    let usage = value.get("usage").cloned().unwrap_or(Value::Null);
     let input_tokens = usage
         .get("input_tokens")
         .and_then(Value::as_u64)
@@ -1223,7 +1222,14 @@ fn extract_responses_usage(value: &Value) -> Option<TokenCounter> {
         .get("total_tokens")
         .and_then(Value::as_u64)
         .unwrap_or(input_tokens + output_tokens_total);
-    if input_tokens == 0 && output_tokens_total == 0 && total_tokens == 0 {
+    let provider_request_id = value
+        .get("id")
+        .and_then(Value::as_str)
+        .filter(|id| !id.is_empty())
+        .map(ToString::to_string);
+    if provider_request_id.is_none()
+        && (input_tokens == 0 && output_tokens_total == 0 && total_tokens == 0)
+    {
         return None;
     }
     Some(TokenCounter {
@@ -1235,11 +1241,9 @@ fn extract_responses_usage(value: &Value) -> Option<TokenCounter> {
             .pointer("/input_tokens_details/cached_tokens")
             .and_then(Value::as_u64)
             .unwrap_or_default(),
-        usage_available: true,
-        provider_request_id: value
-            .get("id")
-            .and_then(Value::as_str)
-            .map(ToString::to_string),
+        usage_available: value.get("usage").is_some()
+            && (input_tokens > 0 || output_tokens_total > 0 || total_tokens > 0),
+        provider_request_id,
         provider: String::new(),
         model: value
             .get("model")
@@ -1287,6 +1291,15 @@ fn parse_responses_stream(response: reqwest::Response, parent_span: tracing::Spa
                     event_name.as_str()
                 };
                 match event_type {
+                    "response.created" => {
+                        if let Some(response) = value.get("response") {
+                            if let Some(usage) = extract_responses_usage(response) {
+                                items.push(Ok(usage_event(usage)));
+                            }
+                        } else if let Some(usage) = extract_responses_usage(&value) {
+                            items.push(Ok(usage_event(usage)));
+                        }
+                    }
                     "response.output_text.delta" => {
                         if let Some(delta) = value.get("delta").and_then(Value::as_str) {
                             items.push(Ok(text_delta_event(delta.to_string())));
@@ -1344,20 +1357,7 @@ fn parse_responses_stream(response: reqwest::Response, parent_span: tracing::Spa
                             })));
                         }
                     }
-                    "response.output_item.done" => {
-                        let Some(item) = value.get("item") else {
-                            continue;
-                        };
-                        if item.get("type").and_then(Value::as_str) == Some("reasoning")
-                            && item.get("encrypted_content").is_some()
-                        {
-                            items.push(Ok(content_part_event(encrypted_reasoning_part(
-                                "openai",
-                                "reasoning",
-                                serde_json::to_vec(item).unwrap_or_default(),
-                            ))));
-                        }
-                    }
+                    "response.output_item.done" => {}
                     "response.completed" => {
                         if let Some(response) = value.get("response") {
                             if let Some(usage) = extract_responses_usage(response) {
@@ -1687,12 +1687,15 @@ mod tests {
         );
 
         let input = provider
-            .serialize_responses_input(vec![ChatMessage {
-                role: "tool".to_string(),
-                content_parts: vec![object_ref_part(object)],
-                tool_calls: Vec::new(),
-                tool_call_id: Some("call_1".to_string()),
-            }])
+            .serialize_responses_input(
+                vec![ChatMessage {
+                    role: "tool".to_string(),
+                    content_parts: vec![object_ref_part(object)],
+                    tool_calls: Vec::new(),
+                    tool_call_id: Some("call_1".to_string()),
+                }],
+                None,
+            )
             .await
             .unwrap();
 
@@ -2024,6 +2027,7 @@ mod tests {
                     messages,
                     tools,
                     thinking: None,
+                    previous_response_id: None,
                 },
                 false,
             )
@@ -2125,6 +2129,7 @@ mod tests {
                     budget_tokens: Some(2048),
                     effort: "high".to_string(),
                 }),
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -2171,6 +2176,7 @@ mod tests {
                     budget_tokens: None,
                     effort: "medium".to_string(),
                 }),
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -2217,6 +2223,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -2268,6 +2275,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -2318,6 +2326,7 @@ mod tests {
                     messages: vec![chat_message_text("user", "hi")],
                     tools: vec![],
                     thinking: None,
+                    previous_response_id: None,
                 },
                 false,
             )
@@ -2389,6 +2398,7 @@ mod tests {
                     messages: vec![chat_message_text("user", "hi")],
                     tools: vec![],
                     thinking: None,
+                    previous_response_id: None,
                 },
                 true,
             )
@@ -2458,6 +2468,7 @@ mod tests {
                         input_schema_json: serde_json::json!({"type": "object"}).to_string(),
                     }],
                     thinking: None,
+                    previous_response_id: None,
                 },
                 false,
             )
@@ -2514,6 +2525,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -2578,6 +2590,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -2646,27 +2659,10 @@ mod tests {
     }
 
     #[test]
-    fn debug_payload_redacts_provider_reasoning() {
-        let payload = serde_json::json!({
-            "input": [{
-                "type": "reasoning",
-                "encrypted_content": "ciphertext",
-                "summary": [{"text": "safe summary"}]
-            }]
-        });
-
-        let debug = OpenAiCompatibleProvider::payload_json_for_debug(&payload);
-        assert!(!debug.contains("ciphertext"));
-        assert!(debug.contains("<redacted-provider-reasoning>"));
-        assert!(debug.contains("safe summary"));
-    }
-
-    #[test]
-    fn parse_responses_response_extracts_text_tools_usage_and_reasoning() {
+    fn parse_responses_response_extracts_text_tools_and_usage() {
         let response = parse_responses_response(&serde_json::json!({
             "id": "resp_1",
             "output": [
-                {"type": "reasoning", "encrypted_content": "ciphertext"},
                 {"type": "message", "content": [{"type": "output_text", "text": "done"}]},
                 {"type": "function_call", "call_id": "call_1", "name": "lookup", "arguments": "{\"q\":\"x\"}"}
             ],
@@ -2681,46 +2677,61 @@ mod tests {
         assert_eq!(response.content, "done");
         assert_eq!(response.tool_calls[0].id, "call_1");
         assert_eq!(response.usage.unwrap().reasoning_output_tokens, 3);
-        assert!(matches!(
-            response.content_parts[0].content,
-            Some(chat_content_part::Content::EncryptedReasoning(_))
-        ));
     }
 
     #[tokio::test]
-    async fn responses_input_replays_provider_output_items() {
-        let provider = OpenAiCompatibleProvider::with_api(
-            "key".to_string(),
-            "http://localhost".to_string(),
-            "model".to_string(),
-            test_cas_store(),
-            "responses",
-        );
-        let raw_json = serde_json::json!({
-            "type": "reasoning",
-            "id": "rs_1",
-            "encrypted_content": "ciphertext"
-        })
-        .to_string()
-        .into_bytes();
-        let message = ChatMessage {
-            role: "assistant".to_string(),
-            content_parts: vec![
-                crate::harness::llm::text_part("before"),
-                crate::harness::llm::encrypted_reasoning_part("openai", "reasoning", raw_json),
-                crate::harness::llm::text_part("after"),
-            ],
-            tool_calls: Vec::new(),
-            tool_call_id: None,
-        };
+    async fn responses_input_with_previous_id_contains_instructions_and_new_suffix_only() {
+        let provider = test_provider();
+        let messages = vec![
+            chat_message_text("system", "system instructions"),
+            chat_message_text("developer", "developer instructions"),
+            chat_message_text("user", "old question"),
+            assistant_tool_call_message("lookup", "{\"q\":\"old\"}"),
+            chat_message_text("tool", "new tool output"),
+            chat_message_text("user", "new question"),
+        ];
         let input = provider
-            .serialize_responses_input(vec![message])
+            .serialize_responses_input(messages, Some("resp_previous"))
             .await
             .unwrap();
-        assert_eq!(input.len(), 3);
-        assert_eq!(input[0]["content"][0]["text"], "before");
-        assert_eq!(input[1]["type"], "reasoning");
-        assert_eq!(input[1]["encrypted_content"], "ciphertext");
-        assert_eq!(input[2]["content"][0]["text"], "after");
+
+        assert_eq!(input.len(), 4);
+        assert_eq!(input[0]["role"], "system");
+        assert_eq!(input[1]["role"], "developer");
+        assert_eq!(input[2]["type"], "function_call_output");
+        assert_eq!(input[3]["role"], "user");
+        assert!(!input
+            .iter()
+            .any(|item| item.to_string().contains("old question")));
+    }
+
+    #[test]
+    fn responses_usage_preserves_id_without_usage_counts() {
+        let usage = extract_responses_usage(&serde_json::json!({
+            "id": "resp_without_usage",
+            "model": "model"
+        }))
+        .expect("response id should be retained");
+        assert_eq!(
+            usage.provider_request_id.as_deref(),
+            Some("resp_without_usage")
+        );
+        assert!(!usage.usage_available);
+    }
+
+    #[test]
+    fn stale_response_id_errors_are_retryable_but_generic_errors_are_not() {
+        assert!(is_stale_previous_response_id(
+            reqwest::StatusCode::BAD_REQUEST,
+            "previous_response_id is invalid"
+        ));
+        assert!(!is_stale_previous_response_id(
+            reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            "previous_response_id is invalid"
+        ));
+        assert!(!is_stale_previous_response_id(
+            reqwest::StatusCode::BAD_REQUEST,
+            "rate limit exceeded"
+        ));
     }
 }

@@ -41,6 +41,47 @@ pub async fn persist_context_tokens(
     ))
 }
 
+pub async fn clear_provider_request_id(
+    kv: &dyn KeyValueStore,
+    claim: &SubmissionLease,
+) -> Result<()> {
+    let key = keys::session(&claim.ns, &claim.agent, &claim.session_id);
+    for _ in 0..8 {
+        let Some(current) = kv.get(&key).await? else {
+            return Err(anyhow!(
+                "session not found while clearing provider response id"
+            ));
+        };
+        let mut session = data_proto::Session::decode(current.as_slice())?;
+        let Some(mut counter) = session.context_tokens.clone() else {
+            return Ok(());
+        };
+        if counter.provider_request_id.is_none() {
+            return Ok(());
+        }
+        counter.provider_request_id = None;
+        session.context_tokens = Some(counter);
+        submission::ensure_submission_attempt_current(
+            kv,
+            &claim.ns,
+            &claim.agent,
+            &claim.session_id,
+            &claim.submission_id,
+            &claim.attempt_id,
+        )
+        .await?;
+        if kv
+            .compare_and_swap(&key, Some(current.as_slice()), &session.encode_to_vec())
+            .await?
+        {
+            return Ok(());
+        }
+    }
+    Err(anyhow!(
+        "failed to clear provider response id after CAS retries"
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -118,5 +159,20 @@ mod tests {
         assert_eq!(stored.status, "PROCESSING");
         assert_eq!(stored.metadata.get("source"), Some(&"test".to_string()));
         assert_eq!(stored.labels.get("label"), Some(&"value".to_string()));
+
+        clear_provider_request_id(kv.as_ref(), &claim)
+            .await
+            .unwrap();
+        let cleared = kv
+            .get_msg::<data_proto::Session>(&key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            cleared
+                .context_tokens
+                .and_then(|counter| counter.provider_request_id),
+            None
+        );
     }
 }

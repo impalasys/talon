@@ -9,24 +9,12 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class ChatContentPart(_message.Message):
-    __slots__ = ("text", "object_ref", "encrypted_reasoning")
+    __slots__ = ("text", "object_ref")
     TEXT_FIELD_NUMBER: _ClassVar[int]
     OBJECT_REF_FIELD_NUMBER: _ClassVar[int]
-    ENCRYPTED_REASONING_FIELD_NUMBER: _ClassVar[int]
     text: str
     object_ref: _data_pb2.ObjectRef
-    encrypted_reasoning: EncryptedReasoning
-    def __init__(self, text: _Optional[str] = ..., object_ref: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ..., encrypted_reasoning: _Optional[_Union[EncryptedReasoning, _Mapping]] = ...) -> None: ...
-
-class EncryptedReasoning(_message.Message):
-    __slots__ = ("provider", "block_type", "raw_json")
-    PROVIDER_FIELD_NUMBER: _ClassVar[int]
-    BLOCK_TYPE_FIELD_NUMBER: _ClassVar[int]
-    RAW_JSON_FIELD_NUMBER: _ClassVar[int]
-    provider: str
-    block_type: str
-    raw_json: bytes
-    def __init__(self, provider: _Optional[str] = ..., block_type: _Optional[str] = ..., raw_json: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, text: _Optional[str] = ..., object_ref: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class ToolOutput(_message.Message):
     __slots__ = ("content_parts", "summary")
@@ -71,16 +59,14 @@ class ChatMessage(_message.Message):
     def __init__(self, role: _Optional[str] = ..., content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., tool_call_id: _Optional[str] = ...) -> None: ...
 
 class ChatResponse(_message.Message):
-    __slots__ = ("content", "tool_calls", "usage", "content_parts")
+    __slots__ = ("content", "tool_calls", "usage")
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALLS_FIELD_NUMBER: _ClassVar[int]
     USAGE_FIELD_NUMBER: _ClassVar[int]
-    CONTENT_PARTS_FIELD_NUMBER: _ClassVar[int]
     content: str
     tool_calls: _containers.RepeatedCompositeFieldContainer[ToolCall]
     usage: _data_pb2.TokenCounter
-    content_parts: _containers.RepeatedCompositeFieldContainer[ChatContentPart]
-    def __init__(self, content: _Optional[str] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ..., content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ...) -> None: ...
+    def __init__(self, content: _Optional[str] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ...) -> None: ...
 
 class Tool(_message.Message):
     __slots__ = ("name", "description", "input_schema_json")
@@ -93,25 +79,25 @@ class Tool(_message.Message):
     def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ..., input_schema_json: _Optional[str] = ...) -> None: ...
 
 class ChatRequest(_message.Message):
-    __slots__ = ("messages", "tools", "thinking")
+    __slots__ = ("messages", "tools", "thinking", "previous_response_id")
     MESSAGES_FIELD_NUMBER: _ClassVar[int]
     TOOLS_FIELD_NUMBER: _ClassVar[int]
     THINKING_FIELD_NUMBER: _ClassVar[int]
+    PREVIOUS_RESPONSE_ID_FIELD_NUMBER: _ClassVar[int]
     messages: _containers.RepeatedCompositeFieldContainer[ChatMessage]
     tools: _containers.RepeatedCompositeFieldContainer[Tool]
     thinking: _agents_pb2.ThinkingConfig
-    def __init__(self, messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., tools: _Optional[_Iterable[_Union[Tool, _Mapping]]] = ..., thinking: _Optional[_Union[_agents_pb2.ThinkingConfig, _Mapping]] = ...) -> None: ...
+    previous_response_id: str
+    def __init__(self, messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., tools: _Optional[_Iterable[_Union[Tool, _Mapping]]] = ..., thinking: _Optional[_Union[_agents_pb2.ThinkingConfig, _Mapping]] = ..., previous_response_id: _Optional[str] = ...) -> None: ...
 
 class ChatStreamEvent(_message.Message):
-    __slots__ = ("text_delta", "reasoning_delta", "tool_call_delta", "usage", "content_part")
+    __slots__ = ("text_delta", "reasoning_delta", "tool_call_delta", "usage")
     TEXT_DELTA_FIELD_NUMBER: _ClassVar[int]
     REASONING_DELTA_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALL_DELTA_FIELD_NUMBER: _ClassVar[int]
     USAGE_FIELD_NUMBER: _ClassVar[int]
-    CONTENT_PART_FIELD_NUMBER: _ClassVar[int]
     text_delta: str
     reasoning_delta: str
     tool_call_delta: ToolCallDelta
     usage: _data_pb2.TokenCounter
-    content_part: ChatContentPart
-    def __init__(self, text_delta: _Optional[str] = ..., reasoning_delta: _Optional[str] = ..., tool_call_delta: _Optional[_Union[ToolCallDelta, _Mapping]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ..., content_part: _Optional[_Union[ChatContentPart, _Mapping]] = ...) -> None: ...
+    def __init__(self, text_delta: _Optional[str] = ..., reasoning_delta: _Optional[str] = ..., tool_call_delta: _Optional[_Union[ToolCallDelta, _Mapping]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ...) -> None: ...

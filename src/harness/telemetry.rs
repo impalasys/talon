@@ -381,12 +381,6 @@ fn content_parts_value(parts: &[ChatContentPart]) -> Vec<Value> {
                 "size_bytes": object.size_bytes,
                 "filename": object.filename,
             })),
-            Some(chat_content_part::Content::EncryptedReasoning(reasoning)) => Some(json!({
-                "type": "encrypted_reasoning",
-                "provider": reasoning.provider,
-                "block_type": reasoning.block_type,
-                "size_bytes": reasoning.raw_json.len(),
-            })),
             None => None,
         })
         .collect()

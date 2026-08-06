@@ -27,12 +27,6 @@ export class ChatContentPart extends Message<ChatContentPart> {
      */
     value: ObjectRef;
     case: "objectRef";
-  } | {
-    /**
-     * @generated from field: talon.harness.EncryptedReasoning encrypted_reasoning = 5;
-     */
-    value: EncryptedReasoning;
-    case: "encryptedReasoning";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatContentPart>) {
@@ -45,7 +39,6 @@ export class ChatContentPart extends Message<ChatContentPart> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "text", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "content" },
     { no: 4, name: "object_ref", kind: "message", T: ObjectRef, oneof: "content" },
-    { no: 5, name: "encrypted_reasoning", kind: "message", T: EncryptedReasoning, oneof: "content" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatContentPart {
@@ -62,66 +55,6 @@ export class ChatContentPart extends Message<ChatContentPart> {
 
   static equals(a: ChatContentPart | PlainMessage<ChatContentPart> | undefined, b: ChatContentPart | PlainMessage<ChatContentPart> | undefined): boolean {
     return proto3.util.equals(ChatContentPart, a, b);
-  }
-}
-
-/**
- * Opaque provider-native reasoning content that must be replayed unchanged.
- * The raw JSON is intentionally not exposed as ordinary text content.
- *
- * @generated from message talon.harness.EncryptedReasoning
- */
-export class EncryptedReasoning extends Message<EncryptedReasoning> {
-  /**
-   * Provider that produced this opaque reasoning item, such as "openai" or
-   * "anthropic".
-   *
-   * @generated from field: string provider = 1;
-   */
-  provider = "";
-
-  /**
-   * Provider-specific reasoning block type, such as "reasoning", "thinking",
-   * or "redacted_thinking".
-   *
-   * @generated from field: string block_type = 2;
-   */
-  blockType = "";
-
-  /**
-   * Serialized provider output item or block, retained verbatim for replay.
-   *
-   * @generated from field: bytes raw_json = 3;
-   */
-  rawJson = new Uint8Array(0);
-
-  constructor(data?: PartialMessage<EncryptedReasoning>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.harness.EncryptedReasoning";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "block_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "raw_json", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EncryptedReasoning {
-    return new EncryptedReasoning().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EncryptedReasoning {
-    return new EncryptedReasoning().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EncryptedReasoning {
-    return new EncryptedReasoning().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: EncryptedReasoning | PlainMessage<EncryptedReasoning> | undefined, b: EncryptedReasoning | PlainMessage<EncryptedReasoning> | undefined): boolean {
-    return proto3.util.equals(EncryptedReasoning, a, b);
   }
 }
 
@@ -348,11 +281,6 @@ export class ChatResponse extends Message<ChatResponse> {
    */
   usage?: TokenCounter;
 
-  /**
-   * @generated from field: repeated talon.harness.ChatContentPart content_parts = 5;
-   */
-  contentParts: ChatContentPart[] = [];
-
   constructor(data?: PartialMessage<ChatResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -364,7 +292,6 @@ export class ChatResponse extends Message<ChatResponse> {
     { no: 1, name: "content", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "tool_calls", kind: "message", T: ToolCall, repeated: true },
     { no: 3, name: "usage", kind: "message", T: TokenCounter, opt: true },
-    { no: 5, name: "content_parts", kind: "message", T: ChatContentPart, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatResponse {
@@ -454,6 +381,11 @@ export class ChatRequest extends Message<ChatRequest> {
    */
   thinking?: ThinkingConfig;
 
+  /**
+   * @generated from field: optional string previous_response_id = 4;
+   */
+  previousResponseId?: string;
+
   constructor(data?: PartialMessage<ChatRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -465,6 +397,7 @@ export class ChatRequest extends Message<ChatRequest> {
     { no: 1, name: "messages", kind: "message", T: ChatMessage, repeated: true },
     { no: 2, name: "tools", kind: "message", T: Tool, repeated: true },
     { no: 3, name: "thinking", kind: "message", T: ThinkingConfig, opt: true },
+    { no: 4, name: "previous_response_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatRequest {
@@ -515,12 +448,6 @@ export class ChatStreamEvent extends Message<ChatStreamEvent> {
      */
     value: TokenCounter;
     case: "usage";
-  } | {
-    /**
-     * @generated from field: talon.harness.ChatContentPart content_part = 6;
-     */
-    value: ChatContentPart;
-    case: "contentPart";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatStreamEvent>) {
@@ -535,7 +462,6 @@ export class ChatStreamEvent extends Message<ChatStreamEvent> {
     { no: 2, name: "reasoning_delta", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "event" },
     { no: 3, name: "tool_call_delta", kind: "message", T: ToolCallDelta, oneof: "event" },
     { no: 4, name: "usage", kind: "message", T: TokenCounter, oneof: "event" },
-    { no: 6, name: "content_part", kind: "message", T: ChatContentPart, oneof: "event" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatStreamEvent {
