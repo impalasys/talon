@@ -3,18 +3,15 @@ import { describe, it } from "node:test";
 import {
   mergeNewestCanonicalPage,
   normalizeHistoryPage,
-  stableHistoryMessageId,
   validateCursorAdvances,
 } from "./history.ts";
 
 describe("session history", () => {
-  it("keeps fallback message IDs stable across repeated page loads", () => {
-    const message = {
-      role: "ROLE_ASSISTANT",
-      content: "same content",
-      createdAt: "1777755592000000",
-    };
-    assert.equal(stableHistoryMessageId(message), stableHistoryMessageId({ ...message }));
+  it("requires canonical server message IDs", () => {
+    assert.throws(
+      () => normalizeHistoryPage({ messages: [{ role: "ROLE_ASSISTANT", content: "missing id" }] }),
+      /canonical id/,
+    );
   });
 
   it("normalizes snake_case pagination fields and preserves canonical IDs", () => {

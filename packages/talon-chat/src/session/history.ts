@@ -13,22 +13,6 @@ export type SessionHistoryPage = HistoryState & {
   nextBeforeMessageId: string | null;
 };
 
-function stableStringHash(value: string): string {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  }
-  return hash.toString(36);
-}
-
-export function stableHistoryMessageId(message: any): string {
-  if (typeof message?.id === "string" && message.id.length > 0) return message.id;
-  const role = normalizeMessageRole(message?.role);
-  const createdAt = message?.createdAt ?? message?.created_at ?? "unknown";
-  const content = getMessageContent(message);
-  return `history-${role}-${createdAt}-${stableStringHash(content)}`;
-}
-
 export function normalizeMessageLabels(labels: unknown): Record<string, string> | undefined {
   if (!labels || typeof labels !== "object" || Array.isArray(labels)) return undefined;
   const entries = Object.entries(labels as Record<string, unknown>)
@@ -52,8 +36,7 @@ export function isLocalMessageId(id: string): boolean {
 }
 
 export function canCompareCanonicalMessageIds(left: string, right: string): boolean {
-  const isFallbackId = (id: string) => id.startsWith("history-") || isLocalMessageId(id);
-  return !isFallbackId(left) && !isFallbackId(right);
+  return !isLocalMessageId(left) && !isLocalMessageId(right);
 }
 
 export function historyItemsFromResponse(response: any): Array<{ message?: any; steps?: any[] }> {
@@ -74,8 +57,11 @@ export function historyItemsFromResponse(response: any): Array<{ message?: any; 
 }
 
 export function normalizeRawSessionMessage(message: any): CopilotMessage {
+  if (typeof message?.id !== "string" || message.id.length === 0) {
+    throw new Error("Session history messages must include a canonical id.");
+  }
   return {
-    id: stableHistoryMessageId(message),
+    id: message.id,
     role: normalizeMessageRole(message?.role),
     content: getMessageContent(message),
     labels: normalizeMessageLabels(message?.labels),
