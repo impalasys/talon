@@ -800,6 +800,9 @@ impl OpenAiCompatibleProvider {
                 if let Some(chat_content_part::Content::EncryptedReasoning(reasoning)) =
                     part.content.as_ref()
                 {
+                    if reasoning.provider != "openai" {
+                        continue;
+                    }
                     if !content.is_empty() {
                         input.push(serde_json::json!({
                             "role": message.role,

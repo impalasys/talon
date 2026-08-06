@@ -26,6 +26,8 @@ enum SessionMessagePartType {
   // Durable-context boundary. The part points at the immutable compacted
   // summary CAS object used to reconstruct model-visible history.
   SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;
+  // Opaque provider-native reasoning content stored in the part's ObjectRef.
+  SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING = 14;
 }
 
 message ObjectRef {

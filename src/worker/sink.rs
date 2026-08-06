@@ -22,7 +22,9 @@ use crate::control::{
 use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
 use crate::gateway::rpc::resources_proto;
 use crate::harness::executor::{AgentEvent, ExecutionSink};
-use crate::harness::llm::{ChatResponse, TokenCounter, ToolOutput};
+use crate::harness::llm::{
+    chat_content_part, ChatContentPart, ChatResponse, TokenCounter, ToolOutput,
+};
 use crate::harness::sessions::{self, SessionSubmission};
 use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
 use tracing::Instrument;
@@ -630,16 +632,38 @@ impl PubSubSessionSink {
         );
     }
 
-    pub(crate) fn seed_recovered_final_text_part(&self, content: &str) {
-        if content.is_empty() {
-            return;
-        }
-        self.record_part(
-            data_proto::SessionMessagePartType::Text,
+    pub(crate) async fn seed_recovered_encrypted_reasoning_part(
+        &self,
+        part_id: &str,
+        provider: &str,
+        block_type: &str,
+        raw_json: &[u8],
+    ) -> Result<()> {
+        let object = CasStore::new(self.objects.clone())
+            .put_encrypted_reasoning(
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+                &self.reply_msg_id,
+                part_id,
+                provider,
+                block_type,
+                raw_json,
+            )
+            .await?;
+        self.record_part_with_id_and_object(
+            part_id.to_string(),
+            data_proto::SessionMessagePartType::EncryptedReasoning,
             String::new(),
-            content.to_string(),
             String::new(),
+            serde_json::json!({
+                "provider": provider,
+                "block_type": block_type,
+            })
+            .to_string(),
+            Some(object),
         );
+        Ok(())
     }
 
     pub(crate) fn seed_recovered_tool_call_part(
@@ -1263,6 +1287,48 @@ impl PubSubSessionSink {
 
 #[async_trait]
 impl ExecutionSink for PubSubSessionSink {
+    async fn on_content_part(&self, part: &ChatContentPart) -> Result<()> {
+        let Some(chat_content_part::Content::EncryptedReasoning(reasoning)) = part.content.as_ref()
+        else {
+            return Ok(());
+        };
+
+        self.flush_active_stream_event_buffer().await;
+        self.close_active_stream_part();
+        let part_id = self.next_part_id();
+        let cas = CasStore::new(self.objects.clone());
+        let object = match cas
+            .put_encrypted_reasoning(
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+                &self.reply_msg_id,
+                &part_id,
+                &reasoning.provider,
+                &reasoning.block_type,
+                &reasoning.raw_json,
+            )
+            .await
+        {
+            Ok(object) => object,
+            Err(error) => return Err(error),
+        };
+        self.record_part_with_id_and_object(
+            part_id,
+            data_proto::SessionMessagePartType::EncryptedReasoning,
+            String::new(),
+            String::new(),
+            serde_json::json!({
+                "provider": reasoning.provider,
+                "block_type": reasoning.block_type,
+            })
+            .to_string(),
+            Some(object),
+        );
+        self.persist_durable_message("encrypted_reasoning").await;
+        Ok(())
+    }
+
     async fn on_llm_response(&self, response: &ChatResponse) -> Result<()> {
         let entry = sessions::append_llm_response(
             self.kv.as_ref(),
@@ -2773,6 +2839,61 @@ mod tests {
             .find(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
             .expect("final message should include text");
         assert_eq!(final_text.content, "hello world");
+    }
+
+    #[tokio::test]
+    async fn encrypted_reasoning_is_persisted_as_ordered_cas_part() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+
+        sink.on_token("answer").await;
+        sink.on_content_part(&crate::harness::llm::encrypted_reasoning_part(
+            "openai",
+            "reasoning",
+            br#"{"type":"reasoning","encrypted_content":"cipher"}"#.to_vec(),
+        ))
+        .await
+        .unwrap();
+
+        let message = latest_reply_message(kv.as_ref()).await;
+        assert_eq!(
+            message
+                .parts
+                .iter()
+                .map(|part| part.part_type)
+                .collect::<Vec<_>>(),
+            vec![
+                data_proto::SessionMessagePartType::Text as i32,
+                data_proto::SessionMessagePartType::EncryptedReasoning as i32,
+            ]
+        );
+        let reasoning = &message.parts[1];
+        assert_eq!(
+            reasoning.payload_json,
+            r#"{"block_type":"reasoning","provider":"openai"}"#
+        );
+        let stored = sink
+            .objects
+            .get(&reasoning.object.as_ref().unwrap().key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            stored.bytes,
+            br#"{"type":"reasoning","encrypted_content":"cipher"}"#
+        );
     }
 
     #[tokio::test]

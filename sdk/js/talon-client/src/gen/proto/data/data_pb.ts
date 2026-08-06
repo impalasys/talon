@@ -114,6 +114,13 @@ export enum SessionMessagePartType {
    * @generated from enum value: SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;
    */
   COMPACTION = 13,
+
+  /**
+   * Opaque provider-native reasoning content stored in the part's ObjectRef.
+   *
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING = 14;
+   */
+  ENCRYPTED_REASONING = 14,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SessionMessagePartType)
 proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartType", [
@@ -131,6 +138,7 @@ proto3.util.setEnumType(SessionMessagePartType, "talon.data.SessionMessagePartTy
   { no: 11, name: "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION" },
   { no: 12, name: "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT" },
   { no: 13, name: "SESSION_MESSAGE_PART_TYPE_COMPACTION" },
+  { no: 14, name: "SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING" },
 ]);
 
 /**

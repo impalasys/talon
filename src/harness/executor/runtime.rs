@@ -239,7 +239,9 @@ pub trait ExecutionSink: Send + Sync {
     /// A reasoning chunk from the model.
     async fn on_reasoning(&self, reasoning: &str);
     /// A completed opaque provider-native content part.
-    async fn on_content_part(&self, _: &ChatContentPart) {}
+    async fn on_content_part(&self, _: &ChatContentPart) -> Result<()> {
+        Ok(())
+    }
     /// The agent chose to call a tool.
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value);
     /// The model has started emitting tool-call deltas. Implementations can
@@ -1034,7 +1036,7 @@ impl AgentExecutor {
                     ChatStreamEvent {
                         event: Some(chat_stream_event::Event::ContentPart(part)),
                     } => {
-                        sink.on_content_part(&part).await;
+                        sink.on_content_part(&part).await?;
                         response_content_parts.push(part);
                     }
                     ChatStreamEvent { event: None } => {}

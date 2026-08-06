@@ -551,6 +551,8 @@ pub enum SessionMessagePartType {
     /// Durable-context boundary. The part points at the immutable compacted
     /// summary CAS object used to reconstruct model-visible history.
     Compaction = 13,
+    /// Opaque provider-native reasoning content stored in the part's ObjectRef.
+    EncryptedReasoning = 14,
 }
 impl SessionMessagePartType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -573,6 +575,7 @@ impl SessionMessagePartType {
             Self::RequestPermission => "SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION",
             Self::PermissionResult => "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT",
             Self::Compaction => "SESSION_MESSAGE_PART_TYPE_COMPACTION",
+            Self::EncryptedReasoning => "SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -594,6 +597,9 @@ impl SessionMessagePartType {
             }
             "SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT" => Some(Self::PermissionResult),
             "SESSION_MESSAGE_PART_TYPE_COMPACTION" => Some(Self::Compaction),
+            "SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING" => {
+                Some(Self::EncryptedReasoning)
+            }
             _ => None,
         }
     }

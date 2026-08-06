@@ -227,6 +227,14 @@ public final class Data extends com.google.protobuf.GeneratedFile {
      * <code>SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;</code>
      */
     SESSION_MESSAGE_PART_TYPE_COMPACTION(13),
+    /**
+     * <pre>
+     * Opaque provider-native reasoning content stored in the part's ObjectRef.
+     * </pre>
+     *
+     * <code>SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING = 14;</code>
+     */
+    SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING(14),
     UNRECOGNIZED(-1),
     ;
 
@@ -300,6 +308,14 @@ public final class Data extends com.google.protobuf.GeneratedFile {
      * <code>SESSION_MESSAGE_PART_TYPE_COMPACTION = 13;</code>
      */
     public static final int SESSION_MESSAGE_PART_TYPE_COMPACTION_VALUE = 13;
+    /**
+     * <pre>
+     * Opaque provider-native reasoning content stored in the part's ObjectRef.
+     * </pre>
+     *
+     * <code>SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING = 14;</code>
+     */
+    public static final int SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING_VALUE = 14;
 
 
     public final int getNumber() {
@@ -340,6 +356,7 @@ public final class Data extends com.google.protobuf.GeneratedFile {
         case 11: return SESSION_MESSAGE_PART_TYPE_REQUEST_PERMISSION;
         case 12: return SESSION_MESSAGE_PART_TYPE_PERMISSION_RESULT;
         case 13: return SESSION_MESSAGE_PART_TYPE_COMPACTION;
+        case 14: return SESSION_MESSAGE_PART_TYPE_ENCRYPTED_REASONING;
         default: return null;
       }
     }
@@ -28274,7 +28291,7 @@ java.lang.String defaultValue) {
       "\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\ttimestam" +
       "p\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UNSPECIFI" +
       "ED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022" +
-      "\017\n\013ROLE_SYSTEM\020\003*\316\004\n\026SessionMessagePartT" +
+      "\017\n\013ROLE_SYSTEM\020\003*\201\005\n\026SessionMessagePartT" +
       "ype\022)\n%SESSION_MESSAGE_PART_TYPE_UNSPECI" +
       "FIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TYPE_TEXT" +
       "\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_REASONIN" +
@@ -28289,13 +28306,14 @@ java.lang.String defaultValue) {
       "MESSAGE_PART_TYPE_REQUEST_PERMISSION\020\013\022/" +
       "\n+SESSION_MESSAGE_PART_TYPE_PERMISSION_R" +
       "ESULT\020\014\022(\n$SESSION_MESSAGE_PART_TYPE_COM" +
-      "PACTION\020\r*\355\001\n\tGoalPhase\022\032\n\026GOAL_PHASE_UN" +
-      "SPECIFIED\020\000\022\026\n\022GOAL_PHASE_RUNNING\020\001\022\025\n\021G" +
-      "OAL_PHASE_PAUSED\020\002\022\033\n\027GOAL_PHASE_NEEDS_R" +
-      "EVIEW\020\003\022\030\n\024GOAL_PHASE_SUCCEEDED\020\004\022\025\n\021GOA" +
-      "L_PHASE_FAILED\020\005\022\026\n\022GOAL_PHASE_BLOCKED\020\006" +
-      "\022\027\n\023GOAL_PHASE_CANCELED\020\007\022\026\n\022GOAL_PHASE_" +
-      "EXPIRED\020\010b\006proto3"
+      "PACTION\020\r\0221\n-SESSION_MESSAGE_PART_TYPE_E" +
+      "NCRYPTED_REASONING\020\016*\355\001\n\tGoalPhase\022\032\n\026GO" +
+      "AL_PHASE_UNSPECIFIED\020\000\022\026\n\022GOAL_PHASE_RUN" +
+      "NING\020\001\022\025\n\021GOAL_PHASE_PAUSED\020\002\022\033\n\027GOAL_PH" +
+      "ASE_NEEDS_REVIEW\020\003\022\030\n\024GOAL_PHASE_SUCCEED" +
+      "ED\020\004\022\025\n\021GOAL_PHASE_FAILED\020\005\022\026\n\022GOAL_PHAS" +
+      "E_BLOCKED\020\006\022\027\n\023GOAL_PHASE_CANCELED\020\007\022\026\n\022" +
+      "GOAL_PHASE_EXPIRED\020\010b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

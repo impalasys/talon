@@ -8,7 +8,8 @@ use crate::control::tool_output::{self, ToolOutputExt};
 use crate::control::{KeyValueStore, ListOptions};
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
-    content_part_object_ref, object_ref_part, text_part, ChatContentPart, ToolCall,
+    content_part_object_ref, encrypted_reasoning_part, object_ref_part, text_part, ChatContentPart,
+    ToolCall,
 };
 use anyhow::{anyhow, Result};
 use prost::Message;
@@ -203,6 +204,46 @@ async fn message_part_content_parts(
     part: &data_proto::SessionMessagePart,
     objects: &(dyn ObjectStore + Send + Sync),
 ) -> Result<Vec<ChatContentPart>> {
+    if part.part_type == data_proto::SessionMessagePartType::EncryptedReasoning as i32 {
+        let Some(object) = part.object.as_ref() else {
+            return Ok(Vec::new());
+        };
+        let Some(stored) = objects.get(&object.key).await? else {
+            return Err(anyhow!(
+                "encrypted reasoning object '{}' is missing",
+                object.key
+            ));
+        };
+        let raw_json = decode_stored_object_bytes(&stored, &object.key)?;
+        let payload = serde_json::from_str::<serde_json::Value>(&part.payload_json)
+            .unwrap_or(serde_json::Value::Null);
+        let provider = payload
+            .get("provider")
+            .and_then(|value| value.as_str())
+            .unwrap_or_else(|| {
+                stored
+                    .metadata
+                    .metadata
+                    .get("provider")
+                    .map(String::as_str)
+                    .unwrap_or("unknown")
+            });
+        let block_type = payload
+            .get("block_type")
+            .and_then(|value| value.as_str())
+            .unwrap_or_else(|| {
+                stored
+                    .metadata
+                    .metadata
+                    .get("block_type")
+                    .map(String::as_str)
+                    .unwrap_or("reasoning")
+            });
+        return Ok(vec![encrypted_reasoning_part(
+            provider, block_type, raw_json,
+        )]);
+    }
+
     if part.part_type == data_proto::SessionMessagePartType::Text as i32 {
         return Ok(if part.content.is_empty() {
             Vec::new()
@@ -267,6 +308,7 @@ async fn assistant_session_message_to_loop_messages(
     for part in &message.parts {
         if part.part_type == data_proto::SessionMessagePartType::Text as i32
             || part.part_type == data_proto::SessionMessagePartType::Image as i32
+            || part.part_type == data_proto::SessionMessagePartType::EncryptedReasoning as i32
         {
             flush_tool_batch(
                 &mut history,
@@ -632,6 +674,70 @@ mod tests {
             created_at: 0,
             object: None,
         }
+    }
+
+    #[tokio::test]
+    async fn encrypted_reasoning_session_part_rehydrates_in_order() {
+        let objects = InMemoryObjectStore::default();
+        let raw_json = br#"{"type":"reasoning","encrypted_content":"cipher"}"#;
+        let object = objects
+            .put(
+                "sessions/session/message/000002",
+                raw_json,
+                ObjectMetadata {
+                    media_type: "application/json".to_string(),
+                    metadata: HashMap::from([
+                        ("provider".to_string(), "openai".to_string()),
+                        ("block_type".to_string(), "reasoning".to_string()),
+                    ]),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+        let message = data_proto::SessionMessage {
+            id: "message".to_string(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: 0,
+            labels: HashMap::new(),
+            parts: vec![
+                session_text_part("000001", "before"),
+                data_proto::SessionMessagePart {
+                    id: "000002".to_string(),
+                    part_type: data_proto::SessionMessagePartType::EncryptedReasoning as i32,
+                    content: String::new(),
+                    name: String::new(),
+                    payload_json: serde_json::json!({
+                        "provider": "openai",
+                        "block_type": "reasoning",
+                    })
+                    .to_string(),
+                    created_at: 0,
+                    object: Some(object),
+                },
+                session_text_part("000003", "after"),
+            ],
+        };
+
+        let parts = message_content_parts(&message, &objects).await.unwrap();
+        assert_eq!(parts.len(), 3);
+        assert!(matches!(
+            parts[0].content,
+            Some(crate::harness::llm::chat_content_part::Content::Text(ref text))
+                if text == "before"
+        ));
+        let Some(crate::harness::llm::chat_content_part::Content::EncryptedReasoning(reasoning)) =
+            parts[1].content.as_ref()
+        else {
+            panic!("expected encrypted reasoning part");
+        };
+        assert_eq!(reasoning.provider, "openai");
+        assert_eq!(reasoning.raw_json, raw_json);
+        assert!(matches!(
+            parts[2].content,
+            Some(crate::harness::llm::chat_content_part::Content::Text(ref text))
+                if text == "after"
+        ));
     }
 
     #[tokio::test]

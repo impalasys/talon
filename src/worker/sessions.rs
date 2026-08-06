@@ -19,7 +19,7 @@ use crate::gateway::rpc::data_proto::{
     self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionStatus,
 };
 use crate::harness::executor::{tool_output_loop_message, ExecutionSink, LoopMessage};
-use crate::harness::llm::ToolOutput;
+use crate::harness::llm::{chat_content_part, text_part, ChatResponse, ToolOutput};
 use crate::harness::sessions::{self, ClaimOutcome};
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
@@ -120,6 +120,12 @@ enum RecoveredProjectionPart {
         part_id: String,
         content: String,
     },
+    EncryptedReasoning {
+        part_id: String,
+        provider: String,
+        block_type: String,
+        raw_json: Vec<u8>,
+    },
     ToolCall {
         part_id: String,
         id: String,
@@ -138,6 +144,40 @@ enum RecoveredProjectionPart {
 struct PreparedSubmission {
     state: PreparedSubmissionState,
     projection_parts: Vec<RecoveredProjectionPart>,
+}
+
+fn append_response_projection_parts(
+    projection_parts: &mut Vec<RecoveredProjectionPart>,
+    response: &ChatResponse,
+    next_part_index: &mut usize,
+) {
+    let mut has_text = false;
+    for part in &response.content_parts {
+        match part.content.as_ref() {
+            Some(chat_content_part::Content::Text(content)) if !content.is_empty() => {
+                has_text = true;
+                projection_parts.push(RecoveredProjectionPart::Text {
+                    part_id: next_recovered_part_id(next_part_index),
+                    content: content.clone(),
+                });
+            }
+            Some(chat_content_part::Content::EncryptedReasoning(reasoning)) => {
+                projection_parts.push(RecoveredProjectionPart::EncryptedReasoning {
+                    part_id: next_recovered_part_id(next_part_index),
+                    provider: reasoning.provider.clone(),
+                    block_type: reasoning.block_type.clone(),
+                    raw_json: reasoning.raw_json.clone(),
+                });
+            }
+            _ => {}
+        }
+    }
+    if !has_text && !response.content.is_empty() {
+        projection_parts.push(RecoveredProjectionPart::Text {
+            part_id: next_recovered_part_id(next_part_index),
+            content: response.content.clone(),
+        });
+    }
 }
 
 async fn tool_output_from_recorded_object(
@@ -280,6 +320,11 @@ async fn prepare_context_for_claimed_submission(
             }
         };
         if response.tool_calls.is_empty() {
+            append_response_projection_parts(
+                &mut projection_parts,
+                &response,
+                &mut next_projection_part_index,
+            );
             latest_final_response = Some(response);
             index += 1;
             continue;
@@ -287,16 +332,28 @@ async fn prepare_context_for_claimed_submission(
 
         latest_final_response = None;
         let tool_calls = response.tool_calls.clone();
-        let mut assistant_message = LoopMessage::text("assistant", response.content.clone());
+        let content_parts = if response.content_parts.is_empty() {
+            if response.content.is_empty() {
+                Vec::new()
+            } else {
+                vec![text_part(response.content.clone())]
+            }
+        } else {
+            response.content_parts.clone()
+        };
+        let mut assistant_message = LoopMessage {
+            role: "assistant".to_string(),
+            content_parts,
+            tool_calls: None,
+            tool_call_id: None,
+        };
         assistant_message.tool_calls = Some(tool_calls.clone());
         runtime.context.push(assistant_message);
-        if !response.content.is_empty() {
-            let part_id = next_recovered_part_id(&mut next_projection_part_index);
-            projection_parts.push(RecoveredProjectionPart::Text {
-                part_id,
-                content: response.content.clone(),
-            });
-        }
+        append_response_projection_parts(
+            &mut projection_parts,
+            &response,
+            &mut next_projection_part_index,
+        );
 
         index += 1;
         let mut stop_after_tool_results = false;
@@ -814,6 +871,18 @@ impl WorkerEventHandler {
                         sink.seed_recovered_text_part(part_id, content);
                         sink.advance_next_part_id_past(part_id);
                     }
+                    RecoveredProjectionPart::EncryptedReasoning {
+                        part_id,
+                        provider,
+                        block_type,
+                        raw_json,
+                    } => {
+                        sink.seed_recovered_encrypted_reasoning_part(
+                            part_id, provider, block_type, raw_json,
+                        )
+                        .await?;
+                        sink.advance_next_part_id_past(part_id);
+                    }
                     RecoveredProjectionPart::ToolCall {
                         part_id,
                         id,
@@ -835,10 +904,9 @@ impl WorkerEventHandler {
                     }
                 }
             }
-            if let PreparedSubmissionState::FinalResponseReady { content } =
+            if let PreparedSubmissionState::FinalResponseReady { content: _ } =
                 prepared_submission.state
             {
-                sink.seed_recovered_final_text_part(&content);
                 sink.on_done().await;
                 return Ok((SessionCompletionStatus::Completed, sink.summary()));
             }

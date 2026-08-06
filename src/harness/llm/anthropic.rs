@@ -210,6 +210,12 @@ async fn anthropic_content_part(
             })
         }
         Some(chat_content_part::Content::EncryptedReasoning(reasoning)) => {
+            if reasoning.provider != "anthropic" {
+                return Ok(json!({
+                    "type": "text",
+                    "text": "",
+                }));
+            }
             serde_json::from_slice(&reasoning.raw_json).unwrap_or_else(|_| {
                 json!({
                     "type": reasoning.block_type,

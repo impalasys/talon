@@ -22,6 +22,7 @@ pub const METADATA_KIND_TOOL_RESULT: &str = "tool_result";
 pub const METADATA_KIND_ARTIFACT: &str = "artifact";
 pub const METADATA_KIND_FILE: &str = "file";
 pub const METADATA_KIND_COMPACTION: &str = "compaction";
+pub const METADATA_KIND_ENCRYPTED_REASONING: &str = "encrypted_reasoning";
 pub const METADATA_AGENT: &str = "agent";
 pub const METADATA_TOOL_CALL_ID: &str = "tool_call_id";
 pub const METADATA_TOOL_NAME: &str = "tool_name";
@@ -291,6 +292,48 @@ impl CasStore {
                     sha256: sha256_hex(&stored_bytes),
                     filename: format!("{}.txt", object_key_segment(tool_call_id)),
                     content_encoding: content_encoding.unwrap_or_default().to_string(),
+                    metadata,
+                },
+            )
+            .await
+    }
+
+    /// Store an opaque provider-native reasoning block under the canonical
+    /// session/message/part CAS path.
+    pub async fn put_encrypted_reasoning(
+        &self,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        message_id: &str,
+        part_id: &str,
+        provider: &str,
+        block_type: &str,
+        raw_json: &[u8],
+    ) -> Result<data_proto::ObjectRef> {
+        let scope = SessionCasScope::new(ns, agent, session_id);
+        let identity = SessionObjectIdentity::new(message_id, part_id);
+        let metadata = HashMap::from([
+            (
+                METADATA_KIND.to_string(),
+                METADATA_KIND_ENCRYPTED_REASONING.to_string(),
+            ),
+            ("namespace".to_string(), ns.to_string()),
+            (METADATA_AGENT.to_string(), agent.to_string()),
+            ("session_id".to_string(), session_id.to_string()),
+            ("provider".to_string(), provider.to_string()),
+            ("block_type".to_string(), block_type.to_string()),
+        ]);
+        self.objects
+            .put(
+                &self.session_object_key(&scope, &identity),
+                raw_json,
+                ObjectMetadata {
+                    media_type: "application/json".to_string(),
+                    size_bytes: raw_json.len() as u64,
+                    sha256: sha256_hex(raw_json),
+                    filename: "encrypted-reasoning.json".to_string(),
+                    content_encoding: String::new(),
                     metadata,
                 },
             )
