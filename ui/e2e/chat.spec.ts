@@ -155,8 +155,13 @@ async function waitForMockStreamBlocked() {
   await expect.poll(async () => (await mockLlmControl('/__control/state')).blocked, { timeout: 60000 }).toBe(true);
 }
 
+async function waitForMockMcpToolBlocked() {
+  await expect.poll(async () => (await mockLlmControl('/__control/state')).mcp_tool_blocked, { timeout: 60000 }).toBe(true);
+}
+
 async function unblockMockLlm() {
   await mockLlmControl('/__control/unblock_stream', { method: 'POST' });
+  await mockLlmControl('/__control/unblock_mcp_tool', { method: 'POST' });
 }
 
 async function waitForSessionState(
@@ -685,6 +690,28 @@ test.describe('Live session reconciliation', () => {
     await expect(page.getByRole('button', { name: /Stop generation/i })).toHaveCount(0, { timeout: 15000 });
     await expect(page.locator('body')).toContainText('The');
     await expect(page.getByRole('button', { name: /Worked for/i })).toBeVisible();
+    await expect(page.getByText(/System Incident/)).toHaveCount(0);
+  });
+
+  test('stops an in-flight MCP tool call and accepts the next message', async ({ page }) => {
+    const { sessionId, gatewayUrl, client, testNs, testAgent } = await createMcpTestSession();
+    const target = { ns: testNs, agent: testAgent, sessionId };
+    const { chatInput, sendButton } = await openSessionDirectly(page, target, gatewayUrl);
+
+    await mockLlmControl('/__control/block_mcp_tool', { method: 'POST' });
+    await chatInput.fill('Please run a blocking lookup docs.example.com.');
+    await sendButton.click();
+    await waitForMockMcpToolBlocked();
+
+    await expect(page.getByRole('button', { name: /Stop generation/i })).toBeVisible();
+    await page.getByRole('button', { name: /Stop generation/i }).click();
+    await waitForSessionState(client, target, 'IDLE');
+    await expect(page.getByRole('button', { name: /Stop generation/i })).toHaveCount(0, { timeout: 15000 });
+
+    await chatInput.fill('hello after stop');
+    await sendButton.click();
+    await waitForSessionText(client, target, 'Hello! I am a mock LLM. How can I assist you today?');
+    await expect(page.getByText('Hello! I am a mock LLM. How can I assist you today?').last()).toBeVisible({ timeout: 15000 });
     await expect(page.getByText(/System Incident/)).toHaveCount(0);
   });
 

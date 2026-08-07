@@ -313,6 +313,29 @@ def test_stop_generation_cancels_an_inflight_mcp_tool_call(
         state = mock_control("GET", "/__control/state")
         assert state["mcp_tool_blocked"] is True
         assert state["mcp_tool_unblocked"] is False
+
+        client.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent,
+                session_id=session_id,
+                ns=namespace,
+                message="hello after stop",
+            )
+        )
+        for _ in range(100):
+            session = client.sessions.Get(
+                GetSessionRequest(agent=agent, session_id=session_id, ns=namespace)
+            )
+            assistant = last_assistant_message(session.messages)
+            if (
+                session.state == "IDLE"
+                and assistant is not None
+                and "Hello!" in message_text(assistant)
+            ):
+                break
+            time.sleep(0.1)
+        else:
+            raise AssertionError("session did not accept a message after stopping")
     finally:
         mock_control("POST", "/__control/unblock_mcp_tool")
         mock_control("POST", "/__control/reset")
