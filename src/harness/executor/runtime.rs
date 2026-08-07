@@ -1094,10 +1094,28 @@ impl AgentExecutor {
                     )
                     .await?;
                     sink.on_tool_call(&tool.id, &tool.name, &input).await;
-                    let executed = self
-                        .execute_tool_call_result(tool)
-                        .instrument(tool_span.clone())
-                        .await;
+                    let executed = if let Some(token) = cancellation_token {
+                        tokio::select! {
+                            biased;
+                            _ = token.cancelled() => {
+                                tracing::info!(
+                                    agent_id = %context.agent_id,
+                                    tool = %tool.name,
+                                    tool_call_id = %tool.id,
+                                    "Tool call interrupted by user"
+                                );
+                                sink.on_done().await;
+                                return Ok(final_reply);
+                            }
+                            executed = self
+                                .execute_tool_call_result(tool)
+                                .instrument(tool_span.clone()) => executed,
+                        }
+                    } else {
+                        self.execute_tool_call_result(tool)
+                            .instrument(tool_span.clone())
+                            .await
+                    };
                     let stop_after_result = executed.stop_after_result;
                     let result = executed.result;
                     let result_text = result.summary();
