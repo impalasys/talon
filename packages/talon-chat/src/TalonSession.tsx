@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { data, type TalonClient } from "@impalasys/talon-client";
-import { Activity, ChevronRight, Copy, Pencil } from "lucide-react";
+import { Activity, ChevronRight } from "lucide-react";
 import {
   formatUsageSummary,
   getMessageAssistantTimeline,
@@ -57,6 +57,7 @@ import { formatWorkDuration, formatWorkingDuration } from "./session/sessionTimi
 import { SessionStyles } from "./session/SessionStyles";
 import { ConnectorDeliveryControls } from "./session/ConnectorDeliveryControls";
 import { MessageEditForm } from "./session/MessageEditForm";
+import { MessageActions } from "./session/MessageActions";
 import {
   AssistantMessageTimeline,
   coalesceAssistantMessageTimelineForDisplay,
@@ -994,76 +995,12 @@ export function TalonSession({
               </div>
             ) : null}
             </div>
-            {isEditableMessage && !isEditingMessage ? (
-              <div
-                className={cn("talon-session-message-actions", isUserMessage && "talon-session-message-actions-user")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: isUserMessage ? "flex-end" : "flex-start",
-                  gap: 10,
-                  marginTop: 6,
-                  minHeight: 22,
-                }}
-              >
-                {messageActionTimestamp ? (
-                  <span
-                    className="talon-session-message-action-time"
-                    title={new Date(historyMessageTimestamp(message) ?? 0).toLocaleString()}
-                    style={{
-                      color: "var(--talon-chat-message-action-fg, var(--talon-chat-muted-fg, rgba(113,113,122,0.9)))",
-                      fontSize: 12,
-                      lineHeight: 1,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {messageActionTimestamp}
-                  </span>
-                ) : null}
-                <button
-                  className="talon-session-message-action-button"
-                  type="button"
-                  aria-label={`Copy ${message.role} message`}
-                  title="Copy"
-                  onClick={() => void copyMessageContent(message)}
-                  style={{
-                    width: 22,
-                    height: 22,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: 6,
-                    border: "none",
-                    background: "transparent",
-                    color: "var(--talon-chat-message-action-fg, var(--talon-chat-muted-fg, rgba(113,113,122,0.9)))",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Copy size="14" strokeWidth={1.9} />
-                </button>
-                <button
-                  className="talon-session-edit-trigger talon-session-message-action-button"
-                  type="button"
-                  aria-label={`Edit ${message.role} message`}
-                  title="Edit"
-                  onClick={() => startEditingMessage(message)}
-                  style={{
-                    width: 22,
-                    height: 22,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: 6,
-                    border: "none",
-                    background: "transparent",
-                    color: "var(--talon-chat-message-action-fg, var(--talon-chat-muted-fg, rgba(113,113,122,0.9)))",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Pencil size="14" strokeWidth={1.9} />
-                </button>
-              </div>
-            ) : null}
+            {isEditableMessage && !isEditingMessage ? <MessageActions
+              message={message}
+              timestamp={messageActionTimestamp}
+              onCopy={(target) => void copyMessageContent(target)}
+              onEdit={startEditingMessage}
+            /> : null}
           </div>
           </div>
         </React.Fragment>
