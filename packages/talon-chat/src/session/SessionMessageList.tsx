@@ -2,7 +2,7 @@ import React from "react";
 import type { CopilotMessage } from "../lib/chatTimeline";
 import { SessionMessage, type SessionMessageProps } from "./SessionMessage";
 
-type SessionMessageListProps = {
+export type SessionMessageListProps = {
   messages: CopilotMessage[];
   messageProps: Omit<SessionMessageProps, "message" | "messageIndex" | "messages">;
 };
