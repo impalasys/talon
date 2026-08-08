@@ -94,12 +94,14 @@ impl ToolRegistry {
     }
 
     pub fn list_tools(&self) -> Vec<&ToolDefinition> {
-        self.tools.values().collect()
+        let mut tools = self.tools.values().collect::<Vec<_>>();
+        tools.sort_unstable_by(|left, right| left.name.cmp(&right.name));
+        tools
     }
 
     pub fn to_provider_tools(&self) -> Vec<crate::harness::llm::provider::Tool> {
-        self.tools
-            .values()
+        self.list_tools()
+            .into_iter()
             .map(|t| crate::harness::llm::provider::Tool {
                 name: t.name.clone(),
                 description: t.description.clone(),
@@ -132,12 +134,19 @@ mod tests {
     #[test]
     fn test_list_tools() {
         let mut registry = ToolRegistry::new();
-        registry.register_builtin("tool1", "desc1", json!({}));
         registry.register_builtin("tool2", "desc2", json!({}));
+        registry.register_builtin("tool1", "desc1", json!({}));
         registry.register_builtin("tool3", "desc3", json!({}));
 
         let tools = registry.list_tools();
         assert_eq!(tools.len(), 3);
+        assert_eq!(
+            tools
+                .iter()
+                .map(|tool| tool.name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["tool1", "tool2", "tool3"]
+        );
     }
 
     #[test]
@@ -231,9 +240,14 @@ mod tests {
 
         let provider_tools = registry.to_provider_tools();
         assert_eq!(provider_tools.len(), 3);
-        assert!(provider_tools
-            .iter()
-            .any(|tool| tool.name == "builtin" && tool.description == "builtin-desc"));
+        assert_eq!(
+            provider_tools
+                .iter()
+                .map(|tool| tool.name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["builtin", "mcp_tool", "skill_tool"]
+        );
+        assert_eq!(provider_tools[0].description, "builtin-desc");
         assert!(provider_tools.iter().any(|tool| {
             let schema: Value = serde_json::from_str(&tool.input_schema_json).unwrap();
             tool.name == "mcp_tool" && schema["properties"]["q"]["type"] == "string"
