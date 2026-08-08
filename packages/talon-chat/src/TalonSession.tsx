@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { data, type TalonClient } from "@impalasys/talon-client";
-import { decompress as decompressZstd } from "fzstd";
 import { Activity, Check, ChevronRight, Copy, Pencil, X, Wrench } from "lucide-react";
 import {
   formatUsageSummary,
@@ -39,10 +38,7 @@ import {
 import {
   normalizeImageUploadResult,
   normalizeObjectRefForJson,
-  objectRefContentEncoding,
   objectRefFromPart,
-  objectRefFromValue,
-  objectRefKey,
   objectRefMediaType,
   objectRefSizeBytes,
 } from "./session/objectRefs";
@@ -52,6 +48,7 @@ import type { SessionTarget } from "./session/types";
 import { SessionTranscript } from "./session/SessionTranscript";
 import { SessionComposerDock } from "./session/SessionComposerDock";
 import { useSessionAttachments } from "./session/useSessionAttachments";
+import { useToolResultHydration } from "./session/useToolResultHydration";
 import { useResourcePane } from "./session/useResourcePane";
 import {
   canCompareCanonicalMessageIds,
@@ -444,132 +441,6 @@ function replaceMessageTextPart(message: CopilotMessage, text: string) {
   ];
 }
 
-function isToolResultPart(part: any) {
-  const type = part?.type ?? part?.partType ?? part?.part_type;
-  return type === SESSION_MESSAGE_PART_TYPE.TOOL_RESULT || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
-}
-
-async function decompressCasObjectData(data: Uint8Array, encoding: string): Promise<Uint8Array> {
-  if (typeof DecompressionStream === "undefined") {
-    throw new Error(`${encoding} CAS object requires DecompressionStream support`);
-  }
-  const bytes = new ArrayBuffer(data.byteLength);
-  new Uint8Array(bytes).set(data);
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream(encoding as any));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
-}
-
-async function decompressZstdCasObjectData(data: Uint8Array): Promise<Uint8Array> {
-  if (typeof DecompressionStream !== "undefined") {
-    try {
-      return await decompressCasObjectData(data, "zstd");
-    } catch (err) {
-      if (!(err instanceof TypeError)) {
-        throw err;
-      }
-    }
-  }
-  return decompressZstd(data);
-}
-
-async function casObjectData(response: any): Promise<Uint8Array> {
-  const signedUrl = typeof response?.signedUrl === "string"
-    ? response.signedUrl
-    : typeof response?.signed_url === "string"
-      ? response.signed_url
-      : "";
-  if (signedUrl) {
-    const fetched = await fetch(signedUrl);
-    if (!fetched.ok) {
-      throw new Error(`Failed to fetch CAS object: HTTP ${fetched.status}`);
-    }
-    return new Uint8Array(await fetched.arrayBuffer());
-  }
-  return response.data ?? new Uint8Array();
-}
-
-async function toolResultObjectData(response: any, fallbackObject?: TalonChatObjectRef): Promise<Uint8Array> {
-  const bytes = await casObjectData(response);
-  const responseEncoding = response?.contentEncoding
-    ?? response?.content_encoding
-    ?? response?.metadata?.content_encoding
-    ?? response?.metadata?.contentEncoding;
-  const encoding = typeof responseEncoding === "string" ? responseEncoding : objectRefContentEncoding(fallbackObject);
-  const normalized = encoding.toLowerCase();
-  if (normalized === "zstd") return decompressZstdCasObjectData(bytes);
-  if (normalized === "gzip") return decompressCasObjectData(bytes, normalized);
-  return bytes;
-}
-
-function toolCallIdFromToolResultPart(part: any): string {
-  if (typeof part?.toolCallId === "string") return part.toolCallId;
-  if (typeof part?.tool_call_id === "string") return part.tool_call_id;
-  const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
-  const payloadToolCallId = payload.tool_call_id ?? payload.toolCallId;
-  if (typeof payloadToolCallId === "string") return payloadToolCallId;
-  return typeof part?.id === "string" ? part.id : "";
-}
-
-function toolResultHydrationCacheKey(messageId: string, toolCallId: string, objectKey: string): string {
-  return `${messageId}\u0000${toolCallId}\u0000${objectKey}`;
-}
-
-function findToolResultObjectPart(
-  parts: unknown,
-  toolCallId: string,
-): { part: any; index: number; key: string; object: TalonChatObjectRef } | null {
-  if (!Array.isArray(parts)) return null;
-  for (let index = 0; index < parts.length; index += 1) {
-    const part = parts[index] as any;
-    if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
-    const partToolCallId = toolCallIdFromToolResultPart(part);
-    if (toolCallId && partToolCallId !== toolCallId) continue;
-    const object = objectRefFromPart(part);
-    const key = objectRefKey(object);
-    if (!object || !key) continue;
-    return { part, index, key, object };
-  }
-  return null;
-}
-
-function findHydratableToolResultPart(
-  parts: unknown,
-  toolCallId: string,
-): { part: any; index: number; key: string; object: TalonChatObjectRef } | null {
-  const match = findToolResultObjectPart(parts, toolCallId);
-  return match && !(typeof match.part.content === "string" && match.part.content.length > 0)
-    ? match
-    : null;
-}
-
-function toolResultWithHydratedObject(
-  part: unknown,
-  fallback: unknown,
-  objectKey: string,
-  hydratedOutput: string,
-): unknown {
-  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
-  const toolOutput = payload.tool_output ?? payload.toolOutput;
-  const contentParts = toolOutput && typeof toolOutput === "object"
-    ? (toolOutput as Record<string, unknown>).content_parts ?? (toolOutput as Record<string, unknown>).contentParts
-    : undefined;
-  if (!Array.isArray(contentParts)) return hydratedOutput;
-
-  let replacedObject = false;
-  const text = contentParts.map((contentPart) => {
-    if (!contentPart || typeof contentPart !== "object") return "";
-    const value = contentPart as { type?: unknown; text?: unknown };
-    if (value.type === "text" && typeof value.text === "string") return value.text;
-    const object = objectRefFromValue(contentPart);
-    if (object?.key === objectKey) {
-      replacedObject = true;
-      return hydratedOutput;
-    }
-    return "";
-  }).join("");
-  return replacedObject ? text : fallback;
-}
-
 function messageImageParts(
   message: CopilotMessage,
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined,
@@ -875,8 +746,15 @@ export function TalonSession({
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
-  const [toolResultHydration, setToolResultHydration] = useState<Record<string, "loading" | { objectKey: string }>>({});
-  const [hydratedToolResultOutputs, setHydratedToolResultOutputs] = useState<Record<string, string>>({});
+  const {
+    state: toolResultHydration,
+    resultFor: toolResultFor,
+    hydrate: hydrateToolResultForExpandedItem,
+    invalidate: invalidateToolResultHydration,
+  } = useToolResultHydration(
+    gatewayClient?.cas,
+    currentSession ? `${currentSession.ns}\u0000${currentSession.agent}\u0000${currentSession.sessionId}` : null,
+  );
   const missingResourceClientWarnedRef = useRef(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageValue, setEditingMessageValue] = useState("");
@@ -917,20 +795,11 @@ export function TalonSession({
   } = useResourcePane(resourceLoader);
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
-  const toolResultHydrationInFlightRef = useRef<Set<string>>(new Set());
-  const toolResultHydrationGenerationRef = useRef(0);
   const isStoppingRef = useRef(false);
   const skipNextAutoScrollRef = useRef(false);
   const autoScrollPinnedRef = useRef(true);
   const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
   const isLoadingOlderHistoryRef = useRef(false);
-
-  const invalidateToolResultHydration = useCallback(() => {
-    toolResultHydrationGenerationRef.current += 1;
-    toolResultHydrationInFlightRef.current.clear();
-    setToolResultHydration({});
-    setHydratedToolResultOutputs({});
-  }, []);
 
   const updateTranscriptScrollThumb = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -1038,7 +907,7 @@ export function TalonSession({
 
   useSafeLayoutEffect(() => {
     updateTranscriptScrollThumb();
-  }, [messages, expandedThinkingMessages, expandedToolItems, toolResultHydration, hydratedToolResultOutputs, isSessionLive, error, streamEvents, updateTranscriptScrollThumb]);
+  }, [messages, expandedThinkingMessages, expandedToolItems, toolResultHydration, isSessionLive, error, streamEvents, updateTranscriptScrollThumb]);
 
   useEffect(() => {
     if (!isSessionLive || loadingStartedAt === null) {
@@ -1085,54 +954,6 @@ export function TalonSession({
       [toolKey]: !prev[toolKey],
     }));
   }, []);
-
-  const hydrateToolResultForExpandedItem = useCallback(
-    async (message: CopilotMessage, toolCallId: string, toolKey: string, result?: unknown) => {
-      const partMatch = findHydratableToolResultPart(message.parts, toolCallId);
-      const resultObject = partMatch ? undefined : objectRefFromValue(result);
-      const match = partMatch ?? (resultObject
-        ? { part: undefined, index: -1, key: resultObject.key, object: resultObject }
-        : null);
-      const cas = gatewayClient?.cas;
-      if (!match || !cas?.getObject) return;
-      const outputCacheKey = toolResultHydrationCacheKey(message.id, toolCallId, match.key);
-      if (Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey)) return;
-      if (toolResultHydrationInFlightRef.current.has(toolKey)) return;
-
-      toolResultHydrationInFlightRef.current.add(toolKey);
-      const generation = toolResultHydrationGenerationRef.current;
-      setToolResultHydration((prev) => ({
-        ...prev,
-        [toolKey]: "loading",
-      }));
-
-      try {
-        const response = await cas.getObject({ key: match.key });
-        const data = await toolResultObjectData(response, match.object);
-        const output = new TextDecoder().decode(data);
-        if (toolResultHydrationGenerationRef.current !== generation) return;
-        setHydratedToolResultOutputs((previous) => ({ ...previous, [outputCacheKey]: output }));
-        if (toolResultHydrationGenerationRef.current !== generation) return;
-
-        setToolResultHydration((prev) => {
-          if (!(toolKey in prev)) return prev;
-          const next = { ...prev };
-          delete next[toolKey];
-          return next;
-        });
-      } catch (err) {
-        if (toolResultHydrationGenerationRef.current !== generation) return;
-        console.warn("Could not hydrate CAS tool-result object", match.key, err);
-        setToolResultHydration((prev) => ({
-          ...prev,
-          [toolKey]: { objectKey: match.key },
-        }));
-      } finally {
-        toolResultHydrationInFlightRef.current.delete(toolKey);
-      }
-    },
-    [gatewayClient, hydratedToolResultOutputs],
-  );
 
   const updateSessionMessage = useCallback(
     async (message: CopilotMessage, parts: unknown[], labels: Record<string, string>) => {
@@ -1461,19 +1282,7 @@ export function TalonSession({
                       }
 
                       const toolKey = `${message.id}-work-tool-${item.toolCallId || index}`;
-                      const resultPartMatch = findToolResultObjectPart(message.parts, item.toolCallId);
-                      const resultObject = resultPartMatch?.object ?? objectRefFromValue(item.result);
-                      const resultObjectKey = objectRefKey(resultObject);
-                      const outputCacheKey = resultObjectKey
-                        ? toolResultHydrationCacheKey(message.id, item.toolCallId, resultObjectKey)
-                        : "";
-                      const hasCachedOutput = Boolean(outputCacheKey) && Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey);
-                      const cachedOutput = hasCachedOutput
-                        ? hydratedToolResultOutputs[outputCacheKey]
-                        : undefined;
-                      const toolResult = hasCachedOutput
-                        ? toolResultWithHydratedObject(resultPartMatch?.part, item.result, resultObjectKey, cachedOutput!)
-                        : item.result;
+                      const toolResult = toolResultFor(message, item.toolCallId, item.result);
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
                       const isRunningTool = isLiveAssistantMessage && toolResult === undefined;
                       const toolHydrationState = toolResultHydration[toolKey];
@@ -1731,19 +1540,7 @@ export function TalonSession({
                       }
 
                       const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
-                      const resultPartMatch = findToolResultObjectPart(message.parts, item.toolCallId);
-                      const resultObject = resultPartMatch?.object ?? objectRefFromValue(item.result);
-                      const resultObjectKey = objectRefKey(resultObject);
-                      const outputCacheKey = resultObjectKey
-                        ? toolResultHydrationCacheKey(message.id, item.toolCallId, resultObjectKey)
-                        : "";
-                      const hasCachedOutput = Boolean(outputCacheKey) && Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey);
-                      const cachedOutput = hasCachedOutput
-                        ? hydratedToolResultOutputs[outputCacheKey]
-                        : undefined;
-                      const toolResult = hasCachedOutput
-                        ? toolResultWithHydratedObject(resultPartMatch?.part, item.result, resultObjectKey, cachedOutput!)
-                        : item.result;
+                      const toolResult = toolResultFor(message, item.toolCallId, item.result);
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
                       const isRunningTool = isLiveAssistantMessage && toolResult === undefined;
                       const toolHydrationState = toolResultHydration[toolKey];
@@ -1950,7 +1747,7 @@ export function TalonSession({
         </React.Fragment>
       );
     });
-  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, hydratedToolResultOutputs, isLoading, isResuming, isSessionLive, isStopping, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultHydration, updateConnectorDeliveryStatus]);
+  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, isLoading, isResuming, isSessionLive, isStopping, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultFor, toolResultHydration, updateConnectorDeliveryStatus]);
 
   const resolvedHistoryPageSize = Math.max(
     1,
