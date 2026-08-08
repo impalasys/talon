@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { decompress as decompressZstd } from "fzstd";
-import type { CopilotMessage } from "../lib/chatTimeline";
-import { parsePayloadJson } from "./protocol";
+import type { CopilotMessage } from "../../lib/chatTimeline";
+import { parsePayloadJson } from "../protocol";
 import {
   objectRefContentEncoding,
   objectRefFromPart,
   objectRefFromValue,
   objectRefKey,
-} from "./objectRefs";
-import type { TalonChatObjectRef } from "./types";
+} from "../objectRefs";
+import type { TalonChatObjectRef } from "../types";
 
 export type ToolResultHydrationState = "loading" | { objectKey: string };
 

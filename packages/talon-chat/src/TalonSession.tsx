@@ -43,13 +43,16 @@ import {
   objectRefSizeBytes,
 } from "./session/objectRefs";
 import type { TalonChatObjectRef, TalonSessionHandle } from "./session/types";
-import { useSessionRuntime } from "./session/useSessionRuntime";
+import { useSessionRuntime } from "./session/hooks/useSessionRuntime";
 import type { SessionTarget } from "./session/types";
 import { SessionTranscript } from "./session/SessionTranscript";
 import { SessionComposerDock } from "./session/SessionComposerDock";
-import { useSessionAttachments } from "./session/useSessionAttachments";
-import { useToolResultHydration } from "./session/useToolResultHydration";
-import { useResourcePane } from "./session/useResourcePane";
+import { useSessionAttachments } from "./session/hooks/useSessionAttachments";
+import { useToolResultHydration } from "./session/hooks/useToolResultHydration";
+import { useResourcePane } from "./session/hooks/useResourcePane";
+import { useTranscriptExpansionState } from "./session/hooks/useTranscriptExpansionState";
+import { useTranscriptPaginationAnchor } from "./session/hooks/useTranscriptPaginationAnchor";
+import { useTranscriptScrollState } from "./session/hooks/useTranscriptScrollState";
 import {
   AssistantMessageTimeline,
   coalesceAssistantMessageTimelineForDisplay,
@@ -66,8 +69,6 @@ import {
   normalizeRawSessionMessage,
   type SessionHistoryPage,
 } from "./session/history";
-
-const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export type SessionServiceClientLike = {
   sessions: Pick<
@@ -208,8 +209,6 @@ const emptyMessages: CopilotMessage[] = [];
 const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
-const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
-const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 48;
 const LABEL_CONNECTOR_DELIVERY_STATUS = "talon.impalasys.com/connector-delivery-status";
 const LABEL_CONNECTOR_DELIVERY_ERROR = "talon.impalasys.com/connector-delivery-error";
 const CONNECTOR_DELIVERY_PENDING_REVIEW = "pending_review";
@@ -413,12 +412,6 @@ function getAssistantSignature(messages: any[] | undefined) {
     .join("|");
 }
 
-type ScrollThumbState = {
-  visible: boolean;
-  top: number;
-  height: number;
-};
-
 function replaceMessageTextPart(message: CopilotMessage, text: string) {
   const sourceParts = Array.isArray(message.parts) ? message.parts : [];
   const parts = sourceParts.map((part: any) => part && typeof part === "object" ? { ...part } : part);
@@ -476,10 +469,6 @@ function messageImageParts(
       `image-${index + 1}`;
     return [{ id: `${message.id}-image-${index}`, src, label }];
   });
-}
-
-function isNearScrollBottom(container: HTMLElement) {
-  return container.scrollHeight - container.scrollTop - container.clientHeight <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
 }
 
 function formatMessageActionTimestamp(message: CopilotMessage) {
@@ -659,8 +648,6 @@ export function TalonSession({
   const [loadingNow, setLoadingNow] = useState(Date.now());
   const error = sessionRuntimeState.error;
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
-  const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
-  const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
   const {
     state: toolResultHydration,
     resultFor: toolResultFor,
@@ -676,10 +663,55 @@ export function TalonSession({
   const [reviewActionMessageId, setReviewActionMessageId] = useState<string | null>(null);
   const hasMoreHistory = sessionRuntimeState.history.hasMoreOlder;
   const nextBeforeMessageId = sessionRuntimeState.history.beforeMessageId;
-  const [isLoadingOlderHistory, setIsLoadingOlderHistory] = useState(false);
-  const [scrollThumb, setScrollThumb] = useState<ScrollThumbState>({ visible: false, top: 0, height: 0 });
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const loadOlderHistory = useCallback(async () => {
+    if (!currentSession || !nextBeforeMessageId) return false;
+    return Boolean(await loadOlderRuntime(currentSession));
+  }, [currentSession, loadOlderRuntime, nextBeforeMessageId]);
+  const transcriptExpansion = useTranscriptExpansionState();
+  const {
+    allowNextAutoScroll,
+    bottomRef,
+    handleScroll: handleTranscriptScrollState,
+    markAutoScrollPinned,
+    reset: resetTranscriptScroll,
+    scrollThumb,
+    skipNextAutoScroll,
+    transcriptRef: scrollContainerRef,
+    updateScrollThumb,
+  } = useTranscriptScrollState({
+    messages,
+    sessionKey: currentSession ? `${currentSession.ns}\u0000${currentSession.agent}\u0000${currentSession.sessionId}` : null,
+    isLive: isSessionLive,
+    error,
+    streamEvents,
+    hydrationState: toolResultHydration,
+    expandedThinkingMessages: transcriptExpansion.expandedThinkingMessages,
+    expandedToolItems: transcriptExpansion.expandedToolItems,
+  });
+  const transcriptPagination = useTranscriptPaginationAnchor({
+    messages,
+    transcriptRef: scrollContainerRef,
+    canLoadOlder: Boolean(currentSession && hasMoreHistory && nextBeforeMessageId),
+    onLoadOlder: loadOlderHistory,
+    onPrependCancelled: allowNextAutoScroll,
+    onPrependStart: skipNextAutoScroll,
+    onRestored: updateScrollThumb,
+  });
+  const handleTranscriptScroll = useCallback(() => {
+    handleTranscriptScrollState();
+    transcriptPagination.handleScroll();
+  }, [handleTranscriptScrollState, transcriptPagination]);
+  const resetTranscriptUi = useCallback(() => {
+    transcriptExpansion.reset();
+    resetTranscriptScroll();
+    transcriptPagination.reset();
+  }, [resetTranscriptScroll, transcriptExpansion, transcriptPagination]);
+  const {
+    expandedThinkingMessages,
+    expandedToolItems,
+    toggleThinkingMessage,
+    toggleToolItem,
+  } = transcriptExpansion;
   const abortControllerRef = useRef<AbortController | null>(null);
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
   const stopAbortControllerRef = useRef<AbortController | null>(null);
@@ -711,38 +743,6 @@ export function TalonSession({
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
   const isStoppingRef = useRef(false);
-  const skipNextAutoScrollRef = useRef(false);
-  const autoScrollPinnedRef = useRef(true);
-  const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
-  const isLoadingOlderHistoryRef = useRef(false);
-
-  const updateTranscriptScrollThumb = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const isScrollable = container.scrollHeight > container.clientHeight + 1;
-    if (!isScrollable) {
-      setScrollThumb((prev) => prev.visible ? { visible: false, top: 0, height: 0 } : prev);
-      return;
-    }
-
-    const trackInset = 8;
-    const trackHeight = Math.max(0, container.clientHeight - trackInset * 2);
-    const thumbHeight = Math.max(32, Math.round((container.clientHeight / container.scrollHeight) * trackHeight));
-    const maxScrollTop = container.scrollHeight - container.clientHeight;
-    const maxThumbTravel = Math.max(0, trackHeight - thumbHeight);
-    const scrollRatio = maxScrollTop > 0 ? container.scrollTop / maxScrollTop : 0;
-    const next = {
-      visible: true,
-      top: Math.round(trackInset + maxThumbTravel * scrollRatio),
-      height: thumbHeight,
-    };
-
-    setScrollThumb((prev) =>
-      prev.visible === next.visible && prev.top === next.top && prev.height === next.height ? prev : next,
-    );
-  }, []);
-
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -772,57 +772,9 @@ export function TalonSession({
     setIsResuming(false);
     setLoadingStartedAt(null);
     setStreamEvents([]);
-    setExpandedThinkingMessages({});
+    resetTranscriptUi();
     invalidateToolResultHydration();
-  }, [currentSession?.agent, currentSession?.ns, currentSession?.sessionId, invalidateToolResultHydration, setIsLoading, setIsResuming, setIsStopping]);
-
-  const scrollTranscriptToBottom = useCallback((behavior: ScrollBehavior) => {
-    autoScrollPinnedRef.current = true;
-    const container = scrollContainerRef.current;
-    if (container) {
-      if (typeof container.scrollTo === "function") {
-        container.scrollTo({ top: container.scrollHeight, behavior });
-        return;
-      }
-      container.scrollTop = container.scrollHeight;
-    }
-    bottomRef.current?.scrollIntoView({ behavior });
-  }, []);
-
-  useSafeLayoutEffect(() => {
-    const restore = prependScrollRestoreRef.current;
-    const container = scrollContainerRef.current;
-    if (!restore || !container) return;
-
-    const delta = container.scrollHeight - restore.previousScrollHeight;
-    container.scrollTop = restore.previousScrollTop + delta;
-    prependScrollRestoreRef.current = null;
-    updateTranscriptScrollThumb();
-  }, [messages, updateTranscriptScrollThumb]);
-
-  useEffect(() => {
-    if (skipNextAutoScrollRef.current) {
-      skipNextAutoScrollRef.current = false;
-      return;
-    }
-    const rafId = window.requestAnimationFrame(() => {
-      if (autoScrollPinnedRef.current) {
-        scrollTranscriptToBottom("auto");
-      }
-      updateTranscriptScrollThumb();
-    });
-    return () => window.cancelAnimationFrame(rafId);
-  }, [currentSession?.sessionId, messages, streamEvents, isSessionLive, error, scrollTranscriptToBottom, updateTranscriptScrollThumb]);
-
-  useEffect(() => {
-    updateTranscriptScrollThumb();
-    window.addEventListener("resize", updateTranscriptScrollThumb);
-    return () => window.removeEventListener("resize", updateTranscriptScrollThumb);
-  }, [updateTranscriptScrollThumb]);
-
-  useSafeLayoutEffect(() => {
-    updateTranscriptScrollThumb();
-  }, [messages, expandedThinkingMessages, expandedToolItems, toolResultHydration, isSessionLive, error, streamEvents, updateTranscriptScrollThumb]);
+  }, [currentSession?.agent, currentSession?.ns, currentSession?.sessionId, invalidateToolResultHydration, resetTranscriptUi, setIsLoading, setIsResuming, setIsStopping]);
 
   useEffect(() => {
     if (!isSessionLive || loadingStartedAt === null) {
@@ -855,20 +807,6 @@ export function TalonSession({
     }
     return Math.min(rowCount, 8);
   }, [input]);
-
-  const toggleThinkingMessage = useCallback((messageId: string) => {
-    setExpandedThinkingMessages((prev) => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
-  }, []);
-
-  const toggleToolItem = useCallback((toolKey: string) => {
-    setExpandedToolItems((prev) => ({
-      ...prev,
-      [toolKey]: !prev[toolKey],
-    }));
-  }, []);
 
   const updateSessionMessage = useCallback(
     async (message: CopilotMessage, parts: unknown[], labels: Record<string, string>) => {
@@ -1454,38 +1392,6 @@ export function TalonSession({
     [gatewayClient],
   );
 
-  const loadOlderHistoryPage = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }) => {
-      if (!nextBeforeMessageId || isLoadingOlderHistoryRef.current) return;
-
-      const container = scrollContainerRef.current;
-      if (container) {
-        prependScrollRestoreRef.current = {
-          previousScrollTop: container.scrollTop,
-          previousScrollHeight: container.scrollHeight,
-        };
-      }
-      skipNextAutoScrollRef.current = true;
-      isLoadingOlderHistoryRef.current = true;
-      setIsLoadingOlderHistory(true);
-      try {
-        const res = await loadOlderRuntime(target);
-        if (!res) {
-          prependScrollRestoreRef.current = null;
-          skipNextAutoScrollRef.current = false;
-        }
-      } catch (err) {
-        prependScrollRestoreRef.current = null;
-        skipNextAutoScrollRef.current = false;
-        console.warn("Could not load older session history", err);
-      } finally {
-        isLoadingOlderHistoryRef.current = false;
-        setIsLoadingOlderHistory(false);
-      }
-    },
-    [loadOlderRuntime, nextBeforeMessageId],
-  );
-
   const refreshNewestSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
       setStreamEvents([]);
@@ -1612,12 +1518,10 @@ export function TalonSession({
     isStoppingRef.current = false;
     setIsStopping(false);
     setLoadingStartedAt(null);
-    setExpandedThinkingMessages({});
-    setExpandedToolItems({});
+    resetTranscriptUi();
     invalidateToolResultHydration();
     clearResourcePaneState();
-    autoScrollPinnedRef.current = true;
-  }, [clearResourcePaneState, clearRuntime, invalidateToolResultHydration]);
+  }, [clearResourcePaneState, clearRuntime, invalidateToolResultHydration, resetTranscriptUi]);
 
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;
@@ -1937,7 +1841,7 @@ export function TalonSession({
       setMessages((prev) => [...prev, userMessage]);
       setLoadingStartedAt(normalizeEpochToMilliseconds(userMessage.createdAt) ?? Date.now());
       setLoadingNow(Date.now());
-      autoScrollPinnedRef.current = true;
+      markAutoScrollPinned();
       setIsLoading(true);
 
       const sessions = gatewayClient?.sessions;
@@ -2110,21 +2014,6 @@ export function TalonSession({
 
   runtimeSubmitRef.current = (input, context) => submitMessage(input.text, true, context.signal);
   runtimeStopRef.current = (context) => stopGeneration(true, context.signal);
-
-  const handleTranscriptScroll = useCallback(() => {
-    updateTranscriptScrollThumb();
-    const container = scrollContainerRef.current;
-    const session = currentSessionRef.current;
-    if (container && !prependScrollRestoreRef.current) {
-      autoScrollPinnedRef.current = isNearScrollBottom(container);
-    }
-    if (!container || !session || isLoadingOlderHistoryRef.current || !hasMoreHistory || !nextBeforeMessageId) {
-      return;
-    }
-    if (container.scrollTop <= HISTORY_SCROLL_LOAD_THRESHOLD_PX) {
-      void loadOlderHistoryPage(session);
-    }
-  }, [hasMoreHistory, loadOlderHistoryPage, nextBeforeMessageId, updateTranscriptScrollThumb]);
 
   return (
     <div
