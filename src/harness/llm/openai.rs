@@ -195,6 +195,20 @@ impl OpenAiCompatibleProvider {
         }
     }
 
+    fn responses_message_content_part(part: &Value, role: &str) -> Value {
+        if role == "assistant" {
+            serde_json::json!({
+                "type": "output_text",
+                "text": part
+                    .get("text")
+                    .cloned()
+                    .unwrap_or_else(|| Value::String(String::new())),
+            })
+        } else {
+            Self::responses_input_content_part(part)
+        }
+    }
+
     async fn serialize_messages(
         &self,
         messages: Vec<ChatMessage>,
@@ -781,7 +795,7 @@ impl OpenAiCompatibleProvider {
             for part in &message.content_parts {
                 has_regular_content = true;
                 let part = openai_content_part(&self.cas, part).await?;
-                content.push(Self::responses_input_content_part(&part));
+                content.push(Self::responses_message_content_part(&part, &message.role));
             }
 
             if !content.is_empty() || (message.tool_calls.is_empty() && has_regular_content) {
@@ -2716,6 +2730,7 @@ mod tests {
         assert!(input
             .iter()
             .any(|item| item.to_string().contains("old answer")));
+        assert_eq!(input[2]["content"][0]["type"], "output_text");
     }
 
     #[tokio::test]
