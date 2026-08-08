@@ -55,6 +55,7 @@ import {
   coalesceAssistantMessageTimelineForDisplay,
   splitAssistantMessageTimeline,
 } from "./session/AssistantMessageTimeline";
+import { AssistantMessage } from "./session/AssistantMessage";
 import {
   canCompareCanonicalMessageIds,
   historyMessageTimestamp,
@@ -1163,7 +1164,6 @@ export function TalonSession({
                     <AssistantMessageTimeline
                       message={message}
                       items={workTimeline}
-                      variant="work"
                       isLive={isLiveAssistantMessage}
                       expandedTools={expandedToolItems}
                       hydrationState={toolResultHydration}
@@ -1308,16 +1308,10 @@ export function TalonSession({
                 }}
               >
                 {message.role === "assistant" && visibleTimeline.length > 0 ? (
-                  <AssistantMessageTimeline
+                  <AssistantMessage
                     message={message}
                     items={visibleTimeline}
-                    variant="final"
-                    isLive={isLiveAssistantMessage}
-                    expandedTools={expandedToolItems}
-                    hydrationState={toolResultHydration}
-                    resultFor={toolResultFor}
-                    onToggleTool={toggleToolItem}
-                    onHydrateTool={(...args) => void hydrateToolResultForExpandedItem(...args)}
+                    content={content}
                     onResourceClick={handleResourceClick}
                   />
                 ) : (

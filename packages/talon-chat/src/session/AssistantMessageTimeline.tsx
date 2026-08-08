@@ -10,12 +10,9 @@ import {
 import { MarkdownMessage } from "../lib/MarkdownMessage";
 import type { ToolResultHydrationState } from "./useToolResultHydration";
 
-export type AssistantMessageTimelineVariant = "work" | "final";
-
 export type AssistantMessageTimelineProps = {
   message: CopilotMessage;
   items: AssistantTimelineItem[];
-  variant: AssistantMessageTimelineVariant;
   isLive: boolean;
   expandedTools: Record<string, boolean>;
   hydrationState: Record<string, ToolResultHydrationState>;
@@ -87,7 +84,7 @@ function ContextCompactionDivider({ compacting }: { compacting: boolean }) {
 }
 
 type ToolInvocationCardProps = Pick<AssistantMessageTimelineProps,
-  "message" | "variant" | "isLive" | "expandedTools" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool"
+  "message" | "isLive" | "expandedTools" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool"
 > & {
   item: Extract<AssistantTimelineItem, { type: "tool" }>;
   index: number;
@@ -128,9 +125,9 @@ function ToolResultDetails({
 }
 
 function ToolInvocationCard({
-  message, item, index, variant, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool,
+  message, item, index, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool,
 }: ToolInvocationCardProps) {
-  const toolKey = `${message.id}-${variant}-tool-${item.toolCallId || index}`;
+  const toolKey = `${message.id}-tool-${item.toolCallId || index}`;
   const toolResult = resultFor(message, item.toolCallId, item.result);
   const isExpanded = expandedTools[toolKey] ?? false;
   const isRunning = isLive && toolResult === undefined;
@@ -171,26 +168,24 @@ function TimelineItem({
   index: number;
   props: AssistantMessageTimelineProps;
 }) {
-  const { message, variant, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick } = props;
-  const key = `${message.id}-${variant}-${index}`;
-  const isWork = variant === "work";
+  const { message, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick } = props;
+  const key = `${message.id}-timeline-${index}`;
   if (item.type === "compaction") return <ContextCompactionDivider compacting={isLive} />;
-  if (item.type === "text") return <div style={{ whiteSpace: "normal", overflowWrap: isWork ? "break-word" : "anywhere", fontSize: isWork ? 13 : undefined, lineHeight: isWork ? 1.55 : undefined, color: isWork ? "var(--talon-chat-assistant-fg, inherit)" : undefined }}><MarkdownMessage onResourceClick={onResourceClick}>{item.text}</MarkdownMessage></div>;
-  if (item.type === "reasoning") return <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: isWork ? 13 : undefined, lineHeight: isWork ? 1.55 : undefined, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>{item.text}</div>;
+  if (item.type === "text") return <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-assistant-fg, inherit)" }}><MarkdownMessage onResourceClick={onResourceClick}>{item.text}</MarkdownMessage></div>;
+  if (item.type === "reasoning") return <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>{item.text}</div>;
   if (item.type === "usage") {
     const summary = formatUsageSummary(item.usage);
     return summary ? <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>{summary}</div> : null;
   }
-  return <ToolInvocationCard key={`${key}-tool-${item.toolCallId}`} {...{ message, item, index, variant, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool }} />;
+  return <ToolInvocationCard key={`${key}-tool-${item.toolCallId}`} {...{ message, item, index, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool }} />;
 }
 
 export function AssistantMessageTimeline({
-  message, items, variant, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick,
+  message, items, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick,
 }: AssistantMessageTimelineProps) {
-  const isWork = variant === "work";
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: isWork ? 8 : 12 }}>
-      {items.map((item, index) => <TimelineItem key={`${message.id}-${variant}-${index}`} item={item} index={index} props={{ message, items, variant, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick }} />)}
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {items.map((item, index) => <TimelineItem key={`${message.id}-timeline-${index}`} item={item} index={index} props={{ message, items, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick }} />)}
     </div>
   );
 }
