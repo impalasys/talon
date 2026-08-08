@@ -868,7 +868,7 @@ export function TalonSession({
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
-  const [toolResultHydration, setToolResultHydration] = useState<Record<string, "loading" | "error">>({});
+  const [toolResultHydration, setToolResultHydration] = useState<Record<string, "loading" | { objectKey: string }>>({});
   const missingResourceClientWarnedRef = useRef(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageValue, setEditingMessageValue] = useState("");
@@ -1150,7 +1150,7 @@ export function TalonSession({
         console.warn("Could not hydrate CAS tool-result object", match.key, err);
         setToolResultHydration((prev) => ({
           ...prev,
-          [toolKey]: "error",
+          [toolKey]: { objectKey: match.key },
         }));
       } finally {
         toolResultHydrationInFlightRef.current.delete(toolKey);
@@ -1545,7 +1545,15 @@ export function TalonSession({
                               </div>
                               {toolHydrationState ? (
                                 <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                  {toolHydrationState === "loading" ? "Loading output..." : "Could not load output."}
+                                  {toolHydrationState === "loading" ? "Loading output..." : (
+                                    <>
+                                      Historical output is unavailable.
+                                      <details style={{ marginTop: 4 }}>
+                                        <summary>Developer details</summary>
+                                        <code style={{ overflowWrap: "anywhere" }}>{toolHydrationState.objectKey}</code>
+                                      </details>
+                                    </>
+                                  )}
                                 </div>
                               ) : item.result !== undefined ? (
                                 <div>
@@ -1794,7 +1802,15 @@ export function TalonSession({
                               </div>
                               {toolHydrationState ? (
                                 <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                  {toolHydrationState === "loading" ? "Loading output..." : "Could not load output."}
+                                  {toolHydrationState === "loading" ? "Loading output..." : (
+                                    <>
+                                      Historical output is unavailable.
+                                      <details style={{ marginTop: 4 }}>
+                                        <summary>Developer details</summary>
+                                        <code style={{ overflowWrap: "anywhere" }}>{toolHydrationState.objectKey}</code>
+                                      </details>
+                                    </>
+                                  )}
                                 </div>
                               ) : item.result !== undefined ? (
                                 <div>
@@ -2724,6 +2740,9 @@ export function TalonSession({
             hasTrailingUserMessage={messages[messages.length - 1]?.role === "user"}
             workingLabel={formatWorkingDuration(loadingStartedAt, loadingNow)}
             error={error}
+            incident={sessionState === "ERROR" && !error
+              ? "This session previously encountered an error. You can continue, but any unavailable historical output will be marked in the transcript."
+              : null}
             scrollThumb={scrollThumb}
             transcriptRef={scrollContainerRef}
             bottomRef={bottomRef}
