@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from "react";
 import type { GatewayClientLike } from "./TalonSessionTypes";
 import { normalizeHistoryPage } from "./history";
-import { useSessionRuntime } from "./useSessionRuntime";
+import { useSessionRuntime } from "./hooks/useSessionRuntime";
 import type { SessionTarget } from "./types";
 
 type UseTalonSessionRuntimeOptions = {
