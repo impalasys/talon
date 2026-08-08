@@ -5,7 +5,7 @@ import { copyMessageContent } from "./copyMessageContent";
 import { createLocalMessageId, useSessionActions } from "./useSessionActions";
 import { useSessionCommands } from "./useSessionCommands";
 import { useSessionGeneration } from "./useSessionGeneration";
-import { useSessionImageAttachments } from "./useSessionImageAttachments";
+import { useSessionAttachments } from "./hooks/useSessionAttachments";
 import { useSessionLifecycle } from "./useSessionLifecycle";
 import { useSessionMessageEditing } from "./useSessionMessageEditing";
 import { useSessionPresentationState } from "./useSessionPresentationState";
@@ -40,11 +40,15 @@ export function useTalonSessionController({
   historyMessageLimit = DEFAULT_HISTORY_MESSAGE_LIMIT,
   commands,
   enabledBuiltInCommands,
+  onAttachmentUpload,
   onImageUpload,
   objectUrlForRef,
-  maxImageAttachments = 4,
-  maxImageBytes = 20 * 1024 * 1024,
-  acceptedImageTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"],
+  maxAttachments,
+  maxAttachmentBytes,
+  acceptedAttachmentTypes,
+  maxImageAttachments,
+  maxImageBytes,
+  acceptedImageTypes,
   composerVariant = "panel",
   composerStartAdornment,
   composerEndAdornment,
@@ -79,6 +83,9 @@ export function useTalonSessionController({
   const isStopping = sessionRuntimeState.phase === "stopping";
   const error = sessionRuntimeState.error;
   const [input, setInput] = useState("");
+  const resolvedMaxAttachments = maxAttachments ?? maxImageAttachments ?? 4;
+  const resolvedMaxAttachmentBytes = maxAttachmentBytes ?? maxImageBytes ?? 20 * 1024 * 1024;
+  const resolvedAcceptedAttachmentTypes = acceptedAttachmentTypes ?? acceptedImageTypes ?? ["image/png", "image/jpeg", "image/gif", "image/webp"];
   const {
     addFiles: addImageFiles,
     attachments: imageAttachments,
@@ -86,13 +93,13 @@ export function useTalonSessionController({
     remove: removeImageAttachment,
     replace: setImageAttachments,
     uploadQueued: uploadQueuedImages,
-  } = useSessionImageAttachments({
-    acceptedImageTypes,
+  } = useSessionAttachments({
+    acceptedTypes: resolvedAcceptedAttachmentTypes,
     createId: createLocalMessageId,
-    maxImageAttachments,
-    maxImageBytes,
+    maxAttachments: resolvedMaxAttachments,
+    maxBytes: resolvedMaxAttachmentBytes,
     onError: setError,
-    onUpload: onImageUpload,
+    onUpload: onAttachmentUpload ?? onImageUpload,
   });
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
@@ -334,7 +341,7 @@ export function useTalonSessionController({
       value: input,
       onValueChange: setInput,
       onSubmit: (nextInput) => void (currentSession
-        ? sessionRuntime.submit({ text: nextInput, imageAttachments })
+        ? sessionRuntime.submit({ text: nextInput, attachments: imageAttachments, imageAttachments })
         : submitMessage(nextInput)),
       placeholder,
       variant: composerVariant,
@@ -346,17 +353,18 @@ export function useTalonSessionController({
       commandMenuItems,
       startAdornment: composerStartAdornment,
       endAdornment: composerEndAdornment,
-      imageAttachments: imageAttachments.map((attachment) => ({
+      attachments: imageAttachments.map((attachment) => ({
         id: attachment.id,
         filename: attachment.file.name,
         previewUrl: attachment.previewUrl,
+        mediaType: attachment.file.type,
         status: attachment.status,
         error: attachment.error,
       })),
-      imageUploadEnabled: Boolean(onImageUpload),
-      imageAccept: acceptedImageTypes.join(","),
-      onImageFilesSelected: addImageFiles,
-      onRemoveImageAttachment: removeImageAttachment,
+      attachmentUploadEnabled: Boolean(onAttachmentUpload ?? onImageUpload),
+      attachmentAccept: resolvedAcceptedAttachmentTypes.join(","),
+      onAttachmentFilesSelected: addImageFiles,
+      onRemoveAttachment: removeImageAttachment,
       onStop: () => { void sessionRuntime.stop().catch((stopError: unknown) => setError(stopError instanceof Error ? stopError : new Error("Failed to stop generation"))); },
     },
     resourcePane: openResourceUri ? {
