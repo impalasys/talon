@@ -33,6 +33,8 @@ pub struct SessionMessageEvent {
     pub ns: ::prost::alloc::string::String,
     #[prost(string, tag = "8")]
     pub submission_id: ::prost::alloc::string::String,
+    #[prost(enumeration = "SessionDispatchKind", tag = "9")]
+    pub kind: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionMessagePartEvent {
@@ -196,6 +198,32 @@ impl MessageDirection {
             "MESSAGE_DIRECTION_UNSPECIFIED" => Some(Self::Unspecified),
             "MESSAGE_DIRECTION_INBOUND" => Some(Self::Inbound),
             "MESSAGE_DIRECTION_OUTBOUND" => Some(Self::Outbound),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SessionDispatchKind {
+    Message = 0,
+    Compact = 1,
+}
+impl SessionDispatchKind {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Message => "SESSION_DISPATCH_KIND_MESSAGE",
+            Self::Compact => "SESSION_DISPATCH_KIND_COMPACT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SESSION_DISPATCH_KIND_MESSAGE" => Some(Self::Message),
+            "SESSION_DISPATCH_KIND_COMPACT" => Some(Self::Compact),
             _ => None,
         }
     }

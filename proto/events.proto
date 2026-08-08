@@ -27,6 +27,11 @@ enum MessageDirection {
     MESSAGE_DIRECTION_OUTBOUND = 2;
 }
 
+enum SessionDispatchKind {
+    SESSION_DISPATCH_KIND_MESSAGE = 0;
+    SESSION_DISPATCH_KIND_COMPACT = 1;
+}
+
 message SessionMessageEvent {
     string session_id = 1;
     string message_id = 2;
@@ -36,6 +41,7 @@ message SessionMessageEvent {
     string message = 6;
     string ns = 7;
     string submission_id = 8;
+    SessionDispatchKind kind = 9;
 }
 
 enum SessionMessagePartEventKind {

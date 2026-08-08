@@ -306,6 +306,123 @@ public final class Events extends com.google.protobuf.GeneratedFile {
   }
 
   /**
+   * Protobuf enum {@code talon.events.SessionDispatchKind}
+   */
+  public enum SessionDispatchKind
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>SESSION_DISPATCH_KIND_MESSAGE = 0;</code>
+     */
+    SESSION_DISPATCH_KIND_MESSAGE(0),
+    /**
+     * <code>SESSION_DISPATCH_KIND_COMPACT = 1;</code>
+     */
+    SESSION_DISPATCH_KIND_COMPACT(1),
+    UNRECOGNIZED(-1),
+    ;
+
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "SessionDispatchKind");
+    }
+    /**
+     * <code>SESSION_DISPATCH_KIND_MESSAGE = 0;</code>
+     */
+    public static final int SESSION_DISPATCH_KIND_MESSAGE_VALUE = 0;
+    /**
+     * <code>SESSION_DISPATCH_KIND_COMPACT = 1;</code>
+     */
+    public static final int SESSION_DISPATCH_KIND_COMPACT_VALUE = 1;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static SessionDispatchKind valueOf(int value) {
+      return forNumber(value);
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
+    public static SessionDispatchKind forNumber(int value) {
+      switch (value) {
+        case 0: return SESSION_DISPATCH_KIND_MESSAGE;
+        case 1: return SESSION_DISPATCH_KIND_COMPACT;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<SessionDispatchKind>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        SessionDispatchKind> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<SessionDispatchKind>() {
+            public SessionDispatchKind findValueByNumber(int number) {
+              return SessionDispatchKind.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
+      return getDescriptor().getValue(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return talon.events.Events.getDescriptor().getEnumType(2);
+    }
+
+    private static final SessionDispatchKind[] VALUES = values();
+
+    public static SessionDispatchKind valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private SessionDispatchKind(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:talon.events.SessionDispatchKind)
+  }
+
+  /**
    * Protobuf enum {@code talon.events.SessionMessagePartEventKind}
    */
   public enum SessionMessagePartEventKind
@@ -414,7 +531,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     }
     public static com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return talon.events.Events.getDescriptor().getEnumType(2);
+      return talon.events.Events.getDescriptor().getEnumType(3);
     }
 
     private static final SessionMessagePartEventKind[] VALUES = values();
@@ -558,7 +675,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     }
     public static com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return talon.events.Events.getDescriptor().getEnumType(3);
+      return talon.events.Events.getDescriptor().getEnumType(4);
     }
 
     private static final ChannelEventKind[] VALUES = values();
@@ -693,7 +810,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     }
     public static com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return talon.events.Events.getDescriptor().getEnumType(4);
+      return talon.events.Events.getDescriptor().getEnumType(5);
     }
 
     private static final ResourceChangeType[] VALUES = values();
@@ -819,7 +936,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     }
     public static com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return talon.events.Events.getDescriptor().getEnumType(5);
+      return talon.events.Events.getDescriptor().getEnumType(6);
     }
 
     private static final IndexOperation[] VALUES = values();
@@ -1925,6 +2042,17 @@ public final class Events extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getSubmissionIdBytes();
+
+    /**
+     * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+     * @return The enum numeric value on the wire for kind.
+     */
+    int getKindValue();
+    /**
+     * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+     * @return The kind.
+     */
+    talon.events.Events.SessionDispatchKind getKind();
   }
   /**
    * Protobuf type {@code talon.events.SessionMessageEvent}
@@ -1955,6 +2083,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       message_ = "";
       ns_ = "";
       submissionId_ = "";
+      kind_ = 0;
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -2238,6 +2367,24 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int KIND_FIELD_NUMBER = 9;
+    private int kind_ = 0;
+    /**
+     * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+     * @return The enum numeric value on the wire for kind.
+     */
+    @java.lang.Override public int getKindValue() {
+      return kind_;
+    }
+    /**
+     * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+     * @return The kind.
+     */
+    @java.lang.Override public talon.events.Events.SessionDispatchKind getKind() {
+      talon.events.Events.SessionDispatchKind result = talon.events.Events.SessionDispatchKind.forNumber(kind_);
+      return result == null ? talon.events.Events.SessionDispatchKind.UNRECOGNIZED : result;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2276,6 +2423,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(submissionId_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 8, submissionId_);
       }
+      if (kind_ != talon.events.Events.SessionDispatchKind.SESSION_DISPATCH_KIND_MESSAGE.getNumber()) {
+        output.writeEnum(9, kind_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -2311,6 +2461,10 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(submissionId_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(8, submissionId_);
       }
+      if (kind_ != talon.events.Events.SessionDispatchKind.SESSION_DISPATCH_KIND_MESSAGE.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(9, kind_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -2341,6 +2495,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           .equals(other.getNs())) return false;
       if (!getSubmissionId()
           .equals(other.getSubmissionId())) return false;
+      if (kind_ != other.kind_) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2369,6 +2524,8 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       hash = (53 * hash) + getNs().hashCode();
       hash = (37 * hash) + SUBMISSION_ID_FIELD_NUMBER;
       hash = (53 * hash) + getSubmissionId().hashCode();
+      hash = (37 * hash) + KIND_FIELD_NUMBER;
+      hash = (53 * hash) + kind_;
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2508,6 +2665,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         message_ = "";
         ns_ = "";
         submissionId_ = "";
+        kind_ = 0;
         return this;
       }
 
@@ -2565,6 +2723,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000080) != 0)) {
           result.submissionId_ = submissionId_;
         }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.kind_ = kind_;
+        }
       }
 
       @java.lang.Override
@@ -2614,6 +2775,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           submissionId_ = other.submissionId_;
           bitField0_ |= 0x00000080;
           onChanged();
+        }
+        if (other.kind_ != 0) {
+          setKindValue(other.getKindValue());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -2681,6 +2845,11 @@ public final class Events extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000080;
                 break;
               } // case 66
+              case 72: {
+                kind_ = input.readEnum();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 72
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3210,6 +3379,58 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         checkByteStringIsUtf8(value);
         submissionId_ = value;
         bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private int kind_ = 0;
+      /**
+       * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+       * @return The enum numeric value on the wire for kind.
+       */
+      @java.lang.Override public int getKindValue() {
+        return kind_;
+      }
+      /**
+       * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+       * @param value The enum numeric value on the wire for kind to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setKindValue(int value) {
+        kind_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+       * @return The kind.
+       */
+      @java.lang.Override
+      public talon.events.Events.SessionDispatchKind getKind() {
+        talon.events.Events.SessionDispatchKind result = talon.events.Events.SessionDispatchKind.forNumber(kind_);
+        return result == null ? talon.events.Events.SessionDispatchKind.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(talon.events.Events.SessionDispatchKind value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000100;
+        kind_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.events.SessionDispatchKind kind = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        kind_ = 0;
         onChanged();
         return this;
       }
@@ -10349,62 +10570,66 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       "o/data/data.proto\"\200\001\n\016LifecycleEvent\022\025\n\r" +
       "resource_type\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\n\n\002ns\030" +
       "\003 \001(\t\022*\n\006action\030\004 \001(\0162\032.talon.events.Sys" +
-      "temAction\022\021\n\ttimestamp\030\005 \001(\003\"\306\001\n\023Session" +
+      "temAction\022\021\n\ttimestamp\030\005 \001(\003\"\367\001\n\023Session" +
       "MessageEvent\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nmess" +
       "age_id\030\002 \001(\t\0221\n\tdirection\030\003 \001(\0162\036.talon." +
       "events.MessageDirection\022\021\n\ttimestamp\030\004 \001" +
       "(\003\022\r\n\005agent\030\005 \001(\t\022\017\n\007message\030\006 \001(\t\022\n\n\002ns" +
-      "\030\007 \001(\t\022\025\n\rsubmission_id\030\010 \001(\t\"\326\001\n\027Sessio" +
-      "nMessagePartEvent\022\022\n\nsession_id\030\001 \001(\t\0227\n" +
-      "\004kind\030\002 \001(\0162).talon.events.SessionMessag" +
-      "ePartEventKind\022,\n\004part\030\003 \001(\0132\036.talon.dat" +
-      "a.SessionMessagePart\022\021\n\ttimestamp\030\004 \001(\003\022" +
-      "\r\n\005agent\030\005 \001(\t\022\n\n\002ns\030\006 \001(\t\022\022\n\nmessage_id" +
-      "\030\007 \001(\t\"\341\001\n\014ChannelEvent\022\n\n\002ns\030\001 \001(\t\022\017\n\007c" +
-      "hannel\030\002 \001(\t\022,\n\004kind\030\003 \001(\0162\036.talon.event" +
-      "s.ChannelEventKind\022+\n\007message\030\004 \001(\0132\032.ta" +
-      "lon.data.ChannelMessage\022\022\n\nsession_id\030\005 " +
-      "\001(\t\022\r\n\005agent\030\006 \001(\t\022\024\n\014subscription\030\007 \001(\t" +
-      "\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003\"\223\001\n\025W" +
-      "orkflowDispatchEvent\022\n\n\002ns\030\001 \001(\t\022\020\n\010work" +
-      "flow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\016\n\006reason\030\004 \001" +
-      "(\t\022\017\n\007step_id\030\005 \001(\t\022\030\n\020child_session_id\030" +
-      "\006 \001(\t\022\021\n\ttimestamp\030\007 \001(\003\"\355\001\n\024ResourceCha" +
-      "ngedEvent\022\021\n\tnamespace\030\001 \001(\t\022\025\n\rresource" +
-      "_kind\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\013\n\003uid\030\004 \001(\t\022\030" +
-      "\n\020resource_version\030\005 \001(\t\022\022\n\ngeneration\030\006" +
-      " \001(\004\0225\n\013change_type\030\007 \001(\0162 .talon.events" +
-      ".ResourceChangeType\022\030\n\020changed_sections\030" +
-      "\010 \003(\t\022\021\n\ttimestamp\030\t \001(\003\"\242\001\n\nIndexEvent\022" +
-      "\n\n\002id\030\001 \001(\t\022/\n\toperation\030\002 \001(\0162\034.talon.e" +
-      "vents.IndexOperation\022\022\n\ncreated_at\030\003 \001(\003" +
-      "\022\022\n\nupdated_at\030\004 \001(\003\022\013\n\003key\030\n \001(\t\022\016\n\006pre" +
-      "fix\030\013 \001(\010\022\022\n\ngeneration\030\014 \001(\004*\260\001\n\014System" +
-      "Action\022\035\n\031SYSTEM_ACTION_UNSPECIFIED\020\000\022\030\n" +
-      "\024SYSTEM_ACTION_CREATE\020\001\022\030\n\024SYSTEM_ACTION" +
-      "_UPDATE\020\002\022\030\n\024SYSTEM_ACTION_DELETE\020\003\022\031\n\025S" +
-      "YSTEM_ACTION_SUSPEND\020\004\022\030\n\024SYSTEM_ACTION_" +
-      "RESUME\020\005*t\n\020MessageDirection\022!\n\035MESSAGE_" +
-      "DIRECTION_UNSPECIFIED\020\000\022\035\n\031MESSAGE_DIREC" +
-      "TION_INBOUND\020\001\022\036\n\032MESSAGE_DIRECTION_OUTB" +
-      "OUND\020\002*\316\001\n\033SessionMessagePartEventKind\022/" +
-      "\n+SESSION_MESSAGE_PART_EVENT_KIND_UNSPEC" +
-      "IFIED\020\000\022)\n%SESSION_MESSAGE_PART_EVENT_KI" +
-      "ND_DELTA\020\001\022(\n$SESSION_MESSAGE_PART_EVENT" +
-      "_KIND_DONE\020\002\022)\n%SESSION_MESSAGE_PART_EVE" +
-      "NT_KIND_ERROR\020\003*\313\001\n\020ChannelEventKind\022\"\n\036" +
-      "CHANNEL_EVENT_KIND_UNSPECIFIED\020\000\022&\n\"CHAN" +
-      "NEL_EVENT_KIND_MESSAGE_CREATED\020\001\022%\n!CHAN" +
-      "NEL_EVENT_KIND_SESSION_ROUTED\020\002\022&\n\"CHANN" +
-      "EL_EVENT_KIND_PUBLISH_SKIPPED\020\003\022\034\n\030CHANN" +
-      "EL_EVENT_KIND_ERROR\020\004*\240\001\n\022ResourceChange" +
-      "Type\022$\n RESOURCE_CHANGE_TYPE_UNSPECIFIED" +
-      "\020\000\022 \n\034RESOURCE_CHANGE_TYPE_CREATED\020\001\022 \n\034" +
-      "RESOURCE_CHANGE_TYPE_UPDATED\020\002\022 \n\034RESOUR" +
-      "CE_CHANGE_TYPE_DELETED\020\003*i\n\016IndexOperati" +
-      "on\022\037\n\033INDEX_OPERATION_UNSPECIFIED\020\000\022\032\n\026I" +
-      "NDEX_OPERATION_UPSERT\020\001\022\032\n\026INDEX_OPERATI" +
-      "ON_DELETE\020\002b\006proto3"
+      "\030\007 \001(\t\022\025\n\rsubmission_id\030\010 \001(\t\022/\n\004kind\030\t " +
+      "\001(\0162!.talon.events.SessionDispatchKind\"\326" +
+      "\001\n\027SessionMessagePartEvent\022\022\n\nsession_id" +
+      "\030\001 \001(\t\0227\n\004kind\030\002 \001(\0162).talon.events.Sess" +
+      "ionMessagePartEventKind\022,\n\004part\030\003 \001(\0132\036." +
+      "talon.data.SessionMessagePart\022\021\n\ttimesta" +
+      "mp\030\004 \001(\003\022\r\n\005agent\030\005 \001(\t\022\n\n\002ns\030\006 \001(\t\022\022\n\nm" +
+      "essage_id\030\007 \001(\t\"\341\001\n\014ChannelEvent\022\n\n\002ns\030\001" +
+      " \001(\t\022\017\n\007channel\030\002 \001(\t\022,\n\004kind\030\003 \001(\0162\036.ta" +
+      "lon.events.ChannelEventKind\022+\n\007message\030\004" +
+      " \001(\0132\032.talon.data.ChannelMessage\022\022\n\nsess" +
+      "ion_id\030\005 \001(\t\022\r\n\005agent\030\006 \001(\t\022\024\n\014subscript" +
+      "ion\030\007 \001(\t\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t " +
+      "\001(\003\"\223\001\n\025WorkflowDispatchEvent\022\n\n\002ns\030\001 \001(" +
+      "\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\016\n\006r" +
+      "eason\030\004 \001(\t\022\017\n\007step_id\030\005 \001(\t\022\030\n\020child_se" +
+      "ssion_id\030\006 \001(\t\022\021\n\ttimestamp\030\007 \001(\003\"\355\001\n\024Re" +
+      "sourceChangedEvent\022\021\n\tnamespace\030\001 \001(\t\022\025\n" +
+      "\rresource_kind\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\013\n\003ui" +
+      "d\030\004 \001(\t\022\030\n\020resource_version\030\005 \001(\t\022\022\n\ngen" +
+      "eration\030\006 \001(\004\0225\n\013change_type\030\007 \001(\0162 .tal" +
+      "on.events.ResourceChangeType\022\030\n\020changed_" +
+      "sections\030\010 \003(\t\022\021\n\ttimestamp\030\t \001(\003\"\242\001\n\nIn" +
+      "dexEvent\022\n\n\002id\030\001 \001(\t\022/\n\toperation\030\002 \001(\0162" +
+      "\034.talon.events.IndexOperation\022\022\n\ncreated" +
+      "_at\030\003 \001(\003\022\022\n\nupdated_at\030\004 \001(\003\022\013\n\003key\030\n \001" +
+      "(\t\022\016\n\006prefix\030\013 \001(\010\022\022\n\ngeneration\030\014 \001(\004*\260" +
+      "\001\n\014SystemAction\022\035\n\031SYSTEM_ACTION_UNSPECI" +
+      "FIED\020\000\022\030\n\024SYSTEM_ACTION_CREATE\020\001\022\030\n\024SYST" +
+      "EM_ACTION_UPDATE\020\002\022\030\n\024SYSTEM_ACTION_DELE" +
+      "TE\020\003\022\031\n\025SYSTEM_ACTION_SUSPEND\020\004\022\030\n\024SYSTE" +
+      "M_ACTION_RESUME\020\005*t\n\020MessageDirection\022!\n" +
+      "\035MESSAGE_DIRECTION_UNSPECIFIED\020\000\022\035\n\031MESS" +
+      "AGE_DIRECTION_INBOUND\020\001\022\036\n\032MESSAGE_DIREC" +
+      "TION_OUTBOUND\020\002*[\n\023SessionDispatchKind\022!" +
+      "\n\035SESSION_DISPATCH_KIND_MESSAGE\020\000\022!\n\035SES" +
+      "SION_DISPATCH_KIND_COMPACT\020\001*\316\001\n\033Session" +
+      "MessagePartEventKind\022/\n+SESSION_MESSAGE_" +
+      "PART_EVENT_KIND_UNSPECIFIED\020\000\022)\n%SESSION" +
+      "_MESSAGE_PART_EVENT_KIND_DELTA\020\001\022(\n$SESS" +
+      "ION_MESSAGE_PART_EVENT_KIND_DONE\020\002\022)\n%SE" +
+      "SSION_MESSAGE_PART_EVENT_KIND_ERROR\020\003*\313\001" +
+      "\n\020ChannelEventKind\022\"\n\036CHANNEL_EVENT_KIND" +
+      "_UNSPECIFIED\020\000\022&\n\"CHANNEL_EVENT_KIND_MES" +
+      "SAGE_CREATED\020\001\022%\n!CHANNEL_EVENT_KIND_SES" +
+      "SION_ROUTED\020\002\022&\n\"CHANNEL_EVENT_KIND_PUBL" +
+      "ISH_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT_KIND_ERRO" +
+      "R\020\004*\240\001\n\022ResourceChangeType\022$\n RESOURCE_C" +
+      "HANGE_TYPE_UNSPECIFIED\020\000\022 \n\034RESOURCE_CHA" +
+      "NGE_TYPE_CREATED\020\001\022 \n\034RESOURCE_CHANGE_TY" +
+      "PE_UPDATED\020\002\022 \n\034RESOURCE_CHANGE_TYPE_DEL" +
+      "ETED\020\003*i\n\016IndexOperation\022\037\n\033INDEX_OPERAT" +
+      "ION_UNSPECIFIED\020\000\022\032\n\026INDEX_OPERATION_UPS" +
+      "ERT\020\001\022\032\n\026INDEX_OPERATION_DELETE\020\002b\006proto" +
+      "3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10422,7 +10647,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     internal_static_talon_events_SessionMessageEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_events_SessionMessageEvent_descriptor,
-        new java.lang.String[] { "SessionId", "MessageId", "Direction", "Timestamp", "Agent", "Message", "Ns", "SubmissionId", });
+        new java.lang.String[] { "SessionId", "MessageId", "Direction", "Timestamp", "Agent", "Message", "Ns", "SubmissionId", "Kind", });
     internal_static_talon_events_SessionMessagePartEvent_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_events_SessionMessagePartEvent_fieldAccessorTable = new

@@ -70,6 +70,16 @@ class SessionServiceStub(object):
                 request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ClearSessionRequest.SerializeToString,
                 response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ClearSessionResponse.FromString,
                 _registered_method=True)
+        self.Compact = channel.unary_stream(
+                '/talon.v1.SessionService/Compact',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.CompactSessionRequest.SerializeToString,
+                response_deserializer=proto_dot_events__pb2.SessionMessagePartEvent.FromString,
+                _registered_method=True)
+        self.Doctor = channel.unary_unary(
+                '/talon.v1.SessionService/Doctor',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.DoctorSessionRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.DoctorSessionResponse.FromString,
+                _registered_method=True)
         self.SendMessage = channel.unary_unary(
                 '/talon.v1.SessionService/SendMessage',
                 request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.SendMessageRequest.SerializeToString,
@@ -152,6 +162,18 @@ class SessionServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Clear(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Compact(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Doctor(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -242,6 +264,16 @@ def add_SessionServiceServicer_to_server(servicer, server):
                     servicer.Clear,
                     request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ClearSessionRequest.FromString,
                     response_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ClearSessionResponse.SerializeToString,
+            ),
+            'Compact': grpc.unary_stream_rpc_method_handler(
+                    servicer.Compact,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.CompactSessionRequest.FromString,
+                    response_serializer=proto_dot_events__pb2.SessionMessagePartEvent.SerializeToString,
+            ),
+            'Doctor': grpc.unary_unary_rpc_method_handler(
+                    servicer.Doctor,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.DoctorSessionRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.DoctorSessionResponse.SerializeToString,
             ),
             'SendMessage': grpc.unary_unary_rpc_method_handler(
                     servicer.SendMessage,
@@ -473,6 +505,60 @@ class SessionService(object):
             '/talon.v1.SessionService/Clear',
             proto_dot_talon_dot_v1_dot_sessions__pb2.ClearSessionRequest.SerializeToString,
             proto_dot_talon_dot_v1_dot_sessions__pb2.ClearSessionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Compact(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/talon.v1.SessionService/Compact',
+            proto_dot_talon_dot_v1_dot_sessions__pb2.CompactSessionRequest.SerializeToString,
+            proto_dot_events__pb2.SessionMessagePartEvent.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Doctor(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.SessionService/Doctor',
+            proto_dot_talon_dot_v1_dot_sessions__pb2.DoctorSessionRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_sessions__pb2.DoctorSessionResponse.FromString,
             options,
             channel_credentials,
             insecure,

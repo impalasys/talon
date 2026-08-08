@@ -78,6 +78,26 @@ proto3.util.setEnumType(MessageDirection, "talon.events.MessageDirection", [
 ]);
 
 /**
+ * @generated from enum talon.events.SessionDispatchKind
+ */
+export enum SessionDispatchKind {
+  /**
+   * @generated from enum value: SESSION_DISPATCH_KIND_MESSAGE = 0;
+   */
+  MESSAGE = 0,
+
+  /**
+   * @generated from enum value: SESSION_DISPATCH_KIND_COMPACT = 1;
+   */
+  COMPACT = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SessionDispatchKind)
+proto3.util.setEnumType(SessionDispatchKind, "talon.events.SessionDispatchKind", [
+  { no: 0, name: "SESSION_DISPATCH_KIND_MESSAGE" },
+  { no: 1, name: "SESSION_DISPATCH_KIND_COMPACT" },
+]);
+
+/**
  * @generated from enum talon.events.SessionMessagePartEventKind
  */
 export enum SessionMessagePartEventKind {
@@ -310,6 +330,11 @@ export class SessionMessageEvent extends Message<SessionMessageEvent> {
    */
   submissionId = "";
 
+  /**
+   * @generated from field: talon.events.SessionDispatchKind kind = 9;
+   */
+  kind = SessionDispatchKind.MESSAGE;
+
   constructor(data?: PartialMessage<SessionMessageEvent>) {
     super();
     proto3.util.initPartial(data, this);
@@ -326,6 +351,7 @@ export class SessionMessageEvent extends Message<SessionMessageEvent> {
     { no: 6, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "submission_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "kind", kind: "enum", T: proto3.getEnumType(SessionDispatchKind) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionMessageEvent {

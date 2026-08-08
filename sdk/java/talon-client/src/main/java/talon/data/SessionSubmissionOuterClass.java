@@ -235,6 +235,128 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
     // @@protoc_insertion_point(enum_scope:talon.data.SessionSubmissionStatus)
   }
 
+  /**
+   * <pre>
+   * What caused a durable submission. Maintenance submissions deliberately have
+   * no user SessionMessage and must never be replayed as user context.
+   * </pre>
+   *
+   * Protobuf enum {@code talon.data.SessionSubmissionKind}
+   */
+  public enum SessionSubmissionKind
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>SESSION_SUBMISSION_KIND_USER_TURN = 0;</code>
+     */
+    SESSION_SUBMISSION_KIND_USER_TURN(0),
+    /**
+     * <code>SESSION_SUBMISSION_KIND_COMPACT = 1;</code>
+     */
+    SESSION_SUBMISSION_KIND_COMPACT(1),
+    UNRECOGNIZED(-1),
+    ;
+
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "SessionSubmissionKind");
+    }
+    /**
+     * <code>SESSION_SUBMISSION_KIND_USER_TURN = 0;</code>
+     */
+    public static final int SESSION_SUBMISSION_KIND_USER_TURN_VALUE = 0;
+    /**
+     * <code>SESSION_SUBMISSION_KIND_COMPACT = 1;</code>
+     */
+    public static final int SESSION_SUBMISSION_KIND_COMPACT_VALUE = 1;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static SessionSubmissionKind valueOf(int value) {
+      return forNumber(value);
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
+    public static SessionSubmissionKind forNumber(int value) {
+      switch (value) {
+        case 0: return SESSION_SUBMISSION_KIND_USER_TURN;
+        case 1: return SESSION_SUBMISSION_KIND_COMPACT;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<SessionSubmissionKind>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        SessionSubmissionKind> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<SessionSubmissionKind>() {
+            public SessionSubmissionKind findValueByNumber(int number) {
+              return SessionSubmissionKind.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
+      return getDescriptor().getValue(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return talon.data.SessionSubmissionOuterClass.getDescriptor().getEnumType(1);
+    }
+
+    private static final SessionSubmissionKind[] VALUES = values();
+
+    public static SessionSubmissionKind valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private SessionSubmissionKind(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:talon.data.SessionSubmissionKind)
+  }
+
   public interface SessionSubmissionOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.data.SessionSubmission)
       com.google.protobuf.MessageOrBuilder {
@@ -517,6 +639,17 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
      */
     com.google.protobuf.ByteString
         getCurrentJournalEntryIdBytes();
+
+    /**
+     * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+     * @return The enum numeric value on the wire for kind.
+     */
+    int getKindValue();
+    /**
+     * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+     * @return The kind.
+     */
+    talon.data.SessionSubmissionOuterClass.SessionSubmissionKind getKind();
   }
   /**
    * Protobuf type {@code talon.data.SessionSubmission}
@@ -549,6 +682,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       committedMessageId_ = "";
       currentPhase_ = 0;
       currentJournalEntryId_ = "";
+      kind_ = 0;
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -1089,6 +1223,24 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       }
     }
 
+    public static final int KIND_FIELD_NUMBER = 15;
+    private int kind_ = 0;
+    /**
+     * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+     * @return The enum numeric value on the wire for kind.
+     */
+    @java.lang.Override public int getKindValue() {
+      return kind_;
+    }
+    /**
+     * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+     * @return The kind.
+     */
+    @java.lang.Override public talon.data.SessionSubmissionOuterClass.SessionSubmissionKind getKind() {
+      talon.data.SessionSubmissionOuterClass.SessionSubmissionKind result = talon.data.SessionSubmissionOuterClass.SessionSubmissionKind.forNumber(kind_);
+      return result == null ? talon.data.SessionSubmissionOuterClass.SessionSubmissionKind.UNRECOGNIZED : result;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1144,6 +1296,9 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(claimWorkerId_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 14, claimWorkerId_);
+      }
+      if (kind_ != talon.data.SessionSubmissionOuterClass.SessionSubmissionKind.SESSION_SUBMISSION_KIND_USER_TURN.getNumber()) {
+        output.writeEnum(15, kind_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1203,6 +1358,10 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(claimWorkerId_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(14, claimWorkerId_);
       }
+      if (kind_ != talon.data.SessionSubmissionOuterClass.SessionSubmissionKind.SESSION_SUBMISSION_KIND_USER_TURN.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(15, kind_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -1256,6 +1415,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         if (!getCurrentJournalEntryId()
             .equals(other.getCurrentJournalEntryId())) return false;
       }
+      if (kind_ != other.kind_) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1307,6 +1467,8 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         hash = (37 * hash) + CURRENT_JOURNAL_ENTRY_ID_FIELD_NUMBER;
         hash = (53 * hash) + getCurrentJournalEntryId().hashCode();
       }
+      hash = (37 * hash) + KIND_FIELD_NUMBER;
+      hash = (53 * hash) + kind_;
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1452,6 +1614,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         committedMessageId_ = "";
         currentPhase_ = 0;
         currentJournalEntryId_ = "";
+        kind_ = 0;
         return this;
       }
 
@@ -1532,6 +1695,9 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
           result.currentJournalEntryId_ = currentJournalEntryId_;
           to_bitField0_ |= 0x00000008;
         }
+        if (((from_bitField0_ & 0x00004000) != 0)) {
+          result.kind_ = kind_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -1602,6 +1768,9 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
           currentJournalEntryId_ = other.currentJournalEntryId_;
           bitField0_ |= 0x00002000;
           onChanged();
+        }
+        if (other.kind_ != 0) {
+          setKindValue(other.getKindValue());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -1699,6 +1868,11 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
                 bitField0_ |= 0x00000020;
                 break;
               } // case 114
+              case 120: {
+                kind_ = input.readEnum();
+                bitField0_ |= 0x00004000;
+                break;
+              } // case 120
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2800,6 +2974,58 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
         return this;
       }
 
+      private int kind_ = 0;
+      /**
+       * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+       * @return The enum numeric value on the wire for kind.
+       */
+      @java.lang.Override public int getKindValue() {
+        return kind_;
+      }
+      /**
+       * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+       * @param value The enum numeric value on the wire for kind to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setKindValue(int value) {
+        kind_ = value;
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+       * @return The kind.
+       */
+      @java.lang.Override
+      public talon.data.SessionSubmissionOuterClass.SessionSubmissionKind getKind() {
+        talon.data.SessionSubmissionOuterClass.SessionSubmissionKind result = talon.data.SessionSubmissionOuterClass.SessionSubmissionKind.forNumber(kind_);
+        return result == null ? talon.data.SessionSubmissionOuterClass.SessionSubmissionKind.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(talon.data.SessionSubmissionOuterClass.SessionSubmissionKind value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00004000;
+        kind_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.data.SessionSubmissionKind kind = 15;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        bitField0_ = (bitField0_ & ~0x00004000);
+        kind_ = 0;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.data.SessionSubmission)
     }
 
@@ -2867,7 +3093,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
     java.lang.String[] descriptorData = {
       "\n#proto/data/session_submission.proto\022\nt" +
       "alon.data\032&proto/data/session_journal_en" +
-      "try.proto\"\222\004\n\021SessionSubmission\022\025\n\rsubmi" +
+      "try.proto\"\303\004\n\021SessionSubmission\022\025\n\rsubmi" +
       "ssion_id\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(\t\022\027\n\017us" +
       "er_message_id\030\003 \001(\t\0223\n\006status\030\004 \001(\0162#.ta" +
       "lon.data.SessionSubmissionStatus\022\022\n\natte" +
@@ -2878,16 +3104,20 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
       "\n\024committed_message_id\030\013 \001(\tH\002\210\001\001\0228\n\rcur" +
       "rent_phase\030\014 \001(\0162!.talon.data.SessionExe" +
       "cutionPhase\022%\n\030current_journal_entry_id\030" +
-      "\r \001(\tH\003\210\001\001B\023\n\021_claim_expires_atB\017\n\r_comp" +
-      "leted_atB\027\n\025_committed_message_idB\033\n\031_cu" +
-      "rrent_journal_entry_id*\214\002\n\027SessionSubmis" +
-      "sionStatus\022)\n%SESSION_SUBMISSION_STATUS_" +
-      "UNSPECIFIED\020\000\022%\n!SESSION_SUBMISSION_STAT" +
-      "US_PENDING\020\001\022%\n!SESSION_SUBMISSION_STATU" +
-      "S_CLAIMED\020\002\022\'\n#SESSION_SUBMISSION_STATUS" +
-      "_COMMITTED\020\003\022$\n SESSION_SUBMISSION_STATU" +
-      "S_FAILED\020\004\022)\n%SESSION_SUBMISSION_STATUS_" +
-      "INTERRUPTED\020\005b\006proto3"
+      "\r \001(\tH\003\210\001\001\022/\n\004kind\030\017 \001(\0162!.talon.data.Se" +
+      "ssionSubmissionKindB\023\n\021_claim_expires_at" +
+      "B\017\n\r_completed_atB\027\n\025_committed_message_" +
+      "idB\033\n\031_current_journal_entry_id*\214\002\n\027Sess" +
+      "ionSubmissionStatus\022)\n%SESSION_SUBMISSIO" +
+      "N_STATUS_UNSPECIFIED\020\000\022%\n!SESSION_SUBMIS" +
+      "SION_STATUS_PENDING\020\001\022%\n!SESSION_SUBMISS" +
+      "ION_STATUS_CLAIMED\020\002\022\'\n#SESSION_SUBMISSI" +
+      "ON_STATUS_COMMITTED\020\003\022$\n SESSION_SUBMISS" +
+      "ION_STATUS_FAILED\020\004\022)\n%SESSION_SUBMISSIO" +
+      "N_STATUS_INTERRUPTED\020\005*c\n\025SessionSubmiss" +
+      "ionKind\022%\n!SESSION_SUBMISSION_KIND_USER_" +
+      "TURN\020\000\022#\n\037SESSION_SUBMISSION_KIND_COMPAC" +
+      "T\020\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -2899,7 +3129,7 @@ public final class SessionSubmissionOuterClass extends com.google.protobuf.Gener
     internal_static_talon_data_SessionSubmission_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionSubmission_descriptor,
-        new java.lang.String[] { "SubmissionId", "SessionId", "UserMessageId", "Status", "AttemptId", "ClaimWorkerId", "AttemptCount", "ClaimExpiresAt", "CreatedAt", "UpdatedAt", "CompletedAt", "CommittedMessageId", "CurrentPhase", "CurrentJournalEntryId", });
+        new java.lang.String[] { "SubmissionId", "SessionId", "UserMessageId", "Status", "AttemptId", "ClaimWorkerId", "AttemptCount", "ClaimExpiresAt", "CreatedAt", "UpdatedAt", "CompletedAt", "CommittedMessageId", "CurrentPhase", "CurrentJournalEntryId", "Kind", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.SessionJournalEntryOuterClass.getDescriptor();
   }

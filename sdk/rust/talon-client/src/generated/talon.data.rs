@@ -888,6 +888,8 @@ pub struct SessionSubmission {
     /// append and pointer update.
     #[prost(string, optional, tag = "13")]
     pub current_journal_entry_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(enumeration = "SessionSubmissionKind", tag = "15")]
+    pub kind: i32,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -933,6 +935,34 @@ impl SessionSubmissionStatus {
             "SESSION_SUBMISSION_STATUS_COMMITTED" => Some(Self::Committed),
             "SESSION_SUBMISSION_STATUS_FAILED" => Some(Self::Failed),
             "SESSION_SUBMISSION_STATUS_INTERRUPTED" => Some(Self::Interrupted),
+            _ => None,
+        }
+    }
+}
+/// What caused a durable submission. Maintenance submissions deliberately have
+/// no user SessionMessage and must never be replayed as user context.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SessionSubmissionKind {
+    UserTurn = 0,
+    Compact = 1,
+}
+impl SessionSubmissionKind {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::UserTurn => "SESSION_SUBMISSION_KIND_USER_TURN",
+            Self::Compact => "SESSION_SUBMISSION_KIND_COMPACT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SESSION_SUBMISSION_KIND_USER_TURN" => Some(Self::UserTurn),
+            "SESSION_SUBMISSION_KIND_COMPACT" => Some(Self::Compact),
             _ => None,
         }
     }

@@ -280,6 +280,7 @@ async fn publish_queued_message(
         message: scheduling::session_message_text_projection(&message),
         ns: ns.to_string(),
         submission_id: submission_id.clone(),
+        kind: events::SessionDispatchKind::Message as i32,
     };
     kv.delete(&keys::session_queue_entry(
         ns, agent, session_id, queue, entry_id,

@@ -229,6 +229,68 @@ public final class SessionServiceGrpc {
     return getClearMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.CompactSessionRequest,
+      talon.events.Events.SessionMessagePartEvent> getCompactMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Compact",
+      requestType = talon.v1.Sessions.CompactSessionRequest.class,
+      responseType = talon.events.Events.SessionMessagePartEvent.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.CompactSessionRequest,
+      talon.events.Events.SessionMessagePartEvent> getCompactMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.CompactSessionRequest, talon.events.Events.SessionMessagePartEvent> getCompactMethod;
+    if ((getCompactMethod = SessionServiceGrpc.getCompactMethod) == null) {
+      synchronized (SessionServiceGrpc.class) {
+        if ((getCompactMethod = SessionServiceGrpc.getCompactMethod) == null) {
+          SessionServiceGrpc.getCompactMethod = getCompactMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.CompactSessionRequest, talon.events.Events.SessionMessagePartEvent>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Compact"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.CompactSessionRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.events.Events.SessionMessagePartEvent.getDefaultInstance()))
+              .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("Compact"))
+              .build();
+        }
+      }
+    }
+    return getCompactMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.DoctorSessionRequest,
+      talon.v1.Sessions.DoctorSessionResponse> getDoctorMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Doctor",
+      requestType = talon.v1.Sessions.DoctorSessionRequest.class,
+      responseType = talon.v1.Sessions.DoctorSessionResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.DoctorSessionRequest,
+      talon.v1.Sessions.DoctorSessionResponse> getDoctorMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.DoctorSessionRequest, talon.v1.Sessions.DoctorSessionResponse> getDoctorMethod;
+    if ((getDoctorMethod = SessionServiceGrpc.getDoctorMethod) == null) {
+      synchronized (SessionServiceGrpc.class) {
+        if ((getDoctorMethod = SessionServiceGrpc.getDoctorMethod) == null) {
+          SessionServiceGrpc.getDoctorMethod = getDoctorMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.DoctorSessionRequest, talon.v1.Sessions.DoctorSessionResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Doctor"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.DoctorSessionRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.DoctorSessionResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("Doctor"))
+              .build();
+        }
+      }
+    }
+    return getDoctorMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.SendMessageRequest,
       talon.v1.Sessions.SendMessageResponse> getSendMessageMethod;
 
@@ -591,6 +653,20 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    default void compact(talon.v1.Sessions.CompactSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCompactMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void doctor(talon.v1.Sessions.DoctorSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.DoctorSessionResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDoctorMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void sendMessage(talon.v1.Sessions.SendMessageRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Sessions.SendMessageResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSendMessageMethod(), responseObserver);
@@ -731,6 +807,22 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public void compact(talon.v1.Sessions.CompactSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncServerStreamingCall(
+          getChannel().newCall(getCompactMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void doctor(talon.v1.Sessions.DoctorSessionRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.DoctorSessionResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getDoctorMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
     public void sendMessage(talon.v1.Sessions.SendMessageRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Sessions.SendMessageResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
@@ -861,6 +953,22 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/10918")
+    public io.grpc.stub.BlockingClientCall<?, talon.events.Events.SessionMessagePartEvent>
+        compact(talon.v1.Sessions.CompactSessionRequest request) {
+      return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
+          getChannel(), getCompactMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Sessions.DoctorSessionResponse doctor(talon.v1.Sessions.DoctorSessionRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getDoctorMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
     public talon.v1.Sessions.SendMessageResponse sendMessage(talon.v1.Sessions.SendMessageRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getSendMessageMethod(), getCallOptions(), request);
@@ -985,6 +1093,21 @@ public final class SessionServiceGrpc {
     public talon.v1.Sessions.ClearSessionResponse clear(talon.v1.Sessions.ClearSessionRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getClearMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public java.util.Iterator<talon.events.Events.SessionMessagePartEvent> compact(
+        talon.v1.Sessions.CompactSessionRequest request) {
+      return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
+          getChannel(), getCompactMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Sessions.DoctorSessionResponse doctor(talon.v1.Sessions.DoctorSessionRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getDoctorMethod(), getCallOptions(), request);
     }
 
     /**
@@ -1121,6 +1244,14 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.DoctorSessionResponse> doctor(
+        talon.v1.Sessions.DoctorSessionRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getDoctorMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.SendMessageResponse> sendMessage(
         talon.v1.Sessions.SendMessageRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -1167,14 +1298,16 @@ public final class SessionServiceGrpc {
   private static final int METHODID_LIST_QUEUED_MESSAGES = 4;
   private static final int METHODID_DELETE = 5;
   private static final int METHODID_CLEAR = 6;
-  private static final int METHODID_SEND_MESSAGE = 7;
-  private static final int METHODID_APPEND_MESSAGE = 8;
-  private static final int METHODID_UPDATE_MESSAGE = 9;
-  private static final int METHODID_ANSWER_PERMISSION = 10;
-  private static final int METHODID_STOP_GENERATION = 11;
-  private static final int METHODID_STREAM_PARTS = 12;
-  private static final int METHODID_STREAM_PARTS_BATCH = 13;
-  private static final int METHODID_SUBMIT_TURN = 14;
+  private static final int METHODID_COMPACT = 7;
+  private static final int METHODID_DOCTOR = 8;
+  private static final int METHODID_SEND_MESSAGE = 9;
+  private static final int METHODID_APPEND_MESSAGE = 10;
+  private static final int METHODID_UPDATE_MESSAGE = 11;
+  private static final int METHODID_ANSWER_PERMISSION = 12;
+  private static final int METHODID_STOP_GENERATION = 13;
+  private static final int METHODID_STREAM_PARTS = 14;
+  private static final int METHODID_STREAM_PARTS_BATCH = 15;
+  private static final int METHODID_SUBMIT_TURN = 16;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1220,6 +1353,14 @@ public final class SessionServiceGrpc {
         case METHODID_CLEAR:
           serviceImpl.clear((talon.v1.Sessions.ClearSessionRequest) request,
               (io.grpc.stub.StreamObserver<talon.v1.Sessions.ClearSessionResponse>) responseObserver);
+          break;
+        case METHODID_COMPACT:
+          serviceImpl.compact((talon.v1.Sessions.CompactSessionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent>) responseObserver);
+          break;
+        case METHODID_DOCTOR:
+          serviceImpl.doctor((talon.v1.Sessions.DoctorSessionRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.DoctorSessionResponse>) responseObserver);
           break;
         case METHODID_SEND_MESSAGE:
           serviceImpl.sendMessage((talon.v1.Sessions.SendMessageRequest) request,
@@ -1320,6 +1461,20 @@ public final class SessionServiceGrpc {
               talon.v1.Sessions.ClearSessionRequest,
               talon.v1.Sessions.ClearSessionResponse>(
                 service, METHODID_CLEAR)))
+        .addMethod(
+          getCompactMethod(),
+          io.grpc.stub.ServerCalls.asyncServerStreamingCall(
+            new MethodHandlers<
+              talon.v1.Sessions.CompactSessionRequest,
+              talon.events.Events.SessionMessagePartEvent>(
+                service, METHODID_COMPACT)))
+        .addMethod(
+          getDoctorMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Sessions.DoctorSessionRequest,
+              talon.v1.Sessions.DoctorSessionResponse>(
+                service, METHODID_DOCTOR)))
         .addMethod(
           getSendMessageMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -1431,6 +1586,8 @@ public final class SessionServiceGrpc {
               .addMethod(getListQueuedMessagesMethod())
               .addMethod(getDeleteMethod())
               .addMethod(getClearMethod())
+              .addMethod(getCompactMethod())
+              .addMethod(getDoctorMethod())
               .addMethod(getSendMessageMethod())
               .addMethod(getAppendMessageMethod())
               .addMethod(getUpdateMessageMethod())
