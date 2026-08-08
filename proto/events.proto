@@ -32,7 +32,10 @@ enum SessionDispatchKind {
     SESSION_DISPATCH_KIND_COMPACT = 1;
 }
 
-message SessionMessageEvent {
+// Dispatches either a normal message turn or a session-maintenance action to
+// a worker. The payload is intentionally transport-level, not a transcript
+// message: maintenance actions leave message_id and message empty.
+message SessionDispatchEvent {
     string session_id = 1;
     string message_id = 2;
     MessageDirection direction = 3;

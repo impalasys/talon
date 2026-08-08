@@ -645,7 +645,7 @@ pub async fn enqueue_message_without_dispatch(
     message: &str,
     labels: HashMap<String, String>,
     now: DateTime<Utc>,
-) -> Result<events::SessionMessageEvent> {
+) -> Result<events::SessionDispatchEvent> {
     if message.trim().is_empty() {
         return Err(EmptyMessageError.into());
     }
@@ -677,7 +677,7 @@ pub async fn enqueue_session_message_without_dispatch(
     session_id: &str,
     mut user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
-) -> Result<events::SessionMessageEvent> {
+) -> Result<events::SessionDispatchEvent> {
     if user_msg.parts.is_empty() {
         return Err(EmptyMessageError.into());
     }
@@ -734,7 +734,7 @@ pub async fn enqueue_session_message_without_dispatch(
     crate::harness::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission)
         .await?;
 
-    Ok(events::SessionMessageEvent {
+    Ok(events::SessionDispatchEvent {
         session_id: session_id.to_string(),
         message_id: message_id.clone(),
         direction: events::MessageDirection::Inbound as i32,
@@ -868,7 +868,7 @@ pub async fn send_session_message(
     }
 
     let message_text = session_message_text_projection(&user_msg);
-    let message_event = events::SessionMessageEvent {
+    let message_event = events::SessionDispatchEvent {
         session_id: session_id.to_string(),
         message_id: message_id.clone(),
         direction: events::MessageDirection::Inbound as i32,
@@ -969,7 +969,7 @@ pub async fn compact_session(
         );
         return Err(err);
     }
-    let event = events::SessionMessageEvent {
+    let event = events::SessionDispatchEvent {
         session_id: session_id.to_string(),
         message_id: String::new(),
         direction: events::MessageDirection::Inbound as i32,
@@ -1518,7 +1518,7 @@ mod tests {
             .zip(messages.iter())
             .find_map(|(topic, message)| {
                 (topic == crate::control::topics::SESSION_DISPATCH_TOPIC)
-                    .then(|| events::SessionMessageEvent::decode(message.as_slice()).ok())
+                    .then(|| events::SessionDispatchEvent::decode(message.as_slice()).ok())
                     .flatten()
             })
             .expect("session dispatch event should be published");
@@ -1964,7 +1964,7 @@ mod tests {
 
         let messages = pubsub.messages.lock().await;
         assert_eq!(messages.len(), 1);
-        let event = events::SessionMessageEvent::decode(messages[0].as_slice()).unwrap();
+        let event = events::SessionDispatchEvent::decode(messages[0].as_slice()).unwrap();
         assert_eq!(event.kind, events::SessionDispatchKind::Compact as i32);
         assert!(event.message_id.is_empty());
         assert!(event.message.is_empty());

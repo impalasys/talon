@@ -1950,8 +1950,8 @@ public final class Events extends com.google.protobuf.GeneratedFile {
 
   }
 
-  public interface SessionMessageEventOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.events.SessionMessageEvent)
+  public interface SessionDispatchEventOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.events.SessionDispatchEvent)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -2055,12 +2055,18 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     talon.events.Events.SessionDispatchKind getKind();
   }
   /**
-   * Protobuf type {@code talon.events.SessionMessageEvent}
+   * <pre>
+   * Dispatches either a normal message turn or a session-maintenance action to
+   * a worker. The payload is intentionally transport-level, not a transcript
+   * message: maintenance actions leave message_id and message empty.
+   * </pre>
+   *
+   * Protobuf type {@code talon.events.SessionDispatchEvent}
    */
-  public static final class SessionMessageEvent extends
+  public static final class SessionDispatchEvent extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.events.SessionMessageEvent)
-      SessionMessageEventOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.events.SessionDispatchEvent)
+      SessionDispatchEventOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -2069,13 +2075,13 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "SessionMessageEvent");
+        "SessionDispatchEvent");
     }
-    // Use SessionMessageEvent.newBuilder() to construct.
-    private SessionMessageEvent(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use SessionDispatchEvent.newBuilder() to construct.
+    private SessionDispatchEvent(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private SessionMessageEvent() {
+    private SessionDispatchEvent() {
       sessionId_ = "";
       messageId_ = "";
       direction_ = 0;
@@ -2088,20 +2094,20 @@ public final class Events extends com.google.protobuf.GeneratedFile {
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.events.Events.internal_static_talon_events_SessionMessageEvent_descriptor;
+      return talon.events.Events.internal_static_talon_events_SessionDispatchEvent_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.events.Events.internal_static_talon_events_SessionMessageEvent_descriptor;
+      return talon.events.Events.internal_static_talon_events_SessionDispatchEvent_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.events.Events.internal_static_talon_events_SessionMessageEvent_fieldAccessorTable
+      return talon.events.Events.internal_static_talon_events_SessionDispatchEvent_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.events.Events.SessionMessageEvent.class, talon.events.Events.SessionMessageEvent.Builder.class);
+              talon.events.Events.SessionDispatchEvent.class, talon.events.Events.SessionDispatchEvent.Builder.class);
     }
 
     public static final int SESSION_ID_FIELD_NUMBER = 1;
@@ -2475,10 +2481,10 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.events.Events.SessionMessageEvent)) {
+      if (!(obj instanceof talon.events.Events.SessionDispatchEvent)) {
         return super.equals(obj);
       }
-      talon.events.Events.SessionMessageEvent other = (talon.events.Events.SessionMessageEvent) obj;
+      talon.events.Events.SessionDispatchEvent other = (talon.events.Events.SessionDispatchEvent) obj;
 
       if (!getSessionId()
           .equals(other.getSessionId())) return false;
@@ -2531,44 +2537,44 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       return hash;
     }
 
-    public static talon.events.Events.SessionMessageEvent parseFrom(
+    public static talon.events.Events.SessionDispatchEvent parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(
+    public static talon.events.Events.SessionDispatchEvent parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(
+    public static talon.events.Events.SessionDispatchEvent parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(
+    public static talon.events.Events.SessionDispatchEvent parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(byte[] data)
+    public static talon.events.Events.SessionDispatchEvent parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(
+    public static talon.events.Events.SessionDispatchEvent parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(java.io.InputStream input)
+    public static talon.events.Events.SessionDispatchEvent parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(
+    public static talon.events.Events.SessionDispatchEvent parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -2576,26 +2582,26 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.events.Events.SessionMessageEvent parseDelimitedFrom(java.io.InputStream input)
+    public static talon.events.Events.SessionDispatchEvent parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.events.Events.SessionMessageEvent parseDelimitedFrom(
+    public static talon.events.Events.SessionDispatchEvent parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(
+    public static talon.events.Events.SessionDispatchEvent parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.events.Events.SessionMessageEvent parseFrom(
+    public static talon.events.Events.SessionDispatchEvent parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -2608,7 +2614,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.events.Events.SessionMessageEvent prototype) {
+    public static Builder newBuilder(talon.events.Events.SessionDispatchEvent prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -2624,26 +2630,32 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.events.SessionMessageEvent}
+     * <pre>
+     * Dispatches either a normal message turn or a session-maintenance action to
+     * a worker. The payload is intentionally transport-level, not a transcript
+     * message: maintenance actions leave message_id and message empty.
+     * </pre>
+     *
+     * Protobuf type {@code talon.events.SessionDispatchEvent}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.events.SessionMessageEvent)
-        talon.events.Events.SessionMessageEventOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.events.SessionDispatchEvent)
+        talon.events.Events.SessionDispatchEventOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.events.Events.internal_static_talon_events_SessionMessageEvent_descriptor;
+        return talon.events.Events.internal_static_talon_events_SessionDispatchEvent_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.events.Events.internal_static_talon_events_SessionMessageEvent_fieldAccessorTable
+        return talon.events.Events.internal_static_talon_events_SessionDispatchEvent_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.events.Events.SessionMessageEvent.class, talon.events.Events.SessionMessageEvent.Builder.class);
+                talon.events.Events.SessionDispatchEvent.class, talon.events.Events.SessionDispatchEvent.Builder.class);
       }
 
-      // Construct using talon.events.Events.SessionMessageEvent.newBuilder()
+      // Construct using talon.events.Events.SessionDispatchEvent.newBuilder()
       private Builder() {
 
       }
@@ -2672,17 +2684,17 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.events.Events.internal_static_talon_events_SessionMessageEvent_descriptor;
+        return talon.events.Events.internal_static_talon_events_SessionDispatchEvent_descriptor;
       }
 
       @java.lang.Override
-      public talon.events.Events.SessionMessageEvent getDefaultInstanceForType() {
-        return talon.events.Events.SessionMessageEvent.getDefaultInstance();
+      public talon.events.Events.SessionDispatchEvent getDefaultInstanceForType() {
+        return talon.events.Events.SessionDispatchEvent.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.events.Events.SessionMessageEvent build() {
-        talon.events.Events.SessionMessageEvent result = buildPartial();
+      public talon.events.Events.SessionDispatchEvent build() {
+        talon.events.Events.SessionDispatchEvent result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -2690,14 +2702,14 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       }
 
       @java.lang.Override
-      public talon.events.Events.SessionMessageEvent buildPartial() {
-        talon.events.Events.SessionMessageEvent result = new talon.events.Events.SessionMessageEvent(this);
+      public talon.events.Events.SessionDispatchEvent buildPartial() {
+        talon.events.Events.SessionDispatchEvent result = new talon.events.Events.SessionDispatchEvent(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.events.Events.SessionMessageEvent result) {
+      private void buildPartial0(talon.events.Events.SessionDispatchEvent result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.sessionId_ = sessionId_;
@@ -2730,16 +2742,16 @@ public final class Events extends com.google.protobuf.GeneratedFile {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.events.Events.SessionMessageEvent) {
-          return mergeFrom((talon.events.Events.SessionMessageEvent)other);
+        if (other instanceof talon.events.Events.SessionDispatchEvent) {
+          return mergeFrom((talon.events.Events.SessionDispatchEvent)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.events.Events.SessionMessageEvent other) {
-        if (other == talon.events.Events.SessionMessageEvent.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.events.Events.SessionDispatchEvent other) {
+        if (other == talon.events.Events.SessionDispatchEvent.getDefaultInstance()) return this;
         if (!other.getSessionId().isEmpty()) {
           sessionId_ = other.sessionId_;
           bitField0_ |= 0x00000001;
@@ -3435,23 +3447,23 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.events.SessionMessageEvent)
+      // @@protoc_insertion_point(builder_scope:talon.events.SessionDispatchEvent)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.events.SessionMessageEvent)
-    private static final talon.events.Events.SessionMessageEvent DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.events.SessionDispatchEvent)
+    private static final talon.events.Events.SessionDispatchEvent DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.events.Events.SessionMessageEvent();
+      DEFAULT_INSTANCE = new talon.events.Events.SessionDispatchEvent();
     }
 
-    public static talon.events.Events.SessionMessageEvent getDefaultInstance() {
+    public static talon.events.Events.SessionDispatchEvent getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<SessionMessageEvent>
-        PARSER = new com.google.protobuf.AbstractParser<SessionMessageEvent>() {
+    private static final com.google.protobuf.Parser<SessionDispatchEvent>
+        PARSER = new com.google.protobuf.AbstractParser<SessionDispatchEvent>() {
       @java.lang.Override
-      public SessionMessageEvent parsePartialFrom(
+      public SessionDispatchEvent parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -3470,17 +3482,17 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       }
     };
 
-    public static com.google.protobuf.Parser<SessionMessageEvent> parser() {
+    public static com.google.protobuf.Parser<SessionDispatchEvent> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<SessionMessageEvent> getParserForType() {
+    public com.google.protobuf.Parser<SessionDispatchEvent> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.events.Events.SessionMessageEvent getDefaultInstanceForType() {
+    public talon.events.Events.SessionDispatchEvent getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -10528,10 +10540,10 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_LifecycleEvent_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_events_SessionMessageEvent_descriptor;
+    internal_static_talon_events_SessionDispatchEvent_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_events_SessionMessageEvent_fieldAccessorTable;
+      internal_static_talon_events_SessionDispatchEvent_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_SessionMessagePartEvent_descriptor;
   private static final
@@ -10570,66 +10582,66 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       "o/data/data.proto\"\200\001\n\016LifecycleEvent\022\025\n\r" +
       "resource_type\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\n\n\002ns\030" +
       "\003 \001(\t\022*\n\006action\030\004 \001(\0162\032.talon.events.Sys" +
-      "temAction\022\021\n\ttimestamp\030\005 \001(\003\"\367\001\n\023Session" +
-      "MessageEvent\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nmess" +
-      "age_id\030\002 \001(\t\0221\n\tdirection\030\003 \001(\0162\036.talon." +
-      "events.MessageDirection\022\021\n\ttimestamp\030\004 \001" +
-      "(\003\022\r\n\005agent\030\005 \001(\t\022\017\n\007message\030\006 \001(\t\022\n\n\002ns" +
-      "\030\007 \001(\t\022\025\n\rsubmission_id\030\010 \001(\t\022/\n\004kind\030\t " +
-      "\001(\0162!.talon.events.SessionDispatchKind\"\326" +
-      "\001\n\027SessionMessagePartEvent\022\022\n\nsession_id" +
-      "\030\001 \001(\t\0227\n\004kind\030\002 \001(\0162).talon.events.Sess" +
-      "ionMessagePartEventKind\022,\n\004part\030\003 \001(\0132\036." +
-      "talon.data.SessionMessagePart\022\021\n\ttimesta" +
-      "mp\030\004 \001(\003\022\r\n\005agent\030\005 \001(\t\022\n\n\002ns\030\006 \001(\t\022\022\n\nm" +
-      "essage_id\030\007 \001(\t\"\341\001\n\014ChannelEvent\022\n\n\002ns\030\001" +
-      " \001(\t\022\017\n\007channel\030\002 \001(\t\022,\n\004kind\030\003 \001(\0162\036.ta" +
-      "lon.events.ChannelEventKind\022+\n\007message\030\004" +
-      " \001(\0132\032.talon.data.ChannelMessage\022\022\n\nsess" +
-      "ion_id\030\005 \001(\t\022\r\n\005agent\030\006 \001(\t\022\024\n\014subscript" +
-      "ion\030\007 \001(\t\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t " +
-      "\001(\003\"\223\001\n\025WorkflowDispatchEvent\022\n\n\002ns\030\001 \001(" +
-      "\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\016\n\006r" +
-      "eason\030\004 \001(\t\022\017\n\007step_id\030\005 \001(\t\022\030\n\020child_se" +
-      "ssion_id\030\006 \001(\t\022\021\n\ttimestamp\030\007 \001(\003\"\355\001\n\024Re" +
-      "sourceChangedEvent\022\021\n\tnamespace\030\001 \001(\t\022\025\n" +
-      "\rresource_kind\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\013\n\003ui" +
-      "d\030\004 \001(\t\022\030\n\020resource_version\030\005 \001(\t\022\022\n\ngen" +
-      "eration\030\006 \001(\004\0225\n\013change_type\030\007 \001(\0162 .tal" +
-      "on.events.ResourceChangeType\022\030\n\020changed_" +
-      "sections\030\010 \003(\t\022\021\n\ttimestamp\030\t \001(\003\"\242\001\n\nIn" +
-      "dexEvent\022\n\n\002id\030\001 \001(\t\022/\n\toperation\030\002 \001(\0162" +
-      "\034.talon.events.IndexOperation\022\022\n\ncreated" +
-      "_at\030\003 \001(\003\022\022\n\nupdated_at\030\004 \001(\003\022\013\n\003key\030\n \001" +
-      "(\t\022\016\n\006prefix\030\013 \001(\010\022\022\n\ngeneration\030\014 \001(\004*\260" +
-      "\001\n\014SystemAction\022\035\n\031SYSTEM_ACTION_UNSPECI" +
-      "FIED\020\000\022\030\n\024SYSTEM_ACTION_CREATE\020\001\022\030\n\024SYST" +
-      "EM_ACTION_UPDATE\020\002\022\030\n\024SYSTEM_ACTION_DELE" +
-      "TE\020\003\022\031\n\025SYSTEM_ACTION_SUSPEND\020\004\022\030\n\024SYSTE" +
-      "M_ACTION_RESUME\020\005*t\n\020MessageDirection\022!\n" +
-      "\035MESSAGE_DIRECTION_UNSPECIFIED\020\000\022\035\n\031MESS" +
-      "AGE_DIRECTION_INBOUND\020\001\022\036\n\032MESSAGE_DIREC" +
-      "TION_OUTBOUND\020\002*[\n\023SessionDispatchKind\022!" +
-      "\n\035SESSION_DISPATCH_KIND_MESSAGE\020\000\022!\n\035SES" +
-      "SION_DISPATCH_KIND_COMPACT\020\001*\316\001\n\033Session" +
-      "MessagePartEventKind\022/\n+SESSION_MESSAGE_" +
-      "PART_EVENT_KIND_UNSPECIFIED\020\000\022)\n%SESSION" +
-      "_MESSAGE_PART_EVENT_KIND_DELTA\020\001\022(\n$SESS" +
-      "ION_MESSAGE_PART_EVENT_KIND_DONE\020\002\022)\n%SE" +
-      "SSION_MESSAGE_PART_EVENT_KIND_ERROR\020\003*\313\001" +
-      "\n\020ChannelEventKind\022\"\n\036CHANNEL_EVENT_KIND" +
-      "_UNSPECIFIED\020\000\022&\n\"CHANNEL_EVENT_KIND_MES" +
-      "SAGE_CREATED\020\001\022%\n!CHANNEL_EVENT_KIND_SES" +
-      "SION_ROUTED\020\002\022&\n\"CHANNEL_EVENT_KIND_PUBL" +
-      "ISH_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT_KIND_ERRO" +
-      "R\020\004*\240\001\n\022ResourceChangeType\022$\n RESOURCE_C" +
-      "HANGE_TYPE_UNSPECIFIED\020\000\022 \n\034RESOURCE_CHA" +
-      "NGE_TYPE_CREATED\020\001\022 \n\034RESOURCE_CHANGE_TY" +
-      "PE_UPDATED\020\002\022 \n\034RESOURCE_CHANGE_TYPE_DEL" +
-      "ETED\020\003*i\n\016IndexOperation\022\037\n\033INDEX_OPERAT" +
-      "ION_UNSPECIFIED\020\000\022\032\n\026INDEX_OPERATION_UPS" +
-      "ERT\020\001\022\032\n\026INDEX_OPERATION_DELETE\020\002b\006proto" +
-      "3"
+      "temAction\022\021\n\ttimestamp\030\005 \001(\003\"\370\001\n\024Session" +
+      "DispatchEvent\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nmes" +
+      "sage_id\030\002 \001(\t\0221\n\tdirection\030\003 \001(\0162\036.talon" +
+      ".events.MessageDirection\022\021\n\ttimestamp\030\004 " +
+      "\001(\003\022\r\n\005agent\030\005 \001(\t\022\017\n\007message\030\006 \001(\t\022\n\n\002n" +
+      "s\030\007 \001(\t\022\025\n\rsubmission_id\030\010 \001(\t\022/\n\004kind\030\t" +
+      " \001(\0162!.talon.events.SessionDispatchKind\"" +
+      "\326\001\n\027SessionMessagePartEvent\022\022\n\nsession_i" +
+      "d\030\001 \001(\t\0227\n\004kind\030\002 \001(\0162).talon.events.Ses" +
+      "sionMessagePartEventKind\022,\n\004part\030\003 \001(\0132\036" +
+      ".talon.data.SessionMessagePart\022\021\n\ttimest" +
+      "amp\030\004 \001(\003\022\r\n\005agent\030\005 \001(\t\022\n\n\002ns\030\006 \001(\t\022\022\n\n" +
+      "message_id\030\007 \001(\t\"\341\001\n\014ChannelEvent\022\n\n\002ns\030" +
+      "\001 \001(\t\022\017\n\007channel\030\002 \001(\t\022,\n\004kind\030\003 \001(\0162\036.t" +
+      "alon.events.ChannelEventKind\022+\n\007message\030" +
+      "\004 \001(\0132\032.talon.data.ChannelMessage\022\022\n\nses" +
+      "sion_id\030\005 \001(\t\022\r\n\005agent\030\006 \001(\t\022\024\n\014subscrip" +
+      "tion\030\007 \001(\t\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t" +
+      " \001(\003\"\223\001\n\025WorkflowDispatchEvent\022\n\n\002ns\030\001 \001" +
+      "(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\016\n\006" +
+      "reason\030\004 \001(\t\022\017\n\007step_id\030\005 \001(\t\022\030\n\020child_s" +
+      "ession_id\030\006 \001(\t\022\021\n\ttimestamp\030\007 \001(\003\"\355\001\n\024R" +
+      "esourceChangedEvent\022\021\n\tnamespace\030\001 \001(\t\022\025" +
+      "\n\rresource_kind\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\013\n\003u" +
+      "id\030\004 \001(\t\022\030\n\020resource_version\030\005 \001(\t\022\022\n\nge" +
+      "neration\030\006 \001(\004\0225\n\013change_type\030\007 \001(\0162 .ta" +
+      "lon.events.ResourceChangeType\022\030\n\020changed" +
+      "_sections\030\010 \003(\t\022\021\n\ttimestamp\030\t \001(\003\"\242\001\n\nI" +
+      "ndexEvent\022\n\n\002id\030\001 \001(\t\022/\n\toperation\030\002 \001(\016" +
+      "2\034.talon.events.IndexOperation\022\022\n\ncreate" +
+      "d_at\030\003 \001(\003\022\022\n\nupdated_at\030\004 \001(\003\022\013\n\003key\030\n " +
+      "\001(\t\022\016\n\006prefix\030\013 \001(\010\022\022\n\ngeneration\030\014 \001(\004*" +
+      "\260\001\n\014SystemAction\022\035\n\031SYSTEM_ACTION_UNSPEC" +
+      "IFIED\020\000\022\030\n\024SYSTEM_ACTION_CREATE\020\001\022\030\n\024SYS" +
+      "TEM_ACTION_UPDATE\020\002\022\030\n\024SYSTEM_ACTION_DEL" +
+      "ETE\020\003\022\031\n\025SYSTEM_ACTION_SUSPEND\020\004\022\030\n\024SYST" +
+      "EM_ACTION_RESUME\020\005*t\n\020MessageDirection\022!" +
+      "\n\035MESSAGE_DIRECTION_UNSPECIFIED\020\000\022\035\n\031MES" +
+      "SAGE_DIRECTION_INBOUND\020\001\022\036\n\032MESSAGE_DIRE" +
+      "CTION_OUTBOUND\020\002*[\n\023SessionDispatchKind\022" +
+      "!\n\035SESSION_DISPATCH_KIND_MESSAGE\020\000\022!\n\035SE" +
+      "SSION_DISPATCH_KIND_COMPACT\020\001*\316\001\n\033Sessio" +
+      "nMessagePartEventKind\022/\n+SESSION_MESSAGE" +
+      "_PART_EVENT_KIND_UNSPECIFIED\020\000\022)\n%SESSIO" +
+      "N_MESSAGE_PART_EVENT_KIND_DELTA\020\001\022(\n$SES" +
+      "SION_MESSAGE_PART_EVENT_KIND_DONE\020\002\022)\n%S" +
+      "ESSION_MESSAGE_PART_EVENT_KIND_ERROR\020\003*\313" +
+      "\001\n\020ChannelEventKind\022\"\n\036CHANNEL_EVENT_KIN" +
+      "D_UNSPECIFIED\020\000\022&\n\"CHANNEL_EVENT_KIND_ME" +
+      "SSAGE_CREATED\020\001\022%\n!CHANNEL_EVENT_KIND_SE" +
+      "SSION_ROUTED\020\002\022&\n\"CHANNEL_EVENT_KIND_PUB" +
+      "LISH_SKIPPED\020\003\022\034\n\030CHANNEL_EVENT_KIND_ERR" +
+      "OR\020\004*\240\001\n\022ResourceChangeType\022$\n RESOURCE_" +
+      "CHANGE_TYPE_UNSPECIFIED\020\000\022 \n\034RESOURCE_CH" +
+      "ANGE_TYPE_CREATED\020\001\022 \n\034RESOURCE_CHANGE_T" +
+      "YPE_UPDATED\020\002\022 \n\034RESOURCE_CHANGE_TYPE_DE" +
+      "LETED\020\003*i\n\016IndexOperation\022\037\n\033INDEX_OPERA" +
+      "TION_UNSPECIFIED\020\000\022\032\n\026INDEX_OPERATION_UP" +
+      "SERT\020\001\022\032\n\026INDEX_OPERATION_DELETE\020\002b\006prot" +
+      "o3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10642,11 +10654,11 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_events_LifecycleEvent_descriptor,
         new java.lang.String[] { "ResourceType", "Name", "Ns", "Action", "Timestamp", });
-    internal_static_talon_events_SessionMessageEvent_descriptor =
+    internal_static_talon_events_SessionDispatchEvent_descriptor =
       getDescriptor().getMessageType(1);
-    internal_static_talon_events_SessionMessageEvent_fieldAccessorTable = new
+    internal_static_talon_events_SessionDispatchEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_events_SessionMessageEvent_descriptor,
+        internal_static_talon_events_SessionDispatchEvent_descriptor,
         new java.lang.String[] { "SessionId", "MessageId", "Direction", "Timestamp", "Agent", "Message", "Ns", "SubmissionId", "Kind", });
     internal_static_talon_events_SessionMessagePartEvent_descriptor =
       getDescriptor().getMessageType(2);

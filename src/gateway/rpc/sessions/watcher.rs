@@ -635,7 +635,7 @@ async fn redispatch_expired_session_lease(
         scheduling::session_message_text_projection(&user_message)
     };
 
-    let event = events::SessionMessageEvent {
+    let event = events::SessionDispatchEvent {
         session_id: target.session_id.clone(),
         message_id: current.user_message_id.clone(),
         direction: events::MessageDirection::Inbound as i32,

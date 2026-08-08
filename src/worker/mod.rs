@@ -39,7 +39,7 @@ impl WorkerEventHandler {
     pub async fn dispatch(&self, event_type: Option<&str>, payload: &[u8]) -> Result<()> {
         match event_type {
             Some("session_dispatch") => {
-                let event = crate::control::events::SessionMessageEvent::decode(payload)?;
+                let event = crate::control::events::SessionDispatchEvent::decode(payload)?;
                 self.handle_session_message(event).await
             }
             Some("workflow_dispatch") => {
@@ -62,7 +62,7 @@ impl WorkerEventHandler {
             }
             Some(other) => Err(anyhow!("Unknown worker event type '{}'", other)),
             None => {
-                if let Ok(event) = crate::control::events::SessionMessageEvent::decode(payload) {
+                if let Ok(event) = crate::control::events::SessionDispatchEvent::decode(payload) {
                     return self.handle_session_message(event).await;
                 }
 
@@ -408,7 +408,7 @@ mod tests {
     use super::WorkerEventHandler;
     use crate::control::config::Config;
     use crate::control::{
-        events::{LifecycleEvent, MessageDirection, SessionMessageEvent},
+        events::{LifecycleEvent, MessageDirection, SessionDispatchEvent},
         topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
         SharedSchedulerBackend,
     };
@@ -817,7 +817,7 @@ mod tests {
             .iter()
             .find_map(|(topic, payload)| {
                 (topic == topics::SESSION_DISPATCH_TOPIC)
-                    .then(|| SessionMessageEvent::decode(payload.as_slice()).ok())
+                    .then(|| SessionDispatchEvent::decode(payload.as_slice()).ok())
                     .flatten()
             })
             .expect("scheduled message should publish a dispatch event");
@@ -917,7 +917,7 @@ mod tests {
             .iter()
             .find_map(|(topic, payload)| {
                 (topic == topics::SESSION_DISPATCH_TOPIC)
-                    .then(|| SessionMessageEvent::decode(payload.as_slice()).ok())
+                    .then(|| SessionDispatchEvent::decode(payload.as_slice()).ok())
                     .flatten()
             })
             .expect("scheduled fire should publish a session dispatch event");

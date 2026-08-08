@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/events.proto.
  */
 export const file_proto_events: GenFile = /*@__PURE__*/
-  fileDesc("ChJwcm90by9ldmVudHMucHJvdG8SDHRhbG9uLmV2ZW50cyKAAQoOTGlmZWN5Y2xlRXZlbnQSFQoNcmVzb3VyY2VfdHlwZRgBIAEoCRIMCgRuYW1lGAIgASgJEgoKAm5zGAMgASgJEioKBmFjdGlvbhgEIAEoDjIaLnRhbG9uLmV2ZW50cy5TeXN0ZW1BY3Rpb24SEQoJdGltZXN0YW1wGAUgASgDIsYBChNTZXNzaW9uTWVzc2FnZUV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSEgoKbWVzc2FnZV9pZBgCIAEoCRIxCglkaXJlY3Rpb24YAyABKA4yHi50YWxvbi5ldmVudHMuTWVzc2FnZURpcmVjdGlvbhIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSDwoHbWVzc2FnZRgGIAEoCRIKCgJucxgHIAEoCRIVCg1zdWJtaXNzaW9uX2lkGAggASgJImcKE1Nlc3Npb25Db250cm9sRXZlbnQSEgoKc2Vzc2lvbl9pZBgBIAEoCRINCgVhZ2VudBgCIAEoCRIKCgJucxgDIAEoCRIOCgZhY3Rpb24YBCABKAkSEQoJdGltZXN0YW1wGAUgASgDItYBChdTZXNzaW9uTWVzc2FnZVBhcnRFdmVudBISCgpzZXNzaW9uX2lkGAEgASgJEjcKBGtpbmQYAiABKA4yKS50YWxvbi5ldmVudHMuU2Vzc2lvbk1lc3NhZ2VQYXJ0RXZlbnRLaW5kEiwKBHBhcnQYAyABKAsyHi50YWxvbi5kYXRhLlNlc3Npb25NZXNzYWdlUGFydBIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSCgoCbnMYBiABKAkSEgoKbWVzc2FnZV9pZBgHIAEoCSLhAQoMQ2hhbm5lbEV2ZW50EgoKAm5zGAEgASgJEg8KB2NoYW5uZWwYAiABKAkSLAoEa2luZBgDIAEoDjIeLnRhbG9uLmV2ZW50cy5DaGFubmVsRXZlbnRLaW5kEisKB21lc3NhZ2UYBCABKAsyGi50YWxvbi5kYXRhLkNoYW5uZWxNZXNzYWdlEhIKCnNlc3Npb25faWQYBSABKAkSDQoFYWdlbnQYBiABKAkSFAoMc3Vic2NyaXB0aW9uGAcgASgJEg0KBWVycm9yGAggASgJEhEKCXRpbWVzdGFtcBgJIAEoAyKTAQoVV29ya2Zsb3dEaXNwYXRjaEV2ZW50EgoKAm5zGAEgASgJEhAKCHdvcmtmbG93GAIgASgJEg4KBnJ1bl9pZBgDIAEoCRIOCgZyZWFzb24YBCABKAkSDwoHc3RlcF9pZBgFIAEoCRIYChBjaGlsZF9zZXNzaW9uX2lkGAYgASgJEhEKCXRpbWVzdGFtcBgHIAEoAyLtAQoUUmVzb3VyY2VDaGFuZ2VkRXZlbnQSEQoJbmFtZXNwYWNlGAEgASgJEhUKDXJlc291cmNlX2tpbmQYAiABKAkSDAoEbmFtZRgDIAEoCRILCgN1aWQYBCABKAkSGAoQcmVzb3VyY2VfdmVyc2lvbhgFIAEoCRISCgpnZW5lcmF0aW9uGAYgASgEEjUKC2NoYW5nZV90eXBlGAcgASgOMiAudGFsb24uZXZlbnRzLlJlc291cmNlQ2hhbmdlVHlwZRIYChBjaGFuZ2VkX3NlY3Rpb25zGAggAygJEhEKCXRpbWVzdGFtcBgJIAEoAyKiAQoKSW5kZXhFdmVudBIKCgJpZBgBIAEoCRIvCglvcGVyYXRpb24YAiABKA4yHC50YWxvbi5ldmVudHMuSW5kZXhPcGVyYXRpb24SEgoKY3JlYXRlZF9hdBgDIAEoAxISCgp1cGRhdGVkX2F0GAQgASgDEgsKA2tleRgKIAEoCRIOCgZwcmVmaXgYCyABKAgSEgoKZ2VuZXJhdGlvbhgMIAEoBCqwAQoMU3lzdGVtQWN0aW9uEh0KGVNZU1RFTV9BQ1RJT05fVU5TUEVDSUZJRUQQABIYChRTWVNURU1fQUNUSU9OX0NSRUFURRABEhgKFFNZU1RFTV9BQ1RJT05fVVBEQVRFEAISGAoUU1lTVEVNX0FDVElPTl9ERUxFVEUQAxIZChVTWVNURU1fQUNUSU9OX1NVU1BFTkQQBBIYChRTWVNURU1fQUNUSU9OX1JFU1VNRRAFKnQKEE1lc3NhZ2VEaXJlY3Rpb24SIQodTUVTU0FHRV9ESVJFQ1RJT05fVU5TUEVDSUZJRUQQABIdChlNRVNTQUdFX0RJUkVDVElPTl9JTkJPVU5EEAESHgoaTUVTU0FHRV9ESVJFQ1RJT05fT1VUQk9VTkQQAirOAQobU2Vzc2lvbk1lc3NhZ2VQYXJ0RXZlbnRLaW5kEi8KK1NFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfVU5TUEVDSUZJRUQQABIpCiVTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0RFTFRBEAESKAokU0VTU0lPTl9NRVNTQUdFX1BBUlRfRVZFTlRfS0lORF9ET05FEAISKQolU0VTU0lPTl9NRVNTQUdFX1BBUlRfRVZFTlRfS0lORF9FUlJPUhADKssBChBDaGFubmVsRXZlbnRLaW5kEiIKHkNIQU5ORUxfRVZFTlRfS0lORF9VTlNQRUNJRklFRBAAEiYKIkNIQU5ORUxfRVZFTlRfS0lORF9NRVNTQUdFX0NSRUFURUQQARIlCiFDSEFOTkVMX0VWRU5UX0tJTkRfU0VTU0lPTl9ST1VURUQQAhImCiJDSEFOTkVMX0VWRU5UX0tJTkRfUFVCTElTSF9TS0lQUEVEEAMSHAoYQ0hBTk5FTF9FVkVOVF9LSU5EX0VSUk9SEAQqoAEKElJlc291cmNlQ2hhbmdlVHlwZRIkCiBSRVNPVVJDRV9DSEFOR0VfVFlQRV9VTlNQRUNJRklFRBAAEiAKHFJFU09VUkNFX0NIQU5HRV9UWVBFX0NSRUFURUQQARIgChxSRVNPVVJDRV9DSEFOR0VfVFlQRV9VUERBVEVEEAISIAocUkVTT1VSQ0VfQ0hBTkdFX1RZUEVfREVMRVRFRBADKmkKDkluZGV4T3BlcmF0aW9uEh8KG0lOREVYX09QRVJBVElPTl9VTlNQRUNJRklFRBAAEhoKFklOREVYX09QRVJBVElPTl9VUFNFUlQQARIaChZJTkRFWF9PUEVSQVRJT05fREVMRVRFEAJiBnByb3RvMw", [file_proto_data_data]);
+  fileDesc("ChJwcm90by9ldmVudHMucHJvdG8SDHRhbG9uLmV2ZW50cyKAAQoOTGlmZWN5Y2xlRXZlbnQSFQoNcmVzb3VyY2VfdHlwZRgBIAEoCRIMCgRuYW1lGAIgASgJEgoKAm5zGAMgASgJEioKBmFjdGlvbhgEIAEoDjIaLnRhbG9uLmV2ZW50cy5TeXN0ZW1BY3Rpb24SEQoJdGltZXN0YW1wGAUgASgDIvgBChRTZXNzaW9uRGlzcGF0Y2hFdmVudBISCgpzZXNzaW9uX2lkGAEgASgJEhIKCm1lc3NhZ2VfaWQYAiABKAkSMQoJZGlyZWN0aW9uGAMgASgOMh4udGFsb24uZXZlbnRzLk1lc3NhZ2VEaXJlY3Rpb24SEQoJdGltZXN0YW1wGAQgASgDEg0KBWFnZW50GAUgASgJEg8KB21lc3NhZ2UYBiABKAkSCgoCbnMYByABKAkSFQoNc3VibWlzc2lvbl9pZBgIIAEoCRIvCgRraW5kGAkgASgOMiEudGFsb24uZXZlbnRzLlNlc3Npb25EaXNwYXRjaEtpbmQi1gEKF1Nlc3Npb25NZXNzYWdlUGFydEV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSNwoEa2luZBgCIAEoDjIpLnRhbG9uLmV2ZW50cy5TZXNzaW9uTWVzc2FnZVBhcnRFdmVudEtpbmQSLAoEcGFydBgDIAEoCzIeLnRhbG9uLmRhdGEuU2Vzc2lvbk1lc3NhZ2VQYXJ0EhEKCXRpbWVzdGFtcBgEIAEoAxINCgVhZ2VudBgFIAEoCRIKCgJucxgGIAEoCRISCgptZXNzYWdlX2lkGAcgASgJIuEBCgxDaGFubmVsRXZlbnQSCgoCbnMYASABKAkSDwoHY2hhbm5lbBgCIAEoCRIsCgRraW5kGAMgASgOMh4udGFsb24uZXZlbnRzLkNoYW5uZWxFdmVudEtpbmQSKwoHbWVzc2FnZRgEIAEoCzIaLnRhbG9uLmRhdGEuQ2hhbm5lbE1lc3NhZ2USEgoKc2Vzc2lvbl9pZBgFIAEoCRINCgVhZ2VudBgGIAEoCRIUCgxzdWJzY3JpcHRpb24YByABKAkSDQoFZXJyb3IYCCABKAkSEQoJdGltZXN0YW1wGAkgASgDIpMBChVXb3JrZmxvd0Rpc3BhdGNoRXZlbnQSCgoCbnMYASABKAkSEAoId29ya2Zsb3cYAiABKAkSDgoGcnVuX2lkGAMgASgJEg4KBnJlYXNvbhgEIAEoCRIPCgdzdGVwX2lkGAUgASgJEhgKEGNoaWxkX3Nlc3Npb25faWQYBiABKAkSEQoJdGltZXN0YW1wGAcgASgDIu0BChRSZXNvdXJjZUNoYW5nZWRFdmVudBIRCgluYW1lc3BhY2UYASABKAkSFQoNcmVzb3VyY2Vfa2luZBgCIAEoCRIMCgRuYW1lGAMgASgJEgsKA3VpZBgEIAEoCRIYChByZXNvdXJjZV92ZXJzaW9uGAUgASgJEhIKCmdlbmVyYXRpb24YBiABKAQSNQoLY2hhbmdlX3R5cGUYByABKA4yIC50YWxvbi5ldmVudHMuUmVzb3VyY2VDaGFuZ2VUeXBlEhgKEGNoYW5nZWRfc2VjdGlvbnMYCCADKAkSEQoJdGltZXN0YW1wGAkgASgDIqIBCgpJbmRleEV2ZW50EgoKAmlkGAEgASgJEi8KCW9wZXJhdGlvbhgCIAEoDjIcLnRhbG9uLmV2ZW50cy5JbmRleE9wZXJhdGlvbhISCgpjcmVhdGVkX2F0GAMgASgDEhIKCnVwZGF0ZWRfYXQYBCABKAMSCwoDa2V5GAogASgJEg4KBnByZWZpeBgLIAEoCBISCgpnZW5lcmF0aW9uGAwgASgEKrABCgxTeXN0ZW1BY3Rpb24SHQoZU1lTVEVNX0FDVElPTl9VTlNQRUNJRklFRBAAEhgKFFNZU1RFTV9BQ1RJT05fQ1JFQVRFEAESGAoUU1lTVEVNX0FDVElPTl9VUERBVEUQAhIYChRTWVNURU1fQUNUSU9OX0RFTEVURRADEhkKFVNZU1RFTV9BQ1RJT05fU1VTUEVORBAEEhgKFFNZU1RFTV9BQ1RJT05fUkVTVU1FEAUqdAoQTWVzc2FnZURpcmVjdGlvbhIhCh1NRVNTQUdFX0RJUkVDVElPTl9VTlNQRUNJRklFRBAAEh0KGU1FU1NBR0VfRElSRUNUSU9OX0lOQk9VTkQQARIeChpNRVNTQUdFX0RJUkVDVElPTl9PVVRCT1VORBACKlsKE1Nlc3Npb25EaXNwYXRjaEtpbmQSIQodU0VTU0lPTl9ESVNQQVRDSF9LSU5EX01FU1NBR0UQABIhCh1TRVNTSU9OX0RJU1BBVENIX0tJTkRfQ09NUEFDVBABKs4BChtTZXNzaW9uTWVzc2FnZVBhcnRFdmVudEtpbmQSLworU0VTU0lPTl9NRVNTQUdFX1BBUlRfRVZFTlRfS0lORF9VTlNQRUNJRklFRBAAEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfREVMVEEQARIoCiRTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0RPTkUQAhIpCiVTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0VSUk9SEAMqywEKEENoYW5uZWxFdmVudEtpbmQSIgoeQ0hBTk5FTF9FVkVOVF9LSU5EX1VOU1BFQ0lGSUVEEAASJgoiQ0hBTk5FTF9FVkVOVF9LSU5EX01FU1NBR0VfQ1JFQVRFRBABEiUKIUNIQU5ORUxfRVZFTlRfS0lORF9TRVNTSU9OX1JPVVRFRBACEiYKIkNIQU5ORUxfRVZFTlRfS0lORF9QVUJMSVNIX1NLSVBQRUQQAxIcChhDSEFOTkVMX0VWRU5UX0tJTkRfRVJST1IQBCqgAQoSUmVzb3VyY2VDaGFuZ2VUeXBlEiQKIFJFU09VUkNFX0NIQU5HRV9UWVBFX1VOU1BFQ0lGSUVEEAASIAocUkVTT1VSQ0VfQ0hBTkdFX1RZUEVfQ1JFQVRFRBABEiAKHFJFU09VUkNFX0NIQU5HRV9UWVBFX1VQREFURUQQAhIgChxSRVNPVVJDRV9DSEFOR0VfVFlQRV9ERUxFVEVEEAMqaQoOSW5kZXhPcGVyYXRpb24SHwobSU5ERVhfT1BFUkFUSU9OX1VOU1BFQ0lGSUVEEAASGgoWSU5ERVhfT1BFUkFUSU9OX1VQU0VSVBABEhoKFklOREVYX09QRVJBVElPTl9ERUxFVEUQAmIGcHJvdG8z", [file_proto_data_data]);
 
 /**
  * @generated from message talon.events.LifecycleEvent
@@ -52,9 +52,13 @@ export const LifecycleEventSchema: GenMessage<LifecycleEvent> = /*@__PURE__*/
   messageDesc(file_proto_events, 0);
 
 /**
- * @generated from message talon.events.SessionMessageEvent
+ * Dispatches either a normal message turn or a session-maintenance action to
+ * a worker. The payload is intentionally transport-level, not a transcript
+ * message: maintenance actions leave message_id and message empty.
+ *
+ * @generated from message talon.events.SessionDispatchEvent
  */
-export type SessionMessageEvent = Message<"talon.events.SessionMessageEvent"> & {
+export type SessionDispatchEvent = Message<"talon.events.SessionDispatchEvent"> & {
   /**
    * @generated from field: string session_id = 1;
    */
@@ -94,51 +98,19 @@ export type SessionMessageEvent = Message<"talon.events.SessionMessageEvent"> & 
    * @generated from field: string submission_id = 8;
    */
   submissionId: string;
+
+  /**
+   * @generated from field: talon.events.SessionDispatchKind kind = 9;
+   */
+  kind: SessionDispatchKind;
 };
 
 /**
- * Describes the message talon.events.SessionMessageEvent.
- * Use `create(SessionMessageEventSchema)` to create a new message.
+ * Describes the message talon.events.SessionDispatchEvent.
+ * Use `create(SessionDispatchEventSchema)` to create a new message.
  */
-export const SessionMessageEventSchema: GenMessage<SessionMessageEvent> = /*@__PURE__*/
+export const SessionDispatchEventSchema: GenMessage<SessionDispatchEvent> = /*@__PURE__*/
   messageDesc(file_proto_events, 1);
-
-/**
- * @generated from message talon.events.SessionControlEvent
- */
-export type SessionControlEvent = Message<"talon.events.SessionControlEvent"> & {
-  /**
-   * @generated from field: string session_id = 1;
-   */
-  sessionId: string;
-
-  /**
-   * @generated from field: string agent = 2;
-   */
-  agent: string;
-
-  /**
-   * @generated from field: string ns = 3;
-   */
-  ns: string;
-
-  /**
-   * @generated from field: string action = 4;
-   */
-  action: string;
-
-  /**
-   * @generated from field: int64 timestamp = 5;
-   */
-  timestamp: bigint;
-};
-
-/**
- * Describes the message talon.events.SessionControlEvent.
- * Use `create(SessionControlEventSchema)` to create a new message.
- */
-export const SessionControlEventSchema: GenMessage<SessionControlEvent> = /*@__PURE__*/
-  messageDesc(file_proto_events, 2);
 
 /**
  * @generated from message talon.events.SessionMessagePartEvent
@@ -185,7 +157,7 @@ export type SessionMessagePartEvent = Message<"talon.events.SessionMessagePartEv
  * Use `create(SessionMessagePartEventSchema)` to create a new message.
  */
 export const SessionMessagePartEventSchema: GenMessage<SessionMessagePartEvent> = /*@__PURE__*/
-  messageDesc(file_proto_events, 3);
+  messageDesc(file_proto_events, 2);
 
 /**
  * @generated from message talon.events.ChannelEvent
@@ -242,7 +214,7 @@ export type ChannelEvent = Message<"talon.events.ChannelEvent"> & {
  * Use `create(ChannelEventSchema)` to create a new message.
  */
 export const ChannelEventSchema: GenMessage<ChannelEvent> = /*@__PURE__*/
-  messageDesc(file_proto_events, 4);
+  messageDesc(file_proto_events, 3);
 
 /**
  * @generated from message talon.events.WorkflowDispatchEvent
@@ -289,7 +261,7 @@ export type WorkflowDispatchEvent = Message<"talon.events.WorkflowDispatchEvent"
  * Use `create(WorkflowDispatchEventSchema)` to create a new message.
  */
 export const WorkflowDispatchEventSchema: GenMessage<WorkflowDispatchEvent> = /*@__PURE__*/
-  messageDesc(file_proto_events, 5);
+  messageDesc(file_proto_events, 4);
 
 /**
  * @generated from message talon.events.ResourceChangedEvent
@@ -346,7 +318,7 @@ export type ResourceChangedEvent = Message<"talon.events.ResourceChangedEvent"> 
  * Use `create(ResourceChangedEventSchema)` to create a new message.
  */
 export const ResourceChangedEventSchema: GenMessage<ResourceChangedEvent> = /*@__PURE__*/
-  messageDesc(file_proto_events, 6);
+  messageDesc(file_proto_events, 5);
 
 /**
  * @generated from message talon.events.IndexEvent
@@ -402,7 +374,7 @@ export type IndexEvent = Message<"talon.events.IndexEvent"> & {
  * Use `create(IndexEventSchema)` to create a new message.
  */
 export const IndexEventSchema: GenMessage<IndexEvent> = /*@__PURE__*/
-  messageDesc(file_proto_events, 7);
+  messageDesc(file_proto_events, 6);
 
 /**
  * @generated from enum talon.events.SystemAction
@@ -472,6 +444,27 @@ export const MessageDirectionSchema: GenEnum<MessageDirection> = /*@__PURE__*/
   enumDesc(file_proto_events, 1);
 
 /**
+ * @generated from enum talon.events.SessionDispatchKind
+ */
+export enum SessionDispatchKind {
+  /**
+   * @generated from enum value: SESSION_DISPATCH_KIND_MESSAGE = 0;
+   */
+  MESSAGE = 0,
+
+  /**
+   * @generated from enum value: SESSION_DISPATCH_KIND_COMPACT = 1;
+   */
+  COMPACT = 1,
+}
+
+/**
+ * Describes the enum talon.events.SessionDispatchKind.
+ */
+export const SessionDispatchKindSchema: GenEnum<SessionDispatchKind> = /*@__PURE__*/
+  enumDesc(file_proto_events, 2);
+
+/**
  * @generated from enum talon.events.SessionMessagePartEventKind
  */
 export enum SessionMessagePartEventKind {
@@ -500,7 +493,7 @@ export enum SessionMessagePartEventKind {
  * Describes the enum talon.events.SessionMessagePartEventKind.
  */
 export const SessionMessagePartEventKindSchema: GenEnum<SessionMessagePartEventKind> = /*@__PURE__*/
-  enumDesc(file_proto_events, 2);
+  enumDesc(file_proto_events, 3);
 
 /**
  * @generated from enum talon.events.ChannelEventKind
@@ -536,7 +529,7 @@ export enum ChannelEventKind {
  * Describes the enum talon.events.ChannelEventKind.
  */
 export const ChannelEventKindSchema: GenEnum<ChannelEventKind> = /*@__PURE__*/
-  enumDesc(file_proto_events, 3);
+  enumDesc(file_proto_events, 4);
 
 /**
  * @generated from enum talon.events.ResourceChangeType
@@ -567,7 +560,7 @@ export enum ResourceChangeType {
  * Describes the enum talon.events.ResourceChangeType.
  */
 export const ResourceChangeTypeSchema: GenEnum<ResourceChangeType> = /*@__PURE__*/
-  enumDesc(file_proto_events, 4);
+  enumDesc(file_proto_events, 5);
 
 /**
  * @generated from enum talon.events.IndexOperation
@@ -593,5 +586,5 @@ export enum IndexOperation {
  * Describes the enum talon.events.IndexOperation.
  */
 export const IndexOperationSchema: GenEnum<IndexOperation> = /*@__PURE__*/
-  enumDesc(file_proto_events, 5);
+  enumDesc(file_proto_events, 6);
 

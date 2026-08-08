@@ -271,7 +271,7 @@ async fn publish_queued_message(
     crate::harness::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission)
         .await?;
 
-    let event = events::SessionMessageEvent {
+    let event = events::SessionDispatchEvent {
         session_id: session_id.to_string(),
         message_id: message.id.clone(),
         direction: events::MessageDirection::Inbound as i32,

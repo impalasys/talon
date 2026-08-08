@@ -15,8 +15,11 @@ pub struct LifecycleEvent {
     #[prost(int64, tag = "5")]
     pub timestamp: i64,
 }
+/// Dispatches either a normal message turn or a session-maintenance action to
+/// a worker. The payload is intentionally transport-level, not a transcript
+/// message: maintenance actions leave message_id and message empty.
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SessionMessageEvent {
+pub struct SessionDispatchEvent {
     #[prost(string, tag = "1")]
     pub session_id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]

@@ -459,7 +459,10 @@ func (x *LifecycleEvent) GetTimestamp() int64 {
 	return 0
 }
 
-type SessionMessageEvent struct {
+// Dispatches either a normal message turn or a session-maintenance action to
+// a worker. The payload is intentionally transport-level, not a transcript
+// message: maintenance actions leave message_id and message empty.
+type SessionDispatchEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	MessageId     string                 `protobuf:"bytes,2,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
@@ -474,20 +477,20 @@ type SessionMessageEvent struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SessionMessageEvent) Reset() {
-	*x = SessionMessageEvent{}
+func (x *SessionDispatchEvent) Reset() {
+	*x = SessionDispatchEvent{}
 	mi := &file_proto_events_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SessionMessageEvent) String() string {
+func (x *SessionDispatchEvent) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SessionMessageEvent) ProtoMessage() {}
+func (*SessionDispatchEvent) ProtoMessage() {}
 
-func (x *SessionMessageEvent) ProtoReflect() protoreflect.Message {
+func (x *SessionDispatchEvent) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_events_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -499,68 +502,68 @@ func (x *SessionMessageEvent) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SessionMessageEvent.ProtoReflect.Descriptor instead.
-func (*SessionMessageEvent) Descriptor() ([]byte, []int) {
+// Deprecated: Use SessionDispatchEvent.ProtoReflect.Descriptor instead.
+func (*SessionDispatchEvent) Descriptor() ([]byte, []int) {
 	return file_proto_events_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *SessionMessageEvent) GetSessionId() string {
+func (x *SessionDispatchEvent) GetSessionId() string {
 	if x != nil {
 		return x.SessionId
 	}
 	return ""
 }
 
-func (x *SessionMessageEvent) GetMessageId() string {
+func (x *SessionDispatchEvent) GetMessageId() string {
 	if x != nil {
 		return x.MessageId
 	}
 	return ""
 }
 
-func (x *SessionMessageEvent) GetDirection() MessageDirection {
+func (x *SessionDispatchEvent) GetDirection() MessageDirection {
 	if x != nil {
 		return x.Direction
 	}
 	return MessageDirection_MESSAGE_DIRECTION_UNSPECIFIED
 }
 
-func (x *SessionMessageEvent) GetTimestamp() int64 {
+func (x *SessionDispatchEvent) GetTimestamp() int64 {
 	if x != nil {
 		return x.Timestamp
 	}
 	return 0
 }
 
-func (x *SessionMessageEvent) GetAgent() string {
+func (x *SessionDispatchEvent) GetAgent() string {
 	if x != nil {
 		return x.Agent
 	}
 	return ""
 }
 
-func (x *SessionMessageEvent) GetMessage() string {
+func (x *SessionDispatchEvent) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *SessionMessageEvent) GetNs() string {
+func (x *SessionDispatchEvent) GetNs() string {
 	if x != nil {
 		return x.Ns
 	}
 	return ""
 }
 
-func (x *SessionMessageEvent) GetSubmissionId() string {
+func (x *SessionDispatchEvent) GetSubmissionId() string {
 	if x != nil {
 		return x.SubmissionId
 	}
 	return ""
 }
 
-func (x *SessionMessageEvent) GetKind() SessionDispatchKind {
+func (x *SessionDispatchEvent) GetKind() SessionDispatchKind {
 	if x != nil {
 		return x.Kind
 	}
@@ -1075,8 +1078,8 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x0e\n" +
 	"\x02ns\x18\x03 \x01(\tR\x02ns\x122\n" +
 	"\x06action\x18\x04 \x01(\x0e2\x1a.talon.events.SystemActionR\x06action\x12\x1c\n" +
-	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\xcb\x02\n" +
-	"\x13SessionMessageEvent\x12\x1d\n" +
+	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\xcc\x02\n" +
+	"\x14SessionDispatchEvent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1d\n" +
 	"\n" +
@@ -1202,7 +1205,7 @@ var file_proto_events_proto_goTypes = []any{
 	(ResourceChangeType)(0),          // 5: talon.events.ResourceChangeType
 	(IndexOperation)(0),              // 6: talon.events.IndexOperation
 	(*LifecycleEvent)(nil),           // 7: talon.events.LifecycleEvent
-	(*SessionMessageEvent)(nil),      // 8: talon.events.SessionMessageEvent
+	(*SessionDispatchEvent)(nil),     // 8: talon.events.SessionDispatchEvent
 	(*SessionMessagePartEvent)(nil),  // 9: talon.events.SessionMessagePartEvent
 	(*ChannelEvent)(nil),             // 10: talon.events.ChannelEvent
 	(*WorkflowDispatchEvent)(nil),    // 11: talon.events.WorkflowDispatchEvent
@@ -1213,8 +1216,8 @@ var file_proto_events_proto_goTypes = []any{
 }
 var file_proto_events_proto_depIdxs = []int32{
 	0,  // 0: talon.events.LifecycleEvent.action:type_name -> talon.events.SystemAction
-	1,  // 1: talon.events.SessionMessageEvent.direction:type_name -> talon.events.MessageDirection
-	2,  // 2: talon.events.SessionMessageEvent.kind:type_name -> talon.events.SessionDispatchKind
+	1,  // 1: talon.events.SessionDispatchEvent.direction:type_name -> talon.events.MessageDirection
+	2,  // 2: talon.events.SessionDispatchEvent.kind:type_name -> talon.events.SessionDispatchKind
 	3,  // 3: talon.events.SessionMessagePartEvent.kind:type_name -> talon.events.SessionMessagePartEventKind
 	14, // 4: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
 	4,  // 5: talon.events.ChannelEvent.kind:type_name -> talon.events.ChannelEventKind

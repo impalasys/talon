@@ -97,7 +97,7 @@ class LifecycleEvent(_message.Message):
     timestamp: int
     def __init__(self, resource_type: _Optional[str] = ..., name: _Optional[str] = ..., ns: _Optional[str] = ..., action: _Optional[_Union[SystemAction, str]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
-class SessionMessageEvent(_message.Message):
+class SessionDispatchEvent(_message.Message):
     __slots__ = ("session_id", "message_id", "direction", "timestamp", "agent", "message", "ns", "submission_id", "kind")
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]

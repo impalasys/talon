@@ -13,7 +13,7 @@ use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
 use crate::control::cas::{decode_stored_object_bytes, CasStore};
 use crate::control::tool_output::{self, ToolOutputExt};
-use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{events::SessionDispatchEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
     self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionKind,
@@ -439,7 +439,7 @@ impl WorkerEventHandler {
             message_chars = event.message.len(),
         )
     )]
-    pub async fn handle_session_message(&self, event: SessionMessageEvent) -> Result<()> {
+    pub async fn handle_session_message(&self, event: SessionDispatchEvent) -> Result<()> {
         tracing::info!(
             agent = %event.agent,
             session = %event.session_id,
@@ -1371,7 +1371,7 @@ mod tests {
     use crate::control::object_store::ObjectMetadata;
     use crate::control::tool_output::ToolOutputExt;
     use crate::control::{
-        events::{MessageDirection, SessionMessageEvent},
+        events::{MessageDirection, SessionDispatchEvent},
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::connectors::session_message_final_response;
@@ -2479,7 +2479,7 @@ mod tests {
         .await
         .unwrap();
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -2701,7 +2701,7 @@ mod tests {
         .unwrap();
 
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -3466,7 +3466,7 @@ mod tests {
         .unwrap();
 
         let result = handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -3584,7 +3584,7 @@ mod tests {
         .unwrap();
 
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -3712,7 +3712,7 @@ mod tests {
             .await
             .unwrap();
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -3808,7 +3808,7 @@ mod tests {
         .await
         .unwrap();
 
-        let event = SessionMessageEvent {
+        let event = SessionDispatchEvent {
             ns: "conic:test".to_string(),
             agent: "assistant".to_string(),
             session_id: "session-1".to_string(),
@@ -3941,7 +3941,7 @@ mod tests {
         .unwrap();
 
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
