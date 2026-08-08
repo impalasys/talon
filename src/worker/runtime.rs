@@ -358,6 +358,7 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::LIST_MEMORY_TOOL,
         crate::harness::native_tools::CREATE_MEMORY_TOOL,
         crate::harness::native_tools::UPDATE_MEMORY_TOOL,
+        crate::harness::native_tools::RUN_PYTHON_CODE_TOOL,
     ]
 }
 
