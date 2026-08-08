@@ -1,19 +1,13 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback } from "react";
 import type { CopilotMessage } from "../lib/chatTimeline";
-import type { StreamEventItem } from "../lib/uiStream";
 import { copyMessageContent } from "./copyMessageContent";
-import { createLocalMessageId, useSessionActions } from "./useSessionActions";
+import { useSessionActions } from "./useSessionActions";
 import { useSessionCommands } from "./useSessionCommands";
 import { useSessionGeneration } from "./useSessionGeneration";
-import { useSessionImageAttachments } from "./useSessionImageAttachments";
 import { useSessionLifecycle } from "./useSessionLifecycle";
-import { useSessionMessageEditing } from "./useSessionMessageEditing";
-import { useSessionPresentationState } from "./useSessionPresentationState";
-import { useSessionResourceClick } from "./useSessionResourceClick";
-import { useSessionResources } from "./useSessionResources";
-import { useSessionTranscriptUi } from "./useSessionTranscriptUi";
+import { useTalonSessionInteractions } from "./useTalonSessionInteractions";
 import { useTalonSessionRuntime } from "./useTalonSessionRuntime";
-import { useToolResultHydration } from "./useToolResultHydration";
+import { useTalonSessionConversation } from "./useTalonSessionConversation";
 import { formatWorkingDuration } from "./sessionTiming";
 import type { TalonSessionProps } from "./TalonSessionTypes";
 import type { TalonSessionViewProps } from "./TalonSessionView";
@@ -76,102 +70,21 @@ export function useTalonSessionController({
   const currentSession = sessionRuntimeState.target;
   const isStopping = sessionRuntimeState.phase === "stopping";
   const error = sessionRuntimeState.error;
-  const [input, setInput] = useState("");
-  const {
-    addFiles: addImageFiles,
-    attachments: imageAttachments,
-    attachmentsRef: imageAttachmentsRef,
-    remove: removeImageAttachment,
-    replace: setImageAttachments,
-    uploadQueued: uploadQueuedImages,
-  } = useSessionImageAttachments({
-    acceptedImageTypes,
-    createId: createLocalMessageId,
-    maxImageAttachments,
-    maxImageBytes,
-    onError: setError,
-    onUpload: onImageUpload,
+  const conversation = useTalonSessionConversation({
+    acceptedImageTypes, agent, currentSession, error, gatewayClient, history: sessionRuntimeState.history,
+    isSessionLive, loadOlderRuntime, maxImageAttachments, maxImageBytes, messages, onImageUpload, setError,
   });
-  const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
-  const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
-  const {
-    state: toolResultHydration,
-    resultFor: toolResultFor,
-    hydrate: hydrateToolResultForExpandedItem,
-    invalidate: invalidateToolResultHydration,
-  } = useToolResultHydration(
-    gatewayClient.cas,
-    currentSession ? `${currentSession.ns}\u0000${currentSession.agent}\u0000${currentSession.sessionId}` : null,
-  );
-  const hasMoreHistory = sessionRuntimeState.history.hasMoreOlder;
-  const nextBeforeMessageId = sessionRuntimeState.history.beforeMessageId;
-  const loadOlderHistory = useCallback(async () => {
-    if (!currentSession || !nextBeforeMessageId) return false;
-    return Boolean(await loadOlderRuntime(currentSession));
-  }, [currentSession, loadOlderRuntime, nextBeforeMessageId]);
-  const {
-    bottomRef,
-    expandedThinkingMessages,
-    expandedToolItems,
-    handleScroll: handleTranscriptScroll,
-    markAutoScrollPinned,
-    reset: resetTranscriptUi,
-    scrollThumb,
-    toggleThinkingMessage,
-    toggleToolItem,
-    transcriptRef: scrollContainerRef,
-  } = useSessionTranscriptUi({
-    messages,
-    sessionKey: currentSession ? `${currentSession.ns}\u0000${currentSession.agent}\u0000${currentSession.sessionId}` : null,
-    isLive: isSessionLive,
-    error,
-    streamEvents,
-    hydrationState: toolResultHydration,
-    canLoadOlder: Boolean(currentSession && hasMoreHistory && nextBeforeMessageId),
-    onLoadOlder: loadOlderHistory,
+  const { abortControllerRef, hydration, images, input, loadingStartedAt, presentation, setInput, setLoadingStartedAt, setStreamEvents, streamEvents, transcript } = conversation;
+  const { attachments: imageAttachments, attachmentsRef: imageAttachmentsRef, addFiles: addImageFiles, remove: removeImageAttachment, replace: setImageAttachments, uploadQueued: uploadQueuedImages } = images;
+  const { currentSessionRef, inputRows, loadingNow, messagesRef, setLoadingNow, submittedPreviewUrlsRef } = presentation;
+  const { state: toolResultHydration, resultFor: toolResultFor, hydrate: hydrateToolResultForExpandedItem, invalidate: invalidateToolResultHydration } = hydration;
+  const { bottomRef, expandedThinkingMessages, expandedToolItems, handleScroll: handleTranscriptScroll, markAutoScrollPinned, reset: resetTranscriptUi, scrollThumb, toggleThinkingMessage, toggleToolItem, transcriptRef: scrollContainerRef } = transcript;
+  const interactions = useTalonSessionInteractions({
+    agent, currentSession, currentSessionRef, enableDebugMessageEditing, fetchResource, gatewayClient,
+    messagesRef, namespace, onMessageEdit, onResourceClick: onResourceClickProp, sessionId, setError, setMessages,
   });
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const {
-    currentSessionRef,
-    inputRows,
-    loadingNow,
-    messagesRef,
-    setLoadingNow,
-    submittedPreviewUrlsRef,
-  } = useSessionPresentationState({ abortControllerRef, currentSession, input, isSessionLive, loadingStartedAt, messages });
-  const {
-    openResourceUri,
-    resourcePaneOpen,
-    resourceView,
-    resourceLoading,
-    resourceError,
-    open: openResource,
-    close: closeResourcePane,
-    reset: clearResourcePaneState,
-    completeClose: handleResourcePaneExitComplete,
-    abortRef: resourceAbortRef,
-  } = useSessionResources({ agent, currentSessionId: currentSession?.sessionId ?? null, fetchResource, gatewayClient, sessionId });
-  const editing = useSessionMessageEditing({
-    agent,
-    client: gatewayClient.sessions,
-    currentSessionRef,
-    enableDebugMessageEditing,
-    fallbackSessionId: sessionId,
-    messagesRef,
-    namespace,
-    onMessageEdit,
-    setError,
-    setMessages,
-  });
-  const handleResourceClick = useSessionResourceClick({
-    canFetchArtifact: Boolean(fetchResource) || Boolean(gatewayClient.artifacts?.readArtifact),
-    canFetchFile: Boolean(fetchResource) || Boolean(gatewayClient.files?.readFile),
-    closeResourcePane,
-    onResourceClick: onResourceClickProp,
-    openResource,
-    openResourceUri,
-    resourcePaneOpen,
-  });
+  const { editing, handleResourceClick, resources } = interactions;
+  const { openResourceUri, resourcePaneOpen, resourceView, resourceLoading, resourceError, close: closeResourcePane, reset: clearResourcePaneState, completeClose: handleResourcePaneExitComplete, abortRef: resourceAbortRef } = resources;
   const resolvedHistoryPageSize = Math.max(1, Math.trunc(historyPageSize || historyMessageLimit || DEFAULT_HISTORY_PAGE_SIZE));
   const refreshNewestSessionPage = useCallback(async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
     setStreamEvents([]);
