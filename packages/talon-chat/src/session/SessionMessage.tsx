@@ -309,81 +309,146 @@ function MessageContent({
   );
 }
 
-/** Presentation and interaction boundary for one transcript message. */
-export function SessionMessage({
+type MessageDisplayState = {
+  isUser: boolean;
+  isLiveAssistant: boolean;
+  isEditable: boolean;
+  isEditing: boolean;
+  isPendingConnectorDelivery: boolean;
+  isReviewActionPending: boolean;
+};
+
+function displayState({
   message,
   messageIndex,
   messages,
   isSessionLive,
-  loadingStartedAt,
-  loadingNow,
-  objectUrlForRef,
   allowEditing,
   enableDebugEditing,
   editingMessageId,
-  editingMessageValue,
   reviewActionMessageId,
-  expandedThinkingMessages,
-  expandedToolItems,
-  hydrationState,
-  resultFor,
-  onToggleThinking,
-  onToggleTool,
-  onHydrateTool,
-  onResourceClick,
-  onEditingValueChange,
-  onSaveEdit,
-  onCancelEdit,
-  onStartEdit,
+}: Pick<SessionMessageProps, "message" | "messageIndex" | "messages" | "isSessionLive" | "allowEditing" | "enableDebugEditing" | "editingMessageId" | "reviewActionMessageId">): MessageDisplayState {
+  const isUser = message.role === "user";
+  const isLiveAssistant = isSessionLive && messageIndex === messages.length - 1 && message.role === "assistant";
+  const hasEditableRole = isUser || message.role === "assistant";
+  return {
+    isUser,
+    isLiveAssistant,
+    isEditable: (allowEditing || enableDebugEditing) && hasEditableRole && !isLiveAssistant,
+    isEditing: editingMessageId === message.id,
+    isPendingConnectorDelivery:
+      enableDebugEditing && message.labels?.[connectorDeliveryStatusLabel] === connectorDeliveryPendingReview,
+    isReviewActionPending: reviewActionMessageId === message.id,
+  };
+}
+
+function messageRowStyle(isUser: boolean) {
+  return { display: "flex", justifyContent: isUser ? "flex-end" : "stretch", width: "100%" } as const;
+}
+
+function messageWidthStyle(isUser: boolean) {
+  return { width: isUser ? "auto" : "100%", maxWidth: isUser ? "min(80%, 36rem)" : "100%", overflow: "hidden" } as const;
+}
+
+function messageBubbleStyle(isUser: boolean) {
+  return {
+    overflow: "hidden",
+    borderRadius: isUser ? 18 : 0,
+    background: isUser ? "var(--talon-chat-user-bubble-bg, rgba(24,24,27,0.07))" : "transparent",
+    color: isUser ? "var(--talon-chat-user-bubble-fg, inherit)" : "inherit",
+    padding: isUser ? "0.75rem 1rem" : 0,
+  } as const;
+}
+
+function PendingConnectorDelivery({ message, pending, disabled, onUpdate }: {
+  message: CopilotMessage;
+  pending: boolean;
+  disabled: boolean;
+  onUpdate: (message: CopilotMessage, status: string) => void;
+}) {
+  if (!pending) return null;
+  return <ConnectorDeliveryControls message={message} disabled={disabled} onUpdate={onUpdate} />;
+}
+
+function MessageEditor({
+  message,
+  isEditing,
+  value,
+  onChange,
+  onSave,
+  onCancel,
+  contentProps,
+}: {
+  message: CopilotMessage;
+  isEditing: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  onSave: (message: CopilotMessage) => void;
+  onCancel: () => void;
+  contentProps: Omit<MessageContentProps, "message">;
+}) {
+  if (!isEditing) return <MessageContent message={message} {...contentProps} />;
+  return <MessageEditForm message={message} value={value} onChange={onChange} onSave={onSave} onCancel={onCancel} />;
+}
+
+function MessageActionRow({
+  message,
+  editable,
+  editing,
   onCopy,
-  onUpdateConnectorDelivery,
-}: SessionMessageProps) {
+  onEdit,
+}: {
+  message: CopilotMessage;
+  editable: boolean;
+  editing: boolean;
+  onCopy: (message: CopilotMessage) => void;
+  onEdit: (message: CopilotMessage) => void;
+}) {
+  if (!editable || editing) return null;
+  return <MessageActions message={message} timestamp={actionTimestamp(message)} onCopy={onCopy} onEdit={onEdit} />;
+}
+
+function SessionMessagePresentation(props: SessionMessageProps) {
+  const {
+    message, messageIndex, messages, isSessionLive, loadingStartedAt, loadingNow, objectUrlForRef,
+    editingMessageValue, expandedThinkingMessages, expandedToolItems, hydrationState, resultFor,
+    onToggleThinking, onToggleTool, onHydrateTool, onResourceClick, onEditingValueChange,
+    onSaveEdit, onCancelEdit, onStartEdit, onCopy, onUpdateConnectorDelivery,
+  } = props;
   const content = getMessageContent(message);
-  const images = messageImages(message, objectUrlForRef);
-  const isUserMessage = message.role === "user";
-  const isLatestMessage = messageIndex === messages.length - 1;
-  const isLiveAssistantMessage = isSessionLive && isLatestMessage && message.role === "assistant";
-  const isEditableMessage =
-    (allowEditing || enableDebugEditing) &&
-    (message.role === "user" || message.role === "assistant") &&
-    !isLiveAssistantMessage;
-  const isEditingMessage = editingMessageId === message.id;
-  const isPendingConnectorDelivery =
-    enableDebugEditing && message.labels?.[connectorDeliveryStatusLabel] === connectorDeliveryPendingReview;
-  const isReviewActionPending = reviewActionMessageId === message.id;
+  const state = displayState(props);
+  const contentProps = {
+    isSessionLive,
+    isLiveAssistantMessage: state.isLiveAssistant,
+    content,
+    expandedToolItems,
+    hydrationState,
+    resultFor,
+    onToggleTool,
+    onHydrateTool,
+    onResourceClick,
+  };
 
   return (
-    <div
-      data-session-message-id={message.id}
-      className="talon-session-message-row"
-      style={{ display: "flex", justifyContent: isUserMessage ? "flex-end" : "stretch", width: "100%" }}
-    >
-      <div style={{ width: isUserMessage ? "auto" : "100%", maxWidth: isUserMessage ? "min(80%, 36rem)" : "100%", overflow: "hidden" }}>
-        <div
-          style={{
-            overflow: "hidden",
-            borderRadius: isUserMessage ? 18 : 0,
-            background: isUserMessage ? "var(--talon-chat-user-bubble-bg, rgba(24,24,27,0.07))" : "transparent",
-            color: isUserMessage ? "var(--talon-chat-user-bubble-fg, inherit)" : "inherit",
-            padding: isUserMessage ? "0.75rem 1rem" : 0,
-          }}
-        >
+    <div data-session-message-id={message.id} className="talon-session-message-row" style={messageRowStyle(state.isUser)}>
+      <div style={messageWidthStyle(state.isUser)}>
+        <div style={messageBubbleStyle(state.isUser)}>
           <MessageWorkDetails {...{
             message, messageIndex, messages, isSessionLive, loadingStartedAt, loadingNow,
             expandedThinkingMessages, expandedToolItems, hydrationState, resultFor, onToggleThinking,
             onToggleTool, onHydrateTool, onResourceClick,
           }} />
-
-          {isPendingConnectorDelivery ? <ConnectorDeliveryControls message={message} disabled={isReviewActionPending || isEditingMessage} onUpdate={onUpdateConnectorDelivery} /> : null}
-
-          {isEditingMessage ? <MessageEditForm message={message} value={editingMessageValue} onChange={onEditingValueChange} onSave={onSaveEdit} onCancel={onCancelEdit} /> : <MessageContent {...{
-            message, isSessionLive, isLiveAssistantMessage, content, expandedToolItems, hydrationState,
-            resultFor, onToggleTool, onHydrateTool, onResourceClick,
-          }} />}
-          <MessageImages images={images} hasContent={Boolean(content)} />
+          <PendingConnectorDelivery message={message} pending={state.isPendingConnectorDelivery} disabled={state.isReviewActionPending || state.isEditing} onUpdate={onUpdateConnectorDelivery} />
+          <MessageEditor message={message} isEditing={state.isEditing} value={editingMessageValue} onChange={onEditingValueChange} onSave={onSaveEdit} onCancel={onCancelEdit} contentProps={contentProps} />
+          <MessageImages images={messageImages(message, objectUrlForRef)} hasContent={Boolean(content)} />
         </div>
-        {isEditableMessage && !isEditingMessage ? <MessageActions message={message} timestamp={actionTimestamp(message)} onCopy={onCopy} onEdit={onStartEdit} /> : null}
+        <MessageActionRow message={message} editable={state.isEditable} editing={state.isEditing} onCopy={onCopy} onEdit={onStartEdit} />
       </div>
     </div>
   );
+}
+
+/** Presentation and interaction boundary for one transcript message. */
+export function SessionMessage(props: SessionMessageProps) {
+  return <SessionMessagePresentation {...props} />;
 }
