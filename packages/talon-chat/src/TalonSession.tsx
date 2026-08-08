@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { data, type TalonClient } from "@impalasys/talon-client";
+import { type TalonClient } from "@impalasys/talon-client";
 import { Activity } from "lucide-react";
 import {
   getMessageContent,
@@ -10,27 +10,15 @@ import {
   type CopilotMessage,
 } from "./lib/chatTimeline";
 import { TalonChatComposer, type TalonChatComposerVariant } from "./lib/TalonChatComposer";
-import {
-  findTalonChatCommand,
-  parseTalonChatCommandInput,
-  type TalonBuiltInCommandName,
-  type TalonChatCommand,
-} from "./lib/commands";
+import { type TalonBuiltInCommandName, type TalonChatCommand } from "./lib/commands";
 import { ResourcePane } from "./lib/ResourcePane";
 import {
   parseResourceUri,
   type ResourceViewModel,
 } from "./lib/resourceUris";
-import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
-import {
-  messagePartsForSessionUpdate,
-  protoSessionPartsFromChatParts,
-} from "./session/protocol";
-import {
-  normalizeObjectRefForJson,
-  objectRefMediaType,
-  objectRefSizeBytes,
-} from "./session/objectRefs";
+import { type StreamEventItem } from "./lib/uiStream";
+import { messagePartsForSessionUpdate } from "./session/protocol";
+import { objectRefSizeBytes } from "./session/objectRefs";
 import type { TalonChatObjectRef, TalonSessionHandle } from "./session/types";
 import { useSessionRuntime } from "./session/useSessionRuntime";
 import type { SessionTarget } from "./session/types";
@@ -41,6 +29,7 @@ import { useToolResultHydration } from "./session/useToolResultHydration";
 import { useResourcePane } from "./session/useResourcePane";
 import { useSessionTranscriptUi } from "./session/useSessionTranscriptUi";
 import { useSessionGeneration } from "./session/useSessionGeneration";
+import { createLocalMessageId, useSessionActions } from "./session/useSessionActions";
 import { fetchResourceFromGateway } from "./session/resourceLoader";
 import { editableMessageContent, messageWithEditedContent, replaceMessageTextPart } from "./session/messageEditing";
 import { copyMessageContent } from "./session/copyMessageContent";
@@ -49,7 +38,6 @@ import { SessionStyles } from "./session/SessionStyles";
 import { SessionMessage } from "./session/SessionMessage";
 import {
   canCompareCanonicalMessageIds,
-  historyMessageTimestamp,
   isLocalMessageId,
   mergeNewestCanonicalPage,
   normalizeHistoryPage,
@@ -212,60 +200,6 @@ function isSameSession(
     left?.agent === right?.agent &&
     left?.sessionId === right?.sessionId
   );
-}
-
-function createLocalMessageId() {
-  const timestamp = String(Date.now()).padStart(13, "0");
-  const sequence = String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0");
-  let suffix = "000000";
-  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
-    const bytes = new Uint8Array(3);
-    crypto.getRandomValues(bytes);
-    suffix = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-  }
-  return `local-${timestamp}-${sequence}-${suffix}`;
-}
-
-function normalizeEpochToMilliseconds(value: unknown) {
-  let normalized: number | null = null;
-  if (typeof value === "bigint") {
-    const bigintValue = value < BigInt(0) ? -value : value;
-    if (bigintValue > BigInt(Number.MAX_SAFE_INTEGER)) {
-      return null;
-    }
-    normalized = Number(value);
-  } else if (typeof value === "string") {
-    const numericValue = Number(value);
-    normalized = Number.isFinite(numericValue) ? numericValue : Date.parse(value);
-  } else if (typeof value === "number") {
-    normalized = value;
-  }
-  if (typeof normalized !== "number" || !Number.isFinite(normalized) || normalized <= 0) {
-    return null;
-  }
-  if (normalized >= 1e15) {
-    return Math.trunc(normalized / 1000);
-  }
-  if (normalized >= 1e12) {
-    return Math.trunc(normalized);
-  }
-  if (normalized >= 1e9) {
-    return Math.trunc(normalized * 1000);
-  }
-  return null;
-}
-
-function getAssistantSignature(messages: any[] | undefined) {
-  if (!Array.isArray(messages)) return "";
-  return messages
-    .filter((message) => message?.role === "assistant" || message?.role === 2 || message?.role === "ROLE_ASSISTANT")
-    .map((message) => `${String(message.id ?? "")}:${getMessageContent(message).length}`)
-    .join("|");
-}
-
-function isSessionBusyError(error: unknown) {
-  const candidate = error as { message?: unknown } | null;
-  return typeof candidate?.message === "string" && /session is currently generating|session is busy/i.test(candidate.message);
 }
 
 export function TalonSession({
@@ -666,18 +600,6 @@ export function TalonSession({
     Math.trunc(historyPageSize || historyMessageLimit || DEFAULT_HISTORY_PAGE_SIZE),
   );
 
-  const createSession = useCallback(
-    async (target: { ns: string; agent: string }) => {
-      const sessions = gatewayClient?.sessions;
-      if (sessions?.create) {
-        return sessions.create(target);
-      }
-
-      throw new Error("TalonSession requires a Talon clientset with sessions.create().");
-    },
-    [gatewayClient],
-  );
-
   const refreshNewestSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
       setStreamEvents([]);
@@ -728,29 +650,6 @@ export function TalonSession({
     resetTranscriptUi();
     invalidateToolResultHydration();
   }, [currentSession?.agent, currentSession?.ns, currentSession?.sessionId, invalidateToolResultHydration, resetTranscriptUi, setIsLoading, setIsResuming, setIsStopping]);
-
-  const waitForCanonicalAssistantUpdate = useCallback(
-    async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string, signal?: AbortSignal) => {
-      for (let attempt = 0; attempt < 40; attempt += 1) {
-        if (signal?.aborted || !isSameSession(currentSessionRef.current, session)) {
-          return false;
-        }
-        const sessionState = await refreshRuntime(session, signal);
-        if (signal?.aborted || !isSameSession(currentSessionRef.current, session)) {
-          return false;
-        }
-        if (!sessionState) return false;
-        const nextSignature = getAssistantSignature(sessionState.messages);
-        if (nextSignature && nextSignature !== baselineSignature) {
-          await refreshNewestSessionPage(session, signal);
-          return true;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 250));
-      }
-      return false;
-    },
-    [refreshNewestSessionPage, refreshRuntime],
-  );
 
   const clearLocalSession = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -811,253 +710,42 @@ export function TalonSession({
     [resolvedCommands],
   );
   const imageAccept = useMemo(() => acceptedImageTypes.join(","), [acceptedImageTypes]);
-  const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
-    let text = submittedText.trim();
-    const pendingAttachments = imageAttachmentsRef.current;
-    const hasImages = pendingAttachments.length > 0;
-    if ((!text && !hasImages) || (!invokedByRuntime && isSessionLive) || disabled) return;
-    let submitTurnStarted = false;
-    let resumedAfterBusyFailure = false;
-    let submittedUserMessageId: string | null = null;
-    let submittedSession: TalonSessionHandle | null = null;
-    let submitController: AbortController | null = null;
-
-    const ensureSession = async (): Promise<TalonSessionHandle> => {
-      let session = currentSessionRef.current;
-      if (!session) {
-        if (sessionId) {
-          session = { ns: namespace, agent, sessionId };
-          currentSessionRef.current = session;
-          activateTarget(session, { hydrate: false });
-        } else {
-          const sessionRes = await createSession({ ns: namespace, agent });
-          session = { ns: namespace, agent, sessionId: sessionRes.sessionId };
-          currentSessionRef.current = session;
-          activateTarget(session, { hydrate: false });
-          onSessionChange?.(session.sessionId);
-        }
-      }
-      return session;
-    };
-
-    if (onSubmitMessage) {
-      setError(null);
-      try {
-        const handled = await onSubmitMessage({
-          text,
-          namespace,
-          agent,
-          sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
-          imageAttachments: pendingAttachments,
-          ensureSession,
-          clearInput: () => setInput(""),
-          refreshSession: async () => {
-            const session = await ensureSession();
-            await refreshNewestSessionPage(session);
-          },
-        });
-        if (handled) {
-          return;
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
-        return;
-      }
-    }
-
-    let parsedCommand = parseTalonChatCommandInput(text);
-    const isGoalCommand =
-      parsedCommand?.name === "goal" && enabledBuiltInCommands?.includes("goal");
-    if (isGoalCommand) {
-      const goalText = parsedCommand.args?.trim() ?? "";
-      if (!goalText) {
-        setError(new Error("Usage: /goal <objective and success criteria>"));
-        return;
-      }
-      text = [
-        "Create or update a Talon Goal for this session.",
-        "",
-        "Use the goal tools directly. Track this objective until completion:",
-        goalText,
-      ].join("\n");
-      parsedCommand = null;
-    }
-
-    const command = findTalonChatCommand(resolvedCommands, parsedCommand);
-    if (command && parsedCommand && !hasImages) {
-      setInput("");
-      setError(null);
-      setStreamEvents([]);
-      try {
-        await command.run({
-          name: parsedCommand.name,
-          input: text,
-          args: parsedCommand.args,
-          argv: parsedCommand.argv,
-          target: {
-            type: "session",
-            namespace,
-            agent,
-            sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
-          },
-          messages: messagesRef.current,
-          clear: clearSession,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
-      }
-      return;
-    }
-
-    setError(null);
-    setStreamEvents([]);
-    cancelResume();
-    setIsResuming(false);
-
-    let removeRuntimeAbort = () => undefined;
-    try {
-      let session = currentSessionRef.current;
-      const baselineAssistantSignature = getAssistantSignature(
-        messagesRef.current.slice(-resolvedHistoryPageSize),
-      );
-
-      session = await ensureSession();
-      submittedSession = session;
-
-      const controller = new AbortController();
-      const abortFromRuntime = () => controller.abort();
-      if (runtimeSignal) {
-        if (runtimeSignal.aborted) controller.abort();
-        else runtimeSignal.addEventListener("abort", abortFromRuntime, { once: true });
-      }
-      removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
-      submitController = controller;
-      abortControllerRef.current = controller;
-      const uploadedImages = await uploadQueuedImages(session, controller.signal);
-      const imageParts = uploadedImages.map((attachment) => {
-        if (!attachment.object) {
-          throw new Error(`Image ${attachment.file.name} was not uploaded.`);
-        }
-        return {
-          type: "image",
-          object: normalizeObjectRefForJson({
-            ...attachment.object,
-            filename: attachment.object.filename || attachment.file.name,
-            mediaType: objectRefMediaType(attachment.object) || attachment.file.type,
-            sizeBytes: attachment.object.sizeBytes ?? attachment.object.size_bytes ?? attachment.file.size,
-          }),
-          previewUrl: attachment.previewUrl,
-          payloadJson: JSON.stringify({ filename: attachment.file.name }),
-        };
-      });
-      const messageParts = [
-        ...(text ? [{ type: "text", text }] : []),
-        ...imageParts,
-      ];
-      const userMessage: CopilotMessage = {
-        id: createLocalMessageId(),
-        role: "user",
-        content: text,
-        parts: messageParts,
-        createdAt: String(Date.now() * 1000),
-      };
-      submittedUserMessageId = userMessage.id;
-
-      setInput("");
-      submittedPreviewUrlsRef.current.push(...uploadedImages.map((attachment) => attachment.previewUrl));
-      setImageAttachments([]);
-      setMessages((prev) => [...prev, userMessage]);
-      setLoadingStartedAt(normalizeEpochToMilliseconds(userMessage.createdAt) ?? Date.now());
-      setLoadingNow(Date.now());
-      markAutoScrollPinned();
-      setIsLoading(true);
-
-      const sessions = gatewayClient?.sessions;
-      if (!sessions?.submitTurn) {
-        throw new Error("TalonSession requires a Talon clientset with sessions.submitTurn().");
-      }
-
-      const turnStream = sessions.submitTurn({
-        ns: session.ns,
-        agent: session.agent,
-        sessionId: session.sessionId,
-        message: {
-          role: data.MessageRole.ROLE_USER,
-          parts: protoSessionPartsFromChatParts(userMessage.parts),
-        },
-        labels: {},
-      }, { signal: controller.signal });
-
-      submitTurnStarted = true;
-      const { hasAssistantEvent } = await streamSessionPartEvents({
-        events: turnStream,
-        setMessages,
-        setStreamEvents,
-        signal: controller.signal,
-      });
-
-      if (!hasAssistantEvent) {
-        await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature, submitController?.signal);
-      } else {
-        await refreshNewestSessionPage(session, submitController?.signal);
-      }
-    } catch (err: any) {
-      const nextError = err instanceof Error ? err : new Error(String(err));
-      const session = submittedSession && isSameSession(currentSessionRef.current, submittedSession)
-        ? submittedSession
-        : null;
-      if (submitController?.signal.aborted || (submittedSession && !session)) {
-        return;
-      }
-      if (session && isSessionBusyError(nextError)) {
-        if (submittedUserMessageId) {
-          const optimisticMessageId = submittedUserMessageId;
-          messagesRef.current = messagesRef.current.filter((message) => message.id !== optimisticMessageId);
-          setMessages((prev) => prev.filter((message) => message.id !== optimisticMessageId));
-          setInput((current) => current || submittedText.trim());
-          if (imageAttachmentsRef.current.length === 0 && pendingAttachments.length > 0) {
-            imageAttachmentsRef.current = pendingAttachments;
-            setImageAttachments(pendingAttachments);
-          }
-        }
-        const refreshed = await refreshNewestSessionPage(session, submitController?.signal).catch(() => null);
-        if (submitController?.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
-          return;
-        }
-        if (isStoppingRef.current) {
-          return;
-        }
-        if (refreshed?.state === "PROCESSING") {
-          resumedAfterBusyFailure = true;
-          setError(null);
-          startResume(session);
-          return;
-        }
-      }
-      if (session && submitTurnStarted && !isSessionBusyError(nextError)) {
-        const baselineAssistantSignature = getAssistantSignature(
-          messagesRef.current.slice(-resolvedHistoryPageSize),
-        );
-        const recovered = await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature, submitController?.signal).catch(() => false);
-        if (recovered) {
-          setError(null);
-          return;
-        }
-      }
-      setError(nextError);
-    } finally {
-      const staleSession = submitController?.signal.aborted
-        || (submittedSession && !isSameSession(currentSessionRef.current, submittedSession));
-      removeRuntimeAbort();
-      if (!staleSession && (!submitController || abortControllerRef.current === submitController)) {
-        abortControllerRef.current = null;
-        setIsLoading(false);
-        if (!resumedAfterBusyFailure) {
-          setLoadingStartedAt(null);
-        }
-      }
-    }
-  }, [agent, cancelResume, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, sessionId, startResume, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
+  const { submitMessage } = useSessionActions({
+    client: gatewayClient.sessions,
+    namespace,
+    agent,
+    sessionId,
+    disabled,
+    isSessionLive,
+    enabledGoalCommand: Boolean(enabledBuiltInCommands?.includes("goal")),
+    commands: resolvedCommands,
+    onSessionChange,
+    onSubmitMessage,
+    currentSessionRef,
+    messagesRef,
+    imageAttachmentsRef,
+    submissionAbortControllerRef: abortControllerRef,
+    submittedPreviewUrlsRef,
+    resolvedHistoryPageSize,
+    setInput,
+    setImageAttachments,
+    setMessages,
+    setStreamEvents,
+    setError,
+    setIsLoading,
+    setIsResuming,
+    setLoadingStartedAt,
+    setLoadingNow,
+    activateTarget,
+    uploadQueuedImages,
+    clearSession,
+    cancelResume,
+    startResume,
+    isStoppingRef,
+    markAutoScrollPinned,
+    refreshRuntime,
+    refreshNewestSessionPage,
+  });
 
   runtimeSubmitRef.current = (input, context) => submitMessage(input.text, true, context.signal);
   runtimeStopRef.current = (context) => stopGeneration(context.signal);
