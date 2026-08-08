@@ -52,6 +52,7 @@ import { useResourcePane } from "./session/hooks/useResourcePane";
 import { useTranscriptExpansionState } from "./session/hooks/useTranscriptExpansionState";
 import { useTranscriptPaginationAnchor } from "./session/hooks/useTranscriptPaginationAnchor";
 import { useTranscriptScrollState } from "./session/hooks/useTranscriptScrollState";
+import { fetchResourceFromGateway } from "./lib/resourceLoader";
 import {
   AssistantMessageTimeline,
   coalesceAssistantMessageTimelineForDisplay,
@@ -230,126 +231,6 @@ const CONNECTOR_DELIVERY_SKIPPED = "skipped";
 
 function border(color: string) {
   return `1px solid ${color}`;
-}
-
-const HANDLE_CALLER_AGENT_HEADER = "x-talon-agent";
-const HANDLE_CALLER_SESSION_HEADER = "x-talon-session-id";
-
-function resourceCallHeaders(agent: string, sessionId: string | null | undefined) {
-  const headers: Record<string, string> = {};
-  if (agent) headers[HANDLE_CALLER_AGENT_HEADER] = agent;
-  if (sessionId) headers[HANDLE_CALLER_SESSION_HEADER] = sessionId;
-  return Object.keys(headers).length > 0 ? headers : undefined;
-}
-
-/** Strict base64 shape: length multiple of 4 and only base64 alphabet + padding. */
-const BASE64_CONTENT_RE = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-
-function looksLikeBase64(value: string): boolean {
-  if (value.length === 0 || value.length % 4 !== 0) return false;
-  // Avoid treating short plain words as base64 (e.g. "test" is valid alphabet).
-  if (value.length < 16) return false;
-  return BASE64_CONTENT_RE.test(value);
-}
-
-function bytesFromContent(content: unknown): Uint8Array | undefined {
-  if (content == null) return undefined;
-  if (content instanceof Uint8Array) return content;
-  if (typeof content === "string") {
-    if (content.length === 0) return new Uint8Array(0);
-    // Connect JSON may base64-encode bytes. Only decode when the string looks like
-    // base64; otherwise treat as literal UTF-8 text (mocks and plain responses).
-    if (looksLikeBase64(content)) {
-      try {
-        const binary = atob(content);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-        return bytes;
-      } catch {
-        // Fall through to UTF-8 if padded base64 shape still fails to decode.
-      }
-    }
-    return new TextEncoder().encode(content);
-  }
-  if (ArrayBuffer.isView(content)) {
-    return new Uint8Array(content.buffer, content.byteOffset, content.byteLength);
-  }
-  return undefined;
-}
-
-async function fetchResourceFromGateway(options: {
-  uri: string;
-  gatewayClient: GatewayClientLike;
-  agent: string;
-  sessionId: string | null;
-  signal: AbortSignal;
-}): Promise<ResourceViewModel> {
-  const { uri, gatewayClient, agent, sessionId, signal } = options;
-  const parsed = parseResourceUri(uri);
-  if (!parsed) {
-    throw new Error(`Unsupported resource URI: ${uri}`);
-  }
-
-  const headers = resourceCallHeaders(agent, sessionId);
-  const callOptions = {
-    signal,
-    ...(headers ? { headers } : {}),
-  };
-
-  if (parsed.kind === "artifact") {
-    const artifacts = gatewayClient.artifacts;
-    if (!artifacts?.readArtifact) {
-      throw new Error("Gateway client does not expose artifacts.readArtifact().");
-    }
-    const response = await (artifacts.readArtifact as any)(
-      { artifactUri: parsed.uri },
-      callOptions,
-    );
-    const artifact = response?.artifact ?? {};
-    const mediaType =
-      artifact.mediaType || artifact.media_type || "application/octet-stream";
-    const title =
-      (typeof artifact.title === "string" && artifact.title) || parsed.artifactId;
-    return {
-      kind: "artifact",
-      uri: parsed.uri,
-      title,
-      mediaType,
-      content: bytesFromContent(response?.content),
-      signedUrl: response?.signedUrl || response?.signed_url || undefined,
-      sessionId: parsed.sessionId,
-      agent: parsed.agent,
-    };
-  }
-
-  const files = gatewayClient.files;
-  if (!files?.readFile) {
-    throw new Error("Gateway client does not expose files.readFile().");
-  }
-  const response = await (files.readFile as any)(
-    { file: { uri: parsed.uri } },
-    callOptions,
-  );
-  const file = response?.file ?? {};
-  const meta = file.metadata ?? {};
-  const spec = file.spec ?? {};
-  const mediaType =
-    spec.mediaType ||
-    spec.media_type ||
-    "application/octet-stream";
-  const title =
-    (typeof meta.name === "string" && meta.name) ||
-    (typeof spec.path === "string" && spec.path.split("/").filter(Boolean).pop()) ||
-    parsed.fileName;
-  return {
-    kind: "file",
-    uri: parsed.uri,
-    title,
-    mediaType,
-    content: bytesFromContent(response?.content),
-    signedUrl: response?.signedUrl || response?.signed_url || undefined,
-    path: typeof spec.path === "string" ? spec.path : undefined,
-  };
 }
 
 const talonChatFontFamily =
