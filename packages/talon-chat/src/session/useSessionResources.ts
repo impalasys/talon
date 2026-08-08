@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { fetchResourceFromGateway } from "./resourceLoader";
+import { fetchResourceFromGateway } from "../lib/resourceLoader";
 import type { GatewayClientLike } from "./TalonSessionTypes";
 import type { ResourceViewModel } from "../lib/resourceUris";
 import { useResourcePane } from "./hooks/useResourcePane";
