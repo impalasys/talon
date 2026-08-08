@@ -10,6 +10,7 @@ export type SessionTranscriptProps = {
   workingLabel?: string | null;
   error: Error | null;
   incident?: string | null;
+  notice?: string | null;
   scrollThumb: SessionScrollThumb;
   transcriptRef: React.RefObject<HTMLDivElement | null>;
   bottomRef: React.RefObject<HTMLDivElement | null>;
@@ -27,6 +28,7 @@ export function SessionTranscript({
   workingLabel,
   error,
   incident,
+  notice,
   scrollThumb,
   transcriptRef,
   bottomRef,
@@ -63,6 +65,11 @@ export function SessionTranscript({
                   {error?.message || incident || "An error occurred while connecting to the agent."}
                 </div>
               </div>
+            </div>
+          ) : null}
+          {notice ? (
+            <div role="status" style={{ fontSize: 13, borderRadius: 10, background: "rgba(236,253,245,1)", border: border("rgba(110,231,183,0.8)"), color: "rgba(4,120,87,1)", padding: 12 }}>
+              {notice}
             </div>
           ) : null}
           <div ref={bottomRef} />

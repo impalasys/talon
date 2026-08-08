@@ -12,7 +12,7 @@ export type { TalonChatObjectRef } from "./types";
 export type SessionServiceClientLike = {
   sessions: Pick<
     TalonClient["sessions"],
-    "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
+    "create" | "clear" | "compact" | "doctor" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
   > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage" | "listQueuedMessages">>;
 }["sessions"];
 
