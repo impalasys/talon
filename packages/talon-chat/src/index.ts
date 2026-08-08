@@ -12,6 +12,9 @@ export {
   type TalonSessionSubmitContext,
   type TalonCopilotProps,
   type TalonChatObjectRef,
+  type TalonAttachmentUploadContext,
+  type TalonAttachmentUploadResult,
+  type TalonSessionPendingAttachment,
   type TalonImageUploadContext,
   type TalonImageUploadResult,
   type TalonSessionPendingImageAttachment,
@@ -50,6 +53,7 @@ export {
 } from "./lib/chatTimeline";
 export {
   TalonChatComposer,
+  type TalonChatComposerAttachment,
   type TalonChatComposerCommandMenuItem,
   type TalonChatComposerImageAttachment,
   type TalonChatComposerProps,
