@@ -56,6 +56,11 @@ struct ConnectorClassRegistration {
     spec: resources_proto::ConnectorClassSpec,
 }
 
+#[derive(Clone, Debug)]
+struct ConnectorDispatchOutcome {
+    consumer: data_proto::MessageConsumer,
+}
+
 impl GrpcGatewayHandler {
     pub async fn handle_ingest_connector_message_event(
         &self,
@@ -230,33 +235,40 @@ impl GrpcGatewayHandler {
             elapsed_ms = started.elapsed().as_millis(),
             "connector message event dispatch starting"
         );
-        if let Err(err) =
-            dispatch_connector_message(&self.gateway.control_plane(), &route, &consumer, &event)
-                .await
+        let dispatch = match dispatch_connector_message(
+            &self.gateway.control_plane(),
+            &route,
+            &consumer,
+            &event,
+        )
+        .await
         {
-            if let Err(delete_err) = self.gateway.kv.delete(&event_key).await {
+            Ok(outcome) => outcome,
+            Err(err) => {
+                if let Err(delete_err) = self.gateway.kv.delete(&event_key).await {
+                    tracing::warn!(
+                        error = %delete_err,
+                        registration_id = %event.registration_id,
+                        event_id = %event.event_id,
+                        "failed to release connector event reservation after dispatch error"
+                    );
+                }
                 tracing::warn!(
-                    error = %delete_err,
+                    error = %err,
                     registration_id = %event.registration_id,
+                    connector_class = %event.connector_class,
                     event_id = %event.event_id,
-                    "failed to release connector event reservation after dispatch error"
+                    class_namespace = %class.namespace,
+                    class_name = %class.name,
+                    connector_namespace = %connector_ref.namespace,
+                    connector_name = %connector_ref.name,
+                    route_uid = %route.connector_uid,
+                    elapsed_ms = started.elapsed().as_millis(),
+                    "connector message event dispatch failed"
                 );
+                return Err(err);
             }
-            tracing::warn!(
-                error = %err,
-                registration_id = %event.registration_id,
-                connector_class = %event.connector_class,
-                event_id = %event.event_id,
-                class_namespace = %class.namespace,
-                class_name = %class.name,
-                connector_namespace = %connector_ref.namespace,
-                connector_name = %connector_ref.name,
-                route_uid = %route.connector_uid,
-                elapsed_ms = started.elapsed().as_millis(),
-                "connector message event dispatch failed"
-            );
-            return Err(err);
-        }
+        };
 
         tracing::info!(
             registration_id = %event.registration_id,
@@ -295,7 +307,7 @@ impl GrpcGatewayHandler {
                 reason: String::new(),
                 namespace: connector.namespace.clone(),
                 connector_name: connector.name.clone(),
-                consumer: Some(consumer),
+                consumer: Some(dispatch.consumer),
             },
         ))
     }
@@ -1105,7 +1117,7 @@ async fn dispatch_connector_message(
     route: &data_proto::Route,
     consumer: &data_proto::MessageConsumer,
     event: &external_proto::ConnectorMessageEvent,
-) -> Result<(), tonic::Status> {
+) -> Result<ConnectorDispatchOutcome, tonic::Status> {
     match (
         consumer.session.as_ref(),
         consumer.channel.as_ref(),
@@ -1140,12 +1152,30 @@ fn message_consumer_kind(consumer: &Option<data_proto::MessageConsumer>) -> &'st
     }
 }
 
+fn resolved_session_consumer(
+    consumer: &data_proto::SessionMessageConsumer,
+    namespace: String,
+    agent: String,
+    session_id: String,
+) -> data_proto::MessageConsumer {
+    let mut accepted_consumer = consumer.clone();
+    accepted_consumer.agent = Some(data_proto::ResourceRef {
+        namespace,
+        name: agent,
+    });
+    accepted_consumer.session_id = session_id;
+    data_proto::MessageConsumer {
+        session: Some(accepted_consumer),
+        ..Default::default()
+    }
+}
+
 async fn dispatch_to_session(
     cp: &ControlPlane,
     route: &data_proto::Route,
     consumer: &data_proto::SessionMessageConsumer,
     event: &external_proto::ConnectorMessageEvent,
-) -> Result<(), tonic::Status> {
+) -> Result<ConnectorDispatchOutcome, tonic::Status> {
     let started = Instant::now();
     let connector = route_connector_ref(route)?;
     let agent = consumer
@@ -1224,7 +1254,14 @@ async fn dispatch_to_session(
         elapsed_ms = started.elapsed().as_millis(),
         "connector message queued for session dispatch"
     );
-    Ok(())
+    Ok(ConnectorDispatchOutcome {
+        consumer: resolved_session_consumer(
+            consumer,
+            agent_namespace,
+            agent_name.to_string(),
+            session_id,
+        ),
+    })
 }
 
 async fn dispatch_to_channel(
@@ -1232,7 +1269,7 @@ async fn dispatch_to_channel(
     route: &data_proto::Route,
     consumer: &data_proto::ChannelMessageConsumer,
     event: &external_proto::ConnectorMessageEvent,
-) -> Result<(), tonic::Status> {
+) -> Result<ConnectorDispatchOutcome, tonic::Status> {
     let connector = route_connector_ref(route)?;
     let channel_ref = consumer
         .channel
@@ -1281,7 +1318,7 @@ async fn dispatch_to_channel(
     .await
     .map_err(internal_error)?;
 
-    super::channels::route_connector_channel_message(
+    let _session_id = super::channels::route_connector_channel_message(
         cp,
         &message,
         agent_name,
@@ -1290,7 +1327,12 @@ async fn dispatch_to_channel(
     )
     .await
     .map_err(map_dispatch_error)?;
-    Ok(())
+    Ok(ConnectorDispatchOutcome {
+        consumer: data_proto::MessageConsumer {
+            channel: Some(consumer.clone()),
+            ..Default::default()
+        },
+    })
 }
 
 async fn dispatch_to_workflow(
@@ -1298,7 +1340,7 @@ async fn dispatch_to_workflow(
     route: &data_proto::Route,
     consumer: &data_proto::WorkflowMessageConsumer,
     event: &external_proto::ConnectorMessageEvent,
-) -> Result<(), tonic::Status> {
+) -> Result<ConnectorDispatchOutcome, tonic::Status> {
     let connector = route_connector_ref(route)?;
     let workflow_namespace = if consumer.namespace.trim().is_empty() {
         connector.namespace.clone()
@@ -1334,7 +1376,12 @@ async fn dispatch_to_workflow(
     crate::worker::workflows::create_run(cp, &workflow, input, labels)
         .await
         .map_err(map_dispatch_error)?;
-    Ok(())
+    Ok(ConnectorDispatchOutcome {
+        consumer: data_proto::MessageConsumer {
+            workflow: Some(consumer.clone()),
+            ..Default::default()
+        },
+    })
 }
 
 async fn connector_session_id(
@@ -1968,5 +2015,36 @@ mod tests {
                 .get_version_num(),
             7
         );
+    }
+
+    #[test]
+    fn resolved_session_consumer_preserves_direct_route_policy() {
+        for (continuity, configured_session_id) in
+            [("", ""), ("reuse", ""), ("pinned", "configured-session")]
+        {
+            let consumer = data_proto::SessionMessageConsumer {
+                agent: Some(data_proto::ResourceRef {
+                    namespace: String::new(),
+                    name: "support-agent".to_string(),
+                }),
+                session_id: configured_session_id.to_string(),
+                continuity: continuity.to_string(),
+                reply_mode: "thread".to_string(),
+            };
+            let resolved = resolved_session_consumer(
+                &consumer,
+                "Tenant/acme".to_string(),
+                "support-agent".to_string(),
+                "selected-session".to_string(),
+            );
+            let session = resolved.session.expect("resolved session consumer");
+            assert_eq!(session.session_id, "selected-session");
+            assert_eq!(session.continuity, continuity);
+            assert_eq!(session.reply_mode, "thread");
+            assert_eq!(
+                session.agent.expect("resolved agent").namespace,
+                "Tenant/acme"
+            );
+        }
     }
 }
