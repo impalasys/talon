@@ -2206,7 +2206,7 @@ mod tests {
             .iter()
             .filter(|(topic, _)| topic == crate::control::topics::SESSION_DISPATCH_TOPIC)
             .map(|(_, bytes)| {
-                crate::control::events::SessionMessageEvent::decode(bytes.as_slice()).unwrap()
+                crate::control::events::SessionDispatchEvent::decode(bytes.as_slice()).unwrap()
             })
             .collect::<Vec<_>>();
         assert_eq!(dispatches.len(), 1);
