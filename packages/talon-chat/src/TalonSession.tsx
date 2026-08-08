@@ -53,6 +53,7 @@ import { editableMessageContent, messageWithEditedContent, replaceMessageTextPar
 import { copyMessageContent } from "./session/copyMessageContent";
 import { formatWorkDuration, formatWorkingDuration } from "./session/sessionTiming";
 import { SessionStyles } from "./session/SessionStyles";
+import { ConnectorDeliveryControls } from "./session/ConnectorDeliveryControls";
 import {
   AssistantTimeline,
   coalesceAssistantTimelineForDisplay,
@@ -211,8 +212,6 @@ const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const LABEL_CONNECTOR_DELIVERY_STATUS = "talon.impalasys.com/connector-delivery-status";
 const LABEL_CONNECTOR_DELIVERY_ERROR = "talon.impalasys.com/connector-delivery-error";
 const CONNECTOR_DELIVERY_PENDING_REVIEW = "pending_review";
-const CONNECTOR_DELIVERY_REQUESTED = "delivery_requested";
-const CONNECTOR_DELIVERY_SKIPPED = "skipped";
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -868,39 +867,11 @@ export function TalonSession({
               </div>
             ) : null}
 
-            {isPendingConnectorDelivery ? (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 8,
-                  marginBottom: 8,
-                  color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
-                  fontSize: 12,
-                }}
-              >
-                <span>Pending send</span>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <button
-                    type="button"
-                    disabled={isReviewActionPending || isEditingMessage}
-                    onClick={() => void updateConnectorDeliveryStatus(message, CONNECTOR_DELIVERY_REQUESTED)}
-                    style={{ border: "none", background: "transparent", color: "var(--talon-chat-accent-fg, #047857)", cursor: isReviewActionPending || isEditingMessage ? "not-allowed" : "pointer", fontWeight: 700, padding: "2px 4px", opacity: isReviewActionPending || isEditingMessage ? 0.55 : 1 }}
-                  >
-                    Send
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isReviewActionPending || isEditingMessage}
-                    onClick={() => void updateConnectorDeliveryStatus(message, CONNECTOR_DELIVERY_SKIPPED)}
-                    style={{ border: "none", background: "transparent", color: "inherit", cursor: isReviewActionPending || isEditingMessage ? "not-allowed" : "pointer", padding: "2px 4px", opacity: isReviewActionPending || isEditingMessage ? 0.55 : 1 }}
-                  >
-                    Skip
-                  </button>
-                </div>
-              </div>
-            ) : null}
+            {isPendingConnectorDelivery ? <ConnectorDeliveryControls
+              message={message}
+              disabled={isReviewActionPending || isEditingMessage}
+              onUpdate={(target, status) => void updateConnectorDeliveryStatus(target, status)}
+            /> : null}
 
             {isEditingMessage ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
