@@ -111,7 +111,10 @@ pub async fn queue_session_message(
         }
     }
 
-    let entry_id = format!("{:020}-{queue_entry_suffix}", message.created_at);
+    // Queue order is the order Talon admitted messages, not a producer supplied
+    // timestamp. Connector event times may arrive out of order, and using them
+    // here would allow a later accepted message to overtake an earlier one.
+    let entry_id = format!("{now_micros:020}-{queue_entry_suffix}");
     kv.set_msg(
         &keys::session_queue_entry(ns, agent, session_id, queue, &entry_id),
         &message,

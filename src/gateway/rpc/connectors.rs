@@ -2238,12 +2238,12 @@ mod tests {
             (
                 "event-1",
                 "first queued connector message",
-                1_700_000_000_000,
+                1_700_000_001_000,
             ),
             (
                 "event-2",
                 "second queued connector message",
-                1_700_000_001_000,
+                1_700_000_000_000,
             ),
         ] {
             dispatch_to_session(
