@@ -52,6 +52,7 @@ import { useTranscriptPaginationAnchor } from "./session/hooks/useTranscriptPagi
 import { useTranscriptScrollState } from "./session/hooks/useTranscriptScrollState";
 import { fetchResourceFromGateway } from "./lib/resourceLoader";
 import { editableMessageContent, messageWithEditedContent, replaceMessageTextPart } from "./session/messageEditing";
+import { copyMessageContent } from "./session/copyMessageContent";
 import { formatWorkDuration, formatWorkingDuration } from "./session/sessionTiming";
 import {
   AssistantMessageTimeline,
@@ -769,31 +770,6 @@ export function TalonSession({
   useEffect(() => {
     clearResourcePaneState();
   }, [agent, clearResourcePaneState, currentSession?.sessionId, namespace, sessionId]);
-
-  const copyMessageContent = useCallback(async (message: CopilotMessage) => {
-    const nextContent = editableMessageContent(message);
-    if (!nextContent.trim()) {
-      return;
-    }
-    try {
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard API is unavailable.");
-      }
-      await navigator.clipboard.writeText(nextContent);
-    } catch {
-      const selection = window.getSelection();
-      const textArea = document.createElement("textarea");
-      textArea.value = nextContent;
-      textArea.setAttribute("readonly", "");
-      textArea.style.position = "fixed";
-      textArea.style.left = "-9999px";
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      selection?.removeAllRanges();
-    }
-  }, []);
 
   const renderedMessages = useMemo(() => {
     return messages.map((message, messageIndex) => {
