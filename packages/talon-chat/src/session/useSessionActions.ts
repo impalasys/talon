@@ -15,7 +15,7 @@ import type {
   TalonSessionCommand,
   TalonSessionPendingImageAttachment,
   TalonSessionSubmitContext,
-} from "../TalonSession";
+} from "./TalonSessionTypes";
 
 type SessionActionsClient = Pick<TalonClient["sessions"], "create" | "submitTurn">;
 type RefreshSession = (target: SessionTarget, signal?: AbortSignal) => Promise<SessionHistoryPage | null>;
@@ -180,6 +180,7 @@ export function useSessionActions({
           namespace,
           agent,
           sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
+          attachments: pendingAttachments,
           imageAttachments: pendingAttachments,
           ensureSession,
           clearInput: () => setInput(""),
