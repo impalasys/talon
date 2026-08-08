@@ -1231,13 +1231,24 @@ async fn dispatch_to_session(
         elapsed_ms = started.elapsed().as_millis(),
         "connector message dispatching to session"
     );
-    scheduling::send_session_message(
+    crate::control::session_queue::queue_session_message(
+        cp.kv.as_ref(),
+        &agent_namespace,
+        agent_name,
+        &session_id,
+        crate::control::session_queue::NEXT_QUEUE,
+        message,
+        chrono::Utc::now(),
+    )
+    .await
+    .map_err(map_dispatch_error)?;
+    crate::control::session_queue::dispatch_next_queued_message(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
         &agent_namespace,
         agent_name,
         &session_id,
-        message,
+        crate::control::session_queue::NEXT_QUEUE,
         chrono::Utc::now(),
     )
     .await
@@ -1989,6 +2000,99 @@ fn map_dispatch_error(err: anyhow::Error) -> tonic::Status {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::{keys, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
+    use crate::test_support::{MockKvStore, RecordingPubSub};
+    use chrono::Utc;
+    use prost::Message;
+    use std::sync::Arc;
+
+    const TEST_NAMESPACE: &str = "conic:test";
+    const TEST_AGENT: &str = "connector-agent";
+    const TEST_SESSION: &str = "session-1";
+
+    async fn put_session(kv: &MockKvStore, status: &str, last_active: i64) {
+        kv.set_msg(
+            &keys::session(TEST_NAMESPACE, TEST_AGENT, TEST_SESSION),
+            &data_proto::Session {
+                id: TEST_SESSION.to_string(),
+                agent: TEST_AGENT.to_string(),
+                ns: TEST_NAMESPACE.to_string(),
+                status: status.to_string(),
+                created_at: 1,
+                last_active,
+                metadata: Default::default(),
+                labels: Default::default(),
+                context_tokens: None,
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    fn test_route() -> data_proto::Route {
+        data_proto::Route {
+            connector_uid: "connector-uid".to_string(),
+            connector: Some(data_proto::ResourceRef {
+                namespace: TEST_NAMESPACE.to_string(),
+                name: "room-one".to_string(),
+            }),
+            consumer: None,
+        }
+    }
+
+    fn test_consumer() -> data_proto::SessionMessageConsumer {
+        data_proto::SessionMessageConsumer {
+            agent: Some(data_proto::ResourceRef {
+                namespace: TEST_NAMESPACE.to_string(),
+                name: TEST_AGENT.to_string(),
+            }),
+            session_id: TEST_SESSION.to_string(),
+            continuity: "pinned".to_string(),
+            reply_mode: String::new(),
+        }
+    }
+
+    fn test_event(
+        event_id: &str,
+        text: &str,
+        event_time_ms: i64,
+    ) -> external_proto::ConnectorMessageEvent {
+        external_proto::ConnectorMessageEvent {
+            event_id: event_id.to_string(),
+            event_kind: external_proto::ConnectorMessageEventKind::Created as i32,
+            registration_id: format!("Namespace/{TEST_NAMESPACE}/ConnectorClass/mock-chat"),
+            connector_class: "mock-chat".to_string(),
+            external_conversation_id: "room-1".to_string(),
+            external_message_id: format!("provider-{event_id}"),
+            conversation_type: "room".to_string(),
+            text: text.to_string(),
+            event_time_ms,
+            ..Default::default()
+        }
+    }
+
+    fn control_plane(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> ControlPlane {
+        ControlPlane::builder(kv, pubsub).build()
+    }
+
+    async fn queued_messages(kv: &MockKvStore) -> Vec<data_proto::SessionMessage> {
+        let entries = kv
+            .list_entries(
+                &keys::session_queue_prefix(
+                    TEST_NAMESPACE,
+                    TEST_AGENT,
+                    TEST_SESSION,
+                    crate::control::session_queue::NEXT_QUEUE,
+                ),
+                None,
+            )
+            .await
+            .unwrap();
+        entries
+            .into_iter()
+            .map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).unwrap())
+            .collect()
+    }
 
     #[test]
     fn connector_session_message_uses_chronological_uuid_message_id() {
@@ -2046,5 +2150,124 @@ mod tests {
                 "Tenant/acme"
             );
         }
+    }
+
+    #[tokio::test]
+    async fn connector_session_dispatch_queues_when_the_pinned_session_is_busy() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        put_session(&kv, "PROCESSING", Utc::now().timestamp_micros()).await;
+        let cp = control_plane(kv.clone(), pubsub.clone());
+
+        dispatch_to_session(
+            &cp,
+            &test_route(),
+            &test_consumer(),
+            &test_event("event-1", "queued connector message", 1_700_000_000_000),
+        )
+        .await
+        .unwrap();
+
+        let queued = queued_messages(&kv).await;
+        assert_eq!(queued.len(), 1);
+        assert_eq!(queued[0].id, "");
+        assert_eq!(queued[0].parts[0].content, "queued connector message");
+        assert_eq!(
+            queued[0].labels.get(LABEL_CONNECTOR_EVENT),
+            Some(&"event-1".to_string())
+        );
+        assert!(pubsub
+            .published
+            .lock()
+            .await
+            .iter()
+            .all(|(topic, _)| { topic != crate::control::topics::SESSION_DISPATCH_TOPIC }));
+    }
+
+    #[tokio::test]
+    async fn connector_session_dispatch_immediately_dispatches_when_the_session_is_idle() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        put_session(&kv, "IDLE", 1).await;
+        let cp = control_plane(kv.clone(), pubsub.clone());
+
+        dispatch_to_session(
+            &cp,
+            &test_route(),
+            &test_consumer(),
+            &test_event("event-1", "immediate connector message", 1_700_000_000_000),
+        )
+        .await
+        .unwrap();
+
+        assert!(queued_messages(&kv).await.is_empty());
+        let published = pubsub.published.lock().await;
+        let dispatches = published
+            .iter()
+            .filter(|(topic, _)| topic == crate::control::topics::SESSION_DISPATCH_TOPIC)
+            .map(|(_, bytes)| {
+                crate::control::events::SessionMessageEvent::decode(bytes.as_slice()).unwrap()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(dispatches.len(), 1);
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&keys::session_message(
+                TEST_NAMESPACE,
+                TEST_AGENT,
+                TEST_SESSION,
+                &dispatches[0].message_id,
+            ))
+            .await
+            .unwrap()
+            .expect("canonical session message should exist");
+        assert_eq!(message.parts[0].content, "immediate connector message");
+        assert_eq!(message.created_at, 1_700_000_000_000_000);
+        assert_eq!(message.parts[0].created_at, 1_700_000_000_000_000);
+        assert_eq!(
+            message.labels.get(LABEL_CONNECTOR_EVENT),
+            Some(&"event-1".to_string())
+        );
+    }
+
+    #[tokio::test]
+    async fn busy_connector_session_messages_are_queued_in_event_order() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        put_session(&kv, "PROCESSING", Utc::now().timestamp_micros()).await;
+        let cp = control_plane(kv.clone(), pubsub);
+
+        for (event_id, text, event_time_ms) in [
+            (
+                "event-1",
+                "first queued connector message",
+                1_700_000_001_000,
+            ),
+            (
+                "event-2",
+                "second queued connector message",
+                1_700_000_000_000,
+            ),
+        ] {
+            dispatch_to_session(
+                &cp,
+                &test_route(),
+                &test_consumer(),
+                &test_event(event_id, text, event_time_ms),
+            )
+            .await
+            .unwrap();
+        }
+
+        let queued = queued_messages(&kv).await;
+        assert_eq!(
+            queued
+                .iter()
+                .map(|message| message.parts[0].content.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "first queued connector message",
+                "second queued connector message"
+            ]
+        );
     }
 }
