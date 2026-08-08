@@ -1260,11 +1260,25 @@ impl PubSubSessionSink {
             usage_events: *self.usage_events.lock().unwrap(),
         }
     }
+
+    pub async fn clear_provider_continuation(&self) -> Result<()> {
+        sessions::clear_provider_request_id(self.kv.as_ref(), &self.claim).await
+    }
 }
 
 #[async_trait]
 impl ExecutionSink for PubSubSessionSink {
     async fn on_llm_response(&self, response: &ChatResponse) -> Result<()> {
+        // A Responses API response that asks for tools is waiting for matching
+        // function_call_output values on the provider. It remains usable only
+        // in this live executor turn; durable recovery must reconstruct from
+        // local history instead of reviving that incomplete continuation.
+        let mut durable_response = response.clone();
+        if !durable_response.tool_calls.is_empty() {
+            if let Some(counter) = durable_response.usage.as_mut() {
+                counter.provider_request_id = None;
+            }
+        }
         let entry = sessions::append_llm_response(
             self.kv.as_ref(),
             &self.ns,
@@ -1272,14 +1286,23 @@ impl ExecutionSink for PubSubSessionSink {
             &self.session_id,
             &self.submission_id,
             &self.attempt_id,
-            response,
+            &durable_response,
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
         if let Some(counter) = response.usage.as_ref() {
+            // A Responses API response containing function calls is not a
+            // durable continuation point until every call has been answered.
+            // Keep the ID in the executor's in-memory counter for this turn,
+            // but never let cancellation/crash recovery resume this server-side
+            // response without its required function_call_output items.
+            let mut counter = counter.clone();
+            if !response.tool_calls.is_empty() {
+                counter.provider_request_id = None;
+            }
             if let Err(error) =
-                sessions::persist_context_tokens(self.kv.as_ref(), &self.claim, counter).await
+                sessions::persist_context_tokens(self.kv.as_ref(), &self.claim, &counter).await
             {
                 tracing::error!(
                     error = %error,
@@ -3023,6 +3046,107 @@ mod tests {
         .await
         .unwrap();
         assert_eq!(journal_entries.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn tool_call_response_does_not_persist_provider_continuation_id() {
+        use crate::control::ProtoKeyValueStoreExt;
+        use crate::harness::llm::{ChatResponse, ToolCall};
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let session_key = keys::session("conic", "infra", "session-1");
+        kv.set_msg(
+            &session_key,
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "infra".to_string(),
+                ns: "conic".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 1,
+                metadata: Default::default(),
+                labels: Default::default(),
+                context_tokens: None,
+            },
+        )
+        .await
+        .unwrap();
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+        sink.on_llm_response(&ChatResponse {
+            content: String::new(),
+            tool_calls: vec![ToolCall {
+                id: "call-1".to_string(),
+                name: "lookup".to_string(),
+                arguments: "{}".to_string(),
+            }],
+            usage: Some(TokenCounter {
+                provider_request_id: Some("resp-pending-tool".to_string()),
+                provider: "openai".to_string(),
+                model: "gpt-test".to_string(),
+                ..Default::default()
+            }),
+        })
+        .await
+        .unwrap();
+        let session = kv
+            .get_msg::<data_proto::Session>(&session_key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(session
+            .context_tokens
+            .unwrap()
+            .provider_request_id
+            .is_none());
+        let entries = sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap();
+        let persisted_response = entries[0]
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+            .and_then(|payload| match payload {
+                data_proto::session_journal_entry_payload::Payload::LlmResponse(response) => {
+                    response.response.as_ref()
+                }
+                _ => None,
+            })
+            .expect("LLM response should be journaled");
+        assert!(persisted_response
+            .usage
+            .as_ref()
+            .and_then(|usage| usage.provider_request_id.as_ref())
+            .is_none());
     }
 
     #[tokio::test]
