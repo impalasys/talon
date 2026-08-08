@@ -36,6 +36,7 @@
     "build-storybook": "storybook build",
     "chromatic": "chromatic --config-file chromatic.config.json",
     "clean": "rm -rf dist",
+    "lint:complexity": "eslint \"src/**/*.{ts,tsx}\"",
     "prepack": "pnpm run build",
     "prebuild-storybook": "pnpm --dir ../../sdk/js/talon-client build",
     "screenshots": "node scripts/capture-storybook-screenshots.mjs",
@@ -66,9 +67,12 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "chromatic": "^17.2.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-sonarjs": "^3.0.7",
     "storybook": "^10.4.2",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.66.0",
     "vite": "^8.0.16"
   }
 }
