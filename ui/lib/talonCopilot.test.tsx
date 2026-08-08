@@ -881,13 +881,13 @@ describe('TalonCopilot', () => {
     warnSpy.mockRestore();
   });
 
-  it('shows an inline error when lazy CAS tool result hydration fails', async () => {
+  it('keeps an errored session visible when historical output hydration fails', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     const gatewayClient = {
       createSession: jest.fn(),
       listSessionMessages: jest.fn().mockResolvedValue({
         sessionId: 'sess-cas-fail',
-        state: 'IDLE',
+        state: 'ERROR',
         items: [
           {
             message: {
@@ -937,11 +937,15 @@ describe('TalonCopilot', () => {
     );
 
     expect(await screen.findByText('Done after failed hydrate.')).toBeInTheDocument();
+    expect(screen.getByText('Session Incident')).toBeInTheDocument();
+    expect(screen.getByText(/This session previously encountered an error/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ask Talon to perform a task...')).toBeInTheDocument();
     expect(gatewayClient.cas.getObject).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
     fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
 
-    expect(await screen.findByText('Could not load output.')).toBeInTheDocument();
+    expect(await screen.findByText('Historical output is unavailable.')).toBeInTheDocument();
+    expect(screen.getByText('Developer details')).toBeInTheDocument();
     expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
     expect(warnSpy).toHaveBeenCalledWith(
       'Could not hydrate CAS tool-result object',

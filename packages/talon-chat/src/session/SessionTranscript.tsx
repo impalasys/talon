@@ -9,6 +9,7 @@ export type SessionTranscriptProps = {
   hasTrailingUserMessage: boolean;
   workingLabel?: string | null;
   error: Error | null;
+  incident?: string | null;
   scrollThumb: SessionScrollThumb;
   transcriptRef: React.RefObject<HTMLDivElement | null>;
   bottomRef: React.RefObject<HTMLDivElement | null>;
@@ -25,6 +26,7 @@ export function SessionTranscript({
   hasTrailingUserMessage,
   workingLabel,
   error,
+  incident,
   scrollThumb,
   transcriptRef,
   bottomRef,
@@ -48,7 +50,7 @@ export function SessionTranscript({
               </div>
             </div>
           ) : null}
-          {error ? (
+          {error || incident ? (
             <div style={{ display: "flex", gap: "1rem" }}>
               <div style={{ flexShrink: 0 }}>
                 <div style={{ width: 24, height: 24, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(254,226,226,1)", border: border("rgba(252,165,165,1)") }}>
@@ -56,9 +58,9 @@ export function SessionTranscript({
                 </div>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(220,38,38,1)" }}>System Incident</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(220,38,38,1)" }}>Session Incident</span>
                 <div style={{ fontSize: 13, borderRadius: 10, background: "rgba(254,242,242,1)", border: border("rgba(252,165,165,0.6)"), color: "rgba(220,38,38,1)", padding: 12, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
-                  {error.message || "An error occurred while connecting to the agent."}
+                  {error?.message || incident || "An error occurred while connecting to the agent."}
                 </div>
               </div>
             </div>
