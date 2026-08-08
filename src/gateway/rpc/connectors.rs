@@ -2221,6 +2221,8 @@ mod tests {
             .unwrap()
             .expect("canonical session message should exist");
         assert_eq!(message.parts[0].content, "immediate connector message");
+        assert_eq!(message.created_at, 1_700_000_000_000_000);
+        assert_eq!(message.parts[0].created_at, 1_700_000_000_000_000);
         assert_eq!(
             message.labels.get(LABEL_CONNECTOR_EVENT),
             Some(&"event-1".to_string())

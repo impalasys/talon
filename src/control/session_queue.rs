@@ -230,9 +230,13 @@ async fn publish_queued_message(
 ) -> Result<DispatchedQueuedSessionMessage> {
     let now_micros = now.timestamp_micros();
     message.id = crate::control::uuid::session_message_id();
-    message.created_at = now_micros;
+    if message.created_at == 0 {
+        message.created_at = now_micros;
+    }
     for part in &mut message.parts {
-        part.created_at = now_micros;
+        if part.created_at == 0 {
+            part.created_at = message.created_at;
+        }
     }
 
     let message_key = keys::session_message(ns, agent, session_id, &message.id);
@@ -484,11 +488,11 @@ mod tests {
             .unwrap()
             .expect("dispatched message should be stored");
         assert_eq!(stored_message.id, dispatched.message_id);
-        assert_eq!(stored_message.created_at, dispatched_at.timestamp_micros());
+        assert_eq!(stored_message.created_at, queued_at.timestamp_micros());
         assert!(stored_message
             .parts
             .iter()
-            .all(|part| part.created_at == dispatched_at.timestamp_micros()));
+            .all(|part| part.created_at == queued_at.timestamp_micros()));
         assert!(kv
             .get_msg::<SessionSubmission>(&keys::session_submission(
                 "Tenant:acme:Ops",
