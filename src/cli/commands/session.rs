@@ -640,7 +640,22 @@ fn session_response_json(response: &talon_client::v1::SessionResponse) -> serde_
         "agent": response.agent,
         "state": response.state,
         "labels": response.labels,
+        "contextTokens": response.context_tokens.as_ref().map(token_counter_json),
         "messages": response.messages.iter().map(session_message_json).collect::<Vec<_>>(),
+    })
+}
+
+fn token_counter_json(counter: &data_proto::TokenCounter) -> serde_json::Value {
+    json!({
+        "inputTokens": counter.input_tokens,
+        "outputTokens": counter.output_tokens,
+        "reasoningOutputTokens": counter.reasoning_output_tokens,
+        "totalTokens": counter.total_tokens,
+        "cachedInputTokens": counter.cached_input_tokens,
+        "usageAvailable": counter.usage_available,
+        "providerRequestId": counter.provider_request_id,
+        "provider": counter.provider,
+        "model": counter.model,
     })
 }
 
@@ -807,5 +822,27 @@ mod tests {
         assert_eq!(value["role"], "assistant");
         assert_eq!(value["parts"][0]["type"], "text");
         assert_eq!(value["parts"][0]["content"], "hello");
+    }
+
+    #[test]
+    fn session_response_json_renders_context_tokens() {
+        let response = talon_client::v1::SessionResponse {
+            session_id: "s1".to_string(),
+            agent: "main".to_string(),
+            state: "IDLE".to_string(),
+            context_tokens: Some(data_proto::TokenCounter {
+                provider_request_id: Some("resp_1".to_string()),
+                provider: "openai".to_string(),
+                model: "gpt-5.6-luna".to_string(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        let value = session_response_json(&response);
+
+        assert_eq!(value["contextTokens"]["providerRequestId"], "resp_1");
+        assert_eq!(value["contextTokens"]["provider"], "openai");
+        assert_eq!(value["contextTokens"]["model"], "gpt-5.6-luna");
     }
 }
