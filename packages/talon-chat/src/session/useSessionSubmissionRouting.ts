@@ -52,6 +52,7 @@ export function useSessionSubmissionRouting({
         namespace,
         agent,
         sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
+        attachments,
         imageAttachments: attachments,
         ensureSession,
         clearInput: () => setInput(""),
