@@ -137,14 +137,16 @@ class LlmProviderConfig(_message.Message):
     def __init__(self, openai: _Optional[_Union[OpenAiConfig, _Mapping]] = ..., anthropic: _Optional[_Union[AnthropicConfig, _Mapping]] = ..., google: _Optional[_Union[GoogleConfig, _Mapping]] = ..., openai_compatible: _Optional[_Union[GenericConfig, _Mapping]] = ...) -> None: ...
 
 class OpenAiConfig(_message.Message):
-    __slots__ = ("model", "api_key", "org_id")
+    __slots__ = ("model", "api_key", "org_id", "api")
     MODEL_FIELD_NUMBER: _ClassVar[int]
     API_KEY_FIELD_NUMBER: _ClassVar[int]
     ORG_ID_FIELD_NUMBER: _ClassVar[int]
+    API_FIELD_NUMBER: _ClassVar[int]
     model: str
     api_key: Secret
     org_id: str
-    def __init__(self, model: _Optional[str] = ..., api_key: _Optional[_Union[Secret, _Mapping]] = ..., org_id: _Optional[str] = ...) -> None: ...
+    api: str
+    def __init__(self, model: _Optional[str] = ..., api_key: _Optional[_Union[Secret, _Mapping]] = ..., org_id: _Optional[str] = ..., api: _Optional[str] = ...) -> None: ...
 
 class AnthropicConfig(_message.Message):
     __slots__ = ("model", "api_key")
