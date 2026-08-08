@@ -11,7 +11,6 @@ import {
   getMessageUsage,
   hydrateMessagesWithSteps,
   normalizeMessageRole,
-  type AssistantTimelineItem,
   type CopilotMessage,
 } from "./lib/chatTimeline";
 import { TalonChatComposer, type TalonChatComposerVariant } from "./lib/TalonChatComposer";
@@ -33,7 +32,6 @@ import {
   messagePartsForSessionUpdate,
   parsePayloadJson,
   protoSessionPartsFromChatParts,
-  isSessionTextPart,
 } from "./session/protocol";
 import {
   normalizeObjectRefForJson,
@@ -53,6 +51,7 @@ import { useTranscriptExpansionState } from "./session/hooks/useTranscriptExpans
 import { useTranscriptPaginationAnchor } from "./session/hooks/useTranscriptPaginationAnchor";
 import { useTranscriptScrollState } from "./session/hooks/useTranscriptScrollState";
 import { fetchResourceFromGateway } from "./lib/resourceLoader";
+import { editableMessageContent, messageWithEditedContent, replaceMessageTextPart } from "./session/messageEditing";
 import {
   AssistantMessageTimeline,
   coalesceAssistantMessageTimelineForDisplay,
@@ -306,34 +305,6 @@ function getAssistantSignature(messages: any[] | undefined) {
     .join("|");
 }
 
-function replaceMessageTextPart(message: CopilotMessage, text: string) {
-  const sourceParts = Array.isArray(message.parts) ? message.parts : [];
-  const parts = sourceParts.map((part: any) => part && typeof part === "object" ? { ...part } : part);
-  let textPartIndex = -1;
-  for (let index = parts.length - 1; index >= 0; index -= 1) {
-    if (isSessionTextPart(parts[index])) {
-      textPartIndex = index;
-      break;
-    }
-  }
-  if (textPartIndex >= 0) {
-    const part = parts[textPartIndex] as any;
-    if ("text" in part) {
-      part.text = text;
-    } else {
-      part.content = text;
-    }
-    return parts;
-  }
-  return [
-    ...parts,
-    {
-      partType: SESSION_MESSAGE_PART_TYPE.TEXT,
-      content: text,
-    },
-  ];
-}
-
 function messageImageParts(
   message: CopilotMessage,
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined,
@@ -408,49 +379,6 @@ function formatWorkingDuration(start: unknown, now = Date.now()) {
 function isSessionBusyError(error: unknown) {
   const candidate = error as { message?: unknown } | null;
   return typeof candidate?.message === "string" && /session is currently generating|session is busy/i.test(candidate.message);
-}
-
-function messageWithEditedContent(message: CopilotMessage, nextContent: string): CopilotMessage {
-  const nextMessage: CopilotMessage = { ...message, content: nextContent };
-  if (Array.isArray(nextMessage.parts)) {
-    let replacedTextPart = false;
-    nextMessage.parts = nextMessage.parts.map((part: any) => {
-      if (!part || typeof part !== "object") {
-        return part;
-      }
-      const type = part?.partType ?? part?.part_type ?? part?.type;
-      const isTextPart =
-        type === "text" ||
-        type === SESSION_MESSAGE_PART_TYPE.TEXT ||
-        type === "SESSION_MESSAGE_PART_TYPE_TEXT";
-      if (!isTextPart || replacedTextPart) {
-        return part;
-      }
-      replacedTextPart = true;
-      const nextPart = { ...part };
-      if ("text" in nextPart) nextPart.text = nextContent;
-      if ("content" in nextPart) nextPart.content = nextContent;
-      return nextPart;
-    });
-  }
-  if (message.role === "assistant") {
-    nextMessage.timeline = [{ type: "text", text: nextContent }];
-  }
-  return nextMessage;
-}
-
-function editableMessageContent(message: CopilotMessage) {
-  if (message.role === "assistant") {
-    const timeline = coalesceAssistantMessageTimelineForDisplay(getMessageAssistantTimeline(message));
-    const { finalTimeline } = splitAssistantMessageTimeline(timeline);
-    const visibleTextTimeline = finalTimeline.length > 0 ? finalTimeline : timeline;
-    const textItems = visibleTextTimeline
-      .filter((item): item is Extract<AssistantTimelineItem, { type: "text" }> => item.type === "text");
-    if (textItems.length > 0) {
-      return textItems.map((item) => item.text).join("");
-    }
-  }
-  return getMessageContent(message);
 }
 
 export function TalonSession({
