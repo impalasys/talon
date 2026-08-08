@@ -1,4 +1,4 @@
-import type { TalonChatObjectRef, TalonImageUploadResult } from "../TalonSession";
+import type { TalonAttachmentUploadResult, TalonChatObjectRef } from "../TalonSession";
 
 export function objectRefMediaType(object: TalonChatObjectRef | undefined): string {
   return object?.mediaType || object?.media_type || "";
@@ -25,9 +25,12 @@ export function normalizeObjectRef(object: TalonChatObjectRef): TalonChatObjectR
   };
 }
 
-export function normalizeImageUploadResult(result: TalonImageUploadResult): TalonChatObjectRef {
+export function normalizeAttachmentUploadResult(result: TalonAttachmentUploadResult): TalonChatObjectRef {
   return "object" in result ? result.object : result;
 }
+
+/** @deprecated Use normalizeAttachmentUploadResult. */
+export const normalizeImageUploadResult = normalizeAttachmentUploadResult;
 
 export function objectRefFromValue(value: unknown): TalonChatObjectRef | undefined {
   if (!value || typeof value !== "object") return undefined;

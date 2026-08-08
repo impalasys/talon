@@ -1944,7 +1944,7 @@ describe('TalonCopilot', () => {
     });
     const createObjectURL = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:preview-photo');
     jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
-    const onImageUpload = jest.fn().mockResolvedValue({
+    const onAttachmentUpload = jest.fn().mockResolvedValue({
       key: 'sessions/sess-img/uploads/photo.png',
       mediaType: 'image/png',
       sizeBytes: 12,
@@ -1973,7 +1973,7 @@ describe('TalonCopilot', () => {
         namespace="ops"
         agent="copilot"
         gatewayUrl="http://localhost:18789"
-        onImageUpload={onImageUpload}
+        onAttachmentUpload={onAttachmentUpload}
       />,
     );
 
@@ -1988,7 +1988,7 @@ describe('TalonCopilot', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
-    await waitFor(() => expect(onImageUpload).toHaveBeenCalledWith(expect.objectContaining({
+    await waitFor(() => expect(onAttachmentUpload).toHaveBeenCalledWith(expect.objectContaining({
       file,
       namespace: 'ops',
       agent: 'copilot',

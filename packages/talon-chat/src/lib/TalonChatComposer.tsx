@@ -118,11 +118,23 @@ export type TalonChatComposerProps = {
   commandMenuItems?: TalonChatComposerCommandMenuItem[];
   startAdornment?: React.ReactNode;
   endAdornment?: React.ReactNode;
+  attachments?: TalonChatComposerAttachment[];
+  attachmentUploadEnabled?: boolean;
+  attachmentAccept?: string;
+  attachmentButtonLabel?: string;
+  onAttachmentFilesSelected?: (files: File[]) => void;
+  onRemoveAttachment?: (id: string) => void;
+  /** @deprecated Use attachments. */
   imageAttachments?: TalonChatComposerImageAttachment[];
+  /** @deprecated Use attachmentUploadEnabled. */
   imageUploadEnabled?: boolean;
+  /** @deprecated Use attachmentAccept. */
   imageAccept?: string;
+  /** @deprecated Use attachmentButtonLabel. */
   imageButtonLabel?: string;
+  /** @deprecated Use onAttachmentFilesSelected. */
   onImageFilesSelected?: (files: File[]) => void;
+  /** @deprecated Use onRemoveAttachment. */
   onRemoveImageAttachment?: (id: string) => void;
   style?: React.CSSProperties;
 };
@@ -133,13 +145,17 @@ export type TalonChatComposerCommandMenuItem = {
   description?: string;
 };
 
-export type TalonChatComposerImageAttachment = {
+export type TalonChatComposerAttachment = {
   id: string;
   filename: string;
-  previewUrl: string;
+  previewUrl?: string;
+  mediaType?: string;
   status?: "queued" | "uploading" | "ready" | "error";
   error?: string;
 };
+
+/** @deprecated Use TalonChatComposerAttachment. */
+export type TalonChatComposerImageAttachment = TalonChatComposerAttachment & { previewUrl: string };
 
 export function TalonChatComposer({
   value,
@@ -162,10 +178,16 @@ export function TalonChatComposer({
   commandMenuItems,
   startAdornment,
   endAdornment,
+  attachments: attachmentValues,
+  attachmentUploadEnabled,
+  attachmentAccept,
+  attachmentButtonLabel,
+  onAttachmentFilesSelected,
+  onRemoveAttachment,
   imageAttachments,
-  imageUploadEnabled = false,
-  imageAccept = "image/png,image/jpeg,image/gif,image/webp",
-  imageButtonLabel = "Add image",
+  imageUploadEnabled,
+  imageAccept,
+  imageButtonLabel,
   onImageFilesSelected,
   onRemoveImageAttachment,
   style,
@@ -185,7 +207,12 @@ export function TalonChatComposer({
   const controlsBelow = Boolean(variantStyle.controlsBelow);
   const attachmentMenuWidth = controlsBelow ? "auto" : "min(176px, calc(100vw - 48px))";
   const buttonSize = variantStyle.buttonSize;
-  const attachments = imageAttachments ?? [];
+  const attachments = attachmentValues ?? imageAttachments ?? [];
+  const attachmentsEnabled = attachmentUploadEnabled ?? imageUploadEnabled ?? false;
+  const resolvedAttachmentAccept = attachmentAccept ?? imageAccept ?? "image/png,image/jpeg,image/gif,image/webp";
+  const resolvedAttachmentButtonLabel = attachmentButtonLabel ?? imageButtonLabel ?? "Add attachment";
+  const handleAttachmentFilesSelected = onAttachmentFilesSelected ?? onImageFilesSelected;
+  const handleRemoveAttachment = onRemoveAttachment ?? onRemoveImageAttachment;
   const textareaLineHeight = composerTextareaLineHeight;
   const resolvedTextareaMinHeight = Math.max(
     rows > 1 ? textareaMinHeight : buttonSize,
@@ -434,14 +461,23 @@ export function TalonChatComposer({
                 }}
                 title={attachment.error || attachment.filename}
               >
-                <img
-                  src={attachment.previewUrl}
-                  alt={attachment.filename}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
+                {attachment.previewUrl ? (
+                  <img
+                    src={attachment.previewUrl}
+                    alt={attachment.filename}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  <span
+                    aria-label={attachment.filename}
+                    style={{ width: "100%", height: "100%", padding: 8, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", textAlign: "center", fontSize: 11, lineHeight: 1.2, overflowWrap: "anywhere" }}
+                  >
+                    {attachment.filename}
+                  </span>
+                )}
                 {attachment.status === "uploading" ? (
                   <div
-                    aria-label="Uploading image"
+                    aria-label="Uploading attachment"
                     style={{
                       position: "absolute",
                       inset: 0,
@@ -460,7 +496,7 @@ export function TalonChatComposer({
                 <button
                   type="button"
                   aria-label={`Remove ${attachment.filename}`}
-                  onClick={() => onRemoveImageAttachment?.(attachment.id)}
+                  onClick={() => handleRemoveAttachment?.(attachment.id)}
                   style={{
                     position: "absolute",
                     top: 4,
@@ -484,7 +520,7 @@ export function TalonChatComposer({
             ))}
           </div>
         ) : null}
-        {imageUploadEnabled ? (
+        {attachmentsEnabled ? (
           <>
             {showAttachmentMenu && !disabled && !isGenerating ? (
               <div
@@ -568,7 +604,7 @@ export function TalonChatComposer({
                     <ImagePlus size={controlsBelow ? "19" : "17"} strokeWidth="2.1" />
                   </span>
                   <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {imageButtonLabel}
+                    {resolvedAttachmentButtonLabel}
                   </span>
                 </button>
               </div>
@@ -576,7 +612,7 @@ export function TalonChatComposer({
             <input
               ref={fileInputRef}
               type="file"
-              accept={imageAccept}
+              accept={resolvedAttachmentAccept}
               multiple
               tabIndex={-1}
               aria-hidden="true"
@@ -585,7 +621,7 @@ export function TalonChatComposer({
                 const files = Array.from(event.target.files ?? []);
                 event.target.value = "";
                 if (files.length > 0) {
-                  onImageFilesSelected?.(files);
+                  handleAttachmentFilesSelected?.(files);
                 }
               }}
             />

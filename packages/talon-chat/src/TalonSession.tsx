@@ -36,7 +36,6 @@ import {
   isSessionTextPart,
 } from "./session/protocol";
 import {
-  normalizeImageUploadResult,
   normalizeObjectRefForJson,
   objectRefFromPart,
   objectRefMediaType,
@@ -109,7 +108,8 @@ export type TalonSessionCommand = TalonChatCommand<TalonSessionCommandTarget, Co
 
 export type { TalonChatObjectRef } from "./session/types";
 
-export type TalonImageUploadContext = {
+/** Context shared by every attachment uploader. */
+export type TalonAttachmentUploadContext = {
   file: File;
   namespace: string;
   agent: string;
@@ -117,26 +117,36 @@ export type TalonImageUploadContext = {
   signal: AbortSignal;
 };
 
-export type TalonImageUploadResult = TalonChatObjectRef | {
+export type TalonAttachmentUploadResult = TalonChatObjectRef | {
   object: TalonChatObjectRef;
   url?: string;
 };
 
-export type TalonSessionPendingImageAttachment = {
+/** Session-local attachment state; inline previews are optional. */
+export type TalonSessionPendingAttachment = {
   id: string;
   file: File;
-  previewUrl: string;
+  previewUrl?: string;
   object?: TalonChatObjectRef;
   status: "queued" | "uploading" | "ready" | "error";
   error?: string;
 };
+
+/** @deprecated Use TalonAttachmentUploadContext. */
+export type TalonImageUploadContext = TalonAttachmentUploadContext;
+/** @deprecated Use TalonAttachmentUploadResult. */
+export type TalonImageUploadResult = TalonAttachmentUploadResult;
+/** @deprecated Use TalonSessionPendingAttachment. */
+export type TalonSessionPendingImageAttachment = TalonSessionPendingAttachment;
 
 export type TalonSessionSubmitContext = {
   text: string;
   namespace: string;
   agent: string;
   sessionId: string | null;
-  imageAttachments: ReadonlyArray<TalonSessionPendingImageAttachment>;
+  attachments: ReadonlyArray<TalonSessionPendingAttachment>;
+  /** @deprecated Use attachments. */
+  imageAttachments: ReadonlyArray<TalonSessionPendingAttachment>;
   ensureSession: () => Promise<TalonSessionHandle>;
   clearInput: () => void;
   refreshSession: () => Promise<void>;
@@ -166,24 +176,27 @@ export type TalonSessionProps = {
   historyStepLimit?: number;
   commands?: TalonSessionCommand[];
   enabledBuiltInCommands?: TalonBuiltInCommandName[];
-  /**
-   * Uploads an image selected in the composer and returns the stored object ref.
-   * TalonSession performs client-side type and size checks for UX only; callers
-   * must validate file type, size, and content again in this upload handler
-   * before storing or processing the file.
-   */
+  /** Upload boundary for composer attachments; handlers must validate file content. */
+  onAttachmentUpload?: (context: TalonAttachmentUploadContext) => Promise<TalonAttachmentUploadResult>;
+  /** @deprecated Use onAttachmentUpload. */
   onImageUpload?: (context: TalonImageUploadContext) => Promise<TalonImageUploadResult>;
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
+  maxAttachments?: number;
+  maxAttachmentBytes?: number;
+  acceptedAttachmentTypes?: string[];
+  /** @deprecated Use maxAttachments. */
   maxImageAttachments?: number;
   /**
    * Client-side image size limit in bytes. This improves UX only and must be
-   * enforced again by the onImageUpload implementation.
+   * enforced again by the upload implementation.
    */
+  /** @deprecated Use maxAttachmentBytes. */
   maxImageBytes?: number;
   /**
    * Client-side accepted image MIME types. This can be bypassed by callers and
-   * must be enforced again by the onImageUpload implementation.
+   * must be enforced again by the upload implementation.
    */
+  /** @deprecated Use acceptedAttachmentTypes. */
   acceptedImageTypes?: string[];
   composerVariant?: TalonChatComposerVariant;
   composerStartAdornment?: React.ReactNode;
@@ -575,11 +588,15 @@ export function TalonSession({
   historyStepLimit = DEFAULT_HISTORY_STEP_LIMIT,
   commands,
   enabledBuiltInCommands,
+  onAttachmentUpload,
   onImageUpload,
   objectUrlForRef,
-  maxImageAttachments = 4,
-  maxImageBytes = 20 * 1024 * 1024,
-  acceptedImageTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"],
+  maxAttachments,
+  maxAttachmentBytes,
+  acceptedAttachmentTypes,
+  maxImageAttachments,
+  maxImageBytes,
+  acceptedImageTypes,
   composerVariant = "panel",
   composerStartAdornment,
   composerEndAdornment,
@@ -639,11 +656,24 @@ export function TalonSession({
     setServerState(value === "PROCESSING" ? "PROCESSING" : value === "ERROR" ? "ERROR" : value ? "IDLE" : "UNKNOWN");
   }, [setServerState]);
   const [input, setInput] = useState("");
+  const resolvedMaxAttachments = maxAttachments ?? maxImageAttachments ?? 4;
+  const resolvedMaxAttachmentBytes = maxAttachmentBytes ?? maxImageBytes ?? 20 * 1024 * 1024;
+  const resolvedAcceptedAttachmentTypes = acceptedAttachmentTypes ?? acceptedImageTypes ?? ["image/png", "image/jpeg", "image/gif", "image/webp"];
   const {
-    attachments: imageAttachments,
-    attachmentsRef: imageAttachmentsRef,
-    replace: setImageAttachments,
-  } = useSessionAttachments<TalonSessionPendingImageAttachment>();
+    addFiles: addAttachmentFiles,
+    attachments,
+    attachmentsRef,
+    remove: removeAttachment,
+    replace: setAttachments,
+    uploadQueued: uploadQueuedAttachments,
+  } = useSessionAttachments({
+    acceptedTypes: resolvedAcceptedAttachmentTypes,
+    createId: createLocalMessageId,
+    maxAttachments: resolvedMaxAttachments,
+    maxBytes: resolvedMaxAttachmentBytes,
+    onError: setError,
+    onUpload: onAttachmentUpload ?? onImageUpload,
+  });
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [loadingNow, setLoadingNow] = useState(Date.now());
   const error = sessionRuntimeState.error;
@@ -748,8 +778,8 @@ export function TalonSession({
   }, [messages]);
 
   useEffect(() => {
-    imageAttachmentsRef.current = imageAttachments;
-  }, [imageAttachments]);
+    attachmentsRef.current = attachments;
+  }, [attachments, attachmentsRef]);
 
   useEffect(() => {
     currentSessionRef.current = currentSession;
@@ -789,8 +819,8 @@ export function TalonSession({
     return () => {
       abortControllerRef.current?.abort();
       resumeAbortControllerRef.current?.abort();
-      for (const attachment of imageAttachmentsRef.current) {
-        URL.revokeObjectURL(attachment.previewUrl);
+      for (const attachment of attachmentsRef.current) {
+        if (attachment.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
       }
       for (const previewUrl of submittedPreviewUrlsRef.current) {
         URL.revokeObjectURL(previewUrl);
@@ -1561,132 +1591,12 @@ export function TalonSession({
     () => resolvedCommands.map(({ name, aliases, description }) => ({ name, aliases, description })),
     [resolvedCommands],
   );
-  const imageAccept = useMemo(() => acceptedImageTypes.join(","), [acceptedImageTypes]);
-  const acceptedImageTypesSet = useMemo(() => new Set(acceptedImageTypes), [acceptedImageTypes]);
-
-  const removeImageAttachment = useCallback((id: string) => {
-    setImageAttachments((current) => {
-      const removed = current.find((attachment) => attachment.id === id);
-      if (removed) {
-        URL.revokeObjectURL(removed.previewUrl);
-      }
-      return current.filter((attachment) => attachment.id !== id);
-    });
-  }, []);
-
-  const addImageFiles = useCallback((files: File[]) => {
-    if (!onImageUpload) return;
-    setError(null);
-    setImageAttachments((current) => {
-      const availableSlots = Math.max(0, maxImageAttachments - current.length);
-      const next = [...current];
-      for (const file of files.slice(0, availableSlots)) {
-        if (!acceptedImageTypesSet.has(file.type)) {
-          next.push({
-            id: createLocalMessageId(),
-            file,
-            previewUrl: URL.createObjectURL(file),
-            status: "error",
-            error: `Unsupported image type: ${file.type || "unknown"}`,
-          });
-          continue;
-        }
-        if (file.size > maxImageBytes) {
-          next.push({
-            id: createLocalMessageId(),
-            file,
-            previewUrl: URL.createObjectURL(file),
-            status: "error",
-            error: `Image is larger than ${Math.round(maxImageBytes / (1024 * 1024))} MB`,
-          });
-          continue;
-        }
-        next.push({
-          id: createLocalMessageId(),
-          file,
-          previewUrl: URL.createObjectURL(file),
-          status: "queued",
-        });
-      }
-      if (files.length > availableSlots) {
-        setError(new Error(`You can attach up to ${maxImageAttachments} images.`));
-      }
-      return next;
-    });
-  }, [acceptedImageTypesSet, maxImageAttachments, maxImageBytes, onImageUpload]);
-
-  const uploadQueuedImages = useCallback(async (
-    session: { ns: string; agent: string; sessionId: string },
-    signal: AbortSignal,
-  ) => {
-    if (!onImageUpload) return imageAttachmentsRef.current;
-
-    const attachments = imageAttachmentsRef.current;
-    const failed = attachments.find((attachment) => attachment.status === "error");
-    if (failed) {
-      throw new Error(failed.error || `Failed to attach ${failed.file.name}`);
-    }
-
-    const pendingUploads = attachments.filter((attachment) => !attachment.object);
-    if (pendingUploads.length === 0) {
-      return attachments;
-    }
-
-    const pendingIds = new Set(pendingUploads.map((attachment) => attachment.id));
-    const uploadingAttachments = imageAttachmentsRef.current.map((item) =>
-      pendingIds.has(item.id) ? { ...item, status: "uploading" as const, error: undefined } : item,
-    );
-    imageAttachmentsRef.current = uploadingAttachments;
-    setImageAttachments(uploadingAttachments);
-
-    const settled = await Promise.allSettled(pendingUploads.map(async (attachment) => ({
-      id: attachment.id,
-      object: normalizeImageUploadResult(await onImageUpload({
-        file: attachment.file,
-        namespace: session.ns,
-        agent: session.agent,
-        sessionId: session.sessionId,
-        signal,
-      })),
-    })));
-
-    const resultsById = new Map<string, { object?: TalonChatObjectRef; error?: string }>();
-    settled.forEach((result, index) => {
-      const attachment = pendingUploads[index];
-      if (!attachment) return;
-      if (result.status === "fulfilled") {
-        resultsById.set(attachment.id, { object: result.value.object });
-      } else {
-        const reason = result.reason;
-        resultsById.set(attachment.id, {
-          error: reason instanceof Error ? reason.message : String(reason || `Failed to attach ${attachment.file.name}`),
-        });
-      }
-    });
-
-    const nextAttachments = imageAttachmentsRef.current.map((item) => {
-      const result = resultsById.get(item.id);
-      if (!result) return item;
-      return result.object
-        ? { ...item, object: result.object, status: "ready" as const, error: undefined }
-        : { ...item, status: "error" as const, error: result.error || `Failed to attach ${item.file.name}` };
-    });
-    imageAttachmentsRef.current = nextAttachments;
-    setImageAttachments(nextAttachments);
-
-    const uploadFailure = nextAttachments.find((attachment) => attachment.status === "error");
-    if (uploadFailure) {
-      throw new Error(uploadFailure.error || `Failed to attach ${uploadFailure.file.name}`);
-    }
-
-    return nextAttachments;
-  }, [onImageUpload]);
-
+  const attachmentAccept = useMemo(() => resolvedAcceptedAttachmentTypes.join(","), [resolvedAcceptedAttachmentTypes]);
   const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
     let text = submittedText.trim();
-    const pendingAttachments = imageAttachmentsRef.current;
-    const hasImages = pendingAttachments.length > 0;
-    if ((!text && !hasImages) || (!invokedByRuntime && isSessionLive) || disabled) return;
+    const pendingAttachments = attachmentsRef.current;
+    const hasAttachments = pendingAttachments.length > 0;
+    if ((!text && !hasAttachments) || (!invokedByRuntime && isSessionLive) || disabled) return;
     let submitTurnStarted = false;
     let resumedAfterBusyFailure = false;
     let submittedUserMessageId: string | null = null;
@@ -1719,6 +1629,7 @@ export function TalonSession({
           namespace,
           agent,
           sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
+          attachments: pendingAttachments,
           imageAttachments: pendingAttachments,
           ensureSession,
           clearInput: () => setInput(""),
@@ -1755,7 +1666,7 @@ export function TalonSession({
     }
 
     const command = findTalonChatCommand(resolvedCommands, parsedCommand);
-    if (command && parsedCommand && !hasImages) {
+    if (command && parsedCommand && !hasAttachments) {
       setInput("");
       setError(null);
       setStreamEvents([]);
@@ -1805,10 +1716,13 @@ export function TalonSession({
       removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
       submitController = controller;
       abortControllerRef.current = controller;
-      const uploadedImages = await uploadQueuedImages(session, controller.signal);
-      const imageParts = uploadedImages.map((attachment) => {
+      const uploadedAttachments = await uploadQueuedAttachments(session, controller.signal);
+      const attachmentParts = uploadedAttachments.map((attachment) => {
         if (!attachment.object) {
-          throw new Error(`Image ${attachment.file.name} was not uploaded.`);
+          throw new Error(`Attachment ${attachment.file.name} was not uploaded.`);
+        }
+        if (!attachment.file.type.startsWith("image/")) {
+          throw new Error(`The session wire format does not yet support ${attachment.file.type || "this attachment type"}.`);
         }
         return {
           type: "image",
@@ -1824,7 +1738,7 @@ export function TalonSession({
       });
       const messageParts = [
         ...(text ? [{ type: "text", text }] : []),
-        ...imageParts,
+        ...attachmentParts,
       ];
       const userMessage: CopilotMessage = {
         id: createLocalMessageId(),
@@ -1836,8 +1750,8 @@ export function TalonSession({
       submittedUserMessageId = userMessage.id;
 
       setInput("");
-      submittedPreviewUrlsRef.current.push(...uploadedImages.map((attachment) => attachment.previewUrl));
-      setImageAttachments([]);
+      submittedPreviewUrlsRef.current.push(...uploadedAttachments.flatMap((attachment) => attachment.previewUrl ? [attachment.previewUrl] : []));
+      setAttachments([]);
       setMessages((prev) => [...prev, userMessage]);
       setLoadingStartedAt(normalizeEpochToMilliseconds(userMessage.createdAt) ?? Date.now());
       setLoadingNow(Date.now());
@@ -1887,9 +1801,9 @@ export function TalonSession({
           messagesRef.current = messagesRef.current.filter((message) => message.id !== optimisticMessageId);
           setMessages((prev) => prev.filter((message) => message.id !== optimisticMessageId));
           setInput((current) => current || submittedText.trim());
-          if (imageAttachmentsRef.current.length === 0 && pendingAttachments.length > 0) {
-            imageAttachmentsRef.current = pendingAttachments;
-            setImageAttachments(pendingAttachments);
+          if (attachmentsRef.current.length === 0 && pendingAttachments.length > 0) {
+            attachmentsRef.current = pendingAttachments;
+            setAttachments(pendingAttachments);
           }
         }
         const refreshed = await refreshNewestSessionPage(session, submitController?.signal).catch(() => null);
@@ -1935,7 +1849,7 @@ export function TalonSession({
         }
       }
     }
-  }, [agent, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, resumeStream, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
+  }, [agent, attachmentsRef, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, resumeStream, sessionId, setAttachments, uploadQueuedAttachments, waitForCanonicalAssistantUpdate]);
 
   const stopGeneration = useCallback(async (invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
     if (!currentSessionRef.current || !isSessionLive || (!invokedByRuntime && isStopping)) return;
@@ -2131,29 +2045,30 @@ export function TalonSession({
             value={input}
             onValueChange={setInput}
             onSubmit={(nextInput) => void (currentSession
-              ? sessionRuntime.submit({ text: nextInput, imageAttachments })
+            ? sessionRuntime.submit({ text: nextInput, attachments, imageAttachments: attachments })
               : submitMessage(nextInput))}
             placeholder={placeholder}
             variant={composerVariant}
             autoFocus={autoFocus}
             rows={inputRows}
-            canSubmit={Boolean((input || "").trim() || imageAttachments.length > 0) && !isSessionLive}
+            canSubmit={Boolean((input || "").trim() || attachments.length > 0) && !isSessionLive}
             isGenerating={isSessionLive}
             canStop={Boolean(currentSession) && !isStopping}
             commandMenuItems={commandMenuItems}
             startAdornment={composerStartAdornment}
             endAdornment={composerEndAdornment}
-            imageAttachments={imageAttachments.map((attachment) => ({
+            attachments={attachments.map((attachment) => ({
               id: attachment.id,
               filename: attachment.file.name,
               previewUrl: attachment.previewUrl,
+              mediaType: attachment.file.type,
               status: attachment.status,
               error: attachment.error,
             }))}
-            imageUploadEnabled={Boolean(onImageUpload)}
-            imageAccept={imageAccept}
-            onImageFilesSelected={addImageFiles}
-            onRemoveImageAttachment={removeImageAttachment}
+            attachmentUploadEnabled={Boolean(onAttachmentUpload ?? onImageUpload)}
+            attachmentAccept={attachmentAccept}
+            onAttachmentFilesSelected={addAttachmentFiles}
+            onRemoveAttachment={removeAttachment}
             onStop={() => {
               void sessionRuntime.stop().catch((err: any) =>
                 setError(err instanceof Error ? err : new Error("Failed to stop generation")),

@@ -42,6 +42,8 @@ export type RuntimeOperation = {
 
 export type SubmitInput = {
   text: string;
+  attachments?: readonly unknown[];
+  /** @deprecated Use attachments. */
   imageAttachments?: readonly unknown[];
 };
 
