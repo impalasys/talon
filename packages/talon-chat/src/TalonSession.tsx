@@ -360,7 +360,7 @@ export function TalonSession({
   });
 
   const { commandMenuItems, resolvedCommands } = useSessionCommands({ clearSession, commands, enabledBuiltInCommands });
-  const imageAccept = acceptedImageTypes.join(",");
+  const attachmentAccept = resolvedAcceptedAttachmentTypes.join(",");
   const { submitMessage } = useSessionActions({
     client: gatewayClient.sessions,
     namespace,
@@ -460,7 +460,7 @@ export function TalonSession({
             value={input}
             onValueChange={setInput}
             onSubmit={(nextInput) => void (currentSession
-              ? sessionRuntime.submit({ text: nextInput, imageAttachments })
+              ? sessionRuntime.submit({ text: nextInput, attachments: imageAttachments, imageAttachments })
               : submitMessage(nextInput))}
             placeholder={placeholder}
             variant={composerVariant}
@@ -472,17 +472,18 @@ export function TalonSession({
             commandMenuItems={commandMenuItems}
             startAdornment={composerStartAdornment}
             endAdornment={composerEndAdornment}
-            imageAttachments={imageAttachments.map((attachment) => ({
+            attachments={imageAttachments.map((attachment) => ({
               id: attachment.id,
               filename: attachment.file.name,
               previewUrl: attachment.previewUrl,
+              mediaType: attachment.file.type,
               status: attachment.status,
               error: attachment.error,
             }))}
-            imageUploadEnabled={Boolean(onImageUpload)}
-            imageAccept={imageAccept}
-            onImageFilesSelected={addImageFiles}
-            onRemoveImageAttachment={removeImageAttachment}
+            attachmentUploadEnabled={Boolean(onAttachmentUpload ?? onImageUpload)}
+            attachmentAccept={attachmentAccept}
+            onAttachmentFilesSelected={addImageFiles}
+            onRemoveAttachment={removeImageAttachment}
             onStop={() => {
               void sessionRuntime.stop().catch((err: any) =>
                 setError(err instanceof Error ? err : new Error("Failed to stop generation")),
