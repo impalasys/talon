@@ -24,7 +24,7 @@ import { useSessionRuntime } from "./session/hooks/useSessionRuntime";
 import type { SessionTarget } from "./session/types";
 import { SessionTranscript } from "./session/SessionTranscript";
 import { SessionComposerDock } from "./session/SessionComposerDock";
-import { useSessionImageAttachments } from "./session/useSessionImageAttachments";
+import { useSessionAttachments } from "./session/hooks/useSessionAttachments";
 import { useToolResultHydration } from "./session/hooks/useToolResultHydration";
 import { useResourcePane } from "./session/hooks/useResourcePane";
 import { useTranscriptExpansionState } from "./session/hooks/useTranscriptExpansionState";
@@ -108,6 +108,11 @@ export type TalonSessionPendingImageAttachment = {
   status: "queued" | "uploading" | "ready" | "error";
   error?: string;
 };
+
+/** Internal compatibility aliases while the action extraction remains image-shaped. */
+export type TalonAttachmentUploadContext = TalonImageUploadContext;
+export type TalonAttachmentUploadResult = TalonImageUploadResult;
+export type TalonSessionPendingAttachment = TalonSessionPendingImageAttachment;
 
 export type TalonSessionSubmitContext = {
   text: string;
@@ -291,11 +296,11 @@ export function TalonSession({
     remove: removeImageAttachment,
     replace: setImageAttachments,
     uploadQueued: uploadQueuedImages,
-  } = useSessionImageAttachments({
-    acceptedImageTypes,
+  } = useSessionAttachments({
+    acceptedTypes: acceptedImageTypes,
     createId: createLocalMessageId,
-    maxImageAttachments,
-    maxImageBytes,
+    maxAttachments: maxImageAttachments,
+    maxBytes: maxImageBytes,
     onError: setError,
     onUpload: onImageUpload,
   });
