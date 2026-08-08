@@ -60,6 +60,9 @@ const MCP_POST_ACCEPT_HEADER: &str = "text/event-stream, application/json";
 const MCP_HEADER_LAST_EVENT_ID: &str = "Last-Event-ID";
 const MCP_HEADER_SESSION_ID: &str = "Mcp-Session-Id";
 const MCP_TOOL_RESULT_MAX_CHARS: usize = 1_000_000;
+// reqwest 0.11 disables TCP keepalive by default. Keep long-running HTTP MCP
+// calls from appearing idle to the local network stack.
+const MCP_HTTP_TCP_KEEPALIVE: Duration = Duration::from_secs(30);
 
 #[derive(Debug, Clone)]
 pub struct McpConnectionConfig {
@@ -107,6 +110,7 @@ impl McpClient {
             AuthenticatedReqwestClient::new(
                 reqwest::Client::builder()
                     .default_headers(default_headers)
+                    .tcp_keepalive(MCP_HTTP_TCP_KEEPALIVE)
                     .build()?,
                 None,
             ),
