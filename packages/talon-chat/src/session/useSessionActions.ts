@@ -1,16 +1,22 @@
 import { useCallback } from "react";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
-import { data, type TalonClient } from "@impalasys/talon-client";
+import type { TalonClient } from "@impalasys/talon-client";
 import {
   findTalonChatCommand,
   parseTalonChatCommandInput,
 } from "../lib/commands";
-import { getMessageContent, type CopilotMessage } from "../lib/chatTimeline";
-import { streamSessionPartEvents, type StreamEventItem } from "../lib/uiStream";
-import { normalizeObjectRefForJson, objectRefMediaType } from "./objectRefs";
-import { protoSessionPartsFromChatParts } from "./protocol";
+import type { CopilotMessage } from "../lib/chatTimeline";
+import type { StreamEventItem } from "../lib/uiStream";
 import type { SessionHistoryPage } from "./history";
 import type { SessionTarget } from "./types";
+import {
+  assistantSignature,
+  createTurnController,
+  finishSessionTurn,
+  recoverFailedSessionTurn,
+  sameSession,
+  submitSessionTurn,
+} from "./sessionSubmission";
 import type {
   TalonSessionCommand,
   TalonSessionPendingImageAttachment,
@@ -57,8 +63,16 @@ type UseSessionActionsOptions = {
   refreshNewestSessionPage: RefreshSession;
 };
 
-function sameSession(left: SessionTarget | null, right: SessionTarget | null) {
-  return left?.ns === right?.ns && left?.agent === right?.agent && left?.sessionId === right?.sessionId;
+function prepareSubmission(text: string, enabledGoalCommand: boolean) {
+  const parsedCommand = parseTalonChatCommandInput(text);
+  if (parsedCommand?.name !== "goal" || !enabledGoalCommand) return { text, parsedCommand, error: null };
+  const goalText = parsedCommand.args?.trim() ?? "";
+  if (!goalText) return { text, parsedCommand: null, error: new Error("Usage: /goal <objective and success criteria>") };
+  return {
+    text: ["Create or update a Talon Goal for this session.", "", "Use the goal tools directly. Track this objective until completion:", goalText].join("\n"),
+    parsedCommand: null,
+    error: null,
+  };
 }
 
 export function createLocalMessageId() {
@@ -71,28 +85,6 @@ export function createLocalMessageId() {
     suffix = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
   }
   return `local-${timestamp}-${sequence}-${suffix}`;
-}
-
-function normalizeEpochToMilliseconds(value: unknown) {
-  const numericValue = typeof value === "string" ? Number(value) : value;
-  const normalized = typeof numericValue === "number" && Number.isFinite(numericValue) ? numericValue : null;
-  if (!normalized || normalized <= 0) return null;
-  if (normalized >= 1e15) return Math.trunc(normalized / 1000);
-  if (normalized >= 1e12) return Math.trunc(normalized);
-  if (normalized >= 1e9) return Math.trunc(normalized * 1000);
-  return null;
-}
-
-function assistantSignature(messages: CopilotMessage[]) {
-  return messages
-    .filter((message) => message.role === "assistant")
-    .map((message) => `${message.id}:${getMessageContent(message).length}`)
-    .join("|");
-}
-
-function isBusyError(error: unknown) {
-  const candidate = error as { message?: unknown } | null;
-  return typeof candidate?.message === "string" && /session is currently generating|session is busy/i.test(candidate.message);
 }
 
 /** Coordinates command routing, session creation, optimistic user messages, and turn submission. */
@@ -166,66 +158,60 @@ export function useSessionActions({
     return false;
   }, [currentSessionRef, refreshNewestSessionPage, refreshRuntime]);
 
-  const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
-    let text = submittedText.trim();
-    const pendingAttachments = imageAttachmentsRef.current;
-    const hasImages = pendingAttachments.length > 0;
-    if ((!text && !hasImages) || (!invokedByRuntime && isSessionLive) || disabled) return;
-
-    if (onSubmitMessage) {
-      setError(null);
-      try {
-        const handled = await onSubmitMessage({
-          text,
-          namespace,
-          agent,
-          sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
-          attachments: pendingAttachments,
-          imageAttachments: pendingAttachments,
-          ensureSession,
-          clearInput: () => setInput(""),
-          refreshSession: async () => {
-            await refreshNewestSessionPage(await ensureSession());
-          },
-        });
-        if (handled) return;
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
-        return;
-      }
+  const runHostSubmission = useCallback(async (text: string, attachments: TalonSessionPendingImageAttachment[]) => {
+    if (!onSubmitMessage) return false;
+    setError(null);
+    try {
+      return Boolean(await onSubmitMessage({
+        text,
+        namespace,
+        agent,
+        sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
+        imageAttachments: attachments,
+        ensureSession,
+        clearInput: () => setInput(""),
+        refreshSession: async () => {
+          await refreshNewestSessionPage(await ensureSession());
+        },
+      }));
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
+      return true;
     }
+  }, [agent, currentSessionRef, ensureSession, namespace, onSubmitMessage, refreshNewestSessionPage, sessionId, setError, setInput]);
 
-    let parsedCommand = parseTalonChatCommandInput(text);
-    if (parsedCommand?.name === "goal" && enabledGoalCommand) {
-      const goalText = parsedCommand.args?.trim() ?? "";
-      if (!goalText) {
-        setError(new Error("Usage: /goal <objective and success criteria>"));
-        return;
-      }
-      text = ["Create or update a Talon Goal for this session.", "", "Use the goal tools directly. Track this objective until completion:", goalText].join("\n");
-      parsedCommand = null;
-    }
+  const runSessionCommand = useCallback(async (
+    text: string,
+    parsedCommand: ReturnType<typeof parseTalonChatCommandInput>,
+    hasImages: boolean,
+  ) => {
     const command = findTalonChatCommand(commands, parsedCommand);
-    if (command && parsedCommand && !hasImages) {
-      setInput("");
-      setError(null);
-      setStreamEvents([]);
-      try {
-        await command.run({
-          name: parsedCommand.name,
-          input: text,
-          args: parsedCommand.args,
-          argv: parsedCommand.argv,
-          target: { type: "session", namespace, agent, sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null },
-          messages: messagesRef.current,
-          clear: clearSession,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
-      }
-      return;
+    if (!command || !parsedCommand || hasImages) return false;
+    setInput("");
+    setError(null);
+    setStreamEvents([]);
+    try {
+      await command.run({
+        name: parsedCommand.name,
+        input: text,
+        args: parsedCommand.args,
+        argv: parsedCommand.argv,
+        target: { type: "session", namespace, agent, sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null },
+        messages: messagesRef.current,
+        clear: clearSession,
+      });
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
     }
+    return true;
+  }, [agent, clearSession, commands, currentSessionRef, messagesRef, namespace, sessionId, setError, setInput, setStreamEvents]);
 
+  const submitSessionTurnAndRecover = useCallback(async (
+    text: string,
+    pendingAttachments: TalonSessionPendingImageAttachment[],
+    submittedText: string,
+    runtimeSignal?: AbortSignal,
+  ) => {
     setError(null);
     setStreamEvents([]);
     cancelResume();
@@ -240,102 +226,86 @@ export function useSessionActions({
       const baselineSignature = assistantSignature(messagesRef.current.slice(-resolvedHistoryPageSize));
       const session = await ensureSession();
       submittedSession = session;
-      controller = new AbortController();
-      const abortFromRuntime = () => controller?.abort();
-      if (runtimeSignal) {
-        if (runtimeSignal.aborted) controller.abort();
-        else runtimeSignal.addEventListener("abort", abortFromRuntime, { once: true });
-      }
-      removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
+      const turnController = createTurnController(runtimeSignal);
+      controller = turnController.controller;
+      removeRuntimeAbort = turnController.removeRuntimeAbort;
       submissionAbortControllerRef.current = controller;
-      const uploadedImages = await uploadQueuedImages(session, controller.signal);
-      const imageParts = uploadedImages.map((attachment) => {
-        if (!attachment.object) throw new Error(`Image ${attachment.file.name} was not uploaded.`);
-        return {
-          type: "image",
-          object: normalizeObjectRefForJson({
-            ...attachment.object,
-            filename: attachment.object.filename || attachment.file.name,
-            mediaType: objectRefMediaType(attachment.object) || attachment.file.type,
-            sizeBytes: attachment.object.sizeBytes ?? attachment.object.size_bytes ?? attachment.file.size,
-          }),
-          previewUrl: attachment.previewUrl,
-          payloadJson: JSON.stringify({ filename: attachment.file.name }),
-        };
-      });
-      const userMessage: CopilotMessage = {
-        id: createLocalMessageId(),
-        role: "user",
-        content: text,
-        parts: [...(text ? [{ type: "text", text }] : []), ...imageParts],
-        createdAt: String(Date.now() * 1000),
-      };
-      optimisticMessageId = userMessage.id;
-      setInput("");
-      submittedPreviewUrlsRef.current.push(...uploadedImages.map((attachment) => attachment.previewUrl));
-      setImageAttachments([]);
-      setMessages((previous) => [...previous, userMessage]);
-      setLoadingStartedAt(normalizeEpochToMilliseconds(userMessage.createdAt) ?? Date.now());
-      setLoadingNow(Date.now());
-      markAutoScrollPinned();
-      setIsLoading(true);
-      if (!client?.submitTurn) throw new Error("TalonSession requires a Talon clientset with sessions.submitTurn().");
-      turnStarted = true;
-      const { hasAssistantEvent } = await streamSessionPartEvents({
-        events: client.submitTurn({
-          ns: session.ns,
-          agent: session.agent,
-          sessionId: session.sessionId,
-          message: { role: data.MessageRole.ROLE_USER, parts: protoSessionPartsFromChatParts(userMessage.parts) },
-          labels: {},
-        }, { signal: controller.signal }),
+      const { hasAssistantEvent } = await submitSessionTurn({
+        client,
+        controller,
+        createMessageId: createLocalMessageId,
+        markAutoScrollPinned,
+        onOptimisticMessage: (id) => { optimisticMessageId = id; },
+        onTurnStarted: () => { turnStarted = true; },
+        pendingAttachments,
+        session,
+        setImageAttachments,
+        setInput,
+        setIsLoading,
+        setLoadingNow,
+        setLoadingStartedAt,
         setMessages,
         setStreamEvents,
-        signal: controller.signal,
+        submittedPreviewUrlsRef,
+        text,
+        uploadQueuedImages,
       });
       if (!hasAssistantEvent) await waitForCanonicalAssistantUpdate(session, baselineSignature, controller.signal);
       else await refreshNewestSessionPage(session, controller.signal);
     } catch (err) {
       const nextError = err instanceof Error ? err : new Error(String(err));
       const session = submittedSession && sameSession(currentSessionRef.current, submittedSession) ? submittedSession : null;
-      if (controller?.signal.aborted || (submittedSession && !session)) return;
-      if (session && isBusyError(nextError)) {
-        if (optimisticMessageId) {
-          messagesRef.current = messagesRef.current.filter((message) => message.id !== optimisticMessageId);
-          setMessages((previous) => previous.filter((message) => message.id !== optimisticMessageId));
-          setInput((current) => current || submittedText.trim());
-          if (imageAttachmentsRef.current.length === 0 && pendingAttachments.length > 0) {
-            imageAttachmentsRef.current = pendingAttachments;
-            setImageAttachments(pendingAttachments);
-          }
-        }
-        const refreshed = await refreshNewestSessionPage(session, controller?.signal).catch(() => null);
-        if (controller?.signal.aborted || !sameSession(currentSessionRef.current, session) || isStoppingRef.current) return;
-        if (refreshed?.state === "PROCESSING") {
-          resumedAfterBusyFailure = true;
-          setError(null);
-          startResume(session);
-          return;
-        }
-      }
-      if (session && turnStarted && !isBusyError(nextError)) {
-        const baselineSignature = assistantSignature(messagesRef.current.slice(-resolvedHistoryPageSize));
-        if (await waitForCanonicalAssistantUpdate(session, baselineSignature, controller?.signal).catch(() => false)) {
-          setError(null);
-          return;
-        }
-      }
-      setError(nextError);
+      const recovery = await recoverFailedSessionTurn({
+        controller,
+        currentSessionRef,
+        error: nextError,
+        imageAttachmentsRef,
+        isStoppingRef,
+        messagesRef,
+        optimisticMessageId,
+        pendingAttachments,
+        refreshNewestSessionPage,
+        session,
+        setError,
+        setImageAttachments,
+        setInput,
+        setMessages,
+        startResume,
+        submittedText,
+        resolvedHistoryPageSize,
+        turnStarted,
+        waitForCanonicalAssistantUpdate,
+      });
+      resumedAfterBusyFailure = recovery === "resumed";
+      if (recovery === "unhandled") setError(nextError);
     } finally {
-      const stale = controller?.signal.aborted || (submittedSession && !sameSession(currentSessionRef.current, submittedSession));
       removeRuntimeAbort();
-      if (!stale && (!controller || submissionAbortControllerRef.current === controller)) {
-        submissionAbortControllerRef.current = null;
-        setIsLoading(false);
-        if (!resumedAfterBusyFailure) setLoadingStartedAt(null);
-      }
+      finishSessionTurn({
+        controller,
+        currentSessionRef,
+        resumedAfterBusyFailure,
+        session: submittedSession,
+        setIsLoading,
+        setLoadingStartedAt,
+        submissionAbortControllerRef,
+      });
     }
-  }, [agent, cancelResume, clearSession, client, commands, currentSessionRef, disabled, enabledGoalCommand, ensureSession, imageAttachmentsRef, isSessionLive, isStoppingRef, markAutoScrollPinned, messagesRef, namespace, onSubmitMessage, refreshNewestSessionPage, resolvedHistoryPageSize, sessionId, setError, setImageAttachments, setInput, setIsLoading, setIsResuming, setLoadingNow, setLoadingStartedAt, setMessages, setStreamEvents, startResume, submissionAbortControllerRef, submittedPreviewUrlsRef, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
+  }, [cancelResume, client, currentSessionRef, ensureSession, imageAttachmentsRef, isStoppingRef, markAutoScrollPinned, messagesRef, refreshNewestSessionPage, resolvedHistoryPageSize, setError, setImageAttachments, setInput, setIsLoading, setIsResuming, setLoadingNow, setLoadingStartedAt, setMessages, setStreamEvents, startResume, submissionAbortControllerRef, submittedPreviewUrlsRef, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
+
+  const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
+    const initialText = submittedText.trim();
+    const pendingAttachments = imageAttachmentsRef.current;
+    const hasImages = pendingAttachments.length > 0;
+    if ((!initialText && !hasImages) || (!invokedByRuntime && isSessionLive) || disabled) return;
+    if (await runHostSubmission(initialText, pendingAttachments)) return;
+    const prepared = prepareSubmission(initialText, enabledGoalCommand);
+    if (prepared.error) {
+      setError(prepared.error);
+      return;
+    }
+    if (await runSessionCommand(prepared.text, prepared.parsedCommand, hasImages)) return;
+    await submitSessionTurnAndRecover(prepared.text, pendingAttachments, submittedText, runtimeSignal);
+  }, [disabled, enabledGoalCommand, imageAttachmentsRef, isSessionLive, runHostSubmission, runSessionCommand, setError, submitSessionTurnAndRecover]);
 
   return { submitMessage };
 }
