@@ -51,6 +51,7 @@ message TokenCounter {
   optional string provider_request_id = 7;
   string provider = 8;
   string model = 9;
+  uint64 cache_write_tokens = 10;
 }
 
 // Session-scoped immutable output produced by an agent.

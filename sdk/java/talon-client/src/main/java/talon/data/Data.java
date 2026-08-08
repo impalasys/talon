@@ -2225,6 +2225,12 @@ java.lang.String defaultValue) {
      */
     com.google.protobuf.ByteString
         getModelBytes();
+
+    /**
+     * <code>uint64 cache_write_tokens = 10;</code>
+     * @return The cacheWriteTokens.
+     */
+    long getCacheWriteTokens();
   }
   /**
    * <pre>
@@ -2469,6 +2475,17 @@ java.lang.String defaultValue) {
       }
     }
 
+    public static final int CACHE_WRITE_TOKENS_FIELD_NUMBER = 10;
+    private long cacheWriteTokens_ = 0L;
+    /**
+     * <code>uint64 cache_write_tokens = 10;</code>
+     * @return The cacheWriteTokens.
+     */
+    @java.lang.Override
+    public long getCacheWriteTokens() {
+      return cacheWriteTokens_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2509,6 +2526,9 @@ java.lang.String defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(model_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 9, model_);
+      }
+      if (cacheWriteTokens_ != 0L) {
+        output.writeUInt64(10, cacheWriteTokens_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -2552,6 +2572,10 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(model_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(9, model_);
       }
+      if (cacheWriteTokens_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(10, cacheWriteTokens_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -2588,6 +2612,8 @@ java.lang.String defaultValue) {
           .equals(other.getProvider())) return false;
       if (!getModel()
           .equals(other.getModel())) return false;
+      if (getCacheWriteTokens()
+          != other.getCacheWriteTokens()) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2625,6 +2651,9 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getProvider().hashCode();
       hash = (37 * hash) + MODEL_FIELD_NUMBER;
       hash = (53 * hash) + getModel().hashCode();
+      hash = (37 * hash) + CACHE_WRITE_TOKENS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCacheWriteTokens());
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -2771,6 +2800,7 @@ java.lang.String defaultValue) {
         providerRequestId_ = "";
         provider_ = "";
         model_ = "";
+        cacheWriteTokens_ = 0L;
         return this;
       }
 
@@ -2833,6 +2863,9 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000100) != 0)) {
           result.model_ = model_;
         }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.cacheWriteTokens_ = cacheWriteTokens_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -2880,6 +2913,9 @@ java.lang.String defaultValue) {
           model_ = other.model_;
           bitField0_ |= 0x00000100;
           onChanged();
+        }
+        if (other.getCacheWriteTokens() != 0L) {
+          setCacheWriteTokens(other.getCacheWriteTokens());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -2952,6 +2988,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000100;
                 break;
               } // case 74
+              case 80: {
+                cacheWriteTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 80
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3380,6 +3421,38 @@ java.lang.String defaultValue) {
         checkByteStringIsUtf8(value);
         model_ = value;
         bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+
+      private long cacheWriteTokens_ ;
+      /**
+       * <code>uint64 cache_write_tokens = 10;</code>
+       * @return The cacheWriteTokens.
+       */
+      @java.lang.Override
+      public long getCacheWriteTokens() {
+        return cacheWriteTokens_;
+      }
+      /**
+       * <code>uint64 cache_write_tokens = 10;</code>
+       * @param value The cacheWriteTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCacheWriteTokens(long value) {
+
+        cacheWriteTokens_ = value;
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 cache_write_tokens = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCacheWriteTokens() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        cacheWriteTokens_ = 0L;
         onChanged();
         return this;
       }
@@ -28174,128 +28247,129 @@ java.lang.String defaultValue) {
       "\n\010filename\030\005 \001(\t\0225\n\010metadata\030\006 \003(\0132#.tal" +
       "on.data.ObjectRef.MetadataEntry\022\030\n\020conte" +
       "nt_encoding\030\007 \001(\t\032/\n\rMetadataEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\203\002\n\014TokenCoun" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\237\002\n\014TokenCoun" +
       "ter\022\024\n\014input_tokens\030\001 \001(\004\022\025\n\routput_toke" +
       "ns\030\002 \001(\004\022\037\n\027reasoning_output_tokens\030\003 \001(" +
       "\004\022\024\n\014total_tokens\030\004 \001(\004\022\033\n\023cached_input_" +
       "tokens\030\005 \001(\004\022\027\n\017usage_available\030\006 \001(\010\022 \n" +
       "\023provider_request_id\030\007 \001(\tH\000\210\001\001\022\020\n\010provi" +
-      "der\030\010 \001(\t\022\r\n\005model\030\t \001(\tB\026\n\024_provider_re" +
-      "quest_id\"\356\002\n\010Artifact\022\n\n\002id\030\001 \001(\t\022\022\n\nses" +
-      "sion_id\030\002 \001(\t\022\r\n\005title\030\003 \001(\t\022\022\n\nmedia_ty" +
-      "pe\030\005 \001(\t\022)\n\nobject_ref\030\006 \001(\0132\025.talon.dat" +
-      "a.ObjectRef\022\030\n\020created_by_agent\030\007 \001(\t\022\022\n" +
-      "\ncreated_at\030\010 \001(\003\0220\n\006labels\030\t \003(\0132 .talo" +
-      "n.data.Artifact.LabelsEntry\0224\n\010metadata\030" +
-      "\n \003(\0132\".talon.data.Artifact.MetadataEntr" +
-      "y\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
-      " \001(\t:\0028\001\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r" +
-      "\n\005value\030\002 \001(\t:\0028\001\"\366\003\n\004Goal\022\n\n\002id\030\001 \001(\t\022\021" +
-      "\n\tnamespace\030\002 \001(\t\022\r\n\005agent\030\003 \001(\t\022\022\n\nsess" +
-      "ion_id\030\004 \001(\t\022\021\n\tobjective\030\005 \001(\t\022\030\n\020succe" +
-      "ss_criteria\030\006 \003(\t\022$\n\005phase\030\007 \001(\0162\025.talon" +
-      ".data.GoalPhase\022\030\n\020progress_summary\030\010 \001(" +
-      "\t\022\021\n\titeration\030\t \001(\005\022\026\n\016max_iterations\030\n" +
-      " \001(\005\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r" +
-      " \001(\003\022\024\n\014completed_at\030\016 \001(\003\022\026\n\016blocked_re" +
-      "ason\030\017 \001(\t\022,\n\006labels\030\020 \003(\0132\034.talon.data." +
-      "Goal.LabelsEntry\0220\n\010metadata\030\021 \003(\0132\036.tal" +
-      "on.data.Goal.MetadataEntry\032-\n\013LabelsEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMet" +
-      "adataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002" +
-      "8\001\"\266\001\n\016ArtifactAccess\022\024\n\014target_agent\030\001 " +
-      "\001(\t\022\031\n\021target_session_id\030\002 \001(\t\022\022\n\noperat" +
-      "ions\030\003 \003(\t\022\022\n\nexpires_at\030\004 \001(\003\022\030\n\020grante" +
-      "d_by_agent\030\005 \001(\t\022\035\n\025granted_by_session_i" +
-      "d\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\"\275\001\n\tPrincipa" +
-      "l\022\023\n\013external_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022" +
-      "\024\n\014display_name\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010m" +
-      "etadata\030\005 \003(\0132#.talon.data.Principal.Met" +
-      "adataEntry\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t" +
-      "\022\r\n\005value\030\002 \001(\t:\0028\001\"\307\001\n\022SessionMessagePa" +
-      "rt\022\n\n\002id\030\001 \001(\t\0225\n\tpart_type\030\002 \001(\0162\".talo" +
-      "n.data.SessionMessagePartType\022\017\n\007content" +
-      "\030\003 \001(\t\022\014\n\004name\030\004 \001(\t\022\024\n\014payload_json\030\005 \001" +
-      "(\t\022\022\n\ncreated_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025" +
-      ".talon.data.ObjectRef\"\363\001\n\016SessionMessage" +
-      "\022\n\n\002id\030\001 \001(\t\022%\n\004role\030\002 \001(\0162\027.talon.data." +
-      "MessageRole\022\022\n\ncreated_at\030\004 \001(\003\0226\n\006label" +
-      "s\030\005 \003(\0132&.talon.data.SessionMessage.Labe" +
-      "lsEntry\022-\n\005parts\030\006 \003(\0132\036.talon.data.Sess" +
-      "ionMessagePart\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001" +
-      "(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004\"\371\002\n\007Session\022" +
-      "\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016" +
-      "\n\006status\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013la" +
-      "st_active\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.talo" +
-      "n.data.Session.MetadataEntry\022/\n\006labels\030\010" +
-      " \003(\0132\037.talon.data.Session.LabelsEntry\0225\n" +
-      "\016context_tokens\030\t \001(\0132\030.talon.data.Token" +
-      "CounterH\000\210\001\001\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001" +
-      "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003" +
-      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\021\n\017_context" +
-      "_tokens\"\233\002\n\016ChannelMessage\022\n\n\002id\030\001 \001(\t\022\n" +
-      "\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t\022\023\n\013author_ki" +
-      "nd\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n\007content\030\006 \001(" +
-      "\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014source_agent\030\010 " +
-      "\001(\t\022\031\n\021source_session_id\030\t \001(\t\0226\n\006labels" +
-      "\030\n \003(\0132&.talon.data.ChannelMessage.Label" +
-      "sEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
-      "lue\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t" +
-      "\022\017\n\007content\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n" +
-      "\tnamespace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025Knowle" +
-      "dgeSearchResult\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet" +
-      "\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003" +
-      "\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002i" +
-      "d\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n" +
-      "\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nsta" +
-      "te_json\030\006 \001(\t\022\023\n\013output_json\030\007 \001(\t\022\022\n\ncr" +
-      "eated_at\030\010 \001(\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006la" +
-      "bels\030\n \003(\0132#.talon.data.WorkflowRun.Labe" +
-      "lsEntry\022\035\n\020claim_expires_at\030\013 \001(\003H\000\210\001\001\022\r" +
-      "\n\005error\030\014 \001(\t\022\021\n\tspec_json\030\r \001(\t\022\031\n\021work" +
-      "flow_revision\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t" +
-      "\022\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024last_dispatch" +
-      "_reason\030\021 \001(\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_claim_expires_a" +
-      "t\"\263\003\n\017WorkflowStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007ste" +
-      "p_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r\022\016\n\006status\030\004 " +
-      "\001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013output_json\030\006" +
-      " \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020child_session_id\030" +
-      "\010 \001(\t\022\035\n\025child_workflow_run_id\030\t \001(\t\022\023\n\013" +
-      "resume_json\030\n \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022" +
-      "\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022" +
-      "\032\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_a" +
-      "t\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup_handle\030\020 \001(\t" +
-      "\022\032\n\rwait_until_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_re" +
-      "try_atB\r\n\013_timeout_atB\020\n\016_wait_until_at\"" +
-      "\245\001\n\020WorkflowRunEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002" +
-      " \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014" +
-      "\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001(\t\022\017\n\007message" +
-      "\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(\t\022\021\n\ttimestam" +
-      "p\030\t \001(\003*W\n\013MessageRole\022\024\n\020ROLE_UNSPECIFI" +
-      "ED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022" +
-      "\017\n\013ROLE_SYSTEM\020\003*\316\004\n\026SessionMessagePartT" +
-      "ype\022)\n%SESSION_MESSAGE_PART_TYPE_UNSPECI" +
-      "FIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TYPE_TEXT" +
-      "\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_REASONIN" +
-      "G\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_TOOL_CA" +
-      "LL\020\003\022)\n%SESSION_MESSAGE_PART_TYPE_TOOL_R" +
-      "ESULT\020\004\022#\n\037SESSION_MESSAGE_PART_TYPE_USA" +
-      "GE\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE_ERROR\020" +
-      "\006\022#\n\037SESSION_MESSAGE_PART_TYPE_IMAGE\020\007\022#" +
-      "\n\037SESSION_MESSAGE_PART_TYPE_AUDIO\020\010\022#\n\037S" +
-      "ESSION_MESSAGE_PART_TYPE_VIDEO\020\t\022\"\n\036SESS" +
-      "ION_MESSAGE_PART_TYPE_FILE\020\n\0220\n,SESSION_" +
-      "MESSAGE_PART_TYPE_REQUEST_PERMISSION\020\013\022/" +
-      "\n+SESSION_MESSAGE_PART_TYPE_PERMISSION_R" +
-      "ESULT\020\014\022(\n$SESSION_MESSAGE_PART_TYPE_COM" +
-      "PACTION\020\r*\355\001\n\tGoalPhase\022\032\n\026GOAL_PHASE_UN" +
-      "SPECIFIED\020\000\022\026\n\022GOAL_PHASE_RUNNING\020\001\022\025\n\021G" +
-      "OAL_PHASE_PAUSED\020\002\022\033\n\027GOAL_PHASE_NEEDS_R" +
-      "EVIEW\020\003\022\030\n\024GOAL_PHASE_SUCCEEDED\020\004\022\025\n\021GOA" +
-      "L_PHASE_FAILED\020\005\022\026\n\022GOAL_PHASE_BLOCKED\020\006" +
-      "\022\027\n\023GOAL_PHASE_CANCELED\020\007\022\026\n\022GOAL_PHASE_" +
-      "EXPIRED\020\010b\006proto3"
+      "der\030\010 \001(\t\022\r\n\005model\030\t \001(\t\022\032\n\022cache_write_" +
+      "tokens\030\n \001(\004B\026\n\024_provider_request_id\"\356\002\n" +
+      "\010Artifact\022\n\n\002id\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(" +
+      "\t\022\r\n\005title\030\003 \001(\t\022\022\n\nmedia_type\030\005 \001(\t\022)\n\n" +
+      "object_ref\030\006 \001(\0132\025.talon.data.ObjectRef\022" +
+      "\030\n\020created_by_agent\030\007 \001(\t\022\022\n\ncreated_at\030" +
+      "\010 \001(\003\0220\n\006labels\030\t \003(\0132 .talon.data.Artif" +
+      "act.LabelsEntry\0224\n\010metadata\030\n \003(\0132\".talo" +
+      "n.data.Artifact.MetadataEntry\032-\n\013LabelsE" +
+      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\r" +
+      "MetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
+      "\t:\0028\001\"\366\003\n\004Goal\022\n\n\002id\030\001 \001(\t\022\021\n\tnamespace\030" +
+      "\002 \001(\t\022\r\n\005agent\030\003 \001(\t\022\022\n\nsession_id\030\004 \001(\t" +
+      "\022\021\n\tobjective\030\005 \001(\t\022\030\n\020success_criteria\030" +
+      "\006 \003(\t\022$\n\005phase\030\007 \001(\0162\025.talon.data.GoalPh" +
+      "ase\022\030\n\020progress_summary\030\010 \001(\t\022\021\n\titerati" +
+      "on\030\t \001(\005\022\026\n\016max_iterations\030\n \001(\005\022\022\n\ncrea" +
+      "ted_at\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\024\n\014comp" +
+      "leted_at\030\016 \001(\003\022\026\n\016blocked_reason\030\017 \001(\t\022," +
+      "\n\006labels\030\020 \003(\0132\034.talon.data.Goal.LabelsE" +
+      "ntry\0220\n\010metadata\030\021 \003(\0132\036.talon.data.Goal" +
+      ".MetadataEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001" +
+      "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032/\n\rMetadataEntry\022\013" +
+      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\266\001\n\016Artif" +
+      "actAccess\022\024\n\014target_agent\030\001 \001(\t\022\031\n\021targe" +
+      "t_session_id\030\002 \001(\t\022\022\n\noperations\030\003 \003(\t\022\022" +
+      "\n\nexpires_at\030\004 \001(\003\022\030\n\020granted_by_agent\030\005" +
+      " \001(\t\022\035\n\025granted_by_session_id\030\006 \001(\t\022\022\n\nc" +
+      "reated_at\030\007 \001(\003\"\275\001\n\tPrincipal\022\023\n\013externa" +
+      "l_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\022\024\n\014display_n" +
+      "ame\030\003 \001(\t\022\014\n\004kind\030\004 \001(\t\0225\n\010metadata\030\005 \003(" +
+      "\0132#.talon.data.Principal.MetadataEntry\032/" +
+      "\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
+      "\001(\t:\0028\001\"\307\001\n\022SessionMessagePart\022\n\n\002id\030\001 \001" +
+      "(\t\0225\n\tpart_type\030\002 \001(\0162\".talon.data.Sessi" +
+      "onMessagePartType\022\017\n\007content\030\003 \001(\t\022\014\n\004na" +
+      "me\030\004 \001(\t\022\024\n\014payload_json\030\005 \001(\t\022\022\n\ncreate" +
+      "d_at\030\006 \001(\003\022%\n\006object\030\007 \001(\0132\025.talon.data." +
+      "ObjectRef\"\363\001\n\016SessionMessage\022\n\n\002id\030\001 \001(\t" +
+      "\022%\n\004role\030\002 \001(\0162\027.talon.data.MessageRole\022" +
+      "\022\n\ncreated_at\030\004 \001(\003\0226\n\006labels\030\005 \003(\0132&.ta" +
+      "lon.data.SessionMessage.LabelsEntry\022-\n\005p" +
+      "arts\030\006 \003(\0132\036.talon.data.SessionMessagePa" +
+      "rt\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
+      "\002 \001(\t:\0028\001J\004\010\003\020\004\"\371\002\n\007Session\022\n\n\002id\030\001 \001(\t\022" +
+      "\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001" +
+      "(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013last_active\030\006 " +
+      "\001(\003\0223\n\010metadata\030\007 \003(\0132!.talon.data.Sessi" +
+      "on.MetadataEntry\022/\n\006labels\030\010 \003(\0132\037.talon" +
+      ".data.Session.LabelsEntry\0225\n\016context_tok" +
+      "ens\030\t \001(\0132\030.talon.data.TokenCounterH\000\210\001\001" +
+      "\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
+      "\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n" +
+      "\005value\030\002 \001(\t:\0028\001B\021\n\017_context_tokens\"\233\002\n\016" +
+      "ChannelMessage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017" +
+      "\n\007channel\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006" +
+      "author\030\005 \001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated" +
+      "_at\030\007 \001(\003\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021sourc" +
+      "e_session_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.tal" +
+      "on.data.ChannelMessage.LabelsEntry\032-\n\013La" +
+      "belsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
+      "\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030" +
+      "\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tnamespace\030\004" +
+      " \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSearchRes" +
+      "ult\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005sc" +
+      "ore\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespac" +
+      "e\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010w" +
+      "orkflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(" +
+      "\t\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(" +
+      "\t\022\023\n\013output_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001" +
+      "(\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#" +
+      ".talon.data.WorkflowRun.LabelsEntry\022\035\n\020c" +
+      "laim_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(" +
+      "\t\022\021\n\tspec_json\030\r \001(\t\022\031\n\021workflow_revisio" +
+      "n\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_at" +
+      "tempt\030\020 \001(\r\022\034\n\024last_dispatch_reason\030\021 \001(" +
+      "\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
+      " \001(\t:\0028\001B\023\n\021_claim_expires_at\"\263\003\n\017Workfl" +
+      "owStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017" +
+      "\n\007attempt\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput" +
+      "_json\030\005 \001(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005erro" +
+      "r\030\007 \001(\t\022\030\n\020child_session_id\030\010 \001(\t\022\035\n\025chi" +
+      "ld_workflow_run_id\030\t \001(\t\022\023\n\013resume_json\030" +
+      "\n \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022\022\n\ncreated_a" +
+      "t\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retr" +
+      "y_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001" +
+      "\022\032\n\022wait_wakeup_handle\030\020 \001(\t\022\032\n\rwait_unt" +
+      "il_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_t" +
+      "imeout_atB\020\n\016_wait_until_at\"\245\001\n\020Workflow" +
+      "RunEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010work" +
+      "flow\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t" +
+      "\022\017\n\007step_id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014pa" +
+      "yload_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013M" +
+      "essageRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE" +
+      "_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYST" +
+      "EM\020\003*\316\004\n\026SessionMessagePartType\022)\n%SESSI" +
+      "ON_MESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SE" +
+      "SSION_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSIO" +
+      "N_MESSAGE_PART_TYPE_REASONING\020\002\022\'\n#SESSI" +
+      "ON_MESSAGE_PART_TYPE_TOOL_CALL\020\003\022)\n%SESS" +
+      "ION_MESSAGE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037S" +
+      "ESSION_MESSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESS" +
+      "ION_MESSAGE_PART_TYPE_ERROR\020\006\022#\n\037SESSION" +
+      "_MESSAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION_ME" +
+      "SSAGE_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSA" +
+      "GE_PART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_" +
+      "PART_TYPE_FILE\020\n\0220\n,SESSION_MESSAGE_PART" +
+      "_TYPE_REQUEST_PERMISSION\020\013\022/\n+SESSION_ME" +
+      "SSAGE_PART_TYPE_PERMISSION_RESULT\020\014\022(\n$S" +
+      "ESSION_MESSAGE_PART_TYPE_COMPACTION\020\r*\355\001" +
+      "\n\tGoalPhase\022\032\n\026GOAL_PHASE_UNSPECIFIED\020\000\022" +
+      "\026\n\022GOAL_PHASE_RUNNING\020\001\022\025\n\021GOAL_PHASE_PA" +
+      "USED\020\002\022\033\n\027GOAL_PHASE_NEEDS_REVIEW\020\003\022\030\n\024G" +
+      "OAL_PHASE_SUCCEEDED\020\004\022\025\n\021GOAL_PHASE_FAIL" +
+      "ED\020\005\022\026\n\022GOAL_PHASE_BLOCKED\020\006\022\027\n\023GOAL_PHA" +
+      "SE_CANCELED\020\007\022\026\n\022GOAL_PHASE_EXPIRED\020\010b\006p" +
+      "roto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -28318,7 +28392,7 @@ java.lang.String defaultValue) {
     internal_static_talon_data_TokenCounter_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_TokenCounter_descriptor,
-        new java.lang.String[] { "InputTokens", "OutputTokens", "ReasoningOutputTokens", "TotalTokens", "CachedInputTokens", "UsageAvailable", "ProviderRequestId", "Provider", "Model", });
+        new java.lang.String[] { "InputTokens", "OutputTokens", "ReasoningOutputTokens", "TotalTokens", "CachedInputTokens", "UsageAvailable", "ProviderRequestId", "Provider", "Model", "CacheWriteTokens", });
     internal_static_talon_data_Artifact_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_data_Artifact_fieldAccessorTable = new

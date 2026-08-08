@@ -117,6 +117,7 @@ mod tests {
         let counter = TokenCounter {
             input_tokens: 10,
             cached_input_tokens: 2,
+            cache_write_tokens: 1,
             output_tokens: 3,
             reasoning_output_tokens: 1,
             total_tokens: 14,
