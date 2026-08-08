@@ -2741,6 +2741,74 @@ describe('TalonCopilot', () => {
     });
   });
 
+  it('preserves the transcript scroll anchor when prepending older history', async () => {
+    const olderPage = deferred<any>();
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest
+        .fn()
+        .mockResolvedValueOnce({
+          sessionId: 'sess-scroll-anchor',
+          state: 'IDLE',
+          items: [{
+            message: {
+              id: '019f0000-0000-7000-8000-000000000002',
+              role: 'ROLE_ASSISTANT',
+              content: 'Newest anchored page',
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          }],
+          hasMore: true,
+          nextBeforeMessageId: '019f0000-0000-7000-8000-000000000002',
+        })
+        .mockReturnValueOnce(olderPage.promise),
+      getSession: jest.fn(),
+    };
+    const { container } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-scroll-anchor"
+      />,
+    );
+
+    await screen.findByText('Newest anchored page');
+    const scrollContainer = container.querySelector('div[style*="overflow-y: auto"]') as HTMLDivElement;
+    let scrollHeight = 1000;
+    Object.defineProperties(scrollContainer, {
+      scrollTop: { configurable: true, value: 20, writable: true },
+      scrollHeight: { configurable: true, get: () => scrollHeight },
+      clientHeight: { configurable: true, value: 200 },
+    });
+    fireEvent.scroll(scrollContainer);
+    await waitFor(() => expect(gatewayClient.listSessionMessages).toHaveBeenCalledTimes(2));
+
+    scrollHeight = 1500;
+    await act(async () => {
+      olderPage.resolve({
+        sessionId: 'sess-scroll-anchor',
+        state: 'IDLE',
+        items: [{
+          message: {
+            id: '019f0000-0000-7000-8000-000000000001',
+            role: 'ROLE_ASSISTANT',
+            content: 'Older anchored page',
+            createdAt: String(Date.now() * 1000),
+          },
+          steps: [],
+        }],
+        hasMore: false,
+      });
+      await olderPage.promise;
+    });
+
+    expect(await screen.findByText('Older anchored page')).toBeInTheDocument();
+    expect(scrollContainer.scrollTop).toBe(520);
+  });
+
   it('recovers from an empty live stream by loading the canonical session state', async () => {
     const gatewayClient = {
       createSession: jest.fn().mockResolvedValue({ sessionId: 'sess-recover' }),
