@@ -9,12 +9,12 @@ import {
   type RuntimeOperationKind,
   type SessionRuntimeState,
   type SubmitInput,
-} from "./runtime";
-import type { SessionHistoryPage } from "./history";
-import { mergeNewestCanonicalPage } from "./history";
-import type { SessionClient } from "./client";
-import type { SessionTarget } from "./types";
-import type { CopilotMessage } from "../lib/chatTimeline";
+} from "../runtime";
+import type { SessionHistoryPage } from "../history";
+import { mergeNewestCanonicalPage } from "../history";
+import type { SessionClient } from "../client";
+import type { SessionTarget } from "../types";
+import type { CopilotMessage } from "../../lib/chatTimeline";
 
 export type UseSessionRuntimeOptions = {
   target: SessionTarget | null;

@@ -43,14 +43,16 @@ import {
   objectRefSizeBytes,
 } from "./session/objectRefs";
 import type { TalonChatObjectRef, TalonSessionHandle } from "./session/types";
-import { useSessionRuntime } from "./session/useSessionRuntime";
+import { useSessionRuntime } from "./session/hooks/useSessionRuntime";
 import type { SessionTarget } from "./session/types";
 import { SessionTranscript } from "./session/SessionTranscript";
 import { SessionComposerDock } from "./session/SessionComposerDock";
-import { useSessionAttachments } from "./session/useSessionAttachments";
-import { useToolResultHydration } from "./session/useToolResultHydration";
-import { useResourcePane } from "./session/useResourcePane";
-import { useSessionTranscriptUi } from "./session/useSessionTranscriptUi";
+import { useSessionAttachments } from "./session/hooks/useSessionAttachments";
+import { useToolResultHydration } from "./session/hooks/useToolResultHydration";
+import { useResourcePane } from "./session/hooks/useResourcePane";
+import { useTranscriptExpansionState } from "./session/hooks/useTranscriptExpansionState";
+import { useTranscriptPaginationAnchor } from "./session/hooks/useTranscriptPaginationAnchor";
+import { useTranscriptScrollState } from "./session/hooks/useTranscriptScrollState";
 import {
   AssistantMessageTimeline,
   coalesceAssistantMessageTimelineForDisplay,
@@ -665,27 +667,49 @@ export function TalonSession({
     if (!currentSession || !nextBeforeMessageId) return false;
     return Boolean(await loadOlderRuntime(currentSession));
   }, [currentSession, loadOlderRuntime, nextBeforeMessageId]);
+  const transcriptExpansion = useTranscriptExpansionState();
   const {
     bottomRef,
-    expandedThinkingMessages,
-    expandedToolItems,
-    handleScroll: handleTranscriptScroll,
+    handleScroll: handleTranscriptScrollState,
     markAutoScrollPinned,
-    reset: resetTranscriptUi,
+    reset: resetTranscriptScroll,
     scrollThumb,
-    toggleThinkingMessage,
-    toggleToolItem,
+    skipNextAutoScroll,
     transcriptRef: scrollContainerRef,
-  } = useSessionTranscriptUi({
+    updateScrollThumb,
+  } = useTranscriptScrollState({
     messages,
     sessionKey: currentSession ? `${currentSession.ns}\u0000${currentSession.agent}\u0000${currentSession.sessionId}` : null,
     isLive: isSessionLive,
     error,
     streamEvents,
     hydrationState: toolResultHydration,
+    expandedThinkingMessages: transcriptExpansion.expandedThinkingMessages,
+    expandedToolItems: transcriptExpansion.expandedToolItems,
+  });
+  const transcriptPagination = useTranscriptPaginationAnchor({
+    messages,
+    transcriptRef: scrollContainerRef,
     canLoadOlder: Boolean(currentSession && hasMoreHistory && nextBeforeMessageId),
     onLoadOlder: loadOlderHistory,
+    onPrependStart: skipNextAutoScroll,
+    onRestored: updateScrollThumb,
   });
+  const handleTranscriptScroll = useCallback(() => {
+    handleTranscriptScrollState();
+    transcriptPagination.handleScroll();
+  }, [handleTranscriptScrollState, transcriptPagination]);
+  const resetTranscriptUi = useCallback(() => {
+    transcriptExpansion.reset();
+    resetTranscriptScroll();
+    transcriptPagination.reset();
+  }, [resetTranscriptScroll, transcriptExpansion, transcriptPagination]);
+  const {
+    expandedThinkingMessages,
+    expandedToolItems,
+    toggleThinkingMessage,
+    toggleToolItem,
+  } = transcriptExpansion;
   const abortControllerRef = useRef<AbortController | null>(null);
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
   const stopAbortControllerRef = useRef<AbortController | null>(null);

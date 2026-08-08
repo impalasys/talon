@@ -8,7 +8,7 @@ import {
   type CopilotMessage,
 } from "../lib/chatTimeline";
 import { MarkdownMessage } from "../lib/MarkdownMessage";
-import type { ToolResultHydrationState } from "./useToolResultHydration";
+import type { ToolResultHydrationState } from "./hooks/useToolResultHydration";
 
 export type AssistantMessageTimelineProps = {
   message: CopilotMessage;

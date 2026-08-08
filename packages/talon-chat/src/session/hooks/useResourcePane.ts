@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ResourceViewModel } from "../lib/resourceUris";
+import type { ResourceViewModel } from "../../lib/resourceUris";
 
 export type ResourcePaneLoader = (uri: string, signal: AbortSignal) => Promise<ResourceViewModel>;
 
