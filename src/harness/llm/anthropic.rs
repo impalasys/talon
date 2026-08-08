@@ -254,7 +254,7 @@ impl LlmProvider for AnthropicProvider {
         });
 
         Ok(ChatResponse {
-            content: content.clone(),
+            content,
             tool_calls: vec![],
             usage,
         })
