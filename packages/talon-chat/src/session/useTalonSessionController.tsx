@@ -75,8 +75,8 @@ export function useTalonSessionController({
   const isStopping = sessionRuntimeState.phase === "stopping";
   const error = sessionRuntimeState.error;
   const conversation = useTalonSessionConversation({
-    acceptedImageTypes, agent, currentSession, error, gatewayClient, history: sessionRuntimeState.history,
-    isSessionLive, loadOlderRuntime, maxImageAttachments, maxImageBytes, messages, onImageUpload, setError,
+    acceptedAttachmentTypes, acceptedImageTypes, agent, currentSession, error, gatewayClient, history: sessionRuntimeState.history,
+    isSessionLive, loadOlderRuntime, maxAttachments, maxAttachmentBytes, maxImageAttachments, maxImageBytes, messages, onAttachmentUpload, onImageUpload, setError,
   });
   const { abortControllerRef, hydration, images, input, loadingStartedAt, presentation, setInput, setLoadingStartedAt, setStreamEvents, streamEvents, transcript } = conversation;
   const { attachments: imageAttachments, attachmentsRef: imageAttachmentsRef, addFiles: addImageFiles, remove: removeImageAttachment, replace: setImageAttachments, uploadQueued: uploadQueuedImages } = images;
@@ -246,7 +246,7 @@ export function useTalonSessionController({
         error: attachment.error,
       })),
       attachmentUploadEnabled: Boolean(onAttachmentUpload ?? onImageUpload),
-      attachmentAccept: resolvedAcceptedAttachmentTypes.join(","),
+      attachmentAccept: (acceptedAttachmentTypes ?? acceptedImageTypes ?? ["image/png", "image/jpeg", "image/gif", "image/webp"]).join(","),
       onAttachmentFilesSelected: addImageFiles,
       onRemoveAttachment: removeImageAttachment,
       onStop: () => { void sessionRuntime.stop().catch((stopError: unknown) => setError(stopError instanceof Error ? stopError : new Error("Failed to stop generation"))); },

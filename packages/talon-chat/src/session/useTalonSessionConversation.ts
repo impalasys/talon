@@ -3,7 +3,7 @@ import type { CopilotMessage } from "../lib/chatTimeline";
 import type { StreamEventItem } from "../lib/uiStream";
 import type { SessionRuntimeController } from "./hooks/useSessionRuntime";
 import { createLocalMessageId } from "./useSessionActions";
-import { useSessionImageAttachments } from "./useSessionImageAttachments";
+import { useSessionAttachments } from "./hooks/useSessionAttachments";
 import { useSessionPresentationState } from "./useSessionPresentationState";
 import { useToolResultHydration } from "./hooks/useToolResultHydration";
 import { useTranscriptExpansionState } from "./hooks/useTranscriptExpansionState";
@@ -12,7 +12,7 @@ import { useTranscriptScrollState } from "./hooks/useTranscriptScrollState";
 import type { TalonSessionProps } from "./TalonSessionTypes";
 import type { SessionTarget } from "./types";
 
-type Options = Pick<TalonSessionProps, "acceptedImageTypes" | "agent" | "gatewayClient" | "maxImageAttachments" | "maxImageBytes" | "onImageUpload"> & {
+type Options = Pick<TalonSessionProps, "acceptedAttachmentTypes" | "acceptedImageTypes" | "agent" | "gatewayClient" | "maxAttachments" | "maxAttachmentBytes" | "maxImageAttachments" | "maxImageBytes" | "onAttachmentUpload" | "onImageUpload"> & {
   currentSession: SessionTarget | null;
   error: Error | null;
   history: { hasMoreOlder: boolean; beforeMessageId: string | null };
@@ -24,7 +24,8 @@ type Options = Pick<TalonSessionProps, "acceptedImageTypes" | "agent" | "gateway
 
 /** Owns composer, hydration, and transcript UI state, leaving transport to the parent controller. */
 export function useTalonSessionConversation({
-  acceptedImageTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"],
+  acceptedAttachmentTypes,
+  acceptedImageTypes,
   agent,
   currentSession,
   error,
@@ -32,9 +33,12 @@ export function useTalonSessionConversation({
   history,
   isSessionLive,
   loadOlderRuntime,
-  maxImageAttachments = 4,
-  maxImageBytes = 20 * 1024 * 1024,
+  maxAttachments,
+  maxAttachmentBytes,
+  maxImageAttachments,
+  maxImageBytes,
   messages,
+  onAttachmentUpload,
   onImageUpload,
   setError,
 }: Options) {
@@ -42,7 +46,14 @@ export function useTalonSessionConversation({
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const images = useSessionImageAttachments({ acceptedImageTypes, createId: createLocalMessageId, maxImageAttachments, maxImageBytes, onError: setError, onUpload: onImageUpload });
+  const images = useSessionAttachments({
+    acceptedTypes: acceptedAttachmentTypes ?? acceptedImageTypes ?? ["image/png", "image/jpeg", "image/gif", "image/webp"],
+    createId: createLocalMessageId,
+    maxAttachments: maxAttachments ?? maxImageAttachments ?? 4,
+    maxBytes: maxAttachmentBytes ?? maxImageBytes ?? 20 * 1024 * 1024,
+    onError: setError,
+    onUpload: onAttachmentUpload ?? onImageUpload,
+  });
   const hydration = useToolResultHydration(
     gatewayClient.cas,
     currentSession ? `${currentSession.ns}\u0000${currentSession.agent}\u0000${currentSession.sessionId}` : null,
