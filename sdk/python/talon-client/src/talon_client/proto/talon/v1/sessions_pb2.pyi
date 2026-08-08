@@ -73,6 +73,38 @@ class ListSessionMessagesResponse(_message.Message):
     next_before_message_id: str
     def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., state: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ListSessionMessagesResponseItem, _Mapping]]] = ..., has_more: bool = ..., next_before_message_id: _Optional[str] = ...) -> None: ...
 
+class ListQueuedSessionMessagesRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns", "queue")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    QUEUE_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    queue: str
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., queue: _Optional[str] = ...) -> None: ...
+
+class QueuedSessionMessage(_message.Message):
+    __slots__ = ("entry_id", "message")
+    ENTRY_ID_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    entry_id: str
+    message: _data_pb2.SessionMessage
+    def __init__(self, entry_id: _Optional[str] = ..., message: _Optional[_Union[_data_pb2.SessionMessage, _Mapping]] = ...) -> None: ...
+
+class ListQueuedSessionMessagesResponse(_message.Message):
+    __slots__ = ("session_id", "agent", "queue", "entries")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    QUEUE_FIELD_NUMBER: _ClassVar[int]
+    ENTRIES_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    queue: str
+    entries: _containers.RepeatedCompositeFieldContainer[QueuedSessionMessage]
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., queue: _Optional[str] = ..., entries: _Optional[_Iterable[_Union[QueuedSessionMessage, _Mapping]]] = ...) -> None: ...
+
 class ListSessionsRequest(_message.Message):
     __slots__ = ("agent", "ns")
     AGENT_FIELD_NUMBER: _ClassVar[int]

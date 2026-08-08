@@ -531,6 +531,37 @@ pub struct ListSessionMessagesResponse {
     #[prost(string, optional, tag = "6")]
     pub next_before_message_id: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Queue entries are stored separately from the canonical session transcript
+/// until they are dispatched. They are returned in FIFO dispatch order.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListQueuedSessionMessagesRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub queue: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueuedSessionMessage {
+    #[prost(string, tag = "1")]
+    pub entry_id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub message: ::core::option::Option<super::data::SessionMessage>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListQueuedSessionMessagesResponse {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub queue: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "4")]
+    pub entries: ::prost::alloc::vec::Vec<QueuedSessionMessage>,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSessionsRequest {
     #[prost(string, tag = "1")]
@@ -926,6 +957,32 @@ pub mod session_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.v1.SessionService", "ListMessages"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn list_queued_messages(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListQueuedSessionMessagesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListQueuedSessionMessagesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.SessionService/ListQueuedMessages",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.v1.SessionService", "ListQueuedMessages"),
+                );
             self.inner.unary(req, path, codec).await
         }
         pub async fn delete(

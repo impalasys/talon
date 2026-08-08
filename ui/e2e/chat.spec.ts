@@ -3,7 +3,20 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { decompress as decompressZstd } from 'fzstd';
+import { data, v1Sessions } from '@impalasys/talon-client';
 import { createE2ETalonClient, e2eGatewayUrl, installBrowserAuth } from './talonAuth';
+
+function grpcWebMessage(message: Uint8Array) {
+  const frame = Buffer.alloc(5 + message.length);
+  frame.writeUInt32BE(message.length, 1);
+  Buffer.from(message).copy(frame, 5);
+  const trailers = Buffer.from('grpc-status: 0\r\n', 'utf8');
+  const trailerFrame = Buffer.alloc(5 + trailers.length);
+  trailerFrame[0] = 0x80;
+  trailerFrame.writeUInt32BE(trailers.length, 1);
+  trailers.copy(trailerFrame, 5);
+  return Buffer.concat([frame, trailerFrame]);
+}
 
 async function createTestSession(options: { mcpServerRefs?: string[] } = {}) {
   const gatewayUrl = e2eGatewayUrl();
@@ -399,6 +412,66 @@ test.describe('Sightline screenshots', () => {
     await expect(composer).toHaveCSS('background-color', cssVarPattern('rgba(255, 255, 255, 0.96)', 'rgb(255, 255, 255)'));
     await page.screenshot({
       path: await screenshotOutputPath(testInfo, 'sightline-chat-light.png'),
+      fullPage: true,
+    });
+  });
+
+  test('renders pending NEXT queue messages above the composer @screenshots', async ({ page }, testInfo) => {
+    const { sessionId, gatewayUrl, testNs, testAgent } = await createTestSession();
+    let queueRequests = 0;
+    const response = new v1Sessions.ListQueuedSessionMessagesResponse({
+      sessionId,
+      agent: testAgent,
+      queue: 'next',
+      entries: [
+        new v1Sessions.QueuedSessionMessage({
+          entryId: '00000000000000000001-design-review',
+          message: new data.SessionMessage({
+            role: data.MessageRole.ROLE_USER,
+            parts: [new data.SessionMessagePart({
+              id: '000000',
+              partType: data.SessionMessagePartType.TEXT,
+              content: 'Review the proposed deployment plan after this response.',
+            })],
+          }),
+        }),
+        new v1Sessions.QueuedSessionMessage({
+          entryId: '00000000000000000002-release-note',
+          message: new data.SessionMessage({
+            role: data.MessageRole.ROLE_USER,
+            parts: [new data.SessionMessagePart({
+              id: '000000',
+              partType: data.SessionMessagePartType.TEXT,
+              content: 'Then draft the release note.',
+            })],
+          }),
+        }),
+      ],
+    });
+
+    await page.route('**/talon.v1.SessionService/ListQueuedMessages', async (route) => {
+      queueRequests += 1;
+      await route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/grpc-web+proto' },
+        body: grpcWebMessage(response.toBinary()),
+      });
+    });
+
+    const { chatInput } = await openSessionDirectly(
+      page,
+      { ns: testNs, agent: testAgent, sessionId },
+      gatewayUrl,
+    );
+    const nextQueue = page.getByLabel('Next queue');
+    await expect(nextQueue).toBeVisible({ timeout: 15000 });
+    await expect(nextQueue).toContainText('Review the proposed deployment plan after this response.');
+    await expect(nextQueue).toContainText('2 queued');
+    await expect.poll(() => queueRequests).toBeGreaterThanOrEqual(1);
+    await expect(chatInput).toBeVisible();
+
+    await page.screenshot({
+      path: await screenshotOutputPath(testInfo, 'sightline-next-queue.png'),
       fullPage: true,
     });
   });

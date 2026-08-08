@@ -31,6 +31,7 @@ import { useTalonSessionRuntime } from "./session/useTalonSessionRuntime";
 import { useSessionPresentationState } from "./session/useSessionPresentationState";
 import { useSessionResources } from "./session/useSessionResources";
 import { useSessionCommands } from "./session/useSessionCommands";
+import { useSessionPendingMessages } from "./session/useSessionPendingMessages";
 import type {
   TalonSessionProps,
 } from "./session/TalonSessionTypes";
@@ -118,6 +119,7 @@ export function TalonSession({
   } = sessionRuntime;
   const messages = sessionRuntimeState.messages;
   const currentSession = sessionRuntimeState.target;
+  const pendingMessages = useSessionPendingMessages(gatewayClient.sessions, currentSession);
   const isLoading = sessionRuntimeState.phase === "submitting";
   const isResuming = sessionRuntimeState.phase === "resuming";
   const isStopping = sessionRuntimeState.phase === "stopping";
@@ -457,6 +459,7 @@ export function TalonSession({
 
           <SessionComposerDock
             disabled={disabled}
+            pendingMessages={pendingMessages}
             value={input}
             onValueChange={setInput}
             onSubmit={(nextInput) => void (currentSession

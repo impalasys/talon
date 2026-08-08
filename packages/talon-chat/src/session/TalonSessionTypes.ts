@@ -13,7 +13,7 @@ export type SessionServiceClientLike = {
   sessions: Pick<
     TalonClient["sessions"],
     "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
-  > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage">>;
+  > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage" | "listQueuedMessages">>;
 }["sessions"];
 
 export type CasServiceClientLike = Pick<TalonClient["cas"], "getObject">;
