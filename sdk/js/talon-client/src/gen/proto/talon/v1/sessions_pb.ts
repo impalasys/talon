@@ -277,6 +277,162 @@ export class ListSessionMessagesResponse extends Message<ListSessionMessagesResp
 }
 
 /**
+ * Queue entries are stored separately from the canonical session transcript
+ * until they are dispatched. They are returned in FIFO dispatch order.
+ *
+ * @generated from message talon.v1.ListQueuedSessionMessagesRequest
+ */
+export class ListQueuedSessionMessagesRequest extends Message<ListQueuedSessionMessagesRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string queue = 4;
+   */
+  queue = "";
+
+  constructor(data?: PartialMessage<ListQueuedSessionMessagesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ListQueuedSessionMessagesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "queue", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListQueuedSessionMessagesRequest {
+    return new ListQueuedSessionMessagesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListQueuedSessionMessagesRequest {
+    return new ListQueuedSessionMessagesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListQueuedSessionMessagesRequest {
+    return new ListQueuedSessionMessagesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListQueuedSessionMessagesRequest | PlainMessage<ListQueuedSessionMessagesRequest> | undefined, b: ListQueuedSessionMessagesRequest | PlainMessage<ListQueuedSessionMessagesRequest> | undefined): boolean {
+    return proto3.util.equals(ListQueuedSessionMessagesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.QueuedSessionMessage
+ */
+export class QueuedSessionMessage extends Message<QueuedSessionMessage> {
+  /**
+   * @generated from field: string entry_id = 1;
+   */
+  entryId = "";
+
+  /**
+   * @generated from field: talon.data.SessionMessage message = 2;
+   */
+  message?: SessionMessage;
+
+  constructor(data?: PartialMessage<QueuedSessionMessage>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.QueuedSessionMessage";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "entry_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "message", kind: "message", T: SessionMessage },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): QueuedSessionMessage {
+    return new QueuedSessionMessage().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): QueuedSessionMessage {
+    return new QueuedSessionMessage().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): QueuedSessionMessage {
+    return new QueuedSessionMessage().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: QueuedSessionMessage | PlainMessage<QueuedSessionMessage> | undefined, b: QueuedSessionMessage | PlainMessage<QueuedSessionMessage> | undefined): boolean {
+    return proto3.util.equals(QueuedSessionMessage, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.ListQueuedSessionMessagesResponse
+ */
+export class ListQueuedSessionMessagesResponse extends Message<ListQueuedSessionMessagesResponse> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string queue = 3;
+   */
+  queue = "";
+
+  /**
+   * @generated from field: repeated talon.v1.QueuedSessionMessage entries = 4;
+   */
+  entries: QueuedSessionMessage[] = [];
+
+  constructor(data?: PartialMessage<ListQueuedSessionMessagesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ListQueuedSessionMessagesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "queue", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "entries", kind: "message", T: QueuedSessionMessage, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListQueuedSessionMessagesResponse {
+    return new ListQueuedSessionMessagesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListQueuedSessionMessagesResponse {
+    return new ListQueuedSessionMessagesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListQueuedSessionMessagesResponse {
+    return new ListQueuedSessionMessagesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListQueuedSessionMessagesResponse | PlainMessage<ListQueuedSessionMessagesResponse> | undefined, b: ListQueuedSessionMessagesResponse | PlainMessage<ListQueuedSessionMessagesResponse> | undefined): boolean {
+    return proto3.util.equals(ListQueuedSessionMessagesResponse, a, b);
+  }
+}
+
+/**
  * @generated from message talon.v1.ListSessionsRequest
  */
 export class ListSessionsRequest extends Message<ListSessionsRequest> {

@@ -5,7 +5,7 @@ export type GatewayClientLike = {
   sessions: Pick<
     TalonClient["sessions"],
     "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
-  > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage">>;
+  > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage" | "listQueuedMessages">>;
   cas?: CasServiceClientLike;
   artifacts?: ArtifactServiceClientLike;
   files?: FileServiceClientLike;

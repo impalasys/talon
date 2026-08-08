@@ -207,6 +207,7 @@ function makeGatewayClient(raw: any = {}, gatewayUrl = 'http://localhost:18789',
       const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}/messages?page_size=${request.pageSize}${before}`, { headers });
       return response.json();
     }),
+    listQueuedMessages: raw.listQueuedSessionMessages ?? jest.fn(async () => ({ entries: [] })),
     get: raw.getSession ?? jest.fn(async (request: any) => {
       const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}`, expect.anything());
       return response.json();
@@ -356,6 +357,40 @@ describe('TalonCopilot', () => {
       });
     });
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
+  });
+
+  it('shows pending messages from the session NEXT queue above the composer', async () => {
+    const listQueuedSessionMessages = jest.fn().mockResolvedValue({
+      entries: [
+        {
+          entryId: '00000000000000000001-next',
+          message: {
+            role: 'ROLE_USER',
+            parts: [{ partType: 'SESSION_MESSAGE_PART_TYPE_TEXT', content: 'Queue this follow-up' }],
+          },
+        },
+      ],
+    });
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        sessionId="sess-1"
+        gatewayClient={{
+          listSessionMessages: jest.fn().mockResolvedValue({ sessionId: 'sess-1', state: 'PROCESSING', items: [] }),
+          listQueuedSessionMessages,
+        }}
+      />,
+    );
+
+    expect(await screen.findByText('Queue this follow-up')).toBeInTheDocument();
+    expect(screen.getByLabelText('Next queue')).toHaveTextContent('1 queued');
+    expect(listQueuedSessionMessages).toHaveBeenCalledWith({
+      ns: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-1',
+      queue: 'next',
+    }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
   });
 
   it('does not apply delayed hydration from the previous session after switching sessions', async () => {

@@ -136,6 +136,37 @@ public final class SessionServiceGrpc {
     return getListMessagesMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.ListQueuedSessionMessagesRequest,
+      talon.v1.Sessions.ListQueuedSessionMessagesResponse> getListQueuedMessagesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ListQueuedMessages",
+      requestType = talon.v1.Sessions.ListQueuedSessionMessagesRequest.class,
+      responseType = talon.v1.Sessions.ListQueuedSessionMessagesResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.ListQueuedSessionMessagesRequest,
+      talon.v1.Sessions.ListQueuedSessionMessagesResponse> getListQueuedMessagesMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.ListQueuedSessionMessagesRequest, talon.v1.Sessions.ListQueuedSessionMessagesResponse> getListQueuedMessagesMethod;
+    if ((getListQueuedMessagesMethod = SessionServiceGrpc.getListQueuedMessagesMethod) == null) {
+      synchronized (SessionServiceGrpc.class) {
+        if ((getListQueuedMessagesMethod = SessionServiceGrpc.getListQueuedMessagesMethod) == null) {
+          SessionServiceGrpc.getListQueuedMessagesMethod = getListQueuedMessagesMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.ListQueuedSessionMessagesRequest, talon.v1.Sessions.ListQueuedSessionMessagesResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListQueuedMessages"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.ListQueuedSessionMessagesRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.ListQueuedSessionMessagesResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("ListQueuedMessages"))
+              .build();
+        }
+      }
+    }
+    return getListQueuedMessagesMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.DeleteSessionRequest,
       talon.v1.Sessions.DeleteSessionResponse> getDeleteMethod;
 
@@ -539,6 +570,13 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    default void listQueuedMessages(talon.v1.Sessions.ListQueuedSessionMessagesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ListQueuedSessionMessagesResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListQueuedMessagesMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void delete(talon.v1.Sessions.DeleteSessionRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Sessions.DeleteSessionResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteMethod(), responseObserver);
@@ -669,6 +707,14 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public void listQueuedMessages(talon.v1.Sessions.ListQueuedSessionMessagesRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ListQueuedSessionMessagesResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getListQueuedMessagesMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
     public void delete(talon.v1.Sessions.DeleteSessionRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Sessions.DeleteSessionResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
@@ -794,6 +840,13 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public talon.v1.Sessions.ListQueuedSessionMessagesResponse listQueuedMessages(talon.v1.Sessions.ListQueuedSessionMessagesRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getListQueuedMessagesMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
     public talon.v1.Sessions.DeleteSessionResponse delete(talon.v1.Sessions.DeleteSessionRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getDeleteMethod(), getCallOptions(), request);
@@ -911,6 +964,13 @@ public final class SessionServiceGrpc {
     public talon.v1.Sessions.ListSessionMessagesResponse listMessages(talon.v1.Sessions.ListSessionMessagesRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getListMessagesMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Sessions.ListQueuedSessionMessagesResponse listQueuedMessages(talon.v1.Sessions.ListQueuedSessionMessagesRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getListQueuedMessagesMethod(), getCallOptions(), request);
     }
 
     /**
@@ -1037,6 +1097,14 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.ListQueuedSessionMessagesResponse> listQueuedMessages(
+        talon.v1.Sessions.ListQueuedSessionMessagesRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getListQueuedMessagesMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.DeleteSessionResponse> delete(
         talon.v1.Sessions.DeleteSessionRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -1096,16 +1164,17 @@ public final class SessionServiceGrpc {
   private static final int METHODID_GET = 1;
   private static final int METHODID_LIST = 2;
   private static final int METHODID_LIST_MESSAGES = 3;
-  private static final int METHODID_DELETE = 4;
-  private static final int METHODID_CLEAR = 5;
-  private static final int METHODID_SEND_MESSAGE = 6;
-  private static final int METHODID_APPEND_MESSAGE = 7;
-  private static final int METHODID_UPDATE_MESSAGE = 8;
-  private static final int METHODID_ANSWER_PERMISSION = 9;
-  private static final int METHODID_STOP_GENERATION = 10;
-  private static final int METHODID_STREAM_PARTS = 11;
-  private static final int METHODID_STREAM_PARTS_BATCH = 12;
-  private static final int METHODID_SUBMIT_TURN = 13;
+  private static final int METHODID_LIST_QUEUED_MESSAGES = 4;
+  private static final int METHODID_DELETE = 5;
+  private static final int METHODID_CLEAR = 6;
+  private static final int METHODID_SEND_MESSAGE = 7;
+  private static final int METHODID_APPEND_MESSAGE = 8;
+  private static final int METHODID_UPDATE_MESSAGE = 9;
+  private static final int METHODID_ANSWER_PERMISSION = 10;
+  private static final int METHODID_STOP_GENERATION = 11;
+  private static final int METHODID_STREAM_PARTS = 12;
+  private static final int METHODID_STREAM_PARTS_BATCH = 13;
+  private static final int METHODID_SUBMIT_TURN = 14;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1139,6 +1208,10 @@ public final class SessionServiceGrpc {
         case METHODID_LIST_MESSAGES:
           serviceImpl.listMessages((talon.v1.Sessions.ListSessionMessagesRequest) request,
               (io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionMessagesResponse>) responseObserver);
+          break;
+        case METHODID_LIST_QUEUED_MESSAGES:
+          serviceImpl.listQueuedMessages((talon.v1.Sessions.ListQueuedSessionMessagesRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.ListQueuedSessionMessagesResponse>) responseObserver);
           break;
         case METHODID_DELETE:
           serviceImpl.delete((talon.v1.Sessions.DeleteSessionRequest) request,
@@ -1226,6 +1299,13 @@ public final class SessionServiceGrpc {
               talon.v1.Sessions.ListSessionMessagesRequest,
               talon.v1.Sessions.ListSessionMessagesResponse>(
                 service, METHODID_LIST_MESSAGES)))
+        .addMethod(
+          getListQueuedMessagesMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Sessions.ListQueuedSessionMessagesRequest,
+              talon.v1.Sessions.ListQueuedSessionMessagesResponse>(
+                service, METHODID_LIST_QUEUED_MESSAGES)))
         .addMethod(
           getDeleteMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -1348,6 +1428,7 @@ public final class SessionServiceGrpc {
               .addMethod(getGetMethod())
               .addMethod(getListMethod())
               .addMethod(getListMessagesMethod())
+              .addMethod(getListQueuedMessagesMethod())
               .addMethod(getDeleteMethod())
               .addMethod(getClearMethod())
               .addMethod(getSendMessageMethod())

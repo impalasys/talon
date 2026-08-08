@@ -55,6 +55,11 @@ class SessionServiceStub(object):
                 request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesRequest.SerializeToString,
                 response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesResponse.FromString,
                 _registered_method=True)
+        self.ListQueuedMessages = channel.unary_unary(
+                '/talon.v1.SessionService/ListQueuedMessages',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListQueuedSessionMessagesRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListQueuedSessionMessagesResponse.FromString,
+                _registered_method=True)
         self.Delete = channel.unary_unary(
                 '/talon.v1.SessionService/Delete',
                 request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.DeleteSessionRequest.SerializeToString,
@@ -129,6 +134,12 @@ class SessionServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def ListMessages(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListQueuedMessages(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -216,6 +227,11 @@ def add_SessionServiceServicer_to_server(servicer, server):
                     servicer.ListMessages,
                     request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesRequest.FromString,
                     response_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesResponse.SerializeToString,
+            ),
+            'ListQueuedMessages': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListQueuedMessages,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListQueuedSessionMessagesRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListQueuedSessionMessagesResponse.SerializeToString,
             ),
             'Delete': grpc.unary_unary_rpc_method_handler(
                     servicer.Delete,
@@ -376,6 +392,33 @@ class SessionService(object):
             '/talon.v1.SessionService/ListMessages',
             proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesRequest.SerializeToString,
             proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListQueuedMessages(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.SessionService/ListQueuedMessages',
+            proto_dot_talon_dot_v1_dot_sessions__pb2.ListQueuedSessionMessagesRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_sessions__pb2.ListQueuedSessionMessagesResponse.FromString,
             options,
             channel_credentials,
             insecure,

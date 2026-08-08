@@ -20,20 +20,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SessionService_Create_FullMethodName           = "/talon.v1.SessionService/Create"
-	SessionService_Get_FullMethodName              = "/talon.v1.SessionService/Get"
-	SessionService_List_FullMethodName             = "/talon.v1.SessionService/List"
-	SessionService_ListMessages_FullMethodName     = "/talon.v1.SessionService/ListMessages"
-	SessionService_Delete_FullMethodName           = "/talon.v1.SessionService/Delete"
-	SessionService_Clear_FullMethodName            = "/talon.v1.SessionService/Clear"
-	SessionService_SendMessage_FullMethodName      = "/talon.v1.SessionService/SendMessage"
-	SessionService_AppendMessage_FullMethodName    = "/talon.v1.SessionService/AppendMessage"
-	SessionService_UpdateMessage_FullMethodName    = "/talon.v1.SessionService/UpdateMessage"
-	SessionService_AnswerPermission_FullMethodName = "/talon.v1.SessionService/AnswerPermission"
-	SessionService_StopGeneration_FullMethodName   = "/talon.v1.SessionService/StopGeneration"
-	SessionService_StreamParts_FullMethodName      = "/talon.v1.SessionService/StreamParts"
-	SessionService_StreamPartsBatch_FullMethodName = "/talon.v1.SessionService/StreamPartsBatch"
-	SessionService_SubmitTurn_FullMethodName       = "/talon.v1.SessionService/SubmitTurn"
+	SessionService_Create_FullMethodName             = "/talon.v1.SessionService/Create"
+	SessionService_Get_FullMethodName                = "/talon.v1.SessionService/Get"
+	SessionService_List_FullMethodName               = "/talon.v1.SessionService/List"
+	SessionService_ListMessages_FullMethodName       = "/talon.v1.SessionService/ListMessages"
+	SessionService_ListQueuedMessages_FullMethodName = "/talon.v1.SessionService/ListQueuedMessages"
+	SessionService_Delete_FullMethodName             = "/talon.v1.SessionService/Delete"
+	SessionService_Clear_FullMethodName              = "/talon.v1.SessionService/Clear"
+	SessionService_SendMessage_FullMethodName        = "/talon.v1.SessionService/SendMessage"
+	SessionService_AppendMessage_FullMethodName      = "/talon.v1.SessionService/AppendMessage"
+	SessionService_UpdateMessage_FullMethodName      = "/talon.v1.SessionService/UpdateMessage"
+	SessionService_AnswerPermission_FullMethodName   = "/talon.v1.SessionService/AnswerPermission"
+	SessionService_StopGeneration_FullMethodName     = "/talon.v1.SessionService/StopGeneration"
+	SessionService_StreamParts_FullMethodName        = "/talon.v1.SessionService/StreamParts"
+	SessionService_StreamPartsBatch_FullMethodName   = "/talon.v1.SessionService/StreamPartsBatch"
+	SessionService_SubmitTurn_FullMethodName         = "/talon.v1.SessionService/SubmitTurn"
 )
 
 // SessionServiceClient is the client API for SessionService service.
@@ -44,6 +45,7 @@ type SessionServiceClient interface {
 	Get(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
 	List(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 	ListMessages(ctx context.Context, in *ListSessionMessagesRequest, opts ...grpc.CallOption) (*ListSessionMessagesResponse, error)
+	ListQueuedMessages(ctx context.Context, in *ListQueuedSessionMessagesRequest, opts ...grpc.CallOption) (*ListQueuedSessionMessagesResponse, error)
 	Delete(ctx context.Context, in *DeleteSessionRequest, opts ...grpc.CallOption) (*DeleteSessionResponse, error)
 	Clear(ctx context.Context, in *ClearSessionRequest, opts ...grpc.CallOption) (*ClearSessionResponse, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
@@ -98,6 +100,16 @@ func (c *sessionServiceClient) ListMessages(ctx context.Context, in *ListSession
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListSessionMessagesResponse)
 	err := c.cc.Invoke(ctx, SessionService_ListMessages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sessionServiceClient) ListQueuedMessages(ctx context.Context, in *ListQueuedSessionMessagesRequest, opts ...grpc.CallOption) (*ListQueuedSessionMessagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListQueuedSessionMessagesResponse)
+	err := c.cc.Invoke(ctx, SessionService_ListQueuedMessages_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -239,6 +251,7 @@ type SessionServiceServer interface {
 	Get(context.Context, *GetSessionRequest) (*SessionResponse, error)
 	List(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	ListMessages(context.Context, *ListSessionMessagesRequest) (*ListSessionMessagesResponse, error)
+	ListQueuedMessages(context.Context, *ListQueuedSessionMessagesRequest) (*ListQueuedSessionMessagesResponse, error)
 	Delete(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error)
 	Clear(context.Context, *ClearSessionRequest) (*ClearSessionResponse, error)
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
@@ -270,6 +283,9 @@ func (UnimplementedSessionServiceServer) List(context.Context, *ListSessionsRequ
 }
 func (UnimplementedSessionServiceServer) ListMessages(context.Context, *ListSessionMessagesRequest) (*ListSessionMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListMessages not implemented")
+}
+func (UnimplementedSessionServiceServer) ListQueuedMessages(context.Context, *ListQueuedSessionMessagesRequest) (*ListQueuedSessionMessagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListQueuedMessages not implemented")
 }
 func (UnimplementedSessionServiceServer) Delete(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
@@ -390,6 +406,24 @@ func _SessionService_ListMessages_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SessionServiceServer).ListMessages(ctx, req.(*ListSessionMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SessionService_ListQueuedMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListQueuedSessionMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionServiceServer).ListQueuedMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SessionService_ListQueuedMessages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionServiceServer).ListQueuedMessages(ctx, req.(*ListQueuedSessionMessagesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -575,6 +609,10 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListMessages",
 			Handler:    _SessionService_ListMessages_Handler,
+		},
+		{
+			MethodName: "ListQueuedMessages",
+			Handler:    _SessionService_ListQueuedMessages_Handler,
 		},
 		{
 			MethodName: "Delete",

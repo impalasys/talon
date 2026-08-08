@@ -10,6 +10,7 @@ service SessionService {
   rpc Get(GetSessionRequest) returns (SessionResponse);
   rpc List(ListSessionsRequest) returns (ListSessionsResponse);
   rpc ListMessages(ListSessionMessagesRequest) returns (ListSessionMessagesResponse);
+  rpc ListQueuedMessages(ListQueuedSessionMessagesRequest) returns (ListQueuedSessionMessagesResponse);
   rpc Delete(DeleteSessionRequest) returns (DeleteSessionResponse);
   rpc Clear(ClearSessionRequest) returns (ClearSessionResponse);
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
@@ -60,6 +61,27 @@ message ListSessionMessagesResponse {
   repeated ListSessionMessagesResponseItem items = 4;
   bool has_more = 5;
   optional string next_before_message_id = 6;
+}
+
+// Queue entries are stored separately from the canonical session transcript
+// until they are dispatched. They are returned in FIFO dispatch order.
+message ListQueuedSessionMessagesRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  string queue = 4;
+}
+
+message QueuedSessionMessage {
+  string entry_id = 1;
+  talon.data.SessionMessage message = 2;
+}
+
+message ListQueuedSessionMessagesResponse {
+  string session_id = 1;
+  string agent = 2;
+  string queue = 3;
+  repeated QueuedSessionMessage entries = 4;
 }
 
 message ListSessionsRequest {
