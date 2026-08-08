@@ -1,18 +1,13 @@
-import { useCallback } from "react";
 import type { CopilotMessage } from "../lib/chatTimeline";
 import { copyMessageContent } from "./copyMessageContent";
-import { useSessionActions } from "./useSessionActions";
-import { useSessionCommands } from "./useSessionCommands";
-import { useSessionGeneration } from "./useSessionGeneration";
-import { useSessionLifecycle } from "./useSessionLifecycle";
 import { useTalonSessionInteractions } from "./useTalonSessionInteractions";
 import { useTalonSessionRuntime } from "./useTalonSessionRuntime";
 import { useTalonSessionConversation } from "./useTalonSessionConversation";
+import { useTalonSessionOperations } from "./useTalonSessionOperations";
 import { formatWorkingDuration } from "./sessionTiming";
 import type { TalonSessionProps } from "./TalonSessionTypes";
 import type { TalonSessionViewProps } from "./TalonSessionView";
 
-const emptyMessages: CopilotMessage[] = [];
 const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 
@@ -89,92 +84,12 @@ export function useTalonSessionController({
   });
   const { editing, handleResourceClick, resources } = interactions;
   const { openResourceUri, resourcePaneOpen, resourceView, resourceLoading, resourceError, close: closeResourcePane, reset: clearResourcePaneState, completeClose: handleResourcePaneExitComplete, abortRef: resourceAbortRef } = resources;
-  const resolvedHistoryPageSize = Math.max(1, Math.trunc(historyPageSize || historyMessageLimit || DEFAULT_HISTORY_PAGE_SIZE));
-  const refreshNewestSessionPage = useCallback(async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
-    setStreamEvents([]);
-    return refreshRuntime(target, signal);
-  }, [refreshRuntime]);
-  const generation = useSessionGeneration({
-    client: gatewayClient.sessions,
-    currentSession,
-    currentSessionRef,
-    messagesRef,
-    serverState: sessionRuntimeState.serverState,
-    isSessionLive,
-    isStopping,
-    submissionAbortControllerRef: abortControllerRef,
-    setMessages,
-    setStreamEvents,
-    setError,
-    setIsLoading,
-    setIsResuming,
-    setIsStopping,
-    setLoadingStartedAt,
-    setLoadingNow,
-    refreshRuntime,
-    refreshNewestSessionPage,
+  const operations = useTalonSessionOperations({
+    agent, commands, controls: { runtime: sessionRuntime, setIsLoading, setIsResuming, setIsStopping, setSessionState, submitRef: runtimeSubmitRef, stopRef: runtimeStopRef },
+    conversation, currentSession, disabled, enabledBuiltInCommands, gatewayClient, interactions, namespace,
+    onSessionChange, onSubmitMessage, sessionId, historyPageSize, historyMessageLimit,
   });
-  const { clearSession } = useSessionLifecycle({
-    client: gatewayClient.sessions,
-    currentSession,
-    currentSessionRef,
-    requestedSessionKey: `${namespace}\u0000${agent}\u0000${sessionId ?? ""}\u0000${currentSession?.sessionId ?? ""}`,
-    submissionAbortControllerRef: abortControllerRef,
-    resourceAbortControllerRef: resourceAbortRef,
-    messagesRef,
-    emptyMessages,
-    clearRuntime,
-    resetGeneration: generation.reset,
-    resetTranscriptUi,
-    invalidateToolResultHydration,
-    resetResourcePane: clearResourcePaneState,
-    setStreamEvents,
-    setError,
-    setIsLoading,
-    setIsResuming,
-    setIsStopping,
-    setSessionState,
-    setLoadingStartedAt,
-  });
-  const { commandMenuItems, resolvedCommands } = useSessionCommands({ clearSession, commands, enabledBuiltInCommands });
-  const { submitMessage } = useSessionActions({
-    client: gatewayClient.sessions,
-    namespace,
-    agent,
-    sessionId,
-    disabled,
-    isSessionLive,
-    enabledGoalCommand: Boolean(enabledBuiltInCommands?.includes("goal")),
-    commands: resolvedCommands,
-    onSessionChange,
-    onSubmitMessage,
-    currentSessionRef,
-    messagesRef,
-    imageAttachmentsRef,
-    submissionAbortControllerRef: abortControllerRef,
-    submittedPreviewUrlsRef,
-    resolvedHistoryPageSize,
-    setInput,
-    setImageAttachments,
-    setMessages,
-    setStreamEvents,
-    setError,
-    setIsLoading,
-    setIsResuming,
-    setLoadingStartedAt,
-    setLoadingNow,
-    activateTarget,
-    uploadQueuedImages,
-    clearSession,
-    cancelResume: generation.cancelResume,
-    startResume: generation.startResume,
-    isStoppingRef: generation.isStoppingRef,
-    markAutoScrollPinned,
-    refreshRuntime,
-    refreshNewestSessionPage,
-  });
-  runtimeSubmitRef.current = (submission, context) => submitMessage(submission.text, true, context.signal);
-  runtimeStopRef.current = (context) => generation.stopGeneration(context.signal);
+  const { commandMenuItems, submitMessage } = operations;
 
   return {
     className,
