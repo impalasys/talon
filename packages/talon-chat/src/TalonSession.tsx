@@ -1,14 +1,10 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { data, type TalonClient } from "@impalasys/talon-client";
-import { Activity, ChevronRight } from "lucide-react";
+import { Activity } from "lucide-react";
 import {
-  formatUsageSummary,
-  getMessageAssistantTimeline,
   getMessageContent,
-  getMessageReasoningContent,
-  getMessageUsage,
   hydrateMessagesWithSteps,
   normalizeMessageRole,
   type CopilotMessage,
@@ -20,7 +16,6 @@ import {
   type TalonBuiltInCommandName,
   type TalonChatCommand,
 } from "./lib/commands";
-import { MarkdownMessage } from "./lib/MarkdownMessage";
 import { ResourcePane } from "./lib/ResourcePane";
 import {
   parseResourceUri,
@@ -28,14 +23,11 @@ import {
 } from "./lib/resourceUris";
 import { streamSessionPartEvents, type StreamEventItem } from "./lib/uiStream";
 import {
-  SESSION_MESSAGE_PART_TYPE,
   messagePartsForSessionUpdate,
-  parsePayloadJson,
   protoSessionPartsFromChatParts,
 } from "./session/protocol";
 import {
   normalizeObjectRefForJson,
-  objectRefFromPart,
   objectRefMediaType,
   objectRefSizeBytes,
 } from "./session/objectRefs";
@@ -48,20 +40,13 @@ import { useSessionImageAttachments } from "./session/useSessionImageAttachments
 import { useToolResultHydration } from "./session/useToolResultHydration";
 import { useResourcePane } from "./session/useResourcePane";
 import { useSessionTranscriptUi } from "./session/useSessionTranscriptUi";
+import { useSessionGeneration } from "./session/useSessionGeneration";
 import { fetchResourceFromGateway } from "./session/resourceLoader";
 import { editableMessageContent, messageWithEditedContent, replaceMessageTextPart } from "./session/messageEditing";
 import { copyMessageContent } from "./session/copyMessageContent";
-import { formatWorkDuration, formatWorkingDuration } from "./session/sessionTiming";
+import { formatWorkingDuration } from "./session/sessionTiming";
 import { SessionStyles } from "./session/SessionStyles";
-import { ConnectorDeliveryControls } from "./session/ConnectorDeliveryControls";
-import { MessageEditForm } from "./session/MessageEditForm";
-import { MessageActions } from "./session/MessageActions";
-import { MessageImages } from "./session/MessageImages";
-import {
-  AssistantTimeline,
-  coalesceAssistantTimelineForDisplay,
-  splitFinalAssistantTimeline,
-} from "./session/AssistantTimeline";
+import { SessionMessage } from "./session/SessionMessage";
 import {
   canCompareCanonicalMessageIds,
   historyMessageTimestamp,
@@ -214,19 +199,9 @@ const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const LABEL_CONNECTOR_DELIVERY_STATUS = "talon.impalasys.com/connector-delivery-status";
 const LABEL_CONNECTOR_DELIVERY_ERROR = "talon.impalasys.com/connector-delivery-error";
-const CONNECTOR_DELIVERY_PENDING_REVIEW = "pending_review";
-
-function border(color: string) {
-  return `1px solid ${color}`;
-}
 
 const talonChatFontFamily =
   'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const talonChatMessageFontSize = "var(--talon-chat-message-font-size, 1rem)";
-
-function cn(...parts: Array<string | false | null | undefined>) {
-  return parts.filter(Boolean).join(" ");
-}
 
 function isSameSession(
   left: { ns: string; agent: string; sessionId: string } | null,
@@ -280,59 +255,12 @@ function normalizeEpochToMilliseconds(value: unknown) {
   return null;
 }
 
-function sessionProcessingStartTime(messages: CopilotMessage[]) {
-  const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
-  return latestUserMessage ? normalizeEpochToMilliseconds(latestUserMessage.createdAt) : null;
-}
-
 function getAssistantSignature(messages: any[] | undefined) {
   if (!Array.isArray(messages)) return "";
   return messages
     .filter((message) => message?.role === "assistant" || message?.role === 2 || message?.role === "ROLE_ASSISTANT")
     .map((message) => `${String(message.id ?? "")}:${getMessageContent(message).length}`)
     .join("|");
-}
-
-function messageImageParts(
-  message: CopilotMessage,
-  objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined,
-): Array<{ id: string; src?: string; label: string }> {
-  if (!Array.isArray(message.parts)) return [];
-  return message.parts.flatMap((part: any, index) => {
-    const type = part?.type ?? part?.partType ?? part?.part_type;
-    if (type !== "image" && type !== SESSION_MESSAGE_PART_TYPE.IMAGE && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
-      return [];
-    }
-    const payload = parsePayloadJson(part.payloadJson ?? part.payload_json);
-    const object = objectRefFromPart(part);
-    const src =
-      typeof part.previewUrl === "string"
-        ? part.previewUrl
-        : typeof part.url === "string"
-          ? part.url
-          : typeof payload.url === "string"
-            ? payload.url
-            : object
-              ? objectUrlForRef?.(object)
-              : undefined;
-    const label =
-      object?.filename ||
-      (typeof payload.filename === "string" ? payload.filename : undefined) ||
-      object?.key ||
-      `image-${index + 1}`;
-    return [{ id: `${message.id}-image-${index}`, src, label }];
-  });
-}
-
-function formatMessageActionTimestamp(message: CopilotMessage) {
-  const timestampMs = historyMessageTimestamp(message);
-  if (timestampMs === null) {
-    return null;
-  }
-  return new Date(timestampMs).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
 }
 
 function isSessionBusyError(error: unknown) {
@@ -480,8 +408,6 @@ export function TalonSession({
     onLoadOlder: loadOlderHistory,
   });
   const abortControllerRef = useRef<AbortController | null>(null);
-  const resumeAbortControllerRef = useRef<AbortController | null>(null);
-  const stopAbortControllerRef = useRef<AbortController | null>(null);
   const currentSessionRef = useRef<SessionTarget | null>(null);
   const resourceLoader = useCallback(
     (uri: string, signal: AbortSignal) => fetchResource
@@ -509,7 +435,6 @@ export function TalonSession({
   } = useResourcePane(resourceLoader);
   const messagesRef = useRef<CopilotMessage[]>(emptyMessages);
   const submittedPreviewUrlsRef = useRef<string[]>([]);
-  const isStoppingRef = useRef(false);
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -521,27 +446,6 @@ export function TalonSession({
   useEffect(() => {
     currentSessionRef.current = currentSession;
   }, [currentSession]);
-
-  const previousSessionTargetRef = useRef<SessionTarget | null>(null);
-  useEffect(() => {
-    const previousTarget = previousSessionTargetRef.current;
-    previousSessionTargetRef.current = currentSession;
-    if (!previousTarget || (currentSession && isSameSession(previousTarget, currentSession))) return;
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-    resumeAbortControllerRef.current?.abort();
-    resumeAbortControllerRef.current = null;
-    stopAbortControllerRef.current?.abort();
-    stopAbortControllerRef.current = null;
-    isStoppingRef.current = false;
-    setIsStopping(false);
-    setIsLoading(false);
-    setIsResuming(false);
-    setLoadingStartedAt(null);
-    setStreamEvents([]);
-    resetTranscriptUi();
-    invalidateToolResultHydration();
-  }, [currentSession?.agent, currentSession?.ns, currentSession?.sessionId, invalidateToolResultHydration, resetTranscriptUi, setIsLoading, setIsResuming, setIsStopping]);
 
   useEffect(() => {
     if (!isSessionLive || loadingStartedAt === null) {
@@ -555,7 +459,6 @@ export function TalonSession({
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
-      resumeAbortControllerRef.current?.abort();
       for (const attachment of imageAttachmentsRef.current) {
         URL.revokeObjectURL(attachment.previewUrl);
       }
@@ -726,210 +629,37 @@ export function TalonSession({
     clearResourcePaneState();
   }, [agent, clearResourcePaneState, currentSession?.sessionId, namespace, sessionId]);
 
-  const renderedMessages = useMemo(() => {
-    return messages.map((message, messageIndex) => {
-      const content = getMessageContent(message);
-      const images = messageImageParts(message, objectUrlForRef);
-      const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
-      const reasoningContent = getMessageReasoningContent(message);
-      const usage = getMessageUsage(message);
-      const usageSummary = formatUsageSummary(usage);
-      const isUserMessage = message.role === "user";
-      const isLatestMessage = messageIndex === messages.length - 1;
-      const isLiveAssistantMessage = isSessionLive && isLatestMessage && message.role === "assistant";
-      const isEditableMessage =
-        (allowMessageEditing || enableDebugMessageEditing) &&
-        (message.role === "user" || message.role === "assistant") &&
-        !isLiveAssistantMessage;
-      const isEditingMessage = editingMessageId === message.id;
-      const messageActionTimestamp = isEditableMessage ? formatMessageActionTimestamp(message) : null;
-      const finalizedTimeline = splitFinalAssistantTimeline(timeline);
-      const visibleTimeline = finalizedTimeline.finalTimeline;
-      const workTimeline = finalizedTimeline.workTimeline;
-      const workHasReasoning = workTimeline.some((item) => item.type === "reasoning");
-      const workHasUsage = workTimeline.some((item) => item.type === "usage");
-      const hasExpandedWorkDetails =
-        workTimeline.length > 0 ||
-        (!workHasReasoning && Boolean(reasoningContent)) ||
-        (!workHasUsage && Boolean(usageSummary));
-      const hasWorkDetails = message.role === "assistant" && (hasExpandedWorkDetails || isLiveAssistantMessage);
-      let previousUserMessage: CopilotMessage | undefined;
-      if (message.role === "assistant") {
-        for (let index = messageIndex - 1; index >= 0; index -= 1) {
-          if (messages[index].role === "user") {
-            previousUserMessage = messages[index];
-            break;
-          }
-        }
-      }
-      const workLabel = isLiveAssistantMessage
-        ? formatWorkingDuration(loadingStartedAt, loadingNow)
-        : formatWorkDuration(previousUserMessage?.createdAt, message.createdAt);
-      const isWorkExpanded = isLiveAssistantMessage || (expandedThinkingMessages[message.id] ?? false);
-      const deliveryStatus = message.labels?.[LABEL_CONNECTOR_DELIVERY_STATUS];
-      const isPendingConnectorDelivery =
-        enableDebugMessageEditing && deliveryStatus === CONNECTOR_DELIVERY_PENDING_REVIEW;
-      const isReviewActionPending = reviewActionMessageId === message.id;
-      return (
-        <React.Fragment key={message.id}>
-          <div
-          className="talon-session-message-row"
-          style={{
-            display: "flex",
-            justifyContent: isUserMessage ? "flex-end" : "stretch",
-            width: "100%",
-          }}
-        >
-          <div
-            style={{
-              width: isUserMessage ? "auto" : "100%",
-              maxWidth: isUserMessage ? "min(80%, 36rem)" : "100%",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                overflow: "hidden",
-                borderRadius: isUserMessage ? 18 : 0,
-                background: isUserMessage
-                  ? "var(--talon-chat-user-bubble-bg, rgba(24,24,27,0.07))"
-                  : "transparent",
-                color: isUserMessage ? "var(--talon-chat-user-bubble-fg, inherit)" : "inherit",
-                padding: isUserMessage ? "0.75rem 1rem" : 0,
-              }}
-            >
-              {hasWorkDetails ? (
-                <div style={{ marginBottom: 16 }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (hasExpandedWorkDetails) {
-                        toggleThinkingMessage(message.id);
-                      }
-                    }}
-                    disabled={!hasExpandedWorkDetails}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      border: "none",
-                      background: "transparent",
-                      padding: "0 0 0.65rem",
-                      cursor: hasExpandedWorkDetails ? "pointer" : "default",
-                      textAlign: "left",
-                      color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
-                    }}
-                  >
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>
-                      {workLabel}
-                    </span>
-                    {hasExpandedWorkDetails ? (
-                      <ChevronRight
-                        size="16"
-                        style={{
-                          flexShrink: 0,
-                          transform: isWorkExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                          transition: "transform 160ms ease",
-                          color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
-                        }}
-                      />
-                    ) : null}
-                  </button>
-                  <div style={{ borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
-
-                {isWorkExpanded ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
-                    <AssistantTimeline
-                      message={message}
-                      items={workTimeline}
-                      variant="work"
-                      isLive={isLiveAssistantMessage}
-                      expandedTools={expandedToolItems}
-                      hydrationState={toolResultHydration}
-                      resultFor={toolResultFor}
-                      onToggleTool={toggleToolItem}
-                      onHydrateTool={(...args) => void hydrateToolResultForExpandedItem(...args)}
-                      onResourceClick={handleResourceClick}
-                    />
-
-                    {!workHasReasoning && reasoningContent ? (
-                      <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
-                        {reasoningContent}
-                      </div>
-                    ) : null}
-
-                    {!workHasUsage && usageSummary ? (
-                      <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                        {usageSummary}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            {isPendingConnectorDelivery ? <ConnectorDeliveryControls
-              message={message}
-              disabled={isReviewActionPending || isEditingMessage}
-              onUpdate={(target, status) => void updateConnectorDeliveryStatus(target, status)}
-            /> : null}
-
-            {isEditingMessage ? <MessageEditForm
-              message={message}
-              value={editingMessageValue}
-              onChange={setEditingMessageValue}
-              onSave={(target) => void saveEditingMessage(target)}
-              onCancel={cancelEditingMessage}
-            /> : (
-              <div
-                className={cn(message.role === "system" && "copilot-system-message")}
-                style={{
-                  minWidth: 0,
-                  overflow: "hidden",
-                  overflowWrap: "anywhere",
-                  whiteSpace: message.role === "assistant" ? "normal" : "pre-wrap",
-                  fontSize: message.role === "system" ? 12 : talonChatMessageFontSize,
-                  lineHeight: 1.65,
-                  opacity: message.role === "system" ? 0.72 : 0.94,
-                  fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
-                }}
-              >
-                {message.role === "assistant" && visibleTimeline.length > 0 ? (
-                  <AssistantTimeline
-                    message={message}
-                    items={visibleTimeline}
-                    variant="final"
-                    isLive={isLiveAssistantMessage}
-                    expandedTools={expandedToolItems}
-                    hydrationState={toolResultHydration}
-                    resultFor={toolResultFor}
-                    onToggleTool={toggleToolItem}
-                    onHydrateTool={(...args) => void hydrateToolResultForExpandedItem(...args)}
-                    onResourceClick={handleResourceClick}
-                  />
-                ) : (
-                  message.role === "assistant" ? (
-                    <MarkdownMessage onResourceClick={handleResourceClick}>{content}</MarkdownMessage>
-                  ) : content
-                )}
-              </div>
-            )}
-            <MessageImages images={images} hasContent={Boolean(content)} />
-            </div>
-            {isEditableMessage && !isEditingMessage ? <MessageActions
-              message={message}
-              timestamp={messageActionTimestamp}
-              onCopy={(target) => void copyMessageContent(target)}
-              onEdit={startEditingMessage}
-            /> : null}
-          </div>
-          </div>
-        </React.Fragment>
-      );
-    });
-  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, isLoading, isResuming, isSessionLive, isStopping, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultFor, toolResultHydration, updateConnectorDeliveryStatus]);
+  const renderedMessages = messages.map((message, messageIndex) => (
+    <SessionMessage
+      key={message.id}
+      message={message}
+      messageIndex={messageIndex}
+      messages={messages}
+      isSessionLive={isSessionLive}
+      loadingStartedAt={loadingStartedAt}
+      loadingNow={loadingNow}
+      objectUrlForRef={objectUrlForRef}
+      allowEditing={allowMessageEditing}
+      enableDebugEditing={enableDebugMessageEditing}
+      editingMessageId={editingMessageId}
+      editingMessageValue={editingMessageValue}
+      reviewActionMessageId={reviewActionMessageId}
+      expandedThinkingMessages={expandedThinkingMessages}
+      expandedToolItems={expandedToolItems}
+      hydrationState={toolResultHydration}
+      resultFor={toolResultFor}
+      onToggleThinking={toggleThinkingMessage}
+      onToggleTool={toggleToolItem}
+      onHydrateTool={(...args) => void hydrateToolResultForExpandedItem(...args)}
+      onResourceClick={handleResourceClick}
+      onEditingValueChange={setEditingMessageValue}
+      onSaveEdit={(target) => void saveEditingMessage(target)}
+      onCancelEdit={cancelEditingMessage}
+      onStartEdit={startEditingMessage}
+      onCopy={(target) => void copyMessageContent(target)}
+      onUpdateConnectorDelivery={(target, status) => void updateConnectorDeliveryStatus(target, status)}
+    />
+  ));
 
   const resolvedHistoryPageSize = Math.max(
     1,
@@ -956,81 +686,48 @@ export function TalonSession({
     [refreshRuntime],
   );
 
-  const resumeStream = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
-      try {
-        const sessions = gatewayClient?.sessions;
-        if (!sessions?.streamParts) {
-          throw new Error("TalonSession requires a Talon clientset with sessions.streamParts().");
-        }
-        await streamSessionPartEvents({
-          events: sessions.streamParts(target, { signal }),
-          setMessages,
-          setStreamEvents,
-          signal,
-        });
-      } catch (err) {
-        if (!signal?.aborted) {
-          setError(err instanceof Error ? err : new Error(String(err)));
-        }
-      } finally {
-        if (!signal?.aborted && isSameSession(currentSessionRef.current, target)) {
-          const refreshed = await refreshNewestSessionPage(target).catch(() => null);
-          if (refreshed?.state === "PROCESSING" && !isStoppingRef.current) {
-            const controller = new AbortController();
-            resumeAbortControllerRef.current?.abort();
-            resumeAbortControllerRef.current = controller;
-            setIsResuming(true);
-            setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
-            setLoadingNow(Date.now());
-            window.setTimeout(() => {
-              if (!controller.signal.aborted && isSameSession(currentSessionRef.current, target) && !isStoppingRef.current) {
-                void resumeStream(target, controller.signal);
-              }
-            }, 250);
-          } else {
-            setIsResuming(false);
-            setLoadingStartedAt(null);
-          }
-        }
-      }
-    },
-    [gatewayClient, refreshNewestSessionPage],
-  );
+  const {
+    cancelResume,
+    isStoppingRef,
+    reset: resetGeneration,
+    startResume,
+    stopGeneration,
+  } = useSessionGeneration({
+    client: gatewayClient.sessions,
+    currentSession,
+    currentSessionRef,
+    messagesRef,
+    serverState: sessionRuntimeState.serverState,
+    isSessionLive,
+    isStopping,
+    submissionAbortControllerRef: abortControllerRef,
+    setMessages,
+    setStreamEvents,
+    setError,
+    setIsLoading,
+    setIsResuming,
+    setIsStopping,
+    setLoadingStartedAt,
+    setLoadingNow,
+    refreshRuntime,
+    refreshNewestSessionPage,
+  });
 
-  const waitForSessionToStop = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
-      for (let attempt = 0; attempt < 40; attempt += 1) {
-        if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
-          return null;
-        }
-        const res = await refreshRuntime(target, signal);
-        if (signal?.aborted || !isSameSession(currentSessionRef.current, target)) {
-          return null;
-        }
-        if (res?.state !== "PROCESSING") {
-          return res;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 250));
-      }
-      return null;
-    },
-    [refreshRuntime],
-  );
-
-  useLayoutEffect(() => {
-    if (!currentSession || sessionRuntimeState.serverState !== "PROCESSING" || isStoppingRef.current) {
-      return;
-    }
-    if (resumeAbortControllerRef.current && !resumeAbortControllerRef.current.signal.aborted) return;
-    const controller = new AbortController();
-    resumeAbortControllerRef.current = controller;
-    setIsResuming(true);
-    setLoadingStartedAt(sessionProcessingStartTime(messagesRef.current) ?? Date.now());
-    setLoadingNow(Date.now());
-    void resumeStream(currentSession, controller.signal);
-    return () => controller.abort();
-  }, [currentSession, messagesRef, resumeStream, sessionRuntimeState.serverState, setIsResuming]);
+  const previousSessionTargetRef = useRef<SessionTarget | null>(null);
+  useEffect(() => {
+    const previousTarget = previousSessionTargetRef.current;
+    previousSessionTargetRef.current = currentSession;
+    if (!previousTarget || (currentSession && isSameSession(previousTarget, currentSession))) return;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsStopping(false);
+    setIsLoading(false);
+    setIsResuming(false);
+    setLoadingStartedAt(null);
+    setStreamEvents([]);
+    resetTranscriptUi();
+    invalidateToolResultHydration();
+  }, [currentSession?.agent, currentSession?.ns, currentSession?.sessionId, invalidateToolResultHydration, resetTranscriptUi, setIsLoading, setIsResuming, setIsStopping]);
 
   const waitForCanonicalAssistantUpdate = useCallback(
     async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string, signal?: AbortSignal) => {
@@ -1058,10 +755,7 @@ export function TalonSession({
   const clearLocalSession = useCallback(() => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
-    resumeAbortControllerRef.current?.abort();
-    resumeAbortControllerRef.current = null;
-    stopAbortControllerRef.current?.abort();
-    stopAbortControllerRef.current = null;
+    resetGeneration();
     resourceAbortRef.current?.abort();
     resourceAbortRef.current = null;
     clearRuntime();
@@ -1071,13 +765,12 @@ export function TalonSession({
     setIsLoading(false);
     setIsResuming(false);
     setSessionState(null);
-    isStoppingRef.current = false;
     setIsStopping(false);
     setLoadingStartedAt(null);
     resetTranscriptUi();
     invalidateToolResultHydration();
     clearResourcePaneState();
-  }, [clearResourcePaneState, clearRuntime, invalidateToolResultHydration, resetTranscriptUi]);
+  }, [clearResourcePaneState, clearRuntime, invalidateToolResultHydration, resetGeneration, resetTranscriptUi]);
 
   const clearSession = useCallback(async () => {
     const session = currentSessionRef.current;
@@ -1218,8 +911,7 @@ export function TalonSession({
 
     setError(null);
     setStreamEvents([]);
-    resumeAbortControllerRef.current?.abort();
-    resumeAbortControllerRef.current = null;
+    cancelResume();
     setIsResuming(false);
 
     let removeRuntimeAbort = () => undefined;
@@ -1336,15 +1028,9 @@ export function TalonSession({
           return;
         }
         if (refreshed?.state === "PROCESSING") {
-          const controller = new AbortController();
-          resumeAbortControllerRef.current?.abort();
-          resumeAbortControllerRef.current = controller;
           resumedAfterBusyFailure = true;
-          setIsResuming(true);
-          setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
-          setLoadingNow(Date.now());
           setError(null);
-          void resumeStream(session, controller.signal);
+          startResume(session);
           return;
         }
       }
@@ -1371,85 +1057,10 @@ export function TalonSession({
         }
       }
     }
-  }, [agent, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, resumeStream, sessionId, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
-
-  const stopGeneration = useCallback(async (invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
-    if (!currentSessionRef.current || !isSessionLive || (!invokedByRuntime && isStopping)) return;
-
-    const session = currentSessionRef.current;
-    const stopController = new AbortController();
-    const abortFromRuntime = () => stopController.abort();
-    if (runtimeSignal) {
-      if (runtimeSignal.aborted) stopController.abort();
-      else runtimeSignal.addEventListener("abort", abortFromRuntime, { once: true });
-    }
-    const removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
-    stopAbortControllerRef.current?.abort();
-    stopAbortControllerRef.current = stopController;
-    isStoppingRef.current = true;
-    setIsStopping(true);
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-    resumeAbortControllerRef.current?.abort();
-    resumeAbortControllerRef.current = null;
-    setIsLoading(false);
-    setIsResuming(false);
-    setLoadingStartedAt(null);
-
-    const resumeIfStillProcessing = async () => {
-      const refreshed = await refreshNewestSessionPage(session, stopController.signal).catch(() => null);
-      if (refreshed?.state !== "PROCESSING") {
-        return;
-      }
-      const controller = new AbortController();
-      resumeAbortControllerRef.current?.abort();
-      resumeAbortControllerRef.current = controller;
-      setIsResuming(true);
-      setLoadingStartedAt(sessionProcessingStartTime(refreshed.messages) ?? Date.now());
-      setLoadingNow(Date.now());
-      void resumeStream(session, controller.signal);
-    };
-
-    try {
-      const sessions = gatewayClient?.sessions;
-      if (!sessions?.stopGeneration) {
-        throw new Error("TalonSession requires a Talon clientset with sessions.stopGeneration().");
-      }
-      await sessions.stopGeneration(session, { signal: stopController.signal });
-      const stopped = await waitForSessionToStop(session, stopController.signal);
-      if (stopController.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
-        return;
-      }
-      if (!stopped) {
-        setError(new Error("Stop was requested, but the session is still generating."));
-        await resumeIfStillProcessing();
-        return;
-      }
-      await refreshNewestSessionPage(session, stopController.signal);
-      setIsResuming(false);
-      setLoadingStartedAt(null);
-      setError(null);
-    } catch (err) {
-      if (stopController.signal.aborted || !isSameSession(currentSessionRef.current, session)) {
-        return;
-      }
-      const stopError = err instanceof Error ? err : new Error(String(err));
-      setError(stopError);
-      await resumeIfStillProcessing();
-    } finally {
-      if (stopAbortControllerRef.current === stopController) {
-        stopAbortControllerRef.current = null;
-      }
-      removeRuntimeAbort();
-      if (!stopController.signal.aborted && isSameSession(currentSessionRef.current, session)) {
-        isStoppingRef.current = false;
-        setIsStopping(false);
-      }
-    }
-  }, [gatewayClient, isSessionLive, isStopping, refreshNewestSessionPage, resumeStream, setError, waitForSessionToStop]);
+  }, [agent, cancelResume, clearSession, createSession, disabled, gatewayClient, isLoading, isSessionLive, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, sessionId, startResume, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
 
   runtimeSubmitRef.current = (input, context) => submitMessage(input.text, true, context.signal);
-  runtimeStopRef.current = (context) => stopGeneration(true, context.signal);
+  runtimeStopRef.current = (context) => stopGeneration(context.signal);
 
   return (
     <div
