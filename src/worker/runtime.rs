@@ -358,6 +358,7 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::LIST_MEMORY_TOOL,
         crate::harness::native_tools::CREATE_MEMORY_TOOL,
         crate::harness::native_tools::UPDATE_MEMORY_TOOL,
+        crate::harness::native_tools::DELETE_MEMORY_TOOL,
     ]
 }
 
@@ -673,6 +674,7 @@ mod tests {
         assert!(names.contains(&crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL));
         assert!(names.contains(&crate::harness::native_tools::SEARCH_MEMORY_TOOL));
         assert!(names.contains(&crate::harness::native_tools::READ_MEMORY_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::DELETE_MEMORY_TOOL));
     }
 
     #[tokio::test]

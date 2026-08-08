@@ -157,6 +157,12 @@ def should_emit_tool_call(messages, tools):
 def collect_scenario_vars(rule, messages):
     text = last_message_text(messages)
     values = {"artifact_uri": artifact_uri_from_text(text)}
+    confirmation_ids = re.findall(
+        r'["\']confirmationId["\']\s*:\s*["\']([^"\']+)',
+        all_message_text(messages),
+    )
+    if confirmation_ids:
+        values["confirmation_id"] = confirmation_ids[-1]
     task_ref = task_ref_from_messages(messages)
     if task_ref:
         values["task_namespace"] = task_ref[0]
