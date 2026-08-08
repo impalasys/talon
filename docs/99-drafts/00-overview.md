@@ -10,4 +10,4 @@ Promotion flow:
 
 Current drafts:
 
-No active drafts are checked in right now.
+- [File revision retention](./01-file-revision-retention)
