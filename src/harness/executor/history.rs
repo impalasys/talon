@@ -80,23 +80,11 @@ pub async fn load(
                 let mut marker_tail = message;
                 marker_tail.parts = marker_tail.parts.split_off(marker_index + 1);
                 if !marker_tail.parts.is_empty() {
-                    messages.extend(
-                        session_message_to_loop_messages_with_context(
-                            &marker_tail,
-                            objects,
-                            session_id,
-                        )
-                        .await?,
-                    );
+                    messages.extend(session_message_to_loop_messages(&marker_tail, objects).await?);
                 }
                 later_messages.reverse();
                 for message in later_messages {
-                    messages.extend(
-                        session_message_to_loop_messages_with_context(
-                            &message, objects, session_id,
-                        )
-                        .await?,
-                    );
+                    messages.extend(session_message_to_loop_messages(&message, objects).await?);
                 }
                 return Ok(Loaded {
                     messages,
@@ -111,9 +99,7 @@ pub async fn load(
     later_messages.reverse();
     let mut messages = Vec::new();
     for message in later_messages {
-        messages.extend(
-            session_message_to_loop_messages_with_context(&message, objects, session_id).await?,
-        );
+        messages.extend(session_message_to_loop_messages(&message, objects).await?);
     }
 
     Ok(Loaded {
@@ -169,16 +155,8 @@ async fn session_message_to_loop_messages(
     message: &data_proto::SessionMessage,
     objects: &(dyn ObjectStore + Send + Sync),
 ) -> Result<Vec<LoopMessage>> {
-    session_message_to_loop_messages_with_context(message, objects, "").await
-}
-
-async fn session_message_to_loop_messages_with_context(
-    message: &data_proto::SessionMessage,
-    objects: &(dyn ObjectStore + Send + Sync),
-    session_id: &str,
-) -> Result<Vec<LoopMessage>> {
     if message.role == data_proto::MessageRole::RoleAssistant as i32 {
-        return assistant_session_message_to_loop_messages(message, objects, session_id).await;
+        return assistant_session_message_to_loop_messages(message, objects).await;
     }
 
     Ok(vec![LoopMessage {
@@ -279,7 +257,6 @@ async fn message_part_content_parts(
 async fn assistant_session_message_to_loop_messages(
     message: &data_proto::SessionMessage,
     objects: &(dyn ObjectStore + Send + Sync),
-    session_id: &str,
 ) -> Result<Vec<LoopMessage>> {
     let mut history = Vec::new();
     let mut content_parts = Vec::new();
@@ -313,10 +290,7 @@ async fn assistant_session_message_to_loop_messages(
             if tool_calls.is_empty() {
                 continue;
             }
-            if let Some(message) =
-                tool_result_message_from_part_with_context(part, objects, session_id, &message.id)
-                    .await?
-            {
+            if let Some(message) = tool_result_message_from_part(part, objects).await? {
                 let Some(tool_call_id) = message.tool_call_id.as_deref() else {
                     continue;
                 };
@@ -437,15 +411,6 @@ async fn tool_result_message_from_part(
     part: &data_proto::SessionMessagePart,
     objects: &(dyn ObjectStore + Send + Sync),
 ) -> Result<Option<LoopMessage>> {
-    tool_result_message_from_part_with_context(part, objects, "", "").await
-}
-
-async fn tool_result_message_from_part_with_context(
-    part: &data_proto::SessionMessagePart,
-    objects: &(dyn ObjectStore + Send + Sync),
-    session_id: &str,
-    message_id: &str,
-) -> Result<Option<LoopMessage>> {
     let payload: serde_json::Value =
         serde_json::from_str(&part.payload_json).unwrap_or(serde_json::Value::Null);
     let Some(tool_call_id) = payload.get("tool_call_id").and_then(|v| v.as_str()) else {
@@ -465,10 +430,6 @@ async fn tool_result_message_from_part_with_context(
             content_parts: materialize_tool_output_content_parts(
                 parsed.tool_output.content_parts(),
                 objects,
-                session_id,
-                message_id,
-                part,
-                &parsed.tool_call_id,
             )
             .await?,
             tool_calls: None,
@@ -484,16 +445,7 @@ async fn tool_result_message_from_part_with_context(
     let output = if let Some(object) = part.object.as_ref() {
         let mut object_ref = object.clone();
         let Some(metadata) = objects.head(&object_ref.key).await? else {
-            let mut message = LoopMessage::text(
-                "tool",
-                unavailable_historical_tool_output(
-                    session_id,
-                    message_id,
-                    part,
-                    tool_call_id,
-                    &object_ref.key,
-                ),
-            );
+            let mut message = LoopMessage::text("tool", unavailable_historical_tool_output());
             message.tool_call_id = Some(tool_call_id.to_string());
             return Ok(Some(message));
         };
@@ -553,16 +505,7 @@ async fn tool_result_message_from_part_with_context(
             return Ok(Some(message));
         }
         let Some(stored) = objects.get(&object.key).await? else {
-            let mut message = LoopMessage::text(
-                "tool",
-                unavailable_historical_tool_output(
-                    session_id,
-                    message_id,
-                    part,
-                    tool_call_id,
-                    &object.key,
-                ),
-            );
+            let mut message = LoopMessage::text("tool", unavailable_historical_tool_output());
             message.tool_call_id = Some(tool_call_id.to_string());
             return Ok(Some(message));
         };
@@ -587,10 +530,6 @@ async fn tool_result_message_from_part_with_context(
 async fn materialize_tool_output_content_parts(
     parts: Vec<ChatContentPart>,
     objects: &(dyn ObjectStore + Send + Sync),
-    session_id: &str,
-    message_id: &str,
-    tool_result_part: &data_proto::SessionMessagePart,
-    tool_call_id: &str,
 ) -> Result<Vec<ChatContentPart>> {
     let mut materialized = Vec::with_capacity(parts.len());
     for content_part in parts {
@@ -599,13 +538,7 @@ async fn materialize_tool_output_content_parts(
             continue;
         };
         let Some(metadata) = objects.head(&object_ref.key).await? else {
-            materialized.push(text_part(unavailable_historical_tool_output(
-                session_id,
-                message_id,
-                tool_result_part,
-                tool_call_id,
-                &object_ref.key,
-            )));
+            materialized.push(text_part(unavailable_historical_tool_output()));
             continue;
         };
         if object_ref.media_type.trim().is_empty() {
@@ -613,13 +546,7 @@ async fn materialize_tool_output_content_parts(
         }
         if tool_output::is_text_object_media_type(&object_ref.media_type) {
             let Some(stored) = objects.get(&object_ref.key).await? else {
-                materialized.push(text_part(unavailable_historical_tool_output(
-                    session_id,
-                    message_id,
-                    tool_result_part,
-                    tool_call_id,
-                    &object_ref.key,
-                )));
+                materialized.push(text_part(unavailable_historical_tool_output()));
                 continue;
             };
             let bytes = decode_stored_object_bytes(&stored, &object_ref.key)?;
@@ -631,22 +558,7 @@ async fn materialize_tool_output_content_parts(
     Ok(materialized)
 }
 
-fn unavailable_historical_tool_output(
-    session_id: &str,
-    message_id: &str,
-    part: &data_proto::SessionMessagePart,
-    tool_call_id: &str,
-    object_key: &str,
-) -> String {
-    tracing::warn!(
-        session_id,
-        message_id,
-        part_id = %part.id,
-        tool_name = %part.name,
-        tool_call_id,
-        object_key,
-        "historical tool output object is missing during replay"
-    );
+fn unavailable_historical_tool_output() -> String {
     "[Historical tool output is unavailable. Do not assume it reflects the current state.]"
         .to_string()
 }
