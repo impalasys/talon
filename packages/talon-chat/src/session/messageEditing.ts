@@ -1,5 +1,8 @@
 import { getMessageAssistantTimeline, getMessageContent, type AssistantTimelineItem, type CopilotMessage } from "../lib/chatTimeline";
-import { coalesceAssistantTimelineForDisplay, splitFinalAssistantTimeline } from "./AssistantTimeline";
+import {
+  coalesceAssistantMessageTimelineForDisplay,
+  splitAssistantMessageTimeline,
+} from "./AssistantMessageTimeline";
 import { SESSION_MESSAGE_PART_TYPE, isSessionTextPart } from "./protocol";
 
 export function replaceMessageTextPart(message: CopilotMessage, text: string) {
@@ -34,8 +37,8 @@ export function messageWithEditedContent(message: CopilotMessage, content: strin
 
 export function editableMessageContent(message: CopilotMessage) {
   if (message.role !== "assistant") return getMessageContent(message);
-  const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
-  const { finalTimeline } = splitFinalAssistantTimeline(timeline);
+  const timeline = coalesceAssistantMessageTimelineForDisplay(getMessageAssistantTimeline(message));
+  const { finalTimeline } = splitAssistantMessageTimeline(timeline);
   const visible = finalTimeline.length > 0 ? finalTimeline : timeline;
   const text = visible.filter((item): item is Extract<AssistantTimelineItem, { type: "text" }> => item.type === "text");
   return text.length > 0 ? text.map((item) => item.text).join("") : getMessageContent(message);
