@@ -10,12 +10,12 @@ import {
 import { MarkdownMessage } from "../lib/MarkdownMessage";
 import type { ToolResultHydrationState } from "./useToolResultHydration";
 
-export type AssistantTimelineVariant = "work" | "final";
+export type AssistantMessageTimelineVariant = "work" | "final";
 
-export type AssistantTimelineProps = {
+export type AssistantMessageTimelineProps = {
   message: CopilotMessage;
   items: AssistantTimelineItem[];
-  variant: AssistantTimelineVariant;
+  variant: AssistantMessageTimelineVariant;
   isLive: boolean;
   expandedTools: Record<string, boolean>;
   hydrationState: Record<string, ToolResultHydrationState>;
@@ -29,7 +29,7 @@ function border(color: string) {
   return `1px solid ${color}`;
 }
 
-export function coalesceAssistantTimelineForDisplay(timeline: AssistantTimelineItem[]) {
+export function coalesceAssistantMessageTimelineForDisplay(timeline: AssistantTimelineItem[]) {
   const nextTimeline: AssistantTimelineItem[] = [];
   let latestUsage: Extract<AssistantTimelineItem, { type: "usage" }> | null = null;
 
@@ -54,8 +54,8 @@ export function coalesceAssistantTimelineForDisplay(timeline: AssistantTimelineI
   return nextTimeline;
 }
 
-export function splitFinalAssistantTimeline(timeline: AssistantTimelineItem[]) {
-  const displayTimeline = coalesceAssistantTimelineForDisplay(timeline);
+export function splitAssistantMessageTimeline(timeline: AssistantTimelineItem[]) {
+  const displayTimeline = coalesceAssistantMessageTimelineForDisplay(timeline);
   const finalTextIndex = displayTimeline.findLastIndex(
     (item) => item.type === "text" && item.text.trim().length > 0,
   );
@@ -86,7 +86,7 @@ function ContextCompactionDivider({ compacting }: { compacting: boolean }) {
   );
 }
 
-type ToolInvocationCardProps = Pick<AssistantTimelineProps,
+type ToolInvocationCardProps = Pick<AssistantMessageTimelineProps,
   "message" | "variant" | "isLive" | "expandedTools" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool"
 > & {
   item: Extract<AssistantTimelineItem, { type: "tool" }>;
@@ -169,7 +169,7 @@ function TimelineItem({
 }: {
   item: AssistantTimelineItem;
   index: number;
-  props: AssistantTimelineProps;
+  props: AssistantMessageTimelineProps;
 }) {
   const { message, variant, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick } = props;
   const key = `${message.id}-${variant}-${index}`;
@@ -184,9 +184,9 @@ function TimelineItem({
   return <ToolInvocationCard key={`${key}-tool-${item.toolCallId}`} {...{ message, item, index, variant, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool }} />;
 }
 
-export function AssistantTimeline({
+export function AssistantMessageTimeline({
   message, items, variant, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick,
-}: AssistantTimelineProps) {
+}: AssistantMessageTimelineProps) {
   const isWork = variant === "work";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: isWork ? 8 : 12 }}>

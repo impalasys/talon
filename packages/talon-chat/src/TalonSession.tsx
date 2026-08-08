@@ -51,10 +51,10 @@ import { useSessionAttachments } from "./session/useSessionAttachments";
 import { useToolResultHydration } from "./session/useToolResultHydration";
 import { useResourcePane } from "./session/useResourcePane";
 import {
-  AssistantTimeline,
-  coalesceAssistantTimelineForDisplay,
-  splitFinalAssistantTimeline,
-} from "./session/AssistantTimeline";
+  AssistantMessageTimeline,
+  coalesceAssistantMessageTimelineForDisplay,
+  splitAssistantMessageTimeline,
+} from "./session/AssistantMessageTimeline";
 import {
   canCompareCanonicalMessageIds,
   historyMessageTimestamp,
@@ -557,8 +557,8 @@ function messageWithEditedContent(message: CopilotMessage, nextContent: string):
 
 function editableMessageContent(message: CopilotMessage) {
   if (message.role === "assistant") {
-    const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
-    const { finalTimeline } = splitFinalAssistantTimeline(timeline);
+    const timeline = coalesceAssistantMessageTimelineForDisplay(getMessageAssistantTimeline(message));
+    const { finalTimeline } = splitAssistantMessageTimeline(timeline);
     const visibleTextTimeline = finalTimeline.length > 0 ? finalTimeline : timeline;
     const textItems = visibleTextTimeline
       .filter((item): item is Extract<AssistantTimelineItem, { type: "text" }> => item.type === "text");
@@ -1049,7 +1049,7 @@ export function TalonSession({
     return messages.map((message, messageIndex) => {
       const content = getMessageContent(message);
       const images = messageImageParts(message, objectUrlForRef);
-      const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
+      const timeline = coalesceAssistantMessageTimelineForDisplay(getMessageAssistantTimeline(message));
       const reasoningContent = getMessageReasoningContent(message);
       const usage = getMessageUsage(message);
       const usageSummary = formatUsageSummary(usage);
@@ -1062,7 +1062,7 @@ export function TalonSession({
         !isLiveAssistantMessage;
       const isEditingMessage = editingMessageId === message.id;
       const messageActionTimestamp = isEditableMessage ? formatMessageActionTimestamp(message) : null;
-      const finalizedTimeline = splitFinalAssistantTimeline(timeline);
+      const finalizedTimeline = splitAssistantMessageTimeline(timeline);
       const visibleTimeline = finalizedTimeline.finalTimeline;
       const workTimeline = finalizedTimeline.workTimeline;
       const workHasReasoning = workTimeline.some((item) => item.type === "reasoning");
@@ -1160,7 +1160,7 @@ export function TalonSession({
 
                 {isWorkExpanded ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
-                    <AssistantTimeline
+                    <AssistantMessageTimeline
                       message={message}
                       items={workTimeline}
                       variant="work"
@@ -1308,7 +1308,7 @@ export function TalonSession({
                 }}
               >
                 {message.role === "assistant" && visibleTimeline.length > 0 ? (
-                  <AssistantTimeline
+                  <AssistantMessageTimeline
                     message={message}
                     items={visibleTimeline}
                     variant="final"
