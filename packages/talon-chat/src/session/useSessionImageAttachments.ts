@@ -5,7 +5,7 @@ import type {
   TalonSessionPendingImageAttachment,
 } from "../TalonSession";
 import { normalizeImageUploadResult } from "./objectRefs";
-import { useSessionAttachments } from "./useSessionAttachments";
+import { useSessionAttachments } from "./hooks/useSessionAttachments";
 
 export type UseSessionImageAttachmentsOptions = {
   acceptedImageTypes: string[];
