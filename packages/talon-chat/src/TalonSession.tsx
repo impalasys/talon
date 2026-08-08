@@ -52,6 +52,7 @@ import { useTranscriptPaginationAnchor } from "./session/hooks/useTranscriptPagi
 import { useTranscriptScrollState } from "./session/hooks/useTranscriptScrollState";
 import { fetchResourceFromGateway } from "./lib/resourceLoader";
 import { editableMessageContent, messageWithEditedContent, replaceMessageTextPart } from "./session/messageEditing";
+import { formatWorkDuration, formatWorkingDuration } from "./session/sessionTiming";
 import {
   AssistantMessageTimeline,
   coalesceAssistantMessageTimelineForDisplay,
@@ -345,35 +346,6 @@ function formatMessageActionTimestamp(message: CopilotMessage) {
     hour: "numeric",
     minute: "2-digit",
   });
-}
-
-function formatWorkDuration(start: unknown, end: unknown) {
-  const startMs = normalizeEpochToMilliseconds(start);
-  const endMs = normalizeEpochToMilliseconds(end);
-  if (startMs === null || endMs === null || endMs <= startMs) {
-    return "Worked";
-  }
-  const totalSeconds = Math.max(1, Math.round((endMs - startMs) / 1000));
-  if (totalSeconds < 60) {
-    return `Worked for ${totalSeconds}s`;
-  }
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return seconds > 0 ? `Worked for ${minutes}m ${seconds}s` : `Worked for ${minutes}m`;
-}
-
-function formatWorkingDuration(start: unknown, now = Date.now()) {
-  const startMs = normalizeEpochToMilliseconds(start);
-  if (startMs === null || now < startMs) {
-    return "Working";
-  }
-  const totalSeconds = Math.max(1, Math.floor((now - startMs) / 1000));
-  if (totalSeconds < 60) {
-    return `Working for ${totalSeconds}s`;
-  }
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return seconds > 0 ? `Working for ${minutes}m ${seconds}s` : `Working for ${minutes}m`;
 }
 
 function isSessionBusyError(error: unknown) {
