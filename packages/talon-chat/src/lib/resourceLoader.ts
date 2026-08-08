@@ -1,9 +1,14 @@
-import { parseResourceUri, type ResourceViewModel } from "../lib/resourceUris";
-import type { GatewayClientLike } from "../TalonSession";
+import { parseResourceUri, type ResourceViewModel } from "./resourceUris";
+import type { TalonClient } from "@impalasys/talon-client";
+
+type ResourceGatewayClient = {
+  artifacts?: Pick<TalonClient["artifacts"], "readArtifact">;
+  files?: Pick<TalonClient["files"], "readFile">;
+};
 
 const callerAgentHeader = "x-talon-agent";
 const callerSessionHeader = "x-talon-session-id";
-const base64Content = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+const base64Content = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|(?:[A-Za-z0-9+/]{3}=))?$/;
 
 function requestHeaders(agent: string, sessionId: string | null) {
   const headers: Record<string, string> = {};
@@ -30,11 +35,12 @@ function contentBytes(content: unknown): Uint8Array | undefined {
     : undefined;
 }
 
+/** Load the binary or signed-URL payload behind a session resource URI. */
 export async function fetchResourceFromGateway({
   uri, gatewayClient, agent, sessionId, signal,
 }: {
   uri: string;
-  gatewayClient: GatewayClientLike;
+  gatewayClient: ResourceGatewayClient;
   agent: string;
   sessionId: string | null;
   signal: AbortSignal;

@@ -52,7 +52,7 @@ import { useResourcePane } from "./session/hooks/useResourcePane";
 import { useTranscriptExpansionState } from "./session/hooks/useTranscriptExpansionState";
 import { useTranscriptPaginationAnchor } from "./session/hooks/useTranscriptPaginationAnchor";
 import { useTranscriptScrollState } from "./session/hooks/useTranscriptScrollState";
-import { fetchResourceFromGateway } from "./session/resourceLoader";
+import { fetchResourceFromGateway } from "./lib/resourceLoader";
 import {
   AssistantMessageTimeline,
   coalesceAssistantMessageTimelineForDisplay,
