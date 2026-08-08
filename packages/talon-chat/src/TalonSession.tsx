@@ -149,6 +149,7 @@ export type TalonSessionProps = {
   historyStepLimit?: number;
   commands?: TalonSessionCommand[];
   enabledBuiltInCommands?: TalonBuiltInCommandName[];
+  onAttachmentUpload?: (context: TalonAttachmentUploadContext) => Promise<TalonAttachmentUploadResult>;
   /**
    * Uploads an image selected in the composer and returns the stored object ref.
    * TalonSession performs client-side type and size checks for UX only; callers
@@ -157,6 +158,9 @@ export type TalonSessionProps = {
    */
   onImageUpload?: (context: TalonImageUploadContext) => Promise<TalonImageUploadResult>;
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
+  maxAttachments?: number;
+  maxAttachmentBytes?: number;
+  acceptedAttachmentTypes?: string[];
   maxImageAttachments?: number;
   /**
    * Client-side image size limit in bytes. This improves UX only and must be
@@ -225,8 +229,12 @@ export function TalonSession({
   historyStepLimit = DEFAULT_HISTORY_STEP_LIMIT,
   commands,
   enabledBuiltInCommands,
+  onAttachmentUpload,
   onImageUpload,
   objectUrlForRef,
+  maxAttachments,
+  maxAttachmentBytes,
+  acceptedAttachmentTypes,
   maxImageAttachments = 4,
   maxImageBytes = 20 * 1024 * 1024,
   acceptedImageTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"],
@@ -297,12 +305,12 @@ export function TalonSession({
     replace: setImageAttachments,
     uploadQueued: uploadQueuedImages,
   } = useSessionAttachments({
-    acceptedTypes: acceptedImageTypes,
+    acceptedTypes: acceptedAttachmentTypes ?? acceptedImageTypes,
     createId: createLocalMessageId,
-    maxAttachments: maxImageAttachments,
-    maxBytes: maxImageBytes,
+    maxAttachments: maxAttachments ?? maxImageAttachments,
+    maxBytes: maxAttachmentBytes ?? maxImageBytes,
     onError: setError,
-    onUpload: onImageUpload,
+    onUpload: onAttachmentUpload ?? onImageUpload,
   });
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [loadingNow, setLoadingNow] = useState(Date.now());
@@ -740,7 +748,10 @@ export function TalonSession({
     () => resolvedCommands.map(({ name, aliases, description }) => ({ name, aliases, description })),
     [resolvedCommands],
   );
-  const imageAccept = useMemo(() => acceptedImageTypes.join(","), [acceptedImageTypes]);
+  const attachmentAccept = useMemo(
+    () => (acceptedAttachmentTypes ?? acceptedImageTypes).join(","),
+    [acceptedAttachmentTypes, acceptedImageTypes],
+  );
   const { submitMessage } = useSessionActions({
     client: gatewayClient.sessions,
     namespace,
@@ -840,7 +851,7 @@ export function TalonSession({
             value={input}
             onValueChange={setInput}
             onSubmit={(nextInput) => void (currentSession
-              ? sessionRuntime.submit({ text: nextInput, imageAttachments })
+              ? sessionRuntime.submit({ text: nextInput, attachments: imageAttachments, imageAttachments })
               : submitMessage(nextInput))}
             placeholder={placeholder}
             variant={composerVariant}
@@ -852,17 +863,18 @@ export function TalonSession({
             commandMenuItems={commandMenuItems}
             startAdornment={composerStartAdornment}
             endAdornment={composerEndAdornment}
-            imageAttachments={imageAttachments.map((attachment) => ({
+            attachments={imageAttachments.map((attachment) => ({
               id: attachment.id,
               filename: attachment.file.name,
               previewUrl: attachment.previewUrl,
+              mediaType: attachment.file.type,
               status: attachment.status,
               error: attachment.error,
             }))}
-            imageUploadEnabled={Boolean(onImageUpload)}
-            imageAccept={imageAccept}
-            onImageFilesSelected={addImageFiles}
-            onRemoveImageAttachment={removeImageAttachment}
+            attachmentUploadEnabled={Boolean(onAttachmentUpload ?? onImageUpload)}
+            attachmentAccept={attachmentAccept}
+            onAttachmentFilesSelected={addImageFiles}
+            onRemoveAttachment={removeImageAttachment}
             onStop={() => {
               void sessionRuntime.stop().catch((err: any) =>
                 setError(err instanceof Error ? err : new Error("Failed to stop generation")),
