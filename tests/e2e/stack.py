@@ -492,6 +492,8 @@ def _base_env(grpc_port: int, *, worker_port: int | None = None) -> dict[str, st
     load_repo_dotenv_into_env(env, keys={"OPENAI_API_KEY", "CODEX_API_KEY"})
     env["RUST_LOG"] = "info"
     env["NOVITA_API_KEY"] = "test-dummy-key"
+    env["OPENAI_API_KEY"] = "test-dummy-key"
+    env["OPENAI_BASE_URL"] = f"http://127.0.0.1:{MOCK_LLM_PORT}"
     env["GRPC_ADDR"] = f"127.0.0.1:{grpc_port}"
     env["TALON_JWT_PRIVATE_KEY_PEM"] = E2E_JWT_PRIVATE_KEY_PEM
     env["TALON_JWT_ISSUER"] = E2E_JWT_ISSUER
@@ -545,6 +547,13 @@ def start_postgres_pubsub_stack(
         config_path.write_text(
             f"""
 providers:
+  openai:
+    type: openai
+    model: minimax/m2.7
+    api: responses
+    apiKey:
+      source: env
+      key: OPENAI_API_KEY
   mock:
     type: openai_compatible
     name: mock
@@ -623,6 +632,13 @@ def start_sqlite_local_stack(
         config_path.write_text(
             f"""
 providers:
+  openai:
+    type: openai
+    model: minimax/m2.7
+    api: responses
+    apiKey:
+      source: env
+      key: OPENAI_API_KEY
   mock:
     type: openai_compatible
     name: mock
@@ -782,6 +798,13 @@ def start_rocksdb_local_stack(
         config_path.write_text(
             f"""
 providers:
+  openai:
+    type: openai
+    model: minimax/m2.7
+    api: responses
+    apiKey:
+      source: env
+      key: OPENAI_API_KEY
   mock:
     type: openai_compatible
     name: mock
@@ -903,6 +926,13 @@ def start_aws_local_stack(
         config_path.write_text(
             f"""
 providers:
+  openai:
+    type: openai
+    model: minimax/m2.7
+    api: responses
+    apiKey:
+      source: env
+      key: OPENAI_API_KEY
   mock:
     type: openai_compatible
     name: mock
