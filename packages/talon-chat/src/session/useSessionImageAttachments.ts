@@ -3,7 +3,7 @@ import type {
   TalonImageUploadContext,
   TalonImageUploadResult,
   TalonSessionPendingImageAttachment,
-} from "../TalonSession";
+} from "./TalonSessionTypes";
 import { normalizeImageUploadResult } from "./objectRefs";
 import { useSessionAttachments } from "./useSessionAttachments";
 

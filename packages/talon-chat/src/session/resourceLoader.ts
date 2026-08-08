@@ -1,5 +1,5 @@
 import { parseResourceUri, type ResourceViewModel } from "../lib/resourceUris";
-import type { GatewayClientLike } from "../TalonSession";
+import type { GatewayClientLike } from "./TalonSessionTypes";
 
 const callerAgentHeader = "x-talon-agent";
 const callerSessionHeader = "x-talon-session-id";
