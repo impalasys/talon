@@ -2680,6 +2680,31 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn responses_input_without_previous_id_keeps_full_history() {
+        let provider = test_provider();
+        let input = provider
+            .serialize_responses_input(
+                vec![
+                    chat_message_text("system", "system instructions"),
+                    chat_message_text("user", "old question"),
+                    chat_message_text("assistant", "old answer"),
+                    chat_message_text("user", "new question"),
+                ],
+                None,
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(input.len(), 4);
+        assert!(input
+            .iter()
+            .any(|item| item.to_string().contains("old question")));
+        assert!(input
+            .iter()
+            .any(|item| item.to_string().contains("old answer")));
+    }
+
+    #[tokio::test]
     async fn responses_input_with_previous_id_contains_instructions_and_new_suffix_only() {
         let provider = test_provider();
         let messages = vec![
