@@ -26,6 +26,8 @@ const (
 	SessionService_ListMessages_FullMethodName     = "/talon.v1.SessionService/ListMessages"
 	SessionService_Delete_FullMethodName           = "/talon.v1.SessionService/Delete"
 	SessionService_Clear_FullMethodName            = "/talon.v1.SessionService/Clear"
+	SessionService_Compact_FullMethodName          = "/talon.v1.SessionService/Compact"
+	SessionService_Doctor_FullMethodName           = "/talon.v1.SessionService/Doctor"
 	SessionService_SendMessage_FullMethodName      = "/talon.v1.SessionService/SendMessage"
 	SessionService_AppendMessage_FullMethodName    = "/talon.v1.SessionService/AppendMessage"
 	SessionService_UpdateMessage_FullMethodName    = "/talon.v1.SessionService/UpdateMessage"
@@ -46,6 +48,8 @@ type SessionServiceClient interface {
 	ListMessages(ctx context.Context, in *ListSessionMessagesRequest, opts ...grpc.CallOption) (*ListSessionMessagesResponse, error)
 	Delete(ctx context.Context, in *DeleteSessionRequest, opts ...grpc.CallOption) (*DeleteSessionResponse, error)
 	Clear(ctx context.Context, in *ClearSessionRequest, opts ...grpc.CallOption) (*ClearSessionResponse, error)
+	Compact(ctx context.Context, in *CompactSessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
+	Doctor(ctx context.Context, in *DoctorSessionRequest, opts ...grpc.CallOption) (*DoctorSessionResponse, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
 	AppendMessage(ctx context.Context, in *AppendSessionMessageRequest, opts ...grpc.CallOption) (*AppendSessionMessageResponse, error)
 	UpdateMessage(ctx context.Context, in *UpdateSessionMessageRequest, opts ...grpc.CallOption) (*UpdateSessionMessageResponse, error)
@@ -124,6 +128,35 @@ func (c *sessionServiceClient) Clear(ctx context.Context, in *ClearSessionReques
 	return out, nil
 }
 
+func (c *sessionServiceClient) Compact(ctx context.Context, in *CompactSessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SessionService_ServiceDesc.Streams[0], SessionService_Compact_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[CompactSessionRequest, events.SessionMessagePartEvent]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SessionService_CompactClient = grpc.ServerStreamingClient[events.SessionMessagePartEvent]
+
+func (c *sessionServiceClient) Doctor(ctx context.Context, in *DoctorSessionRequest, opts ...grpc.CallOption) (*DoctorSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DoctorSessionResponse)
+	err := c.cc.Invoke(ctx, SessionService_Doctor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *sessionServiceClient) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SendMessageResponse)
@@ -176,7 +209,7 @@ func (c *sessionServiceClient) StopGeneration(ctx context.Context, in *StopSessi
 
 func (c *sessionServiceClient) StreamParts(ctx context.Context, in *StreamSessionPartsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SessionService_ServiceDesc.Streams[0], SessionService_StreamParts_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SessionService_ServiceDesc.Streams[1], SessionService_StreamParts_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +228,7 @@ type SessionService_StreamPartsClient = grpc.ServerStreamingClient[events.Sessio
 
 func (c *sessionServiceClient) StreamPartsBatch(ctx context.Context, in *StreamSessionPartsBatchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SessionService_ServiceDesc.Streams[1], SessionService_StreamPartsBatch_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SessionService_ServiceDesc.Streams[2], SessionService_StreamPartsBatch_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +247,7 @@ type SessionService_StreamPartsBatchClient = grpc.ServerStreamingClient[events.S
 
 func (c *sessionServiceClient) SubmitTurn(ctx context.Context, in *SubmitSessionTurnRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SessionService_ServiceDesc.Streams[2], SessionService_SubmitTurn_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SessionService_ServiceDesc.Streams[3], SessionService_SubmitTurn_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -241,6 +274,8 @@ type SessionServiceServer interface {
 	ListMessages(context.Context, *ListSessionMessagesRequest) (*ListSessionMessagesResponse, error)
 	Delete(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error)
 	Clear(context.Context, *ClearSessionRequest) (*ClearSessionResponse, error)
+	Compact(*CompactSessionRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
+	Doctor(context.Context, *DoctorSessionRequest) (*DoctorSessionResponse, error)
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
 	AppendMessage(context.Context, *AppendSessionMessageRequest) (*AppendSessionMessageResponse, error)
 	UpdateMessage(context.Context, *UpdateSessionMessageRequest) (*UpdateSessionMessageResponse, error)
@@ -276,6 +311,12 @@ func (UnimplementedSessionServiceServer) Delete(context.Context, *DeleteSessionR
 }
 func (UnimplementedSessionServiceServer) Clear(context.Context, *ClearSessionRequest) (*ClearSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Clear not implemented")
+}
+func (UnimplementedSessionServiceServer) Compact(*CompactSessionRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error {
+	return status.Errorf(codes.Unimplemented, "method Compact not implemented")
+}
+func (UnimplementedSessionServiceServer) Doctor(context.Context, *DoctorSessionRequest) (*DoctorSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Doctor not implemented")
 }
 func (UnimplementedSessionServiceServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
@@ -426,6 +467,35 @@ func _SessionService_Clear_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SessionServiceServer).Clear(ctx, req.(*ClearSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SessionService_Compact_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(CompactSessionRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SessionServiceServer).Compact(m, &grpc.GenericServerStream[CompactSessionRequest, events.SessionMessagePartEvent]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SessionService_CompactServer = grpc.ServerStreamingServer[events.SessionMessagePartEvent]
+
+func _SessionService_Doctor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DoctorSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionServiceServer).Doctor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SessionService_Doctor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionServiceServer).Doctor(ctx, req.(*DoctorSessionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -585,6 +655,10 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SessionService_Clear_Handler,
 		},
 		{
+			MethodName: "Doctor",
+			Handler:    _SessionService_Doctor_Handler,
+		},
+		{
 			MethodName: "SendMessage",
 			Handler:    _SessionService_SendMessage_Handler,
 		},
@@ -606,6 +680,11 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Compact",
+			Handler:       _SessionService_Compact_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "StreamParts",
 			Handler:       _SessionService_StreamParts_Handler,

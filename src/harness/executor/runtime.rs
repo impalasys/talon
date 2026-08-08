@@ -549,6 +549,16 @@ impl AgentExecutor {
         ))
     }
 
+    /// Run the durable compaction path as a session-maintenance operation.
+    /// The compaction request intentionally has no provider continuation ID.
+    pub async fn force_compact_context(
+        &self,
+        context: &mut ExecutionContext,
+        sink: &dyn ExecutionSink,
+    ) -> Result<bool> {
+        compact(self.llm.as_ref(), context, sink).await
+    }
+
     fn normalize_token_counter(&self, mut counter: TokenCounter) -> TokenCounter {
         counter.provider = self.llm_provider_key.clone();
         counter.model = self.llm_model.clone();

@@ -161,6 +161,36 @@ class ClearSessionResponse(_message.Message):
     success: bool
     def __init__(self, success: bool = ...) -> None: ...
 
+class CompactSessionRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ...) -> None: ...
+
+class DoctorSessionRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ...) -> None: ...
+
+class DoctorSessionResponse(_message.Message):
+    __slots__ = ("provider_continuation_was_present", "provider_continuation_reset", "incomplete_tool_batches")
+    PROVIDER_CONTINUATION_WAS_PRESENT_FIELD_NUMBER: _ClassVar[int]
+    PROVIDER_CONTINUATION_RESET_FIELD_NUMBER: _ClassVar[int]
+    INCOMPLETE_TOOL_BATCHES_FIELD_NUMBER: _ClassVar[int]
+    provider_continuation_was_present: bool
+    provider_continuation_reset: bool
+    incomplete_tool_batches: int
+    def __init__(self, provider_continuation_was_present: bool = ..., provider_continuation_reset: bool = ..., incomplete_tool_batches: _Optional[int] = ...) -> None: ...
+
 class SubmitSessionTurnRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns", "message", "labels")
     class LabelsEntry(_message.Message):

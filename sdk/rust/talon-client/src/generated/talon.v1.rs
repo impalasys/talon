@@ -604,6 +604,33 @@ pub struct ClearSessionResponse {
     pub success: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CompactSessionRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DoctorSessionRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DoctorSessionResponse {
+    #[prost(bool, tag = "1")]
+    pub provider_continuation_was_present: bool,
+    #[prost(bool, tag = "2")]
+    pub provider_continuation_reset: bool,
+    #[prost(uint32, tag = "3")]
+    pub incomplete_tool_batches: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SubmitSessionTurnRequest {
     #[prost(string, tag = "1")]
     pub session_id: ::prost::alloc::string::String,
@@ -974,6 +1001,56 @@ pub mod session_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.v1.SessionService", "Clear"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn compact(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CompactSessionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<
+                tonic::codec::Streaming<super::super::events::SessionMessagePartEvent>,
+            >,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.SessionService/Compact",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.SessionService", "Compact"));
+            self.inner.server_streaming(req, path, codec).await
+        }
+        pub async fn doctor(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DoctorSessionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DoctorSessionResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.SessionService/Doctor",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.v1.SessionService", "Doctor"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn send_message(

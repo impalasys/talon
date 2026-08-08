@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, ClearSessionRequest, ClearSessionResponse, CreateSessionRequest, DeleteSessionRequest, DeleteSessionResponse, GetSessionRequest, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, SubmitSessionTurnRequest, UpdateSessionMessageRequest, UpdateSessionMessageResponse } from "./sessions_pb.js";
+import { AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, ClearSessionRequest, ClearSessionResponse, CompactSessionRequest, CreateSessionRequest, DeleteSessionRequest, DeleteSessionResponse, DoctorSessionRequest, DoctorSessionResponse, GetSessionRequest, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, SubmitSessionTurnRequest, UpdateSessionMessageRequest, UpdateSessionMessageResponse } from "./sessions_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { SessionMessagePartEvent } from "../../events_pb.js";
 
@@ -65,6 +65,24 @@ export const SessionService = {
       name: "Clear",
       I: ClearSessionRequest,
       O: ClearSessionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.v1.SessionService.Compact
+     */
+    compact: {
+      name: "Compact",
+      I: CompactSessionRequest,
+      O: SessionMessagePartEvent,
+      kind: MethodKind.ServerStreaming,
+    },
+    /**
+     * @generated from rpc talon.v1.SessionService.Doctor
+     */
+    doctor: {
+      name: "Doctor",
+      I: DoctorSessionRequest,
+      O: DoctorSessionResponse,
       kind: MethodKind.Unary,
     },
     /**

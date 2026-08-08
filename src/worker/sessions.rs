@@ -16,7 +16,8 @@ use crate::control::tool_output::{self, ToolOutputExt};
 use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
-    self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionStatus,
+    self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionKind,
+    SessionSubmissionStatus,
 };
 use crate::harness::executor::{tool_output_loop_message, ExecutionSink, LoopMessage};
 use crate::harness::llm::ToolOutput;
@@ -793,6 +794,20 @@ impl WorkerEventHandler {
                     return Ok((SessionCompletionStatus::Errored, sink.summary()));
                 }
             };
+
+            if submission.kind == SessionSubmissionKind::Compact as i32 {
+                runtime
+                    .executor
+                    .force_compact_context(&mut runtime.context, &sink)
+                    .await?;
+                // A successful compaction summary is a new canonical history,
+                // so the old provider-side continuation is no longer valid.
+                // A no-op compaction is also the explicit escape hatch for a
+                // stale continuation in an otherwise minimal transcript.
+                sink.clear_provider_continuation().await?;
+                sink.on_done().await;
+                return Ok((SessionCompletionStatus::Completed, sink.summary()));
+            }
 
             // Hydrate the runtime context from the stable journal and execute
             // any missing tool results before returning to the LLM loop.
@@ -2473,6 +2488,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .expect("runtime build errors should be persisted and acked");
@@ -2694,6 +2710,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .expect("runtime build errors should be persisted, delivered, and acked");
@@ -3458,6 +3475,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await;
         assert!(result.is_err());
@@ -3575,6 +3593,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .unwrap();
@@ -3702,6 +3721,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .unwrap();
@@ -3797,6 +3817,7 @@ mod tests {
             direction: MessageDirection::Inbound as i32,
             message: "hello".to_string(),
             timestamp: 123,
+            kind: Default::default(),
         };
         handler.handle_session_message(event.clone()).await.unwrap();
         assert_eq!(call_count.load(Ordering::SeqCst), 1);
@@ -3929,6 +3950,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .unwrap();

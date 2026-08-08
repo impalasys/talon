@@ -129,6 +129,52 @@ func (MessageDirection) EnumDescriptor() ([]byte, []int) {
 	return file_proto_events_proto_rawDescGZIP(), []int{1}
 }
 
+type SessionDispatchKind int32
+
+const (
+	SessionDispatchKind_SESSION_DISPATCH_KIND_MESSAGE SessionDispatchKind = 0
+	SessionDispatchKind_SESSION_DISPATCH_KIND_COMPACT SessionDispatchKind = 1
+)
+
+// Enum value maps for SessionDispatchKind.
+var (
+	SessionDispatchKind_name = map[int32]string{
+		0: "SESSION_DISPATCH_KIND_MESSAGE",
+		1: "SESSION_DISPATCH_KIND_COMPACT",
+	}
+	SessionDispatchKind_value = map[string]int32{
+		"SESSION_DISPATCH_KIND_MESSAGE": 0,
+		"SESSION_DISPATCH_KIND_COMPACT": 1,
+	}
+)
+
+func (x SessionDispatchKind) Enum() *SessionDispatchKind {
+	p := new(SessionDispatchKind)
+	*p = x
+	return p
+}
+
+func (x SessionDispatchKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SessionDispatchKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_events_proto_enumTypes[2].Descriptor()
+}
+
+func (SessionDispatchKind) Type() protoreflect.EnumType {
+	return &file_proto_events_proto_enumTypes[2]
+}
+
+func (x SessionDispatchKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SessionDispatchKind.Descriptor instead.
+func (SessionDispatchKind) EnumDescriptor() ([]byte, []int) {
+	return file_proto_events_proto_rawDescGZIP(), []int{2}
+}
+
 type SessionMessagePartEventKind int32
 
 const (
@@ -165,11 +211,11 @@ func (x SessionMessagePartEventKind) String() string {
 }
 
 func (SessionMessagePartEventKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_events_proto_enumTypes[2].Descriptor()
+	return file_proto_events_proto_enumTypes[3].Descriptor()
 }
 
 func (SessionMessagePartEventKind) Type() protoreflect.EnumType {
-	return &file_proto_events_proto_enumTypes[2]
+	return &file_proto_events_proto_enumTypes[3]
 }
 
 func (x SessionMessagePartEventKind) Number() protoreflect.EnumNumber {
@@ -178,7 +224,7 @@ func (x SessionMessagePartEventKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SessionMessagePartEventKind.Descriptor instead.
 func (SessionMessagePartEventKind) EnumDescriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{2}
+	return file_proto_events_proto_rawDescGZIP(), []int{3}
 }
 
 type ChannelEventKind int32
@@ -220,11 +266,11 @@ func (x ChannelEventKind) String() string {
 }
 
 func (ChannelEventKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_events_proto_enumTypes[3].Descriptor()
+	return file_proto_events_proto_enumTypes[4].Descriptor()
 }
 
 func (ChannelEventKind) Type() protoreflect.EnumType {
-	return &file_proto_events_proto_enumTypes[3]
+	return &file_proto_events_proto_enumTypes[4]
 }
 
 func (x ChannelEventKind) Number() protoreflect.EnumNumber {
@@ -233,7 +279,7 @@ func (x ChannelEventKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ChannelEventKind.Descriptor instead.
 func (ChannelEventKind) EnumDescriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{3}
+	return file_proto_events_proto_rawDescGZIP(), []int{4}
 }
 
 type ResourceChangeType int32
@@ -272,11 +318,11 @@ func (x ResourceChangeType) String() string {
 }
 
 func (ResourceChangeType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_events_proto_enumTypes[4].Descriptor()
+	return file_proto_events_proto_enumTypes[5].Descriptor()
 }
 
 func (ResourceChangeType) Type() protoreflect.EnumType {
-	return &file_proto_events_proto_enumTypes[4]
+	return &file_proto_events_proto_enumTypes[5]
 }
 
 func (x ResourceChangeType) Number() protoreflect.EnumNumber {
@@ -285,7 +331,7 @@ func (x ResourceChangeType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ResourceChangeType.Descriptor instead.
 func (ResourceChangeType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{4}
+	return file_proto_events_proto_rawDescGZIP(), []int{5}
 }
 
 type IndexOperation int32
@@ -321,11 +367,11 @@ func (x IndexOperation) String() string {
 }
 
 func (IndexOperation) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_events_proto_enumTypes[5].Descriptor()
+	return file_proto_events_proto_enumTypes[6].Descriptor()
 }
 
 func (IndexOperation) Type() protoreflect.EnumType {
-	return &file_proto_events_proto_enumTypes[5]
+	return &file_proto_events_proto_enumTypes[6]
 }
 
 func (x IndexOperation) Number() protoreflect.EnumNumber {
@@ -334,7 +380,7 @@ func (x IndexOperation) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use IndexOperation.Descriptor instead.
 func (IndexOperation) EnumDescriptor() ([]byte, []int) {
-	return file_proto_events_proto_rawDescGZIP(), []int{5}
+	return file_proto_events_proto_rawDescGZIP(), []int{6}
 }
 
 type LifecycleEvent struct {
@@ -423,6 +469,7 @@ type SessionMessageEvent struct {
 	Message       string                 `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
 	Ns            string                 `protobuf:"bytes,7,opt,name=ns,proto3" json:"ns,omitempty"`
 	SubmissionId  string                 `protobuf:"bytes,8,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	Kind          SessionDispatchKind    `protobuf:"varint,9,opt,name=kind,proto3,enum=talon.events.SessionDispatchKind" json:"kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -511,6 +558,13 @@ func (x *SessionMessageEvent) GetSubmissionId() string {
 		return x.SubmissionId
 	}
 	return ""
+}
+
+func (x *SessionMessageEvent) GetKind() SessionDispatchKind {
+	if x != nil {
+		return x.Kind
+	}
+	return SessionDispatchKind_SESSION_DISPATCH_KIND_MESSAGE
 }
 
 type SessionMessagePartEvent struct {
@@ -1021,7 +1075,7 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x0e\n" +
 	"\x02ns\x18\x03 \x01(\tR\x02ns\x122\n" +
 	"\x06action\x18\x04 \x01(\x0e2\x1a.talon.events.SystemActionR\x06action\x12\x1c\n" +
-	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\x94\x02\n" +
+	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\"\xcb\x02\n" +
 	"\x13SessionMessageEvent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1d\n" +
@@ -1032,7 +1086,8 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x05agent\x18\x05 \x01(\tR\x05agent\x12\x18\n" +
 	"\amessage\x18\x06 \x01(\tR\amessage\x12\x0e\n" +
 	"\x02ns\x18\a \x01(\tR\x02ns\x12#\n" +
-	"\rsubmission_id\x18\b \x01(\tR\fsubmissionId\"\x8e\x02\n" +
+	"\rsubmission_id\x18\b \x01(\tR\fsubmissionId\x125\n" +
+	"\x04kind\x18\t \x01(\x0e2!.talon.events.SessionDispatchKindR\x04kind\"\x8e\x02\n" +
 	"\x17SessionMessagePartEvent\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12=\n" +
@@ -1099,7 +1154,10 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x10MessageDirection\x12!\n" +
 	"\x1dMESSAGE_DIRECTION_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19MESSAGE_DIRECTION_INBOUND\x10\x01\x12\x1e\n" +
-	"\x1aMESSAGE_DIRECTION_OUTBOUND\x10\x02*\xce\x01\n" +
+	"\x1aMESSAGE_DIRECTION_OUTBOUND\x10\x02*[\n" +
+	"\x13SessionDispatchKind\x12!\n" +
+	"\x1dSESSION_DISPATCH_KIND_MESSAGE\x10\x00\x12!\n" +
+	"\x1dSESSION_DISPATCH_KIND_COMPACT\x10\x01*\xce\x01\n" +
 	"\x1bSessionMessagePartEventKind\x12/\n" +
 	"+SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED\x10\x00\x12)\n" +
 	"%SESSION_MESSAGE_PART_EVENT_KIND_DELTA\x10\x01\x12(\n" +
@@ -1133,39 +1191,41 @@ func file_proto_events_proto_rawDescGZIP() []byte {
 	return file_proto_events_proto_rawDescData
 }
 
-var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
 var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_events_proto_goTypes = []any{
 	(SystemAction)(0),                // 0: talon.events.SystemAction
 	(MessageDirection)(0),            // 1: talon.events.MessageDirection
-	(SessionMessagePartEventKind)(0), // 2: talon.events.SessionMessagePartEventKind
-	(ChannelEventKind)(0),            // 3: talon.events.ChannelEventKind
-	(ResourceChangeType)(0),          // 4: talon.events.ResourceChangeType
-	(IndexOperation)(0),              // 5: talon.events.IndexOperation
-	(*LifecycleEvent)(nil),           // 6: talon.events.LifecycleEvent
-	(*SessionMessageEvent)(nil),      // 7: talon.events.SessionMessageEvent
-	(*SessionMessagePartEvent)(nil),  // 8: talon.events.SessionMessagePartEvent
-	(*ChannelEvent)(nil),             // 9: talon.events.ChannelEvent
-	(*WorkflowDispatchEvent)(nil),    // 10: talon.events.WorkflowDispatchEvent
-	(*ResourceChangedEvent)(nil),     // 11: talon.events.ResourceChangedEvent
-	(*IndexEvent)(nil),               // 12: talon.events.IndexEvent
-	(*data.SessionMessagePart)(nil),  // 13: talon.data.SessionMessagePart
-	(*data.ChannelMessage)(nil),      // 14: talon.data.ChannelMessage
+	(SessionDispatchKind)(0),         // 2: talon.events.SessionDispatchKind
+	(SessionMessagePartEventKind)(0), // 3: talon.events.SessionMessagePartEventKind
+	(ChannelEventKind)(0),            // 4: talon.events.ChannelEventKind
+	(ResourceChangeType)(0),          // 5: talon.events.ResourceChangeType
+	(IndexOperation)(0),              // 6: talon.events.IndexOperation
+	(*LifecycleEvent)(nil),           // 7: talon.events.LifecycleEvent
+	(*SessionMessageEvent)(nil),      // 8: talon.events.SessionMessageEvent
+	(*SessionMessagePartEvent)(nil),  // 9: talon.events.SessionMessagePartEvent
+	(*ChannelEvent)(nil),             // 10: talon.events.ChannelEvent
+	(*WorkflowDispatchEvent)(nil),    // 11: talon.events.WorkflowDispatchEvent
+	(*ResourceChangedEvent)(nil),     // 12: talon.events.ResourceChangedEvent
+	(*IndexEvent)(nil),               // 13: talon.events.IndexEvent
+	(*data.SessionMessagePart)(nil),  // 14: talon.data.SessionMessagePart
+	(*data.ChannelMessage)(nil),      // 15: talon.data.ChannelMessage
 }
 var file_proto_events_proto_depIdxs = []int32{
 	0,  // 0: talon.events.LifecycleEvent.action:type_name -> talon.events.SystemAction
 	1,  // 1: talon.events.SessionMessageEvent.direction:type_name -> talon.events.MessageDirection
-	2,  // 2: talon.events.SessionMessagePartEvent.kind:type_name -> talon.events.SessionMessagePartEventKind
-	13, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
-	3,  // 4: talon.events.ChannelEvent.kind:type_name -> talon.events.ChannelEventKind
-	14, // 5: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
-	4,  // 6: talon.events.ResourceChangedEvent.change_type:type_name -> talon.events.ResourceChangeType
-	5,  // 7: talon.events.IndexEvent.operation:type_name -> talon.events.IndexOperation
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	2,  // 2: talon.events.SessionMessageEvent.kind:type_name -> talon.events.SessionDispatchKind
+	3,  // 3: talon.events.SessionMessagePartEvent.kind:type_name -> talon.events.SessionMessagePartEventKind
+	14, // 4: talon.events.SessionMessagePartEvent.part:type_name -> talon.data.SessionMessagePart
+	4,  // 5: talon.events.ChannelEvent.kind:type_name -> talon.events.ChannelEventKind
+	15, // 6: talon.events.ChannelEvent.message:type_name -> talon.data.ChannelMessage
+	5,  // 7: talon.events.ResourceChangedEvent.change_type:type_name -> talon.events.ResourceChangeType
+	6,  // 8: talon.events.IndexEvent.operation:type_name -> talon.events.IndexOperation
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_events_proto_init() }
@@ -1178,7 +1238,7 @@ func file_proto_events_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_events_proto_rawDesc), len(file_proto_events_proto_rawDesc)),
-			NumEnums:      6,
+			NumEnums:      7,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,

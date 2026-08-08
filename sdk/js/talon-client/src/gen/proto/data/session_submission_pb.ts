@@ -68,6 +68,29 @@ proto3.util.setEnumType(SessionSubmissionStatus, "talon.data.SessionSubmissionSt
 ]);
 
 /**
+ * What caused a durable submission. Maintenance submissions deliberately have
+ * no user SessionMessage and must never be replayed as user context.
+ *
+ * @generated from enum talon.data.SessionSubmissionKind
+ */
+export enum SessionSubmissionKind {
+  /**
+   * @generated from enum value: SESSION_SUBMISSION_KIND_USER_TURN = 0;
+   */
+  USER_TURN = 0,
+
+  /**
+   * @generated from enum value: SESSION_SUBMISSION_KIND_COMPACT = 1;
+   */
+  COMPACT = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SessionSubmissionKind)
+proto3.util.setEnumType(SessionSubmissionKind, "talon.data.SessionSubmissionKind", [
+  { no: 0, name: "SESSION_SUBMISSION_KIND_USER_TURN" },
+  { no: 1, name: "SESSION_SUBMISSION_KIND_COMPACT" },
+]);
+
+/**
  * @generated from message talon.data.SessionSubmission
  */
 export class SessionSubmission extends Message<SessionSubmission> {
@@ -177,6 +200,11 @@ export class SessionSubmission extends Message<SessionSubmission> {
    */
   currentJournalEntryId?: string;
 
+  /**
+   * @generated from field: talon.data.SessionSubmissionKind kind = 15;
+   */
+  kind = SessionSubmissionKind.USER_TURN;
+
   constructor(data?: PartialMessage<SessionSubmission>) {
     super();
     proto3.util.initPartial(data, this);
@@ -199,6 +227,7 @@ export class SessionSubmission extends Message<SessionSubmission> {
     { no: 11, name: "committed_message_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 12, name: "current_phase", kind: "enum", T: proto3.getEnumType(SessionExecutionPhase) },
     { no: 13, name: "current_journal_entry_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 15, name: "kind", kind: "enum", T: proto3.getEnumType(SessionSubmissionKind) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionSubmission {

@@ -11709,6 +11709,2213 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface CompactSessionRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.CompactSessionRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+  }
+  /**
+   * Protobuf type {@code talon.v1.CompactSessionRequest}
+   */
+  public static final class CompactSessionRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.CompactSessionRequest)
+      CompactSessionRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "CompactSessionRequest");
+    }
+    // Use CompactSessionRequest.newBuilder() to construct.
+    private CompactSessionRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private CompactSessionRequest() {
+      sessionId_ = "";
+      agent_ = "";
+      ns_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Sessions.internal_static_talon_v1_CompactSessionRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Sessions.internal_static_talon_v1_CompactSessionRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Sessions.internal_static_talon_v1_CompactSessionRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Sessions.CompactSessionRequest.class, talon.v1.Sessions.CompactSessionRequest.Builder.class);
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, ns_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, ns_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Sessions.CompactSessionRequest)) {
+        return super.equals(obj);
+      }
+      talon.v1.Sessions.CompactSessionRequest other = (talon.v1.Sessions.CompactSessionRequest) obj;
+
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Sessions.CompactSessionRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Sessions.CompactSessionRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.CompactSessionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Sessions.CompactSessionRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.CompactSessionRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.CompactSessionRequest)
+        talon.v1.Sessions.CompactSessionRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Sessions.internal_static_talon_v1_CompactSessionRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Sessions.internal_static_talon_v1_CompactSessionRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Sessions.CompactSessionRequest.class, talon.v1.Sessions.CompactSessionRequest.Builder.class);
+      }
+
+      // Construct using talon.v1.Sessions.CompactSessionRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        sessionId_ = "";
+        agent_ = "";
+        ns_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Sessions.internal_static_talon_v1_CompactSessionRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.CompactSessionRequest getDefaultInstanceForType() {
+        return talon.v1.Sessions.CompactSessionRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.CompactSessionRequest build() {
+        talon.v1.Sessions.CompactSessionRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.CompactSessionRequest buildPartial() {
+        talon.v1.Sessions.CompactSessionRequest result = new talon.v1.Sessions.CompactSessionRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Sessions.CompactSessionRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.ns_ = ns_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Sessions.CompactSessionRequest) {
+          return mergeFrom((talon.v1.Sessions.CompactSessionRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Sessions.CompactSessionRequest other) {
+        if (other == talon.v1.Sessions.CompactSessionRequest.getDefaultInstance()) return this;
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 3;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.CompactSessionRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.CompactSessionRequest)
+    private static final talon.v1.Sessions.CompactSessionRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Sessions.CompactSessionRequest();
+    }
+
+    public static talon.v1.Sessions.CompactSessionRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<CompactSessionRequest>
+        PARSER = new com.google.protobuf.AbstractParser<CompactSessionRequest>() {
+      @java.lang.Override
+      public CompactSessionRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<CompactSessionRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompactSessionRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Sessions.CompactSessionRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface DoctorSessionRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.DoctorSessionRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+  }
+  /**
+   * Protobuf type {@code talon.v1.DoctorSessionRequest}
+   */
+  public static final class DoctorSessionRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.DoctorSessionRequest)
+      DoctorSessionRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "DoctorSessionRequest");
+    }
+    // Use DoctorSessionRequest.newBuilder() to construct.
+    private DoctorSessionRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private DoctorSessionRequest() {
+      sessionId_ = "";
+      agent_ = "";
+      ns_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Sessions.DoctorSessionRequest.class, talon.v1.Sessions.DoctorSessionRequest.Builder.class);
+    }
+
+    public static final int SESSION_ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, ns_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, ns_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Sessions.DoctorSessionRequest)) {
+        return super.equals(obj);
+      }
+      talon.v1.Sessions.DoctorSessionRequest other = (talon.v1.Sessions.DoctorSessionRequest) obj;
+
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Sessions.DoctorSessionRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Sessions.DoctorSessionRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.DoctorSessionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Sessions.DoctorSessionRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.DoctorSessionRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.DoctorSessionRequest)
+        talon.v1.Sessions.DoctorSessionRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Sessions.DoctorSessionRequest.class, talon.v1.Sessions.DoctorSessionRequest.Builder.class);
+      }
+
+      // Construct using talon.v1.Sessions.DoctorSessionRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        sessionId_ = "";
+        agent_ = "";
+        ns_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.DoctorSessionRequest getDefaultInstanceForType() {
+        return talon.v1.Sessions.DoctorSessionRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.DoctorSessionRequest build() {
+        talon.v1.Sessions.DoctorSessionRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.DoctorSessionRequest buildPartial() {
+        talon.v1.Sessions.DoctorSessionRequest result = new talon.v1.Sessions.DoctorSessionRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Sessions.DoctorSessionRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.ns_ = ns_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Sessions.DoctorSessionRequest) {
+          return mergeFrom((talon.v1.Sessions.DoctorSessionRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Sessions.DoctorSessionRequest other) {
+        if (other == talon.v1.Sessions.DoctorSessionRequest.getDefaultInstance()) return this;
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 3;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.DoctorSessionRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.DoctorSessionRequest)
+    private static final talon.v1.Sessions.DoctorSessionRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Sessions.DoctorSessionRequest();
+    }
+
+    public static talon.v1.Sessions.DoctorSessionRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<DoctorSessionRequest>
+        PARSER = new com.google.protobuf.AbstractParser<DoctorSessionRequest>() {
+      @java.lang.Override
+      public DoctorSessionRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<DoctorSessionRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DoctorSessionRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Sessions.DoctorSessionRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface DoctorSessionResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.DoctorSessionResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>bool provider_continuation_was_present = 1;</code>
+     * @return The providerContinuationWasPresent.
+     */
+    boolean getProviderContinuationWasPresent();
+
+    /**
+     * <code>bool provider_continuation_reset = 2;</code>
+     * @return The providerContinuationReset.
+     */
+    boolean getProviderContinuationReset();
+
+    /**
+     * <code>uint32 incomplete_tool_batches = 3;</code>
+     * @return The incompleteToolBatches.
+     */
+    int getIncompleteToolBatches();
+  }
+  /**
+   * Protobuf type {@code talon.v1.DoctorSessionResponse}
+   */
+  public static final class DoctorSessionResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.DoctorSessionResponse)
+      DoctorSessionResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "DoctorSessionResponse");
+    }
+    // Use DoctorSessionResponse.newBuilder() to construct.
+    private DoctorSessionResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private DoctorSessionResponse() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionResponse_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Sessions.DoctorSessionResponse.class, talon.v1.Sessions.DoctorSessionResponse.Builder.class);
+    }
+
+    public static final int PROVIDER_CONTINUATION_WAS_PRESENT_FIELD_NUMBER = 1;
+    private boolean providerContinuationWasPresent_ = false;
+    /**
+     * <code>bool provider_continuation_was_present = 1;</code>
+     * @return The providerContinuationWasPresent.
+     */
+    @java.lang.Override
+    public boolean getProviderContinuationWasPresent() {
+      return providerContinuationWasPresent_;
+    }
+
+    public static final int PROVIDER_CONTINUATION_RESET_FIELD_NUMBER = 2;
+    private boolean providerContinuationReset_ = false;
+    /**
+     * <code>bool provider_continuation_reset = 2;</code>
+     * @return The providerContinuationReset.
+     */
+    @java.lang.Override
+    public boolean getProviderContinuationReset() {
+      return providerContinuationReset_;
+    }
+
+    public static final int INCOMPLETE_TOOL_BATCHES_FIELD_NUMBER = 3;
+    private int incompleteToolBatches_ = 0;
+    /**
+     * <code>uint32 incomplete_tool_batches = 3;</code>
+     * @return The incompleteToolBatches.
+     */
+    @java.lang.Override
+    public int getIncompleteToolBatches() {
+      return incompleteToolBatches_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (providerContinuationWasPresent_ != false) {
+        output.writeBool(1, providerContinuationWasPresent_);
+      }
+      if (providerContinuationReset_ != false) {
+        output.writeBool(2, providerContinuationReset_);
+      }
+      if (incompleteToolBatches_ != 0) {
+        output.writeUInt32(3, incompleteToolBatches_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (providerContinuationWasPresent_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, providerContinuationWasPresent_);
+      }
+      if (providerContinuationReset_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, providerContinuationReset_);
+      }
+      if (incompleteToolBatches_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(3, incompleteToolBatches_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Sessions.DoctorSessionResponse)) {
+        return super.equals(obj);
+      }
+      talon.v1.Sessions.DoctorSessionResponse other = (talon.v1.Sessions.DoctorSessionResponse) obj;
+
+      if (getProviderContinuationWasPresent()
+          != other.getProviderContinuationWasPresent()) return false;
+      if (getProviderContinuationReset()
+          != other.getProviderContinuationReset()) return false;
+      if (getIncompleteToolBatches()
+          != other.getIncompleteToolBatches()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PROVIDER_CONTINUATION_WAS_PRESENT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getProviderContinuationWasPresent());
+      hash = (37 * hash) + PROVIDER_CONTINUATION_RESET_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getProviderContinuationReset());
+      hash = (37 * hash) + INCOMPLETE_TOOL_BATCHES_FIELD_NUMBER;
+      hash = (53 * hash) + getIncompleteToolBatches();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Sessions.DoctorSessionResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Sessions.DoctorSessionResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.DoctorSessionResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Sessions.DoctorSessionResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.DoctorSessionResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.DoctorSessionResponse)
+        talon.v1.Sessions.DoctorSessionResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Sessions.DoctorSessionResponse.class, talon.v1.Sessions.DoctorSessionResponse.Builder.class);
+      }
+
+      // Construct using talon.v1.Sessions.DoctorSessionResponse.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        providerContinuationWasPresent_ = false;
+        providerContinuationReset_ = false;
+        incompleteToolBatches_ = 0;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Sessions.internal_static_talon_v1_DoctorSessionResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.DoctorSessionResponse getDefaultInstanceForType() {
+        return talon.v1.Sessions.DoctorSessionResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.DoctorSessionResponse build() {
+        talon.v1.Sessions.DoctorSessionResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.DoctorSessionResponse buildPartial() {
+        talon.v1.Sessions.DoctorSessionResponse result = new talon.v1.Sessions.DoctorSessionResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Sessions.DoctorSessionResponse result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.providerContinuationWasPresent_ = providerContinuationWasPresent_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.providerContinuationReset_ = providerContinuationReset_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.incompleteToolBatches_ = incompleteToolBatches_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Sessions.DoctorSessionResponse) {
+          return mergeFrom((talon.v1.Sessions.DoctorSessionResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Sessions.DoctorSessionResponse other) {
+        if (other == talon.v1.Sessions.DoctorSessionResponse.getDefaultInstance()) return this;
+        if (other.getProviderContinuationWasPresent() != false) {
+          setProviderContinuationWasPresent(other.getProviderContinuationWasPresent());
+        }
+        if (other.getProviderContinuationReset() != false) {
+          setProviderContinuationReset(other.getProviderContinuationReset());
+        }
+        if (other.getIncompleteToolBatches() != 0) {
+          setIncompleteToolBatches(other.getIncompleteToolBatches());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                providerContinuationWasPresent_ = input.readBool();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                providerContinuationReset_ = input.readBool();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                incompleteToolBatches_ = input.readUInt32();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private boolean providerContinuationWasPresent_ ;
+      /**
+       * <code>bool provider_continuation_was_present = 1;</code>
+       * @return The providerContinuationWasPresent.
+       */
+      @java.lang.Override
+      public boolean getProviderContinuationWasPresent() {
+        return providerContinuationWasPresent_;
+      }
+      /**
+       * <code>bool provider_continuation_was_present = 1;</code>
+       * @param value The providerContinuationWasPresent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderContinuationWasPresent(boolean value) {
+
+        providerContinuationWasPresent_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool provider_continuation_was_present = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProviderContinuationWasPresent() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        providerContinuationWasPresent_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean providerContinuationReset_ ;
+      /**
+       * <code>bool provider_continuation_reset = 2;</code>
+       * @return The providerContinuationReset.
+       */
+      @java.lang.Override
+      public boolean getProviderContinuationReset() {
+        return providerContinuationReset_;
+      }
+      /**
+       * <code>bool provider_continuation_reset = 2;</code>
+       * @param value The providerContinuationReset to set.
+       * @return This builder for chaining.
+       */
+      public Builder setProviderContinuationReset(boolean value) {
+
+        providerContinuationReset_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool provider_continuation_reset = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearProviderContinuationReset() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        providerContinuationReset_ = false;
+        onChanged();
+        return this;
+      }
+
+      private int incompleteToolBatches_ ;
+      /**
+       * <code>uint32 incomplete_tool_batches = 3;</code>
+       * @return The incompleteToolBatches.
+       */
+      @java.lang.Override
+      public int getIncompleteToolBatches() {
+        return incompleteToolBatches_;
+      }
+      /**
+       * <code>uint32 incomplete_tool_batches = 3;</code>
+       * @param value The incompleteToolBatches to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIncompleteToolBatches(int value) {
+
+        incompleteToolBatches_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 incomplete_tool_batches = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearIncompleteToolBatches() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        incompleteToolBatches_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.DoctorSessionResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.DoctorSessionResponse)
+    private static final talon.v1.Sessions.DoctorSessionResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Sessions.DoctorSessionResponse();
+    }
+
+    public static talon.v1.Sessions.DoctorSessionResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<DoctorSessionResponse>
+        PARSER = new com.google.protobuf.AbstractParser<DoctorSessionResponse>() {
+      @java.lang.Override
+      public DoctorSessionResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<DoctorSessionResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DoctorSessionResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Sessions.DoctorSessionResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface SubmitSessionTurnRequestOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.v1.SubmitSessionTurnRequest)
       com.google.protobuf.MessageOrBuilder {
@@ -24181,6 +26388,21 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_v1_ClearSessionResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_CompactSessionRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_CompactSessionRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_DoctorSessionRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_DoctorSessionRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_DoctorSessionResponse_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_DoctorSessionResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_v1_SubmitSessionTurnRequest_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -24310,77 +26532,88 @@ java.lang.String defaultValue) {
       "e\022\017\n\007success\030\001 \001(\010\"D\n\023ClearSessionReques" +
       "t\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
       "ns\030\003 \001(\t\"\'\n\024ClearSessionResponse\022\017\n\007succ" +
-      "ess\030\001 \001(\010\"\345\001\n\030SubmitSessionTurnRequest\022\022" +
-      "\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030" +
-      "\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.data.Sess" +
-      "ionMessage\022>\n\006labels\030\005 \003(\0132..talon.v1.Su" +
-      "bmitSessionTurnRequest.LabelsEntry\032-\n\013La" +
-      "belsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
-      "\001\"\275\001\n\022SendMessageRequest\022\022\n\nsession_id\030\001" +
-      " \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\017\n\007messa" +
-      "ge\030\004 \001(\t\0228\n\006labels\030\005 \003(\0132(.talon.v1.Send" +
-      "MessageRequest.LabelsEntry\032-\n\013LabelsEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"8\n\023Sen" +
-      "dMessageResponse\022\r\n\005reply\030\001 \001(\t\022\022\n\nsessi" +
-      "on_id\030\004 \001(\t\"y\n\033AppendSessionMessageReque" +
-      "st\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n" +
-      "\002ns\030\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.data." +
-      "SessionMessage\"_\n\034AppendSessionMessageRe" +
-      "sponse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007message\030\002 " +
-      "\001(\0132\032.talon.data.SessionMessage\"\201\002\n\033Upda" +
-      "teSessionMessageRequest\022\022\n\nsession_id\030\001 " +
-      "\001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nmessag" +
-      "e_id\030\004 \001(\t\022-\n\005parts\030\005 \003(\0132\036.talon.data.S" +
-      "essionMessagePart\022A\n\006labels\030\006 \003(\01321.talo" +
-      "n.v1.UpdateSessionMessageRequest.LabelsE" +
-      "ntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
-      "e\030\002 \001(\t:\0028\001\"_\n\034UpdateSessionMessageRespo" +
-      "nse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007message\030\002 \001(\013" +
-      "2\032.talon.data.SessionMessage\"\233\001\n\036AnswerS" +
-      "essionPermissionRequest\022\022\n\nsession_id\030\001 " +
-      "\001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nreques" +
-      "t_id\030\004 \001(\t\022\017\n\007outcome\030\005 \001(\t\022\021\n\toption_id" +
-      "\030\006 \001(\t\022\022\n\ndecided_by\030\007 \001(\t\"m\n\037AnswerSess" +
-      "ionPermissionResponse\022\022\n\nsession_id\030\001 \001(" +
-      "\t\022\022\n\nrequest_id\030\002 \001(\t\022\017\n\007outcome\030\003 \001(\t\022\021" +
-      "\n\toption_id\030\004 \001(\t\"M\n\034StopSessionGenerati" +
-      "onRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002" +
-      " \001(\t\022\n\n\002ns\030\003 \001(\t\"0\n\035StopSessionGeneratio" +
-      "nResponse\022\017\n\007success\030\001 \001(\010\"J\n\031StreamSess" +
-      "ionPartsRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005a" +
-      "gent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSessionP" +
-      "artsBatchRequest\022\025\n\rsession_names\030\001 \003(\t2" +
-      "\302\t\n\016SessionService\022C\n\006Create\022\036.talon.v1." +
-      "CreateSessionRequest\032\031.talon.v1.SessionR" +
-      "esponse\022=\n\003Get\022\033.talon.v1.GetSessionRequ" +
-      "est\032\031.talon.v1.SessionResponse\022E\n\004List\022\035" +
-      ".talon.v1.ListSessionsRequest\032\036.talon.v1" +
-      ".ListSessionsResponse\022[\n\014ListMessages\022$." +
-      "talon.v1.ListSessionMessagesRequest\032%.ta" +
-      "lon.v1.ListSessionMessagesResponse\022I\n\006De" +
-      "lete\022\036.talon.v1.DeleteSessionRequest\032\037.t" +
-      "alon.v1.DeleteSessionResponse\022F\n\005Clear\022\035" +
-      ".talon.v1.ClearSessionRequest\032\036.talon.v1" +
-      ".ClearSessionResponse\022J\n\013SendMessage\022\034.t" +
-      "alon.v1.SendMessageRequest\032\035.talon.v1.Se" +
-      "ndMessageResponse\022^\n\rAppendMessage\022%.tal" +
-      "on.v1.AppendSessionMessageRequest\032&.talo" +
-      "n.v1.AppendSessionMessageResponse\022^\n\rUpd" +
-      "ateMessage\022%.talon.v1.UpdateSessionMessa" +
-      "geRequest\032&.talon.v1.UpdateSessionMessag" +
-      "eResponse\022g\n\020AnswerPermission\022(.talon.v1" +
-      ".AnswerSessionPermissionRequest\032).talon." +
-      "v1.AnswerSessionPermissionResponse\022a\n\016St" +
-      "opGeneration\022&.talon.v1.StopSessionGener" +
-      "ationRequest\032\'.talon.v1.StopSessionGener" +
-      "ationResponse\022[\n\013StreamParts\022#.talon.v1." +
-      "StreamSessionPartsRequest\032%.talon.events" +
-      ".SessionMessagePartEvent0\001\022e\n\020StreamPart" +
-      "sBatch\022(.talon.v1.StreamSessionPartsBatc" +
-      "hRequest\032%.talon.events.SessionMessagePa" +
-      "rtEvent0\001\022Y\n\nSubmitTurn\022\".talon.v1.Submi" +
-      "tSessionTurnRequest\032%.talon.events.Sessi" +
-      "onMessagePartEvent0\001b\006proto3"
+      "ess\030\001 \001(\010\"F\n\025CompactSessionRequest\022\022\n\nse" +
+      "ssion_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(" +
+      "\t\"E\n\024DoctorSessionRequest\022\022\n\nsession_id\030" +
+      "\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"\210\001\n\025Doc" +
+      "torSessionResponse\022)\n!provider_continuat" +
+      "ion_was_present\030\001 \001(\010\022#\n\033provider_contin" +
+      "uation_reset\030\002 \001(\010\022\037\n\027incomplete_tool_ba" +
+      "tches\030\003 \001(\r\"\345\001\n\030SubmitSessionTurnRequest" +
+      "\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002n" +
+      "s\030\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.data.Se" +
+      "ssionMessage\022>\n\006labels\030\005 \003(\0132..talon.v1." +
+      "SubmitSessionTurnRequest.LabelsEntry\032-\n\013" +
+      "LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:" +
+      "\0028\001\"\275\001\n\022SendMessageRequest\022\022\n\nsession_id" +
+      "\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\017\n\007mes" +
+      "sage\030\004 \001(\t\0228\n\006labels\030\005 \003(\0132(.talon.v1.Se" +
+      "ndMessageRequest.LabelsEntry\032-\n\013LabelsEn" +
+      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"8\n\023S" +
+      "endMessageResponse\022\r\n\005reply\030\001 \001(\t\022\022\n\nses" +
+      "sion_id\030\004 \001(\t\"y\n\033AppendSessionMessageReq" +
+      "uest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022" +
+      "\n\n\002ns\030\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.dat" +
+      "a.SessionMessage\"_\n\034AppendSessionMessage" +
+      "Response\022\022\n\nsession_id\030\001 \001(\t\022+\n\007message\030" +
+      "\002 \001(\0132\032.talon.data.SessionMessage\"\201\002\n\033Up" +
+      "dateSessionMessageRequest\022\022\n\nsession_id\030" +
+      "\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nmess" +
+      "age_id\030\004 \001(\t\022-\n\005parts\030\005 \003(\0132\036.talon.data" +
+      ".SessionMessagePart\022A\n\006labels\030\006 \003(\01321.ta" +
+      "lon.v1.UpdateSessionMessageRequest.Label" +
+      "sEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
+      "lue\030\002 \001(\t:\0028\001\"_\n\034UpdateSessionMessageRes" +
+      "ponse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007message\030\002 \001" +
+      "(\0132\032.talon.data.SessionMessage\"\233\001\n\036Answe" +
+      "rSessionPermissionRequest\022\022\n\nsession_id\030" +
+      "\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nrequ" +
+      "est_id\030\004 \001(\t\022\017\n\007outcome\030\005 \001(\t\022\021\n\toption_" +
+      "id\030\006 \001(\t\022\022\n\ndecided_by\030\007 \001(\t\"m\n\037AnswerSe" +
+      "ssionPermissionResponse\022\022\n\nsession_id\030\001 " +
+      "\001(\t\022\022\n\nrequest_id\030\002 \001(\t\022\017\n\007outcome\030\003 \001(\t" +
+      "\022\021\n\toption_id\030\004 \001(\t\"M\n\034StopSessionGenera" +
+      "tionRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent" +
+      "\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"0\n\035StopSessionGenerat" +
+      "ionResponse\022\017\n\007success\030\001 \001(\010\"J\n\031StreamSe" +
+      "ssionPartsRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n" +
+      "\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSessio" +
+      "nPartsBatchRequest\022\025\n\rsession_names\030\001 \003(" +
+      "\t2\342\n\n\016SessionService\022C\n\006Create\022\036.talon.v" +
+      "1.CreateSessionRequest\032\031.talon.v1.Sessio" +
+      "nResponse\022=\n\003Get\022\033.talon.v1.GetSessionRe" +
+      "quest\032\031.talon.v1.SessionResponse\022E\n\004List" +
+      "\022\035.talon.v1.ListSessionsRequest\032\036.talon." +
+      "v1.ListSessionsResponse\022[\n\014ListMessages\022" +
+      "$.talon.v1.ListSessionMessagesRequest\032%." +
+      "talon.v1.ListSessionMessagesResponse\022I\n\006" +
+      "Delete\022\036.talon.v1.DeleteSessionRequest\032\037" +
+      ".talon.v1.DeleteSessionResponse\022F\n\005Clear" +
+      "\022\035.talon.v1.ClearSessionRequest\032\036.talon." +
+      "v1.ClearSessionResponse\022S\n\007Compact\022\037.tal" +
+      "on.v1.CompactSessionRequest\032%.talon.even" +
+      "ts.SessionMessagePartEvent0\001\022I\n\006Doctor\022\036" +
+      ".talon.v1.DoctorSessionRequest\032\037.talon.v" +
+      "1.DoctorSessionResponse\022J\n\013SendMessage\022\034" +
+      ".talon.v1.SendMessageRequest\032\035.talon.v1." +
+      "SendMessageResponse\022^\n\rAppendMessage\022%.t" +
+      "alon.v1.AppendSessionMessageRequest\032&.ta" +
+      "lon.v1.AppendSessionMessageResponse\022^\n\rU" +
+      "pdateMessage\022%.talon.v1.UpdateSessionMes" +
+      "sageRequest\032&.talon.v1.UpdateSessionMess" +
+      "ageResponse\022g\n\020AnswerPermission\022(.talon." +
+      "v1.AnswerSessionPermissionRequest\032).talo" +
+      "n.v1.AnswerSessionPermissionResponse\022a\n\016" +
+      "StopGeneration\022&.talon.v1.StopSessionGen" +
+      "erationRequest\032\'.talon.v1.StopSessionGen" +
+      "erationResponse\022[\n\013StreamParts\022#.talon.v" +
+      "1.StreamSessionPartsRequest\032%.talon.even" +
+      "ts.SessionMessagePartEvent0\001\022e\n\020StreamPa" +
+      "rtsBatch\022(.talon.v1.StreamSessionPartsBa" +
+      "tchRequest\032%.talon.events.SessionMessage" +
+      "PartEvent0\001\022Y\n\nSubmitTurn\022\".talon.v1.Sub" +
+      "mitSessionTurnRequest\032%.talon.events.Ses" +
+      "sionMessagePartEvent0\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -24484,8 +26717,26 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ClearSessionResponse_descriptor,
         new java.lang.String[] { "Success", });
-    internal_static_talon_v1_SubmitSessionTurnRequest_descriptor =
+    internal_static_talon_v1_CompactSessionRequest_descriptor =
       getDescriptor().getMessageType(13);
+    internal_static_talon_v1_CompactSessionRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_CompactSessionRequest_descriptor,
+        new java.lang.String[] { "SessionId", "Agent", "Ns", });
+    internal_static_talon_v1_DoctorSessionRequest_descriptor =
+      getDescriptor().getMessageType(14);
+    internal_static_talon_v1_DoctorSessionRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_DoctorSessionRequest_descriptor,
+        new java.lang.String[] { "SessionId", "Agent", "Ns", });
+    internal_static_talon_v1_DoctorSessionResponse_descriptor =
+      getDescriptor().getMessageType(15);
+    internal_static_talon_v1_DoctorSessionResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_DoctorSessionResponse_descriptor,
+        new java.lang.String[] { "ProviderContinuationWasPresent", "ProviderContinuationReset", "IncompleteToolBatches", });
+    internal_static_talon_v1_SubmitSessionTurnRequest_descriptor =
+      getDescriptor().getMessageType(16);
     internal_static_talon_v1_SubmitSessionTurnRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SubmitSessionTurnRequest_descriptor,
@@ -24497,7 +26748,7 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_SubmitSessionTurnRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_SendMessageRequest_descriptor =
-      getDescriptor().getMessageType(14);
+      getDescriptor().getMessageType(17);
     internal_static_talon_v1_SendMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SendMessageRequest_descriptor,
@@ -24509,25 +26760,25 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_SendMessageRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_SendMessageResponse_descriptor =
-      getDescriptor().getMessageType(15);
+      getDescriptor().getMessageType(18);
     internal_static_talon_v1_SendMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SendMessageResponse_descriptor,
         new java.lang.String[] { "Reply", "SessionId", });
     internal_static_talon_v1_AppendSessionMessageRequest_descriptor =
-      getDescriptor().getMessageType(16);
+      getDescriptor().getMessageType(19);
     internal_static_talon_v1_AppendSessionMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_AppendSessionMessageRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "Message", });
     internal_static_talon_v1_AppendSessionMessageResponse_descriptor =
-      getDescriptor().getMessageType(17);
+      getDescriptor().getMessageType(20);
     internal_static_talon_v1_AppendSessionMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_AppendSessionMessageResponse_descriptor,
         new java.lang.String[] { "SessionId", "Message", });
     internal_static_talon_v1_UpdateSessionMessageRequest_descriptor =
-      getDescriptor().getMessageType(18);
+      getDescriptor().getMessageType(21);
     internal_static_talon_v1_UpdateSessionMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_UpdateSessionMessageRequest_descriptor,
@@ -24539,43 +26790,43 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_UpdateSessionMessageRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_UpdateSessionMessageResponse_descriptor =
-      getDescriptor().getMessageType(19);
+      getDescriptor().getMessageType(22);
     internal_static_talon_v1_UpdateSessionMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_UpdateSessionMessageResponse_descriptor,
         new java.lang.String[] { "SessionId", "Message", });
     internal_static_talon_v1_AnswerSessionPermissionRequest_descriptor =
-      getDescriptor().getMessageType(20);
+      getDescriptor().getMessageType(23);
     internal_static_talon_v1_AnswerSessionPermissionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_AnswerSessionPermissionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "RequestId", "Outcome", "OptionId", "DecidedBy", });
     internal_static_talon_v1_AnswerSessionPermissionResponse_descriptor =
-      getDescriptor().getMessageType(21);
+      getDescriptor().getMessageType(24);
     internal_static_talon_v1_AnswerSessionPermissionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_AnswerSessionPermissionResponse_descriptor,
         new java.lang.String[] { "SessionId", "RequestId", "Outcome", "OptionId", });
     internal_static_talon_v1_StopSessionGenerationRequest_descriptor =
-      getDescriptor().getMessageType(22);
+      getDescriptor().getMessageType(25);
     internal_static_talon_v1_StopSessionGenerationRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StopSessionGenerationRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_v1_StopSessionGenerationResponse_descriptor =
-      getDescriptor().getMessageType(23);
+      getDescriptor().getMessageType(26);
     internal_static_talon_v1_StopSessionGenerationResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StopSessionGenerationResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_v1_StreamSessionPartsRequest_descriptor =
-      getDescriptor().getMessageType(24);
+      getDescriptor().getMessageType(27);
     internal_static_talon_v1_StreamSessionPartsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StreamSessionPartsRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_v1_StreamSessionPartsBatchRequest_descriptor =
-      getDescriptor().getMessageType(25);
+      getDescriptor().getMessageType(28);
     internal_static_talon_v1_StreamSessionPartsBatchRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StreamSessionPartsBatchRequest_descriptor,

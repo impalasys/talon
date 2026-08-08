@@ -12,6 +12,8 @@ service SessionService {
   rpc ListMessages(ListSessionMessagesRequest) returns (ListSessionMessagesResponse);
   rpc Delete(DeleteSessionRequest) returns (DeleteSessionResponse);
   rpc Clear(ClearSessionRequest) returns (ClearSessionResponse);
+  rpc Compact(CompactSessionRequest) returns (stream talon.events.SessionMessagePartEvent);
+  rpc Doctor(DoctorSessionRequest) returns (DoctorSessionResponse);
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
   rpc AppendMessage(AppendSessionMessageRequest) returns (AppendSessionMessageResponse);
   rpc UpdateMessage(UpdateSessionMessageRequest) returns (UpdateSessionMessageResponse);
@@ -108,6 +110,24 @@ message ClearSessionRequest {
 
 message ClearSessionResponse {
   bool success = 1;
+}
+
+message CompactSessionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+message DoctorSessionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+message DoctorSessionResponse {
+  bool provider_continuation_was_present = 1;
+  bool provider_continuation_reset = 2;
+  uint32 incomplete_tool_batches = 3;
 }
 
 message SubmitSessionTurnRequest {
