@@ -341,6 +341,7 @@ type TokenCounter struct {
 	ProviderRequestId     *string                `protobuf:"bytes,7,opt,name=provider_request_id,json=providerRequestId,proto3,oneof" json:"provider_request_id,omitempty"`
 	Provider              string                 `protobuf:"bytes,8,opt,name=provider,proto3" json:"provider,omitempty"`
 	Model                 string                 `protobuf:"bytes,9,opt,name=model,proto3" json:"model,omitempty"`
+	CacheWriteTokens      uint64                 `protobuf:"varint,10,opt,name=cache_write_tokens,json=cacheWriteTokens,proto3" json:"cache_write_tokens,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -436,6 +437,13 @@ func (x *TokenCounter) GetModel() string {
 		return x.Model
 	}
 	return ""
+}
+
+func (x *TokenCounter) GetCacheWriteTokens() uint64 {
+	if x != nil {
+		return x.CacheWriteTokens
+	}
+	return 0
 }
 
 // Session-scoped immutable output produced by an agent.
@@ -1961,7 +1969,7 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x10content_encoding\x18\a \x01(\tR\x0fcontentEncoding\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x89\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb7\x03\n" +
 	"\fTokenCounter\x12!\n" +
 	"\finput_tokens\x18\x01 \x01(\x04R\vinputTokens\x12#\n" +
 	"\routput_tokens\x18\x02 \x01(\x04R\foutputTokens\x126\n" +
@@ -1971,7 +1979,9 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x0fusage_available\x18\x06 \x01(\bR\x0eusageAvailable\x123\n" +
 	"\x13provider_request_id\x18\a \x01(\tH\x00R\x11providerRequestId\x88\x01\x01\x12\x1a\n" +
 	"\bprovider\x18\b \x01(\tR\bprovider\x12\x14\n" +
-	"\x05model\x18\t \x01(\tR\x05modelB\x16\n" +
+	"\x05model\x18\t \x01(\tR\x05model\x12,\n" +
+	"\x12cache_write_tokens\x18\n" +
+	" \x01(\x04R\x10cacheWriteTokensB\x16\n" +
 	"\x14_provider_request_id\"\xdf\x03\n" +
 	"\bArtifact\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +

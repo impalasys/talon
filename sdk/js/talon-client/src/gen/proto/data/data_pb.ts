@@ -341,6 +341,11 @@ export class TokenCounter extends Message<TokenCounter> {
    */
   model = "";
 
+  /**
+   * @generated from field: uint64 cache_write_tokens = 10;
+   */
+  cacheWriteTokens = protoInt64.zero;
+
   constructor(data?: PartialMessage<TokenCounter>) {
     super();
     proto3.util.initPartial(data, this);
@@ -358,6 +363,7 @@ export class TokenCounter extends Message<TokenCounter> {
     { no: 7, name: "provider_request_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 8, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "model", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "cache_write_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TokenCounter {

@@ -31,6 +31,7 @@ fn chat_usage_payload_json(usage: &TokenCounter) -> String {
     serde_json::to_string(&serde_json::json!({
         "input_tokens": usage.input_tokens,
         "cached_input_tokens": usage.cached_input_tokens,
+        "cache_write_tokens": usage.cache_write_tokens,
         "output_tokens": usage.output_tokens,
         "reasoning_output_tokens": usage.reasoning_output_tokens,
         "total_tokens": usage.total_tokens,
@@ -2451,6 +2452,8 @@ mod tests {
         sink.on_token("final").await;
         sink.on_usage(&TokenCounter {
             input_tokens: 10,
+            cached_input_tokens: 4,
+            cache_write_tokens: 6,
             output_tokens: 5,
             reasoning_output_tokens: 2,
             total_tokens: 17,
@@ -2499,6 +2502,14 @@ mod tests {
             "created"
         );
         assert!(tool_result_payload.get("output_preview").is_none());
+        let usage_payload = reply
+            .parts
+            .iter()
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::Usage as i32)
+            .and_then(|part| serde_json::from_str::<serde_json::Value>(&part.payload_json).ok())
+            .expect("usage payload should parse");
+        assert_eq!(usage_payload["cached_input_tokens"], 4);
+        assert_eq!(usage_payload["cache_write_tokens"], 6);
     }
 
     #[tokio::test]

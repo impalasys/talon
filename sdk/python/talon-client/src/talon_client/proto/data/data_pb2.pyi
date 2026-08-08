@@ -96,7 +96,7 @@ class ObjectRef(_message.Message):
     def __init__(self, key: _Optional[str] = ..., media_type: _Optional[str] = ..., size_bytes: _Optional[int] = ..., sha256: _Optional[str] = ..., filename: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ..., content_encoding: _Optional[str] = ...) -> None: ...
 
 class TokenCounter(_message.Message):
-    __slots__ = ("input_tokens", "output_tokens", "reasoning_output_tokens", "total_tokens", "cached_input_tokens", "usage_available", "provider_request_id", "provider", "model")
+    __slots__ = ("input_tokens", "output_tokens", "reasoning_output_tokens", "total_tokens", "cached_input_tokens", "usage_available", "provider_request_id", "provider", "model", "cache_write_tokens")
     INPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
     REASONING_OUTPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
@@ -106,6 +106,7 @@ class TokenCounter(_message.Message):
     PROVIDER_REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
     PROVIDER_FIELD_NUMBER: _ClassVar[int]
     MODEL_FIELD_NUMBER: _ClassVar[int]
+    CACHE_WRITE_TOKENS_FIELD_NUMBER: _ClassVar[int]
     input_tokens: int
     output_tokens: int
     reasoning_output_tokens: int
@@ -115,7 +116,8 @@ class TokenCounter(_message.Message):
     provider_request_id: str
     provider: str
     model: str
-    def __init__(self, input_tokens: _Optional[int] = ..., output_tokens: _Optional[int] = ..., reasoning_output_tokens: _Optional[int] = ..., total_tokens: _Optional[int] = ..., cached_input_tokens: _Optional[int] = ..., usage_available: bool = ..., provider_request_id: _Optional[str] = ..., provider: _Optional[str] = ..., model: _Optional[str] = ...) -> None: ...
+    cache_write_tokens: int
+    def __init__(self, input_tokens: _Optional[int] = ..., output_tokens: _Optional[int] = ..., reasoning_output_tokens: _Optional[int] = ..., total_tokens: _Optional[int] = ..., cached_input_tokens: _Optional[int] = ..., usage_available: bool = ..., provider_request_id: _Optional[str] = ..., provider: _Optional[str] = ..., model: _Optional[str] = ..., cache_write_tokens: _Optional[int] = ...) -> None: ...
 
 class Artifact(_message.Message):
     __slots__ = ("id", "session_id", "title", "media_type", "object_ref", "created_by_agent", "created_at", "labels", "metadata")

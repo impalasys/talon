@@ -119,6 +119,8 @@ pub struct TokenCounter {
     pub provider: ::prost::alloc::string::String,
     #[prost(string, tag = "9")]
     pub model: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "10")]
+    pub cache_write_tokens: u64,
 }
 /// Session-scoped immutable output produced by an agent.
 ///

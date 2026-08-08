@@ -1241,6 +1241,10 @@ fn extract_responses_usage(value: &Value) -> Option<TokenCounter> {
             .pointer("/input_tokens_details/cached_tokens")
             .and_then(Value::as_u64)
             .unwrap_or_default(),
+        cache_write_tokens: usage
+            .pointer("/input_tokens_details/cache_write_tokens")
+            .and_then(Value::as_u64)
+            .unwrap_or_default(),
         usage_available: value.get("usage").is_some()
             && (input_tokens > 0 || output_tokens_total > 0 || total_tokens > 0),
         provider_request_id,
@@ -1426,6 +1430,11 @@ fn extract_usage(value: &serde_json::Value) -> Option<TokenCounter> {
         .or_else(|| usage.pointer("/input_tokens_details/cached_tokens"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
+    let cache_write_tokens = usage
+        .pointer("/prompt_tokens_details/cache_write_tokens")
+        .or_else(|| usage.pointer("/input_tokens_details/cache_write_tokens"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
 
     Some(TokenCounter {
         input_tokens,
@@ -1433,6 +1442,7 @@ fn extract_usage(value: &serde_json::Value) -> Option<TokenCounter> {
         reasoning_output_tokens: reasoning_tokens,
         total_tokens,
         cached_input_tokens,
+        cache_write_tokens,
         usage_available: true,
         provider_request_id: value
             .get("id")
@@ -2050,7 +2060,10 @@ mod tests {
                 "completion_tokens": 20,
                 "reasoning_tokens": 6,
                 "total_tokens": 30,
-                "prompt_tokens_details": { "cached_tokens": 4 }
+                "prompt_tokens_details": {
+                    "cached_tokens": 4,
+                    "cache_write_tokens": 6
+                }
             }
         }))
         .unwrap();
@@ -2059,6 +2072,7 @@ mod tests {
         assert_eq!(usage.output_tokens, 14);
         assert_eq!(usage.reasoning_output_tokens, 6);
         assert_eq!(usage.cached_input_tokens, 4);
+        assert_eq!(usage.cache_write_tokens, 6);
         assert_eq!(usage.total_tokens, 30);
         assert!(usage.usage_available);
         assert_eq!(usage.provider_request_id.as_deref(), Some("chatcmpl-1"));
@@ -2742,6 +2756,27 @@ mod tests {
             Some("resp_without_usage")
         );
         assert!(!usage.usage_available);
+    }
+
+    #[test]
+    fn responses_usage_extracts_cache_write_tokens() {
+        let usage = extract_responses_usage(&serde_json::json!({
+            "id": "resp_cache_write",
+            "model": "gpt-test",
+            "usage": {
+                "input_tokens": 100,
+                "input_tokens_details": {
+                    "cached_tokens": 20,
+                    "cache_write_tokens": 80
+                },
+                "output_tokens": 5,
+                "total_tokens": 105
+            }
+        }))
+        .expect("usage should be present");
+
+        assert_eq!(usage.cached_input_tokens, 20);
+        assert_eq!(usage.cache_write_tokens, 80);
     }
 
     #[test]
