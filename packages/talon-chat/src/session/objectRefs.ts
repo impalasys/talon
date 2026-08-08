@@ -1,4 +1,4 @@
-import type { TalonAttachmentUploadResult, TalonChatObjectRef } from "../TalonSession";
+import type { TalonAttachmentUploadResult, TalonChatObjectRef } from "./TalonSessionTypes";
 
 export function objectRefMediaType(object: TalonChatObjectRef | undefined): string {
   return object?.mediaType || object?.media_type || "";
