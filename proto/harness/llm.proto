@@ -56,6 +56,7 @@ message ChatRequest {
   repeated ChatMessage messages = 1;
   repeated Tool tools = 2;
   optional talon.resources.ThinkingConfig thinking = 3;
+  optional string previous_response_id = 4;
 }
 
 message ChatStreamEvent {

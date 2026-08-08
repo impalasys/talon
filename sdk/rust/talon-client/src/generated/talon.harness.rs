@@ -83,6 +83,8 @@ pub struct ChatRequest {
     pub tools: ::prost::alloc::vec::Vec<Tool>,
     #[prost(message, optional, tag = "3")]
     pub thinking: ::core::option::Option<super::resources::ThinkingConfig>,
+    #[prost(string, optional, tag = "4")]
+    pub previous_response_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChatStreamEvent {

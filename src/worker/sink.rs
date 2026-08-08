@@ -1316,6 +1316,7 @@ impl ExecutionSink for PubSubSessionSink {
             Some(summary_object),
         );
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        sessions::clear_provider_request_id(self.kv.as_ref(), &self.claim).await?;
         // Make the marker visible to subsequent-session reconstruction before
         // replacing the executor's live context. This projection is canonical;
         // public RPC paths expose the same compaction metadata.

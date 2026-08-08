@@ -123,6 +123,7 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
             ],
             tools: Vec::new(),
             thinking: None,
+            previous_response_id: None,
         })
         .await?;
     let response = response.content.trim();

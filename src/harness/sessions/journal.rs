@@ -543,6 +543,13 @@ mod tests {
         assert_eq!(second.journal_entry_id, "000002");
         assert_eq!(first.phase, SessionExecutionPhase::LlmResponse as i32);
         assert_eq!(second.phase, SessionExecutionPhase::ToolResult as i32);
+        let Some(session_journal_entry_payload::Payload::LlmResponse(_llm_response)) = first
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+        else {
+            panic!("expected LLM response payload");
+        };
         let Some(session_journal_entry_payload::Payload::ToolResult(tool_result)) = second
             .payload
             .as_ref()

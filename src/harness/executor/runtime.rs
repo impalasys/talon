@@ -555,6 +555,15 @@ impl AgentExecutor {
         counter
     }
 
+    fn previous_response_id(&self, context_tokens: Option<&TokenCounter>) -> Option<String> {
+        let counter = context_tokens.filter(|counter| {
+            counter.provider == self.llm_provider_key
+                && counter.model == self.llm_model
+                && counter.provider_request_id.is_some()
+        })?;
+        counter.provider_request_id.clone()
+    }
+
     fn render_execution_prompts(&self, context: &ExecutionContext) -> Result<ExecutionPrompts> {
         let system_prompt = self.agent_spec.system_prompt.trim();
         let system_prompt = if !system_prompt.is_empty() && !context.has_system_message() {
@@ -824,6 +833,9 @@ impl AgentExecutor {
                 let prev_history_len = context.history.len();
                 match compact(self.llm.as_ref(), context, sink).await? {
                     true => {
+                        if let Some(counter) = context_tokens.as_mut() {
+                            counter.provider_request_id = None;
+                        }
                         let new_context_budget =
                             self.estimate_context_budget(context, &prompts, &tools);
                         if new_context_budget >= durable_budget {
@@ -868,6 +880,7 @@ impl AgentExecutor {
                 messages,
                 tools,
                 thinking,
+                previous_response_id: self.previous_response_id(context_tokens.as_ref()),
             };
             prior_request_history_len = Some(context.history.len());
             let reasoning_level = request

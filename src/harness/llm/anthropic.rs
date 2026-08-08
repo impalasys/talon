@@ -396,6 +396,7 @@ impl LlmProvider for AnthropicProvider {
             messages: vec![chat_message_text("user", prompt)],
             tools: vec![],
             thinking: None,
+            previous_response_id: None,
         })
         .await
         .map(|r| r.content)
@@ -808,6 +809,7 @@ mod tests {
                 messages: messages.clone(),
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -819,6 +821,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "cause-error")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap_err();
@@ -829,6 +832,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "bad-format")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap_err();
@@ -890,6 +894,7 @@ mod tests {
                 messages: messages.clone(),
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -912,6 +917,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "stream-error")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
         {

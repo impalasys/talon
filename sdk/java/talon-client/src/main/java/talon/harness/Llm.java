@@ -7057,6 +7057,23 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      * <code>optional .talon.resources.ThinkingConfig thinking = 3;</code>
      */
     talon.resources.Agents.ThinkingConfigOrBuilder getThinkingOrBuilder();
+
+    /**
+     * <code>optional string previous_response_id = 4;</code>
+     * @return Whether the previousResponseId field is set.
+     */
+    boolean hasPreviousResponseId();
+    /**
+     * <code>optional string previous_response_id = 4;</code>
+     * @return The previousResponseId.
+     */
+    java.lang.String getPreviousResponseId();
+    /**
+     * <code>optional string previous_response_id = 4;</code>
+     * @return The bytes for previousResponseId.
+     */
+    com.google.protobuf.ByteString
+        getPreviousResponseIdBytes();
   }
   /**
    * Protobuf type {@code talon.harness.ChatRequest}
@@ -7082,6 +7099,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     private ChatRequest() {
       messages_ = java.util.Collections.emptyList();
       tools_ = java.util.Collections.emptyList();
+      previousResponseId_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -7211,6 +7229,53 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       return thinking_ == null ? talon.resources.Agents.ThinkingConfig.getDefaultInstance() : thinking_;
     }
 
+    public static final int PREVIOUS_RESPONSE_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object previousResponseId_ = "";
+    /**
+     * <code>optional string previous_response_id = 4;</code>
+     * @return Whether the previousResponseId field is set.
+     */
+    @java.lang.Override
+    public boolean hasPreviousResponseId() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional string previous_response_id = 4;</code>
+     * @return The previousResponseId.
+     */
+    @java.lang.Override
+    public java.lang.String getPreviousResponseId() {
+      java.lang.Object ref = previousResponseId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        previousResponseId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string previous_response_id = 4;</code>
+     * @return The bytes for previousResponseId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPreviousResponseIdBytes() {
+      java.lang.Object ref = previousResponseId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        previousResponseId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -7233,6 +7298,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(3, getThinking());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, previousResponseId_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -7265,6 +7333,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, getThinking());
       }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, previousResponseId_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -7289,6 +7360,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (!getThinking()
             .equals(other.getThinking())) return false;
       }
+      if (hasPreviousResponseId() != other.hasPreviousResponseId()) return false;
+      if (hasPreviousResponseId()) {
+        if (!getPreviousResponseId()
+            .equals(other.getPreviousResponseId())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -7311,6 +7387,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (hasThinking()) {
         hash = (37 * hash) + THINKING_FIELD_NUMBER;
         hash = (53 * hash) + getThinking().hashCode();
+      }
+      if (hasPreviousResponseId()) {
+        hash = (37 * hash) + PREVIOUS_RESPONSE_ID_FIELD_NUMBER;
+        hash = (53 * hash) + getPreviousResponseId().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -7470,6 +7550,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           thinkingBuilder_.dispose();
           thinkingBuilder_ = null;
         }
+        previousResponseId_ = "";
         return this;
       }
 
@@ -7531,6 +7612,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
               ? thinking_
               : thinkingBuilder_.build();
           to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.previousResponseId_ = previousResponseId_;
+          to_bitField0_ |= 0x00000002;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -7602,6 +7687,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (other.hasThinking()) {
           mergeThinking(other.getThinking());
         }
+        if (other.hasPreviousResponseId()) {
+          previousResponseId_ = other.previousResponseId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -7661,6 +7751,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                previousResponseId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -8277,6 +8372,85 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           thinking_ = null;
         }
         return thinkingBuilder_;
+      }
+
+      private java.lang.Object previousResponseId_ = "";
+      /**
+       * <code>optional string previous_response_id = 4;</code>
+       * @return Whether the previousResponseId field is set.
+       */
+      public boolean hasPreviousResponseId() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>optional string previous_response_id = 4;</code>
+       * @return The previousResponseId.
+       */
+      public java.lang.String getPreviousResponseId() {
+        java.lang.Object ref = previousResponseId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          previousResponseId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string previous_response_id = 4;</code>
+       * @return The bytes for previousResponseId.
+       */
+      public com.google.protobuf.ByteString
+          getPreviousResponseIdBytes() {
+        java.lang.Object ref = previousResponseId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          previousResponseId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string previous_response_id = 4;</code>
+       * @param value The previousResponseId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPreviousResponseId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        previousResponseId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string previous_response_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPreviousResponseId() {
+        previousResponseId_ = getDefaultInstance().getPreviousResponseId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string previous_response_id = 4;</code>
+       * @param value The bytes for previousResponseId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPreviousResponseIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        previousResponseId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.harness.ChatRequest)
@@ -9657,15 +9831,17 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       "age\030\003 \001(\0132\030.talon.data.TokenCounterH\000\210\001\001" +
       "B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013desc" +
       "ription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t" +
-      "\"\244\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
+      "\"\340\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
       "on.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023." +
       "talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.t" +
-      "alon.resources.ThinkingConfigH\000\210\001\001B\013\n\t_t" +
-      "hinking\"\257\001\n\017ChatStreamEvent\022\024\n\ntext_delt" +
-      "a\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 \001(\tH\000\0227\n\017" +
-      "tool_call_delta\030\003 \001(\0132\034.talon.harness.To" +
-      "olCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030.talon.dat" +
-      "a.TokenCounterH\000B\007\n\005eventb\006proto3"
+      "alon.resources.ThinkingConfigH\000\210\001\001\022!\n\024pr" +
+      "evious_response_id\030\004 \001(\tH\001\210\001\001B\013\n\t_thinki" +
+      "ngB\027\n\025_previous_response_id\"\257\001\n\017ChatStre" +
+      "amEvent\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017reasoni" +
+      "ng_delta\030\002 \001(\tH\000\0227\n\017tool_call_delta\030\003 \001(" +
+      "\0132\034.talon.harness.ToolCallDeltaH\000\022)\n\005usa" +
+      "ge\030\004 \001(\0132\030.talon.data.TokenCounterH\000B\007\n\005" +
+      "eventb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9720,7 +9896,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     internal_static_talon_harness_ChatRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatRequest_descriptor,
-        new java.lang.String[] { "Messages", "Tools", "Thinking", });
+        new java.lang.String[] { "Messages", "Tools", "Thinking", "PreviousResponseId", });
     internal_static_talon_harness_ChatStreamEvent_descriptor =
       getDescriptor().getMessageType(8);
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new
