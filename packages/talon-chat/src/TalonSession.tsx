@@ -449,6 +449,39 @@ function isToolResultPart(part: any) {
   return type === SESSION_MESSAGE_PART_TYPE.TOOL_RESULT || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
 }
 
+function withToolResultContent(part: any, output: string, objectKey?: string) {
+  const nextPart = { ...part, content: output };
+  const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
+  const nextPayload = { ...payload, output };
+  const toolOutputKey = "tool_output" in payload ? "tool_output" : "toolOutput";
+  const toolOutput = payload[toolOutputKey];
+  const toolOutputRecord = toolOutput && typeof toolOutput === "object"
+    ? toolOutput as Record<string, unknown>
+    : undefined;
+  if (toolOutputRecord) {
+    const outputPartsKey = "content_parts" in toolOutputRecord ? "content_parts" : "contentParts";
+    const outputParts = toolOutputRecord[outputPartsKey];
+    if (Array.isArray(outputParts)) {
+      nextPayload[toolOutputKey] = {
+        ...toolOutputRecord,
+        summary: output,
+        [outputPartsKey]: outputParts.map((outputPart) => {
+          const object = objectRefFromValue(outputPart);
+          return object && (!objectKey || object.key === objectKey)
+            ? { type: "text", text: output }
+            : outputPart;
+        }),
+      };
+    }
+  }
+  if ("payload_json" in nextPart && !("payloadJson" in nextPart)) {
+    nextPart.payload_json = JSON.stringify(nextPayload);
+  } else {
+    nextPart.payloadJson = JSON.stringify(nextPayload);
+  }
+  return nextPart;
+}
+
 async function decompressCasObjectData(data: Uint8Array, encoding: string): Promise<Uint8Array> {
   if (typeof DecompressionStream === "undefined") {
     throw new Error(`${encoding} CAS object requires DecompressionStream support`);
@@ -510,11 +543,7 @@ function toolCallIdFromToolResultPart(part: any): string {
   return typeof part?.id === "string" ? part.id : "";
 }
 
-function toolResultHydrationCacheKey(messageId: string, toolCallId: string, objectKey: string): string {
-  return `${messageId}\u0000${toolCallId}\u0000${objectKey}`;
-}
-
-function findToolResultObjectPart(
+function findHydratableToolResultPart(
   parts: unknown,
   toolCallId: string,
 ): { part: any; index: number; key: string; object: TalonChatObjectRef } | null {
@@ -522,52 +551,16 @@ function findToolResultObjectPart(
   for (let index = 0; index < parts.length; index += 1) {
     const part = parts[index] as any;
     if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
+    if (typeof part.content === "string" && part.content.length > 0) continue;
+    const key = objectRefKey(objectRefFromPart(part));
+    if (!key) continue;
     const partToolCallId = toolCallIdFromToolResultPart(part);
     if (toolCallId && partToolCallId !== toolCallId) continue;
     const object = objectRefFromPart(part);
-    const key = objectRefKey(object);
-    if (!object || !key) continue;
+    if (!object) continue;
     return { part, index, key, object };
   }
   return null;
-}
-
-function findHydratableToolResultPart(
-  parts: unknown,
-  toolCallId: string,
-): { part: any; index: number; key: string; object: TalonChatObjectRef } | null {
-  const match = findToolResultObjectPart(parts, toolCallId);
-  return match && !(typeof match.part.content === "string" && match.part.content.length > 0)
-    ? match
-    : null;
-}
-
-function toolResultWithHydratedObject(
-  part: unknown,
-  fallback: unknown,
-  objectKey: string,
-  hydratedOutput: string,
-): unknown {
-  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
-  const toolOutput = payload.tool_output ?? payload.toolOutput;
-  const contentParts = toolOutput && typeof toolOutput === "object"
-    ? (toolOutput as Record<string, unknown>).content_parts ?? (toolOutput as Record<string, unknown>).contentParts
-    : undefined;
-  if (!Array.isArray(contentParts)) return hydratedOutput;
-
-  let replacedObject = false;
-  const text = contentParts.map((contentPart) => {
-    if (!contentPart || typeof contentPart !== "object") return "";
-    const value = contentPart as { type?: unknown; text?: unknown };
-    if (value.type === "text" && typeof value.text === "string") return value.text;
-    const object = objectRefFromValue(contentPart);
-    if (object?.key === objectKey) {
-      replacedObject = true;
-      return hydratedOutput;
-    }
-    return "";
-  }).join("");
-  return replacedObject ? text : fallback;
 }
 
 function messageImageParts(
@@ -876,7 +869,6 @@ export function TalonSession({
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
   const [toolResultHydration, setToolResultHydration] = useState<Record<string, "loading" | { objectKey: string }>>({});
-  const [hydratedToolResultOutputs, setHydratedToolResultOutputs] = useState<Record<string, string>>({});
   const missingResourceClientWarnedRef = useRef(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingMessageValue, setEditingMessageValue] = useState("");
@@ -929,7 +921,6 @@ export function TalonSession({
     toolResultHydrationGenerationRef.current += 1;
     toolResultHydrationInFlightRef.current.clear();
     setToolResultHydration({});
-    setHydratedToolResultOutputs({});
   }, []);
 
   const updateTranscriptScrollThumb = useCallback(() => {
@@ -975,7 +966,7 @@ export function TalonSession({
   useEffect(() => {
     const previousTarget = previousSessionTargetRef.current;
     previousSessionTargetRef.current = currentSession;
-    if (!previousTarget || (currentSession && isSameSession(previousTarget, currentSession))) return;
+    if (!previousTarget || !currentSession || isSameSession(previousTarget, currentSession)) return;
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
     resumeAbortControllerRef.current?.abort();
@@ -1038,7 +1029,7 @@ export function TalonSession({
 
   useSafeLayoutEffect(() => {
     updateTranscriptScrollThumb();
-  }, [messages, expandedThinkingMessages, expandedToolItems, toolResultHydration, hydratedToolResultOutputs, isSessionLive, error, streamEvents, updateTranscriptScrollThumb]);
+  }, [messages, expandedThinkingMessages, expandedToolItems, toolResultHydration, isSessionLive, error, streamEvents, updateTranscriptScrollThumb]);
 
   useEffect(() => {
     if (!isSessionLive || loadingStartedAt === null) {
@@ -1095,8 +1086,6 @@ export function TalonSession({
         : null);
       const cas = gatewayClient?.cas;
       if (!match || !cas?.getObject) return;
-      const outputCacheKey = toolResultHydrationCacheKey(message.id, toolCallId, match.key);
-      if (Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey)) return;
       if (toolResultHydrationInFlightRef.current.has(toolKey)) return;
 
       toolResultHydrationInFlightRef.current.add(toolKey);
@@ -1111,7 +1100,43 @@ export function TalonSession({
         const data = await toolResultObjectData(response, match.object);
         const output = new TextDecoder().decode(data);
         if (toolResultHydrationGenerationRef.current !== generation) return;
-        setHydratedToolResultOutputs((previous) => ({ ...previous, [outputCacheKey]: output }));
+
+        setMessages((current) => {
+          if (toolResultHydrationGenerationRef.current !== generation) return current;
+          const nextMessages = current.map((candidate) => {
+            if (candidate.id !== message.id) return candidate;
+            const currentMatch = findHydratableToolResultPart(candidate.parts, toolCallId);
+            if (currentMatch && currentMatch.key === match.key && Array.isArray(candidate.parts)) {
+              const parts = [...candidate.parts];
+              parts[currentMatch.index] = withToolResultContent(currentMatch.part, output, match.key);
+              const timelineSource = {
+                role: candidate.role,
+                content: candidate.content,
+                parts,
+                reasoningContent: candidate.reasoningContent,
+                usage: candidate.usage,
+              };
+              return {
+                ...candidate,
+                parts,
+                content: getMessageContent(timelineSource),
+                timeline: getMessageAssistantTimeline(timelineSource),
+              };
+            }
+
+            const timeline = getMessageAssistantTimeline(candidate).map((item) =>
+              item.type === "tool" && item.toolCallId === toolCallId
+                ? { ...item, result: output }
+                : item,
+            );
+            return {
+              ...candidate,
+              timeline,
+            };
+          });
+          messagesRef.current = nextMessages;
+          return nextMessages;
+        });
         if (toolResultHydrationGenerationRef.current !== generation) return;
 
         setToolResultHydration((prev) => {
@@ -1131,7 +1156,7 @@ export function TalonSession({
         toolResultHydrationInFlightRef.current.delete(toolKey);
       }
     },
-    [gatewayClient, hydratedToolResultOutputs],
+    [gatewayClient],
   );
 
   const updateSessionMessage = useCallback(
@@ -1461,21 +1486,8 @@ export function TalonSession({
                       }
 
                       const toolKey = `${message.id}-work-tool-${item.toolCallId || index}`;
-                      const resultPartMatch = findToolResultObjectPart(message.parts, item.toolCallId);
-                      const resultObject = resultPartMatch?.object ?? objectRefFromValue(item.result);
-                      const resultObjectKey = objectRefKey(resultObject);
-                      const outputCacheKey = resultObjectKey
-                        ? toolResultHydrationCacheKey(message.id, item.toolCallId, resultObjectKey)
-                        : "";
-                      const hasCachedOutput = Boolean(outputCacheKey) && Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey);
-                      const cachedOutput = hasCachedOutput
-                        ? hydratedToolResultOutputs[outputCacheKey]
-                        : undefined;
-                      const toolResult = hasCachedOutput
-                        ? toolResultWithHydratedObject(resultPartMatch?.part, item.result, resultObjectKey, cachedOutput!)
-                        : item.result;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
-                      const isRunningTool = isLiveAssistantMessage && toolResult === undefined;
+                      const isRunningTool = isLiveAssistantMessage && item.result === undefined;
                       const toolHydrationState = toolResultHydration[toolKey];
                       return (
                         <div key={toolKey}>
@@ -1485,7 +1497,7 @@ export function TalonSession({
                             onClick={() => {
                               toggleToolItem(toolKey);
                               if (!isToolExpanded) {
-                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey, toolResult);
+                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey, item.result);
                               }
                             }}
                             style={{
@@ -1543,13 +1555,13 @@ export function TalonSession({
                                     </>
                                   )}
                                 </div>
-                              ) : toolResult !== undefined ? (
+                              ) : item.result !== undefined ? (
                                 <div>
                                   <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
                                     Output
                                   </div>
                                   <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                    <code>{typeof toolResult === "string" ? toolResult : JSON.stringify(toolResult, null, 2)}</code>
+                                    <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
                                   </pre>
                                 </div>
                               ) : null}
@@ -1731,21 +1743,8 @@ export function TalonSession({
                       }
 
                       const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
-                      const resultPartMatch = findToolResultObjectPart(message.parts, item.toolCallId);
-                      const resultObject = resultPartMatch?.object ?? objectRefFromValue(item.result);
-                      const resultObjectKey = objectRefKey(resultObject);
-                      const outputCacheKey = resultObjectKey
-                        ? toolResultHydrationCacheKey(message.id, item.toolCallId, resultObjectKey)
-                        : "";
-                      const hasCachedOutput = Boolean(outputCacheKey) && Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey);
-                      const cachedOutput = hasCachedOutput
-                        ? hydratedToolResultOutputs[outputCacheKey]
-                        : undefined;
-                      const toolResult = hasCachedOutput
-                        ? toolResultWithHydratedObject(resultPartMatch?.part, item.result, resultObjectKey, cachedOutput!)
-                        : item.result;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
-                      const isRunningTool = isLiveAssistantMessage && toolResult === undefined;
+                      const isRunningTool = isLiveAssistantMessage && item.result === undefined;
                       const toolHydrationState = toolResultHydration[toolKey];
                       return (
                         <div key={toolKey}>
@@ -1755,7 +1754,7 @@ export function TalonSession({
                             onClick={() => {
                               toggleToolItem(toolKey);
                               if (!isToolExpanded) {
-                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey, toolResult);
+                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey, item.result);
                               }
                             }}
                             style={{
@@ -1813,13 +1812,13 @@ export function TalonSession({
                                     </>
                                   )}
                                 </div>
-                              ) : toolResult !== undefined ? (
+                              ) : item.result !== undefined ? (
                                 <div>
                                   <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
                                     Output
                                   </div>
                                   <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                    <code>{typeof toolResult === "string" ? toolResult : JSON.stringify(toolResult, null, 2)}</code>
+                                    <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
                                   </pre>
                                 </div>
                               ) : null}
@@ -1950,7 +1949,7 @@ export function TalonSession({
         </React.Fragment>
       );
     });
-  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, hydratedToolResultOutputs, isLoading, isResuming, isSessionLive, isStopping, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultHydration, updateConnectorDeliveryStatus]);
+  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, isLoading, isResuming, isSessionLive, isStopping, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultHydration, updateConnectorDeliveryStatus]);
 
   const resolvedHistoryPageSize = Math.max(
     1,
