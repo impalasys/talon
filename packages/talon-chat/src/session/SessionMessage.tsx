@@ -24,7 +24,7 @@ import { MessageEditForm } from "./MessageEditForm";
 import { MessageImages, type MessageImage } from "./MessageImages";
 import { formatWorkDuration, formatWorkingDuration } from "./sessionTiming";
 import type { TalonChatObjectRef } from "./types";
-import type { ToolResultHydrationState } from "./useToolResultHydration";
+import type { ToolResultHydrationState } from "./hooks/useToolResultHydration";
 import { historyMessageTimestamp } from "./history";
 
 const connectorDeliveryPendingReview = "pending_review";
