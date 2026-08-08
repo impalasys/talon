@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { data, type TalonClient } from "@impalasys/talon-client";
-import { Activity, Check, ChevronRight, Copy, Pencil, X, Wrench } from "lucide-react";
+import { Activity, Check, ChevronRight, Copy, Pencil, X } from "lucide-react";
 import {
   formatUsageSummary,
   getMessageAssistantTimeline,
@@ -50,6 +50,12 @@ import { SessionComposerDock } from "./session/SessionComposerDock";
 import { useSessionAttachments } from "./session/useSessionAttachments";
 import { useToolResultHydration } from "./session/useToolResultHydration";
 import { useResourcePane } from "./session/useResourcePane";
+import {
+  AssistantMessageTimeline,
+  coalesceAssistantMessageTimelineForDisplay,
+  splitAssistantMessageTimeline,
+} from "./session/AssistantMessageTimeline";
+import { AssistantMessage } from "./session/AssistantMessage";
 import {
   canCompareCanonicalMessageIds,
   historyMessageTimestamp,
@@ -472,97 +478,6 @@ function messageImageParts(
   });
 }
 
-function coalesceAssistantTimelineForDisplay(timeline: AssistantTimelineItem[]) {
-  const nextTimeline: AssistantTimelineItem[] = [];
-  let latestUsage: Extract<AssistantTimelineItem, { type: "usage" }> | null = null;
-
-  for (const item of timeline) {
-    if (item.type === "usage") {
-      latestUsage = item;
-      continue;
-    }
-
-    if (item.type === "text") {
-      const lastItem = nextTimeline.at(-1);
-      if (lastItem?.type === "text") {
-        nextTimeline[nextTimeline.length - 1] = {
-          type: "text",
-          text: `${lastItem.text}${item.text}`,
-        };
-      } else {
-        nextTimeline.push(item);
-      }
-      continue;
-    }
-
-    if (item.type === "reasoning") {
-      const lastItem = nextTimeline.at(-1);
-      if (lastItem?.type === "reasoning") {
-        nextTimeline[nextTimeline.length - 1] = {
-          type: "reasoning",
-          text: `${lastItem.text}${item.text}`,
-        };
-      } else {
-        nextTimeline.push(item);
-      }
-      continue;
-    }
-
-    nextTimeline.push(item);
-  }
-
-  if (latestUsage) {
-    nextTimeline.push(latestUsage);
-  }
-
-  return nextTimeline;
-}
-
-function ContextCompactionDivider({ compacting }: { compacting: boolean }) {
-  const label = compacting ? "Context compacting automatically" : "Context compacted";
-  return (
-    <div
-      className="talon-session-compaction-divider"
-      role="separator"
-      aria-label={label}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        width: "100%",
-        color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
-        fontSize: 12,
-        fontWeight: 500,
-        letterSpacing: "0.01em",
-        padding: "0.5rem 0",
-      }}
-    >
-      <span aria-hidden="true" style={{ flex: 1, borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
-      <span>{label}</span>
-      <span aria-hidden="true" style={{ flex: 1, borderTop: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }} />
-    </div>
-  );
-}
-
-function splitFinalAssistantTimeline(timeline: AssistantTimelineItem[]) {
-  const displayTimeline = coalesceAssistantTimelineForDisplay(timeline);
-  let finalTextIndex = -1;
-  for (let index = displayTimeline.length - 1; index >= 0; index -= 1) {
-    const item = displayTimeline[index];
-    if (item?.type === "text" && item.text.trim().length > 0) {
-      finalTextIndex = index;
-      break;
-    }
-  }
-  if (finalTextIndex < 0) {
-    return { workTimeline: displayTimeline, finalTimeline: [] };
-  }
-  return {
-    workTimeline: displayTimeline.filter((_, index) => index !== finalTextIndex),
-    finalTimeline: [displayTimeline[finalTextIndex]],
-  };
-}
-
 function isNearScrollBottom(container: HTMLElement) {
   return container.scrollHeight - container.scrollTop - container.clientHeight <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
 }
@@ -643,8 +558,8 @@ function messageWithEditedContent(message: CopilotMessage, nextContent: string):
 
 function editableMessageContent(message: CopilotMessage) {
   if (message.role === "assistant") {
-    const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
-    const { finalTimeline } = splitFinalAssistantTimeline(timeline);
+    const timeline = coalesceAssistantMessageTimelineForDisplay(getMessageAssistantTimeline(message));
+    const { finalTimeline } = splitAssistantMessageTimeline(timeline);
     const visibleTextTimeline = finalTimeline.length > 0 ? finalTimeline : timeline;
     const textItems = visibleTextTimeline
       .filter((item): item is Extract<AssistantTimelineItem, { type: "text" }> => item.type === "text");
@@ -1135,7 +1050,7 @@ export function TalonSession({
     return messages.map((message, messageIndex) => {
       const content = getMessageContent(message);
       const images = messageImageParts(message, objectUrlForRef);
-      const timeline = coalesceAssistantTimelineForDisplay(getMessageAssistantTimeline(message));
+      const timeline = coalesceAssistantMessageTimelineForDisplay(getMessageAssistantTimeline(message));
       const reasoningContent = getMessageReasoningContent(message);
       const usage = getMessageUsage(message);
       const usageSummary = formatUsageSummary(usage);
@@ -1148,7 +1063,7 @@ export function TalonSession({
         !isLiveAssistantMessage;
       const isEditingMessage = editingMessageId === message.id;
       const messageActionTimestamp = isEditableMessage ? formatMessageActionTimestamp(message) : null;
-      const finalizedTimeline = splitFinalAssistantTimeline(timeline);
+      const finalizedTimeline = splitAssistantMessageTimeline(timeline);
       const visibleTimeline = finalizedTimeline.finalTimeline;
       const workTimeline = finalizedTimeline.workTimeline;
       const workHasReasoning = workTimeline.some((item) => item.type === "reasoning");
@@ -1246,127 +1161,17 @@ export function TalonSession({
 
                 {isWorkExpanded ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
-                    {workTimeline.map((item, index) => {
-                      if (item.type === "compaction") {
-                        return (
-                          <ContextCompactionDivider
-                            key={`${message.id}-work-${index}`}
-                            compacting={isLiveAssistantMessage}
-                          />
-                        );
-                      }
-
-                      if (item.type === "text") {
-                        return (
-                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-assistant-fg, inherit)" }}>
-                            <MarkdownMessage onResourceClick={handleResourceClick}>{item.text}</MarkdownMessage>
-                          </div>
-                        );
-                      }
-
-                      if (item.type === "reasoning") {
-                        return (
-                          <div key={`${message.id}-work-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
-                            {item.text}
-                          </div>
-                        );
-                      }
-
-                      if (item.type === "usage") {
-                        const itemUsageSummary = formatUsageSummary(item.usage);
-                        return itemUsageSummary ? (
-                          <div key={`${message.id}-work-${index}`} style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                            {itemUsageSummary}
-                          </div>
-                        ) : null;
-                      }
-
-                      const toolKey = `${message.id}-work-tool-${item.toolCallId || index}`;
-                      const toolResult = toolResultFor(message, item.toolCallId, item.result);
-                      const isToolExpanded = expandedToolItems[toolKey] ?? false;
-                      const isRunningTool = isLiveAssistantMessage && toolResult === undefined;
-                      const toolHydrationState = toolResultHydration[toolKey];
-                      return (
-                        <div key={toolKey}>
-                          <button
-                            className="talon-session-tool-row"
-                            type="button"
-                            onClick={() => {
-                              toggleToolItem(toolKey);
-                              if (!isToolExpanded) {
-                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey, toolResult);
-                              }
-                            }}
-                            style={{
-                              width: "auto",
-                              maxWidth: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                              border: "none",
-                              background: "transparent",
-                              padding: "0.25rem 0",
-                              color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
-                              cursor: "pointer",
-                              textAlign: "left",
-                            }}
-                          >
-                            <Wrench size="14" strokeWidth={1.9} style={{ flexShrink: 0, color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
-                            <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
-                            </span>
-                            {isRunningTool ? (
-                              <span style={{ flexShrink: 0, borderRadius: 999, background: "var(--talon-chat-tool-running-bg, rgba(14,165,233,0.12))", color: "var(--talon-chat-tool-running-fg, #0369a1)", padding: "0.1rem 0.45rem", fontSize: 11, fontWeight: 700 }}>
-                                Running
-                              </span>
-                            ) : null}
-                            <ChevronRight
-                              className="talon-session-tool-chevron"
-                              size="14"
-                              style={{
-                                flexShrink: 0,
-                                transform: isToolExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                                color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
-                              }}
-                            />
-                          </button>
-                          {isToolExpanded ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12, paddingLeft: 22 }}>
-                              <div>
-                                <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                  Input
-                                </div>
-                                <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                  <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
-                                </pre>
-                              </div>
-                              {toolHydrationState ? (
-                                <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                  {toolHydrationState === "loading" ? "Loading output..." : (
-                                    <>
-                                      Historical output is unavailable.
-                                      <details style={{ marginTop: 4 }}>
-                                        <summary>Developer details</summary>
-                                        <code style={{ overflowWrap: "anywhere" }}>{toolHydrationState.objectKey}</code>
-                                      </details>
-                                    </>
-                                  )}
-                                </div>
-                              ) : toolResult !== undefined ? (
-                                <div>
-                                  <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                    Output
-                                  </div>
-                                  <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                    <code>{typeof toolResult === "string" ? toolResult : JSON.stringify(toolResult, null, 2)}</code>
-                                  </pre>
-                                </div>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
+                    <AssistantMessageTimeline
+                      message={message}
+                      items={workTimeline}
+                      isLive={isLiveAssistantMessage}
+                      expandedTools={expandedToolItems}
+                      hydrationState={toolResultHydration}
+                      resultFor={toolResultFor}
+                      onToggleTool={toggleToolItem}
+                      onHydrateTool={(...args) => void hydrateToolResultForExpandedItem(...args)}
+                      onResourceClick={handleResourceClick}
+                    />
 
                     {!workHasReasoning && reasoningContent ? (
                       <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
@@ -1503,129 +1308,12 @@ export function TalonSession({
                 }}
               >
                 {message.role === "assistant" && visibleTimeline.length > 0 ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    {visibleTimeline.map((item, index) => {
-                      if (item.type === "compaction") {
-                        return (
-                          <ContextCompactionDivider
-                            key={`${message.id}-timeline-${index}`}
-                            compacting={isLiveAssistantMessage}
-                          />
-                        );
-                      }
-
-                      if (item.type === "text") {
-                        return (
-                          <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
-                            <MarkdownMessage onResourceClick={handleResourceClick}>{item.text}</MarkdownMessage>
-                          </div>
-                        );
-                      }
-
-                      if (item.type === "reasoning") {
-                        return (
-                          <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "break-word", color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>
-                            {item.text}
-                          </div>
-                        );
-                      }
-
-                      if (item.type === "usage") {
-                        const itemUsageSummary = formatUsageSummary(item.usage);
-                        return itemUsageSummary ? (
-                          <div key={`${message.id}-timeline-${index}`} style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                            {itemUsageSummary}
-                          </div>
-                        ) : null;
-                      }
-
-                      const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
-                      const toolResult = toolResultFor(message, item.toolCallId, item.result);
-                      const isToolExpanded = expandedToolItems[toolKey] ?? false;
-                      const isRunningTool = isLiveAssistantMessage && toolResult === undefined;
-                      const toolHydrationState = toolResultHydration[toolKey];
-                      return (
-                        <div key={toolKey}>
-                          <button
-                            className="talon-session-tool-row"
-                            type="button"
-                            onClick={() => {
-                              toggleToolItem(toolKey);
-                              if (!isToolExpanded) {
-                                void hydrateToolResultForExpandedItem(message, item.toolCallId, toolKey, toolResult);
-                              }
-                            }}
-                            style={{
-                              width: "auto",
-                              maxWidth: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                              border: "none",
-                              background: "transparent",
-                              padding: "0.25rem 0",
-                              color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
-                              cursor: "pointer",
-                              textAlign: "left",
-                            }}
-                          >
-                            <Wrench size="14" strokeWidth={1.9} style={{ flexShrink: 0, color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
-                            <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
-                            </span>
-                            {isRunningTool ? (
-                              <span style={{ flexShrink: 0, borderRadius: 999, background: "var(--talon-chat-tool-running-bg, rgba(14,165,233,0.12))", color: "var(--talon-chat-tool-running-fg, #0369a1)", padding: "0.1rem 0.45rem", fontSize: 11, fontWeight: 700 }}>
-                                Running
-                              </span>
-                            ) : null}
-                            <ChevronRight
-                              className="talon-session-tool-chevron"
-                              size="14"
-                              style={{
-                                flexShrink: 0,
-                                transform: isToolExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                                color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))",
-                              }}
-                            />
-                          </button>
-                          {isToolExpanded ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12, paddingLeft: 22 }}>
-                              <div>
-                                <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                  Input
-                                </div>
-                                <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                  <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
-                                </pre>
-                              </div>
-                              {toolHydrationState ? (
-                                <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                  {toolHydrationState === "loading" ? "Loading output..." : (
-                                    <>
-                                      Historical output is unavailable.
-                                      <details style={{ marginTop: 4 }}>
-                                        <summary>Developer details</summary>
-                                        <code style={{ overflowWrap: "anywhere" }}>{toolHydrationState.objectKey}</code>
-                                      </details>
-                                    </>
-                                  )}
-                                </div>
-                              ) : toolResult !== undefined ? (
-                                <div>
-                                  <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
-                                    Output
-                                  </div>
-                                  <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>
-                                    <code>{typeof toolResult === "string" ? toolResult : JSON.stringify(toolResult, null, 2)}</code>
-                                  </pre>
-                                </div>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <AssistantMessage
+                    message={message}
+                    items={visibleTimeline}
+                    content={content}
+                    onResourceClick={handleResourceClick}
+                  />
                 ) : (
                   message.role === "assistant" ? (
                     <MarkdownMessage onResourceClick={handleResourceClick}>{content}</MarkdownMessage>
