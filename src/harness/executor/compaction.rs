@@ -962,7 +962,6 @@ fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatC
                     truncated.push(text_part(next));
                 }
             }
-            None => {}
             _ => truncated.push(part.clone()),
         }
     }
