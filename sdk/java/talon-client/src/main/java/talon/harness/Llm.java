@@ -9812,38 +9812,36 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     java.lang.String[] descriptorData = {
       "\n\027proto/harness/llm.proto\022\rtalon.harness" +
       "\032\025proto/data/data.proto\032\034proto/resources" +
-      "/agents.proto\"\200\001\n\017ChatContentPart\022\016\n\004tex" +
-      "t\030\001 \001(\tH\000\022+\n\nobject_ref\030\004 \001(\0132\025.talon.da" +
-      "ta.ObjectRefH\000B\t\n\007contentJ\004\010\002\020\003J\004\010\003\020\004J\004\010" +
-      "\005\020\006R\023encrypted_reasoning\"T\n\nToolOutput\0225" +
-      "\n\rcontent_parts\030\001 \003(\0132\036.talon.harness.Ch" +
-      "atContentPart\022\017\n\007summary\030\002 \001(\t\"7\n\010ToolCa" +
-      "ll\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\021\n\targument" +
-      "s\030\003 \001(\t\"x\n\rToolCallDelta\022\r\n\005index\030\001 \001(\r\022" +
-      "\017\n\002id\030\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001(\tH\001\210\001\001\022\026\n\ta" +
-      "rguments\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007\n\005_nameB\014\n\n_" +
-      "arguments\"\253\001\n\013ChatMessage\022\014\n\004role\030\001 \001(\t\022" +
-      "5\n\rcontent_parts\030\002 \003(\0132\036.talon.harness.C" +
-      "hatContentPart\022+\n\ntool_calls\030\003 \003(\0132\027.tal" +
-      "on.harness.ToolCall\022\031\n\014tool_call_id\030\004 \001(" +
-      "\tH\000\210\001\001B\017\n\r_tool_call_id\"\231\001\n\014ChatResponse" +
-      "\022\017\n\007content\030\001 \001(\t\022+\n\ntool_calls\030\002 \003(\0132\027." +
-      "talon.harness.ToolCall\022,\n\005usage\030\003 \001(\0132\030." +
-      "talon.data.TokenCounterH\000\210\001\001B\010\n\006_usageJ\004" +
-      "\010\005\020\006R\rcontent_parts\"D\n\004Tool\022\014\n\004name\030\001 \001(" +
-      "\t\022\023\n\013description\030\002 \001(\t\022\031\n\021input_schema_j" +
-      "son\030\003 \001(\t\"\340\001\n\013ChatRequest\022,\n\010messages\030\001 " +
-      "\003(\0132\032.talon.harness.ChatMessage\022\"\n\005tools" +
-      "\030\002 \003(\0132\023.talon.harness.Tool\0226\n\010thinking\030" +
-      "\003 \001(\0132\037.talon.resources.ThinkingConfigH\000" +
-      "\210\001\001\022!\n\024previous_response_id\030\004 \001(\tH\001\210\001\001B\013" +
-      "\n\t_thinkingB\027\n\025_previous_response_id\"\303\001\n" +
-      "\017ChatStreamEvent\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031" +
-      "\n\017reasoning_delta\030\002 \001(\tH\000\0227\n\017tool_call_d" +
-      "elta\030\003 \001(\0132\034.talon.harness.ToolCallDelta" +
-      "H\000\022)\n\005usage\030\004 \001(\0132\030.talon.data.TokenCoun" +
-      "terH\000B\007\n\005eventJ\004\010\006\020\007R\014content_partb\006prot" +
-      "o3"
+      "/agents.proto\"e\n\017ChatContentPart\022\016\n\004text" +
+      "\030\001 \001(\tH\000\022+\n\nobject_ref\030\004 \001(\0132\025.talon.dat" +
+      "a.ObjectRefH\000B\t\n\007contentJ\004\010\002\020\003J\004\010\003\020\004\"T\n\n" +
+      "ToolOutput\0225\n\rcontent_parts\030\001 \003(\0132\036.talo" +
+      "n.harness.ChatContentPart\022\017\n\007summary\030\002 \001" +
+      "(\t\"7\n\010ToolCall\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t" +
+      "\022\021\n\targuments\030\003 \001(\t\"x\n\rToolCallDelta\022\r\n\005" +
+      "index\030\001 \001(\r\022\017\n\002id\030\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001" +
+      "(\tH\001\210\001\001\022\026\n\targuments\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007" +
+      "\n\005_nameB\014\n\n_arguments\"\253\001\n\013ChatMessage\022\014\n" +
+      "\004role\030\001 \001(\t\0225\n\rcontent_parts\030\002 \003(\0132\036.tal" +
+      "on.harness.ChatContentPart\022+\n\ntool_calls" +
+      "\030\003 \003(\0132\027.talon.harness.ToolCall\022\031\n\014tool_" +
+      "call_id\030\004 \001(\tH\000\210\001\001B\017\n\r_tool_call_id\"\204\001\n\014" +
+      "ChatResponse\022\017\n\007content\030\001 \001(\t\022+\n\ntool_ca" +
+      "lls\030\002 \003(\0132\027.talon.harness.ToolCall\022,\n\005us" +
+      "age\030\003 \001(\0132\030.talon.data.TokenCounterH\000\210\001\001" +
+      "B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013desc" +
+      "ription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t" +
+      "\"\340\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
+      "on.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023." +
+      "talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.t" +
+      "alon.resources.ThinkingConfigH\000\210\001\001\022!\n\024pr" +
+      "evious_response_id\030\004 \001(\tH\001\210\001\001B\013\n\t_thinki" +
+      "ngB\027\n\025_previous_response_id\"\257\001\n\017ChatStre" +
+      "amEvent\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017reasoni" +
+      "ng_delta\030\002 \001(\tH\000\0227\n\017tool_call_delta\030\003 \001(" +
+      "\0132\034.talon.harness.ToolCallDeltaH\000\022)\n\005usa" +
+      "ge\030\004 \001(\0132\030.talon.data.TokenCounterH\000B\007\n\005" +
+      "eventb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

@@ -10,8 +10,7 @@ message ChatContentPart {
     string text = 1;
     talon.data.ObjectRef object_ref = 4;
   }
-  reserved 2, 3, 5;
-  reserved "encrypted_reasoning";
+  reserved 2, 3;
 }
 
 message ToolOutput {
@@ -44,8 +43,6 @@ message ChatResponse {
   string content = 1;
   repeated ToolCall tool_calls = 2;
   optional talon.data.TokenCounter usage = 3;
-  reserved 5;
-  reserved "content_parts";
 }
 
 message Tool {
@@ -69,6 +66,4 @@ message ChatStreamEvent {
     ToolCallDelta tool_call_delta = 3;
     talon.data.TokenCounter usage = 4;
   }
-  reserved 6;
-  reserved "content_part";
 }

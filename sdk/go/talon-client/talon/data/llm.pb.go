@@ -660,12 +660,12 @@ var File_proto_harness_llm_proto protoreflect.FileDescriptor
 
 const file_proto_harness_llm_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/harness/llm.proto\x12\rtalon.harness\x1a\x15proto/data/data.proto\x1a\x1cproto/resources/agents.proto\"\x91\x01\n" +
+	"\x17proto/harness/llm.proto\x12\rtalon.harness\x1a\x15proto/data/data.proto\x1a\x1cproto/resources/agents.proto\"v\n" +
 	"\x0fChatContentPart\x12\x14\n" +
 	"\x04text\x18\x01 \x01(\tH\x00R\x04text\x126\n" +
 	"\n" +
 	"object_ref\x18\x04 \x01(\v2\x15.talon.data.ObjectRefH\x00R\tobjectRefB\t\n" +
-	"\acontentJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x05\x10\x06R\x13encrypted_reasoning\"k\n" +
+	"\acontentJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04\"k\n" +
 	"\n" +
 	"ToolOutput\x12C\n" +
 	"\rcontent_parts\x18\x01 \x03(\v2\x1e.talon.harness.ChatContentPartR\fcontentParts\x12\x18\n" +
@@ -690,13 +690,13 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"tool_calls\x18\x03 \x03(\v2\x17.talon.harness.ToolCallR\ttoolCalls\x12%\n" +
 	"\ftool_call_id\x18\x04 \x01(\tH\x00R\n" +
 	"toolCallId\x88\x01\x01B\x0f\n" +
-	"\r_tool_call_id\"\xb4\x01\n" +
+	"\r_tool_call_id\"\x9f\x01\n" +
 	"\fChatResponse\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x126\n" +
 	"\n" +
 	"tool_calls\x18\x02 \x03(\v2\x17.talon.harness.ToolCallR\ttoolCalls\x123\n" +
 	"\x05usage\x18\x03 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x88\x01\x01B\b\n" +
-	"\x06_usageJ\x04\b\x05\x10\x06R\rcontent_parts\"h\n" +
+	"\x06_usage\"h\n" +
 	"\x04Tool\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12*\n" +
@@ -707,14 +707,14 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\bthinking\x18\x03 \x01(\v2\x1f.talon.resources.ThinkingConfigH\x00R\bthinking\x88\x01\x01\x125\n" +
 	"\x14previous_response_id\x18\x04 \x01(\tH\x01R\x12previousResponseId\x88\x01\x01B\v\n" +
 	"\t_thinkingB\x17\n" +
-	"\x15_previous_response_id\"\xf4\x01\n" +
+	"\x15_previous_response_id\"\xe0\x01\n" +
 	"\x0fChatStreamEvent\x12\x1f\n" +
 	"\n" +
 	"text_delta\x18\x01 \x01(\tH\x00R\ttextDelta\x12)\n" +
 	"\x0freasoning_delta\x18\x02 \x01(\tH\x00R\x0ereasoningDelta\x12F\n" +
 	"\x0ftool_call_delta\x18\x03 \x01(\v2\x1c.talon.harness.ToolCallDeltaH\x00R\rtoolCallDelta\x120\n" +
 	"\x05usage\x18\x04 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usageB\a\n" +
-	"\x05eventJ\x04\b\x06\x10\aR\fcontent_partb\x06proto3"
+	"\x05eventb\x06proto3"
 
 var (
 	file_proto_harness_llm_proto_rawDescOnce sync.Once
