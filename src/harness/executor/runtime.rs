@@ -561,15 +561,6 @@ impl AgentExecutor {
                 && counter.model == self.llm_model
                 && counter.provider_request_id.is_some()
         })?;
-        let provider = self.config.providers.get(&self.llm_provider_key)?;
-        let crate::control::config::proto::llm_provider_config::Config::Openai(openai) =
-            provider.config.as_ref()?
-        else {
-            return None;
-        };
-        if openai.api.trim().eq_ignore_ascii_case("chat_completions") {
-            return None;
-        }
         counter.provider_request_id.clone()
     }
 
