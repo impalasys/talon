@@ -36,7 +36,6 @@ import {
   isSessionTextPart,
 } from "./session/protocol";
 import {
-  normalizeImageUploadResult,
   normalizeObjectRefForJson,
   objectRefFromPart,
   objectRefMediaType,
@@ -48,6 +47,7 @@ import type { SessionTarget } from "./session/types";
 import { SessionTranscript } from "./session/SessionTranscript";
 import { SessionComposerDock } from "./session/SessionComposerDock";
 import { useSessionAttachments } from "./session/hooks/useSessionAttachments";
+import { useSessionImageAttachments } from "./session/useSessionImageAttachments";
 import { useToolResultHydration } from "./session/hooks/useToolResultHydration";
 import { useResourcePane } from "./session/hooks/useResourcePane";
 import { useTranscriptExpansionState } from "./session/hooks/useTranscriptExpansionState";
@@ -640,10 +640,20 @@ export function TalonSession({
   }, [setServerState]);
   const [input, setInput] = useState("");
   const {
+    addFiles: addImageFiles,
     attachments: imageAttachments,
     attachmentsRef: imageAttachmentsRef,
+    remove: removeImageAttachment,
     replace: setImageAttachments,
-  } = useSessionAttachments<TalonSessionPendingImageAttachment>();
+    uploadQueued: uploadQueuedImages,
+  } = useSessionImageAttachments({
+    acceptedImageTypes,
+    createId: createLocalMessageId,
+    maxImageAttachments,
+    maxImageBytes,
+    onError: setError,
+    onUpload: onImageUpload,
+  });
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const [loadingNow, setLoadingNow] = useState(Date.now());
   const error = sessionRuntimeState.error;
@@ -1562,126 +1572,6 @@ export function TalonSession({
     [resolvedCommands],
   );
   const imageAccept = useMemo(() => acceptedImageTypes.join(","), [acceptedImageTypes]);
-  const acceptedImageTypesSet = useMemo(() => new Set(acceptedImageTypes), [acceptedImageTypes]);
-
-  const removeImageAttachment = useCallback((id: string) => {
-    setImageAttachments((current) => {
-      const removed = current.find((attachment) => attachment.id === id);
-      if (removed) {
-        URL.revokeObjectURL(removed.previewUrl);
-      }
-      return current.filter((attachment) => attachment.id !== id);
-    });
-  }, []);
-
-  const addImageFiles = useCallback((files: File[]) => {
-    if (!onImageUpload) return;
-    setError(null);
-    setImageAttachments((current) => {
-      const availableSlots = Math.max(0, maxImageAttachments - current.length);
-      const next = [...current];
-      for (const file of files.slice(0, availableSlots)) {
-        if (!acceptedImageTypesSet.has(file.type)) {
-          next.push({
-            id: createLocalMessageId(),
-            file,
-            previewUrl: URL.createObjectURL(file),
-            status: "error",
-            error: `Unsupported image type: ${file.type || "unknown"}`,
-          });
-          continue;
-        }
-        if (file.size > maxImageBytes) {
-          next.push({
-            id: createLocalMessageId(),
-            file,
-            previewUrl: URL.createObjectURL(file),
-            status: "error",
-            error: `Image is larger than ${Math.round(maxImageBytes / (1024 * 1024))} MB`,
-          });
-          continue;
-        }
-        next.push({
-          id: createLocalMessageId(),
-          file,
-          previewUrl: URL.createObjectURL(file),
-          status: "queued",
-        });
-      }
-      if (files.length > availableSlots) {
-        setError(new Error(`You can attach up to ${maxImageAttachments} images.`));
-      }
-      return next;
-    });
-  }, [acceptedImageTypesSet, maxImageAttachments, maxImageBytes, onImageUpload]);
-
-  const uploadQueuedImages = useCallback(async (
-    session: { ns: string; agent: string; sessionId: string },
-    signal: AbortSignal,
-  ) => {
-    if (!onImageUpload) return imageAttachmentsRef.current;
-
-    const attachments = imageAttachmentsRef.current;
-    const failed = attachments.find((attachment) => attachment.status === "error");
-    if (failed) {
-      throw new Error(failed.error || `Failed to attach ${failed.file.name}`);
-    }
-
-    const pendingUploads = attachments.filter((attachment) => !attachment.object);
-    if (pendingUploads.length === 0) {
-      return attachments;
-    }
-
-    const pendingIds = new Set(pendingUploads.map((attachment) => attachment.id));
-    const uploadingAttachments = imageAttachmentsRef.current.map((item) =>
-      pendingIds.has(item.id) ? { ...item, status: "uploading" as const, error: undefined } : item,
-    );
-    imageAttachmentsRef.current = uploadingAttachments;
-    setImageAttachments(uploadingAttachments);
-
-    const settled = await Promise.allSettled(pendingUploads.map(async (attachment) => ({
-      id: attachment.id,
-      object: normalizeImageUploadResult(await onImageUpload({
-        file: attachment.file,
-        namespace: session.ns,
-        agent: session.agent,
-        sessionId: session.sessionId,
-        signal,
-      })),
-    })));
-
-    const resultsById = new Map<string, { object?: TalonChatObjectRef; error?: string }>();
-    settled.forEach((result, index) => {
-      const attachment = pendingUploads[index];
-      if (!attachment) return;
-      if (result.status === "fulfilled") {
-        resultsById.set(attachment.id, { object: result.value.object });
-      } else {
-        const reason = result.reason;
-        resultsById.set(attachment.id, {
-          error: reason instanceof Error ? reason.message : String(reason || `Failed to attach ${attachment.file.name}`),
-        });
-      }
-    });
-
-    const nextAttachments = imageAttachmentsRef.current.map((item) => {
-      const result = resultsById.get(item.id);
-      if (!result) return item;
-      return result.object
-        ? { ...item, object: result.object, status: "ready" as const, error: undefined }
-        : { ...item, status: "error" as const, error: result.error || `Failed to attach ${item.file.name}` };
-    });
-    imageAttachmentsRef.current = nextAttachments;
-    setImageAttachments(nextAttachments);
-
-    const uploadFailure = nextAttachments.find((attachment) => attachment.status === "error");
-    if (uploadFailure) {
-      throw new Error(uploadFailure.error || `Failed to attach ${uploadFailure.file.name}`);
-    }
-
-    return nextAttachments;
-  }, [onImageUpload]);
-
   const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
     let text = submittedText.trim();
     const pendingAttachments = imageAttachmentsRef.current;
