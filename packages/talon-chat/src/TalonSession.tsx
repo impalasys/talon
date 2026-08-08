@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { data, type TalonClient } from "@impalasys/talon-client";
-import { Activity, Check, ChevronRight, Copy, Pencil, X } from "lucide-react";
+import { Activity, ChevronRight, Copy, Pencil } from "lucide-react";
 import {
   formatUsageSummary,
   getMessageAssistantTimeline,
@@ -56,6 +56,7 @@ import { copyMessageContent } from "./session/copyMessageContent";
 import { formatWorkDuration, formatWorkingDuration } from "./session/sessionTiming";
 import { SessionStyles } from "./session/SessionStyles";
 import { ConnectorDeliveryControls } from "./session/ConnectorDeliveryControls";
+import { MessageEditForm } from "./session/MessageEditForm";
 import {
   AssistantMessageTimeline,
   coalesceAssistantMessageTimelineForDisplay,
@@ -920,77 +921,13 @@ export function TalonSession({
               onUpdate={(target, status) => void updateConnectorDeliveryStatus(target, status)}
             /> : null}
 
-            {isEditingMessage ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <textarea
-                  className="talon-session-edit-textarea"
-                  aria-label="Edit message"
-                  value={editingMessageValue}
-                  onChange={(event) => setEditingMessageValue(event.currentTarget.value)}
-                  rows={Math.min(8, Math.max(2, editingMessageValue.split("\n").length))}
-                  style={{
-                    width: "100%",
-                    resize: "vertical",
-                    border: border("var(--talon-chat-edit-border, rgba(82,82,91,0.86))"),
-                    borderRadius: 8,
-                    background: "var(--talon-chat-edit-bg, rgba(24,24,27,0.92))",
-                    color: "var(--talon-chat-edit-fg, inherit)",
-                    padding: "0.65rem 0.8rem",
-                    font: "inherit",
-                    fontSize: talonChatMessageFontSize,
-                    lineHeight: 1.55,
-                    outline: "none",
-                    boxShadow: "var(--talon-chat-edit-shadow, inset 0 0 0 1px rgba(255,255,255,0.02))",
-                  }}
-                />
-                <div style={{ display: "flex", justifyContent: isUserMessage ? "flex-end" : "flex-start", gap: 6 }}>
-                  <button
-                    className="talon-session-edit-action"
-                    type="button"
-                    aria-label="Save message edit"
-                    title="Save"
-                    onClick={() => void saveEditingMessage(message)}
-                    disabled={!editingMessageValue.trim()}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: 8,
-                      border: border("var(--talon-chat-edit-action-border, rgba(82,82,91,0.82))"),
-                      background: "var(--talon-chat-edit-action-bg, rgba(39,39,42,0.92))",
-                      color: "var(--talon-chat-edit-action-fg, inherit)",
-                      cursor: editingMessageValue.trim() ? "pointer" : "not-allowed",
-                      opacity: editingMessageValue.trim() ? 1 : 0.45,
-                    }}
-                  >
-                    <Check size="14" strokeWidth={2} />
-                  </button>
-                  <button
-                    className="talon-session-edit-action"
-                    type="button"
-                    aria-label="Cancel message edit"
-                    title="Cancel"
-                    onClick={cancelEditingMessage}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: 8,
-                      border: border("var(--talon-chat-edit-action-border, rgba(82,82,91,0.82))"),
-                      background: "var(--talon-chat-edit-action-bg, rgba(39,39,42,0.92))",
-                      color: "var(--talon-chat-edit-action-fg, inherit)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <X size="14" strokeWidth={2} />
-                  </button>
-                </div>
-              </div>
-            ) : (
+            {isEditingMessage ? <MessageEditForm
+              message={message}
+              value={editingMessageValue}
+              onChange={setEditingMessageValue}
+              onSave={(target) => void saveEditingMessage(target)}
+              onCancel={cancelEditingMessage}
+            /> : (
               <div
                 className={cn(message.role === "system" && "copilot-system-message")}
                 style={{
