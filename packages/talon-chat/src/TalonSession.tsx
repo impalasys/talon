@@ -669,6 +669,7 @@ export function TalonSession({
   }, [currentSession, loadOlderRuntime, nextBeforeMessageId]);
   const transcriptExpansion = useTranscriptExpansionState();
   const {
+    allowNextAutoScroll,
     bottomRef,
     handleScroll: handleTranscriptScrollState,
     markAutoScrollPinned,
@@ -692,6 +693,7 @@ export function TalonSession({
     transcriptRef: scrollContainerRef,
     canLoadOlder: Boolean(currentSession && hasMoreHistory && nextBeforeMessageId),
     onLoadOlder: loadOlderHistory,
+    onPrependCancelled: allowNextAutoScroll,
     onPrependStart: skipNextAutoScroll,
     onRestored: updateScrollThumb,
   });

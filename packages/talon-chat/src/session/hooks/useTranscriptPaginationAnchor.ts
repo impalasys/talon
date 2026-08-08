@@ -13,12 +13,13 @@ type Options = {
   canLoadOlder: boolean;
   onLoadOlder: () => Promise<boolean>;
   onPrependStart: () => void;
+  onPrependCancelled: () => void;
   onRestored: () => void;
 };
 
 /** Preserves the visible transcript anchor while older history is prepended. */
 export function useTranscriptPaginationAnchor({
-  messages, transcriptRef, canLoadOlder, onLoadOlder, onPrependStart, onRestored,
+  messages, transcriptRef, canLoadOlder, onLoadOlder, onPrependStart, onPrependCancelled, onRestored,
 }: Options) {
   const restoreRef = useRef<ScrollRestore | null>(null);
   const isLoadingRef = useRef(false);
@@ -39,14 +40,18 @@ export function useTranscriptPaginationAnchor({
     onPrependStart();
     isLoadingRef.current = true;
     void onLoadOlder().then((loaded) => {
-      if (!loaded) restoreRef.current = null;
+      if (!loaded) {
+        restoreRef.current = null;
+        onPrependCancelled();
+      }
     }).catch((error) => {
       restoreRef.current = null;
+      onPrependCancelled();
       console.warn("Could not load older session history", error);
     }).finally(() => {
       isLoadingRef.current = false;
     });
-  }, [canLoadOlder, onLoadOlder, onPrependStart, transcriptRef]);
+  }, [canLoadOlder, onLoadOlder, onPrependCancelled, onPrependStart, transcriptRef]);
 
   const reset = useCallback(() => {
     restoreRef.current = null;

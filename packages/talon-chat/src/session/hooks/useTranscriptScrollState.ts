@@ -95,6 +95,7 @@ export function useTranscriptScrollState({
   }, []);
 
   return {
+    allowNextAutoScroll: () => { skipNextAutoScrollRef.current = false; },
     bottomRef,
     handleScroll,
     markAutoScrollPinned: () => { autoScrollPinnedRef.current = true; },
