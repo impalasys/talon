@@ -981,18 +981,19 @@ describe('TalonCopilot', () => {
                   tool_call_id: 'call-cas-cache',
                   tool_output: {
                     summary: '[Object: cached-output.txt (text/plain; charset=utf-8; 123 bytes)]',
-                    content_parts: [{
-                      type: 'object_ref',
-                      object_ref: {
-                        key: 'cas/ops/sessions/sess-cas-cache/messages/assistant-cas-cache/000001.txt',
-                        media_type: 'text/plain; charset=utf-8',
+                    content_parts: [
+                      { type: 'text', text: 'Before: ' },
+                      {
+                        type: 'object_ref',
+                        object_ref: {
+                          key: 'cas/ops/sessions/sess-cas-cache/messages/assistant-cas-cache/000001.txt',
+                          media_type: 'text/plain; charset=utf-8',
+                        },
                       },
-                    }],
+                      { type: 'text', text: ' :after' },
+                    ],
                   },
                 }),
-                object: {
-                  key: 'cas/ops/sessions/sess-cas-cache/messages/assistant-cas-cache/000001.txt',
-                },
               },
               {
                 partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
@@ -1030,7 +1031,7 @@ describe('TalonCopilot', () => {
       fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
       const toolToggle = await screen.findByRole('button', { name: /Called\s+knowledge_search/ });
       fireEvent.click(toolToggle);
-      expect(await screen.findByText('cached hydrated output')).toBeInTheDocument();
+      expect(await screen.findByText('Before: cached hydrated output :after')).toBeInTheDocument();
       expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
 
       await act(async () => {
@@ -1038,19 +1039,19 @@ describe('TalonCopilot', () => {
       });
 
       expect(listSessionMessages).toHaveBeenCalledTimes(2);
-      expect(screen.getByText('cached hydrated output')).toBeInTheDocument();
+      expect(screen.getByText('Before: cached hydrated output :after')).toBeInTheDocument();
       expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
 
       fireEvent.click(toolToggle);
       fireEvent.click(toolToggle);
-      expect(await screen.findByText('cached hydrated output')).toBeInTheDocument();
+      expect(await screen.findByText('Before: cached hydrated output :after')).toBeInTheDocument();
       expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
     } finally {
       jest.useRealTimers();
     }
   });
 
-  it('clears hydrated CAS tool output when changing sessions', async () => {
+  it('clears hydrated CAS tool output when changing through no active session', async () => {
     const responseFor = (sessionId: string) => ({
       sessionId,
       state: 'IDLE',
@@ -1112,6 +1113,14 @@ describe('TalonCopilot', () => {
     fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
     fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
     expect(await screen.findByText('first session hydrated output')).toBeInTheDocument();
+
+    rerender(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+      />,
+    );
 
     rerender(
       <TalonCopilot

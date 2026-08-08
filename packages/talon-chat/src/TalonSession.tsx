@@ -542,6 +542,34 @@ function findHydratableToolResultPart(
     : null;
 }
 
+function toolResultWithHydratedObject(
+  part: unknown,
+  fallback: unknown,
+  objectKey: string,
+  hydratedOutput: string,
+): unknown {
+  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
+  const toolOutput = payload.tool_output ?? payload.toolOutput;
+  const contentParts = toolOutput && typeof toolOutput === "object"
+    ? (toolOutput as Record<string, unknown>).content_parts ?? (toolOutput as Record<string, unknown>).contentParts
+    : undefined;
+  if (!Array.isArray(contentParts)) return hydratedOutput;
+
+  let replacedObject = false;
+  const text = contentParts.map((contentPart) => {
+    if (!contentPart || typeof contentPart !== "object") return "";
+    const value = contentPart as { type?: unknown; text?: unknown };
+    if (value.type === "text" && typeof value.text === "string") return value.text;
+    const object = objectRefFromValue(contentPart);
+    if (object?.key === objectKey) {
+      replacedObject = true;
+      return hydratedOutput;
+    }
+    return "";
+  }).join("");
+  return replacedObject ? text : fallback;
+}
+
 function messageImageParts(
   message: CopilotMessage,
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined,
@@ -947,7 +975,7 @@ export function TalonSession({
   useEffect(() => {
     const previousTarget = previousSessionTargetRef.current;
     previousSessionTargetRef.current = currentSession;
-    if (!previousTarget || !currentSession || isSameSession(previousTarget, currentSession)) return;
+    if (!previousTarget || (currentSession && isSameSession(previousTarget, currentSession))) return;
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
     resumeAbortControllerRef.current?.abort();
@@ -1433,15 +1461,19 @@ export function TalonSession({
                       }
 
                       const toolKey = `${message.id}-work-tool-${item.toolCallId || index}`;
-                      const resultObject = findToolResultObjectPart(message.parts, item.toolCallId)?.object ?? objectRefFromValue(item.result);
+                      const resultPartMatch = findToolResultObjectPart(message.parts, item.toolCallId);
+                      const resultObject = resultPartMatch?.object ?? objectRefFromValue(item.result);
                       const resultObjectKey = objectRefKey(resultObject);
                       const outputCacheKey = resultObjectKey
                         ? toolResultHydrationCacheKey(message.id, item.toolCallId, resultObjectKey)
                         : "";
-                      const cachedOutput = outputCacheKey && Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey)
+                      const hasCachedOutput = Boolean(outputCacheKey) && Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey);
+                      const cachedOutput = hasCachedOutput
                         ? hydratedToolResultOutputs[outputCacheKey]
                         : undefined;
-                      const toolResult = cachedOutput ?? item.result;
+                      const toolResult = hasCachedOutput
+                        ? toolResultWithHydratedObject(resultPartMatch?.part, item.result, resultObjectKey, cachedOutput!)
+                        : item.result;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
                       const isRunningTool = isLiveAssistantMessage && toolResult === undefined;
                       const toolHydrationState = toolResultHydration[toolKey];
@@ -1699,15 +1731,19 @@ export function TalonSession({
                       }
 
                       const toolKey = `${message.id}-timeline-tool-${item.toolCallId || index}`;
-                      const resultObject = findToolResultObjectPart(message.parts, item.toolCallId)?.object ?? objectRefFromValue(item.result);
+                      const resultPartMatch = findToolResultObjectPart(message.parts, item.toolCallId);
+                      const resultObject = resultPartMatch?.object ?? objectRefFromValue(item.result);
                       const resultObjectKey = objectRefKey(resultObject);
                       const outputCacheKey = resultObjectKey
                         ? toolResultHydrationCacheKey(message.id, item.toolCallId, resultObjectKey)
                         : "";
-                      const cachedOutput = outputCacheKey && Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey)
+                      const hasCachedOutput = Boolean(outputCacheKey) && Object.prototype.hasOwnProperty.call(hydratedToolResultOutputs, outputCacheKey);
+                      const cachedOutput = hasCachedOutput
                         ? hydratedToolResultOutputs[outputCacheKey]
                         : undefined;
-                      const toolResult = cachedOutput ?? item.result;
+                      const toolResult = hasCachedOutput
+                        ? toolResultWithHydratedObject(resultPartMatch?.part, item.result, resultObjectKey, cachedOutput!)
+                        : item.result;
                       const isToolExpanded = expandedToolItems[toolKey] ?? false;
                       const isRunningTool = isLiveAssistantMessage && toolResult === undefined;
                       const toolHydrationState = toolResultHydration[toolKey];
@@ -1914,7 +1950,7 @@ export function TalonSession({
         </React.Fragment>
       );
     });
-  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, isLoading, isResuming, isSessionLive, isStopping, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultHydration, updateConnectorDeliveryStatus]);
+  }, [allowMessageEditing, cancelEditingMessage, copyMessageContent, editingMessageId, editingMessageValue, enableDebugMessageEditing, expandedThinkingMessages, expandedToolItems, handleResourceClick, hydrateToolResultForExpandedItem, hydratedToolResultOutputs, isLoading, isResuming, isSessionLive, isStopping, loadingNow, loadingStartedAt, messages, objectUrlForRef, reviewActionMessageId, saveEditingMessage, startEditingMessage, toggleThinkingMessage, toggleToolItem, toolResultHydration, updateConnectorDeliveryStatus]);
 
   const resolvedHistoryPageSize = Math.max(
     1,
