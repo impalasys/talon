@@ -51,7 +51,7 @@ class TalonConfig(_message.Message):
     def __init__(self, providers: _Optional[_Mapping[str, LlmProviderConfig]] = ..., database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., server: _Optional[_Union[ServerConfig, _Mapping]] = ..., default_provider: _Optional[str] = ..., workspace_dir: _Optional[str] = ..., control_plane: _Optional[_Union[ControlPlaneConfig, _Mapping]] = ..., controllers: _Optional[_Mapping[str, ControllerConfig]] = ..., trust: _Optional[_Union[TrustConfig, _Mapping]] = ..., models: _Optional[_Mapping[str, ModelConfig]] = ...) -> None: ...
 
 class ModelConfig(_message.Message):
-    __slots__ = ("provider", "context_window_tokens", "max_output_tokens", "input_cost_per_million_tokens", "output_cost_per_million_tokens", "cache_read_cost_per_million_tokens", "cache_write_cost_per_million_tokens")
+    __slots__ = ("provider", "context_window_tokens", "max_output_tokens", "input_cost_per_million_tokens", "output_cost_per_million_tokens", "cache_read_cost_per_million_tokens", "cache_write_cost_per_million_tokens", "long_context_tokens", "long_context_input_cost_per_million_tokens", "long_context_output_cost_per_million_tokens", "long_context_cache_read_cost_per_million_tokens", "long_context_cache_write_cost_per_million_tokens")
     PROVIDER_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_WINDOW_TOKENS_FIELD_NUMBER: _ClassVar[int]
     MAX_OUTPUT_TOKENS_FIELD_NUMBER: _ClassVar[int]
@@ -59,6 +59,11 @@ class ModelConfig(_message.Message):
     OUTPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
     CACHE_READ_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
     CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    LONG_CONTEXT_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    LONG_CONTEXT_INPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    LONG_CONTEXT_OUTPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    LONG_CONTEXT_CACHE_READ_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    LONG_CONTEXT_CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER: _ClassVar[int]
     provider: str
     context_window_tokens: int
     max_output_tokens: int
@@ -66,7 +71,12 @@ class ModelConfig(_message.Message):
     output_cost_per_million_tokens: float
     cache_read_cost_per_million_tokens: float
     cache_write_cost_per_million_tokens: float
-    def __init__(self, provider: _Optional[str] = ..., context_window_tokens: _Optional[int] = ..., max_output_tokens: _Optional[int] = ..., input_cost_per_million_tokens: _Optional[float] = ..., output_cost_per_million_tokens: _Optional[float] = ..., cache_read_cost_per_million_tokens: _Optional[float] = ..., cache_write_cost_per_million_tokens: _Optional[float] = ...) -> None: ...
+    long_context_tokens: int
+    long_context_input_cost_per_million_tokens: float
+    long_context_output_cost_per_million_tokens: float
+    long_context_cache_read_cost_per_million_tokens: float
+    long_context_cache_write_cost_per_million_tokens: float
+    def __init__(self, provider: _Optional[str] = ..., context_window_tokens: _Optional[int] = ..., max_output_tokens: _Optional[int] = ..., input_cost_per_million_tokens: _Optional[float] = ..., output_cost_per_million_tokens: _Optional[float] = ..., cache_read_cost_per_million_tokens: _Optional[float] = ..., cache_write_cost_per_million_tokens: _Optional[float] = ..., long_context_tokens: _Optional[int] = ..., long_context_input_cost_per_million_tokens: _Optional[float] = ..., long_context_output_cost_per_million_tokens: _Optional[float] = ..., long_context_cache_read_cost_per_million_tokens: _Optional[float] = ..., long_context_cache_write_cost_per_million_tokens: _Optional[float] = ...) -> None: ...
 
 class TrustConfig(_message.Message):
     __slots__ = ("oidc",)

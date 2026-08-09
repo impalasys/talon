@@ -86,6 +86,9 @@ models:
     maxOutputTokens: 4096
     inputCostPerMillionTokens: 0.30
     outputCostPerMillionTokens: 1.20
+    longContextTokens: 272000
+    longContextInputCostPerMillionTokens: 0.60
+    longContextOutputCostPerMillionTokens: 1.80
 
 database:
   data_dir: "./test-data"
@@ -124,6 +127,12 @@ server:
         assert_eq!(model.max_output_tokens, Some(4096));
         assert_eq!(model.input_cost_per_million_tokens, Some(0.30));
         assert_eq!(model.output_cost_per_million_tokens, Some(1.20));
+        assert_eq!(model.long_context_tokens, Some(272000));
+        assert_eq!(model.long_context_input_cost_per_million_tokens, Some(0.60));
+        assert_eq!(
+            model.long_context_output_cost_per_million_tokens,
+            Some(1.80)
+        );
     }
 
     #[test]
