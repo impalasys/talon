@@ -904,10 +904,19 @@ impl OpenAiCompatibleProvider {
                 status,
                 &error,
             );
-            if previous_response_id.is_some() && is_stale_previous_response_id(status, &error) {
+            if previous_response_id.is_some()
+                && (is_stale_previous_response_id(status, &error)
+                    || is_missing_tool_output_for_previous_response(status, &error))
+            {
+                let recovery_reason = if is_stale_previous_response_id(status, &error) {
+                    "stale previous_response_id"
+                } else {
+                    "missing function-call output for previous_response_id"
+                };
                 tracing::warn!(
                     model = %self.model,
-                    "Retrying Responses request without stale previous_response_id"
+                    reason = recovery_reason,
+                    "Retrying Responses request without previous_response_id"
                 );
                 let full_input = self.serialize_responses_input(messages, None).await?;
                 payload = build_payload(full_input, None);
@@ -924,7 +933,7 @@ impl OpenAiCompatibleProvider {
                 let retry_status = retry_response.status();
                 let retry_error = retry_response.text().await?;
                 return Err(openai_api_error(
-                    "OpenAI Responses API error after stale previous_response_id retry",
+                    "OpenAI Responses API error after previous_response_id recovery retry",
                     &retry_error,
                 ))
                 .map_err(|error| {
@@ -962,6 +971,18 @@ fn is_stale_previous_response_id(status: reqwest::StatusCode, body: &str) -> boo
             || body.contains("expired")
             || body.contains("not found")
             || body.contains("does not exist"))
+}
+
+/// A cancelled or crashed tool turn can leave an OpenAI server-side response
+/// waiting for a function-call output.  The local transcript deliberately
+/// drops that incomplete interaction during recovery, so retrying from the
+/// complete local history is safe.  Keep this deliberately narrow: other 400s
+/// are request errors, not continuation-recovery signals.
+fn is_missing_tool_output_for_previous_response(status: reqwest::StatusCode, body: &str) -> bool {
+    status == reqwest::StatusCode::BAD_REQUEST
+        && body
+            .to_ascii_lowercase()
+            .contains("no tool output found for function call")
 }
 
 #[async_trait]
@@ -2708,6 +2729,88 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn responses_missing_tool_output_retries_from_complete_local_history() {
+        let hits = Arc::new(AtomicUsize::new(0));
+        let payloads = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let app = Router::new()
+            .route(
+                "/responses",
+                post({
+                    let hits = hits.clone();
+                    let payloads = payloads.clone();
+                    move |Json(payload): Json<serde_json::Value>| {
+                        let hits = hits.clone();
+                        let payloads = payloads.clone();
+                        async move {
+                            payloads.lock().unwrap().push(payload);
+                            if hits.fetch_add(1, Ordering::SeqCst) == 0 {
+                                (
+                                    axum::http::StatusCode::BAD_REQUEST,
+                                    Json(serde_json::json!({
+                                        "error": {
+                                            "message": "No tool output found for function call call_123."
+                                        }
+                                    })),
+                                )
+                            } else {
+                                (
+                                    axum::http::StatusCode::OK,
+                                    Json(serde_json::json!({
+                                        "id": "resp_recovered",
+                                        "output": [{
+                                            "type": "message",
+                                            "content": [{"type": "output_text", "text": "recovered"}]
+                                        }]
+                                    })),
+                                )
+                            }
+                        }
+                    }
+                }),
+            )
+            .with_state(());
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+            test_cas_store(),
+            "responses",
+        );
+
+        let response = provider
+            .chat_completion(ChatRequest {
+                messages: vec![
+                    chat_message_text("system", "system instructions"),
+                    chat_message_text("user", "old question"),
+                    chat_message_text("assistant", "old answer"),
+                    chat_message_text("user", "new question"),
+                ],
+                tools: vec![],
+                thinking: None,
+                previous_response_id: Some("resp_poisoned".to_string()),
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(response.content, "recovered");
+        assert_eq!(hits.load(Ordering::SeqCst), 2);
+        let payloads = payloads.lock().unwrap();
+        assert_eq!(payloads[0]["previous_response_id"], "resp_poisoned");
+        assert!(payloads[0]["input"].to_string().contains("new question"));
+        assert!(!payloads[0]["input"].to_string().contains("old question"));
+        assert!(payloads[1].get("previous_response_id").is_none());
+        assert!(payloads[1]["input"].to_string().contains("old question"));
+        assert!(payloads[1]["input"].to_string().contains("old answer"));
+        server.abort();
+    }
+
+    #[tokio::test]
     async fn responses_input_without_previous_id_keeps_full_history() {
         let provider = test_provider();
         let input = provider
@@ -2807,6 +2910,22 @@ mod tests {
         assert!(!is_stale_previous_response_id(
             reqwest::StatusCode::BAD_REQUEST,
             "rate limit exceeded"
+        ));
+    }
+
+    #[test]
+    fn missing_tool_output_errors_are_retryable_but_generic_errors_are_not() {
+        assert!(is_missing_tool_output_for_previous_response(
+            reqwest::StatusCode::BAD_REQUEST,
+            "No tool output found for function call call_123."
+        ));
+        assert!(!is_missing_tool_output_for_previous_response(
+            reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            "No tool output found for function call call_123."
+        ));
+        assert!(!is_missing_tool_output_for_previous_response(
+            reqwest::StatusCode::BAD_REQUEST,
+            "Invalid tool schema"
         ));
     }
 }
