@@ -1330,7 +1330,7 @@ dependencies = [
 
 [[package]]
 name = "talon-client"
-version = "0.1.17"
+version = "0.1.18"
 dependencies = [
  "futures",
  "http-body",
@@ -1352,7 +1352,7 @@ dependencies = [
 
 [[package]]
 name = "talon-server"
-version = "0.1.17"
+version = "0.1.18"
 dependencies = [
  "anyhow",
  "serde_json",
