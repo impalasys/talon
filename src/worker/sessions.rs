@@ -6,7 +6,9 @@ use futures::FutureExt;
 use prost::Message;
 use serde_json::Value;
 use std::collections::BTreeMap;
-use std::panic::AssertUnwindSafe;
+use std::future::Future;
+use std::panic::{resume_unwind, AssertUnwindSafe};
+use std::time::Duration;
 
 use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
@@ -28,9 +30,193 @@ use tracing::Instrument;
 const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
 const SESSION_RELEASE_CAS_BACKOFF_MS: u64 = 10;
 const DEFAULT_FANOUT_SUBSCRIBER_GRACE_MS: u64 = 100;
+const CONNECTOR_TYPING_KEEPALIVE_INTERVAL: Duration = Duration::from_secs(20);
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 const LABEL_CONNECTOR_REGISTRATION: &str = "talon.impalasys.com/connector-registration";
 const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct ConnectorTypingActivity {
+    activity_id: String,
+    phase: &'static str,
+    status_text: &'static str,
+}
+
+impl ConnectorTypingActivity {
+    fn start(submission_id: &str) -> Self {
+        Self {
+            activity_id: format!("{submission_id}:typing:start"),
+            phase: "start",
+            status_text: "is thinking...",
+        }
+    }
+
+    fn active() -> Self {
+        Self {
+            activity_id: uuid::Uuid::now_v7().to_string(),
+            phase: "active",
+            status_text: "is thinking...",
+        }
+    }
+
+    fn stop(submission_id: &str) -> Self {
+        Self {
+            activity_id: format!("{submission_id}:typing:stop"),
+            phase: "stop",
+            status_text: "",
+        }
+    }
+}
+
+enum ConnectorTypingDelivery {
+    Ineligible,
+    Eligible(Result<()>),
+}
+
+#[derive(Clone)]
+struct ConnectorTypingLogContext {
+    agent: String,
+    session_id: String,
+    submission_id: String,
+}
+
+async fn send_connector_typing_activity_best_effort<S, SFut>(
+    sender: &S,
+    context: &ConnectorTypingLogContext,
+    activity: ConnectorTypingActivity,
+) -> bool
+where
+    S: Fn(ConnectorTypingActivity) -> SFut,
+    SFut: Future<Output = Result<ConnectorTypingDelivery>>,
+{
+    let activity_id = activity.activity_id.clone();
+    let phase = activity.phase;
+    match sender(activity).await {
+        Ok(ConnectorTypingDelivery::Ineligible) => false,
+        Ok(ConnectorTypingDelivery::Eligible(Ok(()))) => true,
+        Ok(ConnectorTypingDelivery::Eligible(Err(error))) => {
+            tracing::warn!(
+                error = %error,
+                agent = %context.agent,
+                session = %context.session_id,
+                submission = %context.submission_id,
+                activity_id = %activity_id,
+                phase,
+                "failed to send connector typing activity"
+            );
+            // Once a session reaches the sender, an endpoint failure must not
+            // prevent later heartbeats or the final stop attempt.
+            true
+        }
+        Err(error) => {
+            tracing::warn!(
+                error = %error,
+                agent = %context.agent,
+                session = %context.session_id,
+                submission = %context.submission_id,
+                activity_id = %activity_id,
+                phase,
+                "failed to resolve connector typing activity routing"
+            );
+            false
+        }
+    }
+}
+
+async fn run_connector_typing_keepalive<S, SFut>(
+    cancellation: CancellationToken,
+    interval: Duration,
+    context: ConnectorTypingLogContext,
+    sender: S,
+) where
+    S: Fn(ConnectorTypingActivity) -> SFut + Send + Sync + 'static,
+    SFut: Future<Output = Result<ConnectorTypingDelivery>> + Send + 'static,
+{
+    let first_tick = tokio::time::Instant::now() + interval;
+    let mut ticks = tokio::time::interval_at(first_tick, interval);
+    ticks.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
+    loop {
+        tokio::select! {
+            biased;
+            _ = cancellation.cancelled() => break,
+            _ = ticks.tick() => {
+                let activity = ConnectorTypingActivity::active();
+                let send = send_connector_typing_activity_best_effort(
+                    &sender,
+                    &context,
+                    activity,
+                );
+                tokio::pin!(send);
+                let sent = tokio::select! {
+                    biased;
+                    _ = cancellation.cancelled() => break,
+                    sent = &mut send => sent
+                };
+                if !sent {
+                    break;
+                }
+            }
+        }
+    }
+}
+
+async fn with_connector_typing_keepalive<S, SFut, F, T>(
+    context: ConnectorTypingLogContext,
+    interval: Duration,
+    sender: S,
+    work: F,
+) -> T
+where
+    S: Fn(ConnectorTypingActivity) -> SFut + Clone + Send + Sync + 'static,
+    SFut: Future<Output = Result<ConnectorTypingDelivery>> + Send + 'static,
+    F: Future<Output = T>,
+{
+    let eligible = send_connector_typing_activity_best_effort(
+        &sender,
+        &context,
+        ConnectorTypingActivity::start(&context.submission_id),
+    )
+    .await;
+    if !eligible {
+        return work.await;
+    }
+
+    // This token scopes only the typing keepalive. It must never be shared
+    // with or derived from the agent execution cancellation token.
+    let keepalive_cancellation = CancellationToken::new();
+    let keepalive_task = tokio::spawn(run_connector_typing_keepalive(
+        keepalive_cancellation.clone(),
+        interval,
+        context.clone(),
+        sender.clone(),
+    ));
+
+    let outcome = AssertUnwindSafe(work).catch_unwind().await;
+
+    keepalive_cancellation.cancel();
+    if let Err(error) = keepalive_task.await {
+        tracing::warn!(
+            error = %error,
+            agent = %context.agent,
+            session = %context.session_id,
+            submission = %context.submission_id,
+            "connector typing keepalive task failed"
+        );
+    }
+
+    let _ = send_connector_typing_activity_best_effort(
+        &sender,
+        &context,
+        ConnectorTypingActivity::stop(&context.submission_id),
+    )
+    .await;
+
+    match outcome {
+        Ok(value) => value,
+        Err(panic) => resume_unwind(panic),
+    }
+}
 
 fn fanout_subscriber_grace() -> std::time::Duration {
     let millis = match std::env::var("TALON_WORKER_FANOUT_SUBSCRIBER_GRACE_MS") {
@@ -672,27 +858,35 @@ impl WorkerEventHandler {
             return Ok(());
         }
 
-        if let Err(err) = self
-            .maybe_send_connector_session_activity(
-                ns,
-                &event.agent,
-                &event.session_id,
-                &submission.submission_id,
-                "start",
-                "is thinking...",
-            )
-            .await
-        {
-            tracing::warn!(
-                error = %err,
-                agent = %event.agent,
-                session = %event.session_id,
-                submission = %submission.submission_id,
-                "failed to send connector typing start activity"
-            );
-        }
+        let typing_context = ConnectorTypingLogContext {
+            agent: event.agent.clone(),
+            session_id: event.session_id.clone(),
+            submission_id: submission.submission_id.clone(),
+        };
+        let activity_handler = self.clone();
+        let activity_ns = ns.to_string();
+        let activity_agent = event.agent.clone();
+        let activity_session_id = event.session_id.clone();
+        let activity_sender = move |activity: ConnectorTypingActivity| {
+            let handler = activity_handler.clone();
+            let ns = activity_ns.clone();
+            let agent = activity_agent.clone();
+            let session_id = activity_session_id.clone();
+            async move {
+                handler
+                    .maybe_send_connector_session_activity(
+                        &ns,
+                        &agent,
+                        &session_id,
+                        &activity.activity_id,
+                        activity.phase,
+                        activity.status_text,
+                    )
+                    .await
+            }
+        };
 
-        let outcome = async {
+        let execution = Box::pin(async {
             // Load the agent resource before deciding which runtime owns the
             // rest of the session execution.
             let store = crate::control::resources::ResourceStore::new(
@@ -875,7 +1069,13 @@ impl WorkerEventHandler {
             .instrument(tracing::info_span!("WorkerEventHandler.execute_session"))
             .await
             .map(|status| (status, sink.summary()))
-        }
+        });
+        let outcome = with_connector_typing_keepalive(
+            typing_context,
+            CONNECTOR_TYPING_KEEPALIVE_INTERVAL,
+            activity_sender,
+            execution,
+        )
         .await;
 
         self.session_cancellations.remove(&cancellation_key).await;
@@ -900,26 +1100,6 @@ impl WorkerEventHandler {
             "WorkerEventHandler.release_session_lock"
         ))
         .await;
-
-        if let Err(err) = self
-            .maybe_send_connector_session_activity(
-                ns,
-                &event.agent,
-                &event.session_id,
-                &submission.submission_id,
-                "stop",
-                "",
-            )
-            .await
-        {
-            tracing::warn!(
-                error = %err,
-                agent = %event.agent,
-                session = %event.session_id,
-                submission = %submission.submission_id,
-                "failed to send connector typing stop activity"
-            );
-        }
 
         if completion_status == SessionCompletionStatus::Completed {
             let is_delegated_task = self
@@ -1081,10 +1261,10 @@ impl WorkerEventHandler {
         ns: &str,
         agent: &str,
         session_id: &str,
-        submission_id: &str,
+        activity_id: &str,
         phase: &str,
         status_text: &str,
-    ) -> Result<()> {
+    ) -> Result<ConnectorTypingDelivery> {
         let session = self
             .cp
             .kv
@@ -1092,26 +1272,28 @@ impl WorkerEventHandler {
             .await?
             .ok_or_else(|| anyhow!("session not found"))?;
         if !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {
-            return Ok(());
+            return Ok(ConnectorTypingDelivery::Ineligible);
         }
         if session
             .labels
             .get(LABEL_MESSAGE_SOURCE)
             .is_some_and(|source| source != "connector")
         {
-            return Ok(());
+            return Ok(ConnectorTypingDelivery::Ineligible);
         }
         if session.labels.contains_key(LABEL_CHANNEL_TRIGGER) {
-            return Ok(());
+            return Ok(ConnectorTypingDelivery::Ineligible);
         }
-        connector_rpc::send_connector_session_activity(
-            &self.cp,
-            &session,
-            &format!("{submission_id}:typing:{phase}"),
-            phase,
-            status_text,
-        )
-        .await
+        Ok(ConnectorTypingDelivery::Eligible(
+            connector_rpc::send_connector_session_activity(
+                &self.cp,
+                &session,
+                activity_id,
+                phase,
+                status_text,
+            )
+            .await,
+        ))
     }
 
     async fn maybe_deliver_connector_session_reply(
@@ -1365,7 +1547,9 @@ fn next_recovered_part_id(next_projection_part_index: &mut usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        execute_with_panic_boundary, session_message_artifact_uris, SessionCompletionStatus,
+        execute_with_panic_boundary, session_message_artifact_uris,
+        with_connector_typing_keepalive, ConnectorTypingActivity, ConnectorTypingDelivery,
+        ConnectorTypingLogContext, SessionCompletionStatus,
     };
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::object_store::ObjectMetadata;
@@ -1384,17 +1568,50 @@ mod tests {
         WorkerEventHandler,
     };
     use async_trait::async_trait;
-    use axum::{extract::State, routing::post, Json, Router};
-    use futures::stream;
+    use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
+    use futures::{stream, FutureExt};
     use prost::Message;
     use serde_json::json;
     use serde_json::Value;
     use std::collections::HashMap;
+    use std::panic::AssertUnwindSafe;
     use std::pin::Pin;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
     use std::sync::Mutex;
+    use std::time::Duration;
     use tokio::net::TcpListener;
+    use tokio::sync::oneshot;
+    use tokio_util::sync::CancellationToken;
+
+    fn typing_test_context() -> ConnectorTypingLogContext {
+        ConnectorTypingLogContext {
+            agent: "assistant".to_string(),
+            session_id: "session-1".to_string(),
+            submission_id: "submission-1".to_string(),
+        }
+    }
+
+    fn recording_typing_sender(
+        activities: Arc<Mutex<Vec<ConnectorTypingActivity>>>,
+    ) -> impl Fn(
+        ConnectorTypingActivity,
+    ) -> std::future::Ready<anyhow::Result<ConnectorTypingDelivery>>
+           + Clone {
+        move |activity| {
+            activities.lock().unwrap().push(activity);
+            std::future::ready(Ok(ConnectorTypingDelivery::Eligible(Ok(()))))
+        }
+    }
+
+    fn typing_phases(activities: &Arc<Mutex<Vec<ConnectorTypingActivity>>>) -> Vec<&'static str> {
+        activities
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|activity| activity.phase)
+            .collect()
+    }
 
     struct CaptureErrorSink {
         errors: Mutex<Vec<String>>,
@@ -1946,6 +2163,202 @@ mod tests {
                 ..Config::default()
             },
         )
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn connector_typing_short_run_sends_start_then_stop() {
+        let activities = Arc::new(Mutex::new(Vec::new()));
+
+        let result = with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            recording_typing_sender(activities.clone()),
+            async { "completed" },
+        )
+        .await;
+
+        assert_eq!(result, "completed");
+        assert_eq!(typing_phases(&activities), vec!["start", "stop"]);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn connector_typing_ineligible_session_does_not_start_keepalive() {
+        let attempted_activities = Arc::new(Mutex::new(Vec::new()));
+        let sender = {
+            let attempted_activities = attempted_activities.clone();
+            move |activity: ConnectorTypingActivity| {
+                attempted_activities.lock().unwrap().push(activity);
+                std::future::ready(Ok(ConnectorTypingDelivery::Ineligible))
+            }
+        };
+        let (complete_tx, complete_rx) = oneshot::channel();
+        let task = tokio::spawn(with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            sender,
+            async move {
+                complete_rx.await.unwrap();
+                "completed"
+            },
+        ));
+
+        tokio::task::yield_now().await;
+        tokio::time::advance(Duration::from_secs(60)).await;
+        tokio::task::yield_now().await;
+        assert_eq!(typing_phases(&attempted_activities), vec!["start"]);
+
+        complete_tx.send(()).unwrap();
+        assert_eq!(task.await.unwrap(), "completed");
+        assert_eq!(typing_phases(&attempted_activities), vec!["start"]);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn connector_typing_long_run_sends_unique_actives_until_stop() {
+        let activities = Arc::new(Mutex::new(Vec::new()));
+        let (complete_tx, complete_rx) = oneshot::channel();
+        let task = tokio::spawn(with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            recording_typing_sender(activities.clone()),
+            async move {
+                complete_rx.await.unwrap();
+                "completed"
+            },
+        ));
+
+        tokio::task::yield_now().await;
+        assert_eq!(typing_phases(&activities), vec!["start"]);
+
+        tokio::time::advance(Duration::from_secs(19)).await;
+        tokio::task::yield_now().await;
+        assert_eq!(typing_phases(&activities), vec!["start"]);
+
+        tokio::time::advance(Duration::from_secs(1)).await;
+        tokio::task::yield_now().await;
+        assert_eq!(typing_phases(&activities), vec!["start", "active"]);
+
+        tokio::time::advance(Duration::from_secs(20)).await;
+        tokio::task::yield_now().await;
+        assert_eq!(
+            typing_phases(&activities),
+            vec!["start", "active", "active"]
+        );
+
+        let active_ids = activities
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|activity| activity.phase == "active")
+            .map(|activity| activity.activity_id.clone())
+            .collect::<Vec<_>>();
+        assert_eq!(active_ids.len(), 2);
+        assert_ne!(active_ids[0], active_ids[1]);
+        for activity_id in &active_ids {
+            uuid::Uuid::parse_str(activity_id).expect("active activity id should be a UUID");
+        }
+
+        complete_tx.send(()).unwrap();
+        assert_eq!(task.await.unwrap(), "completed");
+        assert_eq!(
+            typing_phases(&activities),
+            vec!["start", "active", "active", "stop"]
+        );
+
+        let activity_count_after_stop = activities.lock().unwrap().len();
+        tokio::time::advance(Duration::from_secs(60)).await;
+        tokio::task::yield_now().await;
+        assert_eq!(activities.lock().unwrap().len(), activity_count_after_stop);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn connector_typing_cleans_up_after_cancellation_error_and_panic() {
+        let cancelled_activities = Arc::new(Mutex::new(Vec::new()));
+        let work_cancellation = CancellationToken::new();
+        let cancel_work = work_cancellation.clone();
+        let cancelled_task = tokio::spawn(with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            recording_typing_sender(cancelled_activities.clone()),
+            async move {
+                work_cancellation.cancelled().await;
+                "cancelled"
+            },
+        ));
+        tokio::task::yield_now().await;
+        cancel_work.cancel();
+        assert_eq!(cancelled_task.await.unwrap(), "cancelled");
+        assert_eq!(typing_phases(&cancelled_activities), vec!["start", "stop"]);
+
+        let error_activities = Arc::new(Mutex::new(Vec::new()));
+        let error_result: anyhow::Result<()> = with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            recording_typing_sender(error_activities.clone()),
+            async { Err(anyhow::anyhow!("work failed")) },
+        )
+        .await;
+        assert!(error_result.is_err());
+        assert_eq!(typing_phases(&error_activities), vec!["start", "stop"]);
+
+        let waiting_activities = Arc::new(Mutex::new(Vec::new()));
+        let waiting_status = with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            recording_typing_sender(waiting_activities.clone()),
+            async { SessionCompletionStatus::Waiting },
+        )
+        .await;
+        assert_eq!(waiting_status, SessionCompletionStatus::Waiting);
+        assert_eq!(typing_phases(&waiting_activities), vec!["start", "stop"]);
+
+        let panic_activities = Arc::new(Mutex::new(Vec::new()));
+        let panic_result = AssertUnwindSafe(with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            recording_typing_sender(panic_activities.clone()),
+            async {
+                panic!("work panicked");
+            },
+        ))
+        .catch_unwind()
+        .await;
+        assert!(panic_result.is_err());
+        assert_eq!(typing_phases(&panic_activities), vec!["start", "stop"]);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn connector_typing_endpoint_failures_do_not_fail_session_work() {
+        let attempted_activities = Arc::new(Mutex::new(Vec::new()));
+        let sender = {
+            let attempted_activities = attempted_activities.clone();
+            move |activity: ConnectorTypingActivity| {
+                attempted_activities.lock().unwrap().push(activity);
+                std::future::ready(Ok(ConnectorTypingDelivery::Eligible(Err(anyhow::anyhow!(
+                    "activity endpoint unavailable"
+                )))))
+            }
+        };
+        let (complete_tx, complete_rx) = oneshot::channel();
+        let task = tokio::spawn(with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            sender,
+            async move {
+                complete_rx.await.unwrap();
+                "session completed"
+            },
+        ));
+
+        tokio::task::yield_now().await;
+        tokio::time::advance(Duration::from_secs(20)).await;
+        tokio::task::yield_now().await;
+        complete_tx.send(()).unwrap();
+
+        assert_eq!(task.await.unwrap(), "session completed");
+        assert_eq!(
+            typing_phases(&attempted_activities),
+            vec!["start", "active", "stop"]
+        );
     }
 
     #[tokio::test]
@@ -2549,7 +2962,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn handle_session_message_delivers_connector_error_reply() {
+    async fn handle_session_message_ignores_activity_failures_and_delivers_error_reply() {
         let kv = Arc::new(MockKvStore::default());
         let deliveries: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
         let app = Router::new()
@@ -2570,11 +2983,14 @@ mod tests {
             .route(
                 "/v1/activities",
                 post(|| async {
-                    Json(json!({
-                        "accepted": true,
-                        "disposition": "accepted",
-                        "error": ""
-                    }))
+                    (
+                        StatusCode::SERVICE_UNAVAILABLE,
+                        Json(json!({
+                            "accepted": false,
+                            "disposition": "unavailable",
+                            "error": "activity endpoint unavailable"
+                        })),
+                    )
                 }),
             )
             .with_state(deliveries.clone());
@@ -2927,6 +3343,52 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn connector_typing_activity_skips_non_connector_and_channel_triggered_sessions() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+
+        put_connector_session_and_assistant_message(
+            kv.clone(),
+            HashMap::new(),
+            HashMap::new(),
+            "non-connector reply",
+        )
+        .await;
+        let sent = handler
+            .maybe_send_connector_session_activity(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "non-connector-activity",
+                "active",
+                "is thinking...",
+            )
+            .await
+            .expect("non-connector activity should be skipped");
+        assert!(matches!(sent, ConnectorTypingDelivery::Ineligible));
+
+        put_connector_session_and_assistant_message(
+            kv,
+            connector_session_labels([("talon.impalasys.com/channel-trigger", "true")]),
+            HashMap::new(),
+            "channel-triggered reply",
+        )
+        .await;
+        let sent = handler
+            .maybe_send_connector_session_activity(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "channel-triggered-activity",
+                "active",
+                "is thinking...",
+            )
+            .await
+            .expect("channel-triggered activity should be skipped");
+        assert!(matches!(sent, ConnectorTypingDelivery::Ineligible));
+    }
+
+    #[tokio::test]
     async fn send_connector_session_activity_derives_request_from_connector() {
         let kv = Arc::new(MockKvStore::default());
         let activities: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
@@ -2986,6 +3448,7 @@ mod tests {
         let activities = activities.lock().unwrap().clone();
         assert_eq!(activities.len(), 1);
         let activity = &activities[0];
+        assert_eq!(activity["activityId"], "activity-1");
         assert_eq!(
             activity["registrationId"],
             "Namespace/conic%3Atest/ConnectorClass/slack"
