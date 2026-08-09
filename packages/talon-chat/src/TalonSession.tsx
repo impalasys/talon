@@ -8,6 +8,7 @@ import {
 } from "./lib/chatTimeline";
 import { ResourcePane } from "./lib/ResourcePane";
 import { type StreamEventItem } from "./lib/uiStream";
+import { streamSessionPartEvents as parseSessionPartEvents } from "./session/stream";
 import { SessionTranscript } from "./session/SessionTranscript";
 import { SessionComposerDock } from "./session/SessionComposerDock";
 import { useSessionAttachments } from "./session/hooks/useSessionAttachments";
@@ -147,6 +148,7 @@ export function TalonSession({
   const [loadingStartedAt, setLoadingStartedAt] = useState<string | number | null>(null);
   const error = sessionRuntimeState.error;
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
+  const [maintenanceNotice, setMaintenanceNotice] = useState<string | null>(null);
   const {
     state: toolResultHydration,
     resultFor: toolResultFor,
@@ -361,7 +363,48 @@ export function TalonSession({
     setLoadingStartedAt,
   });
 
-  const { commandMenuItems, resolvedCommands } = useSessionCommands({ clearSession, commands, enabledBuiltInCommands });
+  const compactSession = useCallback(async () => {
+    const session = currentSessionRef.current;
+    if (!session) throw new Error("Cannot compact a session that has not been created.");
+    if (!gatewayClient.sessions.compact) throw new Error("TalonSession requires a Talon clientset with sessions.compact().");
+    setMaintenanceNotice(null);
+    setError(null);
+    setIsLoading(true);
+    try {
+      // Maintenance parts include an internal compaction marker. Consume the
+      // stream for lifecycle/error handling but do not feed that marker into
+      // the chat timeline as a synthetic assistant message.
+      let compacted = false;
+      for await (const event of parseSessionPartEvents(gatewayClient.sessions.compact(session))) {
+        if (event.type === "stream-failed") throw event.error;
+        if (event.type === "stream-completed") break;
+        if (event.type === "assistant-part") {
+          const partType = event.part.partType ?? event.part.part_type;
+          compacted ||= partType === 13 || partType === "SESSION_MESSAGE_PART_TYPE_COMPACTION";
+        }
+      }
+      await refreshNewestSessionPage(session);
+      setMaintenanceNotice(compacted
+        ? "Session history compacted; provider continuation was reset."
+        : "History already minimal; provider continuation was reset.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentSessionRef, gatewayClient.sessions, refreshNewestSessionPage, setError, setIsLoading]);
+
+  const doctorSession = useCallback(async () => {
+    const session = currentSessionRef.current;
+    if (!session) throw new Error("Cannot diagnose a session that has not been created.");
+    if (!gatewayClient.sessions.doctor) throw new Error("TalonSession requires a Talon clientset with sessions.doctor().");
+    setMaintenanceNotice(null);
+    const result = await gatewayClient.sessions.doctor(session);
+    await refreshNewestSessionPage(session);
+    setMaintenanceNotice(result.providerContinuationReset
+      ? `Session doctor reset the saved provider continuation${result.incompleteToolBatches ? ` and found ${result.incompleteToolBatches} incomplete tool batch(es)` : ""}.`
+      : "Session doctor found no saved provider continuation to reset.");
+  }, [currentSessionRef, gatewayClient.sessions, refreshNewestSessionPage]);
+
+  const { commandMenuItems, resolvedCommands } = useSessionCommands({ clearSession, compactSession, doctorSession, commands, enabledBuiltInCommands });
   const attachmentAccept = resolvedAcceptedAttachmentTypes.join(",");
   const { submitMessage } = useSessionActions({
     client: gatewayClient.sessions,
@@ -449,6 +492,7 @@ export function TalonSession({
             incident={sessionState === "ERROR" && !error
               ? "This session previously encountered an error. You can continue, but any unavailable historical output will be marked in the transcript."
               : null}
+            notice={maintenanceNotice}
             scrollThumb={scrollThumb}
             transcriptRef={scrollContainerRef}
             bottomRef={bottomRef}
