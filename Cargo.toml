@@ -36,6 +36,10 @@ hyper-util = { version = "0.1", features = ["tokio", "server-auto", "server-grac
 opentelemetry = "0.32"
 opentelemetry-otlp = { version = "0.32", default-features = false, features = ["grpc-tonic", "trace"] }
 opentelemetry_sdk = "0.32"
+# Keep OpenSSL hermetic for Bazel remote execution. Several transitive TLS
+# clients use openssl-sys, and its vendored feature removes the need for a
+# system OpenSSL development package or pkg-config.
+openssl-sys = { version = "0.9.116", features = ["vendored"] }
 pprof = { version = "0.15", features = ["flamegraph"], optional = true }
 tikv-jemallocator = { version = "0.7", optional = true }
 tikv-jemalloc-ctl = { version = "0.7", optional = true }
