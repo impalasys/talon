@@ -98,8 +98,9 @@ provider context window. When `maxOutputTokens` is present, compaction reserves
 that many tokens for generation and uses the remainder as the history limit.
 `longContextTokens` is an input-token pricing threshold. When it is set, the
 corresponding `longContext*CostPerMillionTokens` fields describe the rates that
-apply once a request exceeds that threshold; it does not change compaction or
-the model's physical context window.
+apply once a request exceeds that threshold. It does not change the model's
+physical context window, but compaction uses the lower of that threshold and
+the model's normal input budget to avoid crossing the higher pricing tier.
 
 ```yaml
 models:

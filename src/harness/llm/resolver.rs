@@ -43,6 +43,7 @@ pub fn model_context_limits(config: &Config, provider: &str, model: &str) -> Mod
         .map(|model| ModelContextLimits {
             context_window_tokens: model.context_window_tokens,
             max_output_tokens: model.max_output_tokens,
+            long_context_tokens: model.long_context_tokens,
         })
         .unwrap_or_default()
 }
@@ -375,6 +376,7 @@ mod tests {
                 provider: "openai".to_string(),
                 context_window_tokens: Some(16_000),
                 max_output_tokens: Some(2_000),
+                long_context_tokens: Some(8_000),
                 ..Default::default()
             },
         );
@@ -384,6 +386,7 @@ mod tests {
             crate::harness::executor::ModelContextLimits {
                 context_window_tokens: Some(16_000),
                 max_output_tokens: Some(2_000),
+                long_context_tokens: Some(8_000),
             }
         );
     }

@@ -237,7 +237,8 @@ func (x *TalonConfig) GetModels() map[string]*ModelConfig {
 // USD per one million tokens. The context window includes generated output;
 // compaction reserves max_output_tokens from it when both are configured.
 // long_context_tokens is the input-token threshold above which the optional
-// long-context cost fields replace their corresponding standard cost fields.
+// long-context cost fields replace their corresponding standard cost fields;
+// compaction also uses it as an operational input ceiling.
 type ModelConfig struct {
 	state                                     protoimpl.MessageState `protogen:"open.v1"`
 	Provider                                  string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
