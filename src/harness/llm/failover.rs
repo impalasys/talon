@@ -166,6 +166,7 @@ mod tests {
                 messages: vec![],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -253,6 +254,7 @@ mod tests {
                 messages: vec![],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -264,6 +266,7 @@ mod tests {
                 messages: vec![],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();

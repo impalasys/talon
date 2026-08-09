@@ -645,7 +645,7 @@ pub async fn enqueue_message_without_dispatch(
     message: &str,
     labels: HashMap<String, String>,
     now: DateTime<Utc>,
-) -> Result<events::SessionMessageEvent> {
+) -> Result<events::SessionDispatchEvent> {
     if message.trim().is_empty() {
         return Err(EmptyMessageError.into());
     }
@@ -677,7 +677,7 @@ pub async fn enqueue_session_message_without_dispatch(
     session_id: &str,
     mut user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
-) -> Result<events::SessionMessageEvent> {
+) -> Result<events::SessionDispatchEvent> {
     if user_msg.parts.is_empty() {
         return Err(EmptyMessageError.into());
     }
@@ -734,7 +734,7 @@ pub async fn enqueue_session_message_without_dispatch(
     crate::harness::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission)
         .await?;
 
-    Ok(events::SessionMessageEvent {
+    Ok(events::SessionDispatchEvent {
         session_id: session_id.to_string(),
         message_id: message_id.clone(),
         direction: events::MessageDirection::Inbound as i32,
@@ -743,6 +743,7 @@ pub async fn enqueue_session_message_without_dispatch(
         message: session_message_text_projection(&user_msg),
         ns: ns.to_string(),
         submission_id,
+        kind: events::SessionDispatchKind::Message as i32,
     })
 }
 
@@ -867,7 +868,7 @@ pub async fn send_session_message(
     }
 
     let message_text = session_message_text_projection(&user_msg);
-    let message_event = events::SessionMessageEvent {
+    let message_event = events::SessionDispatchEvent {
         session_id: session_id.to_string(),
         message_id: message_id.clone(),
         direction: events::MessageDirection::Inbound as i32,
@@ -876,6 +877,7 @@ pub async fn send_session_message(
         message: message_text,
         ns: ns.to_string(),
         submission_id: submission_id.clone(),
+        kind: events::SessionDispatchKind::Message as i32,
     };
     if let Err(err) = pubsub
         .publish(
@@ -898,6 +900,100 @@ pub async fn send_session_message(
         message_id = %message_id,
         "Queued scheduled message for session dispatch"
     );
+    Ok(submission_id)
+}
+
+/// Queue a maintenance compaction without creating a synthetic user message.
+/// The distinct event/submission kind keeps this operation out of replayed
+/// model context while retaining the ordinary lease and fanout lifecycle.
+pub async fn compact_session(
+    kv: &dyn KeyValueStore,
+    pubsub: &dyn MessagePublisher,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    now: DateTime<Utc>,
+) -> Result<String> {
+    let key = keys::session(ns, agent, session_id);
+    let now_micros = now.timestamp_micros();
+    let timeout_micros = session_processing_timeout_micros();
+    let mut acquired = false;
+    for _ in 0..MAX_CAS_RETRIES {
+        let current = kv.get(&key).await?;
+        let Some(current_bytes) = current.as_ref() else {
+            return Err(SessionNotFoundError.into());
+        };
+        let mut session = data_proto::Session::decode(current_bytes.as_slice())?;
+        if session.status == "PROCESSING"
+            && now_micros.saturating_sub(session.last_active) <= timeout_micros
+        {
+            return Err(SessionCurrentlyProcessingError.into());
+        }
+        session.status = "PROCESSING".to_string();
+        session.last_active = now_micros;
+        if kv
+            .compare_and_swap(
+                &key,
+                Some(current_bytes.as_slice()),
+                &session.encode_to_vec(),
+            )
+            .await?
+        {
+            acquired = true;
+            break;
+        }
+    }
+    if !acquired {
+        return Err(anyhow!("failed to atomically acquire session lock"));
+    }
+
+    let submission_id = crate::control::uuid::session_submission_id();
+    let submission = crate::harness::sessions::pending_compaction_submission(
+        submission_id.clone(),
+        session_id.to_string(),
+        now_micros,
+    );
+    if let Err(err) = crate::harness::sessions::create_submission_if_absent(
+        kv,
+        ns,
+        agent,
+        session_id,
+        &submission,
+    )
+    .await
+    {
+        log_session_release_failure(
+            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
+            ns,
+            &key,
+        );
+        return Err(err);
+    }
+    let event = events::SessionDispatchEvent {
+        session_id: session_id.to_string(),
+        message_id: String::new(),
+        direction: events::MessageDirection::Inbound as i32,
+        timestamp: now_micros,
+        agent: agent.to_string(),
+        message: String::new(),
+        ns: ns.to_string(),
+        submission_id: submission_id.clone(),
+        kind: events::SessionDispatchKind::Compact as i32,
+    };
+    if let Err(err) = pubsub
+        .publish(
+            crate::control::topics::SESSION_DISPATCH_TOPIC,
+            &event.encode_to_vec(),
+        )
+        .await
+    {
+        log_session_release_failure(
+            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
+            ns,
+            &key,
+        );
+        return Err(err);
+    }
     Ok(submission_id)
 }
 
@@ -1422,7 +1518,7 @@ mod tests {
             .zip(messages.iter())
             .find_map(|(topic, message)| {
                 (topic == crate::control::topics::SESSION_DISPATCH_TOPIC)
-                    .then(|| events::SessionMessageEvent::decode(message.as_slice()).ok())
+                    .then(|| events::SessionDispatchEvent::decode(message.as_slice()).ok())
                     .flatten()
             })
             .expect("session dispatch event should be published");
@@ -1828,6 +1924,65 @@ mod tests {
             .unwrap()
             .expect("session should still exist");
         assert_eq!(updated.status, "IDLE");
+    }
+
+    #[tokio::test]
+    async fn compact_session_queues_maintenance_submission_without_user_message() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(MockPubSub::default());
+        let session = data_proto::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "IDLE".to_string(),
+            created_at: 0,
+            last_active: 0,
+            metadata: HashMap::new(),
+            labels: HashMap::new(),
+            context_tokens: None,
+        };
+        kv.set_msg(
+            &keys::session("conic:test", "assistant", "session-1"),
+            &session,
+        )
+        .await
+        .unwrap();
+        let now = DateTime::parse_from_rfc3339("2026-05-02T12:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+
+        let submission_id = compact_session(
+            kv.as_ref(),
+            pubsub.as_ref(),
+            "conic:test",
+            "assistant",
+            "session-1",
+            now,
+        )
+        .await
+        .unwrap();
+
+        let messages = pubsub.messages.lock().await;
+        assert_eq!(messages.len(), 1);
+        let event = events::SessionDispatchEvent::decode(messages[0].as_slice()).unwrap();
+        assert_eq!(event.kind, events::SessionDispatchKind::Compact as i32);
+        assert!(event.message_id.is_empty());
+        assert!(event.message.is_empty());
+        let submission = kv
+            .get_msg::<crate::harness::sessions::SessionSubmission>(&keys::session_submission(
+                "conic:test",
+                "assistant",
+                "session-1",
+                &submission_id,
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            submission.kind,
+            data_proto::SessionSubmissionKind::Compact as i32
+        );
+        assert!(submission.user_message_id.is_empty());
     }
 
     #[test]

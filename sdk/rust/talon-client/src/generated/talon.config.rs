@@ -162,6 +162,8 @@ pub struct OpenAiConfig {
     pub api_key: ::core::option::Option<Secret>,
     #[prost(string, tag = "3")]
     pub org_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub api: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AnthropicConfig {

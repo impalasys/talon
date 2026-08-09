@@ -444,11 +444,12 @@ async fn tool_result_message_from_part(
         .unwrap_or_else(|| part.content.clone());
     let output = if let Some(object) = part.object.as_ref() {
         let mut object_ref = object.clone();
+        let Some(metadata) = objects.head(&object_ref.key).await? else {
+            let mut message = LoopMessage::text("tool", unavailable_historical_tool_output());
+            message.tool_call_id = Some(tool_call_id.to_string());
+            return Ok(Some(message));
+        };
         if object_ref.media_type.trim().is_empty() {
-            let metadata = objects
-                .head(&object_ref.key)
-                .await?
-                .ok_or_else(|| anyhow!("tool result object '{}' is missing", object_ref.key))?;
             object_ref = object_ref_from_metadata(&object_ref.key, &metadata);
         }
         let mut media_type = object_ref.media_type.trim().to_string();
@@ -503,10 +504,11 @@ async fn tool_result_message_from_part(
             message.tool_call_id = Some(tool_call_id.to_string());
             return Ok(Some(message));
         }
-        let stored = objects
-            .get(&object.key)
-            .await?
-            .ok_or_else(|| anyhow!("tool result object '{}' is missing", object.key))?;
+        let Some(stored) = objects.get(&object.key).await? else {
+            let mut message = LoopMessage::text("tool", unavailable_historical_tool_output());
+            message.tool_call_id = Some(tool_call_id.to_string());
+            return Ok(Some(message));
+        };
         let bytes = decode_stored_object_bytes(&stored, &object.key)?;
         let output = String::from_utf8_lossy(&bytes).into_owned();
         let mut message = LoopMessage::text("tool", output);
@@ -522,29 +524,31 @@ async fn tool_result_message_from_part(
 
 /// Converts text objects in a persisted typed tool result back into text before
 /// the result is replayed into model context. Non-text objects remain references
-/// so provider adapters can hydrate them in their native representation.
+/// so provider adapters can hydrate them in their native representation. A
+/// missing historical object is represented explicitly so one deleted File
+/// revision cannot prevent the entire session from replaying.
 async fn materialize_tool_output_content_parts(
     parts: Vec<ChatContentPart>,
     objects: &(dyn ObjectStore + Send + Sync),
 ) -> Result<Vec<ChatContentPart>> {
     let mut materialized = Vec::with_capacity(parts.len());
-    for part in parts {
-        let Some(mut object_ref) = content_part_object_ref(&part).cloned() else {
-            materialized.push(part);
+    for content_part in parts {
+        let Some(mut object_ref) = content_part_object_ref(&content_part).cloned() else {
+            materialized.push(content_part);
+            continue;
+        };
+        let Some(metadata) = objects.head(&object_ref.key).await? else {
+            materialized.push(text_part(unavailable_historical_tool_output()));
             continue;
         };
         if object_ref.media_type.trim().is_empty() {
-            let metadata = objects
-                .head(&object_ref.key)
-                .await?
-                .ok_or_else(|| anyhow!("tool result object '{}' is missing", object_ref.key))?;
             object_ref = object_ref_from_metadata(&object_ref.key, &metadata);
         }
         if tool_output::is_text_object_media_type(&object_ref.media_type) {
-            let stored = objects
-                .get(&object_ref.key)
-                .await?
-                .ok_or_else(|| anyhow!("tool result object '{}' is missing", object_ref.key))?;
+            let Some(stored) = objects.get(&object_ref.key).await? else {
+                materialized.push(text_part(unavailable_historical_tool_output()));
+                continue;
+            };
             let bytes = decode_stored_object_bytes(&stored, &object_ref.key)?;
             materialized.push(text_part(String::from_utf8_lossy(&bytes).into_owned()));
         } else {
@@ -552,6 +556,11 @@ async fn materialize_tool_output_content_parts(
         }
     }
     Ok(materialized)
+}
+
+fn unavailable_historical_tool_output() -> String {
+    "[Historical tool output is unavailable. Do not assume it reflects the current state.]"
+        .to_string()
 }
 
 #[cfg(test)]
@@ -705,6 +714,71 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn load_replays_after_a_replaced_file_object_is_missing() {
+        let kv = MockKvStore::new();
+        let objects = InMemoryObjectStore::default();
+        let old_file_object = objects
+            .put(
+                "cas/Tenant%3Aacme/files/schedule-italki/old-version",
+                b"# Previous iTalki booking instructions",
+                ObjectMetadata {
+                    media_type: "text/markdown".to_string(),
+                    filename: "schedule-italki-lesson.md".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let output = ToolOutput::from_content_parts(
+            vec![object_ref_part(old_file_object.clone())],
+            "[Object: schedule-italki-lesson.md]",
+        );
+        let assistant = data_proto::SessionMessage {
+            id: "assistant-1".to_string(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: 0,
+            labels: HashMap::new(),
+            parts: vec![
+                tool_call_part(
+                    "read-file-1",
+                    "read_file",
+                    serde_json::json!({ "path": "/skills/schedule-italki-lesson.md" }),
+                ),
+                data_proto::SessionMessagePart {
+                    id: "result-read-file-1".to_string(),
+                    part_type: data_proto::SessionMessagePartType::ToolResult as i32,
+                    content: String::new(),
+                    name: "read_file".to_string(),
+                    payload_json: tool_output::tool_result_payload_json("read-file-1", &output)
+                        .unwrap(),
+                    created_at: 0,
+                    object: Some(old_file_object.clone()),
+                },
+                session_text_part("assistant-text", "I found the booking instructions."),
+            ],
+        };
+        kv.set(
+            &crate::control::keys::session_message("ns", "agent", "session", &assistant.id),
+            &assistant.encode_to_vec(),
+        )
+        .await
+        .unwrap();
+
+        // File updates replace the live object and remove this old revision today.
+        objects.delete(&old_file_object.key).await.unwrap();
+
+        let loaded = load(&kv, &objects, "ns", "agent", "session").await.unwrap();
+
+        assert!(loaded.messages.iter().any(|message|
+            message.text_content() == "[Historical tool output is unavailable. Do not assume it reflects the current state.]"
+        ));
+        assert!(loaded
+            .messages
+            .iter()
+            .any(|message| message.text_content() == "I found the booking instructions."));
+    }
+
     fn assistant_message(parts: Vec<data_proto::SessionMessagePart>) -> data_proto::SessionMessage {
         data_proto::SessionMessage {
             id: "assistant-1".to_string(),
@@ -802,15 +876,19 @@ mod tests {
     #[tokio::test]
     async fn tool_result_message_replays_typed_tool_output_content_parts() {
         let store = InMemoryObjectStore::default();
-        let object = data_proto::ObjectRef {
-            key: "cas/image.png".to_string(),
-            media_type: "image/png".to_string(),
-            size_bytes: 12,
-            sha256: "abc123".to_string(),
-            filename: "image.png".to_string(),
-            metadata: HashMap::new(),
-            content_encoding: String::new(),
-        };
+        let object = store
+            .put(
+                "cas/image.png",
+                b"image-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    size_bytes: 11,
+                    filename: "image.png".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
         let output = ToolOutput::from_content_parts(
             vec![text_part("caption"), object_ref_part(object.clone())],
             "caption",
@@ -1030,7 +1108,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tool_result_message_errors_when_object_is_missing() {
+    async fn tool_result_message_marks_missing_legacy_object_output_as_unavailable() {
         let store = InMemoryObjectStore::default();
         let mut part = tool_result_part(
             String::new(),
@@ -1045,11 +1123,45 @@ mod tests {
             ..Default::default()
         });
 
-        let err = tool_result_message_from_part(&part, &store)
+        let message = tool_result_message_from_part(&part, &store)
             .await
-            .unwrap_err();
+            .unwrap()
+            .unwrap();
 
-        assert!(err.to_string().contains("missing"));
+        assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
+        assert_eq!(
+            message.text_content(),
+            "[Historical tool output is unavailable. Do not assume it reflects the current state.]"
+        );
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_marks_missing_typed_object_output_as_unavailable() {
+        let store = InMemoryObjectStore::default();
+        let output = ToolOutput::from_content_parts(
+            vec![object_ref_part(data_proto::ObjectRef {
+                key: "cas/Tenant%3Aacme/files/italki/old-version".to_string(),
+                media_type: "text/markdown".to_string(),
+                filename: "schedule-italki-lesson.md".to_string(),
+                ..Default::default()
+            })],
+            "[Object: schedule-italki-lesson.md]",
+        );
+        let part = tool_result_part(
+            String::new(),
+            tool_output::tool_result_payload_json("read-file-1", &output).unwrap(),
+        );
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.tool_call_id.as_deref(), Some("read-file-1"));
+        assert_eq!(
+            message.text_content(),
+            "[Historical tool output is unavailable. Do not assume it reflects the current state.]"
+        );
     }
 
     #[tokio::test]

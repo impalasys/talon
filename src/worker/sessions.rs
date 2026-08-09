@@ -13,10 +13,11 @@ use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
 use crate::control::cas::{decode_stored_object_bytes, CasStore};
 use crate::control::tool_output::{self, ToolOutputExt};
-use crate::control::{events::SessionMessageEvent, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{events::SessionDispatchEvent, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
-    self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionStatus,
+    self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionKind,
+    SessionSubmissionStatus,
 };
 use crate::harness::executor::{tool_output_loop_message, ExecutionSink, LoopMessage};
 use crate::harness::llm::ToolOutput;
@@ -438,7 +439,7 @@ impl WorkerEventHandler {
             message_chars = event.message.len(),
         )
     )]
-    pub async fn handle_session_message(&self, event: SessionMessageEvent) -> Result<()> {
+    pub async fn handle_session_message(&self, event: SessionDispatchEvent) -> Result<()> {
         tracing::info!(
             agent = %event.agent,
             session = %event.session_id,
@@ -793,6 +794,20 @@ impl WorkerEventHandler {
                     return Ok((SessionCompletionStatus::Errored, sink.summary()));
                 }
             };
+
+            if submission.kind == SessionSubmissionKind::Compact as i32 {
+                runtime
+                    .executor
+                    .force_compact_context(&mut runtime.context, &sink)
+                    .await?;
+                // A successful compaction summary is a new canonical history,
+                // so the old provider-side continuation is no longer valid.
+                // A no-op compaction is also the explicit escape hatch for a
+                // stale continuation in an otherwise minimal transcript.
+                sink.clear_provider_continuation().await?;
+                sink.on_done().await;
+                return Ok((SessionCompletionStatus::Completed, sink.summary()));
+            }
 
             // Hydrate the runtime context from the stable journal and execute
             // any missing tool results before returning to the LLM loop.
@@ -1356,7 +1371,7 @@ mod tests {
     use crate::control::object_store::ObjectMetadata;
     use crate::control::tool_output::ToolOutputExt;
     use crate::control::{
-        events::{MessageDirection, SessionMessageEvent},
+        events::{MessageDirection, SessionDispatchEvent},
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::connectors::session_message_final_response;
@@ -2401,6 +2416,7 @@ mod tests {
                                 model: "gpt-test".to_string(),
                                 api_key: None,
                                 org_id: String::new(),
+                                api: "chat_completions".to_string(),
                             },
                         )),
                     },
@@ -2463,7 +2479,7 @@ mod tests {
         .await
         .unwrap();
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -2472,6 +2488,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .expect("runtime build errors should be persisted and acked");
@@ -2578,6 +2595,7 @@ mod tests {
                                 model: "gpt-test".to_string(),
                                 api_key: None,
                                 org_id: String::new(),
+                                api: "chat_completions".to_string(),
                             },
                         )),
                     },
@@ -2683,7 +2701,7 @@ mod tests {
         .unwrap();
 
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -2692,6 +2710,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .expect("runtime build errors should be persisted, delivered, and acked");
@@ -3447,7 +3466,7 @@ mod tests {
         .unwrap();
 
         let result = handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -3456,6 +3475,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await;
         assert!(result.is_err());
@@ -3564,7 +3584,7 @@ mod tests {
         .unwrap();
 
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -3573,6 +3593,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .unwrap();
@@ -3691,7 +3712,7 @@ mod tests {
             .await
             .unwrap();
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -3700,6 +3721,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .unwrap();
@@ -3786,7 +3808,7 @@ mod tests {
         .await
         .unwrap();
 
-        let event = SessionMessageEvent {
+        let event = SessionDispatchEvent {
             ns: "conic:test".to_string(),
             agent: "assistant".to_string(),
             session_id: "session-1".to_string(),
@@ -3795,6 +3817,7 @@ mod tests {
             direction: MessageDirection::Inbound as i32,
             message: "hello".to_string(),
             timestamp: 123,
+            kind: Default::default(),
         };
         handler.handle_session_message(event.clone()).await.unwrap();
         assert_eq!(call_count.load(Ordering::SeqCst), 1);
@@ -3918,7 +3941,7 @@ mod tests {
         .unwrap();
 
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 ns: "conic:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
@@ -3927,6 +3950,7 @@ mod tests {
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
                 timestamp: 123,
+                kind: Default::default(),
             })
             .await
             .unwrap();

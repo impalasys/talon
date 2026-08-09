@@ -2485,7 +2485,7 @@ mod tests {
     use super::*;
     use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
-        events::{MessageDirection, SessionMessageEvent, WorkflowDispatchEvent},
+        events::{MessageDirection, SessionDispatchEvent, WorkflowDispatchEvent},
         scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend},
         ProtoKeyValueStoreExt,
     };
@@ -2676,13 +2676,16 @@ mod tests {
         .expect("step should exist")
     }
 
-    async fn latest_session_dispatch(pubsub: &RecordingPubSub, agent: &str) -> SessionMessageEvent {
+    async fn latest_session_dispatch(
+        pubsub: &RecordingPubSub,
+        agent: &str,
+    ) -> SessionDispatchEvent {
         let published = pubsub.published.lock().await;
         published
             .iter()
             .rev()
             .filter(|(topic, _)| topic == topics::SESSION_DISPATCH_TOPIC)
-            .filter_map(|(_, bytes)| SessionMessageEvent::decode(bytes.as_slice()).ok())
+            .filter_map(|(_, bytes)| SessionDispatchEvent::decode(bytes.as_slice()).ok())
             .find(|event| event.agent == agent)
             .expect("session dispatch should be published")
     }
@@ -2959,7 +2962,7 @@ spec:
             .expect("skip run should start filter");
         let filter_dispatch = latest_session_dispatch(&pubsub, "filter-agent").await;
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 direction: MessageDirection::Inbound as i32,
                 ..filter_dispatch
             })
@@ -3002,7 +3005,7 @@ spec:
             .expect("lorem run should start filter");
         let filter_dispatch = latest_session_dispatch(&pubsub, "filter-agent").await;
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 direction: MessageDirection::Inbound as i32,
                 ..filter_dispatch
             })
@@ -3020,7 +3023,7 @@ spec:
         );
         let generator_dispatch = latest_session_dispatch(&pubsub, "lorem-generator").await;
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 direction: MessageDirection::Inbound as i32,
                 ..generator_dispatch
             })
@@ -4023,7 +4026,7 @@ spec:
 
         let child_event = latest_session_dispatch(&pubsub, "campaign-writer").await;
         handler
-            .handle_session_message(SessionMessageEvent {
+            .handle_session_message(SessionDispatchEvent {
                 direction: MessageDirection::Inbound as i32,
                 ..child_event
             })

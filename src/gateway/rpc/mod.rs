@@ -290,6 +290,7 @@ impl proto::session_service_server::SessionService for GrpcGatewayHandler {
     type StreamPartsStream = SessionPartsStream;
     type StreamPartsBatchStream = SessionPartsStream;
     type SubmitTurnStream = SessionPartsStream;
+    type CompactStream = SessionPartsStream;
 
     async fn create(
         &self,
@@ -313,6 +314,14 @@ impl proto::session_service_server::SessionService for GrpcGatewayHandler {
         self.handle_list_session_messages(req).await
     }
 
+    async fn list_queued_messages(
+        &self,
+        req: tonic::Request<proto::ListQueuedSessionMessagesRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListQueuedSessionMessagesResponse>, tonic::Status>
+    {
+        self.handle_list_queued_session_messages(req).await
+    }
+
     async fn list(
         &self,
         req: tonic::Request<proto::ListSessionsRequest>,
@@ -332,6 +341,20 @@ impl proto::session_service_server::SessionService for GrpcGatewayHandler {
         req: tonic::Request<proto::ClearSessionRequest>,
     ) -> std::result::Result<tonic::Response<proto::ClearSessionResponse>, tonic::Status> {
         self.handle_clear_session(req).await
+    }
+
+    async fn compact(
+        &self,
+        req: tonic::Request<proto::CompactSessionRequest>,
+    ) -> std::result::Result<tonic::Response<Self::CompactStream>, tonic::Status> {
+        self.handle_compact_session(req).await
+    }
+
+    async fn doctor(
+        &self,
+        req: tonic::Request<proto::DoctorSessionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::DoctorSessionResponse>, tonic::Status> {
+        self.handle_doctor_session(req).await
     }
 
     async fn send_message(

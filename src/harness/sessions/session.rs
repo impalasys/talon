@@ -41,12 +41,164 @@ pub async fn persist_context_tokens(
     ))
 }
 
+pub async fn clear_provider_request_id(
+    kv: &dyn KeyValueStore,
+    claim: &SubmissionLease,
+) -> Result<()> {
+    let key = keys::session(&claim.ns, &claim.agent, &claim.session_id);
+    for _ in 0..8 {
+        let Some(current) = kv.get(&key).await? else {
+            return Err(anyhow!(
+                "session not found while clearing provider response id"
+            ));
+        };
+        let mut session = data_proto::Session::decode(current.as_slice())?;
+        let Some(mut counter) = session.context_tokens.clone() else {
+            return Ok(());
+        };
+        if counter.provider_request_id.is_none() {
+            return Ok(());
+        }
+        counter.provider_request_id = None;
+        session.context_tokens = Some(counter);
+        submission::ensure_submission_attempt_current(
+            kv,
+            &claim.ns,
+            &claim.agent,
+            &claim.session_id,
+            &claim.submission_id,
+            &claim.attempt_id,
+        )
+        .await?;
+        if kv
+            .compare_and_swap(&key, Some(current.as_slice()), &session.encode_to_vec())
+            .await?
+        {
+            return Ok(());
+        }
+    }
+    Err(anyhow!(
+        "failed to clear provider response id after CAS retries"
+    ))
+}
+
+/// Clear only the server-side continuation pointer for an idle session. This
+/// intentionally preserves token counters and canonical history so a future
+/// request safely replays local context instead of resuming remote state.
+pub async fn reset_provider_request_id_if_idle(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+) -> Result<bool> {
+    let key = keys::session(ns, agent, session_id);
+    for _ in 0..8 {
+        let Some(current) = kv.get(&key).await? else {
+            return Err(anyhow!(
+                "session not found while resetting provider response id"
+            ));
+        };
+        let mut session = data_proto::Session::decode(current.as_slice())?;
+        if session.status == "PROCESSING" {
+            return Err(anyhow!("session is currently generating a response"));
+        }
+        let Some(mut counter) = session.context_tokens.clone() else {
+            return Ok(false);
+        };
+        if counter.provider_request_id.is_none() {
+            return Ok(false);
+        }
+        counter.provider_request_id = None;
+        session.context_tokens = Some(counter);
+        if kv
+            .compare_and_swap(&key, Some(current.as_slice()), &session.encode_to_vec())
+            .await?
+        {
+            return Ok(true);
+        }
+    }
+    Err(anyhow!(
+        "failed to reset provider response id after CAS retries"
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::test_support::MockKvStore;
     use std::sync::Arc;
+
+    #[tokio::test]
+    async fn reset_provider_request_id_for_idle_session_preserves_usage() {
+        let kv = Arc::new(MockKvStore::default());
+        let key = keys::session("ns", "agent", "session");
+        kv.set_msg(
+            &key,
+            &data_proto::Session {
+                id: "session".to_string(),
+                agent: "agent".to_string(),
+                ns: "ns".to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: Default::default(),
+                labels: Default::default(),
+                context_tokens: Some(TokenCounter {
+                    input_tokens: 42,
+                    output_tokens: 7,
+                    total_tokens: 49,
+                    usage_available: true,
+                    provider_request_id: Some("resp-stale".to_string()),
+                    provider: "openai".to_string(),
+                    model: "gpt-test".to_string(),
+                    ..Default::default()
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        assert!(
+            reset_provider_request_id_if_idle(kv.as_ref(), "ns", "agent", "session")
+                .await
+                .unwrap()
+        );
+        let session = kv
+            .get_msg::<data_proto::Session>(&key)
+            .await
+            .unwrap()
+            .unwrap();
+        let usage = session.context_tokens.unwrap();
+        assert_eq!(usage.input_tokens, 42);
+        assert!(usage.provider_request_id.is_none());
+    }
+
+    #[tokio::test]
+    async fn reset_provider_request_id_rejects_processing_session() {
+        let kv = Arc::new(MockKvStore::default());
+        let key = keys::session("ns", "agent", "session");
+        kv.set_msg(
+            &key,
+            &data_proto::Session {
+                id: "session".to_string(),
+                agent: "agent".to_string(),
+                ns: "ns".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: Default::default(),
+                labels: Default::default(),
+                context_tokens: None,
+            },
+        )
+        .await
+        .unwrap();
+        let err = reset_provider_request_id_if_idle(kv.as_ref(), "ns", "agent", "session")
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("currently generating"));
+    }
 
     #[tokio::test]
     async fn persists_latest_context_tokens_without_replacing_session_fields() {
@@ -76,6 +228,7 @@ mod tests {
         let counter = TokenCounter {
             input_tokens: 10,
             cached_input_tokens: 2,
+            cache_write_tokens: 1,
             output_tokens: 3,
             reasoning_output_tokens: 1,
             total_tokens: 14,
@@ -118,5 +271,20 @@ mod tests {
         assert_eq!(stored.status, "PROCESSING");
         assert_eq!(stored.metadata.get("source"), Some(&"test".to_string()));
         assert_eq!(stored.labels.get("label"), Some(&"value".to_string()));
+
+        clear_provider_request_id(kv.as_ref(), &claim)
+            .await
+            .unwrap();
+        let cleared = kv
+            .get_msg::<data_proto::Session>(&key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            cleared
+                .context_tokens
+                .and_then(|counter| counter.provider_request_id),
+            None
+        );
     }
 }

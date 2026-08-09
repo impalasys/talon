@@ -4,8 +4,8 @@ import type { TalonClient } from "@impalasys/talon-client";
 export type GatewayClientLike = {
   sessions: Pick<
     TalonClient["sessions"],
-    "create" | "clear" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
-  > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage">>;
+    "create" | "clear" | "compact" | "doctor" | "listMessages" | "submitTurn" | "streamParts" | "stopGeneration"
+  > & Partial<Pick<TalonClient["sessions"], "appendMessage" | "updateMessage" | "listQueuedMessages">>;
   cas?: CasServiceClientLike;
   artifacts?: ArtifactServiceClientLike;
   files?: FileServiceClientLike;
@@ -100,7 +100,7 @@ export type CopilotMessage = {
   toolInvocations?: ToolInvocationItem[];
 };
 
-export type TalonBuiltInCommandName = "clear" | "goal";
+export type TalonBuiltInCommandName = "clear" | "goal" | "compact" | "doctor";
 
 export type TalonChatCommandContext<TTarget, TMessage> = {
   name: string;

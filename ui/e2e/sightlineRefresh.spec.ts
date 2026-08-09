@@ -24,7 +24,7 @@ test.describe('Sightline auth refresh', () => {
     const gatewayUrl = e2eGatewayUrl();
     const webPort = process.env.WEB_PORT || '3000';
     const appOrigin = `http://localhost:${webPort}`;
-    const refreshUrl = `${appOrigin}/internal/v1/sightline/refresh`;
+    const refreshUrl = `${appOrigin}/v1/sightline/refresh`;
     const expiredToken = 'expired-platform-jwt';
     let refreshCalls = 0;
     let namespaceListCalls = 0;
@@ -47,7 +47,7 @@ test.describe('Sightline auth refresh', () => {
       },
     ]);
 
-    await page.route('**/internal/v1/sightline/refresh', async (route) => {
+    await page.route('**/v1/sightline/refresh', async (route) => {
       refreshCalls += 1;
       expect(route.request().method()).toBe('POST');
       await route.fulfill({

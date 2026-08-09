@@ -1,0 +1,104 @@
+name: Talon CLA
+
+# This workflow intentionally never checks out pull-request code. It runs with
+# pull_request_target so it can create a check run on pull requests from forks.
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  checks: write
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  validate:
+    # issue_comment also fires for issues; only process comments on pull requests.
+    if: >-
+      github.event_name == 'pull_request_target' ||
+      github.event.issue.pull_request != null
+    name: Validate CLA signature
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish CLA status
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const signature = "I have read and agree to the Talon CLA.";
+            const checkName = "Talon CLA Agreement";
+
+            let pullRequest;
+            if (context.eventName === "pull_request_target") {
+              pullRequest = context.payload.pull_request;
+            } else {
+              const response = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: context.issue.number,
+              });
+              pullRequest = response.data;
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: pullRequest.number,
+              per_page: 100,
+            });
+            const signed = comments.some((comment) =>
+              comment.user?.id === pullRequest.user.id &&
+              comment.body
+                ?.replace(/\r/g, "")
+                .split("\n")
+                .some((line) => line.trim() === signature)
+            );
+
+            const detailsUrl = `https://github.com/${owner}/${repo}/blob/${pullRequest.base.ref}/CLA.md`;
+            const summary = signed
+              ? `The pull request author accepted the [Talon CLA](${detailsUrl}).`
+              : [
+                  `Before this pull request can be merged, its author must accept the [Talon CLA](${detailsUrl}).`,
+                  "",
+                  "Post this exact sentence in a pull request comment:",
+                  "",
+                  `\`${signature}\``,
+                ].join("\n");
+            const check = {
+              owner,
+              repo,
+              name: checkName,
+              head_sha: pullRequest.head.sha,
+              external_id: `talon-cla:${pullRequest.number}`,
+              status: "completed",
+              conclusion: signed ? "success" : "action_required",
+              output: {
+                title: signed ? "CLA accepted" : "CLA signature required",
+                summary,
+              },
+            };
+
+            const { data } = await github.rest.checks.listForRef({
+              owner,
+              repo,
+              ref: pullRequest.head.sha,
+              check_name: checkName,
+              filter: "latest",
+              per_page: 100,
+            });
+            const existing = data.check_runs.find(
+              (run) => run.external_id === check.external_id
+            );
+
+            if (existing) {
+              const { head_sha, ...update } = check;
+              await github.rest.checks.update({
+                ...update,
+                check_run_id: existing.id,
+              });
+            } else {
+              await github.rest.checks.create(check);
+            }

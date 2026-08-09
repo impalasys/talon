@@ -549,10 +549,29 @@ impl AgentExecutor {
         ))
     }
 
+    /// Run the durable compaction path as a session-maintenance operation.
+    /// The compaction request intentionally has no provider continuation ID.
+    pub async fn force_compact_context(
+        &self,
+        context: &mut ExecutionContext,
+        sink: &dyn ExecutionSink,
+    ) -> Result<bool> {
+        compact(self.llm.as_ref(), context, sink).await
+    }
+
     fn normalize_token_counter(&self, mut counter: TokenCounter) -> TokenCounter {
         counter.provider = self.llm_provider_key.clone();
         counter.model = self.llm_model.clone();
         counter
+    }
+
+    fn previous_response_id(&self, context_tokens: Option<&TokenCounter>) -> Option<String> {
+        let counter = context_tokens.filter(|counter| {
+            counter.provider == self.llm_provider_key
+                && counter.model == self.llm_model
+                && counter.provider_request_id.is_some()
+        })?;
+        counter.provider_request_id.clone()
     }
 
     fn render_execution_prompts(&self, context: &ExecutionContext) -> Result<ExecutionPrompts> {
@@ -824,6 +843,9 @@ impl AgentExecutor {
                 let prev_history_len = context.history.len();
                 match compact(self.llm.as_ref(), context, sink).await? {
                     true => {
+                        if let Some(counter) = context_tokens.as_mut() {
+                            counter.provider_request_id = None;
+                        }
                         let new_context_budget =
                             self.estimate_context_budget(context, &prompts, &tools);
                         if new_context_budget >= durable_budget {
@@ -868,6 +890,7 @@ impl AgentExecutor {
                 messages,
                 tools,
                 thinking,
+                previous_response_id: self.previous_response_id(context_tokens.as_ref()),
             };
             prior_request_history_len = Some(context.history.len());
             let reasoning_level = request
@@ -1094,10 +1117,28 @@ impl AgentExecutor {
                     )
                     .await?;
                     sink.on_tool_call(&tool.id, &tool.name, &input).await;
-                    let executed = self
-                        .execute_tool_call_result(tool)
-                        .instrument(tool_span.clone())
-                        .await;
+                    let executed = if let Some(token) = cancellation_token {
+                        tokio::select! {
+                            biased;
+                            _ = token.cancelled() => {
+                                tracing::info!(
+                                    agent_id = %context.agent_id,
+                                    tool = %tool.name,
+                                    tool_call_id = %tool.id,
+                                    "Tool call interrupted by user"
+                                );
+                                sink.on_done().await;
+                                return Ok(final_reply);
+                            }
+                            executed = self
+                                .execute_tool_call_result(tool)
+                                .instrument(tool_span.clone()) => executed,
+                        }
+                    } else {
+                        self.execute_tool_call_result(tool)
+                            .instrument(tool_span.clone())
+                            .await
+                    };
                     let stop_after_result = executed.stop_after_result;
                     let result = executed.result;
                     let result_text = result.summary();
@@ -1252,6 +1293,16 @@ mod tests {
     #[derive(Default)]
     struct RecordingLlmProvider {
         seen_messages: Arc<Mutex<Vec<Vec<ChatMessage>>>>,
+        compaction_content: Option<String>,
+    }
+
+    impl RecordingLlmProvider {
+        fn with_compaction_content(compaction_content: impl Into<String>) -> Self {
+            Self {
+                seen_messages: Arc::new(Mutex::new(Vec::new())),
+                compaction_content: Some(compaction_content.into()),
+            }
+        }
     }
 
     #[async_trait]
@@ -1273,7 +1324,7 @@ mod tests {
             });
             Ok(ChatResponse {
                 content: if is_compaction {
-                    "<summary>\n## User goal\nTest compaction.\n## Requirements and constraints\nNone recorded.\n## Facts to preserve\nNone recorded.\n## Decisions and rationale\nNone recorded.\n## Completed work\nCompaction test completed.\n## Files and artifacts\nNone recorded.\n## Tool results and external facts\nNone recorded.\n## Current state\nThe test continues.\n## Open issues\nNone recorded.\n## Next action\nNone recorded.\n</summary>".to_string()
+                    self.compaction_content.clone().unwrap_or_else(|| "<summary>\n## User goal\nTest compaction.\n## Requirements and constraints\nNone recorded.\n## Facts to preserve\nNone recorded.\n## Decisions and rationale\nNone recorded.\n## Completed work\nCompaction test completed.\n## Files and artifacts\nNone recorded.\n## Tool results and external facts\nNone recorded.\n## Current state\nThe test continues.\n## Open issues\nNone recorded.\n## Next action\nNone recorded.\n</summary>".to_string())
                 } else {
                     "resolved".to_string()
                 },
@@ -2907,8 +2958,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn compaction_continues_execution_after_compaction() {
-        let llm = Arc::new(RecordingLlmProvider::default());
+    async fn compaction_continues_execution_after_malformed_summary() {
+        let llm = Arc::new(RecordingLlmProvider::with_compaction_content(
+            "Facts acknowledged.",
+        ));
         let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
         let spec = manifests::AgentSpec::default();
         let executor = AgentExecutor::new_with_session(
@@ -2942,6 +2995,50 @@ mod tests {
 
         let sink = CaptureSink::new();
         let reply = executor.execute(&mut context, &sink, None).await.unwrap();
-        assert_eq!(reply, "resolved"); // execution continued despite compaction
+        assert_eq!(reply, "resolved");
+        assert_eq!(sink.compactions(), vec!["Facts acknowledged.".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn empty_compaction_summary_skips_durable_compaction_and_continues_execution() {
+        let llm = Arc::new(RecordingLlmProvider::with_compaction_content(""));
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let spec = manifests::AgentSpec::default();
+        let executor = AgentExecutor::new_with_session(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry.clone(),
+            Arc::new(Config::default()),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            "session-1".to_string(),
+            None,
+            ControlPlane::noop(),
+            spec.clone(),
+            HashMap::new(),
+        );
+        {
+            let mut reg = registry.write().await;
+            crate::harness::native_tools::register_tools(&mut reg, &spec);
+        }
+
+        let mut context = ExecutionContext::new("cmo");
+        for _ in 0..5 {
+            context.push(LoopMessage::text(
+                "assistant",
+                format!("Long rep: {}", "x".repeat(20_000)),
+            ));
+            context.push(LoopMessage::text("user", "Continue"));
+        }
+        let before = context.history.clone();
+
+        let sink = CaptureSink::new();
+        let reply = executor.execute(&mut context, &sink, None).await.unwrap();
+
+        assert_eq!(reply, "resolved");
+        assert!(sink.compactions().is_empty());
+        assert_eq!(&context.history[..before.len()], before);
     }
 }

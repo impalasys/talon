@@ -168,6 +168,13 @@ impl crate::TalonClient {
         crate::v1::ListSessionMessagesResponse,
     );
     delegate_dynamic_unary_rpc!(
+        list_session_queued_messages,
+        sessions,
+        list_queued_messages,
+        crate::v1::ListQueuedSessionMessagesRequest,
+        crate::v1::ListQueuedSessionMessagesResponse,
+    );
+    delegate_dynamic_unary_rpc!(
         delete_session,
         sessions,
         delete,
@@ -180,6 +187,20 @@ impl crate::TalonClient {
         clear,
         crate::v1::ClearSessionRequest,
         crate::v1::ClearSessionResponse,
+    );
+    delegate_dynamic_server_streaming_rpc!(
+        compact_session,
+        sessions,
+        compact,
+        crate::v1::CompactSessionRequest,
+        crate::events::SessionMessagePartEvent,
+    );
+    delegate_dynamic_unary_rpc!(
+        doctor_session,
+        sessions,
+        doctor,
+        crate::v1::DoctorSessionRequest,
+        crate::v1::DoctorSessionResponse,
     );
     delegate_dynamic_unary_rpc!(
         send_message,

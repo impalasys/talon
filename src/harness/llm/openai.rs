@@ -4,9 +4,9 @@
 use crate::control::cas::CasStore;
 use crate::harness::llm::provider::{
     chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
-    provider_request_error, text_delta_event, tool_call_delta_event, usage_event, ChatContentPart,
-    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider, TokenCounter,
-    ToolCallDelta,
+    provider_request_error, reasoning_delta_event, text_delta_event, tool_call_delta_event,
+    usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream,
+    ChatStreamEvent, LlmProvider, TokenCounter, ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -87,19 +87,35 @@ pub struct OpenAiCompatibleProvider {
     pub api_key: String,
     pub base_url: String,
     pub model: String,
+    pub api: String,
     pub http_client: reqwest::Client,
     cas: CasStore,
 }
 
 impl OpenAiCompatibleProvider {
     pub fn new(api_key: String, base_url: String, model: String, cas: CasStore) -> Self {
+        Self::with_api(api_key, base_url, model, cas, "chat_completions")
+    }
+
+    pub fn with_api(
+        api_key: String,
+        base_url: String,
+        model: String,
+        cas: CasStore,
+        api: impl Into<String>,
+    ) -> Self {
         Self {
             api_key,
             base_url,
             model,
+            api: api.into(),
             http_client: shared_http_client(),
             cas,
         }
+    }
+
+    fn uses_responses_api(&self) -> bool {
+        self.api.trim().eq_ignore_ascii_case("responses")
     }
 
     async fn serialize_content_parts(
@@ -160,6 +176,37 @@ impl OpenAiCompatibleProvider {
             "role": "user",
             "content": content,
         })))
+    }
+
+    fn responses_input_content_part(part: &Value) -> Value {
+        if part.get("type").and_then(Value::as_str) == Some("image_url") {
+            serde_json::json!({
+                "type": "input_image",
+                "image_url": part.pointer("/image_url/url").cloned().unwrap_or(Value::Null),
+            })
+        } else {
+            serde_json::json!({
+                "type": "input_text",
+                "text": part
+                    .get("text")
+                    .cloned()
+                    .unwrap_or_else(|| Value::String(String::new())),
+            })
+        }
+    }
+
+    fn responses_message_content_part(part: &Value, role: &str) -> Value {
+        if role == "assistant" {
+            serde_json::json!({
+                "type": "output_text",
+                "text": part
+                    .get("text")
+                    .cloned()
+                    .unwrap_or_else(|| Value::String(String::new())),
+            })
+        } else {
+            Self::responses_input_content_part(part)
+        }
     }
 
     async fn serialize_messages(
@@ -690,6 +737,213 @@ impl OpenAiCompatibleProvider {
             &err_text,
         ))
     }
+
+    async fn serialize_responses_input(
+        &self,
+        messages: Vec<ChatMessage>,
+        previous_response_id: Option<&str>,
+    ) -> Result<Vec<serde_json::Value>> {
+        let messages = if previous_response_id.is_some() {
+            let suffix_start = messages
+                .iter()
+                .rposition(|message| message.role == "assistant")
+                .map(|index| index.saturating_add(1))
+                .unwrap_or(0);
+            messages
+                .into_iter()
+                .enumerate()
+                .filter(|(index, message)| {
+                    message.role == "system"
+                        || message.role == "developer"
+                        || *index >= suffix_start
+                })
+                .map(|(_, message)| message)
+                .collect()
+        } else {
+            messages
+        };
+        let mut input = Vec::new();
+        for message in messages {
+            if message.role == "tool" {
+                let tool_call_id = message.tool_call_id.as_deref();
+                let media_message = self
+                    .serialize_tool_result_media_message(tool_call_id, &message.content_parts)
+                    .await?;
+                let output = if let Some(media_message) = media_message {
+                    let content = media_message
+                        .get("content")
+                        .and_then(Value::as_array)
+                        .cloned()
+                        .unwrap_or_default()
+                        .iter()
+                        .map(Self::responses_input_content_part)
+                        .collect::<Vec<_>>();
+                    Value::Array(content)
+                } else {
+                    Value::String(Self::tool_message_content(&message.content_parts))
+                };
+                input.push(serde_json::json!({
+                    "type": "function_call_output",
+                    "call_id": tool_call_id.unwrap_or_default(),
+                    "output": output,
+                }));
+                continue;
+            }
+
+            let mut content = Vec::new();
+            let mut has_regular_content = false;
+            for part in &message.content_parts {
+                has_regular_content = true;
+                let part = openai_content_part(&self.cas, part).await?;
+                content.push(Self::responses_message_content_part(&part, &message.role));
+            }
+
+            if !content.is_empty() || (message.tool_calls.is_empty() && has_regular_content) {
+                input.push(serde_json::json!({
+                    "role": message.role,
+                    "content": content,
+                }));
+            }
+
+            for tool_call in message.tool_calls {
+                input.push(serde_json::json!({
+                    "type": "function_call",
+                    "call_id": tool_call.id,
+                    "name": tool_call.name,
+                    "arguments": Self::openai_tool_arguments(&tool_call.arguments),
+                }));
+            }
+        }
+        Ok(input)
+    }
+
+    async fn send_responses_request(
+        &self,
+        request: ChatRequest,
+        stream: bool,
+    ) -> Result<reqwest::Response> {
+        let url = format!("{}/responses", self.base_url.trim_end_matches('/'));
+        let messages = request.messages;
+        let previous_response_id = request.previous_response_id.clone();
+        let build_payload = |input: Vec<serde_json::Value>, previous_response_id: Option<&str>| {
+            let mut payload = serde_json::json!({
+                "model": self.model,
+                "input": input,
+                "stream": stream,
+            });
+            if let Some(previous_response_id) = previous_response_id {
+                payload["previous_response_id"] = serde_json::json!(previous_response_id);
+            }
+            if !request.tools.is_empty() {
+                payload["tools"] = serde_json::json!(request
+                    .tools
+                    .iter()
+                    .map(|tool| serde_json::json!({
+                        "type": "function",
+                        "name": tool.name,
+                        "description": tool.description,
+                        "parameters": Self::openai_tool_parameters(&tool.input_schema_json),
+                        "strict": false,
+                    }))
+                    .collect::<Vec<_>>());
+            }
+            if let Some(thinking) = request
+                .thinking
+                .as_ref()
+                .filter(|thinking| thinking.enabled)
+            {
+                let mut reasoning = serde_json::json!({"summary": "auto"});
+                if !thinking.effort.trim().is_empty() {
+                    reasoning["effort"] = serde_json::json!(thinking.effort);
+                }
+                payload["reasoning"] = reasoning;
+                payload["max_output_tokens"] = serde_json::json!(thinking
+                    .budget_tokens
+                    .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS)
+                    .saturating_add(THINKING_COMPLETION_BUFFER_TOKENS));
+            }
+            payload
+        };
+        let input = self
+            .serialize_responses_input(messages.clone(), previous_response_id.as_deref())
+            .await?;
+        let mut payload = build_payload(input, previous_response_id.as_deref());
+
+        let stats_messages = payload
+            .get("input")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        self.log_request_attempt(
+            "responses",
+            !request.tools.is_empty(),
+            stream,
+            &stats_messages,
+            &request.tools,
+            &payload,
+        );
+        let response = self
+            .http_client
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .json(&payload)
+            .send()
+            .await?;
+        if response.status().is_success() {
+            Ok(response)
+        } else {
+            let status = response.status();
+            let error = response.text().await?;
+            self.log_request_failure(
+                "responses",
+                !request.tools.is_empty(),
+                stream,
+                &stats_messages,
+                &request.tools,
+                &payload,
+                status,
+                &error,
+            );
+            if previous_response_id.is_some()
+                && (is_stale_previous_response_id(status, &error)
+                    || is_missing_tool_output_for_previous_response(status, &error))
+            {
+                let recovery_reason = if is_stale_previous_response_id(status, &error) {
+                    "stale previous_response_id"
+                } else {
+                    "missing function-call output for previous_response_id"
+                };
+                tracing::warn!(
+                    model = %self.model,
+                    reason = recovery_reason,
+                    "Retrying Responses request without previous_response_id"
+                );
+                let full_input = self.serialize_responses_input(messages, None).await?;
+                payload = build_payload(full_input, None);
+                let retry_response = self
+                    .http_client
+                    .post(&url)
+                    .header("Authorization", format!("Bearer {}", self.api_key))
+                    .json(&payload)
+                    .send()
+                    .await?;
+                if retry_response.status().is_success() {
+                    return Ok(retry_response);
+                }
+                let retry_status = retry_response.status();
+                let retry_error = retry_response.text().await?;
+                return Err(openai_api_error(
+                    "OpenAI Responses API error after previous_response_id recovery retry",
+                    &retry_error,
+                ))
+                .map_err(|error| {
+                    tracing::error!(%retry_status, error = %error, "Responses retry failed");
+                    error
+                });
+            }
+            Err(openai_api_error("OpenAI Responses API error", &error))
+        }
+    }
 }
 
 fn shared_http_client() -> reqwest::Client {
@@ -702,6 +956,33 @@ fn openai_api_error(message: &str, response_body: &str) -> anyhow::Error {
         .ok()
         .and_then(|value| extract_usage(&value));
     provider_request_error(message, token_counter)
+}
+
+fn is_stale_previous_response_id(status: reqwest::StatusCode, body: &str) -> bool {
+    if !matches!(
+        status,
+        reqwest::StatusCode::BAD_REQUEST | reqwest::StatusCode::NOT_FOUND
+    ) {
+        return false;
+    }
+    let body = body.to_ascii_lowercase();
+    (body.contains("previous_response_id") || body.contains("previous response"))
+        && (body.contains("invalid")
+            || body.contains("expired")
+            || body.contains("not found")
+            || body.contains("does not exist"))
+}
+
+/// A cancelled or crashed tool turn can leave an OpenAI server-side response
+/// waiting for a function-call output.  The local transcript deliberately
+/// drops that incomplete interaction during recovery, so retrying from the
+/// complete local history is safe.  Keep this deliberately narrow: other 400s
+/// are request errors, not continuation-recovery signals.
+fn is_missing_tool_output_for_previous_response(status: reqwest::StatusCode, body: &str) -> bool {
+    status == reqwest::StatusCode::BAD_REQUEST
+        && body
+            .to_ascii_lowercase()
+            .contains("no tool output found for function call")
 }
 
 #[async_trait]
@@ -717,6 +998,12 @@ impl LlmProvider for OpenAiCompatibleProvider {
     )]
     async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse> {
         use crate::harness::llm::provider::ToolCall;
+
+        if self.uses_responses_api() {
+            let resp = self.send_responses_request(request, false).await?;
+            let result: serde_json::Value = resp.json().await?;
+            return parse_responses_response(&result);
+        }
 
         let resp = self.send_chat_request(request, false).await?;
 
@@ -751,7 +1038,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
         });
 
         Ok(ChatResponse {
-            content,
+            content: content.clone(),
             tool_calls,
             usage,
         })
@@ -763,6 +1050,11 @@ impl LlmProvider for OpenAiCompatibleProvider {
         fields(provider_base_url = %self.base_url, model = %self.model)
     )]
     async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+        if self.uses_responses_api() {
+            let resp = self.send_responses_request(request, true).await?;
+            return Ok(parse_responses_stream(resp, tracing::Span::current()));
+        }
+
         let resp = self.send_chat_request(request, true).await?;
 
         let byte_stream = resp.bytes_stream();
@@ -870,6 +1162,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
             messages: vec![chat_message_text("user", prompt)],
             tools: vec![],
             thinking: None,
+            previous_response_id: None,
         })
         .await
         .map(|r| r.content)
@@ -889,6 +1182,243 @@ impl Stream for SpanInstrumentedChatStream {
         let _entered = this.span.enter();
         this.inner.as_mut().poll_next(cx)
     }
+}
+
+fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
+    use crate::harness::llm::provider::ToolCall;
+
+    let mut content = String::new();
+    let mut tool_calls = Vec::new();
+    for item in value
+        .get("output")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        match item.get("type").and_then(Value::as_str) {
+            Some("message") => {
+                for part in item
+                    .get("content")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                {
+                    if let Some(text) = part.get("text").and_then(Value::as_str) {
+                        content.push_str(text);
+                    }
+                }
+            }
+            Some("function_call") => {
+                let id = item
+                    .get("call_id")
+                    .or_else(|| item.get("id"))
+                    .and_then(Value::as_str)
+                    .unwrap_or_default();
+                let name = item.get("name").and_then(Value::as_str).unwrap_or_default();
+                if !id.is_empty() && !name.is_empty() {
+                    tool_calls.push(ToolCall {
+                        id: id.to_string(),
+                        name: name.to_string(),
+                        arguments: item
+                            .get("arguments")
+                            .and_then(Value::as_str)
+                            .unwrap_or("{}")
+                            .to_string(),
+                    });
+                }
+            }
+            _ => {}
+        }
+    }
+
+    Ok(ChatResponse {
+        content,
+        tool_calls,
+        usage: extract_responses_usage(value),
+    })
+}
+
+fn extract_responses_usage(value: &Value) -> Option<TokenCounter> {
+    let usage = value.get("usage").cloned().unwrap_or(Value::Null);
+    let input_tokens = usage
+        .get("input_tokens")
+        .and_then(Value::as_u64)
+        .unwrap_or_default();
+    let output_tokens_total = usage
+        .get("output_tokens")
+        .and_then(Value::as_u64)
+        .unwrap_or_default();
+    let reasoning_tokens = usage
+        .pointer("/output_tokens_details/reasoning_tokens")
+        .or_else(|| usage.get("reasoning_tokens"))
+        .and_then(Value::as_u64)
+        .unwrap_or_default();
+    let total_tokens = usage
+        .get("total_tokens")
+        .and_then(Value::as_u64)
+        .unwrap_or(input_tokens + output_tokens_total);
+    let provider_request_id = value
+        .get("id")
+        .and_then(Value::as_str)
+        .filter(|id| !id.is_empty())
+        .map(ToString::to_string);
+    if provider_request_id.is_none()
+        && (input_tokens == 0 && output_tokens_total == 0 && total_tokens == 0)
+    {
+        return None;
+    }
+    Some(TokenCounter {
+        input_tokens,
+        output_tokens: output_tokens_total.saturating_sub(reasoning_tokens),
+        reasoning_output_tokens: reasoning_tokens,
+        total_tokens,
+        cached_input_tokens: usage
+            .pointer("/input_tokens_details/cached_tokens")
+            .and_then(Value::as_u64)
+            .unwrap_or_default(),
+        cache_write_tokens: usage
+            .pointer("/input_tokens_details/cache_write_tokens")
+            .and_then(Value::as_u64)
+            .unwrap_or_default(),
+        usage_available: value.get("usage").is_some()
+            && (input_tokens > 0 || output_tokens_total > 0 || total_tokens > 0),
+        provider_request_id,
+        provider: String::new(),
+        model: value
+            .get("model")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string(),
+    })
+}
+
+fn parse_responses_stream(response: reqwest::Response, parent_span: tracing::Span) -> ChatStream {
+    let byte_stream = response.bytes_stream();
+    let line_stream = byte_stream.map(|item| item.map_err(|e| anyhow!("Stream error: {}", e)));
+    let parse_span = parent_span.clone();
+    let mut buffer = String::new();
+    let mut event_name = String::new();
+    let sse_stream = line_stream.flat_map(move |result| match result {
+        Ok(bytes) => {
+            buffer.push_str(&String::from_utf8_lossy(&bytes));
+            let mut items = Vec::new();
+            while let Some(pos) = buffer.find('\n') {
+                let line = buffer.drain(..=pos).collect::<String>();
+                let line = line.trim();
+                if line.is_empty() {
+                    continue;
+                }
+                if let Some(name) = line.strip_prefix("event: ") {
+                    event_name = name.to_string();
+                    continue;
+                }
+                let Some(data) = line.strip_prefix("data: ") else {
+                    continue;
+                };
+                if data == "[DONE]" {
+                    break;
+                }
+                let Ok(value) = serde_json::from_str::<Value>(data) else {
+                    continue;
+                };
+                let event_type = if event_name.is_empty() {
+                    value
+                        .get("type")
+                        .and_then(Value::as_str)
+                        .unwrap_or_default()
+                } else {
+                    event_name.as_str()
+                };
+                match event_type {
+                    "response.created" => {
+                        if let Some(response) = value.get("response") {
+                            if let Some(usage) = extract_responses_usage(response) {
+                                items.push(Ok(usage_event(usage)));
+                            }
+                        } else if let Some(usage) = extract_responses_usage(&value) {
+                            items.push(Ok(usage_event(usage)));
+                        }
+                    }
+                    "response.output_text.delta" => {
+                        if let Some(delta) = value.get("delta").and_then(Value::as_str) {
+                            items.push(Ok(text_delta_event(delta.to_string())));
+                        }
+                    }
+                    "response.reasoning_summary_text.delta"
+                    | "response.reasoning_summary_part.delta" => {
+                        if let Some(delta) = value.get("delta").and_then(Value::as_str) {
+                            items.push(Ok(reasoning_delta_event(delta.to_string())));
+                        }
+                    }
+                    "response.function_call_arguments.delta" => {
+                        let delta = ToolCallDelta {
+                            index: value
+                                .get("output_index")
+                                .and_then(Value::as_u64)
+                                .unwrap_or_default() as u32,
+                            id: value
+                                .get("call_id")
+                                .and_then(Value::as_str)
+                                .map(ToString::to_string),
+                            name: value
+                                .get("name")
+                                .and_then(Value::as_str)
+                                .map(ToString::to_string),
+                            arguments: value
+                                .get("delta")
+                                .and_then(Value::as_str)
+                                .map(ToString::to_string),
+                        };
+                        if delta.id.is_some() || delta.name.is_some() || delta.arguments.is_some() {
+                            items.push(Ok(tool_call_delta_event(delta)));
+                        }
+                    }
+                    "response.output_item.added" => {
+                        let Some(item) = value.get("item") else {
+                            continue;
+                        };
+                        if item.get("type").and_then(Value::as_str) == Some("function_call") {
+                            items.push(Ok(tool_call_delta_event(ToolCallDelta {
+                                index: value
+                                    .get("output_index")
+                                    .and_then(Value::as_u64)
+                                    .unwrap_or_default()
+                                    as u32,
+                                id: item
+                                    .get("call_id")
+                                    .and_then(Value::as_str)
+                                    .map(ToString::to_string),
+                                name: item
+                                    .get("name")
+                                    .and_then(Value::as_str)
+                                    .map(ToString::to_string),
+                                arguments: None,
+                            })));
+                        }
+                    }
+                    "response.output_item.done" => {}
+                    "response.completed" => {
+                        if let Some(response) = value.get("response") {
+                            if let Some(usage) = extract_responses_usage(response) {
+                                items.push(Ok(usage_event(usage)));
+                            }
+                        } else if let Some(usage) = extract_responses_usage(&value) {
+                            items.push(Ok(usage_event(usage)));
+                        }
+                    }
+                    _ => {}
+                }
+                event_name.clear();
+            }
+            stream::iter(items)
+        }
+        Err(error) => stream::iter(vec![Err(error)]),
+    });
+
+    Box::pin(SpanInstrumentedChatStream {
+        inner: Box::pin(sse_stream),
+        span: parse_span,
+    })
 }
 
 fn extract_usage(value: &serde_json::Value) -> Option<TokenCounter> {
@@ -935,6 +1465,11 @@ fn extract_usage(value: &serde_json::Value) -> Option<TokenCounter> {
         .or_else(|| usage.pointer("/input_tokens_details/cached_tokens"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
+    let cache_write_tokens = usage
+        .pointer("/prompt_tokens_details/cache_write_tokens")
+        .or_else(|| usage.pointer("/input_tokens_details/cache_write_tokens"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
 
     Some(TokenCounter {
         input_tokens,
@@ -942,6 +1477,7 @@ fn extract_usage(value: &serde_json::Value) -> Option<TokenCounter> {
         reasoning_output_tokens: reasoning_tokens,
         total_tokens,
         cached_input_tokens,
+        cache_write_tokens,
         usage_available: true,
         provider_request_id: value
             .get("id")
@@ -1167,6 +1703,58 @@ mod tests {
         assert_eq!(serialized[1]["content"][1]["type"], "image_url");
         assert_eq!(
             serialized[1]["content"][1]["image_url"]["url"],
+            "data:image/png;base64,cG5nLWJ5dGVz"
+        );
+    }
+
+    #[tokio::test]
+    async fn serialize_responses_input_embeds_tool_image_results_in_function_call_output() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let object = store
+            .put(
+                "cas/acme/files/file-1/screenshot.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "screenshot.png".to_string(),
+                    size_bytes: 9,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let provider = OpenAiCompatibleProvider::with_api(
+            "test-key".to_string(),
+            "http://localhost".to_string(),
+            "test-model".to_string(),
+            CasStore::new(store),
+            "responses",
+        );
+
+        let input = provider
+            .serialize_responses_input(
+                vec![ChatMessage {
+                    role: "tool".to_string(),
+                    content_parts: vec![object_ref_part(object)],
+                    tool_calls: Vec::new(),
+                    tool_call_id: Some("call_1".to_string()),
+                }],
+                None,
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(input.len(), 1);
+        assert_eq!(input[0]["type"], "function_call_output");
+        assert_eq!(input[0]["call_id"], "call_1");
+        assert_eq!(input[0]["output"][0]["type"], "input_text");
+        assert_eq!(
+            input[0]["output"][0]["text"],
+            "Image result returned by tool call call_1."
+        );
+        assert_eq!(input[0]["output"][1]["type"], "input_image");
+        assert_eq!(
+            input[0]["output"][1]["image_url"],
             "data:image/png;base64,cG5nLWJ5dGVz"
         );
     }
@@ -1484,6 +2072,7 @@ mod tests {
                     messages,
                     tools,
                     thinking: None,
+                    previous_response_id: None,
                 },
                 false,
             )
@@ -1506,7 +2095,10 @@ mod tests {
                 "completion_tokens": 20,
                 "reasoning_tokens": 6,
                 "total_tokens": 30,
-                "prompt_tokens_details": { "cached_tokens": 4 }
+                "prompt_tokens_details": {
+                    "cached_tokens": 4,
+                    "cache_write_tokens": 6
+                }
             }
         }))
         .unwrap();
@@ -1515,6 +2107,7 @@ mod tests {
         assert_eq!(usage.output_tokens, 14);
         assert_eq!(usage.reasoning_output_tokens, 6);
         assert_eq!(usage.cached_input_tokens, 4);
+        assert_eq!(usage.cache_write_tokens, 6);
         assert_eq!(usage.total_tokens, 30);
         assert!(usage.usage_available);
         assert_eq!(usage.provider_request_id.as_deref(), Some("chatcmpl-1"));
@@ -1585,6 +2178,7 @@ mod tests {
                     budget_tokens: Some(2048),
                     effort: "high".to_string(),
                 }),
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -1631,6 +2225,7 @@ mod tests {
                     budget_tokens: None,
                     effort: "medium".to_string(),
                 }),
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -1677,6 +2272,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -1728,6 +2324,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -1778,6 +2375,7 @@ mod tests {
                     messages: vec![chat_message_text("user", "hi")],
                     tools: vec![],
                     thinking: None,
+                    previous_response_id: None,
                 },
                 false,
             )
@@ -1849,6 +2447,7 @@ mod tests {
                     messages: vec![chat_message_text("user", "hi")],
                     tools: vec![],
                     thinking: None,
+                    previous_response_id: None,
                 },
                 true,
             )
@@ -1918,6 +2517,7 @@ mod tests {
                         input_schema_json: serde_json::json!({"type": "object"}).to_string(),
                     }],
                     thinking: None,
+                    previous_response_id: None,
                 },
                 false,
             )
@@ -1974,6 +2574,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -2038,6 +2639,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "hi")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -2103,5 +2705,227 @@ mod tests {
         assert!(schema["properties"]["urls"]["items"]
             .get("description")
             .is_none());
+    }
+
+    #[test]
+    fn parse_responses_response_extracts_text_tools_and_usage() {
+        let response = parse_responses_response(&serde_json::json!({
+            "id": "resp_1",
+            "output": [
+                {"type": "message", "content": [{"type": "output_text", "text": "done"}]},
+                {"type": "function_call", "call_id": "call_1", "name": "lookup", "arguments": "{\"q\":\"x\"}"}
+            ],
+            "usage": {
+                "input_tokens": 4,
+                "output_tokens": 8,
+                "output_tokens_details": {"reasoning_tokens": 3},
+                "total_tokens": 12
+            }
+        }))
+        .unwrap();
+        assert_eq!(response.content, "done");
+        assert_eq!(response.tool_calls[0].id, "call_1");
+        assert_eq!(response.usage.unwrap().reasoning_output_tokens, 3);
+    }
+
+    #[tokio::test]
+    async fn responses_missing_tool_output_retries_from_complete_local_history() {
+        let hits = Arc::new(AtomicUsize::new(0));
+        let payloads = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let app = Router::new()
+            .route(
+                "/responses",
+                post({
+                    let hits = hits.clone();
+                    let payloads = payloads.clone();
+                    move |Json(payload): Json<serde_json::Value>| {
+                        let hits = hits.clone();
+                        let payloads = payloads.clone();
+                        async move {
+                            payloads.lock().unwrap().push(payload);
+                            if hits.fetch_add(1, Ordering::SeqCst) == 0 {
+                                (
+                                    axum::http::StatusCode::BAD_REQUEST,
+                                    Json(serde_json::json!({
+                                        "error": {
+                                            "message": "No tool output found for function call call_123."
+                                        }
+                                    })),
+                                )
+                            } else {
+                                (
+                                    axum::http::StatusCode::OK,
+                                    Json(serde_json::json!({
+                                        "id": "resp_recovered",
+                                        "output": [{
+                                            "type": "message",
+                                            "content": [{"type": "output_text", "text": "recovered"}]
+                                        }]
+                                    })),
+                                )
+                            }
+                        }
+                    }
+                }),
+            )
+            .with_state(());
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+            test_cas_store(),
+            "responses",
+        );
+
+        let response = provider
+            .chat_completion(ChatRequest {
+                messages: vec![
+                    chat_message_text("system", "system instructions"),
+                    chat_message_text("user", "old question"),
+                    chat_message_text("assistant", "old answer"),
+                    chat_message_text("user", "new question"),
+                ],
+                tools: vec![],
+                thinking: None,
+                previous_response_id: Some("resp_poisoned".to_string()),
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(response.content, "recovered");
+        assert_eq!(hits.load(Ordering::SeqCst), 2);
+        let payloads = payloads.lock().unwrap();
+        assert_eq!(payloads[0]["previous_response_id"], "resp_poisoned");
+        assert!(payloads[0]["input"].to_string().contains("new question"));
+        assert!(!payloads[0]["input"].to_string().contains("old question"));
+        assert!(payloads[1].get("previous_response_id").is_none());
+        assert!(payloads[1]["input"].to_string().contains("old question"));
+        assert!(payloads[1]["input"].to_string().contains("old answer"));
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn responses_input_without_previous_id_keeps_full_history() {
+        let provider = test_provider();
+        let input = provider
+            .serialize_responses_input(
+                vec![
+                    chat_message_text("system", "system instructions"),
+                    chat_message_text("user", "old question"),
+                    chat_message_text("assistant", "old answer"),
+                    chat_message_text("user", "new question"),
+                ],
+                None,
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(input.len(), 4);
+        assert!(input
+            .iter()
+            .any(|item| item.to_string().contains("old question")));
+        assert!(input
+            .iter()
+            .any(|item| item.to_string().contains("old answer")));
+        assert_eq!(input[2]["content"][0]["type"], "output_text");
+    }
+
+    #[tokio::test]
+    async fn responses_input_with_previous_id_contains_instructions_and_new_suffix_only() {
+        let provider = test_provider();
+        let messages = vec![
+            chat_message_text("system", "system instructions"),
+            chat_message_text("developer", "developer instructions"),
+            chat_message_text("user", "old question"),
+            assistant_tool_call_message("lookup", "{\"q\":\"old\"}"),
+            chat_message_text("tool", "new tool output"),
+            chat_message_text("user", "new question"),
+        ];
+        let input = provider
+            .serialize_responses_input(messages, Some("resp_previous"))
+            .await
+            .unwrap();
+
+        assert_eq!(input.len(), 4);
+        assert_eq!(input[0]["role"], "system");
+        assert_eq!(input[1]["role"], "developer");
+        assert_eq!(input[2]["type"], "function_call_output");
+        assert_eq!(input[3]["role"], "user");
+        assert!(!input
+            .iter()
+            .any(|item| item.to_string().contains("old question")));
+    }
+
+    #[test]
+    fn responses_usage_preserves_id_without_usage_counts() {
+        let usage = extract_responses_usage(&serde_json::json!({
+            "id": "resp_without_usage",
+            "model": "model"
+        }))
+        .expect("response id should be retained");
+        assert_eq!(
+            usage.provider_request_id.as_deref(),
+            Some("resp_without_usage")
+        );
+        assert!(!usage.usage_available);
+    }
+
+    #[test]
+    fn responses_usage_extracts_cache_write_tokens() {
+        let usage = extract_responses_usage(&serde_json::json!({
+            "id": "resp_cache_write",
+            "model": "gpt-test",
+            "usage": {
+                "input_tokens": 100,
+                "input_tokens_details": {
+                    "cached_tokens": 20,
+                    "cache_write_tokens": 80
+                },
+                "output_tokens": 5,
+                "total_tokens": 105
+            }
+        }))
+        .expect("usage should be present");
+
+        assert_eq!(usage.cached_input_tokens, 20);
+        assert_eq!(usage.cache_write_tokens, 80);
+    }
+
+    #[test]
+    fn stale_response_id_errors_are_retryable_but_generic_errors_are_not() {
+        assert!(is_stale_previous_response_id(
+            reqwest::StatusCode::BAD_REQUEST,
+            "previous_response_id is invalid"
+        ));
+        assert!(!is_stale_previous_response_id(
+            reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            "previous_response_id is invalid"
+        ));
+        assert!(!is_stale_previous_response_id(
+            reqwest::StatusCode::BAD_REQUEST,
+            "rate limit exceeded"
+        ));
+    }
+
+    #[test]
+    fn missing_tool_output_errors_are_retryable_but_generic_errors_are_not() {
+        assert!(is_missing_tool_output_for_previous_response(
+            reqwest::StatusCode::BAD_REQUEST,
+            "No tool output found for function call call_123."
+        ));
+        assert!(!is_missing_tool_output_for_previous_response(
+            reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            "No tool output found for function call call_123."
+        ));
+        assert!(!is_missing_tool_output_for_previous_response(
+            reqwest::StatusCode::BAD_REQUEST,
+            "Invalid tool schema"
+        ));
     }
 }

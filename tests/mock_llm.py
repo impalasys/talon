@@ -56,7 +56,9 @@ CONTROL_STATE = {
     "mcp_tool_blocked": False,
     "mcp_tool_unblocked": False,
     "mcp_tool_call_count": 0,
+    "response_sequence": 0,
     "chat_requests": [],
+    "responses_requests": [],
 }
 
 
@@ -87,7 +89,9 @@ def reset_control_state():
             "mcp_tool_blocked": False,
             "mcp_tool_unblocked": False,
             "mcp_tool_call_count": 0,
+            "response_sequence": 0,
             "chat_requests": [],
+            "responses_requests": [],
         }
     )
 
@@ -820,6 +824,197 @@ async def chat_completions(request: Request):
         }
     }
     return JSONResponse(content=response_json)
+
+
+def responses_input_to_chat_messages(items):
+    messages = []
+    for item in items or []:
+        if item.get("type") == "function_call_output":
+            output = item.get("output", "")
+            if isinstance(output, list):
+                output = "\n".join(
+                    part.get("text", "") for part in output if isinstance(part, dict)
+                )
+            messages.append({
+                "role": "tool",
+                "tool_call_id": item.get("call_id", ""),
+                "content": str(output),
+            })
+            continue
+        if item.get("type") == "reasoning":
+            continue
+        if item.get("type") == "function_call":
+            messages.append({
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [{
+                    "id": item.get("call_id", ""),
+                    "type": "function",
+                    "function": {
+                        "name": item.get("name", ""),
+                        "arguments": item.get("arguments", "{}"),
+                    },
+                }],
+            })
+            continue
+        content = item.get("content", "")
+        if isinstance(content, list):
+            content = "\n".join(
+                part.get("text", "")
+                for part in content
+                if isinstance(part, dict) and isinstance(part.get("text"), str)
+            )
+        messages.append({"role": item.get("role", "user"), "content": content})
+    return messages
+
+
+def responses_tools_to_chat_tools(tools):
+    return [
+        {"type": "function", "function": {"name": tool.get("name", "")}}
+        for tool in tools or []
+        if tool.get("type") == "function"
+    ]
+
+
+def responses_payload(model, *, content="", tool_call=None, response_id):
+    output = [{
+        "type": "reasoning",
+        "id": "rs_mock_1",
+        "summary": [{"type": "summary_text", "text": "Inspecting the request."}],
+    }]
+    if content:
+        output.append({
+            "type": "message",
+            "role": "assistant",
+            "content": [{"type": "output_text", "text": content}],
+        })
+    if tool_call is not None:
+        output.append({
+            "type": "function_call",
+            "call_id": tool_call[0],
+            "name": tool_call[1],
+            "arguments": json.dumps(tool_call[2]),
+        })
+    return {
+        "id": response_id,
+        "object": "response",
+        "status": "completed",
+        "model": model,
+        "output": output,
+        "usage": {
+            "input_tokens": 10,
+            "output_tokens": 10,
+            "output_tokens_details": {"reasoning_tokens": 6},
+            "total_tokens": 26,
+        },
+    }
+
+
+async def stream_responses_payload(response, *, tool_call=None):
+    yield (
+        "event: response.created\n"
+        f"data: {json.dumps({'type': 'response.created', 'response': {'id': response['id'], 'model': response['model']}})}\n\n"
+    )
+    for reasoning in DEFAULT_REASONING:
+        yield (
+            "event: response.reasoning_summary_text.delta\n"
+            f"data: {json.dumps({'type': 'response.reasoning_summary_text.delta', 'delta': reasoning + ' '})}\n\n"
+        )
+        await asyncio.sleep(0.02)
+
+    message = next(
+        (item for item in response.get("output", []) if item.get("type") == "message"),
+        {},
+    )
+    text = ""
+    if message.get("type") == "message":
+        text = message.get("content", [{}])[0].get("text", "")
+    if text:
+        for word in text.split():
+            yield (
+                "event: response.output_text.delta\n"
+                f"data: {json.dumps({'type': 'response.output_text.delta', 'delta': word + ' '})}\n\n"
+            )
+            await asyncio.sleep(0.02)
+
+    if tool_call is not None:
+        call_id, tool_name, arguments = tool_call
+        yield (
+            "event: response.output_item.added\n"
+            f"data: {json.dumps({'type': 'response.output_item.added', 'output_index': 2, 'item': {'type': 'function_call', 'call_id': call_id, 'name': tool_name, 'arguments': ''}})}\n\n"
+        )
+        argument_text = json.dumps(arguments)
+        yield (
+            "event: response.function_call_arguments.delta\n"
+            f"data: {json.dumps({'type': 'response.function_call_arguments.delta', 'output_index': 2, 'call_id': call_id, 'name': tool_name, 'delta': argument_text})}\n\n"
+        )
+        yield (
+            "event: response.function_call_arguments.done\n"
+            f"data: {json.dumps({'type': 'response.function_call_arguments.done', 'output_index': 2, 'call_id': call_id, 'name': tool_name, 'arguments': argument_text})}\n\n"
+        )
+
+    yield (
+        "event: response.completed\n"
+        f"data: {json.dumps({'type': 'response.completed', 'response': response})}\n\n"
+    )
+
+
+@app.post("/responses")
+async def responses(request: Request):
+    data = await request.json()
+    CONTROL_STATE["request_count"] += 1
+    messages = responses_input_to_chat_messages(data.get("input", []))
+    tools = responses_tools_to_chat_tools(data.get("tools", []))
+    model = data.get("model", "mock-model")
+    CONTROL_STATE["responses_requests"].append({
+        "input": data.get("input", []),
+        "stream": bool(data.get("stream", False)),
+        "previousResponseId": data.get("previous_response_id"),
+        "toolNames": [tool.get("function", {}).get("name") for tool in tools],
+    })
+
+    last_text = last_message_text(messages)
+    scenario_response = scenario_response_for(messages, tools)
+    tool_call = None
+    if scenario_response is not None and scenario_response.get("type") == "tool_call":
+        tool_call = (
+            scenario_response["tool_call_id"],
+            scenario_response["tool_name"],
+            scenario_response.get("arguments", {}),
+        )
+        reply = scenario_response.get("content", TOOL_PREFACE)
+    elif should_emit_blocking_tool_call(messages, tools):
+        query = "super-large-docs.example.com" if "super large" in last_text.lower() else "docs.example.com"
+        tool_call = (BLOCKING_TOOL_CALL_ID, BLOCKING_TOOL_NAME, {"query": query})
+        reply = TOOL_PREFACE
+    elif should_emit_delegate_task_call(messages, tools):
+        tool_call = (DELEGATE_TASK_CALL_ID, DELEGATE_TASK_NAME, delegate_task_arguments(last_text))
+        reply = TOOL_PREFACE
+    elif should_emit_tool_call(messages, tools):
+        tool_call = (TOOL_CALL_ID, TOOL_NAME, {"query": "docs.example.com"})
+        reply = TOOL_PREFACE
+    elif is_tool_followup(messages):
+        reply = "I checked the requested tool result."
+    elif "square root of 144" in last_text.lower():
+        reply = "The square root of 144 is 12."
+    elif "hello" in last_text.lower():
+        reply = "Hello! I am a mock LLM. How can I assist you today?"
+    else:
+        reply = "I received your message: " + last_text
+
+    CONTROL_STATE["response_sequence"] += 1
+    response = responses_payload(
+        model,
+        content=reply,
+        tool_call=tool_call,
+        response_id=f"resp_mock_{CONTROL_STATE['response_sequence']}",
+    )
+    if data.get("stream", False):
+        return StreamingResponse(
+            stream_responses_payload(response, tool_call=tool_call),
+            media_type="text/event-stream",
+        )
+    return JSONResponse(content=response)
 
 
 @app.post("/__control/reset")

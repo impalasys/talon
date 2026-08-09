@@ -1407,7 +1407,7 @@ function DebuggerPageContent() {
                     sessionId={selectedSession.sessionId}
                     gatewayClient={getGatewayClient()}
                   historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
-                  enabledBuiltInCommands={['clear']}
+                  enabledBuiltInCommands={['clear', 'compact', 'doctor']}
                   onImageUpload={sessionComposerRole === 'assistant' || !imageUploadsEnabled ? undefined : uploadTalonImage}
                   objectUrlForRef={imageUploadsEnabled ? talonObjectUrl : undefined}
                   disabled={!isConnected}

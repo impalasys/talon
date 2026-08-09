@@ -34,6 +34,19 @@ tests/                Python end-to-end tests
 - Include tests or docs updates when behavior, APIs, manifests, or user-facing workflows change.
 - Keep generated files in the same pull request as the source changes that produced them.
 
+## Contributor License Agreement
+
+Before a pull request can be merged, its author must accept the
+[Talon Contributor License Agreement](./CLA.md). Post the following exact
+sentence in a comment on each pull request you open:
+
+```text
+I have read and agree to the Talon CLA.
+```
+
+The `Talon CLA Agreement` check updates automatically after the comment is
+posted.
+
 ## Validation
 
 To enable the repository pre-push hook in a worktree, run:

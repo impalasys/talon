@@ -475,12 +475,13 @@ func (x *Tool) GetInputSchemaJson() string {
 }
 
 type ChatRequest struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	Messages      []*ChatMessage            `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
-	Tools         []*Tool                   `protobuf:"bytes,2,rep,name=tools,proto3" json:"tools,omitempty"`
-	Thinking      *resources.ThinkingConfig `protobuf:"bytes,3,opt,name=thinking,proto3,oneof" json:"thinking,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState    `protogen:"open.v1"`
+	Messages           []*ChatMessage            `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	Tools              []*Tool                   `protobuf:"bytes,2,rep,name=tools,proto3" json:"tools,omitempty"`
+	Thinking           *resources.ThinkingConfig `protobuf:"bytes,3,opt,name=thinking,proto3,oneof" json:"thinking,omitempty"`
+	PreviousResponseId *string                   `protobuf:"bytes,4,opt,name=previous_response_id,json=previousResponseId,proto3,oneof" json:"previous_response_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ChatRequest) Reset() {
@@ -532,6 +533,13 @@ func (x *ChatRequest) GetThinking() *resources.ThinkingConfig {
 		return x.Thinking
 	}
 	return nil
+}
+
+func (x *ChatRequest) GetPreviousResponseId() string {
+	if x != nil && x.PreviousResponseId != nil {
+		return *x.PreviousResponseId
+	}
+	return ""
 }
 
 type ChatStreamEvent struct {
@@ -692,12 +700,14 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\x04Tool\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12*\n" +
-	"\x11input_schema_json\x18\x03 \x01(\tR\x0finputSchemaJson\"\xbf\x01\n" +
+	"\x11input_schema_json\x18\x03 \x01(\tR\x0finputSchemaJson\"\x8f\x02\n" +
 	"\vChatRequest\x126\n" +
 	"\bmessages\x18\x01 \x03(\v2\x1a.talon.harness.ChatMessageR\bmessages\x12)\n" +
 	"\x05tools\x18\x02 \x03(\v2\x13.talon.harness.ToolR\x05tools\x12@\n" +
-	"\bthinking\x18\x03 \x01(\v2\x1f.talon.resources.ThinkingConfigH\x00R\bthinking\x88\x01\x01B\v\n" +
-	"\t_thinking\"\xe0\x01\n" +
+	"\bthinking\x18\x03 \x01(\v2\x1f.talon.resources.ThinkingConfigH\x00R\bthinking\x88\x01\x01\x125\n" +
+	"\x14previous_response_id\x18\x04 \x01(\tH\x01R\x12previousResponseId\x88\x01\x01B\v\n" +
+	"\t_thinkingB\x17\n" +
+	"\x15_previous_response_id\"\xe0\x01\n" +
 	"\x0fChatStreamEvent\x12\x1f\n" +
 	"\n" +
 	"text_delta\x18\x01 \x01(\tH\x00R\ttextDelta\x12)\n" +

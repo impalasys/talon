@@ -79,14 +79,16 @@ class Tool(_message.Message):
     def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ..., input_schema_json: _Optional[str] = ...) -> None: ...
 
 class ChatRequest(_message.Message):
-    __slots__ = ("messages", "tools", "thinking")
+    __slots__ = ("messages", "tools", "thinking", "previous_response_id")
     MESSAGES_FIELD_NUMBER: _ClassVar[int]
     TOOLS_FIELD_NUMBER: _ClassVar[int]
     THINKING_FIELD_NUMBER: _ClassVar[int]
+    PREVIOUS_RESPONSE_ID_FIELD_NUMBER: _ClassVar[int]
     messages: _containers.RepeatedCompositeFieldContainer[ChatMessage]
     tools: _containers.RepeatedCompositeFieldContainer[Tool]
     thinking: _agents_pb2.ThinkingConfig
-    def __init__(self, messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., tools: _Optional[_Iterable[_Union[Tool, _Mapping]]] = ..., thinking: _Optional[_Union[_agents_pb2.ThinkingConfig, _Mapping]] = ...) -> None: ...
+    previous_response_id: str
+    def __init__(self, messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., tools: _Optional[_Iterable[_Union[Tool, _Mapping]]] = ..., thinking: _Optional[_Union[_agents_pb2.ThinkingConfig, _Mapping]] = ..., previous_response_id: _Optional[str] = ...) -> None: ...
 
 class ChatStreamEvent(_message.Message):
     __slots__ = ("text_delta", "reasoning_delta", "tool_call_delta", "usage")

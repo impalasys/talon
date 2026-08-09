@@ -28,6 +28,13 @@ enum SessionSubmissionStatus {
   SESSION_SUBMISSION_STATUS_INTERRUPTED = 5;
 }
 
+// What caused a durable submission. Maintenance submissions deliberately have
+// no user SessionMessage and must never be replayed as user context.
+enum SessionSubmissionKind {
+  SESSION_SUBMISSION_KIND_USER_TURN = 0;
+  SESSION_SUBMISSION_KIND_COMPACT = 1;
+}
+
 message SessionSubmission {
   // Stable idempotency key for one accepted user submission.
   string submission_id = 1;
@@ -79,4 +86,6 @@ message SessionSubmission {
   // repair this from the latest journal entry if a crash happens between entry
   // append and pointer update.
   optional string current_journal_entry_id = 13;
+
+  SessionSubmissionKind kind = 15;
 }

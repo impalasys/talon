@@ -22,8 +22,10 @@ pub use journal::{
 };
 pub use journal::{append_llm_response, append_tool_result};
 pub use lease::{SubmissionLease, SubmissionLeaseRenewer};
-pub use session::persist_context_tokens;
+pub use session::{
+    clear_provider_request_id, persist_context_tokens, reset_provider_request_id_if_idle,
+};
 pub use submission::{
-    claim_submission, create_submission_if_absent, pending_submission, renew_submission_claim,
-    submission_is_terminal, ClaimOutcome, RenewOutcome,
+    claim_submission, create_submission_if_absent, pending_compaction_submission,
+    pending_submission, renew_submission_claim, submission_is_terminal, ClaimOutcome, RenewOutcome,
 };

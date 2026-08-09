@@ -4,6 +4,7 @@
 use super::{connectors as connector_rpc, data_proto, proto, GrpcGatewayHandler};
 use crate::control::cas::{session_object_key_prefix, SessionCasScope, METADATA_AGENT};
 use crate::control::scheduling;
+use crate::control::session_queue;
 use crate::control::tool_output;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
@@ -30,6 +31,64 @@ const LABEL_CONNECTOR_DELIVERY_STATUS: &str = "talon.impalasys.com/connector-del
 const RESERVED_CONNECTOR_LABEL_PREFIX: &str = "talon.impalasys.com/connector-";
 const RESERVED_CONNECTOR_MATCH_LABEL_PREFIX: &str = "talon.impalasys.com/connector-match/";
 const RESERVED_EXTERNAL_LABEL_PREFIX: &str = "talon.impalasys.com/external-";
+
+async fn incomplete_tool_batches(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+) -> std::result::Result<u32, tonic::Status> {
+    let prefix = keys::session_message_prefix(ns, agent, session_id);
+    let entries = kv.list_entries(&prefix, None).await.map_err(|error| {
+        tonic::Status::internal(format!("Failed to list session messages: {error}"))
+    })?;
+    let mut incomplete = 0u32;
+    for (_, bytes) in entries {
+        let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) else {
+            continue;
+        };
+        if message.role != data_proto::MessageRole::RoleAssistant as i32 {
+            continue;
+        }
+        let calls = message
+            .parts
+            .iter()
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::ToolCall as i32)
+            .filter_map(|part| {
+                serde_json::from_str::<Value>(&part.payload_json)
+                    .ok()
+                    .and_then(|payload| {
+                        payload
+                            .get("tool_call_id")
+                            .and_then(Value::as_str)
+                            .map(str::to_string)
+                    })
+            })
+            .collect::<HashSet<_>>();
+        if calls.is_empty() {
+            continue;
+        }
+        let results = message
+            .parts
+            .iter()
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::ToolResult as i32)
+            .filter_map(|part| {
+                serde_json::from_str::<Value>(&part.payload_json)
+                    .ok()
+                    .and_then(|payload| {
+                        payload
+                            .get("tool_call_id")
+                            .and_then(Value::as_str)
+                            .map(str::to_string)
+                    })
+            })
+            .collect::<HashSet<_>>();
+        if !calls.is_subset(&results) {
+            incomplete = incomplete.saturating_add(1);
+        }
+    }
+    Ok(incomplete)
+}
 
 fn is_mutable_connector_delivery_label(key: &str) -> bool {
     key == LABEL_CONNECTOR_DELIVERY_STATUS || key == LABEL_CONNECTOR_DELIVERY_ERROR
@@ -1050,6 +1109,80 @@ impl GrpcGatewayHandler {
         }))
     }
 
+    pub async fn handle_list_queued_session_messages(
+        &self,
+        req: tonic::Request<proto::ListQueuedSessionMessagesRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListQueuedSessionMessagesResponse>, tonic::Status>
+    {
+        crate::require_auth!(
+            read,
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+        if req.queue != session_queue::NEXT_QUEUE {
+            return Err(tonic::Status::invalid_argument(
+                "only the next session queue can be listed",
+            ));
+        }
+
+        let session_key = keys::session(&req.ns, &req.agent, &req.session_id);
+        if self
+            .gateway
+            .kv
+            .get_msg::<data_proto::Session>(&session_key)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session metadata: {e}")))?
+            .is_none()
+        {
+            return Err(tonic::Status::not_found("Session not found"));
+        }
+
+        let prefix = keys::session_queue_prefix(&req.ns, &req.agent, &req.session_id, &req.queue);
+        let entries = self
+            .gateway
+            .kv
+            .list_entries(&prefix, None)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to list queued session messages: {e}"))
+            })?
+            .into_iter()
+            .filter_map(|(key, bytes)| {
+                let entry_id = keys::direct_child_name(&prefix, &key)?.to_string();
+                match data_proto::SessionMessage::decode(bytes.as_slice()) {
+                    Ok(message) => Some(proto::QueuedSessionMessage {
+                        entry_id,
+                        message: Some(message),
+                    }),
+                    Err(error) => {
+                        tracing::warn!(
+                            ns = %req.ns,
+                            agent = %req.agent,
+                            session_id = %req.session_id,
+                            key = %key,
+                            error = %error,
+                            "failed to decode queued session message"
+                        );
+                        None
+                    }
+                }
+            })
+            .collect();
+
+        Ok(tonic::Response::new(
+            proto::ListQueuedSessionMessagesResponse {
+                session_id: req.session_id,
+                agent: req.agent,
+                queue: req.queue,
+                entries,
+            },
+        ))
+    }
+
     pub async fn handle_list_sessions(
         &self,
         req: tonic::Request<proto::ListSessionsRequest>,
@@ -1262,6 +1395,85 @@ impl GrpcGatewayHandler {
 
         Ok(tonic::Response::new(proto::ClearSessionResponse {
             success: true,
+        }))
+    }
+
+    pub async fn handle_compact_session(
+        &self,
+        req: tonic::Request<proto::CompactSessionRequest>,
+    ) -> std::result::Result<
+        tonic::Response<
+            <GrpcGatewayHandler as proto::session_service_server::SessionService>::CompactStream,
+        >,
+        tonic::Status,
+    > {
+        crate::require_auth!(
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+        let submission_id = scheduling::compact_session(
+            self.gateway.kv.as_ref(),
+            self.gateway.pubsub.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            chrono::Utc::now(),
+        )
+        .await
+        .map_err(map_session_submit_error)?;
+        let target = SessionStreamTarget::new(req.ns, req.agent, req.session_id);
+        Ok(tonic::Response::new(session_submission_event_stream(
+            target,
+            submission_id,
+            self.gateway.kv.clone(),
+            self.gateway.pubsub.clone(),
+            self.gateway.worker_connections.clone(),
+        )))
+    }
+
+    pub async fn handle_doctor_session(
+        &self,
+        req: tonic::Request<proto::DoctorSessionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::DoctorSessionResponse>, tonic::Status> {
+        crate::require_auth!(
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+        let incomplete_tool_batches = incomplete_tool_batches(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+        )
+        .await?;
+        let reset = crate::harness::sessions::reset_provider_request_id_if_idle(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+        )
+        .await
+        .map_err(|error| {
+            if error.to_string().contains("currently generating") {
+                tonic::Status::failed_precondition("Session is currently generating a response.")
+            } else if error.to_string().contains("not found") {
+                tonic::Status::not_found("Session not found")
+            } else {
+                tonic::Status::internal(format!("Failed to repair session continuation: {error}"))
+            }
+        })?;
+        Ok(tonic::Response::new(proto::DoctorSessionResponse {
+            provider_continuation_was_present: reset,
+            provider_continuation_reset: reset,
+            incomplete_tool_batches,
         }))
     }
 
@@ -1886,6 +2098,73 @@ mod tests {
         }
     }
 
+    #[tokio::test]
+    async fn doctor_diagnoses_incomplete_tool_call_batches_without_mutating_history() {
+        let kv = Arc::new(MockKvStore::default());
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let incomplete_key = keys::session_message(ns, agent, session_id, "assistant-1");
+        let complete_key = keys::session_message(ns, agent, session_id, "assistant-2");
+        let tool_call = |id: &str| data_proto::SessionMessagePart {
+            id: format!("call-{id}"),
+            part_type: data_proto::SessionMessagePartType::ToolCall as i32,
+            content: "Tool call".to_string(),
+            name: "lookup".to_string(),
+            payload_json: json!({"tool_call_id": id, "input": {}}).to_string(),
+            created_at: 1,
+            object: None,
+        };
+        let tool_result = |id: &str| data_proto::SessionMessagePart {
+            id: format!("result-{id}"),
+            part_type: data_proto::SessionMessagePartType::ToolResult as i32,
+            content: String::new(),
+            name: "lookup".to_string(),
+            payload_json: json!({"tool_call_id": id, "output": "ok"}).to_string(),
+            created_at: 1,
+            object: None,
+        };
+        for (key, message_id, id, complete) in [
+            (incomplete_key, "assistant-1", "call-missing", false),
+            (complete_key, "assistant-2", "call-complete", true),
+        ] {
+            let mut parts = vec![tool_call(id)];
+            if complete {
+                parts.push(tool_result(id));
+            }
+            kv.set_msg(
+                &key,
+                &data_proto::SessionMessage {
+                    id: message_id.to_string(),
+                    role: data_proto::MessageRole::RoleAssistant as i32,
+                    created_at: 1,
+                    labels: HashMap::new(),
+                    parts,
+                },
+            )
+            .await
+            .unwrap();
+        }
+
+        assert_eq!(
+            incomplete_tool_batches(kv.as_ref(), ns, agent, session_id)
+                .await
+                .unwrap(),
+            1
+        );
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&keys::session_message(
+                ns,
+                agent,
+                session_id,
+                "assistant-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(message.parts.len(), 1);
+    }
+
     fn handler_with_objects(
         kv: Arc<MockKvStore>,
         pubsub: Arc<RecordingPubSub>,
@@ -2277,6 +2556,75 @@ mod tests {
         assert_eq!(
             marker.object.as_ref().map(|object| object.key.as_str()),
             Some("cas/conic/sessions/session-1/compactions/submission-1/000001.txt")
+        );
+    }
+
+    #[tokio::test]
+    async fn list_queued_session_messages_exposes_next_queue_in_dispatch_order() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+
+        for (entry_id, content) in [
+            ("00000000000000000001-first", "first queued message"),
+            ("00000000000000000002-second", "second queued message"),
+        ] {
+            kv.set_msg(
+                &keys::session_queue_entry(
+                    ns,
+                    agent,
+                    session_id,
+                    crate::control::session_queue::NEXT_QUEUE,
+                    entry_id,
+                ),
+                &data_proto::SessionMessage {
+                    id: String::new(),
+                    role: data_proto::MessageRole::RoleUser as i32,
+                    created_at: 1,
+                    labels: Default::default(),
+                    parts: vec![data_proto::SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
+                        content: content.to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 1,
+                        object: None,
+                    }],
+                },
+            )
+            .await
+            .unwrap();
+        }
+
+        let response = handler
+            .handle_list_queued_session_messages(tonic::Request::new(
+                proto::ListQueuedSessionMessagesRequest {
+                    ns: ns.to_string(),
+                    agent: agent.to_string(),
+                    session_id: session_id.to_string(),
+                    queue: crate::control::session_queue::NEXT_QUEUE.to_string(),
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert_eq!(response.queue, crate::control::session_queue::NEXT_QUEUE);
+        assert_eq!(response.entries.len(), 2);
+        assert_eq!(response.entries[0].entry_id, "00000000000000000001-first");
+        assert_eq!(response.entries[1].entry_id, "00000000000000000002-second");
+        assert_eq!(
+            response.entries[0]
+                .message
+                .as_ref()
+                .and_then(|message| message.parts.first())
+                .map(|part| part.content.as_str()),
+            Some("first queued message")
         );
     }
 

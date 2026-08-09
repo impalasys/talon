@@ -47,9 +47,9 @@ describe("getSightlineRefreshUrl", () => {
   });
 
   it("uses the Osprey refresh URL cookie when present", () => {
-    document.cookie = "sightline_refresh_url=https%3A%2F%2Fosprey.test%2Finternal%2Fv1%2Fsightline%2Frefresh; path=/";
+    document.cookie = "sightline_refresh_url=https%3A%2F%2Fosprey.test%2Fv1%2Fsightline%2Frefresh; path=/";
 
-    expect(getSightlineRefreshUrl()).toBe("https://osprey.test/internal/v1/sightline/refresh");
+    expect(getSightlineRefreshUrl()).toBe("https://osprey.test/v1/sightline/refresh");
   });
 
   it("returns null when the Osprey refresh URL cookie is absent", () => {

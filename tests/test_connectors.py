@@ -3,11 +3,12 @@ import time
 import uuid
 from typing import Any
 
+import requests
 import uvicorn
 from fastapi import FastAPI, Request
 
 from e2e.blackbox import create_agent_resource, create_resource, ensure_namespace, message_text
-from e2e.stack import E2EStack, unused_tcp_port
+from e2e.stack import E2EStack, MOCK_LLM_PORT, unused_tcp_port
 from talon_client import (
     GetResourceRequest,
     ListSessionMessagesRequest,
@@ -17,6 +18,7 @@ from talon_client import (
 )
 from talon_client.data import (
     ROLE_ASSISTANT,
+    ROLE_USER,
     SESSION_MESSAGE_PART_TYPE_TEXT,
     MessageConsumer,
     Principal,
@@ -27,6 +29,7 @@ from talon_client.data import (
 from talon_client.proto.external.connectors_pb2 import (
     CONNECTOR_MESSAGE_EVENT_KIND_CREATED,
     CONNECTOR_MESSAGE_EVENT_STATUS_ACCEPTED,
+    CONNECTOR_MESSAGE_EVENT_STATUS_DUPLICATE,
     ConnectorMessageEvent,
 )
 from talon_client.resources import (
@@ -44,9 +47,29 @@ from talon_client.resources import (
 
 
 LABEL_CONNECTOR_DELIVERY_STATUS = "talon.impalasys.com/connector-delivery-status"
+LABEL_CONNECTOR_EVENT = "talon.impalasys.com/connector-event"
 CONNECTOR_DELIVERY_PENDING_REVIEW = "pending_review"
 CONNECTOR_DELIVERY_REQUESTED = "delivery_requested"
 CONNECTOR_DELIVERY_DELIVERED = "delivered"
+
+
+def mock_llm_control(method: str, path: str, payload: dict | None = None) -> dict[str, Any]:
+    response = requests.request(
+        method,
+        f"http://127.0.0.1:{MOCK_LLM_PORT}{path}",
+        json=payload,
+        timeout=5,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def wait_for_mock_llm_stream_blocked() -> None:
+    for _ in range(100):
+        if mock_llm_control("GET", "/__control/state").get("blocked"):
+            return
+        time.sleep(0.1)
+    raise AssertionError("mock LLM did not block its stream")
 
 
 class MockConnectorRuntime:
@@ -327,4 +350,179 @@ def test_connector_hold_for_review_can_edit_then_deliver(
         assert delivery["connectorName"] == connector_name
         assert delivery["externalConversationId"] == "room-1"
     finally:
+        runtime.stop()
+
+
+def test_connector_reuse_session_queues_messages_while_a_turn_is_busy(
+    talon_infrastructure_sqlite: E2EStack,
+    gateway_channel_sqlite,
+) -> None:
+    runtime = MockConnectorRuntime().start()
+    client = TalonClient(gateway_channel_sqlite)
+    namespace = f"talon-connector-queue-{uuid.uuid4().hex[:8]}"
+    agent_name = "connector-queue-agent"
+    class_name = "mock-chat"
+    connector_name = "room-one"
+    registration_id = f"Namespace/{namespace}/ConnectorClass/{class_name}"
+    first_event_id = f"evt-{uuid.uuid4().hex}"
+    second_event_id = f"evt-{uuid.uuid4().hex}"
+    try:
+        mock_llm_control("POST", "/__control/reset")
+        ensure_namespace(client, namespace)
+        create_agent_resource(
+            client,
+            namespace,
+            agent_name,
+            AgentSpec(
+                model_policy={
+                    "profiles": [
+                        {
+                            "name": "default",
+                            "model": Model(provider="mock", name="minimax-m2.7"),
+                        }
+                    ]
+                },
+                system_prompt="Reply briefly to connector messages.",
+            ),
+        )
+        create_resource(
+            client,
+            namespace,
+            "ConnectorClass",
+            class_name,
+            ResourceSpec(
+                connector_class=ConnectorClassSpec(
+                    platform="mock",
+                    runtime=ConnectorClassRuntimeSpec(kind="http", endpoint=runtime.base_url),
+                    auth=ConnectorClassAuthSpec(
+                        kind="apiKey",
+                        api_key=ConnectorSecretRef(plain="mock-secret"),
+                    ),
+                    match_indexes=[
+                        ConnectorMatchIndex(name="room", fields=["roomId"]),
+                    ],
+                )
+            ),
+        )
+        wait_for_connector_class_ready(client, namespace, class_name, runtime)
+        create_resource(
+            client,
+            namespace,
+            "Connector",
+            connector_name,
+            ResourceSpec(
+                connector=ConnectorSpec(
+                    class_ref=ResourceRef(name=class_name),
+                    enabled=True,
+                    match_fields={"roomId": "room-1"},
+                    consumer=MessageConsumer(
+                        session=SessionMessageConsumer(
+                            agent=DataResourceRef(name=agent_name),
+                            continuity="reuse",
+                            reply_mode="hold_for_review",
+                        )
+                    ),
+                )
+            ),
+        )
+        wait_for_connector_ready(client, namespace, connector_name)
+
+        mock_llm_control("POST", "/__control/block_stream_after_chunks", {"chunks": 1})
+        first_response = client.connectors.IngestMessageEvent(
+            ConnectorMessageEvent(
+                event_id=first_event_id,
+                event_kind=CONNECTOR_MESSAGE_EVENT_KIND_CREATED,
+                registration_id=registration_id,
+                connector_class=class_name,
+                match_fields={"roomId": "room-1"},
+                external_conversation_id="room-1",
+                external_message_id="msg-1",
+                conversation_type="room",
+                sender=Principal(external_id="operator-1", display_name="Operator", kind="user"),
+                text="first connector message",
+                event_time_ms=int(time.time() * 1000),
+            ),
+            timeout=10,
+        )
+        assert first_response.status == CONNECTOR_MESSAGE_EVENT_STATUS_ACCEPTED
+        wait_for_mock_llm_stream_blocked()
+
+        second_response = client.connectors.IngestMessageEvent(
+            ConnectorMessageEvent(
+                event_id=second_event_id,
+                event_kind=CONNECTOR_MESSAGE_EVENT_KIND_CREATED,
+                registration_id=registration_id,
+                connector_class=class_name,
+                match_fields={"roomId": "room-1"},
+                external_conversation_id="room-1",
+                external_message_id="msg-2",
+                conversation_type="room",
+                sender=Principal(external_id="operator-1", display_name="Operator", kind="user"),
+                text="second connector message",
+                event_time_ms=int(time.time() * 1000),
+            ),
+            timeout=10,
+        )
+        assert second_response.status == CONNECTOR_MESSAGE_EVENT_STATUS_ACCEPTED
+
+        session_id = latest_session_id(client, namespace, agent_name)
+        mock_llm_control("POST", "/__control/unblock_stream")
+        deadline = time.time() + 45
+        while time.time() < deadline:
+            response = client.sessions.ListMessages(
+                ListSessionMessagesRequest(
+                    ns=namespace,
+                    agent=agent_name,
+                    session_id=session_id,
+                    page_size=50,
+                )
+            )
+            messages = [item.message for item in response.items]
+            connector_user_positions = [
+                (index, message.labels.get(LABEL_CONNECTOR_EVENT))
+                for index, message in enumerate(messages)
+                if message.role == ROLE_USER
+                and message.labels.get(LABEL_CONNECTOR_EVENT) in {first_event_id, second_event_id}
+            ]
+            assistant_positions = [
+                index
+                for index, message in enumerate(messages)
+                if message.role == ROLE_ASSISTANT
+                and message.labels.get(LABEL_CONNECTOR_DELIVERY_STATUS)
+                == CONNECTOR_DELIVERY_PENDING_REVIEW
+            ]
+            if (
+                [event_id for _, event_id in connector_user_positions]
+                == [first_event_id, second_event_id]
+                and len(assistant_positions) == 2
+                and connector_user_positions[0][0]
+                < assistant_positions[0]
+                < connector_user_positions[1][0]
+                < assistant_positions[1]
+            ):
+                break
+            time.sleep(0.5)
+        else:
+            raise AssertionError(f"queued connector messages did not complete: {messages!r}")
+
+        duplicate_response = client.connectors.IngestMessageEvent(
+            ConnectorMessageEvent(
+                event_id=second_event_id,
+                event_kind=CONNECTOR_MESSAGE_EVENT_KIND_CREATED,
+                registration_id=registration_id,
+                connector_class=class_name,
+                match_fields={"roomId": "room-1"},
+                external_conversation_id="room-1",
+                external_message_id="msg-2",
+                conversation_type="room",
+                sender=Principal(external_id="operator-1", display_name="Operator", kind="user"),
+                text="second connector message",
+                event_time_ms=int(time.time() * 1000),
+            ),
+            timeout=10,
+        )
+        assert duplicate_response.status == CONNECTOR_MESSAGE_EVENT_STATUS_DUPLICATE
+    finally:
+        mock_llm_control("POST", "/__control/unblock_stream")
+        mock_llm_control("POST", "/__control/reset")
         runtime.stop()

@@ -1,8 +1,17 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import {
   TalonChannel as RawTalonChannel,
   TalonCopilot as RawTalonCopilot,
+  TalonSession as RawTalonSession,
 } from '@impalasys/talon-chat';
+
+afterEach(() => {
+  cleanup();
+  const warnings = global.__talonReactActWarnings.splice(0);
+  if (warnings.length > 0) {
+    throw new Error(`React act warning(s):\n${warnings.join('\n\n')}`);
+  }
+});
 
 jest.mock('fzstd', () => ({
   decompress: jest.fn((bytes: Uint8Array) => bytes),
@@ -198,6 +207,7 @@ function makeGatewayClient(raw: any = {}, gatewayUrl = 'http://localhost:18789',
       const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}/messages?page_size=${request.pageSize}${before}`, { headers });
       return response.json();
     }),
+    listQueuedMessages: raw.listQueuedSessionMessages ?? jest.fn(async () => ({ entries: [] })),
     get: raw.getSession ?? jest.fn(async (request: any) => {
       const response = await fetcher(`${gatewayUrl}/v1/ns/${request.ns}/agents/${request.agent}/sessions/${request.sessionId}`, expect.anything());
       return response.json();
@@ -347,6 +357,109 @@ describe('TalonCopilot', () => {
       });
     });
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
+  });
+
+  it('shows pending messages from the session NEXT queue above the composer', async () => {
+    const listQueuedSessionMessages = jest.fn().mockResolvedValue({
+      entries: [
+        {
+          entryId: '00000000000000000001-next',
+          message: {
+            role: 'ROLE_USER',
+            parts: [{ partType: 'SESSION_MESSAGE_PART_TYPE_TEXT', content: 'Queue this follow-up' }],
+          },
+        },
+      ],
+    });
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        sessionId="sess-1"
+        gatewayClient={{
+          listSessionMessages: jest.fn().mockResolvedValue({ sessionId: 'sess-1', state: 'PROCESSING', items: [] }),
+          listQueuedSessionMessages,
+        }}
+      />,
+    );
+
+    expect(await screen.findByText('Queue this follow-up')).toBeInTheDocument();
+    expect(screen.getByLabelText('Next queue')).toHaveTextContent('1 queued');
+    expect(listQueuedSessionMessages).toHaveBeenCalledWith({
+      ns: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-1',
+      queue: 'next',
+    }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+  });
+
+  it('does not apply delayed hydration from the previous session after switching sessions', async () => {
+    const delayedOldHistory = deferred<any>();
+    const listSessionMessages = jest.fn((request: any) => {
+      if (request.sessionId === 'sess-old') return delayedOldHistory.promise;
+      return Promise.resolve({
+        sessionId: 'sess-new',
+        state: 'IDLE',
+        messages: [{
+          id: 'new-message',
+          role: 'ROLE_ASSISTANT',
+          content: 'New session history',
+          createdAt: String(Date.now() * 1000),
+        }],
+        steps: [],
+        hasMore: false,
+      });
+    });
+
+    const { rerender } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={{
+          createSession: jest.fn(),
+          listSessionMessages,
+          getSession: jest.fn(),
+        }}
+        sessionId="sess-old"
+      />,
+    );
+
+    await waitFor(() => expect(listSessionMessages).toHaveBeenCalledWith(expect.objectContaining({
+      sessionId: 'sess-old',
+    })));
+
+    rerender(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={{
+          createSession: jest.fn(),
+          listSessionMessages,
+          getSession: jest.fn(),
+        }}
+        sessionId="sess-new"
+      />,
+    );
+
+    expect(await screen.findByText('New session history')).toBeInTheDocument();
+    await act(async () => {
+      delayedOldHistory.resolve({
+        sessionId: 'sess-old',
+        state: 'IDLE',
+        messages: [{
+          id: 'old-message',
+          role: 'ROLE_ASSISTANT',
+          content: 'Stale old session history',
+          createdAt: String(Date.now() * 1000),
+        }],
+        steps: [],
+        hasMore: false,
+      });
+      await delayedOldHistory.promise;
+    });
+
+    expect(screen.queryByText('Stale old session history')).not.toBeInTheDocument();
+    expect(screen.getByText('New session history')).toBeInTheDocument();
   });
 
   it('lazily hydrates zstd CAS tool results with a library fallback when the browser stream rejects zstd', async () => {
@@ -803,13 +916,13 @@ describe('TalonCopilot', () => {
     warnSpy.mockRestore();
   });
 
-  it('shows an inline error when lazy CAS tool result hydration fails', async () => {
+  it('keeps an errored session visible when historical output hydration fails', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     const gatewayClient = {
       createSession: jest.fn(),
       listSessionMessages: jest.fn().mockResolvedValue({
         sessionId: 'sess-cas-fail',
-        state: 'IDLE',
+        state: 'ERROR',
         items: [
           {
             message: {
@@ -859,11 +972,15 @@ describe('TalonCopilot', () => {
     );
 
     expect(await screen.findByText('Done after failed hydrate.')).toBeInTheDocument();
+    expect(screen.getByText('Session Incident')).toBeInTheDocument();
+    expect(screen.getByText(/This session previously encountered an error/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ask Talon to perform a task...')).toBeInTheDocument();
     expect(gatewayClient.cas.getObject).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
     fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
 
-    expect(await screen.findByText('Could not load output.')).toBeInTheDocument();
+    expect(await screen.findByText('Historical output is unavailable.')).toBeInTheDocument();
+    expect(screen.getByText('Developer details')).toBeInTheDocument();
     expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
     expect(warnSpy).toHaveBeenCalledWith(
       'Could not hydrate CAS tool-result object',
@@ -873,46 +990,61 @@ describe('TalonCopilot', () => {
     warnSpy.mockRestore();
   });
 
-  it('does not refetch a lazy CAS tool result after it has been hydrated once', async () => {
+  it('preserves a hydrated CAS tool result across a canonical history refresh', async () => {
+    jest.useFakeTimers();
+    const listSessionMessages = jest.fn().mockResolvedValue({
+      sessionId: 'sess-cas-cache',
+      state: 'IDLE',
+      items: [
+        {
+          message: {
+            id: 'assistant-cas-cache',
+            role: 'ROLE_ASSISTANT',
+            parts: [
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                toolCallId: 'call-cas-cache',
+                toolName: 'knowledge_search',
+                payloadJson: JSON.stringify({ tool_call_id: 'call-cas-cache', input: { query: 'docs' } }),
+              },
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                toolCallId: 'call-cas-cache',
+                toolName: 'knowledge_search',
+                content: '',
+                payloadJson: JSON.stringify({
+                  tool_call_id: 'call-cas-cache',
+                  tool_output: {
+                    summary: '[Object: cached-output.txt (text/plain; charset=utf-8; 123 bytes)]',
+                    content_parts: [
+                      { type: 'text', text: 'Before: ' },
+                      {
+                        type: 'object_ref',
+                        object_ref: {
+                          key: 'cas/ops/sessions/sess-cas-cache/messages/assistant-cas-cache/000001.txt',
+                          media_type: 'text/plain; charset=utf-8',
+                        },
+                      },
+                      { type: 'text', text: ' :after' },
+                    ],
+                  },
+                }),
+              },
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                content: 'Done after cached hydrate.',
+              },
+            ],
+            createdAt: String(Date.now() * 1000),
+          },
+          steps: [],
+        },
+      ],
+      hasMore: false,
+    });
     const gatewayClient = {
       createSession: jest.fn(),
-      listSessionMessages: jest.fn().mockResolvedValue({
-        sessionId: 'sess-cas-cache',
-        state: 'IDLE',
-        items: [
-          {
-            message: {
-              id: 'assistant-cas-cache',
-              role: 'ROLE_ASSISTANT',
-              parts: [
-                {
-                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
-                  toolCallId: 'call-cas-cache',
-                  toolName: 'knowledge_search',
-                  payloadJson: JSON.stringify({ tool_call_id: 'call-cas-cache', input: { query: 'docs' } }),
-                },
-                {
-                  partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
-                  toolCallId: 'call-cas-cache',
-                  toolName: 'knowledge_search',
-                  content: '',
-                  payloadJson: JSON.stringify({ tool_call_id: 'call-cas-cache' }),
-                  object: {
-                    key: 'cas/ops/sessions/sess-cas-cache/messages/assistant-cas-cache/000001.txt',
-                  },
-                },
-                {
-                  partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
-                  content: 'Done after cached hydrate.',
-                },
-              ],
-              createdAt: String(Date.now() * 1000),
-            },
-            steps: [],
-          },
-        ],
-        hasMore: false,
-      }),
+      listSessionMessages,
       cas: {
         getObject: jest.fn().mockResolvedValue({
           data: new TextEncoder().encode('cached hydrated output'),
@@ -920,25 +1052,122 @@ describe('TalonCopilot', () => {
       },
     };
 
-    render(
+    try {
+      render(
+        <TalonCopilot
+          namespace="ops"
+          agent="copilot"
+          gatewayClient={gatewayClient}
+          sessionId="sess-cas-cache"
+        />,
+      );
+
+      expect(await screen.findByText('Done after cached hydrate.')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
+      const toolToggle = await screen.findByRole('button', { name: /Called\s+knowledge_search/ });
+      fireEvent.click(toolToggle);
+      expect(await screen.findByText('Before: cached hydrated output :after')).toBeInTheDocument();
+      expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(1_000);
+      });
+
+      expect(listSessionMessages).toHaveBeenCalledTimes(2);
+      expect(screen.getByText('Before: cached hydrated output :after')).toBeInTheDocument();
+      expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(toolToggle);
+      fireEvent.click(toolToggle);
+      expect(await screen.findByText('Before: cached hydrated output :after')).toBeInTheDocument();
+      expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('clears hydrated CAS tool output when changing through no active session', async () => {
+    const responseFor = (sessionId: string) => ({
+      sessionId,
+      state: 'IDLE',
+      items: [
+        {
+          message: {
+            // These are deliberately shared between sessions: cache isolation must come from session invalidation.
+            id: 'assistant-shared',
+            role: 'ROLE_ASSISTANT',
+            parts: [
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL',
+                toolCallId: 'call-shared',
+                toolName: 'knowledge_search',
+                payloadJson: JSON.stringify({ tool_call_id: 'call-shared', input: { query: sessionId } }),
+              },
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT',
+                toolCallId: 'call-shared',
+                toolName: 'knowledge_search',
+                content: '',
+                payloadJson: JSON.stringify({ tool_call_id: 'call-shared' }),
+                object: {
+                  key: 'cas/ops/sessions/shared/messages/assistant-shared/000001.txt',
+                },
+              },
+              {
+                partType: 'SESSION_MESSAGE_PART_TYPE_TEXT',
+                content: `Done in ${sessionId}.`,
+              },
+            ],
+            createdAt: String(Date.now() * 1000),
+          },
+          steps: [],
+        },
+      ],
+      hasMore: false,
+    });
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn((request: any) => Promise.resolve(responseFor(request.sessionId))),
+      cas: {
+        getObject: jest.fn().mockResolvedValue({
+          data: new TextEncoder().encode('first session hydrated output'),
+        }),
+      },
+    };
+
+    const { rerender } = render(
       <TalonCopilot
         namespace="ops"
         agent="copilot"
         gatewayClient={gatewayClient}
-        sessionId="sess-cas-cache"
+        sessionId="sess-one"
       />,
     );
 
-    expect(await screen.findByText('Done after cached hydrate.')).toBeInTheDocument();
+    expect(await screen.findByText('Done in sess-one.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Worked/ }));
-    const toolToggle = await screen.findByRole('button', { name: /Called\s+knowledge_search/ });
-    fireEvent.click(toolToggle);
-    expect(await screen.findByText('cached hydrated output')).toBeInTheDocument();
-    expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
+    fireEvent.click(await screen.findByRole('button', { name: /Called\s+knowledge_search/ }));
+    expect(await screen.findByText('first session hydrated output')).toBeInTheDocument();
 
-    fireEvent.click(toolToggle);
-    fireEvent.click(toolToggle);
-    expect(await screen.findByText('cached hydrated output')).toBeInTheDocument();
+    rerender(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+      />,
+    );
+
+    rerender(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-two"
+      />,
+    );
+
+    expect(await screen.findByText('Done in sess-two.')).toBeInTheDocument();
+    expect(screen.queryByText('first session hydrated output')).not.toBeInTheDocument();
     expect(gatewayClient.cas.getObject).toHaveBeenCalledTimes(1);
   });
 
@@ -1750,7 +1979,7 @@ describe('TalonCopilot', () => {
     });
     const createObjectURL = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:preview-photo');
     jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
-    const onImageUpload = jest.fn().mockResolvedValue({
+    const onAttachmentUpload = jest.fn().mockResolvedValue({
       key: 'sessions/sess-img/uploads/photo.png',
       mediaType: 'image/png',
       sizeBytes: 12,
@@ -1779,7 +2008,7 @@ describe('TalonCopilot', () => {
         namespace="ops"
         agent="copilot"
         gatewayUrl="http://localhost:18789"
-        onImageUpload={onImageUpload}
+        onAttachmentUpload={onAttachmentUpload}
       />,
     );
 
@@ -1794,7 +2023,7 @@ describe('TalonCopilot', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
-    await waitFor(() => expect(onImageUpload).toHaveBeenCalledWith(expect.objectContaining({
+    await waitFor(() => expect(onAttachmentUpload).toHaveBeenCalledWith(expect.objectContaining({
       file,
       namespace: 'ops',
       agent: 'copilot',
@@ -2158,7 +2387,10 @@ describe('TalonCopilot', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
-    stream.release('f:{"messageId":"assistant-scroll-lock"}\n');
+    await act(async () => {
+      stream.release('f:{"messageId":"assistant-scroll-lock"}\n');
+      await Promise.resolve();
+    });
     await waitFor(() => expect(scrollTo).toHaveBeenCalled());
     scrollTo.mockClear();
 
@@ -2168,14 +2400,17 @@ describe('TalonCopilot', () => {
     Object.defineProperty(scrollContainer, 'clientHeight', { configurable: true, value: 200 });
     fireEvent.scroll(scrollContainer);
 
-    stream.release('0:"New token."\n');
-    expect(await screen.findByText('New token.')).toBeInTheDocument();
     await act(async () => {
+      stream.release('0:"New token."\n');
       await Promise.resolve();
     });
+    expect(await screen.findByText('New token.')).toBeInTheDocument();
     expect(scrollTo).not.toHaveBeenCalled();
 
-    stream.release(null);
+    await act(async () => {
+      stream.release(null);
+      await Promise.resolve();
+    });
 
     Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
       configurable: true,
@@ -2286,12 +2521,84 @@ describe('TalonCopilot', () => {
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
     const workedButton = await screen.findByRole('button', { name: /Worked/ });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
     expect(screen.queryByText(/Working/)).not.toBeInTheDocument();
     expect(gatewayClient.sessions.listMessages).toHaveBeenCalledTimes(1);
 
     fireEvent.click(workedButton);
     expect(screen.getByText(/Called/)).toHaveTextContent('inspect_docs');
     expect(screen.getByText('18 total')).toBeInTheDocument();
+  });
+
+  it('restores the open working state when reloading a processing session', async () => {
+    const streamStarted = deferred<void>();
+    const finishStream = deferred<void>();
+    const gatewayClient = {
+      sessions: {
+        create: jest.fn(),
+        listMessages: jest.fn().mockResolvedValueOnce({
+          sessionId: 'sess-reloaded-processing',
+          state: 'PROCESSING',
+          items: [
+            {
+              message: {
+                id: 'user-reloaded-processing',
+                role: 'ROLE_USER',
+                content: 'Continue the in-progress task',
+                createdAt: String(Date.now() * 1000),
+              },
+              steps: [],
+            },
+            {
+              message: {
+                id: 'assistant-reloaded-processing',
+                role: 'ROLE_ASSISTANT',
+                parts: [
+                  { type: 'reasoning', text: 'Still checking the latest records.' },
+                  { type: 'text', text: 'The current answer is not complete yet.' },
+                ],
+                createdAt: String(Date.now() * 1000),
+              },
+              steps: [],
+            },
+          ],
+          hasMore: false,
+        }).mockResolvedValue({
+          sessionId: 'sess-reloaded-processing',
+          state: 'IDLE',
+          items: [],
+          hasMore: false,
+        }),
+        submitTurn: jest.fn(async function* () {}),
+        streamParts: jest.fn(async function* () {
+          streamStarted.resolve();
+          await finishStream.promise;
+          yield { kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DONE', messageId: 'assistant-reloaded-processing' };
+        }),
+        stopGeneration: jest.fn(),
+      },
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-reloaded-processing"
+      />,
+    );
+
+    expect(await screen.findByText(/Working for/)).toBeInTheDocument();
+    await waitFor(() => expect(streamStarted.promise).resolves.toBeUndefined());
+    expect(screen.queryByText(/Worked for/)).not.toBeInTheDocument();
+    expect(screen.getByText('Still checking the latest records.')).toBeInTheDocument();
+
+    finishStream.resolve();
+    await waitFor(() => expect(screen.queryByText(/Working for/)).not.toBeInTheDocument());
   });
 
   it('highlights a live tool call while it is running', async () => {
@@ -2531,8 +2838,9 @@ describe('TalonCopilot', () => {
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
   });
 
-  it('aborts an existing session resume stream before sending a new message', async () => {
+  it('exposes stop generation for an externally processing session', async () => {
     const resumeStream = makeControllableStreamResponse();
+    const stopGeneration = jest.fn(async () => ({ success: true }));
     const gatewayClient = {
       createSession: jest.fn(),
       listSessionMessages: jest
@@ -2570,6 +2878,7 @@ describe('TalonCopilot', () => {
           steps: [],
         }),
       getSession: jest.fn(),
+      stopGeneration,
     };
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();
@@ -2601,21 +2910,296 @@ describe('TalonCopilot', () => {
     });
     const resumeSignal = fetchMock.mock.calls[0][1].signal as AbortSignal;
 
+    fireEvent.click(screen.getByRole('button', { name: /stop generation/i }));
+
+    await waitFor(() => expect(resumeSignal.aborted).toBe(true));
+    await waitFor(() => expect(stopGeneration).toHaveBeenCalledWith(
+      {
+        ns: 'ops',
+        agent: 'copilot',
+        sessionId: 'sess-existing-processing',
+      },
+      { signal: expect.any(AbortSignal) },
+    ));
+    resumeStream.release(null);
+
+    expect(await screen.findByText('Sure')).toBeInTheDocument();
+    expect(gatewayClient.createSession).not.toHaveBeenCalled();
+  });
+
+  it('reports stop RPC failure and resumes the live session when the backend remains processing', async () => {
+    const firstResumeStarted = deferred<void>();
+    const secondResumeStarted = deferred<void>();
+    const stopGeneration = jest.fn().mockRejectedValue(new Error('stop RPC unavailable'));
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-stop-failure',
+        state: 'PROCESSING',
+        messages: [{
+          id: 'assistant-stop-failure',
+          role: 'ROLE_ASSISTANT',
+          content: 'Still processing after stop failure.',
+          createdAt: String(Date.now() * 1000),
+        }],
+        steps: [],
+        hasMore: false,
+      }),
+      streamParts: jest.fn(async function* (_target: any, options: any) {
+        const invocation = gatewayClient.streamParts.mock.calls.length;
+        if (invocation === 1) firstResumeStarted.resolve();
+        else secondResumeStarted.resolve();
+        await new Promise<void>((resolve) => {
+          if (options.signal.aborted) {
+            resolve();
+            return;
+          }
+          options.signal.addEventListener('abort', () => resolve(), { once: true });
+        });
+      }),
+      stopGeneration,
+    };
+
+    const { unmount } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-stop-failure"
+      />,
+    );
+
+    await screen.findByRole('button', { name: /stop generation/i });
+    await act(async () => {
+      await firstResumeStarted.promise;
+      await Promise.resolve();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /stop generation/i }));
+
+    await waitFor(() => expect(stopGeneration).toHaveBeenCalledWith(
+      {
+        ns: 'ops',
+        agent: 'copilot',
+        sessionId: 'sess-stop-failure',
+      },
+      { signal: expect.any(AbortSignal) },
+    ));
+    await act(async () => {
+      await secondResumeStarted.promise;
+      await Promise.resolve();
+    });
+    expect(await screen.findByText('stop RPC unavailable')).toBeInTheDocument();
+    expect(screen.getByText(/Working for/)).toBeInTheDocument();
+    unmount();
+  });
+
+  it('rolls back a busy submission and resumes the canonical session stream', async () => {
+    const resumeFinished = deferred<void>();
+    const submitTurn = jest.fn(async function* () {
+      throw Object.assign(new Error('Session is currently generating a response.'), { code: 8 });
+    });
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest
+        .fn()
+        .mockResolvedValueOnce({
+          sessionId: 'sess-busy-submit',
+          state: 'IDLE',
+          messages: [
+            {
+              id: 'user-existing-busy',
+              role: 'ROLE_USER',
+              content: 'Existing prompt',
+              createdAt: String(Date.now() * 1000),
+            },
+          ],
+          steps: [],
+        })
+        .mockResolvedValueOnce({
+          sessionId: 'sess-busy-submit',
+          state: 'PROCESSING',
+          messages: [
+            {
+              id: 'user-existing-busy',
+              role: 'ROLE_USER',
+              content: 'Existing prompt',
+              createdAt: String(Date.now() * 1000),
+            },
+            {
+              id: 'assistant-existing-busy',
+              role: 'ROLE_ASSISTANT',
+              content: 'Canonical partial response',
+              createdAt: String(Date.now() * 1000),
+            },
+          ],
+          steps: [],
+        })
+        .mockResolvedValue({
+          sessionId: 'sess-busy-submit',
+          state: 'IDLE',
+          messages: [
+            {
+              id: 'user-existing-busy',
+              role: 'ROLE_USER',
+              content: 'Existing prompt',
+              createdAt: String(Date.now() * 1000),
+            },
+            {
+              id: 'assistant-existing-busy',
+              role: 'ROLE_ASSISTANT',
+              content: 'Canonical partial response',
+              createdAt: String(Date.now() * 1000),
+            },
+          ],
+          steps: [],
+        }),
+      submitTurn,
+      streamParts: jest.fn(async function* () {
+        await resumeFinished.promise;
+        yield { kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DONE', messageId: 'assistant-existing-busy' };
+      }),
+      stopGeneration: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-busy-submit"
+      />,
+    );
+
+    await screen.findByText('Existing prompt');
     fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
       target: { value: 'new request' },
     });
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
-    await waitFor(() => expect(resumeSignal.aborted).toBe(true));
-    resumeStream.release('f:{"messageId":"assistant-existing"}\n');
-    resumeStream.release('0:"Sure"\n');
-    resumeStream.release(null);
+    expect(await screen.findByText(/Working for/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ask Talon to perform a task...')).toHaveValue('new request');
+    expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
+    expect(submitTurn).toHaveBeenCalledTimes(1);
 
-    expect(await screen.findByText('Sure')).toBeInTheDocument();
-    await waitFor(() => expect(gatewayClient.listSessionMessages).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText('SureSure')).not.toBeInTheDocument();
-    expect(gatewayClient.createSession).not.toHaveBeenCalled();
+    resumeFinished.resolve();
+    await waitFor(() => expect(screen.queryByText(/Working for/)).not.toBeInTheDocument());
   });
+
+  it('preserves the public alias and required transcript/composer DOM contracts', async () => {
+    expect(RawTalonCopilot).toBe(RawTalonSession);
+
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-contracts',
+        state: 'IDLE',
+        messages: [],
+        steps: [],
+      }),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-contracts"
+      />,
+    );
+
+    expect(await screen.findByTestId('copilot-transcript')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ask Talon to perform a task...')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeInTheDocument();
+  });
+
+  it('uses the resource callback override without opening or fetching the built-in pane', async () => {
+    const onResourceClick = jest.fn();
+    const fetchResource = jest.fn();
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-resource-override',
+        state: 'IDLE',
+        messages: [{
+          id: 'assistant-resource-override',
+          role: 'ROLE_ASSISTANT',
+          content: '[Open artifact](artifact://ops/copilot/sess-resource-override/report)',
+          createdAt: String(Date.now() * 1000),
+        }],
+        steps: [],
+      }),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-resource-override"
+        onResourceClick={onResourceClick}
+        fetchResource={fetchResource}
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Open artifact' }));
+    expect(onResourceClick).toHaveBeenCalledWith('artifact://ops/copilot/sess-resource-override/report');
+    expect(fetchResource).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('talon-resource-pane')).not.toBeInTheDocument();
+  });
+
+  it('aborts resource loading when the session is replaced', async () => {
+    const pendingResource = deferred<any>();
+    const fetchResource = jest.fn((_uri: string, signal: AbortSignal) => {
+      signal.addEventListener('abort', () => pendingResource.reject(new Error('aborted')));
+      return pendingResource.promise;
+    });
+    const listSessionMessages = jest.fn((request: any) => Promise.resolve({
+      sessionId: request.sessionId,
+      state: 'IDLE',
+      messages: [{
+        id: `${request.sessionId}-message`,
+        role: 'ROLE_ASSISTANT',
+        content: '[Open file](file://ops/memory.txt)',
+        createdAt: String(Date.now() * 1000),
+      }],
+      steps: [],
+    }));
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages,
+    };
+
+    const { rerender } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-resource-old"
+        fetchResource={fetchResource}
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Open file' }));
+    await waitFor(() => expect(fetchResource).toHaveBeenCalledWith(
+      'file://ops/memory.txt',
+      expect.any(AbortSignal),
+    ));
+    const resourceSignal = fetchResource.mock.calls[0][1] as AbortSignal;
+
+    rerender(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayClient={gatewayClient}
+        sessionId="sess-resource-new"
+        fetchResource={fetchResource}
+      />,
+    );
+
+    await waitFor(() => expect(resourceSignal.aborted).toBe(true));
+    expect(screen.queryByText('aborted')).not.toBeInTheDocument();
+  });
+
 });
 
 describe('TalonChannel', () => {

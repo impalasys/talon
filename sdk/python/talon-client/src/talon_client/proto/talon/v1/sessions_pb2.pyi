@@ -73,6 +73,38 @@ class ListSessionMessagesResponse(_message.Message):
     next_before_message_id: str
     def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., state: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ListSessionMessagesResponseItem, _Mapping]]] = ..., has_more: bool = ..., next_before_message_id: _Optional[str] = ...) -> None: ...
 
+class ListQueuedSessionMessagesRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns", "queue")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    QUEUE_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    queue: str
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., queue: _Optional[str] = ...) -> None: ...
+
+class QueuedSessionMessage(_message.Message):
+    __slots__ = ("entry_id", "message")
+    ENTRY_ID_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    entry_id: str
+    message: _data_pb2.SessionMessage
+    def __init__(self, entry_id: _Optional[str] = ..., message: _Optional[_Union[_data_pb2.SessionMessage, _Mapping]] = ...) -> None: ...
+
+class ListQueuedSessionMessagesResponse(_message.Message):
+    __slots__ = ("session_id", "agent", "queue", "entries")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    QUEUE_FIELD_NUMBER: _ClassVar[int]
+    ENTRIES_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    queue: str
+    entries: _containers.RepeatedCompositeFieldContainer[QueuedSessionMessage]
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., queue: _Optional[str] = ..., entries: _Optional[_Iterable[_Union[QueuedSessionMessage, _Mapping]]] = ...) -> None: ...
+
 class ListSessionsRequest(_message.Message):
     __slots__ = ("agent", "ns")
     AGENT_FIELD_NUMBER: _ClassVar[int]
@@ -160,6 +192,36 @@ class ClearSessionResponse(_message.Message):
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     success: bool
     def __init__(self, success: bool = ...) -> None: ...
+
+class CompactSessionRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ...) -> None: ...
+
+class DoctorSessionRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ...) -> None: ...
+
+class DoctorSessionResponse(_message.Message):
+    __slots__ = ("provider_continuation_was_present", "provider_continuation_reset", "incomplete_tool_batches")
+    PROVIDER_CONTINUATION_WAS_PRESENT_FIELD_NUMBER: _ClassVar[int]
+    PROVIDER_CONTINUATION_RESET_FIELD_NUMBER: _ClassVar[int]
+    INCOMPLETE_TOOL_BATCHES_FIELD_NUMBER: _ClassVar[int]
+    provider_continuation_was_present: bool
+    provider_continuation_reset: bool
+    incomplete_tool_batches: int
+    def __init__(self, provider_continuation_was_present: bool = ..., provider_continuation_reset: bool = ..., incomplete_tool_batches: _Optional[int] = ...) -> None: ...
 
 class SubmitSessionTurnRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns", "message", "labels")

@@ -363,6 +363,9 @@ impl LlmProvider for AnthropicProvider {
                                         current_usage.cached_input_tokens =
                                             usage.cached_input_tokens;
                                     }
+                                    if usage.cache_write_tokens > 0 {
+                                        current_usage.cache_write_tokens = usage.cache_write_tokens;
+                                    }
                                     if usage.total_tokens > 0 {
                                         current_usage.total_tokens = usage.total_tokens;
                                     }
@@ -396,6 +399,7 @@ impl LlmProvider for AnthropicProvider {
             messages: vec![chat_message_text("user", prompt)],
             tools: vec![],
             thinking: None,
+            previous_response_id: None,
         })
         .await
         .map(|r| r.content)
@@ -428,6 +432,10 @@ fn extract_usage(result: &serde_json::Value) -> Option<TokenCounter> {
         .get("cache_read_input_tokens")
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
+    let cache_write_tokens = usage
+        .get("cache_creation_input_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
 
     Some(TokenCounter {
         input_tokens,
@@ -435,6 +443,7 @@ fn extract_usage(result: &serde_json::Value) -> Option<TokenCounter> {
         reasoning_output_tokens: reasoning_tokens,
         total_tokens,
         cached_input_tokens,
+        cache_write_tokens,
         usage_available: true,
         provider_request_id: result
             .get("id")
@@ -619,6 +628,7 @@ mod tests {
             "usage": {
                 "input_tokens": 10,
                 "cache_read_input_tokens": 4,
+                "cache_creation_input_tokens": 6,
                 "output_tokens": 7,
                 "thinking_tokens": 3
             }
@@ -627,6 +637,7 @@ mod tests {
 
         assert_eq!(usage.input_tokens, 10);
         assert_eq!(usage.cached_input_tokens, 4);
+        assert_eq!(usage.cache_write_tokens, 6);
         assert_eq!(usage.output_tokens, 4);
         assert_eq!(usage.reasoning_output_tokens, 3);
         assert_eq!(usage.total_tokens, 0);
@@ -808,6 +819,7 @@ mod tests {
                 messages: messages.clone(),
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -819,6 +831,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "cause-error")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap_err();
@@ -829,6 +842,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "bad-format")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap_err();
@@ -890,6 +904,7 @@ mod tests {
                 messages: messages.clone(),
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
             .unwrap();
@@ -912,6 +927,7 @@ mod tests {
                 messages: vec![chat_message_text("user", "stream-error")],
                 tools: vec![],
                 thinking: None,
+                previous_response_id: None,
             })
             .await
         {

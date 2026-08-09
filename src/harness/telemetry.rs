@@ -74,6 +74,7 @@ pub fn chat_span(
         "gen_ai.output.messages" = field::Empty,
         "gen_ai.usage.input_tokens" = field::Empty,
         "gen_ai.usage.input_tokens.cached" = field::Empty,
+        "gen_ai.usage.input_tokens.cache_write" = field::Empty,
         "gen_ai.usage.output_tokens" = field::Empty,
         "gen_ai.usage.output_tokens.reasoning" = field::Empty,
         "gen_ai.usage.total_tokens" = field::Empty,
@@ -218,6 +219,10 @@ pub fn record_usage(span: &Span, usage: &TokenCounter) {
     span.record(
         "gen_ai.usage.input_tokens.cached",
         usage.cached_input_tokens,
+    );
+    span.record(
+        "gen_ai.usage.input_tokens.cache_write",
+        usage.cache_write_tokens,
     );
     span.record("gen_ai.usage.output_tokens", usage.output_tokens);
     span.record(

@@ -10,8 +10,11 @@ service SessionService {
   rpc Get(GetSessionRequest) returns (SessionResponse);
   rpc List(ListSessionsRequest) returns (ListSessionsResponse);
   rpc ListMessages(ListSessionMessagesRequest) returns (ListSessionMessagesResponse);
+  rpc ListQueuedMessages(ListQueuedSessionMessagesRequest) returns (ListQueuedSessionMessagesResponse);
   rpc Delete(DeleteSessionRequest) returns (DeleteSessionResponse);
   rpc Clear(ClearSessionRequest) returns (ClearSessionResponse);
+  rpc Compact(CompactSessionRequest) returns (stream talon.events.SessionMessagePartEvent);
+  rpc Doctor(DoctorSessionRequest) returns (DoctorSessionResponse);
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
   rpc AppendMessage(AppendSessionMessageRequest) returns (AppendSessionMessageResponse);
   rpc UpdateMessage(UpdateSessionMessageRequest) returns (UpdateSessionMessageResponse);
@@ -62,6 +65,27 @@ message ListSessionMessagesResponse {
   optional string next_before_message_id = 6;
 }
 
+// Queue entries are stored separately from the canonical session transcript
+// until they are dispatched. They are returned in FIFO dispatch order.
+message ListQueuedSessionMessagesRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  string queue = 4;
+}
+
+message QueuedSessionMessage {
+  string entry_id = 1;
+  talon.data.SessionMessage message = 2;
+}
+
+message ListQueuedSessionMessagesResponse {
+  string session_id = 1;
+  string agent = 2;
+  string queue = 3;
+  repeated QueuedSessionMessage entries = 4;
+}
+
 message ListSessionsRequest {
   string agent = 1;
   string ns = 2;
@@ -108,6 +132,24 @@ message ClearSessionRequest {
 
 message ClearSessionResponse {
   bool success = 1;
+}
+
+message CompactSessionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+message DoctorSessionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+message DoctorSessionResponse {
+  bool provider_continuation_was_present = 1;
+  bool provider_continuation_reset = 2;
+  uint32 incomplete_tool_batches = 3;
 }
 
 message SubmitSessionTurnRequest {
