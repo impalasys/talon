@@ -23,5 +23,6 @@ extends:
   - ./models/siliconflow.yaml
   - ./models/together.yaml
   - ./models/volcengine.yaml
+  - ./models/wafer.yaml
   - ./models/xai.yaml
   - ./models/zhipu.yaml
