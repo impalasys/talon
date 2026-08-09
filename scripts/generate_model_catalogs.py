@@ -86,6 +86,7 @@ class Provider:
     url: str | None
     parser: Callable[[str, dict[str, Any]], dict[str, Any] | None]
     auth: str = "bearer"
+    api_key_required: bool = True
     notes: str = ""
 
     def effective_url(self) -> str | None:
@@ -172,6 +173,32 @@ def novita_parser(provider: str, item: dict[str, Any]) -> dict[str, Any] | None:
         value = number(item.get(source))
         if value is not None:
             result["record"][destination] = value
+    return result
+
+
+def wafer_parser(provider: str, item: dict[str, Any]) -> dict[str, Any] | None:
+    result = generic_parser(provider, item)
+    if result is None:
+        return None
+
+    wafer = item.get("wafer")
+    wafer = wafer if isinstance(wafer, dict) else {}
+    context = number(item.get("max_model_len")) or number(
+        wafer.get("context_length")
+    )
+    if context is not None:
+        result["record"]["contextWindowTokens"] = context
+
+    pricing = wafer.get("pricing")
+    if isinstance(pricing, dict):
+        for source, destination in (
+            ("input_cents_per_million", "inputCostPerMillionTokens"),
+            ("output_cents_per_million", "outputCostPerMillionTokens"),
+            ("cache_read_cents_per_million", "cacheReadCostPerMillionTokens"),
+        ):
+            value = number(pricing.get(source))
+            if value is not None:
+                result["record"][destination] = value / 100
     return result
 
 
@@ -427,6 +454,13 @@ PROVIDERS: dict[str, Provider] = {
         "volcengine", ("VOLCENGINE_API_KEY",), None, generic_parser,
         notes="Volcengine model availability is endpoint/account scoped; set VOLCENGINE_MODELS_URL.",
     ),
+    "wafer": Provider(
+        "wafer",
+        ("WAFER_API_KEY",),
+        "https://pass.wafer.ai/v1/models",
+        wafer_parser,
+        api_key_required=False,
+    ),
     "xai": Provider(
         "xai", ("XAI_API_KEY",), "https://api.x.ai/v1/language-models", xai_parser
     ),
@@ -462,14 +496,16 @@ def fetch(provider: Provider) -> list[dict[str, Any]]:
             raise CatalogError("FIREWORKS_ACCOUNT_ID is required for the management API")
         url = url.format(account=urllib.parse.quote(account, safe=""))
     api_key = provider.api_key()
-    if not api_key:
+    if not api_key and provider.api_key_required:
         raise CatalogError(f"missing one of: {', '.join(provider.api_key_env)}")
     headers = {"Accept": "application/json", "User-Agent": "talon-model-catalog-generator/1"}
     if provider.auth == "anthropic":
+        assert api_key is not None
         headers.update({"x-api-key": api_key, "anthropic-version": "2023-06-01"})
     elif provider.auth == "google":
+        assert api_key is not None
         url = add_query(url, "key", api_key)
-    else:
+    elif api_key is not None:
         headers["Authorization"] = f"Bearer {api_key}"
 
     all_items: list[dict[str, Any]] = []
