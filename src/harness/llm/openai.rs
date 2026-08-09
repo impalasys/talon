@@ -15,6 +15,7 @@ use base64::{engine::general_purpose, Engine as _};
 use futures::{stream, Stream, StreamExt};
 use serde_json::Value;
 use std::{
+    collections::HashSet,
     pin::Pin,
     sync::OnceLock,
     task::{Context, Poll},
@@ -962,7 +963,11 @@ fn openai_api_error(message: &str, response_body: &str) -> anyhow::Error {
 }
 
 fn openai_error_message(prefix: &str, response: &Value) -> Option<String> {
-    let error = response.get("error")?.as_object()?;
+    format_openai_error_message(prefix, response.get("error")?)
+}
+
+fn format_openai_error_message(prefix: &str, error: &Value) -> Option<String> {
+    let error = error.as_object()?;
     let field = |name: &str| {
         error
             .get(name)
@@ -980,6 +985,30 @@ fn openai_error_message(prefix: &str, response: &Value) -> Option<String> {
         field("type"),
         field("message"),
     ))
+}
+
+fn openai_responses_stream_error(event_type: &str, value: &Value) -> anyhow::Error {
+    let response = value.get("response").unwrap_or(value);
+    let error = response
+        .get("error")
+        .filter(|error| !error.is_null())
+        .or_else(|| value.get("error").filter(|error| !error.is_null()))
+        .or_else(|| {
+            (value.get("code").is_some() || value.get("message").is_some()).then_some(value)
+        });
+    let message = error
+        .and_then(|error| format_openai_error_message("OpenAI Responses stream error", error))
+        .unwrap_or_else(|| {
+            let incomplete_reason = response
+                .pointer("/incomplete_details/reason")
+                .and_then(Value::as_str)
+                .unwrap_or("null");
+            format!(
+                "OpenAI Responses stream error (code: {incomplete_reason}; type: {event_type}; message: null)"
+            )
+        });
+    let usage = extract_responses_usage(response).or_else(|| extract_responses_usage(value));
+    provider_request_error(message, usage)
 }
 
 fn is_stale_previous_response_id(status: reqwest::StatusCode, body: &str) -> bool {
@@ -1322,6 +1351,7 @@ fn parse_responses_stream(response: reqwest::Response, parent_span: tracing::Spa
     let parse_span = parent_span.clone();
     let mut buffer = String::new();
     let mut event_name = String::new();
+    let mut text_delta_parts = HashSet::new();
     let sse_stream = line_stream.flat_map(move |result| match result {
         Ok(bytes) => {
             buffer.push_str(&String::from_utf8_lossy(&bytes));
@@ -1365,7 +1395,34 @@ fn parse_responses_stream(response: reqwest::Response, parent_span: tracing::Spa
                     }
                     "response.output_text.delta" => {
                         if let Some(delta) = value.get("delta").and_then(Value::as_str) {
+                            text_delta_parts.insert((
+                                value
+                                    .get("output_index")
+                                    .and_then(Value::as_u64)
+                                    .unwrap_or_default(),
+                                value
+                                    .get("content_index")
+                                    .and_then(Value::as_u64)
+                                    .unwrap_or_default(),
+                            ));
                             items.push(Ok(text_delta_event(delta.to_string())));
+                        }
+                    }
+                    "response.output_text.done" => {
+                        let part = (
+                            value
+                                .get("output_index")
+                                .and_then(Value::as_u64)
+                                .unwrap_or_default(),
+                            value
+                                .get("content_index")
+                                .and_then(Value::as_u64)
+                                .unwrap_or_default(),
+                        );
+                        if !text_delta_parts.contains(&part) {
+                            if let Some(text) = value.get("text").and_then(Value::as_str) {
+                                items.push(Ok(text_delta_event(text.to_string())));
+                            }
                         }
                     }
                     "response.reasoning_summary_text.delta"
@@ -1429,6 +1486,9 @@ fn parse_responses_stream(response: reqwest::Response, parent_span: tracing::Spa
                         } else if let Some(usage) = extract_responses_usage(&value) {
                             items.push(Ok(usage_event(usage)));
                         }
+                    }
+                    "error" | "response.failed" | "response.incomplete" => {
+                        items.push(Err(openai_responses_stream_error(event_type, &value)));
                     }
                     _ => {}
                 }
@@ -2688,6 +2748,61 @@ mod tests {
             .unwrap();
 
         assert!(stream.next().await.is_none());
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn responses_stream_surfaces_error_event_details_and_done_text() {
+        let app = Router::new().route(
+            "/responses",
+            post(|| async {
+                axum::response::Response::builder()
+                    .status(axum::http::StatusCode::OK)
+                    .header("content-type", "text/event-stream")
+                    .body(axum::body::Body::from(concat!(
+                        "event: response.output_text.done\n",
+                        "data: {\"output_index\":0,\"content_index\":0,\"text\":\"partial reply\"}\n\n",
+                        "event: error\n",
+                        "data: {\"code\":\"credit_balance_exhausted\",\"type\":\"insufficient_quota\",\"message\":\"You have no credits remaining.\"}\n\n"
+                    )))
+                    .unwrap()
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+            test_cas_store(),
+            "responses",
+        );
+        let mut stream = provider
+            .stream_chat_completion(ChatRequest {
+                messages: vec![chat_message_text("user", "hi")],
+                tools: vec![],
+                thinking: None,
+                previous_response_id: None,
+            })
+            .await
+            .unwrap();
+
+        let text = stream.next().await.unwrap().unwrap();
+        assert!(matches!(
+            text,
+            ChatStreamEvent {
+                event: Some(chat_stream_event::Event::TextDelta(ref text)),
+            } if text == "partial reply"
+        ));
+        let error = stream.next().await.unwrap().unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            "OpenAI Responses stream error (code: credit_balance_exhausted; type: insufficient_quota; message: You have no credits remaining.)"
+        );
         server.abort();
     }
 
