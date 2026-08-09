@@ -20,7 +20,7 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 
 ## `ModelConfig`
 
-Static metadata for a model configured in the model catalog. Costs are in USD per one million tokens. The context window includes generated output; compaction reserves max_output_tokens from it when both are configured. long_context_tokens is the input-token threshold above which the optional long-context cost fields replace their corresponding standard cost fields.
+Static metadata for a model configured in the model catalog. Costs are in USD per one million tokens. The context window includes generated output; compaction reserves max_output_tokens from it when both are configured. long_context_tokens is the input-token threshold above which the optional long-context cost fields replace their corresponding standard cost fields; compaction also uses it as an operational input ceiling.
 
 | Field | Type | Notes |
 | --- | --- | --- |

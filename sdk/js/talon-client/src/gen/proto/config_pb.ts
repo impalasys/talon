@@ -96,7 +96,8 @@ export class TalonConfig extends Message<TalonConfig> {
  * USD per one million tokens. The context window includes generated output;
  * compaction reserves max_output_tokens from it when both are configured.
  * long_context_tokens is the input-token threshold above which the optional
- * long-context cost fields replace their corresponding standard cost fields.
+ * long-context cost fields replace their corresponding standard cost fields;
+ * compaction also uses it as an operational input ceiling.
  *
  * @generated from message talon.config.ModelConfig
  */
