@@ -32,6 +32,8 @@ pub struct TalonConfig {
 /// Static metadata for a model configured in the model catalog. Costs are in
 /// USD per one million tokens. The context window includes generated output;
 /// compaction reserves max_output_tokens from it when both are configured.
+/// long_context_tokens is the input-token threshold above which the optional
+/// long-context cost fields replace their corresponding standard cost fields.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ModelConfig {
     #[prost(string, tag = "1")]
@@ -48,6 +50,16 @@ pub struct ModelConfig {
     pub cache_read_cost_per_million_tokens: ::core::option::Option<f64>,
     #[prost(double, optional, tag = "7")]
     pub cache_write_cost_per_million_tokens: ::core::option::Option<f64>,
+    #[prost(uint64, optional, tag = "8")]
+    pub long_context_tokens: ::core::option::Option<u64>,
+    #[prost(double, optional, tag = "9")]
+    pub long_context_input_cost_per_million_tokens: ::core::option::Option<f64>,
+    #[prost(double, optional, tag = "10")]
+    pub long_context_output_cost_per_million_tokens: ::core::option::Option<f64>,
+    #[prost(double, optional, tag = "11")]
+    pub long_context_cache_read_cost_per_million_tokens: ::core::option::Option<f64>,
+    #[prost(double, optional, tag = "12")]
+    pub long_context_cache_write_cost_per_million_tokens: ::core::option::Option<f64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TrustConfig {

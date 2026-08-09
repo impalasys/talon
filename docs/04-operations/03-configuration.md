@@ -96,6 +96,10 @@ is not refreshed from provider APIs during startup.
 Costs are USD per one million tokens. `contextWindowTokens` is the complete
 provider context window. When `maxOutputTokens` is present, compaction reserves
 that many tokens for generation and uses the remainder as the history limit.
+`longContextTokens` is an input-token pricing threshold. When it is set, the
+corresponding `longContext*CostPerMillionTokens` fields describe the rates that
+apply once a request exceeds that threshold; it does not change compaction or
+the model's physical context window.
 
 ```yaml
 models:
@@ -107,11 +111,15 @@ models:
     outputCostPerMillionTokens: 10.00
     cacheReadCostPerMillionTokens: 0.125
     cacheWriteCostPerMillionTokens: 1.25
+    longContextTokens: 272000
+    longContextInputCostPerMillionTokens: 2.50
+    longContextOutputCostPerMillionTokens: 15.00
+    longContextCacheReadCostPerMillionTokens: 0.25
 ```
 
 The pricing fields are retained as model metadata for usage accounting and
-future provider integrations. Compaction currently consumes the context and
-output limits; if no matching model entry exists, it keeps the existing
+future provider integrations. Compaction consumes only the context and output
+limits; if no matching model entry exists, it keeps the existing
 environment/default character budget.
 
 ## Secret sources

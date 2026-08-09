@@ -17,6 +17,8 @@ message TalonConfig {
 // Static metadata for a model configured in the model catalog. Costs are in
 // USD per one million tokens. The context window includes generated output;
 // compaction reserves max_output_tokens from it when both are configured.
+// long_context_tokens is the input-token threshold above which the optional
+// long-context cost fields replace their corresponding standard cost fields.
 message ModelConfig {
   string provider = 1;
   optional uint64 context_window_tokens = 2;
@@ -25,6 +27,11 @@ message ModelConfig {
   optional double output_cost_per_million_tokens = 5;
   optional double cache_read_cost_per_million_tokens = 6;
   optional double cache_write_cost_per_million_tokens = 7;
+  optional uint64 long_context_tokens = 8;
+  optional double long_context_input_cost_per_million_tokens = 9;
+  optional double long_context_output_cost_per_million_tokens = 10;
+  optional double long_context_cache_read_cost_per_million_tokens = 11;
+  optional double long_context_cache_write_cost_per_million_tokens = 12;
 }
 
 message TrustConfig {

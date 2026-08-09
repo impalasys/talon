@@ -152,6 +152,16 @@ pub struct ModelConfigWrapper {
     pub cache_read_cost_per_million_tokens: Option<f64>,
     #[serde(default, alias = "cacheWriteCostPerMillionTokens")]
     pub cache_write_cost_per_million_tokens: Option<f64>,
+    #[serde(default, alias = "longContextTokens")]
+    pub long_context_tokens: Option<u64>,
+    #[serde(default, alias = "longContextInputCostPerMillionTokens")]
+    pub long_context_input_cost_per_million_tokens: Option<f64>,
+    #[serde(default, alias = "longContextOutputCostPerMillionTokens")]
+    pub long_context_output_cost_per_million_tokens: Option<f64>,
+    #[serde(default, alias = "longContextCacheReadCostPerMillionTokens")]
+    pub long_context_cache_read_cost_per_million_tokens: Option<f64>,
+    #[serde(default, alias = "longContextCacheWriteCostPerMillionTokens")]
+    pub long_context_cache_write_cost_per_million_tokens: Option<f64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -404,6 +414,15 @@ impl From<SerdeConfig> for Config {
                                 .cache_read_cost_per_million_tokens,
                             cache_write_cost_per_million_tokens: model
                                 .cache_write_cost_per_million_tokens,
+                            long_context_tokens: model.long_context_tokens,
+                            long_context_input_cost_per_million_tokens: model
+                                .long_context_input_cost_per_million_tokens,
+                            long_context_output_cost_per_million_tokens: model
+                                .long_context_output_cost_per_million_tokens,
+                            long_context_cache_read_cost_per_million_tokens: model
+                                .long_context_cache_read_cost_per_million_tokens,
+                            long_context_cache_write_cost_per_million_tokens: model
+                                .long_context_cache_write_cost_per_million_tokens,
                         },
                     )
                 })

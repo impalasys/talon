@@ -48,16 +48,20 @@ models:
     maxOutputTokens: 65536
     inputCostPerMillionTokens: 0.3
     outputCostPerMillionTokens: 2.5
+    cacheReadCostPerMillionTokens: 0.03
   "google/gemini-2.5-flash-image":
     provider: google
     contextWindowTokens: 32768
     maxOutputTokens: 32768
+    inputCostPerMillionTokens: 0.3
+    outputCostPerMillionTokens: 0.039
   "google/gemini-2.5-flash-lite":
     provider: google
     contextWindowTokens: 1048576
     maxOutputTokens: 65536
     inputCostPerMillionTokens: 0.1
     outputCostPerMillionTokens: 0.4
+    cacheReadCostPerMillionTokens: 0.01
   "google/gemini-2.5-flash-preview-tts":
     provider: google
     contextWindowTokens: 8192
@@ -70,10 +74,17 @@ models:
     maxOutputTokens: 65536
     inputCostPerMillionTokens: 1.25
     outputCostPerMillionTokens: 10
+    cacheReadCostPerMillionTokens: 0.125
+    longContextTokens: 200000
+    longContextInputCostPerMillionTokens: 2.5
+    longContextOutputCostPerMillionTokens: 15
+    longContextCacheReadCostPerMillionTokens: 0.25
   "google/gemini-2.5-pro-preview-tts":
     provider: google
     contextWindowTokens: 8192
     maxOutputTokens: 16384
+    inputCostPerMillionTokens: 1
+    outputCostPerMillionTokens: 20
   "google/gemini-3-flash-preview":
     provider: google
     contextWindowTokens: 1048576
@@ -85,6 +96,8 @@ models:
     provider: google
     contextWindowTokens: 131072
     maxOutputTokens: 32768
+    inputCostPerMillionTokens: 2
+    outputCostPerMillionTokens: 12
   "google/gemini-3-pro-image-preview":
     provider: google
     contextWindowTokens: 131072
@@ -97,6 +110,8 @@ models:
     provider: google
     contextWindowTokens: 65536
     maxOutputTokens: 65536
+    inputCostPerMillionTokens: 0.5
+    outputCostPerMillionTokens: 3
   "google/gemini-3.1-flash-image-preview":
     provider: google
     contextWindowTokens: 65536
@@ -107,10 +122,13 @@ models:
     maxOutputTokens: 65536
     inputCostPerMillionTokens: 0.25
     outputCostPerMillionTokens: 1.5
+    cacheReadCostPerMillionTokens: 0.025
   "google/gemini-3.1-flash-lite-image":
     provider: google
     contextWindowTokens: 65536
     maxOutputTokens: 65536
+    inputCostPerMillionTokens: 0.25
+    outputCostPerMillionTokens: 1.5
   "google/gemini-3.1-flash-lite-preview":
     provider: google
     contextWindowTokens: 1048576
@@ -142,6 +160,7 @@ models:
     maxOutputTokens: 65536
     inputCostPerMillionTokens: 0.3
     outputCostPerMillionTokens: 2.5
+    cacheReadCostPerMillionTokens: 0.03
   "google/gemini-3.6-flash":
     provider: google
     contextWindowTokens: 1048576
@@ -161,6 +180,8 @@ models:
     provider: google
     contextWindowTokens: 131072
     maxOutputTokens: 65536
+    inputCostPerMillionTokens: 1.5
+    outputCostPerMillionTokens: 9
   "google/gemini-pro-latest":
     provider: google
     contextWindowTokens: 1048576
@@ -181,6 +202,7 @@ models:
     maxOutputTokens: 65536
     inputCostPerMillionTokens: 2
     outputCostPerMillionTokens: 10
+    cacheReadCostPerMillionTokens: 0.2
   "google/gemma-4-26b-a4b-it":
     provider: google
     contextWindowTokens: 262144
