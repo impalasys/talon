@@ -271,6 +271,7 @@ pub fn compact_history_for_llm_with_budget(
 pub struct ModelContextLimits {
     pub context_window_tokens: Option<u64>,
     pub max_output_tokens: Option<u64>,
+    pub auto_compact_input_tokens: Option<u64>,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -303,8 +304,15 @@ impl ModelContextLimits {
     }
 
     pub fn effective_input_tokens(self) -> Option<u64> {
-        self.context_window_tokens
-            .map(|context| context.saturating_sub(self.reserved_output_tokens()))
+        let physical_input_tokens = self
+            .context_window_tokens
+            .map(|context| context.saturating_sub(self.reserved_output_tokens()));
+        match (physical_input_tokens, self.auto_compact_input_tokens) {
+            (Some(physical), Some(operational)) => Some(physical.min(operational)),
+            (Some(physical), None) => Some(physical),
+            (None, Some(operational)) => Some(operational),
+            (None, None) => None,
+        }
     }
 
     pub fn effective_input_chars(self) -> Option<usize> {
@@ -1457,6 +1465,7 @@ None recorded."#;
         let limits = ModelContextLimits {
             context_window_tokens: Some(128_000),
             max_output_tokens: Some(16_000),
+            auto_compact_input_tokens: None,
         };
 
         assert_eq!(limits.effective_input_tokens(), Some(112_000));
@@ -1468,6 +1477,7 @@ None recorded."#;
         let limits = ModelContextLimits {
             context_window_tokens: Some(1_048_576),
             max_output_tokens: Some(1_048_576),
+            auto_compact_input_tokens: None,
         };
 
         assert_eq!(limits.reserved_output_tokens(), 157_286);
@@ -1475,10 +1485,24 @@ None recorded."#;
     }
 
     #[test]
+    fn model_context_limits_apply_lower_operational_compaction_ceiling() {
+        let limits = ModelContextLimits {
+            context_window_tokens: Some(1_050_000),
+            max_output_tokens: Some(128_000),
+            auto_compact_input_tokens: Some(258_400),
+        };
+
+        assert_eq!(limits.reserved_output_tokens(), 128_000);
+        assert_eq!(limits.effective_input_tokens(), Some(258_400));
+        assert_eq!(limits.effective_input_chars(), Some(1_033_600));
+    }
+
+    #[test]
     fn tool_schema_chars_reduce_the_history_budget() {
         let limits = ModelContextLimits {
             context_window_tokens: Some(1_000),
             max_output_tokens: Some(1_000),
+            auto_compact_input_tokens: None,
         };
         let budget = ContextBudget {
             total_chars: 4_000,
@@ -1536,6 +1560,7 @@ None recorded."#;
             ModelContextLimits {
                 context_window_tokens: Some(128),
                 max_output_tokens: Some(32),
+                auto_compact_input_tokens: None,
             },
         );
 

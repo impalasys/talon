@@ -95,6 +95,9 @@ export class TalonConfig extends Message<TalonConfig> {
  * Static metadata for a model configured in the model catalog. Costs are in
  * USD per one million tokens. The context window includes generated output;
  * compaction reserves max_output_tokens from it when both are configured.
+ * auto_compact_input_tokens can set a lower operational input ceiling for
+ * cost, latency, or provider-side compaction without changing the physical
+ * model context window.
  *
  * @generated from message talon.config.ModelConfig
  */
@@ -134,6 +137,11 @@ export class ModelConfig extends Message<ModelConfig> {
    */
   cacheWriteCostPerMillionTokens?: number;
 
+  /**
+   * @generated from field: optional uint64 auto_compact_input_tokens = 8;
+   */
+  autoCompactInputTokens?: bigint;
+
   constructor(data?: PartialMessage<ModelConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -149,6 +157,7 @@ export class ModelConfig extends Message<ModelConfig> {
     { no: 5, name: "output_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
     { no: 6, name: "cache_read_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
     { no: 7, name: "cache_write_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 8, name: "auto_compact_input_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModelConfig {

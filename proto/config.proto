@@ -17,6 +17,9 @@ message TalonConfig {
 // Static metadata for a model configured in the model catalog. Costs are in
 // USD per one million tokens. The context window includes generated output;
 // compaction reserves max_output_tokens from it when both are configured.
+// auto_compact_input_tokens can set a lower operational input ceiling for
+// cost, latency, or provider-side compaction without changing the physical
+// model context window.
 message ModelConfig {
   string provider = 1;
   optional uint64 context_window_tokens = 2;
@@ -25,6 +28,7 @@ message ModelConfig {
   optional double output_cost_per_million_tokens = 5;
   optional double cache_read_cost_per_million_tokens = 6;
   optional double cache_write_cost_per_million_tokens = 7;
+  optional uint64 auto_compact_input_tokens = 8;
 }
 
 message TrustConfig {

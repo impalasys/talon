@@ -43,6 +43,7 @@ pub fn model_context_limits(config: &Config, provider: &str, model: &str) -> Mod
         .map(|model| ModelContextLimits {
             context_window_tokens: model.context_window_tokens,
             max_output_tokens: model.max_output_tokens,
+            auto_compact_input_tokens: model.auto_compact_input_tokens,
         })
         .unwrap_or_default()
 }
@@ -156,6 +157,8 @@ async fn resolve_llm_with_credentials(
                 }
             };
 
+            let auto_compact_input_tokens =
+                model_context_limits(config, provider_name, &model).auto_compact_input_tokens;
             Ok(ResolvedLlm {
                 provider: Arc::new(
                     crate::harness::llm::openai::OpenAiCompatibleProvider::with_api(
@@ -164,7 +167,8 @@ async fn resolve_llm_with_credentials(
                         model.clone(),
                         cas,
                         api,
-                    ),
+                    )
+                    .with_auto_compact_input_tokens(auto_compact_input_tokens),
                 ),
                 provider_key: provider_name.to_string(),
                 model,
@@ -375,6 +379,7 @@ mod tests {
                 provider: "openai".to_string(),
                 context_window_tokens: Some(16_000),
                 max_output_tokens: Some(2_000),
+                auto_compact_input_tokens: Some(12_000),
                 ..Default::default()
             },
         );
@@ -384,6 +389,7 @@ mod tests {
             crate::harness::executor::ModelContextLimits {
                 context_window_tokens: Some(16_000),
                 max_output_tokens: Some(2_000),
+                auto_compact_input_tokens: Some(12_000),
             }
         );
     }

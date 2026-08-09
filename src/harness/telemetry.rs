@@ -181,6 +181,12 @@ pub fn record_chat_operation_details(
             max_output as i64,
         ));
     }
+    if let Some(auto_compact_input_tokens) = model_limits.auto_compact_input_tokens {
+        attributes.push(KeyValue::new(
+            "talon.context.auto_compact_input_tokens",
+            auto_compact_input_tokens as i64,
+        ));
+    }
     span.add_event("gen_ai.client.inference.operation.details", attributes);
 }
 

@@ -6,7 +6,7 @@ use crate::harness::llm::provider::{
     chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
     provider_request_error, reasoning_delta_event, text_delta_event, tool_call_delta_event,
     usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream,
-    ChatStreamEvent, LlmProvider, TokenCounter, ToolCallDelta,
+    ChatStreamEvent, LlmProvider, TokenCounter, Tool, ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -14,6 +14,7 @@ use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
 use futures::{stream, Stream, StreamExt};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use std::{
     collections::HashSet,
     pin::Pin,
@@ -90,6 +91,7 @@ pub struct OpenAiCompatibleProvider {
     pub model: String,
     pub api: String,
     pub http_client: reqwest::Client,
+    auto_compact_input_tokens: Option<u64>,
     cas: CasStore,
 }
 
@@ -111,8 +113,14 @@ impl OpenAiCompatibleProvider {
             model,
             api: api.into(),
             http_client: shared_http_client(),
+            auto_compact_input_tokens: None,
             cas,
         }
+    }
+
+    pub fn with_auto_compact_input_tokens(mut self, tokens: Option<u64>) -> Self {
+        self.auto_compact_input_tokens = tokens.filter(|tokens| *tokens > 0);
+        self
     }
 
     fn uses_responses_api(&self) -> bool {
@@ -208,6 +216,125 @@ impl OpenAiCompatibleProvider {
         } else {
             Self::responses_input_content_part(part)
         }
+    }
+
+    fn supports_explicit_prompt_caching(&self) -> bool {
+        let model = self.model.rsplit('/').next().unwrap_or(self.model.as_str());
+        model == "gpt-5.6" || model.starts_with("gpt-5.6-")
+    }
+
+    fn prompt_cache_partition(messages: &[ChatMessage]) -> Option<String> {
+        let first_user = messages.iter().find(|message| message.role == "user")?;
+        let encoded = serde_json::to_vec(first_user).ok()?;
+        let digest = format!("{:x}", Sha256::digest(encoded));
+        Some(digest[..16].to_string())
+    }
+
+    fn responses_tool_definitions(tools: &[Tool]) -> Vec<Value> {
+        tools
+            .iter()
+            .map(|tool| {
+                serde_json::json!({
+                    "type": "function",
+                    "name": tool.name,
+                    "description": tool.description,
+                    "parameters": Self::openai_tool_parameters(&tool.input_schema_json),
+                    "strict": false,
+                })
+            })
+            .collect()
+    }
+
+    /// Mark the reusable instruction prefix explicitly while retaining the
+    /// default latest-message breakpoint. The opaque, conversation-partitioned
+    /// key improves cache routing without exposing prompt or user contents.
+    fn configure_prompt_cache(
+        &self,
+        input: &mut [Value],
+        tools: &[Tool],
+        cache_partition: Option<&str>,
+    ) -> Option<String> {
+        if !self.supports_explicit_prompt_caching() {
+            return None;
+        }
+
+        let mut breakpoint = None;
+        for (message_index, message) in input.iter().enumerate() {
+            let role = message.get("role").and_then(Value::as_str);
+            if !matches!(role, Some("system" | "developer")) {
+                break;
+            }
+            let Some(content) = message.get("content").and_then(Value::as_array) else {
+                continue;
+            };
+            for (content_index, part) in content.iter().enumerate() {
+                if matches!(
+                    part.get("type").and_then(Value::as_str),
+                    Some("input_text" | "input_image" | "input_file")
+                ) {
+                    breakpoint = Some((message_index, content_index));
+                }
+            }
+        }
+
+        let (message_index, content_index) = breakpoint?;
+        let key_material = serde_json::json!({
+            "model": self.model,
+            "partition": cache_partition,
+            "input": &input[..=message_index],
+            "tools": Self::responses_tool_definitions(tools),
+        });
+        let key_bytes = serde_json::to_vec(&key_material).ok()?;
+        let digest = format!("{:x}", Sha256::digest(key_bytes));
+        let key = format!("talon:{}", &digest[..32]);
+
+        input[message_index]["content"][content_index]["prompt_cache_breakpoint"] =
+            serde_json::json!({"mode": "explicit"});
+        Some(key)
+    }
+
+    fn build_responses_payload(
+        &self,
+        mut input: Vec<Value>,
+        tools: &[Tool],
+        cache_partition: Option<&str>,
+        thinking: Option<&crate::gateway::rpc::resources_proto::ThinkingConfig>,
+        previous_response_id: Option<&str>,
+        stream: bool,
+    ) -> Value {
+        let prompt_cache_key = self.configure_prompt_cache(&mut input, tools, cache_partition);
+        let mut payload = serde_json::json!({
+            "model": self.model,
+            "input": input,
+            "stream": stream,
+        });
+        if let Some(previous_response_id) = previous_response_id {
+            payload["previous_response_id"] = serde_json::json!(previous_response_id);
+        }
+        if !tools.is_empty() {
+            payload["tools"] = serde_json::json!(Self::responses_tool_definitions(tools));
+        }
+        if let Some(prompt_cache_key) = prompt_cache_key {
+            payload["prompt_cache_key"] = serde_json::json!(prompt_cache_key);
+        }
+        if let Some(compact_threshold) = self.auto_compact_input_tokens {
+            payload["context_management"] = serde_json::json!([{
+                "type": "compaction",
+                "compact_threshold": compact_threshold,
+            }]);
+        }
+        if let Some(thinking) = thinking.filter(|thinking| thinking.enabled) {
+            let mut reasoning = serde_json::json!({"summary": "auto"});
+            if !thinking.effort.trim().is_empty() {
+                reasoning["effort"] = serde_json::json!(thinking.effort);
+            }
+            payload["reasoning"] = reasoning;
+            payload["max_output_tokens"] = serde_json::json!(thinking
+                .budget_tokens
+                .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS)
+                .saturating_add(THINKING_COMPLETION_BUFFER_TOKENS));
+        }
+        payload
     }
 
     async fn serialize_messages(
@@ -825,50 +952,21 @@ impl OpenAiCompatibleProvider {
     ) -> Result<reqwest::Response> {
         let url = format!("{}/responses", self.base_url.trim_end_matches('/'));
         let messages = request.messages;
+        let prompt_cache_partition = Self::prompt_cache_partition(&messages);
+        let tools = request.tools;
+        let thinking = request.thinking;
         let previous_response_id = request.previous_response_id.clone();
-        let build_payload = |input: Vec<serde_json::Value>, previous_response_id: Option<&str>| {
-            let mut payload = serde_json::json!({
-                "model": self.model,
-                "input": input,
-                "stream": stream,
-            });
-            if let Some(previous_response_id) = previous_response_id {
-                payload["previous_response_id"] = serde_json::json!(previous_response_id);
-            }
-            if !request.tools.is_empty() {
-                payload["tools"] = serde_json::json!(request
-                    .tools
-                    .iter()
-                    .map(|tool| serde_json::json!({
-                        "type": "function",
-                        "name": tool.name,
-                        "description": tool.description,
-                        "parameters": Self::openai_tool_parameters(&tool.input_schema_json),
-                        "strict": false,
-                    }))
-                    .collect::<Vec<_>>());
-            }
-            if let Some(thinking) = request
-                .thinking
-                .as_ref()
-                .filter(|thinking| thinking.enabled)
-            {
-                let mut reasoning = serde_json::json!({"summary": "auto"});
-                if !thinking.effort.trim().is_empty() {
-                    reasoning["effort"] = serde_json::json!(thinking.effort);
-                }
-                payload["reasoning"] = reasoning;
-                payload["max_output_tokens"] = serde_json::json!(thinking
-                    .budget_tokens
-                    .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS)
-                    .saturating_add(THINKING_COMPLETION_BUFFER_TOKENS));
-            }
-            payload
-        };
         let input = self
             .serialize_responses_input(messages.clone(), previous_response_id.as_deref())
             .await?;
-        let mut payload = build_payload(input, previous_response_id.as_deref());
+        let mut payload = self.build_responses_payload(
+            input,
+            &tools,
+            prompt_cache_partition.as_deref(),
+            thinking.as_ref(),
+            previous_response_id.as_deref(),
+            stream,
+        );
 
         let stats_messages = payload
             .get("input")
@@ -877,10 +975,10 @@ impl OpenAiCompatibleProvider {
             .unwrap_or_default();
         self.log_request_attempt(
             "responses",
-            !request.tools.is_empty(),
+            !tools.is_empty(),
             stream,
             &stats_messages,
-            &request.tools,
+            &tools,
             &payload,
         );
         let response = self
@@ -897,10 +995,10 @@ impl OpenAiCompatibleProvider {
             let error = response.text().await?;
             self.log_request_failure(
                 "responses",
-                !request.tools.is_empty(),
+                !tools.is_empty(),
                 stream,
                 &stats_messages,
-                &request.tools,
+                &tools,
                 &payload,
                 status,
                 &error,
@@ -920,7 +1018,14 @@ impl OpenAiCompatibleProvider {
                     "Retrying Responses request without previous_response_id"
                 );
                 let full_input = self.serialize_responses_input(messages, None).await?;
-                payload = build_payload(full_input, None);
+                payload = self.build_responses_payload(
+                    full_input,
+                    &tools,
+                    prompt_cache_partition.as_deref(),
+                    thinking.as_ref(),
+                    None,
+                    stream,
+                );
                 let retry_response = self
                     .http_client
                     .post(&url)
@@ -1583,6 +1688,7 @@ mod tests {
     use crate::gateway::rpc::manifests::ThinkingConfig;
     use crate::harness::llm::{object_ref_part, text_part};
     use axum::{extract::State, routing::post, Json, Router};
+    use serde_json::json;
     use std::{
         net::SocketAddr,
         sync::{
@@ -3018,6 +3124,148 @@ mod tests {
         assert!(!input
             .iter()
             .any(|item| item.to_string().contains("old question")));
+    }
+
+    #[tokio::test]
+    async fn gpt_5_6_responses_add_stable_cache_routing_and_compaction() {
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            "http://localhost".to_string(),
+            "gpt-5.6-sol".to_string(),
+            test_cas_store(),
+            "responses",
+        )
+        .with_auto_compact_input_tokens(Some(258_400));
+        let tools = vec![Tool {
+            name: "search".to_string(),
+            description: "Search the index".to_string(),
+            input_schema_json: serde_json::json!({
+                "type": "object",
+                "properties": {"query": {"type": "string"}}
+            })
+            .to_string(),
+        }];
+
+        let stable_instructions = "stable instructions ".repeat(100);
+        let first_messages = vec![
+            chat_message_text("system", &stable_instructions),
+            chat_message_text("user", "conversation seed"),
+            chat_message_text("assistant", "acknowledged"),
+            chat_message_text("user", "first question"),
+        ];
+        let first_partition = OpenAiCompatibleProvider::prompt_cache_partition(&first_messages);
+        let first_input = provider
+            .serialize_responses_input(first_messages, None)
+            .await
+            .unwrap();
+        let first = provider.build_responses_payload(
+            first_input,
+            &tools,
+            first_partition.as_deref(),
+            None,
+            None,
+            false,
+        );
+
+        let second_messages = vec![
+            chat_message_text("system", &stable_instructions),
+            chat_message_text("user", "conversation seed"),
+            chat_message_text("assistant", "acknowledged"),
+            chat_message_text("user", "different question"),
+        ];
+        let second_partition = OpenAiCompatibleProvider::prompt_cache_partition(&second_messages);
+        let second_input = provider
+            .serialize_responses_input(second_messages, None)
+            .await
+            .unwrap();
+        let second = provider.build_responses_payload(
+            second_input,
+            &tools,
+            second_partition.as_deref(),
+            None,
+            None,
+            false,
+        );
+
+        assert_eq!(first["prompt_cache_key"], second["prompt_cache_key"]);
+        assert!(first.get("prompt_cache_options").is_none());
+        assert_eq!(
+            first["input"][0]["content"][0]["prompt_cache_breakpoint"],
+            json!({"mode": "explicit"})
+        );
+        assert!(first["input"][3]["content"][0]
+            .get("prompt_cache_breakpoint")
+            .is_none());
+        assert_eq!(
+            first["context_management"],
+            json!([{"type": "compaction", "compact_threshold": 258400}])
+        );
+        assert!(first["prompt_cache_key"].as_str().unwrap().len() <= 64);
+    }
+
+    #[tokio::test]
+    async fn prompt_cache_key_rotates_when_the_stable_prefix_changes() {
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            "http://localhost".to_string(),
+            "gpt-5.6-terra".to_string(),
+            test_cas_store(),
+            "responses",
+        );
+        let first_input = provider
+            .serialize_responses_input(
+                vec![
+                    chat_message_text("system", "prompt version one"),
+                    chat_message_text("user", "question"),
+                ],
+                None,
+            )
+            .await
+            .unwrap();
+        let second_input = provider
+            .serialize_responses_input(
+                vec![
+                    chat_message_text("system", "prompt version two"),
+                    chat_message_text("user", "question"),
+                ],
+                None,
+            )
+            .await
+            .unwrap();
+
+        let first =
+            provider.build_responses_payload(first_input, &[], Some("session"), None, None, false);
+        let second =
+            provider.build_responses_payload(second_input, &[], Some("session"), None, None, false);
+        assert_ne!(first["prompt_cache_key"], second["prompt_cache_key"]);
+    }
+
+    #[tokio::test]
+    async fn older_models_keep_implicit_prompt_caching() {
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            "http://localhost".to_string(),
+            "gpt-5.4".to_string(),
+            test_cas_store(),
+            "responses",
+        );
+        let input = provider
+            .serialize_responses_input(
+                vec![
+                    chat_message_text("system", "stable instructions"),
+                    chat_message_text("user", "question"),
+                ],
+                None,
+            )
+            .await
+            .unwrap();
+        let payload = provider.build_responses_payload(input, &[], None, None, None, false);
+
+        assert!(payload.get("prompt_cache_key").is_none());
+        assert!(payload.get("prompt_cache_options").is_none());
+        assert!(payload["input"][0]["content"][0]
+            .get("prompt_cache_breakpoint")
+            .is_none());
     }
 
     #[test]

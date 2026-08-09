@@ -144,6 +144,8 @@ pub struct ModelConfigWrapper {
     pub context_window_tokens: Option<u64>,
     #[serde(default, alias = "maxOutputTokens", alias = "maxOutput")]
     pub max_output_tokens: Option<u64>,
+    #[serde(default, alias = "autoCompactInputTokens")]
+    pub auto_compact_input_tokens: Option<u64>,
     #[serde(default, alias = "inputCostPerMillionTokens", alias = "inputCost")]
     pub input_cost_per_million_tokens: Option<f64>,
     #[serde(default, alias = "outputCostPerMillionTokens", alias = "outputCost")]
@@ -398,6 +400,7 @@ impl From<SerdeConfig> for Config {
                             provider: model.provider.unwrap_or_default(),
                             context_window_tokens: model.context_window_tokens,
                             max_output_tokens: model.max_output_tokens,
+                            auto_compact_input_tokens: model.auto_compact_input_tokens,
                             input_cost_per_million_tokens: model.input_cost_per_million_tokens,
                             output_cost_per_million_tokens: model.output_cost_per_million_tokens,
                             cache_read_cost_per_million_tokens: model

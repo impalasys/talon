@@ -287,6 +287,22 @@ trust:
         assert_eq!(
             config
                 .models
+                .get("openai/gpt-5.6-sol")
+                .unwrap()
+                .auto_compact_input_tokens,
+            Some(258400)
+        );
+        assert_eq!(
+            config
+                .models
+                .get("openai/gpt-5.6-sol")
+                .unwrap()
+                .cache_write_cost_per_million_tokens,
+            Some(6.25)
+        );
+        assert_eq!(
+            config
+                .models
                 .get("novita/google/gemma-4-31b-it")
                 .unwrap()
                 .context_window_tokens,

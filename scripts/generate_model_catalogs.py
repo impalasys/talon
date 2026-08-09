@@ -35,6 +35,16 @@ from typing import Any, Callable
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / "models"
 
+# Keep high-cost long-context aliases below OpenAI's 272K input pricing tier.
+# 258,400 mirrors a 272K operational window with 5% headroom for estimation
+# drift and request framing while preserving the physical model context limit.
+OPENAI_AUTO_COMPACT_INPUT_TOKENS = {
+    "gpt-5.4": 258_400,
+    "gpt-5.6-luna": 258_400,
+    "gpt-5.6-sol": 258_400,
+    "gpt-5.6-terra": 258_400,
+}
+
 
 class CatalogError(RuntimeError):
     """A provider catalog could not be fetched or normalized."""
@@ -514,9 +524,11 @@ def write_yaml(provider: Provider, records: list[dict[str, Any]], output: Path, 
             "provider",
             "contextWindowTokens",
             "maxOutputTokens",
+            "autoCompactInputTokens",
             "inputCostPerMillionTokens",
             "outputCostPerMillionTokens",
             "cacheReadCostPerMillionTokens",
+            "cacheWriteCostPerMillionTokens",
         ):
             if field in record["record"]:
                 lines.append(f"    {field}: {record['record'][field]}")
@@ -624,6 +636,11 @@ def generate(provider: Provider, output_dir: Path, write_empty: bool) -> bool:
                 if model_id in pricing:
                     parsed["record"].update(pricing[model_id])
                     pricing_count += 1
+        elif provider.name == "openai":
+            for parsed in records:
+                compact_threshold = OPENAI_AUTO_COMPACT_INPUT_TOKENS.get(parsed["id"])
+                if compact_threshold is not None:
+                    parsed["record"]["autoCompactInputTokens"] = compact_threshold
         output = output_dir / f"{provider.name}.yaml"
         source = provider.effective_url() or "provider API"
         if provider.name == "fireworks":

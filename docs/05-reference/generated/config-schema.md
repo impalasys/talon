@@ -20,7 +20,7 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 
 ## `ModelConfig`
 
-Static metadata for a model configured in the model catalog. Costs are in USD per one million tokens. The context window includes generated output; compaction reserves max_output_tokens from it when both are configured.
+Static metadata for a model configured in the model catalog. Costs are in USD per one million tokens. The context window includes generated output; compaction reserves max_output_tokens from it when both are configured. auto_compact_input_tokens can set a lower operational input ceiling for cost, latency, or provider-side compaction without changing the physical model context window.
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -31,6 +31,7 @@ Static metadata for a model configured in the model catalog. Costs are in USD pe
 | `output_cost_per_million_tokens` | `double` | optional |
 | `cache_read_cost_per_million_tokens` | `double` | optional |
 | `cache_write_cost_per_million_tokens` | `double` | optional |
+| `auto_compact_input_tokens` | `uint64` | optional |
 
 ## `TrustConfig`
 

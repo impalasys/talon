@@ -32,6 +32,9 @@ pub struct TalonConfig {
 /// Static metadata for a model configured in the model catalog. Costs are in
 /// USD per one million tokens. The context window includes generated output;
 /// compaction reserves max_output_tokens from it when both are configured.
+/// auto_compact_input_tokens can set a lower operational input ceiling for
+/// cost, latency, or provider-side compaction without changing the physical
+/// model context window.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ModelConfig {
     #[prost(string, tag = "1")]
@@ -48,6 +51,8 @@ pub struct ModelConfig {
     pub cache_read_cost_per_million_tokens: ::core::option::Option<f64>,
     #[prost(double, optional, tag = "7")]
     pub cache_write_cost_per_million_tokens: ::core::option::Option<f64>,
+    #[prost(uint64, optional, tag = "8")]
+    pub auto_compact_input_tokens: ::core::option::Option<u64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TrustConfig {

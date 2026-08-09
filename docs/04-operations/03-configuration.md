@@ -73,6 +73,16 @@ providers:
 The accepted values are `responses` and `chat_completions`. Generic
 OpenAI-compatible providers continue to use Chat Completions.
 
+For GPT-5.6 Responses requests, Talon derives a stable, opaque
+`prompt_cache_key` from the leading system/developer instructions and tool
+definitions, partitioned by a digest of the conversation's first user turn. It
+adds an explicit breakpoint at the end of that stable prefix and retains
+OpenAI's default latest-message breakpoint, so the reusable base is easy to
+route and growing conversation context can still receive cached-input pricing
+without concentrating every agent session on one hot cache key. Models that do
+not support explicit cache breakpoints keep their provider's existing implicit
+caching behavior.
+
 ## Model catalog
 
 The optional `models` map records model metadata. This repository's
@@ -95,24 +105,28 @@ is not refreshed from provider APIs during startup.
 
 Costs are USD per one million tokens. `contextWindowTokens` is the complete
 provider context window. When `maxOutputTokens` is present, compaction reserves
-that many tokens for generation and uses the remainder as the history limit.
+that many tokens for generation and uses the remainder as the physical input
+limit. `autoCompactInputTokens` can set a lower operational limit for cost or
+latency. Talon uses the lower limit for local durable compaction; native OpenAI
+Responses requests also pass it as the provider-side `compact_threshold`.
 
 ```yaml
 models:
-  openai/gpt-5:
+  openai/gpt-5.6-sol:
     provider: openai
-    contextWindowTokens: 400000
+    contextWindowTokens: 1050000
     maxOutputTokens: 128000
-    inputCostPerMillionTokens: 1.25
-    outputCostPerMillionTokens: 10.00
-    cacheReadCostPerMillionTokens: 0.125
-    cacheWriteCostPerMillionTokens: 1.25
+    autoCompactInputTokens: 258400
+    inputCostPerMillionTokens: 5.00
+    outputCostPerMillionTokens: 30.00
+    cacheReadCostPerMillionTokens: 0.50
+    cacheWriteCostPerMillionTokens: 6.25
 ```
 
 The pricing fields are retained as model metadata for usage accounting and
-future provider integrations. Compaction currently consumes the context and
-output limits; if no matching model entry exists, it keeps the existing
-environment/default character budget.
+future provider integrations. Compaction consumes the context, output, and
+optional operational input limits; if no matching model entry exists, it keeps
+the existing environment/default character budget.
 
 ## Secret sources
 

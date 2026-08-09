@@ -2542,12 +2542,26 @@ talon.config.Config.ModelConfig defaultValue) {
      * @return The cacheWriteCostPerMillionTokens.
      */
     double getCacheWriteCostPerMillionTokens();
+
+    /**
+     * <code>optional uint64 auto_compact_input_tokens = 8;</code>
+     * @return Whether the autoCompactInputTokens field is set.
+     */
+    boolean hasAutoCompactInputTokens();
+    /**
+     * <code>optional uint64 auto_compact_input_tokens = 8;</code>
+     * @return The autoCompactInputTokens.
+     */
+    long getAutoCompactInputTokens();
   }
   /**
    * <pre>
    * Static metadata for a model configured in the model catalog. Costs are in
    * USD per one million tokens. The context window includes generated output;
    * compaction reserves max_output_tokens from it when both are configured.
+   * auto_compact_input_tokens can set a lower operational input ceiling for
+   * cost, latency, or provider-side compaction without changing the physical
+   * model context window.
    * </pre>
    *
    * Protobuf type {@code talon.config.ModelConfig}
@@ -2746,6 +2760,25 @@ talon.config.Config.ModelConfig defaultValue) {
       return cacheWriteCostPerMillionTokens_;
     }
 
+    public static final int AUTO_COMPACT_INPUT_TOKENS_FIELD_NUMBER = 8;
+    private long autoCompactInputTokens_ = 0L;
+    /**
+     * <code>optional uint64 auto_compact_input_tokens = 8;</code>
+     * @return Whether the autoCompactInputTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasAutoCompactInputTokens() {
+      return ((bitField0_ & 0x00000040) != 0);
+    }
+    /**
+     * <code>optional uint64 auto_compact_input_tokens = 8;</code>
+     * @return The autoCompactInputTokens.
+     */
+    @java.lang.Override
+    public long getAutoCompactInputTokens() {
+      return autoCompactInputTokens_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2780,6 +2813,9 @@ talon.config.Config.ModelConfig defaultValue) {
       }
       if (((bitField0_ & 0x00000020) != 0)) {
         output.writeDouble(7, cacheWriteCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000040) != 0)) {
+        output.writeUInt64(8, autoCompactInputTokens_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -2816,6 +2852,10 @@ talon.config.Config.ModelConfig defaultValue) {
       if (((bitField0_ & 0x00000020) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeDoubleSize(7, cacheWriteCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000040) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(8, autoCompactInputTokens_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -2868,6 +2908,11 @@ talon.config.Config.ModelConfig defaultValue) {
             != java.lang.Double.doubleToLongBits(
                 other.getCacheWriteCostPerMillionTokens())) return false;
       }
+      if (hasAutoCompactInputTokens() != other.hasAutoCompactInputTokens()) return false;
+      if (hasAutoCompactInputTokens()) {
+        if (getAutoCompactInputTokens()
+            != other.getAutoCompactInputTokens()) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2910,6 +2955,11 @@ talon.config.Config.ModelConfig defaultValue) {
         hash = (37 * hash) + CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
             java.lang.Double.doubleToLongBits(getCacheWriteCostPerMillionTokens()));
+      }
+      if (hasAutoCompactInputTokens()) {
+        hash = (37 * hash) + AUTO_COMPACT_INPUT_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getAutoCompactInputTokens());
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -3013,6 +3063,9 @@ talon.config.Config.ModelConfig defaultValue) {
      * Static metadata for a model configured in the model catalog. Costs are in
      * USD per one million tokens. The context window includes generated output;
      * compaction reserves max_output_tokens from it when both are configured.
+     * auto_compact_input_tokens can set a lower operational input ceiling for
+     * cost, latency, or provider-side compaction without changing the physical
+     * model context window.
      * </pre>
      *
      * Protobuf type {@code talon.config.ModelConfig}
@@ -3055,6 +3108,7 @@ talon.config.Config.ModelConfig defaultValue) {
         outputCostPerMillionTokens_ = 0D;
         cacheReadCostPerMillionTokens_ = 0D;
         cacheWriteCostPerMillionTokens_ = 0D;
+        autoCompactInputTokens_ = 0L;
         return this;
       }
 
@@ -3116,6 +3170,10 @@ talon.config.Config.ModelConfig defaultValue) {
           result.cacheWriteCostPerMillionTokens_ = cacheWriteCostPerMillionTokens_;
           to_bitField0_ |= 0x00000020;
         }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.autoCompactInputTokens_ = autoCompactInputTokens_;
+          to_bitField0_ |= 0x00000040;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -3153,6 +3211,9 @@ talon.config.Config.ModelConfig defaultValue) {
         }
         if (other.hasCacheWriteCostPerMillionTokens()) {
           setCacheWriteCostPerMillionTokens(other.getCacheWriteCostPerMillionTokens());
+        }
+        if (other.hasAutoCompactInputTokens()) {
+          setAutoCompactInputTokens(other.getAutoCompactInputTokens());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -3215,6 +3276,11 @@ talon.config.Config.ModelConfig defaultValue) {
                 bitField0_ |= 0x00000040;
                 break;
               } // case 57
+              case 64: {
+                autoCompactInputTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 64
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3540,6 +3606,46 @@ talon.config.Config.ModelConfig defaultValue) {
       public Builder clearCacheWriteCostPerMillionTokens() {
         bitField0_ = (bitField0_ & ~0x00000040);
         cacheWriteCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private long autoCompactInputTokens_ ;
+      /**
+       * <code>optional uint64 auto_compact_input_tokens = 8;</code>
+       * @return Whether the autoCompactInputTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasAutoCompactInputTokens() {
+        return ((bitField0_ & 0x00000080) != 0);
+      }
+      /**
+       * <code>optional uint64 auto_compact_input_tokens = 8;</code>
+       * @return The autoCompactInputTokens.
+       */
+      @java.lang.Override
+      public long getAutoCompactInputTokens() {
+        return autoCompactInputTokens_;
+      }
+      /**
+       * <code>optional uint64 auto_compact_input_tokens = 8;</code>
+       * @param value The autoCompactInputTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAutoCompactInputTokens(long value) {
+
+        autoCompactInputTokens_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint64 auto_compact_input_tokens = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAutoCompactInputTokens() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        autoCompactInputTokens_ = 0L;
         onChanged();
         return this;
       }
@@ -26411,7 +26517,7 @@ talon.config.Config.ModelConfig defaultValue) {
       "ntrollersEntry\022\013\n\003key\030\001 \001(\t\022-\n\005value\030\002 \001" +
       "(\0132\036.talon.config.ControllerConfig:\0028\001\032H" +
       "\n\013ModelsEntry\022\013\n\003key\030\001 \001(\t\022(\n\005value\030\002 \001(" +
-      "\0132\031.talon.config.ModelConfig:\0028\001\"\343\003\n\013Mod" +
+      "\0132\031.talon.config.ModelConfig:\0028\001\"\251\004\n\013Mod" +
       "elConfig\022\020\n\010provider\030\001 \001(\t\022\"\n\025context_wi" +
       "ndow_tokens\030\002 \001(\004H\000\210\001\001\022\036\n\021max_output_tok" +
       "ens\030\003 \001(\004H\001\210\001\001\022*\n\035input_cost_per_million" +
@@ -26419,87 +26525,89 @@ talon.config.Config.ModelConfig defaultValue) {
       "llion_tokens\030\005 \001(\001H\003\210\001\001\022/\n\"cache_read_co" +
       "st_per_million_tokens\030\006 \001(\001H\004\210\001\001\0220\n#cach" +
       "e_write_cost_per_million_tokens\030\007 \001(\001H\005\210" +
+      "\001\001\022&\n\031auto_compact_input_tokens\030\010 \001(\004H\006\210" +
       "\001\001B\030\n\026_context_window_tokensB\024\n\022_max_out" +
       "put_tokensB \n\036_input_cost_per_million_to" +
       "kensB!\n\037_output_cost_per_million_tokensB" +
       "%\n#_cache_read_cost_per_million_tokensB&" +
-      "\n$_cache_write_cost_per_million_tokens\"9" +
-      "\n\013TrustConfig\022*\n\004oidc\030\001 \003(\0132\034.talon.conf" +
-      "ig.OidcTrustEntry\"\316\001\n\016OidcTrustEntry\022\014\n\004" +
-      "name\030\001 \001(\t\022\016\n\006issuer\030\002 \001(\t\022\021\n\taudiences\030" +
-      "\003 \003(\t\022\027\n\017allowed_domains\030\004 \003(\t\022\026\n\016allowe" +
-      "d_emails\030\005 \003(\t\022\020\n\010jwks_url\030\006 \001(\t\022\032\n\022cloc" +
-      "k_skew_seconds\030\007 \001(\r\022,\n\006grants\030\010 \003(\0132\034.t" +
-      "alon.config.OidcTrustGrant\"\274\001\n\016OidcTrust" +
-      "Grant\022/\n\004kind\030\001 \001(\0162!.talon.config.OidcT" +
-      "rustGrant.Kind\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005age" +
-      "nt\030\003 \001(\t\022\017\n\007session\030\004 \001(\t\022\017\n\007channel\030\005 \001" +
-      "(\t\"5\n\004Kind\022\024\n\020KIND_UNSPECIFIED\020\000\022\010\n\004READ" +
-      "\020\001\022\r\n\tREADWRITE\020\002\"4\n\020ControllerConfig\022\017\n" +
-      "\007enabled\030\001 \001(\010\022\017\n\007workers\030\002 \001(\r\"\347\001\n\021LlmP" +
-      "roviderConfig\022,\n\006openai\030\001 \001(\0132\032.talon.co" +
-      "nfig.OpenAiConfigH\000\0222\n\tanthropic\030\002 \001(\0132\035" +
-      ".talon.config.AnthropicConfigH\000\022,\n\006googl" +
-      "e\030\003 \001(\0132\032.talon.config.GoogleConfigH\000\0228\n" +
-      "\021openai_compatible\030\004 \001(\0132\033.talon.config." +
-      "GenericConfigH\000B\010\n\006config\"a\n\014OpenAiConfi" +
-      "g\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talo" +
-      "n.config.Secret\022\016\n\006org_id\030\003 \001(\t\022\013\n\003api\030\004" +
-      " \001(\t\"G\n\017AnthropicConfig\022\r\n\005model\030\001 \001(\t\022%" +
-      "\n\007api_key\030\002 \001(\0132\024.talon.config.Secret\"D\n" +
-      "\014GoogleConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030" +
-      "\002 \001(\0132\024.talon.config.Secret\"e\n\rGenericCo" +
-      "nfig\022\014\n\004name\030\001 \001(\t\022\020\n\010base_url\030\002 \001(\t\022\r\n\005" +
-      "model\030\003 \001(\t\022%\n\007api_key\030\004 \001(\0132\024.talon.con" +
-      "fig.Secret\"K\n\006Secret\022\017\n\005plain\030\001 \001(\tH\000\022&\n" +
-      "\003ref\030\002 \001(\0132\027.talon.config.SecretRefH\000B\010\n" +
-      "\006source\"\206\001\n\tSecretRef\022.\n\006source\030\001 \001(\0162\036." +
-      "talon.config.SecretRef.Source\022\013\n\003key\030\002 \001" +
-      "(\t\"<\n\006Source\022\007\n\003ENV\020\000\022\007\n\003GCP\020\001\022\014\n\010KEYCHA" +
-      "IN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE\020\004\"U\n\016DatabaseConf" +
-      "ig\022\020\n\010data_dir\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t\022!\n\003" +
-      "url\030\003 \001(\0132\024.talon.config.Secret\"%\n\023Messa" +
-      "geBrokerConfig\022\016\n\006driver\030\001 \001(\t\"&\n\026LocalO" +
-      "bjectStoreConfig\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObj" +
-      "ectStoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix" +
-      "\030\002 \001(\t\022\024\n\014api_base_url\030\003 \001(\t\"u\n\023S3Object" +
-      "StoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 " +
-      "\001(\t\022\016\n\006region\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(" +
-      "\t\022\030\n\020force_path_style\030\005 \001(\010\"\271\001\n\021ObjectSt" +
-      "oreConfig\0225\n\005local\030\001 \001(\0132$.talon.config." +
-      "LocalObjectStoreConfigH\000\0221\n\003gcs\030\002 \001(\0132\"." +
-      "talon.config.GcsObjectStoreConfigH\000\022/\n\002s" +
-      "3\030\003 \001(\0132!.talon.config.S3ObjectStoreConf" +
-      "igH\000B\t\n\007backend\"\217\001\n\033SchedulerCallbackAut" +
-      "hConfig\022-\n\rshared_secret\030\001 \001(\0132\024.talon.c" +
-      "onfig.SecretH\000\0229\n\013google_oidc\030\002 \001(\0132\".ta" +
-      "lon.config.GoogleOidcAuthConfigH\000B\006\n\004aut" +
-      "h\"G\n\024GoogleOidcAuthConfig\022\020\n\010audience\030\001 " +
-      "\001(\t\022\035\n\025service_account_email\030\002 \001(\t\"\246\001\n\031C" +
-      "loudTasksSchedulerConfig\022\022\n\nproject_id\030\001" +
-      " \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n" +
-      "\ntarget_url\030\004 \001(\t\022@\n\rcallback_auth\030\005 \001(\013" +
-      "2).talon.config.SchedulerCallbackAuthCon" +
-      "fig\"\212\002\n\035AwsEventBridgeSchedulerConfig\022\022\n" +
-      "\ngroup_name\030\001 \001(\t\022\021\n\tqueue_url\030\002 \001(\t\022\032\n\022" +
-      "execution_role_arn\030\003 \001(\t\022\034\n\024schedule_nam" +
-      "e_prefix\030\004 \001(\t\022\017\n\007dlq_arn\030\005 \001(\t\022!\n\031maxim" +
-      "um_event_age_seconds\030\006 \001(\r\022#\n\026maximum_re" +
-      "try_attempts\030\007 \001(\rH\000\210\001\001\022\024\n\014endpoint_url\030" +
-      "\010 \001(\tB\031\n\027_maximum_retry_attempts\"\256\001\n\017Sch" +
-      "edulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'.talo" +
-      "n.config.CloudTasksSchedulerConfigH\000\022P\n\031" +
-      "aws_eventbridge_scheduler\030\002 \001(\0132+.talon." +
-      "config.AwsEventBridgeSchedulerConfigH\000B\t" +
-      "\n\007backend\"\231\002\n\022ControlPlaneConfig\022.\n\010data" +
-      "base\030\001 \001(\0132\034.talon.config.DatabaseConfig" +
-      "\0229\n\016message_broker\030\002 \001(\0132!.talon.config." +
-      "MessageBrokerConfig\0220\n\tscheduler\030\003 \001(\0132\035" +
-      ".talon.config.SchedulerConfig\0225\n\014object_" +
-      "store\030\004 \001(\0132\037.talon.config.ObjectStoreCo" +
-      "nfig\022/\n\tdocuments\030\005 \001(\0132\034.talon.config.D" +
-      "atabaseConfig\"*\n\014ServerConfig\022\014\n\004host\030\001 " +
-      "\001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
+      "\n$_cache_write_cost_per_million_tokensB\034" +
+      "\n\032_auto_compact_input_tokens\"9\n\013TrustCon" +
+      "fig\022*\n\004oidc\030\001 \003(\0132\034.talon.config.OidcTru" +
+      "stEntry\"\316\001\n\016OidcTrustEntry\022\014\n\004name\030\001 \001(\t" +
+      "\022\016\n\006issuer\030\002 \001(\t\022\021\n\taudiences\030\003 \003(\t\022\027\n\017a" +
+      "llowed_domains\030\004 \003(\t\022\026\n\016allowed_emails\030\005" +
+      " \003(\t\022\020\n\010jwks_url\030\006 \001(\t\022\032\n\022clock_skew_sec" +
+      "onds\030\007 \001(\r\022,\n\006grants\030\010 \003(\0132\034.talon.confi" +
+      "g.OidcTrustGrant\"\274\001\n\016OidcTrustGrant\022/\n\004k" +
+      "ind\030\001 \001(\0162!.talon.config.OidcTrustGrant." +
+      "Kind\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005agent\030\003 \001(\t\022\017" +
+      "\n\007session\030\004 \001(\t\022\017\n\007channel\030\005 \001(\t\"5\n\004Kind" +
+      "\022\024\n\020KIND_UNSPECIFIED\020\000\022\010\n\004READ\020\001\022\r\n\tREAD" +
+      "WRITE\020\002\"4\n\020ControllerConfig\022\017\n\007enabled\030\001" +
+      " \001(\010\022\017\n\007workers\030\002 \001(\r\"\347\001\n\021LlmProviderCon" +
+      "fig\022,\n\006openai\030\001 \001(\0132\032.talon.config.OpenA" +
+      "iConfigH\000\0222\n\tanthropic\030\002 \001(\0132\035.talon.con" +
+      "fig.AnthropicConfigH\000\022,\n\006google\030\003 \001(\0132\032." +
+      "talon.config.GoogleConfigH\000\0228\n\021openai_co" +
+      "mpatible\030\004 \001(\0132\033.talon.config.GenericCon" +
+      "figH\000B\010\n\006config\"a\n\014OpenAiConfig\022\r\n\005model" +
+      "\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talon.config.S" +
+      "ecret\022\016\n\006org_id\030\003 \001(\t\022\013\n\003api\030\004 \001(\t\"G\n\017An" +
+      "thropicConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030" +
+      "\002 \001(\0132\024.talon.config.Secret\"D\n\014GoogleCon" +
+      "fig\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.ta" +
+      "lon.config.Secret\"e\n\rGenericConfig\022\014\n\004na" +
+      "me\030\001 \001(\t\022\020\n\010base_url\030\002 \001(\t\022\r\n\005model\030\003 \001(" +
+      "\t\022%\n\007api_key\030\004 \001(\0132\024.talon.config.Secret" +
+      "\"K\n\006Secret\022\017\n\005plain\030\001 \001(\tH\000\022&\n\003ref\030\002 \001(\013" +
+      "2\027.talon.config.SecretRefH\000B\010\n\006source\"\206\001" +
+      "\n\tSecretRef\022.\n\006source\030\001 \001(\0162\036.talon.conf" +
+      "ig.SecretRef.Source\022\013\n\003key\030\002 \001(\t\"<\n\006Sour" +
+      "ce\022\007\n\003ENV\020\000\022\007\n\003GCP\020\001\022\014\n\010KEYCHAIN\020\002\022\007\n\003AW" +
+      "S\020\003\022\t\n\005AZURE\020\004\"U\n\016DatabaseConfig\022\020\n\010data" +
+      "_dir\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t\022!\n\003url\030\003 \001(\0132" +
+      "\024.talon.config.Secret\"%\n\023MessageBrokerCo" +
+      "nfig\022\016\n\006driver\030\001 \001(\t\"&\n\026LocalObjectStore" +
+      "Config\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObjectStoreCo" +
+      "nfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014" +
+      "api_base_url\030\003 \001(\t\"u\n\023S3ObjectStoreConfi" +
+      "g\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006reg" +
+      "ion\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(\t\022\030\n\020force" +
+      "_path_style\030\005 \001(\010\"\271\001\n\021ObjectStoreConfig\022" +
+      "5\n\005local\030\001 \001(\0132$.talon.config.LocalObjec" +
+      "tStoreConfigH\000\0221\n\003gcs\030\002 \001(\0132\".talon.conf" +
+      "ig.GcsObjectStoreConfigH\000\022/\n\002s3\030\003 \001(\0132!." +
+      "talon.config.S3ObjectStoreConfigH\000B\t\n\007ba" +
+      "ckend\"\217\001\n\033SchedulerCallbackAuthConfig\022-\n" +
+      "\rshared_secret\030\001 \001(\0132\024.talon.config.Secr" +
+      "etH\000\0229\n\013google_oidc\030\002 \001(\0132\".talon.config" +
+      ".GoogleOidcAuthConfigH\000B\006\n\004auth\"G\n\024Googl" +
+      "eOidcAuthConfig\022\020\n\010audience\030\001 \001(\t\022\035\n\025ser" +
+      "vice_account_email\030\002 \001(\t\"\246\001\n\031CloudTasksS" +
+      "chedulerConfig\022\022\n\nproject_id\030\001 \001(\t\022\020\n\010lo" +
+      "cation\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarget_ur" +
+      "l\030\004 \001(\t\022@\n\rcallback_auth\030\005 \001(\0132).talon.c" +
+      "onfig.SchedulerCallbackAuthConfig\"\212\002\n\035Aw" +
+      "sEventBridgeSchedulerConfig\022\022\n\ngroup_nam" +
+      "e\030\001 \001(\t\022\021\n\tqueue_url\030\002 \001(\t\022\032\n\022execution_" +
+      "role_arn\030\003 \001(\t\022\034\n\024schedule_name_prefix\030\004" +
+      " \001(\t\022\017\n\007dlq_arn\030\005 \001(\t\022!\n\031maximum_event_a" +
+      "ge_seconds\030\006 \001(\r\022#\n\026maximum_retry_attemp" +
+      "ts\030\007 \001(\rH\000\210\001\001\022\024\n\014endpoint_url\030\010 \001(\tB\031\n\027_" +
+      "maximum_retry_attempts\"\256\001\n\017SchedulerConf" +
+      "ig\022>\n\013cloud_tasks\030\001 \001(\0132\'.talon.config.C" +
+      "loudTasksSchedulerConfigH\000\022P\n\031aws_eventb" +
+      "ridge_scheduler\030\002 \001(\0132+.talon.config.Aws" +
+      "EventBridgeSchedulerConfigH\000B\t\n\007backend\"" +
+      "\231\002\n\022ControlPlaneConfig\022.\n\010database\030\001 \001(\013" +
+      "2\034.talon.config.DatabaseConfig\0229\n\016messag" +
+      "e_broker\030\002 \001(\0132!.talon.config.MessageBro" +
+      "kerConfig\0220\n\tscheduler\030\003 \001(\0132\035.talon.con" +
+      "fig.SchedulerConfig\0225\n\014object_store\030\004 \001(" +
+      "\0132\037.talon.config.ObjectStoreConfig\022/\n\tdo" +
+      "cuments\030\005 \001(\0132\034.talon.config.DatabaseCon" +
+      "fig\"*\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004por" +
+      "t\030\002 \001(\rb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -26534,7 +26642,7 @@ talon.config.Config.ModelConfig defaultValue) {
     internal_static_talon_config_ModelConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ModelConfig_descriptor,
-        new java.lang.String[] { "Provider", "ContextWindowTokens", "MaxOutputTokens", "InputCostPerMillionTokens", "OutputCostPerMillionTokens", "CacheReadCostPerMillionTokens", "CacheWriteCostPerMillionTokens", });
+        new java.lang.String[] { "Provider", "ContextWindowTokens", "MaxOutputTokens", "InputCostPerMillionTokens", "OutputCostPerMillionTokens", "CacheReadCostPerMillionTokens", "CacheWriteCostPerMillionTokens", "AutoCompactInputTokens", });
     internal_static_talon_config_TrustConfig_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_config_TrustConfig_fieldAccessorTable = new
