@@ -831,17 +831,33 @@ impl ConfigExt for Config {
                 let mut value: Value = serde_yaml::from_str(&inline_yaml)
                     .context("Failed to parse TALON_CONFIG_INLINE_YAML")?;
                 normalize_config_document(&mut value)?;
-                if value
-                    .as_object()
-                    .is_some_and(|object| object.contains_key("extends"))
-                {
-                    return Err(anyhow!(
-                        "TALON_CONFIG_INLINE_YAML does not support 'extends'; use TALON_CONFIG_PATH for layered configuration"
-                    ));
+
+                // Treat the process working directory as the base for relative
+                // inline extensions. Absolute paths are useful in container
+                // images where a large shared catalog can be baked into a
+                // read-only layer while deployment-specific overrides remain
+                // in the environment.
+                let inline_path = Path::new("TALON_CONFIG_INLINE_YAML.yaml");
+                let extends = take_extends(&mut value, inline_path)?;
+                let mut merged = Value::Object(Map::new());
+                let mut stack = Vec::new();
+                for parent in extends {
+                    let parent_path = resolve_extend_path(inline_path, &parent)?;
+                    let parent_value =
+                        load_config_value(&parent_path, &mut stack, 1).map_err(|error| {
+                            anyhow!(
+                                "While loading inline extension '{}': {error}",
+                                parent_path.display()
+                            )
+                        })?;
+                    merge_config_values(&mut merged, parent_value);
                 }
-                let serde_config: SerdeConfig = serde_json::from_value(value).map_err(|error| {
-                    anyhow!("Failed to deserialize TALON_CONFIG_INLINE_YAML: {error}")
-                })?;
+                merge_config_values(&mut merged, value);
+
+                let serde_config: SerdeConfig =
+                    serde_json::from_value(merged).map_err(|error| {
+                        anyhow!("Failed to deserialize TALON_CONFIG_INLINE_YAML: {error}")
+                    })?;
                 validate_trust_config(&serde_config)?;
                 validate_provider_config(&serde_config)?;
                 return Ok(serde_config.into());

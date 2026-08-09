@@ -43,9 +43,11 @@ are normalized before merging, so child overrides are deterministic. Relative
 filesystem settings such as `workspace_dir`, database directories, and local
 object-store paths are resolved relative to the file where they appear.
 
-`TALON_CONFIG_INLINE_YAML` must be self-contained and cannot use `extends`; use
-`TALON_CONFIG_PATH` when layered configuration is needed. `extends` is a loader
-directive and is not retained in the runtime configuration protobuf.
+`TALON_CONFIG_INLINE_YAML` can also use `extends`. Absolute extension paths are
+loaded directly, while relative paths are resolved from the process working
+directory. This is useful for keeping a large shared catalog in a container
+image and applying a small deployment-specific inline override. `extends` is a
+loader directive and is not retained in the runtime configuration protobuf.
 
 ## Provider configuration
 
