@@ -952,10 +952,34 @@ fn shared_http_client() -> reqwest::Client {
 }
 
 fn openai_api_error(message: &str, response_body: &str) -> anyhow::Error {
-    let token_counter = serde_json::from_str(response_body)
-        .ok()
-        .and_then(|value| extract_usage(&value));
+    let response = serde_json::from_str::<Value>(response_body).ok();
+    let token_counter = response.as_ref().and_then(extract_usage);
+    let message = response
+        .as_ref()
+        .and_then(|response| openai_error_message(message, response))
+        .unwrap_or_else(|| message.to_string());
     provider_request_error(message, token_counter)
+}
+
+fn openai_error_message(prefix: &str, response: &Value) -> Option<String> {
+    let error = response.get("error")?.as_object()?;
+    let field = |name: &str| {
+        error
+            .get(name)
+            .map(|value| match value {
+                Value::String(value) => value.clone(),
+                Value::Null => "null".to_string(),
+                value => value.to_string(),
+            })
+            .unwrap_or_else(|| "null".to_string())
+    };
+
+    Some(format!(
+        "{prefix} (code: {}; type: {}; message: {})",
+        field("code"),
+        field("type"),
+        field("message"),
+    ))
 }
 
 fn is_stale_previous_response_id(status: reqwest::StatusCode, body: &str) -> bool {
@@ -2136,6 +2160,25 @@ mod tests {
     fn extract_usage_ignores_null_and_empty_usage() {
         assert!(extract_usage(&serde_json::json!({ "usage": null })).is_none());
         assert!(extract_usage(&serde_json::json!({ "usage": {} })).is_none());
+    }
+
+    #[test]
+    fn openai_api_error_includes_code_type_and_message() {
+        let error = openai_api_error(
+            "OpenAI Responses API error",
+            r#"{
+                "error": {
+                    "message": "You have no credits remaining.",
+                    "type": "insufficient_quota",
+                    "code": "credit_balance_exhausted"
+                }
+            }"#,
+        );
+
+        assert_eq!(
+            error.to_string(),
+            "OpenAI Responses API error (code: credit_balance_exhausted; type: insufficient_quota; message: You have no credits remaining.)"
+        );
     }
 
     #[tokio::test]
