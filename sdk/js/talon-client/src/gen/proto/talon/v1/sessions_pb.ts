@@ -807,6 +807,153 @@ export class ClearSessionResponse extends Message<ClearSessionResponse> {
 }
 
 /**
+ * @generated from message talon.v1.CompactSessionRequest
+ */
+export class CompactSessionRequest extends Message<CompactSessionRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  constructor(data?: PartialMessage<CompactSessionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.CompactSessionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CompactSessionRequest {
+    return new CompactSessionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CompactSessionRequest {
+    return new CompactSessionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CompactSessionRequest {
+    return new CompactSessionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CompactSessionRequest | PlainMessage<CompactSessionRequest> | undefined, b: CompactSessionRequest | PlainMessage<CompactSessionRequest> | undefined): boolean {
+    return proto3.util.equals(CompactSessionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.DoctorSessionRequest
+ */
+export class DoctorSessionRequest extends Message<DoctorSessionRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  constructor(data?: PartialMessage<DoctorSessionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.DoctorSessionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DoctorSessionRequest {
+    return new DoctorSessionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DoctorSessionRequest {
+    return new DoctorSessionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DoctorSessionRequest {
+    return new DoctorSessionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DoctorSessionRequest | PlainMessage<DoctorSessionRequest> | undefined, b: DoctorSessionRequest | PlainMessage<DoctorSessionRequest> | undefined): boolean {
+    return proto3.util.equals(DoctorSessionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.DoctorSessionResponse
+ */
+export class DoctorSessionResponse extends Message<DoctorSessionResponse> {
+  /**
+   * @generated from field: bool provider_continuation_was_present = 1;
+   */
+  providerContinuationWasPresent = false;
+
+  /**
+   * @generated from field: bool provider_continuation_reset = 2;
+   */
+  providerContinuationReset = false;
+
+  /**
+   * @generated from field: uint32 incomplete_tool_batches = 3;
+   */
+  incompleteToolBatches = 0;
+
+  constructor(data?: PartialMessage<DoctorSessionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.DoctorSessionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "provider_continuation_was_present", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "provider_continuation_reset", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "incomplete_tool_batches", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DoctorSessionResponse {
+    return new DoctorSessionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DoctorSessionResponse {
+    return new DoctorSessionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DoctorSessionResponse {
+    return new DoctorSessionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DoctorSessionResponse | PlainMessage<DoctorSessionResponse> | undefined, b: DoctorSessionResponse | PlainMessage<DoctorSessionResponse> | undefined): boolean {
+    return proto3.util.equals(DoctorSessionResponse, a, b);
+  }
+}
+
+/**
  * @generated from message talon.v1.SubmitSessionTurnRequest
  */
 export class SubmitSessionTurnRequest extends Message<SubmitSessionTurnRequest> {

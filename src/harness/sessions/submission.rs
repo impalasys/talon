@@ -6,7 +6,9 @@ use prost::Message;
 
 use super::{SessionJournalEntry, SessionSubmission};
 use crate::control::{keys, KeyValueStore};
-use crate::gateway::rpc::data_proto::{SessionExecutionPhase, SessionSubmissionStatus};
+use crate::gateway::rpc::data_proto::{
+    SessionExecutionPhase, SessionSubmissionKind, SessionSubmissionStatus,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ClaimOutcome {
@@ -44,7 +46,18 @@ pub fn pending_submission(
         committed_message_id: None,
         current_phase: SessionExecutionPhase::Unspecified as i32,
         current_journal_entry_id: None,
+        kind: SessionSubmissionKind::UserTurn as i32,
     }
+}
+
+pub fn pending_compaction_submission(
+    submission_id: impl Into<String>,
+    session_id: impl Into<String>,
+    now_micros: i64,
+) -> SessionSubmission {
+    let mut submission = pending_submission(submission_id, session_id, "", now_micros);
+    submission.kind = SessionSubmissionKind::Compact as i32;
+    submission
 }
 
 pub fn submission_is_terminal(submission: &SessionSubmission) -> bool {

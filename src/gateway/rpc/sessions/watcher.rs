@@ -605,37 +605,50 @@ async fn redispatch_expired_session_lease(
         return Ok(false);
     }
 
-    let message_key = keys::session_message(
-        &target.ns,
-        &target.agent,
-        &target.session_id,
-        &current.user_message_id,
-    );
-    let Some(user_message) = kv
-        .get_msg::<data_proto::SessionMessage>(&message_key)
-        .await
-        .map_err(|err| tonic::Status::internal(format!("Failed to fetch user message: {err}")))?
-    else {
-        tracing::warn!(
-            namespace = %target.ns,
-            agent = %target.agent,
-            session = %target.session_id,
-            submission = %current.submission_id,
-            message = %current.user_message_id,
-            "Cannot redispatch expired session lease because the user message is missing"
+    let is_compaction = current.kind == data_proto::SessionSubmissionKind::Compact as i32;
+    let message = if is_compaction {
+        String::new()
+    } else {
+        let message_key = keys::session_message(
+            &target.ns,
+            &target.agent,
+            &target.session_id,
+            &current.user_message_id,
         );
-        return Ok(false);
+        let Some(user_message) = kv
+            .get_msg::<data_proto::SessionMessage>(&message_key)
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to fetch user message: {err}"))
+            })?
+        else {
+            tracing::warn!(
+                namespace = %target.ns,
+                agent = %target.agent,
+                session = %target.session_id,
+                submission = %current.submission_id,
+                message = %current.user_message_id,
+                "Cannot redispatch expired session lease because the user message is missing"
+            );
+            return Ok(false);
+        };
+        scheduling::session_message_text_projection(&user_message)
     };
 
-    let event = events::SessionMessageEvent {
+    let event = events::SessionDispatchEvent {
         session_id: target.session_id.clone(),
         message_id: current.user_message_id.clone(),
         direction: events::MessageDirection::Inbound as i32,
         timestamp: session.last_active,
         agent: target.agent.clone(),
-        message: scheduling::session_message_text_projection(&user_message),
+        message,
         ns: target.ns.clone(),
         submission_id: current.submission_id.clone(),
+        kind: if is_compaction {
+            crate::control::events::SessionDispatchKind::Compact as i32
+        } else {
+            crate::control::events::SessionDispatchKind::Message as i32
+        },
     };
     pubsub
         .publish(topics::SESSION_DISPATCH_TOPIC, &event.encode_to_vec())

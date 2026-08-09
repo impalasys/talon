@@ -23,6 +23,11 @@ class MessageDirection(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     MESSAGE_DIRECTION_INBOUND: _ClassVar[MessageDirection]
     MESSAGE_DIRECTION_OUTBOUND: _ClassVar[MessageDirection]
 
+class SessionDispatchKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    SESSION_DISPATCH_KIND_MESSAGE: _ClassVar[SessionDispatchKind]
+    SESSION_DISPATCH_KIND_COMPACT: _ClassVar[SessionDispatchKind]
+
 class SessionMessagePartEventKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED: _ClassVar[SessionMessagePartEventKind]
@@ -59,6 +64,8 @@ SYSTEM_ACTION_RESUME: SystemAction
 MESSAGE_DIRECTION_UNSPECIFIED: MessageDirection
 MESSAGE_DIRECTION_INBOUND: MessageDirection
 MESSAGE_DIRECTION_OUTBOUND: MessageDirection
+SESSION_DISPATCH_KIND_MESSAGE: SessionDispatchKind
+SESSION_DISPATCH_KIND_COMPACT: SessionDispatchKind
 SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED: SessionMessagePartEventKind
 SESSION_MESSAGE_PART_EVENT_KIND_DELTA: SessionMessagePartEventKind
 SESSION_MESSAGE_PART_EVENT_KIND_DONE: SessionMessagePartEventKind
@@ -90,8 +97,8 @@ class LifecycleEvent(_message.Message):
     timestamp: int
     def __init__(self, resource_type: _Optional[str] = ..., name: _Optional[str] = ..., ns: _Optional[str] = ..., action: _Optional[_Union[SystemAction, str]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
-class SessionMessageEvent(_message.Message):
-    __slots__ = ("session_id", "message_id", "direction", "timestamp", "agent", "message", "ns", "submission_id")
+class SessionDispatchEvent(_message.Message):
+    __slots__ = ("session_id", "message_id", "direction", "timestamp", "agent", "message", "ns", "submission_id", "kind")
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
     DIRECTION_FIELD_NUMBER: _ClassVar[int]
@@ -100,6 +107,7 @@ class SessionMessageEvent(_message.Message):
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
     NS_FIELD_NUMBER: _ClassVar[int]
     SUBMISSION_ID_FIELD_NUMBER: _ClassVar[int]
+    KIND_FIELD_NUMBER: _ClassVar[int]
     session_id: str
     message_id: str
     direction: MessageDirection
@@ -108,7 +116,8 @@ class SessionMessageEvent(_message.Message):
     message: str
     ns: str
     submission_id: str
-    def __init__(self, session_id: _Optional[str] = ..., message_id: _Optional[str] = ..., direction: _Optional[_Union[MessageDirection, str]] = ..., timestamp: _Optional[int] = ..., agent: _Optional[str] = ..., message: _Optional[str] = ..., ns: _Optional[str] = ..., submission_id: _Optional[str] = ...) -> None: ...
+    kind: SessionDispatchKind
+    def __init__(self, session_id: _Optional[str] = ..., message_id: _Optional[str] = ..., direction: _Optional[_Union[MessageDirection, str]] = ..., timestamp: _Optional[int] = ..., agent: _Optional[str] = ..., message: _Optional[str] = ..., ns: _Optional[str] = ..., submission_id: _Optional[str] = ..., kind: _Optional[_Union[SessionDispatchKind, str]] = ...) -> None: ...
 
 class SessionMessagePartEvent(_message.Message):
     __slots__ = ("session_id", "kind", "part", "timestamp", "agent", "ns", "message_id")

@@ -89,6 +89,54 @@ func (SessionSubmissionStatus) EnumDescriptor() ([]byte, []int) {
 	return file_proto_data_session_submission_proto_rawDescGZIP(), []int{0}
 }
 
+// What caused a durable submission. Maintenance submissions deliberately have
+// no user SessionMessage and must never be replayed as user context.
+type SessionSubmissionKind int32
+
+const (
+	SessionSubmissionKind_SESSION_SUBMISSION_KIND_USER_TURN SessionSubmissionKind = 0
+	SessionSubmissionKind_SESSION_SUBMISSION_KIND_COMPACT   SessionSubmissionKind = 1
+)
+
+// Enum value maps for SessionSubmissionKind.
+var (
+	SessionSubmissionKind_name = map[int32]string{
+		0: "SESSION_SUBMISSION_KIND_USER_TURN",
+		1: "SESSION_SUBMISSION_KIND_COMPACT",
+	}
+	SessionSubmissionKind_value = map[string]int32{
+		"SESSION_SUBMISSION_KIND_USER_TURN": 0,
+		"SESSION_SUBMISSION_KIND_COMPACT":   1,
+	}
+)
+
+func (x SessionSubmissionKind) Enum() *SessionSubmissionKind {
+	p := new(SessionSubmissionKind)
+	*p = x
+	return p
+}
+
+func (x SessionSubmissionKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SessionSubmissionKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_data_session_submission_proto_enumTypes[1].Descriptor()
+}
+
+func (SessionSubmissionKind) Type() protoreflect.EnumType {
+	return &file_proto_data_session_submission_proto_enumTypes[1]
+}
+
+func (x SessionSubmissionKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SessionSubmissionKind.Descriptor instead.
+func (SessionSubmissionKind) EnumDescriptor() ([]byte, []int) {
+	return file_proto_data_session_submission_proto_rawDescGZIP(), []int{1}
+}
+
 type SessionSubmission struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Stable idempotency key for one accepted user submission.
@@ -127,7 +175,8 @@ type SessionSubmission struct {
 	// Fast pointer to the journal entry that supplied current_phase. Recovery may
 	// repair this from the latest journal entry if a crash happens between entry
 	// append and pointer update.
-	CurrentJournalEntryId *string `protobuf:"bytes,13,opt,name=current_journal_entry_id,json=currentJournalEntryId,proto3,oneof" json:"current_journal_entry_id,omitempty"`
+	CurrentJournalEntryId *string               `protobuf:"bytes,13,opt,name=current_journal_entry_id,json=currentJournalEntryId,proto3,oneof" json:"current_journal_entry_id,omitempty"`
+	Kind                  SessionSubmissionKind `protobuf:"varint,15,opt,name=kind,proto3,enum=talon.data.SessionSubmissionKind" json:"kind,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -260,12 +309,19 @@ func (x *SessionSubmission) GetCurrentJournalEntryId() string {
 	return ""
 }
 
+func (x *SessionSubmission) GetKind() SessionSubmissionKind {
+	if x != nil {
+		return x.Kind
+	}
+	return SessionSubmissionKind_SESSION_SUBMISSION_KIND_USER_TURN
+}
+
 var File_proto_data_session_submission_proto protoreflect.FileDescriptor
 
 const file_proto_data_session_submission_proto_rawDesc = "" +
 	"\n" +
 	"#proto/data/session_submission.proto\x12\n" +
-	"talon.data\x1a&proto/data/session_journal_entry.proto\"\xd6\x05\n" +
+	"talon.data\x1a&proto/data/session_journal_entry.proto\"\x8d\x06\n" +
 	"\x11SessionSubmission\x12#\n" +
 	"\rsubmission_id\x18\x01 \x01(\tR\fsubmissionId\x12\x1d\n" +
 	"\n" +
@@ -285,7 +341,8 @@ const file_proto_data_session_submission_proto_rawDesc = "" +
 	" \x01(\x03H\x01R\vcompletedAt\x88\x01\x01\x125\n" +
 	"\x14committed_message_id\x18\v \x01(\tH\x02R\x12committedMessageId\x88\x01\x01\x12F\n" +
 	"\rcurrent_phase\x18\f \x01(\x0e2!.talon.data.SessionExecutionPhaseR\fcurrentPhase\x12<\n" +
-	"\x18current_journal_entry_id\x18\r \x01(\tH\x03R\x15currentJournalEntryId\x88\x01\x01B\x13\n" +
+	"\x18current_journal_entry_id\x18\r \x01(\tH\x03R\x15currentJournalEntryId\x88\x01\x01\x125\n" +
+	"\x04kind\x18\x0f \x01(\x0e2!.talon.data.SessionSubmissionKindR\x04kindB\x13\n" +
 	"\x11_claim_expires_atB\x0f\n" +
 	"\r_completed_atB\x17\n" +
 	"\x15_committed_message_idB\x1b\n" +
@@ -296,7 +353,10 @@ const file_proto_data_session_submission_proto_rawDesc = "" +
 	"!SESSION_SUBMISSION_STATUS_CLAIMED\x10\x02\x12'\n" +
 	"#SESSION_SUBMISSION_STATUS_COMMITTED\x10\x03\x12$\n" +
 	" SESSION_SUBMISSION_STATUS_FAILED\x10\x04\x12)\n" +
-	"%SESSION_SUBMISSION_STATUS_INTERRUPTED\x10\x05b\x06proto3"
+	"%SESSION_SUBMISSION_STATUS_INTERRUPTED\x10\x05*c\n" +
+	"\x15SessionSubmissionKind\x12%\n" +
+	"!SESSION_SUBMISSION_KIND_USER_TURN\x10\x00\x12#\n" +
+	"\x1fSESSION_SUBMISSION_KIND_COMPACT\x10\x01b\x06proto3"
 
 var (
 	file_proto_data_session_submission_proto_rawDescOnce sync.Once
@@ -310,21 +370,23 @@ func file_proto_data_session_submission_proto_rawDescGZIP() []byte {
 	return file_proto_data_session_submission_proto_rawDescData
 }
 
-var file_proto_data_session_submission_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_proto_data_session_submission_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_proto_data_session_submission_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_proto_data_session_submission_proto_goTypes = []any{
 	(SessionSubmissionStatus)(0), // 0: talon.data.SessionSubmissionStatus
-	(*SessionSubmission)(nil),    // 1: talon.data.SessionSubmission
-	(SessionExecutionPhase)(0),   // 2: talon.data.SessionExecutionPhase
+	(SessionSubmissionKind)(0),   // 1: talon.data.SessionSubmissionKind
+	(*SessionSubmission)(nil),    // 2: talon.data.SessionSubmission
+	(SessionExecutionPhase)(0),   // 3: talon.data.SessionExecutionPhase
 }
 var file_proto_data_session_submission_proto_depIdxs = []int32{
 	0, // 0: talon.data.SessionSubmission.status:type_name -> talon.data.SessionSubmissionStatus
-	2, // 1: talon.data.SessionSubmission.current_phase:type_name -> talon.data.SessionExecutionPhase
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	3, // 1: talon.data.SessionSubmission.current_phase:type_name -> talon.data.SessionExecutionPhase
+	1, // 2: talon.data.SessionSubmission.kind:type_name -> talon.data.SessionSubmissionKind
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_session_submission_proto_init() }
@@ -339,7 +401,7 @@ func file_proto_data_session_submission_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_data_session_submission_proto_rawDesc), len(file_proto_data_session_submission_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,

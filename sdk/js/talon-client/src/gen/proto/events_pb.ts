@@ -78,6 +78,26 @@ proto3.util.setEnumType(MessageDirection, "talon.events.MessageDirection", [
 ]);
 
 /**
+ * @generated from enum talon.events.SessionDispatchKind
+ */
+export enum SessionDispatchKind {
+  /**
+   * @generated from enum value: SESSION_DISPATCH_KIND_MESSAGE = 0;
+   */
+  MESSAGE = 0,
+
+  /**
+   * @generated from enum value: SESSION_DISPATCH_KIND_COMPACT = 1;
+   */
+  COMPACT = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SessionDispatchKind)
+proto3.util.setEnumType(SessionDispatchKind, "talon.events.SessionDispatchKind", [
+  { no: 0, name: "SESSION_DISPATCH_KIND_MESSAGE" },
+  { no: 1, name: "SESSION_DISPATCH_KIND_COMPACT" },
+]);
+
+/**
  * @generated from enum talon.events.SessionMessagePartEventKind
  */
 export enum SessionMessagePartEventKind {
@@ -267,9 +287,13 @@ export class LifecycleEvent extends Message<LifecycleEvent> {
 }
 
 /**
- * @generated from message talon.events.SessionMessageEvent
+ * Dispatches either a normal message turn or a session-maintenance action to
+ * a worker. The payload is intentionally transport-level, not a transcript
+ * message: maintenance actions leave message_id and message empty.
+ *
+ * @generated from message talon.events.SessionDispatchEvent
  */
-export class SessionMessageEvent extends Message<SessionMessageEvent> {
+export class SessionDispatchEvent extends Message<SessionDispatchEvent> {
   /**
    * @generated from field: string session_id = 1;
    */
@@ -310,13 +334,18 @@ export class SessionMessageEvent extends Message<SessionMessageEvent> {
    */
   submissionId = "";
 
-  constructor(data?: PartialMessage<SessionMessageEvent>) {
+  /**
+   * @generated from field: talon.events.SessionDispatchKind kind = 9;
+   */
+  kind = SessionDispatchKind.MESSAGE;
+
+  constructor(data?: PartialMessage<SessionDispatchEvent>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.events.SessionMessageEvent";
+  static readonly typeName = "talon.events.SessionDispatchEvent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "message_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
@@ -326,22 +355,23 @@ export class SessionMessageEvent extends Message<SessionMessageEvent> {
     { no: 6, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "submission_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "kind", kind: "enum", T: proto3.getEnumType(SessionDispatchKind) },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionMessageEvent {
-    return new SessionMessageEvent().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionDispatchEvent {
+    return new SessionDispatchEvent().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SessionMessageEvent {
-    return new SessionMessageEvent().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SessionDispatchEvent {
+    return new SessionDispatchEvent().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SessionMessageEvent {
-    return new SessionMessageEvent().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SessionDispatchEvent {
+    return new SessionDispatchEvent().fromJsonString(jsonString, options);
   }
 
-  static equals(a: SessionMessageEvent | PlainMessage<SessionMessageEvent> | undefined, b: SessionMessageEvent | PlainMessage<SessionMessageEvent> | undefined): boolean {
-    return proto3.util.equals(SessionMessageEvent, a, b);
+  static equals(a: SessionDispatchEvent | PlainMessage<SessionDispatchEvent> | undefined, b: SessionDispatchEvent | PlainMessage<SessionDispatchEvent> | undefined): boolean {
+    return proto3.util.equals(SessionDispatchEvent, a, b);
   }
 }
 
