@@ -41,7 +41,11 @@ tikv-jemallocator = { version = "0.7", optional = true }
 tikv-jemalloc-ctl = { version = "0.7", optional = true }
 redb = "1.0"
 rocksdb = { version = "0.24", default-features = false, features = ["lz4"], optional = true }
-reqwest = { version = "0.11", features = ["json", "stream"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "stream"] }
+# Azure's generated clients expose a reqwest transport but default to native
+# TLS. Enable that transport without native TLS, then select reqwest 0.13's
+# rustls-backed default TLS implementation explicitly.
+reqwest_azure = { package = "reqwest", version = "0.13.2", default-features = false, features = ["default-tls"] }
 # rand 0.10 coexists with older workspace rand versions, so crate_universe emits
 # a versioned alias; keep talon/BUILD.bazel on @crates//:rand-0.10.1.
 rand = "0.10"
@@ -78,11 +82,12 @@ aws-sdk-scheduler = { version = "=1.102.0", optional = true }
 aws-sdk-s3 = "1.103"
 aws-sdk-secretsmanager = "1.103"
 aws-sdk-sqs = { version = "1.102", optional = true }
-azure_identity = "0.33"
-azure_security_keyvault_secrets = "0.12"
+azure_core = { version = "0.33", default-features = false, features = ["reqwest", "reqwest_deflate", "reqwest_gzip", "tokio"] }
+azure_identity = { version = "0.33", default-features = false }
+azure_security_keyvault_secrets = { version = "0.12", default-features = false }
 uuid = { version = "1.23.0", features = ["v7"] }
 sqlx = { version = "0.8.6", features = ["postgres", "sqlite", "runtime-tokio"] }
-google-cloud-pubsub = "0.25.0"
+google-cloud-pubsub = { version = "0.25.0", default-features = false, features = ["auth", "rustls-tls"] }
 google-cloud-googleapis = { version = "0.13.0", features = ["pubsub"] }
 clap = { version = "4.6.0", features = ["derive"] }
 tokio-stream = { version = "0.1", features = ["net"] }
