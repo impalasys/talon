@@ -1,0 +1,593 @@
+name: Talon PR Reports
+
+# This workflow is intentionally separate from pull-request CI. It runs from
+# the base repository's workflow definition and is the only place where PR
+# reporting and the Sightline preview branch are mutated.
+on:
+  workflow_run:
+    workflows:
+      - Talon 1 vCPU Benchmark
+      - Talon OSS CI
+      - Talon Chat Screenshots
+    types: [completed]
+
+jobs:
+  benchmark:
+    if: >-
+      github.event.workflow_run.name == 'Talon 1 vCPU Benchmark' &&
+      github.event.workflow_run.event == 'pull_request'
+    name: Report 1 vCPU benchmark
+    runs-on: ubuntu-latest
+    concurrency:
+      group: talon-pr-report-benchmark-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Resolve PR and benchmark artifact
+        id: meta
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const run = context.payload.workflow_run;
+            const { owner, repo } = context.repo;
+            const outputs = {
+              pr_number: "",
+              artifact_name: "",
+            };
+
+            for (const [name, value] of Object.entries(outputs)) {
+              core.setOutput(name, value);
+            }
+
+            const headOwner = run.head_repository?.owner?.login;
+            if (!headOwner || !run.head_branch || !run.head_sha) {
+              core.warning("Workflow run is missing fork head metadata; skipping report.");
+              return;
+            }
+
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: "all",
+              head: `${headOwner}:${run.head_branch}`,
+              per_page: 100,
+            });
+            const pullRequest = pullRequests.find((candidate) =>
+              candidate.base.repo?.full_name === `${owner}/${repo}` &&
+              candidate.head.repo?.full_name === run.head_repository.full_name &&
+              candidate.head.sha === run.head_sha
+            );
+
+            if (!pullRequest) {
+              core.warning("No current PR matches the completed run SHA; skipping stale report.");
+              return;
+            }
+
+            const artifactName = `talon-1vcpu-benchmark-${run.head_sha}`;
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+            const artifact = artifacts.artifacts.find((candidate) =>
+              candidate.name === artifactName && !candidate.expired
+            );
+
+            core.setOutput("pr_number", String(pullRequest.number));
+            if (artifact) {
+              core.setOutput("artifact_name", artifact.name);
+            } else {
+              core.warning(`Artifact ${artifactName} is unavailable; skipping benchmark comment.`);
+            }
+
+      - name: Download benchmark results
+        if: steps.meta.outputs.artifact_name != ''
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ steps.meta.outputs.artifact_name }}
+          path: report-data
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment benchmark results
+        if: steps.meta.outputs.pr_number != '' && steps.meta.outputs.artifact_name != ''
+        uses: actions/github-script@v8
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const marker = "<!-- talon-1vcpu-benchmark -->";
+            const root = "report-data";
+            const agents = 7000;
+            const sqliteMemory = "512m";
+            const rocksdbMemory = "768m";
+
+            function findResultJson(dir, database) {
+              if (!fs.existsSync(dir)) return null;
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const entryPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                  const result = findResultJson(entryPath, database);
+                  if (result) return result;
+                } else if (
+                  entry.isFile() &&
+                  entry.name.startsWith("talon-bench-") &&
+                  entry.name.endsWith(".json") &&
+                  dir.endsWith(path.sep + database)
+                ) {
+                  return entryPath;
+                }
+              }
+              return null;
+            }
+
+            function formatSeconds(value) {
+              return Number.isFinite(value) ? `${value.toFixed(2)}s` : "n/a";
+            }
+
+            function formatRate(value) {
+              return Number.isFinite(value) ? value.toFixed(2) : "n/a";
+            }
+
+            function formatMemory(bytes) {
+              return Number.isFinite(bytes) ? `${(bytes / 1024 / 1024).toFixed(1)} MiB` : "n/a";
+            }
+
+            function row(database, memory) {
+              const resultPath = findResultJson(root, database.toLowerCase());
+              if (!resultPath) {
+                return `| ${database} | ${memory} | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no result |`;
+              }
+              const result = JSON.parse(fs.readFileSync(resultPath, "utf8"));
+              const workload = result.workload || {};
+              const p95 = workload.send_to_done_seconds?.p95;
+              const peakMemory = result.talon_container?.peak_memory_usage_bytes;
+              const oom = result.talon_container?.oom_killed ? "yes" : "no";
+              const status = workload.success_count >= agents ? "pass" : "failed";
+              return [
+                `| ${database}`,
+                memory,
+                workload.success_count ?? "n/a",
+                workload.error_count ?? "n/a",
+                workload.timeout_count ?? "n/a",
+                formatSeconds(workload.workload_seconds),
+                formatRate(workload.throughput_completed_per_second),
+                formatSeconds(p95),
+                formatMemory(peakMemory),
+                `${oom} / ${status} |`,
+              ].join(" | ");
+            }
+
+            const matrix = [
+              "| Database | Memory | Success | Errors | Timeouts | Workload seconds | Completed/sec | p95 send-to-done | Peak memory | OOM / Status |",
+              "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :--- |",
+              row("SQLite", sqliteMemory),
+              row("RocksDB", rocksdbMemory),
+            ].join("\n");
+
+            const body = [
+              marker,
+              "## Talon 1 vCPU Benchmark",
+              "",
+              matrix,
+              "",
+              `Config: ${agents} concurrent agents, 1 vCPU Talon, batch stream. SQLite memory: ${sqliteMemory}. RocksDB memory: ${rocksdbMemory}.`,
+              "",
+              `Run: ${process.env.RUN_URL}`,
+            ].join("\n");
+
+            const issueNumber = Number(process.env.PR_NUMBER);
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body,
+              });
+            }
+
+  sightline:
+    if: >-
+      github.event.workflow_run.name == 'Talon OSS CI' &&
+      github.event.workflow_run.event == 'pull_request'
+    name: Report Sightline screenshots
+    runs-on: ubuntu-latest
+    concurrency:
+      group: talon-pr-report-sightline-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Resolve PR and screenshot artifacts
+        id: meta
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const run = context.payload.workflow_run;
+            const { owner, repo } = context.repo;
+            const outputs = {
+              pr_number: "",
+              base_ref: "",
+              full_name: "",
+              full_url: "",
+              preview_name: "",
+              preview_url: "",
+            };
+
+            for (const [name, value] of Object.entries(outputs)) {
+              core.setOutput(name, value);
+            }
+
+            const headOwner = run.head_repository?.owner?.login;
+            if (!headOwner || !run.head_branch || !run.head_sha) {
+              core.warning("Workflow run is missing fork head metadata; skipping report.");
+              return;
+            }
+
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: "all",
+              head: `${headOwner}:${run.head_branch}`,
+              per_page: 100,
+            });
+            const pullRequest = pullRequests.find((candidate) =>
+              candidate.base.repo?.full_name === `${owner}/${repo}` &&
+              candidate.head.repo?.full_name === run.head_repository.full_name &&
+              candidate.head.sha === run.head_sha
+            );
+
+            if (!pullRequest) {
+              core.warning("No current PR matches the completed run SHA; skipping stale report.");
+              return;
+            }
+
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+            const artifactByName = new Map(
+              artifacts.artifacts
+                .filter((artifact) => !artifact.expired)
+                .map((artifact) => [artifact.name, artifact])
+            );
+            const full = artifactByName.get("sightline-e2e-screenshots");
+            const preview = artifactByName.get("sightline-e2e-dark-preview");
+
+            core.setOutput("pr_number", String(pullRequest.number));
+            core.setOutput("base_ref", pullRequest.base.ref);
+            if (full) {
+              core.setOutput("full_name", full.name);
+              core.setOutput("full_url", `https://github.com/${owner}/${repo}/actions/runs/${run.id}/artifacts/${full.id}`);
+            } else {
+              core.warning("Sightline screenshot artifact is unavailable.");
+            }
+            if (preview) {
+              core.setOutput("preview_name", preview.name);
+              core.setOutput("preview_url", `https://github.com/${owner}/${repo}/actions/runs/${run.id}/artifacts/${preview.id}`);
+            } else {
+              core.warning("Sightline dark preview artifact is unavailable.");
+            }
+
+      - name: Download Sightline screenshots
+        if: steps.meta.outputs.full_name != ''
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ steps.meta.outputs.full_name }}
+          path: report-data/full
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Sightline dark preview
+        if: steps.meta.outputs.preview_name != ''
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ steps.meta.outputs.preview_name }}
+          path: report-data/preview
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Sightline preview branch
+        id: preview
+        if: steps.meta.outputs.pr_number != '' && steps.meta.outputs.preview_name != ''
+        uses: actions/github-script@v8
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          BASE_REF: ${{ steps.meta.outputs.base_ref }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = "report-data/preview/sightline-chat-dark.png";
+            const { owner, repo } = context.repo;
+            const issueNumber = Number(process.env.PR_NUMBER);
+            const previewBranch = `sightline-screenshot-previews/pr-${issueNumber}`;
+            const ref = `heads/${previewBranch}`;
+
+            if (!fs.existsSync(path)) {
+              core.warning("Sightline dark preview file is missing; skipping preview branch update.");
+              return;
+            }
+
+            const content = fs.readFileSync(path).toString("base64");
+            const { data: blob } = await github.rest.git.createBlob({
+              owner,
+              repo,
+              content,
+              encoding: "base64",
+            });
+
+            let branchSha;
+            let branchExists = true;
+            try {
+              const { data: previewRef } = await github.rest.git.getRef({ owner, repo, ref });
+              branchSha = previewRef.object.sha;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              branchExists = false;
+              const { data: baseRef } = await github.rest.git.getRef({
+                owner,
+                repo,
+                ref: `heads/${process.env.BASE_REF}`,
+              });
+              branchSha = baseRef.object.sha;
+            }
+
+            const { data: baseCommit } = await github.rest.git.getCommit({
+              owner,
+              repo,
+              commit_sha: branchSha,
+            });
+            const { data: tree } = await github.rest.git.createTree({
+              owner,
+              repo,
+              base_tree: baseCommit.tree.sha,
+              tree: [{
+                path: "sightline-chat-dark.png",
+                mode: "100644",
+                type: "blob",
+                sha: blob.sha,
+              }],
+            });
+            const { data: commit } = await github.rest.git.createCommit({
+              owner,
+              repo,
+              message: `Update Sightline screenshot preview for PR #${issueNumber}`,
+              tree: tree.sha,
+              parents: [branchSha],
+            });
+
+            if (branchExists) {
+              await github.rest.git.updateRef({
+                owner,
+                repo,
+                ref,
+                sha: commit.sha,
+                force: true,
+              });
+            } else {
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/${ref}`,
+                sha: commit.sha,
+              });
+            }
+
+            core.setOutput("url", `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/${previewBranch}/sightline-chat-dark.png?run=${process.env.RUN_ID}`);
+
+      - name: Comment Sightline screenshot links
+        if: steps.meta.outputs.pr_number != '' && (steps.meta.outputs.full_url != '' || steps.meta.outputs.preview_url != '')
+        uses: actions/github-script@v8
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          FULL_URL: ${{ steps.meta.outputs.full_url }}
+          PREVIEW_ARTIFACT_URL: ${{ steps.meta.outputs.preview_url }}
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const marker = "<!-- sightline-e2e-screenshots -->";
+            const body = [
+              marker,
+              "## Sightline E2E screenshots",
+              "",
+              "Connected Sightline chat screenshots were captured for this PR.",
+              "",
+              process.env.FULL_URL ? `[Download all screenshots](${process.env.FULL_URL})` : null,
+              process.env.PREVIEW_ARTIFACT_URL ? `[Download dark preview only](${process.env.PREVIEW_ARTIFACT_URL})` : null,
+              process.env.PREVIEW_URL ? [
+                "",
+                "### Dark preview",
+                "",
+                `![Sightline dark chat composer preview](${process.env.PREVIEW_URL})`,
+              ].join("\n") : null,
+              "",
+              "The full artifact includes light and dark captures of the connected Sightline chat surface.",
+            ].filter((line) => line !== null).join("\n");
+
+            const { owner, repo } = context.repo;
+            const issueNumber = Number(process.env.PR_NUMBER);
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) =>
+              comment.user?.type === "Bot" && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body,
+              });
+            }
+
+  chat:
+    if: >-
+      github.event.workflow_run.name == 'Talon Chat Screenshots' &&
+      github.event.workflow_run.event == 'pull_request'
+    name: Report Talon Chat screenshots
+    runs-on: ubuntu-latest
+    concurrency:
+      group: talon-pr-report-chat-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Resolve PR and screenshot artifact
+        id: meta
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const run = context.payload.workflow_run;
+            const { owner, repo } = context.repo;
+            core.setOutput("pr_number", "");
+            core.setOutput("artifact_name", "");
+            core.setOutput("artifact_url", "");
+
+            const headOwner = run.head_repository?.owner?.login;
+            if (!headOwner || !run.head_branch || !run.head_sha) {
+              core.warning("Workflow run is missing fork head metadata; skipping report.");
+              return;
+            }
+
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: "all",
+              head: `${headOwner}:${run.head_branch}`,
+              per_page: 100,
+            });
+            const pullRequest = pullRequests.find((candidate) =>
+              candidate.base.repo?.full_name === `${owner}/${repo}` &&
+              candidate.head.repo?.full_name === run.head_repository.full_name &&
+              candidate.head.sha === run.head_sha
+            );
+
+            if (!pullRequest) {
+              core.warning("No current PR matches the completed run SHA; skipping stale report.");
+              return;
+            }
+
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+            const artifact = artifacts.artifacts.find((candidate) =>
+              candidate.name === "talon-chat-storybook-screenshots" && !candidate.expired
+            );
+
+            core.setOutput("pr_number", String(pullRequest.number));
+            if (artifact) {
+              core.setOutput("artifact_name", artifact.name);
+              core.setOutput("artifact_url", `https://github.com/${owner}/${repo}/actions/runs/${run.id}/artifacts/${artifact.id}`);
+            } else {
+              core.warning("Talon Chat screenshot artifact is unavailable; skipping comment.");
+            }
+
+      - name: Download Talon Chat screenshots
+        if: steps.meta.outputs.artifact_name != ''
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ steps.meta.outputs.artifact_name }}
+          path: report-data
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment Talon Chat artifact link
+        if: steps.meta.outputs.pr_number != '' && steps.meta.outputs.artifact_url != ''
+        uses: actions/github-script@v8
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          ARTIFACT_URL: ${{ steps.meta.outputs.artifact_url }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const marker = "<!-- talon-chat-screenshots -->";
+            const body = [
+              marker,
+              "## Talon Chat screenshots",
+              "",
+              "Storybook screenshots were captured for this PR.",
+              "",
+              `[Download the screenshot artifact](${process.env.ARTIFACT_URL})`,
+              "",
+              "The artifact includes light and dark captures for TalonSession and TalonChannel component stories.",
+            ].join("\n");
+
+            const { owner, repo } = context.repo;
+            const issueNumber = Number(process.env.PR_NUMBER);
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) =>
+              comment.user?.type === "Bot" && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body,
+              });
+            }

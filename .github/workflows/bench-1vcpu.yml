@@ -2,6 +2,8 @@ name: Talon 1 vCPU Benchmark
 
 # Managed by Copybara from impalasys/code.
 # Keep this repo-root workflow mirrored from the monorepo overlay.
+# PR reporting is handled by pr-report.yml; mirror this producer/reporter split
+# in the upstream overlay before changing the source workflow again.
 
 on:
   pull_request:
@@ -48,8 +50,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: write
 
 concurrency:
   group: talon-1vcpu-bench-${{ github.workflow }}-${{ github.ref }}
@@ -160,109 +160,6 @@ jobs:
           if [ "${status}" -ne 0 ]; then
             echo "::warning::1 vCPU benchmark missed its success threshold; results are advisory and posted as a PR comment."
           fi
-
-      - name: Comment benchmark results
-        if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const fs = require("fs");
-            const path = require("path");
-
-            const marker = "<!-- talon-1vcpu-benchmark -->";
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-
-            function findResultJson(dir) {
-              if (!fs.existsSync(dir)) {
-                return null;
-              }
-              const name = fs.readdirSync(dir)
-                .find((entry) => entry.startsWith("talon-bench-") && entry.endsWith(".json"));
-              return name ? path.join(dir, name) : null;
-            }
-
-            function formatSeconds(value) {
-              return Number.isFinite(value) ? `${value.toFixed(2)}s` : "n/a";
-            }
-
-            function formatRate(value) {
-              return Number.isFinite(value) ? value.toFixed(2) : "n/a";
-            }
-
-            function formatMemory(bytes) {
-              return Number.isFinite(bytes) ? `${(bytes / 1024 / 1024).toFixed(1)} MiB` : "n/a";
-            }
-
-            function row(database, dirName, memory) {
-              const resultPath = findResultJson(path.join(process.env.BENCH_OUTPUT_DIR, dirName));
-              if (!resultPath) {
-                return `| ${database} | ${memory} | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no result |`;
-              }
-              const result = JSON.parse(fs.readFileSync(resultPath, "utf8"));
-              const workload = result.workload || {};
-              const p95 = workload.send_to_done_seconds?.p95;
-              const peakMemory = result.talon_container?.peak_memory_usage_bytes;
-              const oom = result.talon_container?.oom_killed ? "yes" : "no";
-              const status = workload.success_count >= Number(process.env.BENCH_AGENTS)
-                ? "pass"
-                : "failed";
-              return [
-                `| ${database}`,
-                memory,
-                workload.success_count ?? "n/a",
-                workload.error_count ?? "n/a",
-                workload.timeout_count ?? "n/a",
-                formatSeconds(workload.workload_seconds),
-                formatRate(workload.throughput_completed_per_second),
-                formatSeconds(p95),
-                formatMemory(peakMemory),
-                `${oom} / ${status} |`,
-              ].join(" | ");
-            }
-
-            const matrix = [
-              "| Database | Memory | Success | Errors | Timeouts | Workload seconds | Completed/sec | p95 send-to-done | Peak memory | OOM / Status |",
-              "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :--- |",
-              row("SQLite", "sqlite", process.env.BENCH_MEMORY),
-              row("RocksDB", "rocksdb", process.env.BENCH_ROCKSDB_MEMORY),
-            ].join("\n");
-
-            const body = [
-              marker,
-              "## Talon 1 vCPU Benchmark",
-              "",
-              matrix,
-              "",
-              `Config: ${process.env.BENCH_AGENTS} concurrent agents, 1 vCPU Talon, batch stream. SQLite memory: ${process.env.BENCH_MEMORY}. RocksDB memory: ${process.env.BENCH_ROCKSDB_MEMORY}.`,
-              "",
-              `Run: ${runUrl}`,
-            ].join("\n");
-
-            const { owner, repo } = context.repo;
-            const issue_number = context.payload.pull_request.number;
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number,
-              per_page: 100,
-            });
-            const existing = comments.find((comment) => comment.body?.includes(marker));
-
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body,
-              });
-            }
 
       - name: Upload benchmark results
         if: always()
