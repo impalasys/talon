@@ -43,9 +43,11 @@ are normalized before merging, so child overrides are deterministic. Relative
 filesystem settings such as `workspace_dir`, database directories, and local
 object-store paths are resolved relative to the file where they appear.
 
-`TALON_CONFIG_INLINE_YAML` must be self-contained and cannot use `extends`; use
-`TALON_CONFIG_PATH` when layered configuration is needed. `extends` is a loader
-directive and is not retained in the runtime configuration protobuf.
+`TALON_CONFIG_INLINE_YAML` can also use `extends`. Absolute extension paths are
+loaded directly, while relative paths are resolved from the process working
+directory. This is useful for keeping a large shared catalog in a container
+image and applying a small deployment-specific inline override. `extends` is a
+loader directive and is not retained in the runtime configuration protobuf.
 
 ## Provider configuration
 
@@ -96,6 +98,11 @@ is not refreshed from provider APIs during startup.
 Costs are USD per one million tokens. `contextWindowTokens` is the complete
 provider context window. When `maxOutputTokens` is present, compaction reserves
 that many tokens for generation and uses the remainder as the history limit.
+`longContextTokens` is an input-token pricing threshold. When it is set, the
+corresponding `longContext*CostPerMillionTokens` fields describe the rates that
+apply once a request exceeds that threshold. It does not change the model's
+physical context window, but compaction uses the lower of that threshold and
+the model's normal input budget to avoid crossing the higher pricing tier.
 
 ```yaml
 models:
@@ -107,11 +114,15 @@ models:
     outputCostPerMillionTokens: 10.00
     cacheReadCostPerMillionTokens: 0.125
     cacheWriteCostPerMillionTokens: 1.25
+    longContextTokens: 272000
+    longContextInputCostPerMillionTokens: 2.50
+    longContextOutputCostPerMillionTokens: 15.00
+    longContextCacheReadCostPerMillionTokens: 0.25
 ```
 
 The pricing fields are retained as model metadata for usage accounting and
-future provider integrations. Compaction currently consumes the context and
-output limits; if no matching model entry exists, it keeps the existing
+future provider integrations. Compaction consumes only the context and output
+limits; if no matching model entry exists, it keeps the existing
 environment/default character budget.
 
 ## Secret sources

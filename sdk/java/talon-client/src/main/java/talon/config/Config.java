@@ -2542,12 +2542,70 @@ talon.config.Config.ModelConfig defaultValue) {
      * @return The cacheWriteCostPerMillionTokens.
      */
     double getCacheWriteCostPerMillionTokens();
+
+    /**
+     * <code>optional uint64 long_context_tokens = 8;</code>
+     * @return Whether the longContextTokens field is set.
+     */
+    boolean hasLongContextTokens();
+    /**
+     * <code>optional uint64 long_context_tokens = 8;</code>
+     * @return The longContextTokens.
+     */
+    long getLongContextTokens();
+
+    /**
+     * <code>optional double long_context_input_cost_per_million_tokens = 9;</code>
+     * @return Whether the longContextInputCostPerMillionTokens field is set.
+     */
+    boolean hasLongContextInputCostPerMillionTokens();
+    /**
+     * <code>optional double long_context_input_cost_per_million_tokens = 9;</code>
+     * @return The longContextInputCostPerMillionTokens.
+     */
+    double getLongContextInputCostPerMillionTokens();
+
+    /**
+     * <code>optional double long_context_output_cost_per_million_tokens = 10;</code>
+     * @return Whether the longContextOutputCostPerMillionTokens field is set.
+     */
+    boolean hasLongContextOutputCostPerMillionTokens();
+    /**
+     * <code>optional double long_context_output_cost_per_million_tokens = 10;</code>
+     * @return The longContextOutputCostPerMillionTokens.
+     */
+    double getLongContextOutputCostPerMillionTokens();
+
+    /**
+     * <code>optional double long_context_cache_read_cost_per_million_tokens = 11;</code>
+     * @return Whether the longContextCacheReadCostPerMillionTokens field is set.
+     */
+    boolean hasLongContextCacheReadCostPerMillionTokens();
+    /**
+     * <code>optional double long_context_cache_read_cost_per_million_tokens = 11;</code>
+     * @return The longContextCacheReadCostPerMillionTokens.
+     */
+    double getLongContextCacheReadCostPerMillionTokens();
+
+    /**
+     * <code>optional double long_context_cache_write_cost_per_million_tokens = 12;</code>
+     * @return Whether the longContextCacheWriteCostPerMillionTokens field is set.
+     */
+    boolean hasLongContextCacheWriteCostPerMillionTokens();
+    /**
+     * <code>optional double long_context_cache_write_cost_per_million_tokens = 12;</code>
+     * @return The longContextCacheWriteCostPerMillionTokens.
+     */
+    double getLongContextCacheWriteCostPerMillionTokens();
   }
   /**
    * <pre>
    * Static metadata for a model configured in the model catalog. Costs are in
    * USD per one million tokens. The context window includes generated output;
    * compaction reserves max_output_tokens from it when both are configured.
+   * long_context_tokens is the input-token threshold above which the optional
+   * long-context cost fields replace their corresponding standard cost fields;
+   * compaction also uses it as an operational input ceiling.
    * </pre>
    *
    * Protobuf type {@code talon.config.ModelConfig}
@@ -2746,6 +2804,101 @@ talon.config.Config.ModelConfig defaultValue) {
       return cacheWriteCostPerMillionTokens_;
     }
 
+    public static final int LONG_CONTEXT_TOKENS_FIELD_NUMBER = 8;
+    private long longContextTokens_ = 0L;
+    /**
+     * <code>optional uint64 long_context_tokens = 8;</code>
+     * @return Whether the longContextTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasLongContextTokens() {
+      return ((bitField0_ & 0x00000040) != 0);
+    }
+    /**
+     * <code>optional uint64 long_context_tokens = 8;</code>
+     * @return The longContextTokens.
+     */
+    @java.lang.Override
+    public long getLongContextTokens() {
+      return longContextTokens_;
+    }
+
+    public static final int LONG_CONTEXT_INPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER = 9;
+    private double longContextInputCostPerMillionTokens_ = 0D;
+    /**
+     * <code>optional double long_context_input_cost_per_million_tokens = 9;</code>
+     * @return Whether the longContextInputCostPerMillionTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasLongContextInputCostPerMillionTokens() {
+      return ((bitField0_ & 0x00000080) != 0);
+    }
+    /**
+     * <code>optional double long_context_input_cost_per_million_tokens = 9;</code>
+     * @return The longContextInputCostPerMillionTokens.
+     */
+    @java.lang.Override
+    public double getLongContextInputCostPerMillionTokens() {
+      return longContextInputCostPerMillionTokens_;
+    }
+
+    public static final int LONG_CONTEXT_OUTPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER = 10;
+    private double longContextOutputCostPerMillionTokens_ = 0D;
+    /**
+     * <code>optional double long_context_output_cost_per_million_tokens = 10;</code>
+     * @return Whether the longContextOutputCostPerMillionTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasLongContextOutputCostPerMillionTokens() {
+      return ((bitField0_ & 0x00000100) != 0);
+    }
+    /**
+     * <code>optional double long_context_output_cost_per_million_tokens = 10;</code>
+     * @return The longContextOutputCostPerMillionTokens.
+     */
+    @java.lang.Override
+    public double getLongContextOutputCostPerMillionTokens() {
+      return longContextOutputCostPerMillionTokens_;
+    }
+
+    public static final int LONG_CONTEXT_CACHE_READ_COST_PER_MILLION_TOKENS_FIELD_NUMBER = 11;
+    private double longContextCacheReadCostPerMillionTokens_ = 0D;
+    /**
+     * <code>optional double long_context_cache_read_cost_per_million_tokens = 11;</code>
+     * @return Whether the longContextCacheReadCostPerMillionTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasLongContextCacheReadCostPerMillionTokens() {
+      return ((bitField0_ & 0x00000200) != 0);
+    }
+    /**
+     * <code>optional double long_context_cache_read_cost_per_million_tokens = 11;</code>
+     * @return The longContextCacheReadCostPerMillionTokens.
+     */
+    @java.lang.Override
+    public double getLongContextCacheReadCostPerMillionTokens() {
+      return longContextCacheReadCostPerMillionTokens_;
+    }
+
+    public static final int LONG_CONTEXT_CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER = 12;
+    private double longContextCacheWriteCostPerMillionTokens_ = 0D;
+    /**
+     * <code>optional double long_context_cache_write_cost_per_million_tokens = 12;</code>
+     * @return Whether the longContextCacheWriteCostPerMillionTokens field is set.
+     */
+    @java.lang.Override
+    public boolean hasLongContextCacheWriteCostPerMillionTokens() {
+      return ((bitField0_ & 0x00000400) != 0);
+    }
+    /**
+     * <code>optional double long_context_cache_write_cost_per_million_tokens = 12;</code>
+     * @return The longContextCacheWriteCostPerMillionTokens.
+     */
+    @java.lang.Override
+    public double getLongContextCacheWriteCostPerMillionTokens() {
+      return longContextCacheWriteCostPerMillionTokens_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2780,6 +2933,21 @@ talon.config.Config.ModelConfig defaultValue) {
       }
       if (((bitField0_ & 0x00000020) != 0)) {
         output.writeDouble(7, cacheWriteCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000040) != 0)) {
+        output.writeUInt64(8, longContextTokens_);
+      }
+      if (((bitField0_ & 0x00000080) != 0)) {
+        output.writeDouble(9, longContextInputCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000100) != 0)) {
+        output.writeDouble(10, longContextOutputCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000200) != 0)) {
+        output.writeDouble(11, longContextCacheReadCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000400) != 0)) {
+        output.writeDouble(12, longContextCacheWriteCostPerMillionTokens_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -2816,6 +2984,26 @@ talon.config.Config.ModelConfig defaultValue) {
       if (((bitField0_ & 0x00000020) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeDoubleSize(7, cacheWriteCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000040) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(8, longContextTokens_);
+      }
+      if (((bitField0_ & 0x00000080) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(9, longContextInputCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000100) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(10, longContextOutputCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000200) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(11, longContextCacheReadCostPerMillionTokens_);
+      }
+      if (((bitField0_ & 0x00000400) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(12, longContextCacheWriteCostPerMillionTokens_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -2868,6 +3056,35 @@ talon.config.Config.ModelConfig defaultValue) {
             != java.lang.Double.doubleToLongBits(
                 other.getCacheWriteCostPerMillionTokens())) return false;
       }
+      if (hasLongContextTokens() != other.hasLongContextTokens()) return false;
+      if (hasLongContextTokens()) {
+        if (getLongContextTokens()
+            != other.getLongContextTokens()) return false;
+      }
+      if (hasLongContextInputCostPerMillionTokens() != other.hasLongContextInputCostPerMillionTokens()) return false;
+      if (hasLongContextInputCostPerMillionTokens()) {
+        if (java.lang.Double.doubleToLongBits(getLongContextInputCostPerMillionTokens())
+            != java.lang.Double.doubleToLongBits(
+                other.getLongContextInputCostPerMillionTokens())) return false;
+      }
+      if (hasLongContextOutputCostPerMillionTokens() != other.hasLongContextOutputCostPerMillionTokens()) return false;
+      if (hasLongContextOutputCostPerMillionTokens()) {
+        if (java.lang.Double.doubleToLongBits(getLongContextOutputCostPerMillionTokens())
+            != java.lang.Double.doubleToLongBits(
+                other.getLongContextOutputCostPerMillionTokens())) return false;
+      }
+      if (hasLongContextCacheReadCostPerMillionTokens() != other.hasLongContextCacheReadCostPerMillionTokens()) return false;
+      if (hasLongContextCacheReadCostPerMillionTokens()) {
+        if (java.lang.Double.doubleToLongBits(getLongContextCacheReadCostPerMillionTokens())
+            != java.lang.Double.doubleToLongBits(
+                other.getLongContextCacheReadCostPerMillionTokens())) return false;
+      }
+      if (hasLongContextCacheWriteCostPerMillionTokens() != other.hasLongContextCacheWriteCostPerMillionTokens()) return false;
+      if (hasLongContextCacheWriteCostPerMillionTokens()) {
+        if (java.lang.Double.doubleToLongBits(getLongContextCacheWriteCostPerMillionTokens())
+            != java.lang.Double.doubleToLongBits(
+                other.getLongContextCacheWriteCostPerMillionTokens())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2910,6 +3127,31 @@ talon.config.Config.ModelConfig defaultValue) {
         hash = (37 * hash) + CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
             java.lang.Double.doubleToLongBits(getCacheWriteCostPerMillionTokens()));
+      }
+      if (hasLongContextTokens()) {
+        hash = (37 * hash) + LONG_CONTEXT_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getLongContextTokens());
+      }
+      if (hasLongContextInputCostPerMillionTokens()) {
+        hash = (37 * hash) + LONG_CONTEXT_INPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getLongContextInputCostPerMillionTokens()));
+      }
+      if (hasLongContextOutputCostPerMillionTokens()) {
+        hash = (37 * hash) + LONG_CONTEXT_OUTPUT_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getLongContextOutputCostPerMillionTokens()));
+      }
+      if (hasLongContextCacheReadCostPerMillionTokens()) {
+        hash = (37 * hash) + LONG_CONTEXT_CACHE_READ_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getLongContextCacheReadCostPerMillionTokens()));
+      }
+      if (hasLongContextCacheWriteCostPerMillionTokens()) {
+        hash = (37 * hash) + LONG_CONTEXT_CACHE_WRITE_COST_PER_MILLION_TOKENS_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            java.lang.Double.doubleToLongBits(getLongContextCacheWriteCostPerMillionTokens()));
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -3013,6 +3255,9 @@ talon.config.Config.ModelConfig defaultValue) {
      * Static metadata for a model configured in the model catalog. Costs are in
      * USD per one million tokens. The context window includes generated output;
      * compaction reserves max_output_tokens from it when both are configured.
+     * long_context_tokens is the input-token threshold above which the optional
+     * long-context cost fields replace their corresponding standard cost fields;
+     * compaction also uses it as an operational input ceiling.
      * </pre>
      *
      * Protobuf type {@code talon.config.ModelConfig}
@@ -3055,6 +3300,11 @@ talon.config.Config.ModelConfig defaultValue) {
         outputCostPerMillionTokens_ = 0D;
         cacheReadCostPerMillionTokens_ = 0D;
         cacheWriteCostPerMillionTokens_ = 0D;
+        longContextTokens_ = 0L;
+        longContextInputCostPerMillionTokens_ = 0D;
+        longContextOutputCostPerMillionTokens_ = 0D;
+        longContextCacheReadCostPerMillionTokens_ = 0D;
+        longContextCacheWriteCostPerMillionTokens_ = 0D;
         return this;
       }
 
@@ -3116,6 +3366,26 @@ talon.config.Config.ModelConfig defaultValue) {
           result.cacheWriteCostPerMillionTokens_ = cacheWriteCostPerMillionTokens_;
           to_bitField0_ |= 0x00000020;
         }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.longContextTokens_ = longContextTokens_;
+          to_bitField0_ |= 0x00000040;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.longContextInputCostPerMillionTokens_ = longContextInputCostPerMillionTokens_;
+          to_bitField0_ |= 0x00000080;
+        }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.longContextOutputCostPerMillionTokens_ = longContextOutputCostPerMillionTokens_;
+          to_bitField0_ |= 0x00000100;
+        }
+        if (((from_bitField0_ & 0x00000400) != 0)) {
+          result.longContextCacheReadCostPerMillionTokens_ = longContextCacheReadCostPerMillionTokens_;
+          to_bitField0_ |= 0x00000200;
+        }
+        if (((from_bitField0_ & 0x00000800) != 0)) {
+          result.longContextCacheWriteCostPerMillionTokens_ = longContextCacheWriteCostPerMillionTokens_;
+          to_bitField0_ |= 0x00000400;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -3153,6 +3423,21 @@ talon.config.Config.ModelConfig defaultValue) {
         }
         if (other.hasCacheWriteCostPerMillionTokens()) {
           setCacheWriteCostPerMillionTokens(other.getCacheWriteCostPerMillionTokens());
+        }
+        if (other.hasLongContextTokens()) {
+          setLongContextTokens(other.getLongContextTokens());
+        }
+        if (other.hasLongContextInputCostPerMillionTokens()) {
+          setLongContextInputCostPerMillionTokens(other.getLongContextInputCostPerMillionTokens());
+        }
+        if (other.hasLongContextOutputCostPerMillionTokens()) {
+          setLongContextOutputCostPerMillionTokens(other.getLongContextOutputCostPerMillionTokens());
+        }
+        if (other.hasLongContextCacheReadCostPerMillionTokens()) {
+          setLongContextCacheReadCostPerMillionTokens(other.getLongContextCacheReadCostPerMillionTokens());
+        }
+        if (other.hasLongContextCacheWriteCostPerMillionTokens()) {
+          setLongContextCacheWriteCostPerMillionTokens(other.getLongContextCacheWriteCostPerMillionTokens());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -3215,6 +3500,31 @@ talon.config.Config.ModelConfig defaultValue) {
                 bitField0_ |= 0x00000040;
                 break;
               } // case 57
+              case 64: {
+                longContextTokens_ = input.readUInt64();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 64
+              case 73: {
+                longContextInputCostPerMillionTokens_ = input.readDouble();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 73
+              case 81: {
+                longContextOutputCostPerMillionTokens_ = input.readDouble();
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 81
+              case 89: {
+                longContextCacheReadCostPerMillionTokens_ = input.readDouble();
+                bitField0_ |= 0x00000400;
+                break;
+              } // case 89
+              case 97: {
+                longContextCacheWriteCostPerMillionTokens_ = input.readDouble();
+                bitField0_ |= 0x00000800;
+                break;
+              } // case 97
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3540,6 +3850,206 @@ talon.config.Config.ModelConfig defaultValue) {
       public Builder clearCacheWriteCostPerMillionTokens() {
         bitField0_ = (bitField0_ & ~0x00000040);
         cacheWriteCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private long longContextTokens_ ;
+      /**
+       * <code>optional uint64 long_context_tokens = 8;</code>
+       * @return Whether the longContextTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasLongContextTokens() {
+        return ((bitField0_ & 0x00000080) != 0);
+      }
+      /**
+       * <code>optional uint64 long_context_tokens = 8;</code>
+       * @return The longContextTokens.
+       */
+      @java.lang.Override
+      public long getLongContextTokens() {
+        return longContextTokens_;
+      }
+      /**
+       * <code>optional uint64 long_context_tokens = 8;</code>
+       * @param value The longContextTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLongContextTokens(long value) {
+
+        longContextTokens_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint64 long_context_tokens = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLongContextTokens() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        longContextTokens_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private double longContextInputCostPerMillionTokens_ ;
+      /**
+       * <code>optional double long_context_input_cost_per_million_tokens = 9;</code>
+       * @return Whether the longContextInputCostPerMillionTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasLongContextInputCostPerMillionTokens() {
+        return ((bitField0_ & 0x00000100) != 0);
+      }
+      /**
+       * <code>optional double long_context_input_cost_per_million_tokens = 9;</code>
+       * @return The longContextInputCostPerMillionTokens.
+       */
+      @java.lang.Override
+      public double getLongContextInputCostPerMillionTokens() {
+        return longContextInputCostPerMillionTokens_;
+      }
+      /**
+       * <code>optional double long_context_input_cost_per_million_tokens = 9;</code>
+       * @param value The longContextInputCostPerMillionTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLongContextInputCostPerMillionTokens(double value) {
+
+        longContextInputCostPerMillionTokens_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional double long_context_input_cost_per_million_tokens = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLongContextInputCostPerMillionTokens() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        longContextInputCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private double longContextOutputCostPerMillionTokens_ ;
+      /**
+       * <code>optional double long_context_output_cost_per_million_tokens = 10;</code>
+       * @return Whether the longContextOutputCostPerMillionTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasLongContextOutputCostPerMillionTokens() {
+        return ((bitField0_ & 0x00000200) != 0);
+      }
+      /**
+       * <code>optional double long_context_output_cost_per_million_tokens = 10;</code>
+       * @return The longContextOutputCostPerMillionTokens.
+       */
+      @java.lang.Override
+      public double getLongContextOutputCostPerMillionTokens() {
+        return longContextOutputCostPerMillionTokens_;
+      }
+      /**
+       * <code>optional double long_context_output_cost_per_million_tokens = 10;</code>
+       * @param value The longContextOutputCostPerMillionTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLongContextOutputCostPerMillionTokens(double value) {
+
+        longContextOutputCostPerMillionTokens_ = value;
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional double long_context_output_cost_per_million_tokens = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLongContextOutputCostPerMillionTokens() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        longContextOutputCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private double longContextCacheReadCostPerMillionTokens_ ;
+      /**
+       * <code>optional double long_context_cache_read_cost_per_million_tokens = 11;</code>
+       * @return Whether the longContextCacheReadCostPerMillionTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasLongContextCacheReadCostPerMillionTokens() {
+        return ((bitField0_ & 0x00000400) != 0);
+      }
+      /**
+       * <code>optional double long_context_cache_read_cost_per_million_tokens = 11;</code>
+       * @return The longContextCacheReadCostPerMillionTokens.
+       */
+      @java.lang.Override
+      public double getLongContextCacheReadCostPerMillionTokens() {
+        return longContextCacheReadCostPerMillionTokens_;
+      }
+      /**
+       * <code>optional double long_context_cache_read_cost_per_million_tokens = 11;</code>
+       * @param value The longContextCacheReadCostPerMillionTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLongContextCacheReadCostPerMillionTokens(double value) {
+
+        longContextCacheReadCostPerMillionTokens_ = value;
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional double long_context_cache_read_cost_per_million_tokens = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLongContextCacheReadCostPerMillionTokens() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        longContextCacheReadCostPerMillionTokens_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private double longContextCacheWriteCostPerMillionTokens_ ;
+      /**
+       * <code>optional double long_context_cache_write_cost_per_million_tokens = 12;</code>
+       * @return Whether the longContextCacheWriteCostPerMillionTokens field is set.
+       */
+      @java.lang.Override
+      public boolean hasLongContextCacheWriteCostPerMillionTokens() {
+        return ((bitField0_ & 0x00000800) != 0);
+      }
+      /**
+       * <code>optional double long_context_cache_write_cost_per_million_tokens = 12;</code>
+       * @return The longContextCacheWriteCostPerMillionTokens.
+       */
+      @java.lang.Override
+      public double getLongContextCacheWriteCostPerMillionTokens() {
+        return longContextCacheWriteCostPerMillionTokens_;
+      }
+      /**
+       * <code>optional double long_context_cache_write_cost_per_million_tokens = 12;</code>
+       * @param value The longContextCacheWriteCostPerMillionTokens to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLongContextCacheWriteCostPerMillionTokens(double value) {
+
+        longContextCacheWriteCostPerMillionTokens_ = value;
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional double long_context_cache_write_cost_per_million_tokens = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLongContextCacheWriteCostPerMillionTokens() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        longContextCacheWriteCostPerMillionTokens_ = 0D;
         onChanged();
         return this;
       }
@@ -26411,7 +26921,7 @@ talon.config.Config.ModelConfig defaultValue) {
       "ntrollersEntry\022\013\n\003key\030\001 \001(\t\022-\n\005value\030\002 \001" +
       "(\0132\036.talon.config.ControllerConfig:\0028\001\032H" +
       "\n\013ModelsEntry\022\013\n\003key\030\001 \001(\t\022(\n\005value\030\002 \001(" +
-      "\0132\031.talon.config.ModelConfig:\0028\001\"\343\003\n\013Mod" +
+      "\0132\031.talon.config.ModelConfig:\0028\001\"\325\007\n\013Mod" +
       "elConfig\022\020\n\010provider\030\001 \001(\t\022\"\n\025context_wi" +
       "ndow_tokens\030\002 \001(\004H\000\210\001\001\022\036\n\021max_output_tok" +
       "ens\030\003 \001(\004H\001\210\001\001\022*\n\035input_cost_per_million" +
@@ -26419,87 +26929,100 @@ talon.config.Config.ModelConfig defaultValue) {
       "llion_tokens\030\005 \001(\001H\003\210\001\001\022/\n\"cache_read_co" +
       "st_per_million_tokens\030\006 \001(\001H\004\210\001\001\0220\n#cach" +
       "e_write_cost_per_million_tokens\030\007 \001(\001H\005\210" +
-      "\001\001B\030\n\026_context_window_tokensB\024\n\022_max_out" +
-      "put_tokensB \n\036_input_cost_per_million_to" +
-      "kensB!\n\037_output_cost_per_million_tokensB" +
-      "%\n#_cache_read_cost_per_million_tokensB&" +
-      "\n$_cache_write_cost_per_million_tokens\"9" +
-      "\n\013TrustConfig\022*\n\004oidc\030\001 \003(\0132\034.talon.conf" +
-      "ig.OidcTrustEntry\"\316\001\n\016OidcTrustEntry\022\014\n\004" +
-      "name\030\001 \001(\t\022\016\n\006issuer\030\002 \001(\t\022\021\n\taudiences\030" +
-      "\003 \003(\t\022\027\n\017allowed_domains\030\004 \003(\t\022\026\n\016allowe" +
-      "d_emails\030\005 \003(\t\022\020\n\010jwks_url\030\006 \001(\t\022\032\n\022cloc" +
-      "k_skew_seconds\030\007 \001(\r\022,\n\006grants\030\010 \003(\0132\034.t" +
-      "alon.config.OidcTrustGrant\"\274\001\n\016OidcTrust" +
-      "Grant\022/\n\004kind\030\001 \001(\0162!.talon.config.OidcT" +
-      "rustGrant.Kind\022\021\n\tnamespace\030\002 \001(\t\022\r\n\005age" +
-      "nt\030\003 \001(\t\022\017\n\007session\030\004 \001(\t\022\017\n\007channel\030\005 \001" +
-      "(\t\"5\n\004Kind\022\024\n\020KIND_UNSPECIFIED\020\000\022\010\n\004READ" +
-      "\020\001\022\r\n\tREADWRITE\020\002\"4\n\020ControllerConfig\022\017\n" +
-      "\007enabled\030\001 \001(\010\022\017\n\007workers\030\002 \001(\r\"\347\001\n\021LlmP" +
-      "roviderConfig\022,\n\006openai\030\001 \001(\0132\032.talon.co" +
-      "nfig.OpenAiConfigH\000\0222\n\tanthropic\030\002 \001(\0132\035" +
-      ".talon.config.AnthropicConfigH\000\022,\n\006googl" +
-      "e\030\003 \001(\0132\032.talon.config.GoogleConfigH\000\0228\n" +
-      "\021openai_compatible\030\004 \001(\0132\033.talon.config." +
-      "GenericConfigH\000B\010\n\006config\"a\n\014OpenAiConfi" +
+      "\001\001\022 \n\023long_context_tokens\030\010 \001(\004H\006\210\001\001\0227\n*" +
+      "long_context_input_cost_per_million_toke" +
+      "ns\030\t \001(\001H\007\210\001\001\0228\n+long_context_output_cos" +
+      "t_per_million_tokens\030\n \001(\001H\010\210\001\001\022<\n/long_" +
+      "context_cache_read_cost_per_million_toke" +
+      "ns\030\013 \001(\001H\t\210\001\001\022=\n0long_context_cache_writ" +
+      "e_cost_per_million_tokens\030\014 \001(\001H\n\210\001\001B\030\n\026" +
+      "_context_window_tokensB\024\n\022_max_output_to" +
+      "kensB \n\036_input_cost_per_million_tokensB!" +
+      "\n\037_output_cost_per_million_tokensB%\n#_ca" +
+      "che_read_cost_per_million_tokensB&\n$_cac" +
+      "he_write_cost_per_million_tokensB\026\n\024_lon" +
+      "g_context_tokensB-\n+_long_context_input_" +
+      "cost_per_million_tokensB.\n,_long_context" +
+      "_output_cost_per_million_tokensB2\n0_long" +
+      "_context_cache_read_cost_per_million_tok" +
+      "ensB3\n1_long_context_cache_write_cost_pe" +
+      "r_million_tokens\"9\n\013TrustConfig\022*\n\004oidc\030" +
+      "\001 \003(\0132\034.talon.config.OidcTrustEntry\"\316\001\n\016" +
+      "OidcTrustEntry\022\014\n\004name\030\001 \001(\t\022\016\n\006issuer\030\002" +
+      " \001(\t\022\021\n\taudiences\030\003 \003(\t\022\027\n\017allowed_domai" +
+      "ns\030\004 \003(\t\022\026\n\016allowed_emails\030\005 \003(\t\022\020\n\010jwks" +
+      "_url\030\006 \001(\t\022\032\n\022clock_skew_seconds\030\007 \001(\r\022," +
+      "\n\006grants\030\010 \003(\0132\034.talon.config.OidcTrustG" +
+      "rant\"\274\001\n\016OidcTrustGrant\022/\n\004kind\030\001 \001(\0162!." +
+      "talon.config.OidcTrustGrant.Kind\022\021\n\tname" +
+      "space\030\002 \001(\t\022\r\n\005agent\030\003 \001(\t\022\017\n\007session\030\004 " +
+      "\001(\t\022\017\n\007channel\030\005 \001(\t\"5\n\004Kind\022\024\n\020KIND_UNS" +
+      "PECIFIED\020\000\022\010\n\004READ\020\001\022\r\n\tREADWRITE\020\002\"4\n\020C" +
+      "ontrollerConfig\022\017\n\007enabled\030\001 \001(\010\022\017\n\007work" +
+      "ers\030\002 \001(\r\"\347\001\n\021LlmProviderConfig\022,\n\006opena" +
+      "i\030\001 \001(\0132\032.talon.config.OpenAiConfigH\000\0222\n" +
+      "\tanthropic\030\002 \001(\0132\035.talon.config.Anthropi" +
+      "cConfigH\000\022,\n\006google\030\003 \001(\0132\032.talon.config" +
+      ".GoogleConfigH\000\0228\n\021openai_compatible\030\004 \001" +
+      "(\0132\033.talon.config.GenericConfigH\000B\010\n\006con" +
+      "fig\"a\n\014OpenAiConfig\022\r\n\005model\030\001 \001(\t\022%\n\007ap" +
+      "i_key\030\002 \001(\0132\024.talon.config.Secret\022\016\n\006org" +
+      "_id\030\003 \001(\t\022\013\n\003api\030\004 \001(\t\"G\n\017AnthropicConfi" +
       "g\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talo" +
-      "n.config.Secret\022\016\n\006org_id\030\003 \001(\t\022\013\n\003api\030\004" +
-      " \001(\t\"G\n\017AnthropicConfig\022\r\n\005model\030\001 \001(\t\022%" +
-      "\n\007api_key\030\002 \001(\0132\024.talon.config.Secret\"D\n" +
-      "\014GoogleConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_key\030" +
-      "\002 \001(\0132\024.talon.config.Secret\"e\n\rGenericCo" +
-      "nfig\022\014\n\004name\030\001 \001(\t\022\020\n\010base_url\030\002 \001(\t\022\r\n\005" +
-      "model\030\003 \001(\t\022%\n\007api_key\030\004 \001(\0132\024.talon.con" +
-      "fig.Secret\"K\n\006Secret\022\017\n\005plain\030\001 \001(\tH\000\022&\n" +
-      "\003ref\030\002 \001(\0132\027.talon.config.SecretRefH\000B\010\n" +
-      "\006source\"\206\001\n\tSecretRef\022.\n\006source\030\001 \001(\0162\036." +
-      "talon.config.SecretRef.Source\022\013\n\003key\030\002 \001" +
-      "(\t\"<\n\006Source\022\007\n\003ENV\020\000\022\007\n\003GCP\020\001\022\014\n\010KEYCHA" +
-      "IN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE\020\004\"U\n\016DatabaseConf" +
-      "ig\022\020\n\010data_dir\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t\022!\n\003" +
-      "url\030\003 \001(\0132\024.talon.config.Secret\"%\n\023Messa" +
-      "geBrokerConfig\022\016\n\006driver\030\001 \001(\t\"&\n\026LocalO" +
-      "bjectStoreConfig\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObj" +
-      "ectStoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix" +
-      "\030\002 \001(\t\022\024\n\014api_base_url\030\003 \001(\t\"u\n\023S3Object" +
-      "StoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 " +
-      "\001(\t\022\016\n\006region\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(" +
-      "\t\022\030\n\020force_path_style\030\005 \001(\010\"\271\001\n\021ObjectSt" +
-      "oreConfig\0225\n\005local\030\001 \001(\0132$.talon.config." +
-      "LocalObjectStoreConfigH\000\0221\n\003gcs\030\002 \001(\0132\"." +
-      "talon.config.GcsObjectStoreConfigH\000\022/\n\002s" +
-      "3\030\003 \001(\0132!.talon.config.S3ObjectStoreConf" +
-      "igH\000B\t\n\007backend\"\217\001\n\033SchedulerCallbackAut" +
-      "hConfig\022-\n\rshared_secret\030\001 \001(\0132\024.talon.c" +
-      "onfig.SecretH\000\0229\n\013google_oidc\030\002 \001(\0132\".ta" +
-      "lon.config.GoogleOidcAuthConfigH\000B\006\n\004aut" +
-      "h\"G\n\024GoogleOidcAuthConfig\022\020\n\010audience\030\001 " +
-      "\001(\t\022\035\n\025service_account_email\030\002 \001(\t\"\246\001\n\031C" +
-      "loudTasksSchedulerConfig\022\022\n\nproject_id\030\001" +
-      " \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n" +
-      "\ntarget_url\030\004 \001(\t\022@\n\rcallback_auth\030\005 \001(\013" +
-      "2).talon.config.SchedulerCallbackAuthCon" +
-      "fig\"\212\002\n\035AwsEventBridgeSchedulerConfig\022\022\n" +
-      "\ngroup_name\030\001 \001(\t\022\021\n\tqueue_url\030\002 \001(\t\022\032\n\022" +
-      "execution_role_arn\030\003 \001(\t\022\034\n\024schedule_nam" +
-      "e_prefix\030\004 \001(\t\022\017\n\007dlq_arn\030\005 \001(\t\022!\n\031maxim" +
-      "um_event_age_seconds\030\006 \001(\r\022#\n\026maximum_re" +
-      "try_attempts\030\007 \001(\rH\000\210\001\001\022\024\n\014endpoint_url\030" +
-      "\010 \001(\tB\031\n\027_maximum_retry_attempts\"\256\001\n\017Sch" +
-      "edulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'.talo" +
-      "n.config.CloudTasksSchedulerConfigH\000\022P\n\031" +
-      "aws_eventbridge_scheduler\030\002 \001(\0132+.talon." +
-      "config.AwsEventBridgeSchedulerConfigH\000B\t" +
-      "\n\007backend\"\231\002\n\022ControlPlaneConfig\022.\n\010data" +
-      "base\030\001 \001(\0132\034.talon.config.DatabaseConfig" +
-      "\0229\n\016message_broker\030\002 \001(\0132!.talon.config." +
-      "MessageBrokerConfig\0220\n\tscheduler\030\003 \001(\0132\035" +
-      ".talon.config.SchedulerConfig\0225\n\014object_" +
-      "store\030\004 \001(\0132\037.talon.config.ObjectStoreCo" +
-      "nfig\022/\n\tdocuments\030\005 \001(\0132\034.talon.config.D" +
-      "atabaseConfig\"*\n\014ServerConfig\022\014\n\004host\030\001 " +
-      "\001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
+      "n.config.Secret\"D\n\014GoogleConfig\022\r\n\005model" +
+      "\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talon.config.S" +
+      "ecret\"e\n\rGenericConfig\022\014\n\004name\030\001 \001(\t\022\020\n\010" +
+      "base_url\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\022%\n\007api_key" +
+      "\030\004 \001(\0132\024.talon.config.Secret\"K\n\006Secret\022\017" +
+      "\n\005plain\030\001 \001(\tH\000\022&\n\003ref\030\002 \001(\0132\027.talon.con" +
+      "fig.SecretRefH\000B\010\n\006source\"\206\001\n\tSecretRef\022" +
+      ".\n\006source\030\001 \001(\0162\036.talon.config.SecretRef" +
+      ".Source\022\013\n\003key\030\002 \001(\t\"<\n\006Source\022\007\n\003ENV\020\000\022" +
+      "\007\n\003GCP\020\001\022\014\n\010KEYCHAIN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE" +
+      "\020\004\"U\n\016DatabaseConfig\022\020\n\010data_dir\030\001 \001(\t\022\016" +
+      "\n\006driver\030\002 \001(\t\022!\n\003url\030\003 \001(\0132\024.talon.conf" +
+      "ig.Secret\"%\n\023MessageBrokerConfig\022\016\n\006driv" +
+      "er\030\001 \001(\t\"&\n\026LocalObjectStoreConfig\022\014\n\004pa" +
+      "th\030\001 \001(\t\"L\n\024GcsObjectStoreConfig\022\016\n\006buck" +
+      "et\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014api_base_url" +
+      "\030\003 \001(\t\"u\n\023S3ObjectStoreConfig\022\016\n\006bucket\030" +
+      "\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006region\030\003 \001(\t\022\024\n" +
+      "\014endpoint_url\030\004 \001(\t\022\030\n\020force_path_style\030" +
+      "\005 \001(\010\"\271\001\n\021ObjectStoreConfig\0225\n\005local\030\001 \001" +
+      "(\0132$.talon.config.LocalObjectStoreConfig" +
+      "H\000\0221\n\003gcs\030\002 \001(\0132\".talon.config.GcsObject" +
+      "StoreConfigH\000\022/\n\002s3\030\003 \001(\0132!.talon.config" +
+      ".S3ObjectStoreConfigH\000B\t\n\007backend\"\217\001\n\033Sc" +
+      "hedulerCallbackAuthConfig\022-\n\rshared_secr" +
+      "et\030\001 \001(\0132\024.talon.config.SecretH\000\0229\n\013goog" +
+      "le_oidc\030\002 \001(\0132\".talon.config.GoogleOidcA" +
+      "uthConfigH\000B\006\n\004auth\"G\n\024GoogleOidcAuthCon" +
+      "fig\022\020\n\010audience\030\001 \001(\t\022\035\n\025service_account" +
+      "_email\030\002 \001(\t\"\246\001\n\031CloudTasksSchedulerConf" +
+      "ig\022\022\n\nproject_id\030\001 \001(\t\022\020\n\010location\030\002 \001(\t" +
+      "\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarget_url\030\004 \001(\t\022@\n\rc" +
+      "allback_auth\030\005 \001(\0132).talon.config.Schedu" +
+      "lerCallbackAuthConfig\"\212\002\n\035AwsEventBridge" +
+      "SchedulerConfig\022\022\n\ngroup_name\030\001 \001(\t\022\021\n\tq" +
+      "ueue_url\030\002 \001(\t\022\032\n\022execution_role_arn\030\003 \001" +
+      "(\t\022\034\n\024schedule_name_prefix\030\004 \001(\t\022\017\n\007dlq_" +
+      "arn\030\005 \001(\t\022!\n\031maximum_event_age_seconds\030\006" +
+      " \001(\r\022#\n\026maximum_retry_attempts\030\007 \001(\rH\000\210\001" +
+      "\001\022\024\n\014endpoint_url\030\010 \001(\tB\031\n\027_maximum_retr" +
+      "y_attempts\"\256\001\n\017SchedulerConfig\022>\n\013cloud_" +
+      "tasks\030\001 \001(\0132\'.talon.config.CloudTasksSch" +
+      "edulerConfigH\000\022P\n\031aws_eventbridge_schedu" +
+      "ler\030\002 \001(\0132+.talon.config.AwsEventBridgeS" +
+      "chedulerConfigH\000B\t\n\007backend\"\231\002\n\022ControlP" +
+      "laneConfig\022.\n\010database\030\001 \001(\0132\034.talon.con" +
+      "fig.DatabaseConfig\0229\n\016message_broker\030\002 \001" +
+      "(\0132!.talon.config.MessageBrokerConfig\0220\n" +
+      "\tscheduler\030\003 \001(\0132\035.talon.config.Schedule" +
+      "rConfig\0225\n\014object_store\030\004 \001(\0132\037.talon.co" +
+      "nfig.ObjectStoreConfig\022/\n\tdocuments\030\005 \001(" +
+      "\0132\034.talon.config.DatabaseConfig\"*\n\014Serve" +
+      "rConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002 \001(\rb\006pro" +
+      "to3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -26534,7 +27057,7 @@ talon.config.Config.ModelConfig defaultValue) {
     internal_static_talon_config_ModelConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ModelConfig_descriptor,
-        new java.lang.String[] { "Provider", "ContextWindowTokens", "MaxOutputTokens", "InputCostPerMillionTokens", "OutputCostPerMillionTokens", "CacheReadCostPerMillionTokens", "CacheWriteCostPerMillionTokens", });
+        new java.lang.String[] { "Provider", "ContextWindowTokens", "MaxOutputTokens", "InputCostPerMillionTokens", "OutputCostPerMillionTokens", "CacheReadCostPerMillionTokens", "CacheWriteCostPerMillionTokens", "LongContextTokens", "LongContextInputCostPerMillionTokens", "LongContextOutputCostPerMillionTokens", "LongContextCacheReadCostPerMillionTokens", "LongContextCacheWriteCostPerMillionTokens", });
     internal_static_talon_config_TrustConfig_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_talon_config_TrustConfig_fieldAccessorTable = new

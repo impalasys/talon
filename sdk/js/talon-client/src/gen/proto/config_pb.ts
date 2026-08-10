@@ -95,6 +95,9 @@ export class TalonConfig extends Message<TalonConfig> {
  * Static metadata for a model configured in the model catalog. Costs are in
  * USD per one million tokens. The context window includes generated output;
  * compaction reserves max_output_tokens from it when both are configured.
+ * long_context_tokens is the input-token threshold above which the optional
+ * long-context cost fields replace their corresponding standard cost fields;
+ * compaction also uses it as an operational input ceiling.
  *
  * @generated from message talon.config.ModelConfig
  */
@@ -134,6 +137,31 @@ export class ModelConfig extends Message<ModelConfig> {
    */
   cacheWriteCostPerMillionTokens?: number;
 
+  /**
+   * @generated from field: optional uint64 long_context_tokens = 8;
+   */
+  longContextTokens?: bigint;
+
+  /**
+   * @generated from field: optional double long_context_input_cost_per_million_tokens = 9;
+   */
+  longContextInputCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double long_context_output_cost_per_million_tokens = 10;
+   */
+  longContextOutputCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double long_context_cache_read_cost_per_million_tokens = 11;
+   */
+  longContextCacheReadCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double long_context_cache_write_cost_per_million_tokens = 12;
+   */
+  longContextCacheWriteCostPerMillionTokens?: number;
+
   constructor(data?: PartialMessage<ModelConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -149,6 +177,11 @@ export class ModelConfig extends Message<ModelConfig> {
     { no: 5, name: "output_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
     { no: 6, name: "cache_read_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
     { no: 7, name: "cache_write_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 8, name: "long_context_tokens", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 9, name: "long_context_input_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 10, name: "long_context_output_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 11, name: "long_context_cache_read_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
+    { no: 12, name: "long_context_cache_write_cost_per_million_tokens", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModelConfig {

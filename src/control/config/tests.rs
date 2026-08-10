@@ -86,6 +86,9 @@ models:
     maxOutputTokens: 4096
     inputCostPerMillionTokens: 0.30
     outputCostPerMillionTokens: 1.20
+    longContextTokens: 272000
+    longContextInputCostPerMillionTokens: 0.60
+    longContextOutputCostPerMillionTokens: 1.80
 
 database:
   data_dir: "./test-data"
@@ -124,6 +127,12 @@ server:
         assert_eq!(model.max_output_tokens, Some(4096));
         assert_eq!(model.input_cost_per_million_tokens, Some(0.30));
         assert_eq!(model.output_cost_per_million_tokens, Some(1.20));
+        assert_eq!(model.long_context_tokens, Some(272000));
+        assert_eq!(model.long_context_input_cost_per_million_tokens, Some(0.60));
+        assert_eq!(
+            model.long_context_output_cost_per_million_tokens,
+            Some(1.80)
+        );
     }
 
     #[test]
@@ -1060,13 +1069,24 @@ control_plane:
     }
 
     #[test]
-    fn test_inline_yaml_rejects_extends() {
+    fn test_inline_yaml_extends_file_and_overrides_it() {
         let _guard = crate::test_support::env_lock();
-        let _inline = EnvVarGuard::set("TALON_CONFIG_INLINE_YAML", "extends: ./models.yaml\n");
-        let _path = EnvVarGuard::set("TALON_CONFIG_PATH", "/does/not/exist.yaml");
+        let dir = tempdir().unwrap();
+        let models_path = dir.path().join("models.yaml");
+        std::fs::write(
+            &models_path,
+            "providers:\n  shared:\n    type: google\n    model: gemini\n",
+        )
+        .unwrap();
+        let inline = format!(
+            "extends: {}\nproviders:\n  inline:\n    type: openai_compatible\n    base_url: https://example.com\n    model: demo\n    api_key: x\n",
+            models_path.display()
+        );
+        let _inline = EnvVarGuard::set("TALON_CONFIG_INLINE_YAML", &inline);
 
-        let error = Config::load_default().unwrap_err().to_string();
-        assert!(error.contains("TALON_CONFIG_INLINE_YAML does not support 'extends'"));
+        let config = Config::load_default().unwrap();
+        assert!(config.providers.contains_key("shared"));
+        assert!(config.providers.contains_key("inline"));
     }
 
     #[test]

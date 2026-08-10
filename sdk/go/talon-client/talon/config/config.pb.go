@@ -236,17 +236,25 @@ func (x *TalonConfig) GetModels() map[string]*ModelConfig {
 // Static metadata for a model configured in the model catalog. Costs are in
 // USD per one million tokens. The context window includes generated output;
 // compaction reserves max_output_tokens from it when both are configured.
+// long_context_tokens is the input-token threshold above which the optional
+// long-context cost fields replace their corresponding standard cost fields;
+// compaction also uses it as an operational input ceiling.
 type ModelConfig struct {
-	state                          protoimpl.MessageState `protogen:"open.v1"`
-	Provider                       string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
-	ContextWindowTokens            *uint64                `protobuf:"varint,2,opt,name=context_window_tokens,json=contextWindowTokens,proto3,oneof" json:"context_window_tokens,omitempty"`
-	MaxOutputTokens                *uint64                `protobuf:"varint,3,opt,name=max_output_tokens,json=maxOutputTokens,proto3,oneof" json:"max_output_tokens,omitempty"`
-	InputCostPerMillionTokens      *float64               `protobuf:"fixed64,4,opt,name=input_cost_per_million_tokens,json=inputCostPerMillionTokens,proto3,oneof" json:"input_cost_per_million_tokens,omitempty"`
-	OutputCostPerMillionTokens     *float64               `protobuf:"fixed64,5,opt,name=output_cost_per_million_tokens,json=outputCostPerMillionTokens,proto3,oneof" json:"output_cost_per_million_tokens,omitempty"`
-	CacheReadCostPerMillionTokens  *float64               `protobuf:"fixed64,6,opt,name=cache_read_cost_per_million_tokens,json=cacheReadCostPerMillionTokens,proto3,oneof" json:"cache_read_cost_per_million_tokens,omitempty"`
-	CacheWriteCostPerMillionTokens *float64               `protobuf:"fixed64,7,opt,name=cache_write_cost_per_million_tokens,json=cacheWriteCostPerMillionTokens,proto3,oneof" json:"cache_write_cost_per_million_tokens,omitempty"`
-	unknownFields                  protoimpl.UnknownFields
-	sizeCache                      protoimpl.SizeCache
+	state                                     protoimpl.MessageState `protogen:"open.v1"`
+	Provider                                  string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	ContextWindowTokens                       *uint64                `protobuf:"varint,2,opt,name=context_window_tokens,json=contextWindowTokens,proto3,oneof" json:"context_window_tokens,omitempty"`
+	MaxOutputTokens                           *uint64                `protobuf:"varint,3,opt,name=max_output_tokens,json=maxOutputTokens,proto3,oneof" json:"max_output_tokens,omitempty"`
+	InputCostPerMillionTokens                 *float64               `protobuf:"fixed64,4,opt,name=input_cost_per_million_tokens,json=inputCostPerMillionTokens,proto3,oneof" json:"input_cost_per_million_tokens,omitempty"`
+	OutputCostPerMillionTokens                *float64               `protobuf:"fixed64,5,opt,name=output_cost_per_million_tokens,json=outputCostPerMillionTokens,proto3,oneof" json:"output_cost_per_million_tokens,omitempty"`
+	CacheReadCostPerMillionTokens             *float64               `protobuf:"fixed64,6,opt,name=cache_read_cost_per_million_tokens,json=cacheReadCostPerMillionTokens,proto3,oneof" json:"cache_read_cost_per_million_tokens,omitempty"`
+	CacheWriteCostPerMillionTokens            *float64               `protobuf:"fixed64,7,opt,name=cache_write_cost_per_million_tokens,json=cacheWriteCostPerMillionTokens,proto3,oneof" json:"cache_write_cost_per_million_tokens,omitempty"`
+	LongContextTokens                         *uint64                `protobuf:"varint,8,opt,name=long_context_tokens,json=longContextTokens,proto3,oneof" json:"long_context_tokens,omitempty"`
+	LongContextInputCostPerMillionTokens      *float64               `protobuf:"fixed64,9,opt,name=long_context_input_cost_per_million_tokens,json=longContextInputCostPerMillionTokens,proto3,oneof" json:"long_context_input_cost_per_million_tokens,omitempty"`
+	LongContextOutputCostPerMillionTokens     *float64               `protobuf:"fixed64,10,opt,name=long_context_output_cost_per_million_tokens,json=longContextOutputCostPerMillionTokens,proto3,oneof" json:"long_context_output_cost_per_million_tokens,omitempty"`
+	LongContextCacheReadCostPerMillionTokens  *float64               `protobuf:"fixed64,11,opt,name=long_context_cache_read_cost_per_million_tokens,json=longContextCacheReadCostPerMillionTokens,proto3,oneof" json:"long_context_cache_read_cost_per_million_tokens,omitempty"`
+	LongContextCacheWriteCostPerMillionTokens *float64               `protobuf:"fixed64,12,opt,name=long_context_cache_write_cost_per_million_tokens,json=longContextCacheWriteCostPerMillionTokens,proto3,oneof" json:"long_context_cache_write_cost_per_million_tokens,omitempty"`
+	unknownFields                             protoimpl.UnknownFields
+	sizeCache                                 protoimpl.SizeCache
 }
 
 func (x *ModelConfig) Reset() {
@@ -324,6 +332,41 @@ func (x *ModelConfig) GetCacheReadCostPerMillionTokens() float64 {
 func (x *ModelConfig) GetCacheWriteCostPerMillionTokens() float64 {
 	if x != nil && x.CacheWriteCostPerMillionTokens != nil {
 		return *x.CacheWriteCostPerMillionTokens
+	}
+	return 0
+}
+
+func (x *ModelConfig) GetLongContextTokens() uint64 {
+	if x != nil && x.LongContextTokens != nil {
+		return *x.LongContextTokens
+	}
+	return 0
+}
+
+func (x *ModelConfig) GetLongContextInputCostPerMillionTokens() float64 {
+	if x != nil && x.LongContextInputCostPerMillionTokens != nil {
+		return *x.LongContextInputCostPerMillionTokens
+	}
+	return 0
+}
+
+func (x *ModelConfig) GetLongContextOutputCostPerMillionTokens() float64 {
+	if x != nil && x.LongContextOutputCostPerMillionTokens != nil {
+		return *x.LongContextOutputCostPerMillionTokens
+	}
+	return 0
+}
+
+func (x *ModelConfig) GetLongContextCacheReadCostPerMillionTokens() float64 {
+	if x != nil && x.LongContextCacheReadCostPerMillionTokens != nil {
+		return *x.LongContextCacheReadCostPerMillionTokens
+	}
+	return 0
+}
+
+func (x *ModelConfig) GetLongContextCacheWriteCostPerMillionTokens() float64 {
+	if x != nil && x.LongContextCacheWriteCostPerMillionTokens != nil {
+		return *x.LongContextCacheWriteCostPerMillionTokens
 	}
 	return 0
 }
@@ -2013,7 +2056,8 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2\x1e.talon.config.ControllerConfigR\x05value:\x028\x01\x1aT\n" +
 	"\vModelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.talon.config.ModelConfigR\x05value:\x028\x01\"\x89\x05\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.talon.config.ModelConfigR\x05value:\x028\x01\"\xb0\n" +
+	"\n" +
 	"\vModelConfig\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x127\n" +
 	"\x15context_window_tokens\x18\x02 \x01(\x04H\x00R\x13contextWindowTokens\x88\x01\x01\x12/\n" +
@@ -2021,13 +2065,25 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x1dinput_cost_per_million_tokens\x18\x04 \x01(\x01H\x02R\x19inputCostPerMillionTokens\x88\x01\x01\x12G\n" +
 	"\x1eoutput_cost_per_million_tokens\x18\x05 \x01(\x01H\x03R\x1aoutputCostPerMillionTokens\x88\x01\x01\x12N\n" +
 	"\"cache_read_cost_per_million_tokens\x18\x06 \x01(\x01H\x04R\x1dcacheReadCostPerMillionTokens\x88\x01\x01\x12P\n" +
-	"#cache_write_cost_per_million_tokens\x18\a \x01(\x01H\x05R\x1ecacheWriteCostPerMillionTokens\x88\x01\x01B\x18\n" +
+	"#cache_write_cost_per_million_tokens\x18\a \x01(\x01H\x05R\x1ecacheWriteCostPerMillionTokens\x88\x01\x01\x123\n" +
+	"\x13long_context_tokens\x18\b \x01(\x04H\x06R\x11longContextTokens\x88\x01\x01\x12]\n" +
+	"*long_context_input_cost_per_million_tokens\x18\t \x01(\x01H\aR$longContextInputCostPerMillionTokens\x88\x01\x01\x12_\n" +
+	"+long_context_output_cost_per_million_tokens\x18\n" +
+	" \x01(\x01H\bR%longContextOutputCostPerMillionTokens\x88\x01\x01\x12f\n" +
+	"/long_context_cache_read_cost_per_million_tokens\x18\v \x01(\x01H\tR(longContextCacheReadCostPerMillionTokens\x88\x01\x01\x12h\n" +
+	"0long_context_cache_write_cost_per_million_tokens\x18\f \x01(\x01H\n" +
+	"R)longContextCacheWriteCostPerMillionTokens\x88\x01\x01B\x18\n" +
 	"\x16_context_window_tokensB\x14\n" +
 	"\x12_max_output_tokensB \n" +
 	"\x1e_input_cost_per_million_tokensB!\n" +
 	"\x1f_output_cost_per_million_tokensB%\n" +
 	"#_cache_read_cost_per_million_tokensB&\n" +
-	"$_cache_write_cost_per_million_tokens\"?\n" +
+	"$_cache_write_cost_per_million_tokensB\x16\n" +
+	"\x14_long_context_tokensB-\n" +
+	"+_long_context_input_cost_per_million_tokensB.\n" +
+	",_long_context_output_cost_per_million_tokensB2\n" +
+	"0_long_context_cache_read_cost_per_million_tokensB3\n" +
+	"1_long_context_cache_write_cost_per_million_tokens\"?\n" +
 	"\vTrustConfig\x120\n" +
 	"\x04oidc\x18\x01 \x03(\v2\x1c.talon.config.OidcTrustEntryR\x04oidc\"\xa9\x02\n" +
 	"\x0eOidcTrustEntry\x12\x12\n" +

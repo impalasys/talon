@@ -49,7 +49,10 @@ jobs:
               issue_number: pullRequest.number,
               per_page: 100,
             });
-            const signed = comments.some((comment) =>
+            const isImpalasysMember =
+              pullRequest.author_association === "MEMBER" ||
+              pullRequest.author_association === "OWNER";
+            const signed = isImpalasysMember || comments.some((comment) =>
               comment.user?.id === pullRequest.user.id &&
               comment.body
                 ?.replace(/\r/g, "")

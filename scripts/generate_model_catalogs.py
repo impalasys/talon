@@ -35,6 +35,116 @@ from typing import Any, Callable
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / "models"
 
+# Providers may bill the complete request at higher rates once its input
+# exceeds a long-context threshold. Preserve this as pricing metadata; it is
+# not an operational context or compaction limit. Providers with a structured
+# pricing page add these fields dynamically; this table covers OpenAI's
+# model-specific published tiers.
+LONG_CONTEXT_PRICING = {
+    ("openai", "gpt-5.4"): {
+        "longContextTokens": 272_000,
+        "longContextInputCostPerMillionTokens": 5.0,
+        "longContextOutputCostPerMillionTokens": 22.5,
+        "longContextCacheReadCostPerMillionTokens": 0.5,
+    },
+    ("openai", "gpt-5.6-luna"): {
+        "longContextTokens": 272_000,
+        "longContextInputCostPerMillionTokens": 2.0,
+        "longContextOutputCostPerMillionTokens": 9.0,
+        "longContextCacheReadCostPerMillionTokens": 0.2,
+        "longContextCacheWriteCostPerMillionTokens": 2.5,
+    },
+    ("openai", "gpt-5.6-sol"): {
+        "longContextTokens": 272_000,
+        "longContextInputCostPerMillionTokens": 10.0,
+        "longContextOutputCostPerMillionTokens": 45.0,
+        "longContextCacheReadCostPerMillionTokens": 1.0,
+        "longContextCacheWriteCostPerMillionTokens": 12.5,
+    },
+    ("openai", "gpt-5.6-terra"): {
+        "longContextTokens": 272_000,
+        "longContextInputCostPerMillionTokens": 5.0,
+        "longContextOutputCostPerMillionTokens": 22.5,
+        "longContextCacheReadCostPerMillionTokens": 0.5,
+        "longContextCacheWriteCostPerMillionTokens": 6.25,
+    },
+    ("wafer", "MiniMax-M3"): {
+        "longContextTokens": 512_000,
+        "longContextInputCostPerMillionTokens": 0.66,
+        "longContextOutputCostPerMillionTokens": 2.64,
+        "longContextCacheReadCostPerMillionTokens": 0.13,
+    },
+}
+
+# Wafer advertises MiniMax-M3 on its model page, including a 512K long-context
+# price tier, but does not yet return that model from its public model-list API.
+WAFER_DOCUMENTED_MODELS = {
+    "MiniMax-M3": {
+        "contextWindowTokens": 1_048_576,
+        "inputCostPerMillionTokens": 0.33,
+        "outputCostPerMillionTokens": 1.32,
+        "cacheReadCostPerMillionTokens": 0.07,
+    },
+}
+
+# OpenAI's model-list API does not return token prices. Retain the documented
+# standard rates for catalog models whose prices Talon publishes alongside the
+# API-discovered model list.
+OPENAI_MODEL_METADATA = {
+    "gpt-5": {
+        "contextWindowTokens": 400_000,
+        "maxOutputTokens": 128_000,
+        "inputCostPerMillionTokens": 1.25,
+        "outputCostPerMillionTokens": 10.0,
+        "cacheReadCostPerMillionTokens": 0.125,
+    },
+    "gpt-5.4": {
+        "contextWindowTokens": 1_050_000,
+        "maxOutputTokens": 128_000,
+        "inputCostPerMillionTokens": 2.5,
+        "outputCostPerMillionTokens": 15.0,
+        "cacheReadCostPerMillionTokens": 0.25,
+    },
+    "gpt-5.4-mini": {
+        "contextWindowTokens": 400_000,
+        "maxOutputTokens": 128_000,
+        "inputCostPerMillionTokens": 0.75,
+        "outputCostPerMillionTokens": 4.5,
+        "cacheReadCostPerMillionTokens": 0.075,
+    },
+    "gpt-5.4-nano": {
+        "contextWindowTokens": 400_000,
+        "maxOutputTokens": 128_000,
+        "inputCostPerMillionTokens": 0.2,
+        "outputCostPerMillionTokens": 1.25,
+        "cacheReadCostPerMillionTokens": 0.02,
+    },
+    "gpt-5.6-luna": {
+        "contextWindowTokens": 1_050_000,
+        "maxOutputTokens": 128_000,
+        "inputCostPerMillionTokens": 1.0,
+        "outputCostPerMillionTokens": 6.0,
+        "cacheReadCostPerMillionTokens": 0.1,
+        "cacheWriteCostPerMillionTokens": 1.25,
+    },
+    "gpt-5.6-sol": {
+        "contextWindowTokens": 1_050_000,
+        "maxOutputTokens": 128_000,
+        "inputCostPerMillionTokens": 5.0,
+        "outputCostPerMillionTokens": 30.0,
+        "cacheReadCostPerMillionTokens": 0.5,
+        "cacheWriteCostPerMillionTokens": 6.25,
+    },
+    "gpt-5.6-terra": {
+        "contextWindowTokens": 1_050_000,
+        "maxOutputTokens": 128_000,
+        "inputCostPerMillionTokens": 2.5,
+        "outputCostPerMillionTokens": 15.0,
+        "cacheReadCostPerMillionTokens": 0.25,
+        "cacheWriteCostPerMillionTokens": 3.125,
+    },
+}
+
 
 class CatalogError(RuntimeError):
     """A provider catalog could not be fetched or normalized."""
@@ -163,16 +273,16 @@ def novita_parser(provider: str, item: dict[str, Any]) -> dict[str, Any] | None:
     result = generic_parser(provider, item)
     if result is None:
         return None
-    # Novita documents these as prices per million tokens.  Keep the API's
-    # numeric unit unchanged; unlike OpenRouter its values are not per-token
-    # decimal strings.
+    # Novita's model API reports prices in ten-thousandths of a USD per
+    # million tokens: e.g. 21,100 means $2.11 per million tokens. Its
+    # headline prices correspond to the highest applicable input-length tier.
     for source, destination in (
         ("input_token_price_per_m", "inputCostPerMillionTokens"),
         ("output_token_price_per_m", "outputCostPerMillionTokens"),
     ):
         value = number(item.get(source))
         if value is not None:
-            result["record"][destination] = value
+            result["record"][destination] = value / 10_000
     return result
 
 
@@ -359,15 +469,32 @@ def google_pricing() -> dict[str, dict[str, Any]]:
         for row in re.findall(r"<tr>(.*?)</tr>", standard.group(1), re.DOTALL):
             text = html.unescape(re.sub(r"<[^>]+>", " ", row))
             text = re.sub(r"\s+", " ", text).strip()
-            match = re.search(r"(Input price|Output price|Context caching price).*?\$([0-9]+(?:\.[0-9]+)?)", text)
-            if match is None or "Not available" in text:
+            match = re.search(r"(Input price|Output price|Context caching price)", text)
+            prices_in_row = re.findall(r"\$([0-9]+(?:\.[0-9]+)?)", text)
+            if match is None or not prices_in_row:
                 continue
             field = {
                 "Input price": "inputCostPerMillionTokens",
                 "Output price": "outputCostPerMillionTokens",
                 "Context caching price": "cacheReadCostPerMillionTokens",
             }[match.group(1)]
-            values[field] = number(match.group(2))
+            values[field] = number(prices_in_row[0])
+            long_context = re.search(
+                r"prompts?\s*>\s*([0-9]+(?:\.[0-9]+)?)\s*([kKmM])?(?:\s*tokens?)?",
+                text,
+            )
+            if long_context is not None and len(prices_in_row) >= 2:
+                multiplier = {"k": 1_000, "m": 1_000_000}.get(
+                    (long_context.group(2) or "").lower(), 1
+                )
+                values["longContextTokens"] = int(float(long_context.group(1)) * multiplier)
+                values[
+                    {
+                        "Input price": "longContextInputCostPerMillionTokens",
+                        "Output price": "longContextOutputCostPerMillionTokens",
+                        "Context caching price": "longContextCacheReadCostPerMillionTokens",
+                    }[match.group(1)]
+                ] = number(prices_in_row[1])
         if "inputCostPerMillionTokens" in values and "outputCostPerMillionTokens" in values:
             prices[model.group(1)] = values
     return prices
@@ -553,6 +680,12 @@ def write_yaml(provider: Provider, records: list[dict[str, Any]], output: Path, 
             "inputCostPerMillionTokens",
             "outputCostPerMillionTokens",
             "cacheReadCostPerMillionTokens",
+            "cacheWriteCostPerMillionTokens",
+            "longContextTokens",
+            "longContextInputCostPerMillionTokens",
+            "longContextOutputCostPerMillionTokens",
+            "longContextCacheReadCostPerMillionTokens",
+            "longContextCacheWriteCostPerMillionTokens",
         ):
             if field in record["record"]:
                 lines.append(f"    {field}: {record['record'][field]}")
@@ -630,6 +763,15 @@ def generate(provider: Provider, output_dir: Path, write_empty: bool) -> bool:
                 continue
             seen.add(parsed["id"])
             records.append(parsed)
+        if provider.name == "wafer":
+            for model_id, metadata in WAFER_DOCUMENTED_MODELS.items():
+                if model_id not in seen:
+                    records.append(
+                        {
+                            "id": model_id,
+                            "record": {"provider": provider.name, **metadata},
+                        }
+                    )
         pricing_count = 0
         if provider.name == "fireworks":
             pricing = fireworks_pricing_for_items(items)
@@ -660,12 +802,22 @@ def generate(provider: Provider, output_dir: Path, write_empty: bool) -> bool:
                 if model_id in pricing:
                     parsed["record"].update(pricing[model_id])
                     pricing_count += 1
+        for parsed in records:
+            if provider.name == "openai":
+                metadata = OPENAI_MODEL_METADATA.get(parsed["id"])
+                if metadata is not None:
+                    parsed["record"].update(metadata)
+            long_context_pricing = LONG_CONTEXT_PRICING.get((provider.name, parsed["id"]))
+            if long_context_pricing is not None:
+                parsed["record"].update(long_context_pricing)
         output = output_dir / f"{provider.name}.yaml"
         source = provider.effective_url() or "provider API"
         if provider.name == "fireworks":
             source += "; pricing: https://docs.fireworks.ai/serverless/pricing (explicit + base-model tiers)"
         elif provider.name == "google":
             source += "; pricing: https://ai.google.dev/gemini-api/docs/pricing (standard paid tier)"
+        elif provider.name == "wafer":
+            source += "; MiniMax-M3 pricing: https://app.wafer.ai/models"
         write_yaml(provider, records, output, source)
         suffix = f", {pricing_count} with pricing" if provider.name in {"fireworks", "google"} else ""
         print(f"{provider.name}: wrote {len(records)} models to {output}{suffix}")
