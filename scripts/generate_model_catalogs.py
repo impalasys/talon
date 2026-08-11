@@ -87,6 +87,17 @@ WAFER_DOCUMENTED_MODELS = {
     },
 }
 
+# These Fireworks models have dedicated rows in the serverless pricing table.
+# They must never silently fall back to the generic parameter-count tiers if
+# the pricing page markup changes or a model-specific row is missed.
+FIREWORKS_EXPLICIT_PRICING_MODEL_IDS = frozenset(
+    {
+        "deepseek-v4-flash",
+        "deepseek-v4-flash-0731",
+        "deepseek-v4-pro",
+    }
+)
+
 # OpenAI's model-list API does not return token prices. Retain the documented
 # standard rates for catalog models whose prices Talon publishes alongside the
 # API-discovered model list.
@@ -351,10 +362,12 @@ def fireworks_pricing() -> dict[str, dict[str, Any]]:
         raise CatalogError(f"pricing page unavailable: {error}") from error
 
     prices: dict[str, dict[str, Any]] = {}
+    page = html.unescape(page)
     rows = re.findall(r"<tr>(.*?)</tr>", page, re.DOTALL)
     for row in rows:
         match = re.search(
-            r'href="https://app\.fireworks\.ai/models/fireworks/([^"?]+)"', row
+            r'href=["\']https://app\.fireworks\.ai/models/fireworks/([^"\'?]+)["\']',
+            row,
         )
         if match is None:
             continue
@@ -362,11 +375,13 @@ def fireworks_pricing() -> dict[str, dict[str, Any]]:
         if " Fast" in label or " US" in label:
             continue
         cells = re.findall(
-            r'<td[^>]*data-numeric="true"[^>]*>\$([^<]+)</td>', row
+            r'<td\b[^>]*\bdata-numeric\s*=\s*["\']true["\'][^>]*>(.*?)</td>',
+            row,
+            re.DOTALL | re.IGNORECASE,
         )
         if not cells or match.group(1) in prices:
             continue
-        values = [number(part.replace("$", "").strip()) for part in cells[0].split("/")]
+        values = [number(part) for part in re.findall(r"\$?\s*([0-9]+(?:\.[0-9]+)?)", cells[0])]
         if len(values) != 3 or any(value is None for value in values):
             continue
         prices[match.group(1)] = {
@@ -380,6 +395,20 @@ def fireworks_pricing() -> dict[str, dict[str, Any]]:
 def fireworks_pricing_for_items(items: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     """Return explicit prices plus Fireworks' documented base-model tiers."""
     prices = fireworks_pricing()
+    available_model_ids = {
+        name.rsplit("/", 1)[-1]
+        for item in items
+        if isinstance((name := item.get("name")), str)
+        and item.get("supportsServerless")
+    }
+    missing_explicit = sorted(
+        (available_model_ids & FIREWORKS_EXPLICIT_PRICING_MODEL_IDS) - prices.keys()
+    )
+    if missing_explicit:
+        raise CatalogError(
+            "Fireworks pricing page omitted explicit model rows for: "
+            + ", ".join(missing_explicit)
+        )
     for item in items:
         if not item.get("supportsServerless"):
             continue
@@ -536,7 +565,7 @@ PROVIDERS: dict[str, Provider] = {
     ),
     "fireworks": Provider(
         "fireworks", ("FIREWORKS_API_KEY",), "https://api.fireworks.ai/v1/accounts/{account}/models?filter=supports_serverless%3Dtrue&pageSize=200", fireworks_parser,
-        notes="Uses the Fireworks management API; set FIREWORKS_ACCOUNT_ID when needed.",
+        notes="Uses the Fireworks management API; defaults to the public fireworks account.",
     ),
     "google": Provider(
         "google", ("GEMINI_API_KEY", "GOOGLE_API_KEY"), "https://generativelanguage.googleapis.com/v1beta/models", google_parser, auth="google"
@@ -618,9 +647,7 @@ def fetch(provider: Provider) -> list[dict[str, Any]]:
     if url is None:
         raise CatalogError(provider.notes or "no model-list endpoint configured")
     if "{account}" in url:
-        account = os.environ.get("FIREWORKS_ACCOUNT_ID")
-        if not account:
-            raise CatalogError("FIREWORKS_ACCOUNT_ID is required for the management API")
+        account = os.environ.get("FIREWORKS_ACCOUNT_ID", "fireworks")
         url = url.format(account=urllib.parse.quote(account, safe=""))
     api_key = provider.api_key()
     if not api_key and provider.api_key_required:

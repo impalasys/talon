@@ -12,8 +12,9 @@ models:
     provider: fireworks
     contextWindowTokens: 1048576
     maxOutputTokens: 1048576
-    inputCostPerMillionTokens: 0.9
-    outputCostPerMillionTokens: 0.9
+    inputCostPerMillionTokens: 0.14
+    outputCostPerMillionTokens: 0.28
+    cacheReadCostPerMillionTokens: 0.028
   "fireworks/accounts/fireworks/models/deepseek-v4-pro":
     provider: fireworks
     contextWindowTokens: 1048576
