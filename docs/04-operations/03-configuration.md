@@ -318,9 +318,11 @@ Common runtime environment variables include:
 
 ### Cloud Run Worker Pool endpoint discovery
 
-Set `TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool` to opt in to
-per-instance endpoint registration for a Cloud Run Worker Pool. The worker
-requests its private IPv4 address from:
+Cloud Run automatically sets `CLOUD_RUN_WORKER_POOL` inside Worker Pool
+containers. Talon uses that runtime marker to enable per-instance endpoint
+registration; `TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool` remains
+available as an explicit compatibility override. The worker requests its
+private IPv4 address from:
 
 ```text
 http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip
@@ -340,7 +342,7 @@ have a load-balanced URL, so `CLOUD_RUN_SERVICE_URL` must not be used as a
 substitute for this per-instance endpoint.
 
 ```bash
-TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool
+# CLOUD_RUN_WORKER_POOL is injected by Cloud Run Worker Pools.
 PORT=8081
 ```
 

@@ -156,8 +156,9 @@ pub fn cloud_run_worker_pool_discovery_enabled<F>(get: &F) -> bool
 where
     F: Fn(&str) -> Option<String>,
 {
-    get("TALON_WORKER_ENDPOINT_DISCOVERY")
-        .is_some_and(|value| value.trim() == CLOUD_RUN_WORKER_POOL_DISCOVERY)
+    get("CLOUD_RUN_WORKER_POOL").is_some_and(|value| !value.trim().is_empty())
+        || get("TALON_WORKER_ENDPOINT_DISCOVERY")
+            .is_some_and(|value| value.trim() == CLOUD_RUN_WORKER_POOL_DISCOVERY)
 }
 
 pub async fn discover_worker_endpoints<F>(
@@ -644,10 +645,7 @@ mod tests {
         let metadata = MockMetadataClient::success("10.0.0.15");
         let endpoints = discover_worker_endpoints_with_metadata_client(
             env(&[
-                (
-                    "TALON_WORKER_ENDPOINT_DISCOVERY",
-                    CLOUD_RUN_WORKER_POOL_DISCOVERY,
-                ),
+                ("CLOUD_RUN_WORKER_POOL", "worker-pool-a"),
                 (
                     "TALON_WORKER_ENDPOINT_URL",
                     "http://worker.example.com:8081",
@@ -679,10 +677,7 @@ mod tests {
         let metadata = MockMetadataClient::success("10.0.0.15");
         let endpoints = discover_worker_endpoints_with_metadata_client(
             env(&[
-                (
-                    "TALON_WORKER_ENDPOINT_DISCOVERY",
-                    CLOUD_RUN_WORKER_POOL_DISCOVERY,
-                ),
+                ("CLOUD_RUN_WORKER_POOL", "worker-pool-a"),
                 ("CLOUD_RUN_SERVICE_URL", "https://service.example.com"),
             ]),
             "8081",
@@ -695,19 +690,17 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn worker_endpoint_discovery_ignores_cloud_run_worker_pool_without_url() {
-        let endpoints = discover_worker_endpoints(
-            |name| match name {
-                "K_CONFIGURATION" => Some("worker-pool-a".to_string()),
-                "K_REVISION" => Some("worker-pool-a-00001".to_string()),
-                _ => None,
-            },
+    async fn worker_endpoint_discovery_auto_detects_cloud_run_worker_pool() {
+        let metadata = MockMetadataClient::success("10.0.0.15");
+        let endpoints = discover_worker_endpoints_with_metadata_client(
+            env(&[("CLOUD_RUN_WORKER_POOL", "worker-pool-a")]),
             "8081",
+            &metadata,
         )
         .await
         .unwrap();
 
-        assert!(endpoints.is_empty());
+        assert_eq!(endpoints[0].url, "http://10.0.0.15:8081");
     }
 
     #[test]
