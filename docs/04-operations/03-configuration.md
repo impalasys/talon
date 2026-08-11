@@ -309,7 +309,6 @@ Common runtime environment variables include:
 - `TALON_WORKER_URL`
 - `TALON_WORKER_ENDPOINT_PROTOCOL`
 - `TALON_WORKER_ENDPOINT_AUDIENCE`
-- `TALON_WORKER_ENDPOINT_DISCOVERY`
 - `TALON_SCHEDULER_DRIVER`
 - `TALON_LOCAL_SCHEDULER_TARGET_URL`
 - `TALON_LOCAL_SCHEDULER_RUNNER`
@@ -320,9 +319,7 @@ Common runtime environment variables include:
 
 Cloud Run automatically sets `CLOUD_RUN_WORKER_POOL` inside Worker Pool
 containers. Talon uses that runtime marker to enable per-instance endpoint
-registration; `TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool` remains
-available as an explicit compatibility override. The worker requests its
-private IPv4 address from:
+registration. The worker requests its private IPv4 address from:
 
 ```text
 http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip
@@ -340,8 +337,8 @@ Talon gateway to the worker subnet, and worker firewall rules that allow the
 gateway to reach the configured listener port. Worker Pool IPs are ephemeral;
 they may change on restart, so the worker re-registers its current address and
 the existing heartbeat TTL removes stale registrations. Worker Pools do not
-have a load-balanced URL, so `CLOUD_RUN_SERVICE_URL` must not be used as a
-substitute for this per-instance endpoint.
+have a load-balanced URL; `CLOUD_RUN_SERVICE_URL` is not used as a per-instance
+endpoint.
 
 ```bash
 # CLOUD_RUN_WORKER_POOL is injected by Cloud Run Worker Pools.

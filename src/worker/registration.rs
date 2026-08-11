@@ -12,7 +12,6 @@ use url::Url;
 
 pub const HEARTBEAT_INTERVAL: std::time::Duration = std::time::Duration::from_secs(10);
 pub const HEARTBEAT_TTL: chrono::Duration = chrono::Duration::seconds(30);
-pub const CLOUD_RUN_WORKER_POOL_DISCOVERY: &str = "cloud_run_worker_pool";
 
 const CLOUD_RUN_METADATA_URL: &str =
     "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip";
@@ -121,15 +120,6 @@ pub fn worker_status(
     }
 }
 
-pub fn cloud_run_worker_pool_discovery_enabled<F>(get: &F) -> bool
-where
-    F: Fn(&str) -> Option<String>,
-{
-    get("CLOUD_RUN_WORKER_POOL").is_some_and(|value| !value.trim().is_empty())
-        || get("TALON_WORKER_ENDPOINT_DISCOVERY")
-            .is_some_and(|value| value.trim() == CLOUD_RUN_WORKER_POOL_DISCOVERY)
-}
-
 pub async fn discover_worker_endpoints<F>(
     get: F,
     port: &str,
@@ -137,17 +127,8 @@ pub async fn discover_worker_endpoints<F>(
 where
     F: Fn(&str) -> Option<String>,
 {
-    let cloud_run_worker_pool = cloud_run_worker_pool_discovery_enabled(&get);
     if let Some(endpoint) = explicit_worker_endpoint(&get) {
         return Ok(vec![endpoint]);
-    }
-
-    if !cloud_run_worker_pool {
-        if let Some(endpoint) =
-            get("CLOUD_RUN_SERVICE_URL").and_then(|url| worker_endpoint_from_url(&url, &get))
-        {
-            return Ok(vec![endpoint]);
-        }
     }
 
     if let Some(endpoint) = ecs_worker_endpoint(&get, port).await {
@@ -217,7 +198,7 @@ async fn cloud_run_worker_pool_endpoint<F>(
 where
     F: Fn(&str) -> Option<String>,
 {
-    if !cloud_run_worker_pool_discovery_enabled(get) {
+    if !get("CLOUD_RUN_WORKER_POOL").is_some_and(|value| !value.trim().is_empty()) {
         return Ok(None);
     }
 
@@ -647,18 +628,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cloud_run_service_url_is_not_used_when_worker_pool_discovery_is_enabled() {
-        let server = metadata_server("10.0.0.15").await;
-        let environment = env(&[
-            ("CLOUD_RUN_WORKER_POOL", "worker-pool-a"),
-            ("CLOUD_RUN_SERVICE_URL", "https://service.example.com"),
-        ]);
-        let endpoint = cloud_run_worker_pool_endpoint(&environment, "8081", &server.url)
-            .await
-            .unwrap()
-            .unwrap();
+    async fn cloud_run_service_url_is_not_used_as_worker_endpoint() {
+        let endpoints = discover_worker_endpoints(
+            env(&[("CLOUD_RUN_SERVICE_URL", "https://service.example.com")]),
+            "8081",
+        )
+        .await
+        .unwrap();
 
-        assert_eq!(endpoint.url, "http://10.0.0.15:8081");
+        assert!(endpoints.is_empty());
     }
 
     #[test]
