@@ -27,7 +27,7 @@ Endpoint discovery is override-first. Set `TALON_WORKER_ENDPOINT_URL` only when 
 Platform behavior:
 
 - AWS ECS tasks with `ECS_CONTAINER_METADATA_URI_V4` register the task's first IPv4 address and the worker `PORT`.
-- Cloud Run Worker Pools do not have a load-balanced URL. Cloud Run injects `CLOUD_RUN_WORKER_POOL` into Worker Pool containers, so Talon automatically discovers each instance's ephemeral private VPC address from the metadata server and registers `http://<private-ip>:<PORT>`; `PORT` defaults to `8081`. `TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool` remains available as an explicit compatibility override.
+- Cloud Run Worker Pools do not have a load-balanced URL. Cloud Run injects `CLOUD_RUN_WORKER_POOL` into Worker Pool containers, so Talon automatically discovers each instance's ephemeral VPC IPv4 address from the metadata server and registers `http://<private-ip>:<PORT>`; `PORT` defaults to `8081`. `TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool` remains available as an explicit compatibility override. The address must be a usable VPC IPv4 address; RFC1918 is not required.
 - `TALON_WORKER_ENDPOINT_URL` always takes precedence, followed by `TALON_WORKER_PUBLIC_URL` and `TALON_WORKER_URL`. With Cloud Run Worker Pool discovery enabled, the metadata address takes precedence over `CLOUD_RUN_SERVICE_URL`; a Cloud Run service URL is not a per-worker endpoint.
 
 Cloud Run Worker Pool requirements:

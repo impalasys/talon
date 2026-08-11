@@ -173,8 +173,7 @@ where
         "TALON_WORKER_URL",
     ]
     .into_iter()
-    .find_map(|name| get(name))
-    .and_then(|url| worker_endpoint_from_url(&url, get))
+    .find_map(|name| get(name).and_then(|url| worker_endpoint_from_url(&url, get)))
 }
 
 fn worker_endpoint_from_url<F>(raw_url: &str, get: &F) -> Option<resources_proto::WorkerEndpoint>
@@ -223,6 +222,7 @@ where
     }
 
     let client = reqwest::Client::builder()
+        .no_proxy()
         .timeout(CLOUD_RUN_METADATA_TIMEOUT)
         .build()
         .context("failed to build Cloud Run metadata client")?;
@@ -244,8 +244,8 @@ where
                 .trim()
                 .parse::<Ipv4Addr>()
                 .context("metadata response was not a valid IPv4 address")?;
-            if !address.is_private() || address.is_loopback() {
-                anyhow::bail!("metadata response was not a private IPv4 address");
+            if !is_usable_cloud_run_ipv4(address) {
+                anyhow::bail!("metadata response was not a usable VPC IPv4 address");
             }
             Ok::<Ipv4Addr, anyhow::Error>(address)
         }
@@ -277,12 +277,20 @@ where
                     "Cloud Run Worker Pool metadata discovery failed; worker will not be marked ready"
                 );
                 anyhow::bail!(
-                    "Cloud Run Worker Pool endpoint discovery produced no usable private IP; verify Direct VPC ingress, metadata access, and gateway VPC reachability"
+                    "Cloud Run Worker Pool endpoint discovery produced no usable VPC IPv4 address; verify Direct VPC ingress, metadata access, and gateway VPC reachability"
                 );
             }
         }
     }
     Ok(None)
+}
+
+fn is_usable_cloud_run_ipv4(address: Ipv4Addr) -> bool {
+    !address.is_unspecified()
+        && !address.is_loopback()
+        && !address.is_link_local()
+        && !address.is_multicast()
+        && !address.is_broadcast()
 }
 
 async fn fetch_json_metadata(url: &str) -> Option<Value> {
@@ -549,8 +557,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn cloud_run_worker_pool_discovery_accepts_non_rfc1918_vpc_ipv4() {
+        let server = metadata_server("100.64.0.15").await;
+        let environment = env(&[("CLOUD_RUN_WORKER_POOL", "worker-pool-a")]);
+        let endpoint = cloud_run_worker_pool_endpoint(&environment, "8081", &server.url)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(endpoint.url, "http://100.64.0.15:8081");
+    }
+
+    #[tokio::test]
     async fn cloud_run_worker_pool_discovery_rejects_invalid_or_empty_metadata() {
-        for response in ["", "not-an-ip", "2001:db8::1"] {
+        for response in [
+            "",
+            "not-an-ip",
+            "2001:db8::1",
+            "0.0.0.0",
+            "169.254.1.1",
+            "224.0.0.1",
+            "255.255.255.255",
+        ] {
             let server = metadata_server(response).await;
             let environment = env(&[("CLOUD_RUN_WORKER_POOL", "worker-pool-a")]);
             let result = cloud_run_worker_pool_endpoint(&environment, "8081", &server.url).await;
@@ -586,6 +614,22 @@ mod tests {
                     "TALON_WORKER_ENDPOINT_URL",
                     "http://worker.example.com:8081",
                 ),
+            ]),
+            "9090",
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(endpoints[0].url, "http://worker.example.com:8081");
+    }
+
+    #[tokio::test]
+    async fn explicit_endpoint_candidates_skip_invalid_values() {
+        let endpoints = discover_worker_endpoints(
+            env(&[
+                ("CLOUD_RUN_WORKER_POOL", "worker-pool-a"),
+                ("TALON_WORKER_ENDPOINT_URL", "not-a-url"),
+                ("TALON_WORKER_PUBLIC_URL", "http://worker.example.com:8081"),
             ]),
             "9090",
         )

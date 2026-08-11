@@ -331,7 +331,9 @@ http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0
 and registers it with the worker port as an HTTP endpoint. `PORT` is used when
 set, with `8081` as the default. The metadata server request includes
 `Metadata-Flavor: Google` and the worker does not become ready if the response
-is missing, invalid, non-private, or localhost.
+is missing, invalid, loopback, link-local, multicast, broadcast, or otherwise
+not a usable VPC IPv4 address. VPC IPv4 ranges outside RFC1918, such as
+`100.64.0.0/10`, are accepted when they are routable from the gateway.
 
 This requires Cloud Run Worker Pool Direct VPC ingress, VPC routes from the
 Talon gateway to the worker subnet, and worker firewall rules that allow the
