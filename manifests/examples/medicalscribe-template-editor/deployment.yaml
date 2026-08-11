@@ -1,0 +1,16 @@
+apiVersion: talon.impalasys.com/v1
+kind: Deployment
+metadata:
+  name: medicalscribe-template-editor
+  namespace: default
+  labels:
+    medicalscribe.dev/managed-by: talon
+spec:
+  placement:
+    namespaceSelector:
+      # Root namespaces are indexed below Talon's internal Sys namespace.
+      parent: Sys
+      matchLabels:
+        medicalscribe.dev/talon-agent: template-editor
+  templates:
+    - medicalscribe-template-editor
