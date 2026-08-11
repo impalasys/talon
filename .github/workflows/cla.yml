@@ -31,17 +31,14 @@ jobs:
             const signature = "I have read and agree to the Talon CLA.";
             const checkName = "Talon CLA Agreement";
 
-            let pullRequest;
-            if (context.eventName === "pull_request_target") {
-              pullRequest = context.payload.pull_request;
-            } else {
-              const response = await github.rest.pulls.get({
-                owner,
-                repo,
-                pull_number: context.issue.number,
-              });
-              pullRequest = response.data;
-            }
+            const pullRequestNumber =
+              context.payload.pull_request?.number ?? context.issue.number;
+            const response = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: pullRequestNumber,
+            });
+            const pullRequest = response.data;
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner,
