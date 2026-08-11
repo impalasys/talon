@@ -4,13 +4,13 @@ metadata:
   name: medicalscribe-template-editor
   namespace: default
   labels:
-    medicalscribe.dev/managed-by: talon
+    app.medicalscribe/managed-by: talon
 spec:
   kind: Agent
   metadata:
     name: template-editor
     labels:
-      medicalscribe.dev/agent: template-editor
+      app.medicalscribe/agent: template-editor
   spec:
     systemPrompt: |
       You are the Medical Scribe Template Editor. Help clinicians safely edit

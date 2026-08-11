@@ -4,13 +4,13 @@ metadata:
   name: medicalscribe-template-editor
   namespace: default
   labels:
-    medicalscribe.dev/managed-by: talon
+    app.medicalscribe/managed-by: talon
 spec:
   placement:
     namespaceSelector:
       # Root namespaces are indexed below Talon's internal Sys namespace.
       parent: Sys
       matchLabels:
-        medicalscribe.dev/talon-agent: template-editor
+        app.medicalscribe/talon-agent: template-editor
   templates:
     - medicalscribe-template-editor

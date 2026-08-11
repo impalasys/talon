@@ -1,7 +1,0 @@
-apiVersion: talon.impalasys.com/v1
-kind: Namespace
-metadata:
-  name: scribes-production
-  labels:
-    medicalscribe.dev/talon-agent: template-editor
-    medicalscribe.dev/environment: production

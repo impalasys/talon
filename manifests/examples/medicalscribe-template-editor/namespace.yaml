@@ -1,0 +1,8 @@
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: scribes-{{ vars.environment or "prd" }}
+  labels:
+    app.medicalscribe/managed-by: talon
+    app.medicalscribe/talon-agent: template-editor
+    app.medicalscribe/environment: "{{ vars.environment or \"prd\" }}"
