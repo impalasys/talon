@@ -163,7 +163,7 @@ where
 pub async fn discover_worker_endpoints<F>(
     get: F,
     port: &str,
-) -> Vec<resources_proto::WorkerEndpoint>
+) -> Result<Vec<resources_proto::WorkerEndpoint>>
 where
     F: Fn(&str) -> Option<String>,
 {
@@ -175,30 +175,36 @@ pub async fn discover_worker_endpoints_with_metadata_client<F>(
     get: F,
     port: &str,
     metadata_client: &dyn MetadataClient,
-) -> Vec<resources_proto::WorkerEndpoint>
+) -> Result<Vec<resources_proto::WorkerEndpoint>>
 where
     F: Fn(&str) -> Option<String>,
 {
     if cloud_run_worker_pool_discovery_enabled(&get) {
         if let Some(endpoint) = talon_explicit_worker_endpoint(&get) {
-            return vec![endpoint];
+            return Ok(vec![endpoint]);
         }
 
-        return cloud_run_worker_endpoint(&get, port, metadata_client)
+        let endpoints: Vec<_> = cloud_run_worker_endpoint(&get, port, metadata_client)
             .await
             .into_iter()
             .collect();
+        if endpoints.is_empty() {
+            anyhow::bail!(
+                "Cloud Run Worker Pool endpoint discovery produced no usable private IP; verify Direct VPC ingress, metadata access, and gateway VPC reachability"
+            );
+        }
+        return Ok(endpoints);
     }
 
     if let Some(endpoint) = explicit_worker_endpoint(&get) {
-        return vec![endpoint];
+        return Ok(vec![endpoint]);
     }
 
     if let Some(endpoint) = ecs_worker_endpoint(&get, port).await {
-        return vec![endpoint];
+        return Ok(vec![endpoint]);
     }
 
-    Vec::new()
+    Ok(Vec::new())
 }
 
 fn talon_explicit_worker_endpoint<F>(get: &F) -> Option<resources_proto::WorkerEndpoint>
@@ -529,6 +535,7 @@ mod tests {
             "8081",
         )
         .await;
+        let endpoints = endpoints.unwrap();
 
         assert_eq!(endpoints.len(), 1);
         assert_eq!(endpoints[0].url, "https://worker.example.com");
@@ -546,6 +553,7 @@ mod tests {
             "8081",
         )
         .await;
+        let endpoints = endpoints.unwrap();
 
         assert_eq!(endpoints.len(), 1);
         assert_eq!(endpoints[0].url, "unix:///tmp/talon-worker.sock");
@@ -563,7 +571,8 @@ mod tests {
             "9090",
             &metadata,
         )
-        .await;
+        .await
+        .unwrap();
 
         assert_eq!(endpoints.len(), 1);
         assert_eq!(endpoints[0].url, "http://10.0.0.15:9090");
@@ -581,7 +590,7 @@ mod tests {
     async fn cloud_run_worker_pool_discovery_rejects_invalid_or_empty_metadata() {
         for response in ["", "not-an-ip", "2001:db8::1"] {
             let metadata = MockMetadataClient::success(response);
-            let endpoints = discover_worker_endpoints_with_metadata_client(
+            let result = discover_worker_endpoints_with_metadata_client(
                 env(&[(
                     "TALON_WORKER_ENDPOINT_DISCOVERY",
                     CLOUD_RUN_WORKER_POOL_DISCOVERY,
@@ -590,14 +599,14 @@ mod tests {
                 &metadata,
             )
             .await;
-            assert!(endpoints.is_empty(), "unexpected endpoint for {response:?}");
+            assert!(result.is_err(), "unexpected endpoint for {response:?}");
         }
     }
 
     #[tokio::test]
     async fn cloud_run_worker_pool_discovery_retries_metadata_failure() {
         let metadata = MockMetadataClient::failure();
-        let endpoints = discover_worker_endpoints_with_metadata_client(
+        let result = discover_worker_endpoints_with_metadata_client(
             env(&[(
                 "TALON_WORKER_ENDPOINT_DISCOVERY",
                 CLOUD_RUN_WORKER_POOL_DISCOVERY,
@@ -607,7 +616,7 @@ mod tests {
         )
         .await;
 
-        assert!(endpoints.is_empty());
+        assert!(result.is_err());
         assert_eq!(
             metadata.requests.lock().unwrap().len(),
             CLOUD_RUN_METADATA_MAX_ATTEMPTS
@@ -617,7 +626,7 @@ mod tests {
     #[tokio::test]
     async fn cloud_run_worker_pool_discovery_rejects_localhost() {
         let metadata = MockMetadataClient::success("127.0.0.1");
-        let endpoints = discover_worker_endpoints_with_metadata_client(
+        let result = discover_worker_endpoints_with_metadata_client(
             env(&[(
                 "TALON_WORKER_ENDPOINT_DISCOVERY",
                 CLOUD_RUN_WORKER_POOL_DISCOVERY,
@@ -627,7 +636,7 @@ mod tests {
         )
         .await;
 
-        assert!(endpoints.is_empty());
+        assert!(result.is_err());
     }
 
     #[tokio::test]
@@ -647,7 +656,8 @@ mod tests {
             "9090",
             &metadata,
         )
-        .await;
+        .await
+        .unwrap();
 
         assert_eq!(endpoints[0].url, "http://worker.example.com:8081");
         assert!(metadata.requests.lock().unwrap().is_empty());
@@ -656,8 +666,9 @@ mod tests {
     #[tokio::test]
     async fn disabled_cloud_run_discovery_does_not_lookup_metadata() {
         let metadata = MockMetadataClient::success("10.0.0.15");
-        let endpoints =
-            discover_worker_endpoints_with_metadata_client(env(&[]), "8081", &metadata).await;
+        let endpoints = discover_worker_endpoints_with_metadata_client(env(&[]), "8081", &metadata)
+            .await
+            .unwrap();
 
         assert!(endpoints.is_empty());
         assert!(metadata.requests.lock().unwrap().is_empty());
@@ -677,7 +688,8 @@ mod tests {
             "8081",
             &metadata,
         )
-        .await;
+        .await
+        .unwrap();
 
         assert_eq!(endpoints[0].url, "http://10.0.0.15:8081");
     }
@@ -692,7 +704,8 @@ mod tests {
             },
             "8081",
         )
-        .await;
+        .await
+        .unwrap();
 
         assert!(endpoints.is_empty());
     }
