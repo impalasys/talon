@@ -4,13 +4,21 @@
 use crate::control::{ns, ControlPlane};
 use crate::gateway::rpc::resources_proto;
 use anyhow::{Context, Result};
+use reqwest::header::{HeaderMap, HeaderValue};
 use serde_json::Value;
+use std::net::Ipv4Addr;
 use std::sync::{Arc, OnceLock};
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
 pub const HEARTBEAT_INTERVAL: std::time::Duration = std::time::Duration::from_secs(10);
 pub const HEARTBEAT_TTL: chrono::Duration = chrono::Duration::seconds(30);
+pub const CLOUD_RUN_WORKER_POOL_DISCOVERY: &str = "cloud_run_worker_pool";
+
+const CLOUD_RUN_METADATA_URL: &str =
+    "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip";
+const CLOUD_RUN_METADATA_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(750);
+const CLOUD_RUN_METADATA_MAX_ATTEMPTS: usize = 3;
 
 static GENERATED_WORKER_ID: OnceLock<String> = OnceLock::new();
 
@@ -114,6 +122,44 @@ pub fn worker_status(
     }
 }
 
+#[async_trait::async_trait]
+pub trait MetadataClient: Send + Sync {
+    async fn get(&self, url: &str, headers: HeaderMap) -> Result<String>;
+}
+
+struct HttpMetadataClient;
+
+#[async_trait::async_trait]
+impl MetadataClient for HttpMetadataClient {
+    async fn get(&self, url: &str, headers: HeaderMap) -> Result<String> {
+        let client = reqwest::Client::builder()
+            .timeout(CLOUD_RUN_METADATA_TIMEOUT)
+            .build()
+            .context("failed to build metadata client")?;
+        let response = client
+            .get(url)
+            .headers(headers)
+            .send()
+            .await
+            .context("metadata request failed")?;
+        if !response.status().is_success() {
+            anyhow::bail!("metadata server returned HTTP {}", response.status());
+        }
+        response
+            .text()
+            .await
+            .context("failed to read metadata response")
+    }
+}
+
+pub fn cloud_run_worker_pool_discovery_enabled<F>(get: &F) -> bool
+where
+    F: Fn(&str) -> Option<String>,
+{
+    get("TALON_WORKER_ENDPOINT_DISCOVERY")
+        .is_some_and(|value| value.trim() == CLOUD_RUN_WORKER_POOL_DISCOVERY)
+}
+
 pub async fn discover_worker_endpoints<F>(
     get: F,
     port: &str,
@@ -121,6 +167,29 @@ pub async fn discover_worker_endpoints<F>(
 where
     F: Fn(&str) -> Option<String>,
 {
+    let metadata_client = HttpMetadataClient;
+    discover_worker_endpoints_with_metadata_client(get, port, &metadata_client).await
+}
+
+pub async fn discover_worker_endpoints_with_metadata_client<F>(
+    get: F,
+    port: &str,
+    metadata_client: &dyn MetadataClient,
+) -> Vec<resources_proto::WorkerEndpoint>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    if cloud_run_worker_pool_discovery_enabled(&get) {
+        if let Some(endpoint) = talon_explicit_worker_endpoint(&get) {
+            return vec![endpoint];
+        }
+
+        return cloud_run_worker_endpoint(&get, port, metadata_client)
+            .await
+            .into_iter()
+            .collect();
+    }
+
     if let Some(endpoint) = explicit_worker_endpoint(&get) {
         return vec![endpoint];
     }
@@ -130,6 +199,20 @@ where
     }
 
     Vec::new()
+}
+
+fn talon_explicit_worker_endpoint<F>(get: &F) -> Option<resources_proto::WorkerEndpoint>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    [
+        "TALON_WORKER_ENDPOINT_URL",
+        "TALON_WORKER_PUBLIC_URL",
+        "TALON_WORKER_URL",
+    ]
+    .into_iter()
+    .find_map(|name| get(name))
+    .and_then(|url| worker_endpoint_from_url(&url, get))
 }
 
 fn explicit_worker_endpoint<F>(get: &F) -> Option<resources_proto::WorkerEndpoint>
@@ -178,6 +261,58 @@ where
     let metadata = fetch_json_metadata(&metadata_uri).await?;
     let address = first_ecs_ipv4_address(&metadata)?;
     worker_endpoint_from_url(&format!("http://{}:{}", address, port), get)
+}
+
+async fn cloud_run_worker_endpoint<F>(
+    get: &F,
+    port: &str,
+    metadata_client: &dyn MetadataClient,
+) -> Option<resources_proto::WorkerEndpoint>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    for attempt in 1..=CLOUD_RUN_METADATA_MAX_ATTEMPTS {
+        match fetch_cloud_run_ipv4(metadata_client).await {
+            Ok(address) => {
+                return worker_endpoint_from_url(&format!("http://{}:{}", address, port), get);
+            }
+            Err(err) if attempt < CLOUD_RUN_METADATA_MAX_ATTEMPTS => {
+                tracing::warn!(
+                    attempt,
+                    max_attempts = CLOUD_RUN_METADATA_MAX_ATTEMPTS,
+                    error = %err,
+                    "Cloud Run Worker Pool metadata discovery failed; retrying"
+                );
+                tokio::time::sleep(std::time::Duration::from_millis(
+                    100 * 2u64.pow((attempt - 1) as u32),
+                ))
+                .await;
+            }
+            Err(err) => {
+                tracing::error!(
+                    attempt,
+                    error = %err,
+                    "Cloud Run Worker Pool metadata discovery failed; worker will not be marked ready"
+                );
+                return None;
+            }
+        }
+    }
+    None
+}
+
+async fn fetch_cloud_run_ipv4(metadata_client: &dyn MetadataClient) -> Result<Ipv4Addr> {
+    let mut headers = HeaderMap::new();
+    headers.insert("Metadata-Flavor", HeaderValue::from_static("Google"));
+    let raw_address = metadata_client.get(CLOUD_RUN_METADATA_URL, headers).await?;
+    let address = raw_address
+        .trim()
+        .parse::<Ipv4Addr>()
+        .context("metadata response was not a valid IPv4 address")?;
+    if !address.is_private() || address.is_loopback() {
+        anyhow::bail!("metadata response was not a private IPv4 address");
+    }
+    Ok(address)
 }
 
 async fn fetch_json_metadata(url: &str) -> Option<Value> {
@@ -270,6 +405,59 @@ async fn patch_ready_with_registration_retry(cp: &ControlPlane, registration: &W
 mod tests {
     use super::*;
     use crate::test_support::{EmptyPubSub, MockKvStore};
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+
+    struct MockMetadataClient {
+        response: MockMetadataResponse,
+        requests: Mutex<Vec<(String, Option<String>)>>,
+    }
+
+    enum MockMetadataResponse {
+        Success(String),
+        Failure,
+    }
+
+    impl MockMetadataClient {
+        fn success(response: &str) -> Self {
+            Self {
+                response: MockMetadataResponse::Success(response.to_string()),
+                requests: Mutex::new(Vec::new()),
+            }
+        }
+
+        fn failure() -> Self {
+            Self {
+                response: MockMetadataResponse::Failure,
+                requests: Mutex::new(Vec::new()),
+            }
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl MetadataClient for MockMetadataClient {
+        async fn get(&self, url: &str, headers: HeaderMap) -> Result<String> {
+            self.requests.lock().unwrap().push((
+                url.to_string(),
+                headers
+                    .get("Metadata-Flavor")
+                    .and_then(|value| value.to_str().ok())
+                    .map(str::to_string),
+            ));
+            match &self.response {
+                MockMetadataResponse::Success(response) => Ok(response.clone()),
+                MockMetadataResponse::Failure => anyhow::bail!("metadata request timed out"),
+            }
+        }
+    }
+
+    fn env(values: &[(&str, &str)]) -> impl Fn(&str) -> Option<String> {
+        let values: HashMap<String, String> = values
+            .iter()
+            .map(|(name, value)| ((*name).to_string(), (*value).to_string()))
+            .collect();
+        move |name| values.get(name).cloned()
+    }
 
     fn control_plane() -> ControlPlane {
         ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build()
@@ -362,6 +550,136 @@ mod tests {
         assert_eq!(endpoints.len(), 1);
         assert_eq!(endpoints[0].url, "unix:///tmp/talon-worker.sock");
         assert_eq!(endpoints[0].protocol, "grpc");
+    }
+
+    #[tokio::test]
+    async fn cloud_run_worker_pool_discovery_registers_private_ipv4_and_port() {
+        let metadata = MockMetadataClient::success("10.0.0.15\n");
+        let endpoints = discover_worker_endpoints_with_metadata_client(
+            env(&[(
+                "TALON_WORKER_ENDPOINT_DISCOVERY",
+                CLOUD_RUN_WORKER_POOL_DISCOVERY,
+            )]),
+            "9090",
+            &metadata,
+        )
+        .await;
+
+        assert_eq!(endpoints.len(), 1);
+        assert_eq!(endpoints[0].url, "http://10.0.0.15:9090");
+        assert_eq!(endpoints[0].protocol, "http");
+        assert_eq!(
+            metadata.requests.lock().unwrap().as_slice(),
+            &[(
+                CLOUD_RUN_METADATA_URL.to_string(),
+                Some("Google".to_string())
+            )]
+        );
+    }
+
+    #[tokio::test]
+    async fn cloud_run_worker_pool_discovery_rejects_invalid_or_empty_metadata() {
+        for response in ["", "not-an-ip", "2001:db8::1"] {
+            let metadata = MockMetadataClient::success(response);
+            let endpoints = discover_worker_endpoints_with_metadata_client(
+                env(&[(
+                    "TALON_WORKER_ENDPOINT_DISCOVERY",
+                    CLOUD_RUN_WORKER_POOL_DISCOVERY,
+                )]),
+                "8081",
+                &metadata,
+            )
+            .await;
+            assert!(endpoints.is_empty(), "unexpected endpoint for {response:?}");
+        }
+    }
+
+    #[tokio::test]
+    async fn cloud_run_worker_pool_discovery_retries_metadata_failure() {
+        let metadata = MockMetadataClient::failure();
+        let endpoints = discover_worker_endpoints_with_metadata_client(
+            env(&[(
+                "TALON_WORKER_ENDPOINT_DISCOVERY",
+                CLOUD_RUN_WORKER_POOL_DISCOVERY,
+            )]),
+            "8081",
+            &metadata,
+        )
+        .await;
+
+        assert!(endpoints.is_empty());
+        assert_eq!(
+            metadata.requests.lock().unwrap().len(),
+            CLOUD_RUN_METADATA_MAX_ATTEMPTS
+        );
+    }
+
+    #[tokio::test]
+    async fn cloud_run_worker_pool_discovery_rejects_localhost() {
+        let metadata = MockMetadataClient::success("127.0.0.1");
+        let endpoints = discover_worker_endpoints_with_metadata_client(
+            env(&[(
+                "TALON_WORKER_ENDPOINT_DISCOVERY",
+                CLOUD_RUN_WORKER_POOL_DISCOVERY,
+            )]),
+            "8081",
+            &metadata,
+        )
+        .await;
+
+        assert!(endpoints.is_empty());
+    }
+
+    #[tokio::test]
+    async fn explicit_worker_endpoint_overrides_cloud_run_metadata_discovery() {
+        let metadata = MockMetadataClient::success("10.0.0.15");
+        let endpoints = discover_worker_endpoints_with_metadata_client(
+            env(&[
+                (
+                    "TALON_WORKER_ENDPOINT_DISCOVERY",
+                    CLOUD_RUN_WORKER_POOL_DISCOVERY,
+                ),
+                (
+                    "TALON_WORKER_ENDPOINT_URL",
+                    "http://worker.example.com:8081",
+                ),
+            ]),
+            "9090",
+            &metadata,
+        )
+        .await;
+
+        assert_eq!(endpoints[0].url, "http://worker.example.com:8081");
+        assert!(metadata.requests.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn disabled_cloud_run_discovery_does_not_lookup_metadata() {
+        let metadata = MockMetadataClient::success("10.0.0.15");
+        let endpoints =
+            discover_worker_endpoints_with_metadata_client(env(&[]), "8081", &metadata).await;
+
+        assert!(endpoints.is_empty());
+        assert!(metadata.requests.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn cloud_run_service_url_is_not_used_when_worker_pool_discovery_is_enabled() {
+        let metadata = MockMetadataClient::success("10.0.0.15");
+        let endpoints = discover_worker_endpoints_with_metadata_client(
+            env(&[
+                (
+                    "TALON_WORKER_ENDPOINT_DISCOVERY",
+                    CLOUD_RUN_WORKER_POOL_DISCOVERY,
+                ),
+                ("CLOUD_RUN_SERVICE_URL", "https://service.example.com"),
+            ]),
+            "8081",
+            &metadata,
+        )
+        .await;
+
+        assert_eq!(endpoints[0].url, "http://10.0.0.15:8081");
     }
 
     #[tokio::test]

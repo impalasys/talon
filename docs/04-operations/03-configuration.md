@@ -304,11 +304,50 @@ Common runtime environment variables include:
 - `GRPC_ADDR`
 - `PORT`
 - `PULL_MODE`
+- `TALON_WORKER_ENDPOINT_URL`
+- `TALON_WORKER_PUBLIC_URL`
+- `TALON_WORKER_URL`
+- `TALON_WORKER_ENDPOINT_PROTOCOL`
+- `TALON_WORKER_ENDPOINT_AUDIENCE`
+- `TALON_WORKER_ENDPOINT_DISCOVERY`
 - `TALON_SCHEDULER_DRIVER`
 - `TALON_LOCAL_SCHEDULER_TARGET_URL`
 - `TALON_LOCAL_SCHEDULER_RUNNER`
 - `TALON_JWT_PRIVATE_KEY_PEM`
 - `TALON_JWT_ISSUER`
+
+### Cloud Run Worker Pool endpoint discovery
+
+Set `TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool` to opt in to
+per-instance endpoint registration for a Cloud Run Worker Pool. The worker
+requests its private IPv4 address from:
+
+```text
+http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip
+```
+
+and registers it with the worker port as an HTTP endpoint. `PORT` is used when
+set, with `8081` as the default. The metadata server request includes
+`Metadata-Flavor: Google` and the worker does not become ready if the response
+is missing, invalid, non-private, or localhost.
+
+This requires Cloud Run Worker Pool Direct VPC ingress, VPC routes from the
+Talon gateway to the worker subnet, and worker firewall rules that allow the
+gateway to reach the configured listener port. Worker Pool IPs are ephemeral;
+they may change on restart, so the worker re-registers its current address and
+the existing heartbeat TTL removes stale registrations. Worker Pools do not
+have a load-balanced URL, so `CLOUD_RUN_SERVICE_URL` must not be used as a
+substitute for this per-instance endpoint.
+
+```bash
+TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool
+PORT=8081
+```
+
+Explicit `TALON_WORKER_ENDPOINT_URL` takes precedence over discovery. The
+existing `TALON_WORKER_PUBLIC_URL` and `TALON_WORKER_URL` overrides remain
+supported. When discovery is unset, Talon preserves its existing endpoint
+behavior.
 
 ## Platform JWT and JWKS
 

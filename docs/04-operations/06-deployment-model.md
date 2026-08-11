@@ -27,7 +27,24 @@ Endpoint discovery is override-first. Set `TALON_WORKER_ENDPOINT_URL` only when 
 Platform behavior:
 
 - AWS ECS tasks with `ECS_CONTAINER_METADATA_URI_V4` register the task's first IPv4 address and the worker `PORT`.
-- Cloud Run worker pools do not have a load-balanced endpoint. Use `TALON_WORKER_ENDPOINT_URL` only when you intentionally front the worker with another reachable service.
+- Cloud Run Worker Pools do not have a load-balanced URL. To register each instance's ephemeral private VPC address, opt in with `TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool`. Talon reads the instance IPv4 address from the Google metadata server and registers `http://<private-ip>:<PORT>`; `PORT` defaults to `8081`.
+- `TALON_WORKER_ENDPOINT_URL` always takes precedence. `TALON_WORKER_PUBLIC_URL` and `TALON_WORKER_URL` remain compatible explicit overrides. With Cloud Run Worker Pool discovery enabled, the metadata address takes precedence over `CLOUD_RUN_SERVICE_URL`; a Cloud Run service URL is not a per-worker endpoint.
+
+Cloud Run Worker Pool requirements:
+
+- Configure Direct VPC ingress so the worker has a private VPC address and can receive traffic on its listening port.
+- The Talon gateway must have VPC reachability to the Worker Pool subnet and routes for the worker addresses.
+- Allow the gateway's source range or identity in the worker firewall rules for the worker listener port (normally `8081`, or the configured `PORT`). Do not expose the worker listener publicly for this discovery mode.
+- Worker Pool addresses are ephemeral and can change whenever an instance restarts. Each new instance registers its current address; heartbeat TTL expiry removes stale registrations.
+
+Minimal worker configuration:
+
+```bash
+TALON_WORKER_ENDPOINT_DISCOVERY=cloud_run_worker_pool
+PORT=8081
+```
+
+Deploy the worker with Cloud Run Worker Pool Direct VPC ingress, and deploy the gateway on a network that can route to the Worker's VPC addresses. Do not set `CLOUD_RUN_SERVICE_URL` as the worker endpoint. Set `TALON_WORKER_ENDPOINT_URL` only if it intentionally names another reachable, per-worker endpoint.
 
 ## Local deployment shape
 

@@ -1230,6 +1230,17 @@ where
     let project_id = pubsub_project_id(&env_get);
     let port = worker_port(&env_get);
     let endpoints = talon::worker::registration::discover_worker_endpoints(&env_get, &port).await;
+    if talon::worker::registration::cloud_run_worker_pool_discovery_enabled(&env_get)
+        && endpoints.is_empty()
+    {
+        anyhow::bail!(
+            "{}",
+            concat!(
+                "Cloud Run Worker Pool endpoint discovery produced no usable private IP; ",
+                "verify Direct VPC ingress, metadata access, and gateway VPC reachability"
+            )
+        );
+    }
     let shutdown_token = CancellationToken::new();
     let worker_registration =
         talon::worker::registration::WorkerRegistration::new(worker_id, env!("CARGO_PKG_VERSION"))
