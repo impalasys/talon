@@ -10,6 +10,7 @@ use anyhow::{anyhow, Result};
 use prost::Message;
 use std::sync::Arc;
 
+pub mod connector;
 pub mod controllers;
 pub mod fanout;
 pub mod mcp_registry;
