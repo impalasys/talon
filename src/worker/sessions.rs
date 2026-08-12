@@ -24,6 +24,8 @@ use crate::gateway::rpc::data_proto::{
 use crate::harness::executor::{tool_output_loop_message, ExecutionSink, LoopMessage};
 use crate::harness::llm::ToolOutput;
 use crate::harness::sessions::{self, ClaimOutcome};
+use tokio::sync::oneshot;
+use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
@@ -78,6 +80,14 @@ struct ConnectorTypingLogContext {
     agent: String,
     session_id: String,
     submission_id: String,
+}
+
+struct ConnectorTypingKeepalive {
+    context: ConnectorTypingLogContext,
+    heartbeat_cancellation: CancellationToken,
+    heartbeat_task: Option<JoinHandle<()>>,
+    stop_signal: Option<oneshot::Sender<()>>,
+    stop_task: Option<JoinHandle<()>>,
 }
 
 async fn send_connector_typing_activity_best_effort<S, SFut>(
@@ -161,16 +171,32 @@ async fn run_connector_typing_keepalive<S, SFut>(
     }
 }
 
-async fn with_connector_typing_keepalive<S, SFut, F, T>(
+async fn run_connector_typing_stop<S, SFut>(
+    context: ConnectorTypingLogContext,
+    sender: S,
+    stop_signal: oneshot::Receiver<()>,
+) where
+    S: Fn(ConnectorTypingActivity) -> SFut + Send + Sync + 'static,
+    SFut: Future<Output = Result<ConnectorTypingDelivery>> + Send + 'static,
+{
+    if stop_signal.await.is_ok() {
+        let _ = send_connector_typing_activity_best_effort(
+            &sender,
+            &context,
+            ConnectorTypingActivity::stop(&context.submission_id),
+        )
+        .await;
+    }
+}
+
+async fn start_connector_typing_keepalive<S, SFut>(
     context: ConnectorTypingLogContext,
     interval: Duration,
     sender: S,
-    work: F,
-) -> T
+) -> Option<ConnectorTypingKeepalive>
 where
     S: Fn(ConnectorTypingActivity) -> SFut + Clone + Send + Sync + 'static,
     SFut: Future<Output = Result<ConnectorTypingDelivery>> + Send + 'static,
-    F: Future<Output = T>,
 {
     let eligible = send_connector_typing_activity_best_effort(
         &sender,
@@ -179,42 +205,106 @@ where
     )
     .await;
     if !eligible {
-        return work.await;
+        return None;
     }
 
-    // This token scopes only the typing keepalive. It must never be shared
-    // with or derived from the agent execution cancellation token.
-    let keepalive_cancellation = CancellationToken::new();
-    let keepalive_task = tokio::spawn(run_connector_typing_keepalive(
-        keepalive_cancellation.clone(),
+    let heartbeat_cancellation = CancellationToken::new();
+    let heartbeat_task = tokio::spawn(run_connector_typing_keepalive(
+        heartbeat_cancellation.clone(),
         interval,
         context.clone(),
         sender.clone(),
     ));
+    let (stop_signal, stop_receiver) = oneshot::channel();
+    let stop_task = tokio::spawn(run_connector_typing_stop(
+        context.clone(),
+        sender,
+        stop_receiver,
+    ));
 
-    let outcome = AssertUnwindSafe(work).catch_unwind().await;
+    Some(ConnectorTypingKeepalive {
+        context,
+        heartbeat_cancellation,
+        heartbeat_task: Some(heartbeat_task),
+        stop_signal: Some(stop_signal),
+        stop_task: Some(stop_task),
+    })
+}
 
-    keepalive_cancellation.cancel();
-    if let Err(error) = keepalive_task.await {
-        tracing::warn!(
-            error = %error,
-            agent = %context.agent,
-            session = %context.session_id,
-            submission = %context.submission_id,
-            "connector typing keepalive task failed"
-        );
+impl ConnectorTypingKeepalive {
+    async fn cancel_and_join_heartbeat(&mut self) {
+        self.heartbeat_cancellation.cancel();
+        if let Some(task) = self.heartbeat_task.take() {
+            if let Err(error) = task.await {
+                tracing::warn!(
+                    error = %error,
+                    agent = %self.context.agent,
+                    session = %self.context.session_id,
+                    submission = %self.context.submission_id,
+                    "connector typing keepalive task failed"
+                );
+            }
+        }
     }
 
-    let _ = send_connector_typing_activity_best_effort(
-        &sender,
-        &context,
-        ConnectorTypingActivity::stop(&context.submission_id),
-    )
-    .await;
+    async fn stop_after_release(mut self) {
+        self.cancel_and_join_heartbeat().await;
+
+        let Some(stop_signal) = self.stop_signal.take() else {
+            return;
+        };
+        if stop_signal.send(()).is_err() {
+            return;
+        }
+
+        if let Some(task) = self.stop_task.take() {
+            if let Err(error) = task.await {
+                tracing::warn!(
+                    error = %error,
+                    agent = %self.context.agent,
+                    session = %self.context.session_id,
+                    submission = %self.context.submission_id,
+                    "connector typing stop task failed"
+                );
+            }
+        }
+    }
+}
+
+impl Drop for ConnectorTypingKeepalive {
+    fn drop(&mut self) {
+        self.heartbeat_cancellation.cancel();
+        if let Some(stop_signal) = self.stop_signal.take() {
+            let _ = stop_signal.send(());
+        }
+    }
+}
+
+async fn with_connector_typing_keepalive<S, SFut, F, T>(
+    context: ConnectorTypingLogContext,
+    interval: Duration,
+    sender: S,
+    work: F,
+) -> (T, Option<ConnectorTypingKeepalive>)
+where
+    S: Fn(ConnectorTypingActivity) -> SFut + Clone + Send + Sync + 'static,
+    SFut: Future<Output = Result<ConnectorTypingDelivery>> + Send + 'static,
+    F: Future<Output = T>,
+{
+    let Some(mut keepalive) = start_connector_typing_keepalive(context, interval, sender).await
+    else {
+        return (work.await, None);
+    };
+
+    let outcome = AssertUnwindSafe(work).catch_unwind().await;
+    keepalive.cancel_and_join_heartbeat().await;
 
     match outcome {
-        Ok(value) => value,
-        Err(panic) => resume_unwind(panic),
+        Ok(value) => (value, Some(keepalive)),
+        Err(panic) => {
+            keepalive.stop_after_release().await;
+            resume_unwind(panic);
+        }
     }
 }
 
@@ -1070,7 +1160,7 @@ impl WorkerEventHandler {
             .await
             .map(|status| (status, sink.summary()))
         });
-        let outcome = with_connector_typing_keepalive(
+        let (outcome, typing_keepalive) = with_connector_typing_keepalive(
             typing_context,
             CONNECTOR_TYPING_KEEPALIVE_INTERVAL,
             activity_sender,
@@ -1100,6 +1190,10 @@ impl WorkerEventHandler {
             "WorkerEventHandler.release_session_lock"
         ))
         .await;
+
+        if let Some(typing_keepalive) = typing_keepalive {
+            typing_keepalive.stop_after_release().await;
+        }
 
         if completion_status == SessionCompletionStatus::Completed {
             let is_delegated_task = self
@@ -1576,7 +1670,7 @@ mod tests {
     use std::collections::HashMap;
     use std::panic::AssertUnwindSafe;
     use std::pin::Pin;
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
     use std::sync::Arc;
     use std::sync::Mutex;
     use std::time::Duration;
@@ -2169,13 +2263,17 @@ mod tests {
     async fn connector_typing_short_run_sends_start_then_stop() {
         let activities = Arc::new(Mutex::new(Vec::new()));
 
-        let result = with_connector_typing_keepalive(
+        let (result, typing_keepalive) = with_connector_typing_keepalive(
             typing_test_context(),
             Duration::from_secs(20),
             recording_typing_sender(activities.clone()),
             async { "completed" },
         )
         .await;
+        typing_keepalive
+            .expect("eligible session should own keepalive")
+            .stop_after_release()
+            .await;
 
         assert_eq!(result, "completed");
         assert_eq!(typing_phases(&activities), vec!["start", "stop"]);
@@ -2205,10 +2303,10 @@ mod tests {
         tokio::task::yield_now().await;
         tokio::time::advance(Duration::from_secs(60)).await;
         tokio::task::yield_now().await;
-        assert_eq!(typing_phases(&attempted_activities), vec!["start"]);
-
         complete_tx.send(()).unwrap();
-        assert_eq!(task.await.unwrap(), "completed");
+        let (result, typing_keepalive) = task.await.unwrap();
+        assert_eq!(result, "completed");
+        assert!(typing_keepalive.is_none());
         assert_eq!(typing_phases(&attempted_activities), vec!["start"]);
     }
 
@@ -2258,7 +2356,12 @@ mod tests {
         }
 
         complete_tx.send(()).unwrap();
-        assert_eq!(task.await.unwrap(), "completed");
+        let (result, typing_keepalive) = task.await.unwrap();
+        typing_keepalive
+            .expect("eligible session should own keepalive")
+            .stop_after_release()
+            .await;
+        assert_eq!(result, "completed");
         assert_eq!(
             typing_phases(&activities),
             vec!["start", "active", "active", "stop"]
@@ -2268,6 +2371,79 @@ mod tests {
         tokio::time::advance(Duration::from_secs(60)).await;
         tokio::task::yield_now().await;
         assert_eq!(activities.lock().unwrap().len(), activity_count_after_stop);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn connector_typing_abort_cancels_heartbeat_and_attempts_stop() {
+        let activities = Arc::new(Mutex::new(Vec::new()));
+        let (_complete_tx, complete_rx) = oneshot::channel::<()>();
+        let task = tokio::spawn(with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            recording_typing_sender(activities.clone()),
+            async move {
+                complete_rx.await.unwrap();
+                "unreachable"
+            },
+        ));
+
+        tokio::task::yield_now().await;
+        tokio::time::advance(Duration::from_secs(20)).await;
+        tokio::task::yield_now().await;
+        assert_eq!(typing_phases(&activities), vec!["start", "active"]);
+
+        task.abort();
+        let abort_error = match task.await {
+            Ok(_) => panic!("wrapper task should be aborted"),
+            Err(error) => error,
+        };
+        assert!(abort_error.is_cancelled());
+        tokio::task::yield_now().await;
+        tokio::time::advance(Duration::from_secs(60)).await;
+        tokio::task::yield_now().await;
+
+        let phases = typing_phases(&activities);
+        assert_eq!(phases.iter().filter(|phase| **phase == "active").count(), 1);
+        assert_eq!(phases.iter().filter(|phase| **phase == "stop").count(), 1);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn connector_typing_stop_is_deferred_until_after_release() {
+        let released = Arc::new(AtomicBool::new(false));
+        let stop_observations = Arc::new(Mutex::new(Vec::new()));
+        let activities = Arc::new(Mutex::new(Vec::new()));
+        let sender = {
+            let released = released.clone();
+            let stop_observations = stop_observations.clone();
+            let activities = activities.clone();
+            move |activity: ConnectorTypingActivity| {
+                if activity.phase == "stop" {
+                    stop_observations
+                        .lock()
+                        .unwrap()
+                        .push(released.load(Ordering::SeqCst));
+                }
+                activities.lock().unwrap().push(activity);
+                std::future::ready(Ok(ConnectorTypingDelivery::Eligible(Ok(()))))
+            }
+        };
+
+        let (result, typing_keepalive) = with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            sender,
+            async { "completed" },
+        )
+        .await;
+
+        assert_eq!(result, "completed");
+        assert!(stop_observations.lock().unwrap().is_empty());
+        released.store(true, Ordering::SeqCst);
+        typing_keepalive
+            .expect("eligible session should own keepalive")
+            .stop_after_release()
+            .await;
+        assert_eq!(*stop_observations.lock().unwrap(), vec![true]);
     }
 
     #[tokio::test(start_paused = true)]
@@ -2286,28 +2462,42 @@ mod tests {
         ));
         tokio::task::yield_now().await;
         cancel_work.cancel();
-        assert_eq!(cancelled_task.await.unwrap(), "cancelled");
+        let (result, typing_keepalive) = cancelled_task.await.unwrap();
+        typing_keepalive
+            .expect("eligible session should own keepalive")
+            .stop_after_release()
+            .await;
+        assert_eq!(result, "cancelled");
         assert_eq!(typing_phases(&cancelled_activities), vec!["start", "stop"]);
 
         let error_activities = Arc::new(Mutex::new(Vec::new()));
-        let error_result: anyhow::Result<()> = with_connector_typing_keepalive(
-            typing_test_context(),
-            Duration::from_secs(20),
-            recording_typing_sender(error_activities.clone()),
-            async { Err(anyhow::anyhow!("work failed")) },
-        )
-        .await;
+        let (error_result, typing_keepalive): (anyhow::Result<()>, _) =
+            with_connector_typing_keepalive(
+                typing_test_context(),
+                Duration::from_secs(20),
+                recording_typing_sender(error_activities.clone()),
+                async { Err(anyhow::anyhow!("work failed")) },
+            )
+            .await;
+        typing_keepalive
+            .expect("eligible session should own keepalive")
+            .stop_after_release()
+            .await;
         assert!(error_result.is_err());
         assert_eq!(typing_phases(&error_activities), vec!["start", "stop"]);
 
         let waiting_activities = Arc::new(Mutex::new(Vec::new()));
-        let waiting_status = with_connector_typing_keepalive(
+        let (waiting_status, typing_keepalive) = with_connector_typing_keepalive(
             typing_test_context(),
             Duration::from_secs(20),
             recording_typing_sender(waiting_activities.clone()),
             async { SessionCompletionStatus::Waiting },
         )
         .await;
+        typing_keepalive
+            .expect("eligible session should own keepalive")
+            .stop_after_release()
+            .await;
         assert_eq!(waiting_status, SessionCompletionStatus::Waiting);
         assert_eq!(typing_phases(&waiting_activities), vec!["start", "stop"]);
 
@@ -2354,7 +2544,12 @@ mod tests {
         tokio::task::yield_now().await;
         complete_tx.send(()).unwrap();
 
-        assert_eq!(task.await.unwrap(), "session completed");
+        let (result, typing_keepalive) = task.await.unwrap();
+        typing_keepalive
+            .expect("eligible session should own keepalive")
+            .stop_after_release()
+            .await;
+        assert_eq!(result, "session completed");
         assert_eq!(
             typing_phases(&attempted_activities),
             vec!["start", "active", "stop"]
