@@ -138,6 +138,7 @@ async fn run_connector_typing_keepalive<S, SFut>(
     interval: Duration,
     context: ConnectorTypingLogContext,
     sender: S,
+    heartbeat_finished: oneshot::Sender<()>,
 ) where
     S: Fn(ConnectorTypingActivity) -> SFut + Send + Sync + 'static,
     SFut: Future<Output = Result<ConnectorTypingDelivery>> + Send + 'static,
@@ -160,7 +161,13 @@ async fn run_connector_typing_keepalive<S, SFut>(
                 tokio::pin!(send);
                 let sent = tokio::select! {
                     biased;
-                    _ = cancellation.cancelled() => break,
+                    _ = cancellation.cancelled() => {
+                        // Do not abandon an active request after it may have
+                        // reached the connector. Stop delivery must wait for
+                        // this request to settle to preserve activity order.
+                        let _ = send.await;
+                        false
+                    },
                     sent = &mut send => sent
                 };
                 if !sent {
@@ -169,17 +176,24 @@ async fn run_connector_typing_keepalive<S, SFut>(
             }
         }
     }
+
+    let _ = heartbeat_finished.send(());
 }
 
 async fn run_connector_typing_stop<S, SFut>(
     context: ConnectorTypingLogContext,
     sender: S,
     stop_signal: oneshot::Receiver<()>,
+    heartbeat_finished: oneshot::Receiver<()>,
 ) where
     S: Fn(ConnectorTypingActivity) -> SFut + Send + Sync + 'static,
     SFut: Future<Output = Result<ConnectorTypingDelivery>> + Send + 'static,
 {
     if stop_signal.await.is_ok() {
+        // The heartbeat task drains any request already in flight before it
+        // signals completion. This prevents a late active activity from
+        // arriving after stop.
+        let _ = heartbeat_finished.await;
         let _ = send_connector_typing_activity_best_effort(
             &sender,
             &context,
@@ -209,17 +223,20 @@ where
     }
 
     let heartbeat_cancellation = CancellationToken::new();
+    let (heartbeat_finished, heartbeat_finished_receiver) = oneshot::channel();
     let heartbeat_task = tokio::spawn(run_connector_typing_keepalive(
         heartbeat_cancellation.clone(),
         interval,
         context.clone(),
         sender.clone(),
+        heartbeat_finished,
     ));
     let (stop_signal, stop_receiver) = oneshot::channel();
     let stop_task = tokio::spawn(run_connector_typing_stop(
         context.clone(),
         sender,
         stop_receiver,
+        heartbeat_finished_receiver,
     ));
 
     Some(ConnectorTypingKeepalive {
@@ -2405,6 +2422,70 @@ mod tests {
         let phases = typing_phases(&activities);
         assert_eq!(phases.iter().filter(|phase| **phase == "active").count(), 1);
         assert_eq!(phases.iter().filter(|phase| **phase == "stop").count(), 1);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn connector_typing_abort_drains_in_flight_heartbeat_before_stop() {
+        let activities = Arc::new(Mutex::new(Vec::new()));
+        let (active_started_tx, active_started_rx) = oneshot::channel();
+        let (active_release_tx, active_release_rx) = oneshot::channel();
+        let active_started = Arc::new(Mutex::new(Some(active_started_tx)));
+        let active_release = Arc::new(Mutex::new(Some(active_release_rx)));
+        let sender = {
+            let activities = activities.clone();
+            let active_started = active_started.clone();
+            let active_release = active_release.clone();
+            move |activity: ConnectorTypingActivity| {
+                let phase = activity.phase;
+                let activities = activities.clone();
+                let active_started = active_started.clone();
+                let active_release = active_release.clone();
+                async move {
+                    activities.lock().unwrap().push(activity);
+                    if phase == "active" {
+                        if let Some(signal) = active_started.lock().unwrap().take() {
+                            let _ = signal.send(());
+                        }
+                        let release = { active_release.lock().unwrap().take() };
+                        if let Some(release) = release {
+                            let _ = release.await;
+                        }
+                    }
+                    Ok(ConnectorTypingDelivery::Eligible(Ok(())))
+                }
+            }
+        };
+
+        let (_complete_tx, complete_rx) = oneshot::channel::<()>();
+        let task = tokio::spawn(with_connector_typing_keepalive(
+            typing_test_context(),
+            Duration::from_secs(20),
+            sender,
+            async move {
+                complete_rx.await.unwrap();
+                "unreachable"
+            },
+        ));
+
+        tokio::task::yield_now().await;
+        tokio::time::advance(Duration::from_secs(20)).await;
+        active_started_rx.await.unwrap();
+        assert_eq!(typing_phases(&activities), vec!["start", "active"]);
+
+        task.abort();
+        let abort_error = match task.await {
+            Ok(_) => panic!("wrapper task should be aborted"),
+            Err(error) => error,
+        };
+        assert!(abort_error.is_cancelled());
+        tokio::task::yield_now().await;
+        assert_eq!(typing_phases(&activities), vec!["start", "active"]);
+
+        active_release_tx.send(()).unwrap();
+        for _ in 0..3 {
+            tokio::task::yield_now().await;
+        }
+        assert_eq!(typing_phases(&activities), vec!["start", "active", "stop"]);
     }
 
     #[tokio::test(start_paused = true)]
