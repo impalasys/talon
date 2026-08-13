@@ -52,7 +52,7 @@ export function SessionArtifactsRail({
       }}
     >
       <div style={{ width: 304, maxHeight: "calc(100vh - 32px)", display: "flex", flexDirection: "column" }}>
-        <header style={{ minHeight: 48, padding: "0 0.85rem", display: "flex", alignItems: "center", borderBottom: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }}>
+        <header style={{ minHeight: 48, padding: "0 0.85rem", display: "flex", alignItems: "center" }}>
           <span style={{ minWidth: 0, fontSize: 14, fontWeight: 500, opacity: 0.64 }}>Artifacts</span>
           <button className="talon-session-artifacts-dismiss" type="button" aria-label="Close artifacts" onClick={onDismiss} style={{ marginLeft: "auto", border: "none", borderRadius: 6, background: "transparent", color: "inherit", cursor: "pointer", padding: 4 }}>
             <X size="18" strokeWidth={1.8} />
