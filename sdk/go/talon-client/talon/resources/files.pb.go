@@ -32,6 +32,8 @@ const (
 	// Durable namespace-level artifact, usually promoted from a session Artifact
 	// or created by privileged file APIs.
 	FilePurpose_FILE_PURPOSE_ARTIFACT FilePurpose = 2
+	// A file belonging to a namespace Skill package under /skills/<skill-id>/.
+	FilePurpose_FILE_PURPOSE_SKILL FilePurpose = 3
 )
 
 // Enum value maps for FilePurpose.
@@ -40,11 +42,13 @@ var (
 		0: "FILE_PURPOSE_UNSPECIFIED",
 		1: "FILE_PURPOSE_MEMORY",
 		2: "FILE_PURPOSE_ARTIFACT",
+		3: "FILE_PURPOSE_SKILL",
 	}
 	FilePurpose_value = map[string]int32{
 		"FILE_PURPOSE_UNSPECIFIED": 0,
 		"FILE_PURPOSE_MEMORY":      1,
 		"FILE_PURPOSE_ARTIFACT":    2,
+		"FILE_PURPOSE_SKILL":       3,
 	}
 )
 
@@ -648,11 +652,12 @@ const file_proto_resources_files_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\x03R\tcreatedAt\x1aB\n" +
 	"\x14RequiredHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*_\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*w\n" +
 	"\vFilePurpose\x12\x1c\n" +
 	"\x18FILE_PURPOSE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13FILE_PURPOSE_MEMORY\x10\x01\x12\x19\n" +
-	"\x15FILE_PURPOSE_ARTIFACT\x10\x02*\x8f\x01\n" +
+	"\x15FILE_PURPOSE_ARTIFACT\x10\x02\x12\x16\n" +
+	"\x12FILE_PURPOSE_SKILL\x10\x03*\x8f\x01\n" +
 	"\x0fFileIndexPolicy\x12!\n" +
 	"\x1dFILE_INDEX_POLICY_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16FILE_INDEX_POLICY_NONE\x10\x01\x12\x1c\n" +

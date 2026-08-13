@@ -20,6 +20,7 @@ pub mod scheduling;
 pub mod search;
 pub mod security;
 pub mod session_queue;
+pub mod skills;
 pub mod telemetry;
 pub mod tool_output;
 pub mod topics;

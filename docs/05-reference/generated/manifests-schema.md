@@ -877,7 +877,6 @@ No retention policy has been set. Writers should choose a concrete policy before
 | Field | Type | Notes |
 | --- | --- | --- |
 | `description` | `string` | - |
-| `instructions` | `string` | - |
 
 ## `Skill`
 

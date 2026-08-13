@@ -364,6 +364,7 @@ fn file_purpose_name(value: i32) -> &'static str {
     match resources_proto::FilePurpose::try_from(value).ok() {
         Some(resources_proto::FilePurpose::Memory) => "MEMORY",
         Some(resources_proto::FilePurpose::Artifact) => "ARTIFACT",
+        Some(resources_proto::FilePurpose::Skill) => "SKILL",
         _ => "UNSPECIFIED",
     }
 }

@@ -57,6 +57,14 @@ public final class Files extends com.google.protobuf.GeneratedFile {
      * <code>FILE_PURPOSE_ARTIFACT = 2;</code>
      */
     FILE_PURPOSE_ARTIFACT(2),
+    /**
+     * <pre>
+     * A file belonging to a namespace Skill package under /skills/&lt;skill-id&gt;/.
+     * </pre>
+     *
+     * <code>FILE_PURPOSE_SKILL = 3;</code>
+     */
+    FILE_PURPOSE_SKILL(3),
     UNRECOGNIZED(-1),
     ;
 
@@ -95,6 +103,14 @@ public final class Files extends com.google.protobuf.GeneratedFile {
      * <code>FILE_PURPOSE_ARTIFACT = 2;</code>
      */
     public static final int FILE_PURPOSE_ARTIFACT_VALUE = 2;
+    /**
+     * <pre>
+     * A file belonging to a namespace Skill package under /skills/&lt;skill-id&gt;/.
+     * </pre>
+     *
+     * <code>FILE_PURPOSE_SKILL = 3;</code>
+     */
+    public static final int FILE_PURPOSE_SKILL_VALUE = 3;
 
 
     public final int getNumber() {
@@ -124,6 +140,7 @@ public final class Files extends com.google.protobuf.GeneratedFile {
         case 0: return FILE_PURPOSE_UNSPECIFIED;
         case 1: return FILE_PURPOSE_MEMORY;
         case 2: return FILE_PURPOSE_ARTIFACT;
+        case 3: return FILE_PURPOSE_SKILL;
         default: return null;
       }
     }
@@ -6945,15 +6962,16 @@ java.lang.String defaultValue) {
       "\020created_by_agent\030\006 \001(\t\022\035\n\025created_by_se" +
       "ssion_id\030\007 \001(\t\022\022\n\nexpires_at\030\010 \001(\003\022\022\n\ncr" +
       "eated_at\030\t \001(\003\0326\n\024RequiredHeadersEntry\022\013" +
-      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001*_\n\013FilePu" +
+      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001*w\n\013FilePu" +
       "rpose\022\034\n\030FILE_PURPOSE_UNSPECIFIED\020\000\022\027\n\023F" +
       "ILE_PURPOSE_MEMORY\020\001\022\031\n\025FILE_PURPOSE_ART" +
-      "IFACT\020\002*\217\001\n\017FileIndexPolicy\022!\n\035FILE_INDE" +
-      "X_POLICY_UNSPECIFIED\020\000\022\032\n\026FILE_INDEX_POL" +
-      "ICY_NONE\020\001\022\034\n\030FILE_INDEX_POLICY_SEARCH\020\002" +
-      "\022\037\n\033FILE_INDEX_POLICY_RETRIEVAL\020\003*L\n\rFil" +
-      "eRetention\022\036\n\032FILE_RETENTION_UNSPECIFIED" +
-      "\020\000\022\033\n\027FILE_RETENTION_RETAINED\020\001b\006proto3"
+      "IFACT\020\002\022\026\n\022FILE_PURPOSE_SKILL\020\003*\217\001\n\017File" +
+      "IndexPolicy\022!\n\035FILE_INDEX_POLICY_UNSPECI" +
+      "FIED\020\000\022\032\n\026FILE_INDEX_POLICY_NONE\020\001\022\034\n\030FI" +
+      "LE_INDEX_POLICY_SEARCH\020\002\022\037\n\033FILE_INDEX_P" +
+      "OLICY_RETRIEVAL\020\003*L\n\rFileRetention\022\036\n\032FI" +
+      "LE_RETENTION_UNSPECIFIED\020\000\022\033\n\027FILE_RETEN" +
+      "TION_RETAINED\020\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

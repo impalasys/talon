@@ -6,7 +6,8 @@ import "proto/resources/common.proto";
 
 message SkillSpec {
   string description = 1;
-  string instructions = 2;
+  reserved 2;
+  reserved "instructions";
 }
 
 message Skill {

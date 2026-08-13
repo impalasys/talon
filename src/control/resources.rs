@@ -1370,12 +1370,23 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
         Kind::Knowledge(_) => "Knowledge",
         Kind::File(spec) => {
             validate_file_resource_name(resource, spec)?;
+            crate::control::skills::validate_skill_file_spec(spec)?;
             "File"
         }
         Kind::Task(_) => "Task",
         Kind::Namespace(_) => "Namespace",
         Kind::Session(_) => "Session",
-        Kind::Skill(_) => "Skill",
+        Kind::Skill(spec) => {
+            let metadata = resource
+                .metadata
+                .as_ref()
+                .ok_or_else(|| anyhow!("Skill metadata is required"))?;
+            crate::control::skills::validate_skill_id(&metadata.name)?;
+            if spec.description.trim().is_empty() {
+                return Err(anyhow!("Skill spec.description is required"));
+            }
+            "Skill"
+        }
         Kind::Template(_) => "Template",
         Kind::Deployment(_) => "Deployment",
         Kind::DeploymentReplica(_) => "DeploymentReplica",
@@ -1784,7 +1795,6 @@ mod tests {
                         kind: Some(resources_proto::resource_spec::Kind::Skill(
                             resources_proto::SkillSpec {
                                 description: "Review code".to_string(),
-                                instructions: "Look for regressions.".to_string(),
                             },
                         )),
                     }),
@@ -1802,8 +1812,8 @@ mod tests {
         let stored_skill =
             resources_proto::Skill::decode(stored.as_slice()).expect("stored payload is Skill");
         assert_eq!(
-            stored_skill.spec.as_ref().unwrap().instructions,
-            "Look for regressions."
+            stored_skill.spec.as_ref().unwrap().description,
+            "Review code"
         );
     }
 

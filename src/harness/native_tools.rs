@@ -52,6 +52,7 @@ pub const BLOCK_GOAL_TOOL: &str = "block_goal";
 pub const CHANNEL_PUBLISH_TOOL: &str = "channel_publish";
 pub const CHANNEL_SKIP_REPLY_TOOL: &str = "channel_skip_reply";
 pub const ACTIVATE_SKILL_TOOL: &str = "activate_skill";
+pub const DEACTIVATE_SKILL_TOOL: &str = "deactivate_skill";
 pub const CREATE_ARTIFACT_TOOL: &str = "create_artifact";
 pub const UPDATE_ARTIFACT_TOOL: &str = "update_artifact";
 pub const READ_ARTIFACT_TOOL: &str = "read_artifact";
@@ -121,21 +122,30 @@ pub(crate) fn artifact_uris_from_message_text(text: &str) -> Vec<String> {
 
 pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
     let names = namespace::effective_skill_names(skills);
-    if names.is_empty() {
-        return;
+    if !names.is_empty() {
+        registry.register_builtin(
+            ACTIVATE_SKILL_TOOL,
+            "Load the full instructions for an available namespace skill before applying it.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Available skill name to activate.",
+                        "enum": names
+                    }
+                },
+                "required": ["name"]
+            }),
+        );
     }
-
     registry.register_builtin(
-        ACTIVATE_SKILL_TOOL,
-        "Load the full instructions for an available namespace skill before applying it.",
+        DEACTIVATE_SKILL_TOOL,
+        "Stop applying an active namespace skill for the rest of this session.",
         json!({
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "Available skill name to activate.",
-                    "enum": names
-                }
+                "name": { "type": "string", "description": "Active skill name to deactivate." }
             },
             "required": ["name"]
         }),
@@ -338,7 +348,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
                 "properties": {
                     "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
                     "prefix": { "type": "string", "description": "Optional logical path prefix such as /content/pages." },
-                    "purpose": { "type": "string", "description": "Optional purpose: ARTIFACT or MEMORY." },
+                    "purpose": { "type": "string", "description": "Optional purpose: ARTIFACT, MEMORY, or SKILL." },
                     "index_policy": { "type": "string", "description": "Optional index policy: NONE, SEARCH, or RETRIEVAL." },
                     "limit": { "type": "integer", "description": "Maximum results. Defaults to 50." }
                 }
@@ -591,7 +601,7 @@ fn file_write_schema() -> Value {
             "path": { "type": "string", "description": "Logical File path, for example /content/pages/<id>/content.md." },
             "content": { "type": "string", "description": "Markdown, HTML, or text content to store." },
             "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
-            "purpose": { "type": "string", "description": "File purpose: ARTIFACT or MEMORY. Defaults to ARTIFACT." },
+            "purpose": { "type": "string", "description": "File purpose: ARTIFACT, MEMORY, or SKILL. Defaults to ARTIFACT." },
             "index_policy": { "type": "string", "description": "Index policy: NONE, SEARCH, or RETRIEVAL. Defaults to SEARCH." },
             "retention": { "type": "string", "description": "Retention policy: RETAINED. Defaults to RETAINED." }
         },
@@ -769,12 +779,49 @@ pub async fn execute_tool_for_session_output(
         }
         ACTIVATE_SKILL_TOOL => {
             let skill_name = req_str(args, "name")?;
-            let skills = namespace::load_effective_skills(cp.kv.clone(), current_namespace).await?;
+            let skills = namespace::load_available_skills(cp, current_namespace).await?;
             let skill = namespace::find_effective_skill(&skills, skill_name)
                 .ok_or_else(|| anyhow!("skill '{}' is not available", skill_name))?;
-            let activated = namespace::format_activated_skill(skill)
-                .ok_or_else(|| anyhow!("skill '{}' has no instructions", skill_name))?;
-            Ok(Some(ToolOutput::text(activated)))
+            let instructions = namespace::load_skill_instructions(cp, skill).await?;
+            if current_session.is_empty() {
+                return Ok(Some(ToolOutput::text(
+                    namespace::format_active_skill_context(&[(skill.clone(), instructions)]),
+                )));
+            }
+            crate::harness::sessions::activate_skill(
+                cp.kv.as_ref(),
+                current_namespace,
+                current_agent,
+                current_session,
+                skill_name,
+            )
+            .await?;
+            Ok(Some(ToolOutput::text(format!(
+                "Activated skill '{}'. Its workflow guidance is now active for this session.",
+                skill_name
+            ))))
+        }
+        DEACTIVATE_SKILL_TOOL => {
+            let skill_name = req_str(args, "name")?;
+            if current_session.is_empty() {
+                return Ok(Some(ToolOutput::text(format!(
+                    "Deactivated skill '{}'.",
+                    skill_name
+                ))));
+            }
+            let removed = crate::harness::sessions::deactivate_skill(
+                cp.kv.as_ref(),
+                current_namespace,
+                current_agent,
+                current_session,
+                skill_name,
+            )
+            .await?;
+            Ok(Some(ToolOutput::text(if removed {
+                format!("Deactivated skill '{}'.", skill_name)
+            } else {
+                format!("Skill '{}' was not active.", skill_name)
+            })))
         }
         CHANNEL_PUBLISH_TOOL => {
             let content = req_str(args, "content")?;
@@ -1740,6 +1787,7 @@ fn file_purpose_label(value: i32) -> &'static str {
     match resources_proto::FilePurpose::try_from(value).ok() {
         Some(resources_proto::FilePurpose::Memory) => "memory",
         Some(resources_proto::FilePurpose::Artifact) => "artifact",
+        Some(resources_proto::FilePurpose::Skill) => "skill",
         _ => "unspecified",
     }
 }
@@ -1765,8 +1813,9 @@ fn parse_file_purpose(value: &str) -> Result<i32> {
     match normalized.as_str() {
         "artifact" | "file-purpose-artifact" => Ok(resources_proto::FilePurpose::Artifact as i32),
         "memory" | "file-purpose-memory" => Ok(resources_proto::FilePurpose::Memory as i32),
+        "skill" | "file-purpose-skill" => Ok(resources_proto::FilePurpose::Skill as i32),
         _ => Err(anyhow!(
-            "unsupported File purpose '{}'; expected ARTIFACT or MEMORY",
+            "unsupported File purpose '{}'; expected ARTIFACT, MEMORY, or SKILL",
             value
         )),
     }
@@ -3989,12 +4038,11 @@ mod tests {
             .collect()
     }
 
-    fn skill(ns: &str, name: &str, description: &str, instructions: &str) -> NamespaceSkill {
+    fn skill(ns: &str, name: &str, description: &str, _instructions: &str) -> NamespaceSkill {
         NamespaceSkill {
             name: name.to_string(),
             namespace: ns.to_string(),
             description: description.to_string(),
-            instructions: instructions.to_string(),
         }
     }
 
@@ -4002,9 +4050,9 @@ mod tests {
         ns: &str,
         name: &str,
         description: &str,
-        instructions: &str,
+        _instructions: &str,
     ) -> resources_proto::Skill {
-        namespace::skill_resource(ns, name, description, instructions)
+        namespace::skill_resource(ns, name, description)
     }
 
     #[test]
@@ -4385,6 +4433,7 @@ mod tests {
         register_skill_tools(&mut registry, &[]);
 
         assert!(registry.get_tool(ACTIVATE_SKILL_TOOL).is_none());
+        assert!(registry.get_tool(DEACTIVATE_SKILL_TOOL).is_some());
     }
 
     #[tokio::test]
@@ -5124,7 +5173,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn activate_skill_returns_shadowed_effective_instructions() {
+    async fn activate_skill_requires_a_package_entrypoint() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
         let cp = control_plane(kv.clone(), scheduler);
@@ -5146,7 +5195,7 @@ mod tests {
         .await
         .unwrap();
 
-        let activated = execute_tool(
+        let error = execute_tool(
             &cp,
             "acme:team",
             "assistant",
@@ -5155,17 +5204,13 @@ mod tests {
             &json!({"name":"review"}),
         )
         .await
-        .unwrap()
-        .unwrap();
+        .unwrap_err();
 
-        assert!(activated.contains("ACTIVATED SKILL: review"));
-        assert!(activated.contains("Source namespace: acme:team"));
-        assert!(activated.contains("child instructions"));
-        assert!(!activated.contains("parent instructions"));
+        assert!(error.to_string().contains("not available"));
     }
 
     #[tokio::test]
-    async fn activate_skill_skips_unreadable_records() {
+    async fn activate_skill_skips_unreadable_and_incomplete_records() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
         let cp = control_plane(kv.clone(), scheduler);
@@ -5179,7 +5224,7 @@ mod tests {
         .await
         .unwrap();
 
-        let activated = execute_tool(
+        let error = execute_tool(
             &cp,
             "acme",
             "assistant",
@@ -5188,10 +5233,9 @@ mod tests {
             &json!({"name":"review"}),
         )
         .await
-        .unwrap()
-        .unwrap();
+        .unwrap_err();
 
-        assert!(activated.contains("instructions"));
+        assert!(error.to_string().contains("not available"));
     }
 
     #[tokio::test]

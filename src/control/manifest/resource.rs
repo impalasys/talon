@@ -473,7 +473,6 @@ fn resource_spec_status_to_yaml_values(
         Some(SpecKind::McpServer(spec)) => serde_json::to_string(spec)?,
         Some(SpecKind::Skill(spec)) => serde_json::to_string(&serde_json::json!({
             "description": spec.description,
-            "instructions": spec.instructions,
         }))?,
         Some(SpecKind::Worker(_)) => "{}".to_string(),
         Some(SpecKind::Raw(raw)) => raw.json.clone(),
@@ -780,12 +779,12 @@ fn agent_spec_from_value(value: serde_json::Value) -> Result<resources_proto::Ag
 }
 
 fn skill_spec_from_value(value: serde_json::Value) -> Result<resources_proto::SkillSpec> {
+    if value.get("instructions").is_some() {
+        bail!("Skill spec.instructions is no longer supported; place workflow instructions in /skills/<skill-id>/SKILL.md");
+    }
     let spec = serde_json::from_value::<resources_proto::SkillSpec>(value)?;
     if spec.description.trim().is_empty() {
         bail!("Skill spec.description is required");
-    }
-    if spec.instructions.trim().is_empty() {
-        bail!("Skill spec.instructions is required");
     }
     Ok(spec)
 }

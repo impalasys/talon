@@ -180,6 +180,11 @@ impl AgentRuntime {
             }
             reg.register_mcp_tools(&server_config.server_name, accepted_tools);
         }
+        let available_skills =
+            crate::harness::skills::namespace::load_available_skills(cp, ns).await?;
+        crate::harness::native_tools::register_skill_tools(&mut reg, &available_skills);
+        let skill_catalog =
+            crate::harness::skills::namespace::format_skill_catalog(&available_skills);
         let registry = Arc::new(tokio::sync::RwLock::new(reg));
 
         // 5. Build executor
@@ -187,7 +192,7 @@ impl AgentRuntime {
             llm.provider,
             llm.provider_key,
             llm.model,
-            ContextAssembler::new("."),
+            ContextAssembler::new_with_skill_context(".", skill_catalog),
             registry,
             Arc::new(config.clone()),
             ns.to_string(),
@@ -345,6 +350,8 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::BLOCK_GOAL_TOOL,
         crate::harness::native_tools::CHANNEL_PUBLISH_TOOL,
         crate::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL,
+        crate::harness::native_tools::ACTIVATE_SKILL_TOOL,
+        crate::harness::native_tools::DEACTIVATE_SKILL_TOOL,
         crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL,
         crate::harness::native_tools::CREATE_ARTIFACT_TOOL,
         crate::harness::native_tools::UPDATE_ARTIFACT_TOOL,

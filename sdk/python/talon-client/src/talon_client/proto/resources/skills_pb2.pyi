@@ -7,12 +7,10 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class SkillSpec(_message.Message):
-    __slots__ = ("description", "instructions")
+    __slots__ = ("description",)
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
-    INSTRUCTIONS_FIELD_NUMBER: _ClassVar[int]
     description: str
-    instructions: str
-    def __init__(self, description: _Optional[str] = ..., instructions: _Optional[str] = ...) -> None: ...
+    def __init__(self, description: _Optional[str] = ...) -> None: ...
 
 class Skill(_message.Message):
     __slots__ = ("metadata", "spec", "status")

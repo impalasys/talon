@@ -4,6 +4,7 @@
 mod journal;
 mod lease;
 mod session;
+mod skills;
 mod submission;
 
 pub const SESSION_LABEL_SUBMISSION_ID: &str = "talon.session.submission_id";
@@ -24,6 +25,9 @@ pub use journal::{append_llm_response, append_tool_result};
 pub use lease::{SubmissionLease, SubmissionLeaseRenewer};
 pub use session::{
     clear_provider_request_id, persist_context_tokens, reset_provider_request_id_if_idle,
+};
+pub use skills::{
+    activate_skill, active_skill_names, deactivate_skill, persist_active_skill_context_digest,
 };
 pub use submission::{
     claim_submission, create_submission_if_absent, pending_compaction_submission,

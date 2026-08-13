@@ -13,6 +13,7 @@ class FilePurpose(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     FILE_PURPOSE_UNSPECIFIED: _ClassVar[FilePurpose]
     FILE_PURPOSE_MEMORY: _ClassVar[FilePurpose]
     FILE_PURPOSE_ARTIFACT: _ClassVar[FilePurpose]
+    FILE_PURPOSE_SKILL: _ClassVar[FilePurpose]
 
 class FileIndexPolicy(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -28,6 +29,7 @@ class FileRetention(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 FILE_PURPOSE_UNSPECIFIED: FilePurpose
 FILE_PURPOSE_MEMORY: FilePurpose
 FILE_PURPOSE_ARTIFACT: FilePurpose
+FILE_PURPOSE_SKILL: FilePurpose
 FILE_INDEX_POLICY_UNSPECIFIED: FileIndexPolicy
 FILE_INDEX_POLICY_NONE: FileIndexPolicy
 FILE_INDEX_POLICY_SEARCH: FileIndexPolicy

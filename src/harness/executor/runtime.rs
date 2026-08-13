@@ -24,6 +24,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -479,6 +480,12 @@ struct ExecutionPrompts {
     post_history_prompt: Option<String>,
 }
 
+#[derive(Default)]
+struct ActiveSkillContext {
+    text: String,
+    continuation_invalidated: bool,
+}
+
 impl AgentExecutor {
     pub fn new(
         llm: Arc<dyn LlmProvider>,
@@ -608,10 +615,21 @@ impl AgentExecutor {
         context: &ExecutionContext,
         prompts: &ExecutionPrompts,
         tool_schema_chars: usize,
+        active_skill_context: &ActiveSkillContext,
     ) -> Result<(Vec<ChatMessage>, ContextMetrics)> {
         let mut history = context.history.clone();
         if let Some(system_prompt) = prompts.system_prompt.as_deref() {
             history.insert(0, LoopMessage::text("system", system_prompt.to_string()));
+        }
+        if !active_skill_context.text.is_empty() {
+            let insert_at = history
+                .iter()
+                .take_while(|message| message.role == "system")
+                .count();
+            history.insert(
+                insert_at,
+                LoopMessage::text("user", active_skill_context.text.clone()),
+            );
         }
         if let Some(post_history_prompt) = prompts.post_history_prompt.as_deref() {
             prefix_latest_user_message(&mut history, post_history_prompt);
@@ -643,6 +661,77 @@ impl AgentExecutor {
                 .await?;
         }
         Ok((messages, metrics))
+    }
+
+    async fn active_skill_context(&self) -> Result<ActiveSkillContext> {
+        let names = crate::harness::sessions::active_skill_names(
+            self.control_plane.kv.as_ref(),
+            &self.namespace,
+            &self.agent_id,
+            &self.session_id,
+        )
+        .await?;
+        let available = crate::harness::skills::namespace::load_available_skills(
+            &self.control_plane,
+            &self.namespace,
+        )
+        .await?;
+        let mut resolved = Vec::new();
+        let mut unavailable = Vec::new();
+        for name in names {
+            let Some(skill) =
+                crate::harness::skills::namespace::find_effective_skill(&available, &name)
+            else {
+                unavailable.push(name);
+                continue;
+            };
+            match crate::harness::skills::namespace::load_skill_instructions(
+                &self.control_plane,
+                skill,
+            )
+            .await
+            {
+                Ok(instructions) => resolved.push((skill.clone(), instructions)),
+                Err(error) => {
+                    tracing::warn!(skill = %skill.name, namespace = %skill.namespace, %error, "removing unavailable active Skill");
+                    unavailable.push(name);
+                }
+            }
+        }
+        for name in &unavailable {
+            crate::harness::sessions::deactivate_skill(
+                self.control_plane.kv.as_ref(),
+                &self.namespace,
+                &self.agent_id,
+                &self.session_id,
+                name,
+            )
+            .await?;
+        }
+        let mut text = crate::harness::skills::namespace::format_active_skill_context(&resolved);
+        if !unavailable.is_empty() {
+            if !text.is_empty() {
+                text.push_str("\n\n");
+            }
+            text.push_str(&format!(
+                "# SKILL NOTICE\nThe following previously active Skills are no longer available and were deactivated: {}.",
+                unavailable.join(", ")
+            ));
+        }
+        let digest = format!("{:x}", Sha256::digest(text.as_bytes()));
+        let continuation_invalidated =
+            crate::harness::sessions::persist_active_skill_context_digest(
+                self.control_plane.kv.as_ref(),
+                &self.namespace,
+                &self.agent_id,
+                &self.session_id,
+                &digest,
+            )
+            .await?;
+        Ok(ActiveSkillContext {
+            text,
+            continuation_invalidated,
+        })
     }
 
     async fn hydrate_object_ref_parts_for_llm(
@@ -711,6 +800,7 @@ impl AgentExecutor {
         context: &ExecutionContext,
         prompts: &ExecutionPrompts,
         tools: &[crate::harness::llm::Tool],
+        active_skill_context_chars: usize,
     ) -> usize {
         let history_weight = context
             .history
@@ -731,7 +821,7 @@ impl AgentExecutor {
             .iter()
             .map(|tool| tool.name.len() + tool.description.len() + tool.input_schema_json.len())
             .sum::<usize>();
-        history_weight + prompt_weight + tool_weight
+        history_weight + prompt_weight + tool_weight + active_skill_context_chars
     }
 
     fn estimate_context_input_tokens(
@@ -809,6 +899,12 @@ impl AgentExecutor {
                 reg.to_provider_tools()
             };
             let tool_schema_chars = telemetry::serialize_tool_definitions_json(&tools).len();
+            let active_skill_context = self.active_skill_context().await?;
+            if active_skill_context.continuation_invalidated {
+                if let Some(counter) = context_tokens.as_mut() {
+                    counter.provider_request_id = None;
+                }
+            }
 
             // Trigger durable compaction before preparing messages if the complete
             // request estimate exceeds the model's effective window. Compaction
@@ -818,10 +914,15 @@ impl AgentExecutor {
                 &self.llm_provider_key,
                 &self.llm_model,
             );
-            let estimated_context_budget = self.estimate_context_budget(context, &prompts, &tools);
+            let estimated_context_budget = self.estimate_context_budget(
+                context,
+                &prompts,
+                &tools,
+                active_skill_context.text.len(),
+            );
             let durable_budget = ContextBudget::default()
                 .with_model_limits(model_limits)
-                .with_tool_schema_chars(tool_schema_chars)
+                .with_tool_schema_chars(tool_schema_chars + active_skill_context.text.len())
                 .total_chars;
             let estimated_context_tokens = self.estimate_context_input_tokens(
                 context,
@@ -846,8 +947,12 @@ impl AgentExecutor {
                         if let Some(counter) = context_tokens.as_mut() {
                             counter.provider_request_id = None;
                         }
-                        let new_context_budget =
-                            self.estimate_context_budget(context, &prompts, &tools);
+                        let new_context_budget = self.estimate_context_budget(
+                            context,
+                            &prompts,
+                            &tools,
+                            active_skill_context.text.len(),
+                        );
                         if new_context_budget >= durable_budget {
                             compaction_disabled = true;
                         }
@@ -869,7 +974,7 @@ impl AgentExecutor {
             }
 
             let (messages, context_metrics) = self
-                .messages_for_llm(context, &prompts, tool_schema_chars)
+                .messages_for_llm(context, &prompts, tool_schema_chars, &active_skill_context)
                 .await?;
 
             let mut final_reply = String::new();

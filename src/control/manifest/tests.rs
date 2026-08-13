@@ -701,7 +701,6 @@ metadata:
   namespace: customers
 spec:
   description: Review code
-  instructions: Look for regressions.
 "#,
         )
         .expect("skill manifest should parse");
@@ -710,7 +709,7 @@ spec:
         else {
             panic!("expected Skill spec");
         };
-        assert_eq!(spec.instructions, "Look for regressions.");
+        assert_eq!(spec.description, "Review code");
 
         let rendered = render_resource_yaml(&resources_proto::Resource {
             api_version: manifest.api_version,
@@ -725,8 +724,27 @@ spec:
 
         assert!(rendered.contains("kind: Skill"));
         assert!(rendered.contains("description: Review code"));
-        assert!(rendered.contains("instructions: Look for regressions."));
+        assert!(!rendered.contains("instructions:"));
         assert!(!rendered.contains("raw:"));
+    }
+
+    #[test]
+    fn skill_manifest_rejects_legacy_inline_instructions() {
+        let error = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Skill
+metadata:
+  name: review
+  namespace: customers
+spec:
+  description: Review code
+  instructions: Look for regressions.
+"#,
+        )
+        .expect_err("inline Skill instructions must be rejected");
+
+        assert!(error.to_string().contains("no longer supported"));
     }
 
     #[test]

@@ -1,0 +1,48 @@
+{
+  "rules": [
+    {
+      "id": "activate_review_skill",
+      "last_message_contains": "activate review skill",
+      "tool_name": "activate_skill",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_activate_review_skill_1",
+        "tool_name": "activate_skill",
+        "content": "I will activate the review workflow. ",
+        "arguments": {
+          "name": "review"
+        }
+      }
+    },
+    {
+      "id": "activate_review_skill_followup",
+      "tool_call_id": "call_activate_review_skill_1",
+      "response": {
+        "type": "text",
+        "content": "The review skill is active."
+      }
+    },
+    {
+      "id": "deactivate_review_skill",
+      "last_message_contains": "deactivate review skill",
+      "tool_name": "deactivate_skill",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_deactivate_review_skill_1",
+        "tool_name": "deactivate_skill",
+        "content": "I will deactivate the review workflow. ",
+        "arguments": {
+          "name": "review"
+        }
+      }
+    },
+    {
+      "id": "deactivate_review_skill_followup",
+      "tool_call_id": "call_deactivate_review_skill_1",
+      "response": {
+        "type": "text",
+        "content": "The review skill is inactive."
+      }
+    }
+  ]
+}

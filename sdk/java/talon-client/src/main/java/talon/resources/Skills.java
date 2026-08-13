@@ -41,18 +41,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getDescriptionBytes();
-
-    /**
-     * <code>string instructions = 2;</code>
-     * @return The instructions.
-     */
-    java.lang.String getInstructions();
-    /**
-     * <code>string instructions = 2;</code>
-     * @return The bytes for instructions.
-     */
-    com.google.protobuf.ByteString
-        getInstructionsBytes();
   }
   /**
    * Protobuf type {@code talon.resources.SkillSpec}
@@ -77,7 +65,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
     }
     private SkillSpec() {
       description_ = "";
-      instructions_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -137,45 +124,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int INSTRUCTIONS_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object instructions_ = "";
-    /**
-     * <code>string instructions = 2;</code>
-     * @return The instructions.
-     */
-    @java.lang.Override
-    public java.lang.String getInstructions() {
-      java.lang.Object ref = instructions_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        instructions_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string instructions = 2;</code>
-     * @return The bytes for instructions.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getInstructionsBytes() {
-      java.lang.Object ref = instructions_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        instructions_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -193,9 +141,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 1, description_);
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(instructions_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, instructions_);
-      }
       getUnknownFields().writeTo(output);
     }
 
@@ -207,9 +152,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
       size = 0;
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(1, description_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(instructions_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, instructions_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -228,8 +170,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
 
       if (!getDescription()
           .equals(other.getDescription())) return false;
-      if (!getInstructions()
-          .equals(other.getInstructions())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -243,8 +183,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
       hash = (53 * hash) + getDescription().hashCode();
-      hash = (37 * hash) + INSTRUCTIONS_FIELD_NUMBER;
-      hash = (53 * hash) + getInstructions().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -377,7 +315,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
         super.clear();
         bitField0_ = 0;
         description_ = "";
-        instructions_ = "";
         return this;
       }
 
@@ -414,9 +351,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.description_ = description_;
         }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.instructions_ = instructions_;
-        }
       }
 
       @java.lang.Override
@@ -434,11 +368,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
         if (!other.getDescription().isEmpty()) {
           description_ = other.description_;
           bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getInstructions().isEmpty()) {
-          instructions_ = other.instructions_;
-          bitField0_ |= 0x00000002;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -472,11 +401,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
-              case 18: {
-                instructions_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -562,78 +486,6 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
         checkByteStringIsUtf8(value);
         description_ = value;
         bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object instructions_ = "";
-      /**
-       * <code>string instructions = 2;</code>
-       * @return The instructions.
-       */
-      public java.lang.String getInstructions() {
-        java.lang.Object ref = instructions_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          instructions_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string instructions = 2;</code>
-       * @return The bytes for instructions.
-       */
-      public com.google.protobuf.ByteString
-          getInstructionsBytes() {
-        java.lang.Object ref = instructions_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          instructions_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string instructions = 2;</code>
-       * @param value The instructions to set.
-       * @return This builder for chaining.
-       */
-      public Builder setInstructions(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        instructions_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string instructions = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearInstructions() {
-        instructions_ = getDefaultInstance().getInstructions();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string instructions = 2;</code>
-       * @param value The bytes for instructions to set.
-       * @return This builder for chaining.
-       */
-      public Builder setInstructionsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        instructions_ = value;
-        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
@@ -1684,13 +1536,13 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
   static {
     java.lang.String[] descriptorData = {
       "\n\034proto/resources/skills.proto\022\017talon.re" +
-      "sources\032\034proto/resources/common.proto\"6\n" +
-      "\tSkillSpec\022\023\n\013description\030\001 \001(\t\022\024\n\014instr" +
-      "uctions\030\002 \001(\t\"\231\001\n\005Skill\022/\n\010metadata\030\001 \001(" +
-      "\0132\035.talon.resources.ResourceMeta\022(\n\004spec" +
-      "\030\002 \001(\0132\032.talon.resources.SkillSpec\0225\n\006st" +
-      "atus\030\003 \001(\0132%.talon.resources.CommonResou" +
-      "rceStatusb\006proto3"
+      "sources\032\034proto/resources/common.proto\"4\n" +
+      "\tSkillSpec\022\023\n\013description\030\001 \001(\tJ\004\010\002\020\003R\014i" +
+      "nstructions\"\231\001\n\005Skill\022/\n\010metadata\030\001 \001(\0132" +
+      "\035.talon.resources.ResourceMeta\022(\n\004spec\030\002" +
+      " \001(\0132\032.talon.resources.SkillSpec\0225\n\006stat" +
+      "us\030\003 \001(\0132%.talon.resources.CommonResourc" +
+      "eStatusb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1702,7 +1554,7 @@ public final class Skills extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_SkillSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SkillSpec_descriptor,
-        new java.lang.String[] { "Description", "Instructions", });
+        new java.lang.String[] { "Description", });
     internal_static_talon_resources_Skill_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_talon_resources_Skill_fieldAccessorTable = new
