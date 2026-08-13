@@ -33,12 +33,23 @@ jobs:
 
             const pullRequestNumber =
               context.payload.pull_request?.number ?? context.issue.number;
-            const response = await github.rest.pulls.get({
+            const getPullRequest = () => github.rest.pulls.get({
               owner,
               repo,
               pull_number: pullRequestNumber,
             });
-            const pullRequest = response.data;
+            let pullRequest = (await getPullRequest()).data;
+            const isImpalasysMember = () =>
+              pullRequest.author_association === "MEMBER" ||
+              pullRequest.author_association === "OWNER";
+
+            // GitHub can briefly return a stale author association immediately
+            // after creating an internal pull request. Re-fetch before asking an
+            // organization member to sign the CLA.
+            for (let attempt = 0; attempt < 3 && !isImpalasysMember(); attempt++) {
+              await new Promise((resolve) => setTimeout(resolve, 5_000));
+              pullRequest = (await getPullRequest()).data;
+            }
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner,
@@ -46,10 +57,7 @@ jobs:
               issue_number: pullRequest.number,
               per_page: 100,
             });
-            const isImpalasysMember =
-              pullRequest.author_association === "MEMBER" ||
-              pullRequest.author_association === "OWNER";
-            const signed = isImpalasysMember || comments.some((comment) =>
+            const signed = isImpalasysMember() || comments.some((comment) =>
               comment.user?.id === pullRequest.user.id &&
               comment.body
                 ?.replace(/\r/g, "")
