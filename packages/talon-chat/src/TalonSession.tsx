@@ -131,6 +131,7 @@ export function TalonSession({
   const sessionState = sessionRuntimeState.serverState === "UNKNOWN" ? null : sessionRuntimeState.serverState;
   const isSessionLive = runtimeIsLive;
   const [input, setInput] = useState("");
+  const [sessionArtifactsDismissed, setSessionArtifactsDismissed] = useState(false);
   const resolvedMaxAttachments = maxAttachments ?? maxImageAttachments ?? 4;
   const resolvedMaxAttachmentBytes = maxAttachmentBytes ?? maxImageBytes ?? 20 * 1024 * 1024;
   const resolvedAcceptedAttachmentTypes = acceptedAttachmentTypes ?? acceptedImageTypes ?? ["image/png", "image/jpeg", "image/gif", "image/webp"];
@@ -246,6 +247,12 @@ export function TalonSession({
     gatewayClient,
     target: currentSession,
   });
+  const sessionArtifactScope = currentSession
+    ? `${currentSession.ns}\u0000${currentSession.agent}\u0000${currentSession.sessionId}`
+    : "";
+  useEffect(() => {
+    setSessionArtifactsDismissed(false);
+  }, [sessionArtifactScope]);
   const wasSessionLiveRef = useRef(isSessionLive);
   useEffect(() => {
     if (wasSessionLiveRef.current && !isSessionLive) {
@@ -577,7 +584,7 @@ export function TalonSession({
           />
         </div>
 
-        {sessionArtifacts.available && (sessionArtifacts.artifacts.length > 0 || sessionArtifacts.error) && !openResourceUri ? (
+        {sessionArtifacts.available && !sessionArtifactsDismissed && (sessionArtifacts.artifacts.length > 0 || sessionArtifacts.error) && !openResourceUri ? (
           <SessionArtifactsRail
             artifacts={sessionArtifacts.artifacts}
             error={sessionArtifacts.error}
@@ -585,6 +592,7 @@ export function TalonSession({
             isLoading={sessionArtifacts.isLoading}
             onLoadMore={() => void sessionArtifacts.loadMore()}
             onSelect={handleSelectArtifact}
+            onDismiss={() => setSessionArtifactsDismissed(true)}
           />
         ) : null}
 

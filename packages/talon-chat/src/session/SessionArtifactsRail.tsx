@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText } from "lucide-react";
+import { FileText, X } from "lucide-react";
 import {
   formatArtifactBytes,
   formatArtifactCreatedAt,
@@ -13,6 +13,7 @@ type SessionArtifactsRailProps = {
   isLoading: boolean;
   onLoadMore: () => void;
   onSelect: (artifact: SessionArtifact) => void;
+  onDismiss: () => void;
 };
 
 function border(color: string) {
@@ -26,6 +27,7 @@ export function SessionArtifactsRail({
   isLoading,
   onLoadMore,
   onSelect,
+  onDismiss,
 }: SessionArtifactsRailProps) {
   return (
     <aside
@@ -52,6 +54,9 @@ export function SessionArtifactsRail({
       <div style={{ width: 304, maxHeight: "calc(100vh - 32px)", display: "flex", flexDirection: "column" }}>
         <header style={{ minHeight: 48, padding: "0 0.85rem", display: "flex", alignItems: "center", borderBottom: border("var(--talon-chat-divider, rgba(212,212,216,0.7))") }}>
           <span style={{ minWidth: 0, fontSize: 14, fontWeight: 500, opacity: 0.64 }}>Artifacts</span>
+          <button className="talon-session-artifacts-dismiss" type="button" aria-label="Close artifacts" onClick={onDismiss} style={{ marginLeft: "auto", border: "none", borderRadius: 6, background: "transparent", color: "inherit", cursor: "pointer", padding: 4 }}>
+            <X size="18" strokeWidth={1.8} />
+          </button>
         </header>
 
         <div style={{ minHeight: 0, maxHeight: "min(420px, calc(100vh - 96px))", overflowY: "auto", padding: "0.5rem" }}>
@@ -73,8 +78,10 @@ export function SessionArtifactsRail({
       </div>
       <style>{`
         .talon-session-artifacts-rail button:not(:disabled):hover { background: var(--talon-chat-hover-bg, rgba(24, 24, 27, 0.06)); }
+        .talon-session-artifacts-dismiss { display: none; }
         @media (max-width: 640px) {
           .talon-session-artifacts-rail { position: absolute !important; inset: 0 !important; z-index: 21; width: 100% !important; max-height: none !important; border-radius: 0 !important; box-shadow: none !important; }
+          .talon-session-artifacts-dismiss { display: inline-flex; align-items: center; justify-content: center; }
         }
       `}</style>
     </aside>
