@@ -32,9 +32,10 @@ export async function loadSignedInlineContent({
   const knownSize = byteLength(sizeBytes);
   if (
     !signedUrl ||
-    (content && content.byteLength > 0) ||
+    content !== undefined ||
     !isInlinePreviewMediaType(mediaType) ||
-    (knownSize != null && knownSize > MAX_INLINE_PREVIEW_BYTES)
+    knownSize == null ||
+    knownSize > MAX_INLINE_PREVIEW_BYTES
   ) {
     return content;
   }

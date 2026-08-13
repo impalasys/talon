@@ -12,7 +12,7 @@ test("downloads text artifact content from its signed object URL", async () => {
 
   try {
     const content = await loadSignedInlineContent({
-      content: new Uint8Array(),
+      content: undefined,
       mediaType: "text/markdown",
       signedUrl: "https://objects.example/artifacts/draft?signature=redacted",
       sizeBytes: 18,
@@ -38,7 +38,7 @@ test("does not download a large signed text artifact for inline preview", async 
 
   try {
     const content = await loadSignedInlineContent({
-      content: new Uint8Array(),
+      content: undefined,
       mediaType: "text/markdown",
       signedUrl: "https://objects.example/artifacts/large-draft",
       sizeBytes: 3 * 1024 * 1024 + 1,
@@ -46,7 +46,39 @@ test("does not download a large signed text artifact for inline preview", async 
     });
 
     assert.equal(fetchCalls, 0);
-    assert.equal(content?.byteLength, 0);
+    assert.equal(content, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("does not download a signed artifact when its size is unknown or its empty content is present", async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    return new Response("unexpected");
+  };
+
+  try {
+    const unknownSize = await loadSignedInlineContent({
+      content: undefined,
+      mediaType: "text/markdown",
+      signedUrl: "https://objects.example/artifacts/unknown-size",
+      sizeBytes: undefined,
+      signal: new AbortController().signal,
+    });
+    const emptyContent = await loadSignedInlineContent({
+      content: new Uint8Array(),
+      mediaType: "text/markdown",
+      signedUrl: "https://objects.example/artifacts/empty",
+      sizeBytes: 0,
+      signal: new AbortController().signal,
+    });
+
+    assert.equal(fetchCalls, 0);
+    assert.equal(unknownSize, undefined);
+    assert.equal(emptyContent?.byteLength, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }
