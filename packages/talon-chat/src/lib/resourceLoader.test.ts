@@ -52,7 +52,7 @@ test("does not download a large signed text artifact for inline preview", async 
   }
 });
 
-test("does not download a signed artifact when its size is unknown or its empty content is present", async () => {
+test("does not download a signed artifact when its size is unknown or an empty inline body is complete", async () => {
   const originalFetch = globalThis.fetch;
   let fetchCalls = 0;
   globalThis.fetch = async () => {
@@ -71,7 +71,7 @@ test("does not download a signed artifact when its size is unknown or its empty 
     const emptyContent = await loadSignedInlineContent({
       content: new Uint8Array(),
       mediaType: "text/markdown",
-      signedUrl: "https://objects.example/artifacts/empty",
+      signedUrl: undefined,
       sizeBytes: 0,
       signal: new AbortController().signal,
     });
@@ -79,6 +79,23 @@ test("does not download a signed artifact when its size is unknown or its empty 
     assert.equal(fetchCalls, 0);
     assert.equal(unknownSize, undefined);
     assert.equal(emptyContent?.byteLength, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("downloads a signed artifact when protobuf supplies default empty bytes", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("Signed content");
+  try {
+    const content = await loadSignedInlineContent({
+      content: new Uint8Array(),
+      mediaType: "text/markdown",
+      signedUrl: "https://objects.example/artifacts/signed",
+      sizeBytes: 14,
+      signal: new AbortController().signal,
+    });
+    assert.equal(new TextDecoder().decode(content), "Signed content");
   } finally {
     globalThis.fetch = originalFetch;
   }

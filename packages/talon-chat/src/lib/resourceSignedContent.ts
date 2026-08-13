@@ -32,7 +32,11 @@ export async function loadSignedInlineContent({
   const knownSize = byteLength(sizeBytes);
   if (
     !signedUrl ||
-    content !== undefined ||
+    // Connect decodes an omitted protobuf `bytes` field as an empty
+    // Uint8Array. A signed URL disambiguates that default value from a real
+    // zero-byte inline body: when it is present, the object store is
+    // authoritative and must be fetched.
+    (content !== undefined && (content.byteLength > 0 || !signedUrl)) ||
     !isInlinePreviewMediaType(mediaType) ||
     knownSize == null ||
     knownSize > MAX_INLINE_PREVIEW_BYTES
