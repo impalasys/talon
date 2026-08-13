@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { MarkdownMessage } from "./MarkdownMessage";
+import { splitYamlFrontmatter } from "./yamlFrontmatter";
 import {
   parseResourceUri,
   type ResourceViewModel,
@@ -138,6 +139,12 @@ export function ResourcePane({
     }
     return decodeContentAsText(resource.content);
   }, [resource]);
+  const markdownDocument = useMemo(
+    () => isMarkdownMediaType(resource?.mediaType || "") && textContent != null
+      ? splitYamlFrontmatter(textContent)
+      : null,
+    [resource?.mediaType, textContent],
+  );
 
   const imageSrc = resource?.signedUrl || blobUrl || null;
   const downloadHref = resource?.signedUrl || blobUrl || null;
@@ -245,11 +252,14 @@ export function ResourcePane({
             minHeight: 0,
             overflowY: "auto",
             overflowX: "hidden",
-            padding: "1rem",
-            fontSize: 13,
-            lineHeight: 1.55,
+            // Artifacts are documents, not chat bubbles. Give prose a more
+            // comfortable reading size without changing transcript density.
+            padding: "1.25rem",
+            fontSize: 15,
+            lineHeight: 1.65,
           }}
         >
+          <div style={{ width: "100%", maxWidth: "48rem", margin: "0 auto" }}>
           {isLoading ? (
             <div style={{ color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>Loading…</div>
           ) : null}
@@ -270,8 +280,11 @@ export function ResourcePane({
           ) : null}
 
           {!isLoading && !error && resource ? (
-            isMarkdownMediaType(resource.mediaType) && textContent != null ? (
-              <MarkdownMessage onResourceClick={onResourceClick}>{textContent}</MarkdownMessage>
+            isMarkdownMediaType(resource.mediaType) && markdownDocument ? (
+              <>
+                {markdownDocument.raw ? <YamlFrontmatter raw={markdownDocument.raw} /> : null}
+                <MarkdownMessage onResourceClick={onResourceClick}>{markdownDocument.body}</MarkdownMessage>
+              </>
             ) : isTextMediaType(resource.mediaType) && textContent != null ? (
               <pre
                 style={{
@@ -324,6 +337,7 @@ export function ResourcePane({
               </div>
             )
           ) : null}
+          </div>
         </div>
       </div>
 
@@ -362,4 +376,43 @@ function formatResourceError(error: Error): string {
     return "Not found";
   }
   return message;
+}
+
+function YamlFrontmatter({ raw }: { raw: string }) {
+  return (
+    <details
+      style={{
+        margin: "0 0 1rem",
+        border: border("rgba(148,163,184,0.24)"),
+        borderRadius: 10,
+        background: "var(--talon-chat-code-bg, rgba(24,24,27,0.04))",
+      }}
+    >
+      <summary
+        style={{
+          cursor: "pointer",
+          padding: "0.625rem 0.75rem",
+          color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))",
+          fontSize: 13,
+          fontWeight: 600,
+        }}
+      >
+        Document metadata
+      </summary>
+      <pre
+        style={{
+          margin: 0,
+          padding: "0 0.75rem 0.75rem",
+          overflowX: "auto",
+          whiteSpace: "pre-wrap",
+          fontFamily: "ui-monospace, SFMono-Regular, monospace",
+          fontSize: 12,
+          lineHeight: 1.5,
+          color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))",
+        }}
+      >
+        {raw}
+      </pre>
+    </details>
+  );
 }

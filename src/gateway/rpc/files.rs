@@ -2237,6 +2237,69 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn list_artifacts_returns_records_for_the_requested_session() {
+        let handler = handler_with_objects(Arc::new(InMemoryObjectStore::default()));
+        let namespace = "Tenant:acme:Workspace:main";
+        let agent = "writer";
+        let session_id = "session-1";
+        handler
+            .gateway
+            .kv
+            .set_msg(
+                &keys::artifact(namespace, agent, session_id, "draft"),
+                &data_proto::Artifact {
+                    id: "draft".to_string(),
+                    session_id: session_id.to_string(),
+                    title: "Draft".to_string(),
+                    media_type: "text/markdown".to_string(),
+                    object_ref: None,
+                    created_by_agent: agent.to_string(),
+                    created_at: chrono::Utc::now().timestamp_micros(),
+                    labels: HashMap::new(),
+                    metadata: HashMap::new(),
+                },
+            )
+            .await
+            .unwrap();
+        handler
+            .gateway
+            .kv
+            .set_msg(
+                &keys::artifact(namespace, agent, "other-session", "other"),
+                &data_proto::Artifact {
+                    id: "other".to_string(),
+                    session_id: "other-session".to_string(),
+                    title: "Other".to_string(),
+                    media_type: "text/plain".to_string(),
+                    object_ref: None,
+                    created_by_agent: agent.to_string(),
+                    created_at: chrono::Utc::now().timestamp_micros(),
+                    labels: HashMap::new(),
+                    metadata: HashMap::new(),
+                },
+            )
+            .await
+            .unwrap();
+
+        let listed = proto::artifact_service_server::ArtifactService::list_artifacts(
+            &handler,
+            Request::new(proto::ListArtifactsRequest {
+                namespace: namespace.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+                limit: 50,
+                page_token: String::new(),
+            }),
+        )
+        .await
+        .unwrap()
+        .into_inner();
+
+        assert_eq!(listed.artifacts.len(), 1);
+        assert_eq!(listed.artifacts[0].id, "draft");
+    }
+
+    #[tokio::test]
     async fn namespace_jwt_can_read_artifact_content_and_metadata() {
         use crate::control::security::platform_jwt;
         use crate::gateway::auth::TalonGrantClaim;

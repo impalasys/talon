@@ -202,6 +202,25 @@ exported for host apps.
 
 OS-style paths like `file:///tmp/foo` are **not** treated as Talon file URIs.
 
+## Session Artifacts
+
+Enable the optional session Artifact card when users should be able to browse
+outputs that are not linked directly in the transcript:
+
+```tsx
+<TalonSession
+  namespace="support"
+  agent="docs"
+  sessionId={sessionId}
+  gatewayClient={gatewayClient}
+  showSessionArtifacts
+/>
+```
+
+The card appears only when the session has Artifacts, lists them via
+`artifacts.listArtifacts`, and selecting
+one opens the same read-only split-pane viewer used by `artifact://` links.
+
 ## Storybook and Chromatic
 
 Run the component preview locally:

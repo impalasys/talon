@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   hydrateMessagesWithSteps,
   normalizeMessageRole,
@@ -33,6 +33,9 @@ import { useSessionPresentationState } from "./session/useSessionPresentationSta
 import { useSessionResources } from "./session/useSessionResources";
 import { useSessionCommands } from "./session/useSessionCommands";
 import { useSessionPendingMessages } from "./session/useSessionPendingMessages";
+import { SessionArtifactsRail } from "./session/SessionArtifactsRail";
+import { artifactUriFor, type SessionArtifact } from "./session/artifacts";
+import { useSessionArtifacts } from "./session/hooks/useSessionArtifacts";
 import type {
   TalonSessionProps,
 } from "./session/TalonSessionTypes";
@@ -87,6 +90,7 @@ export function TalonSession({
   allowMessageEditing = false,
   onMessageEdit,
   enableDebugMessageEditing = false,
+  showSessionArtifacts = false,
   onResourceClick: onResourceClickProp,
   fetchResource,
 }: TalonSessionProps) {
@@ -234,9 +238,34 @@ export function TalonSession({
     open: openResource,
     close: closeResourcePane,
     reset: clearResourcePaneState,
-    completeClose: handleResourcePaneExitComplete,
+    completeClose: completeResourcePaneClose,
     abortRef: resourceAbortRef,
   } = useSessionResources({ agent, currentSessionId: currentSession?.sessionId ?? null, fetchResource, gatewayClient, sessionId });
+  const sessionArtifacts = useSessionArtifacts({
+    enabled: showSessionArtifacts,
+    gatewayClient,
+    target: currentSession,
+  });
+  const wasSessionLiveRef = useRef(isSessionLive);
+  useEffect(() => {
+    if (wasSessionLiveRef.current && !isSessionLive) void sessionArtifacts.refresh();
+    wasSessionLiveRef.current = isSessionLive;
+  }, [isSessionLive, sessionArtifacts.refresh]);
+  const handleCloseResourcePane = useCallback(() => {
+    closeResourcePane();
+  }, [closeResourcePane]);
+  const handleResourcePaneExitComplete = useCallback(() => {
+    completeResourcePaneClose();
+  }, [completeResourcePaneClose]);
+  const handleSelectArtifact = useCallback((artifact: SessionArtifact) => {
+    if (!currentSession) return;
+    const artifactUri = artifactUriFor(currentSession, artifact.id);
+    if (onResourceClickProp) {
+      onResourceClickProp(artifactUri);
+      return;
+    }
+    void openResource(artifactUri);
+  }, [currentSession, onResourceClickProp, openResource]);
   const {
     editingMessageId,
     editingMessageValue,
@@ -262,7 +291,7 @@ export function TalonSession({
   const handleResourceClick = useSessionResourceClick({
     canFetchArtifact: Boolean(fetchResource) || Boolean(gatewayClient.artifacts?.readArtifact),
     canFetchFile: Boolean(fetchResource) || Boolean(gatewayClient.files?.readFile),
-    closeResourcePane,
+    closeResourcePane: handleCloseResourcePane,
     onResourceClick: onResourceClickProp,
     openResource,
     openResourceUri,
@@ -539,6 +568,17 @@ export function TalonSession({
           />
         </div>
 
+        {sessionArtifacts.available && (sessionArtifacts.artifacts.length > 0 || sessionArtifacts.error) && !openResourceUri ? (
+          <SessionArtifactsRail
+            artifacts={sessionArtifacts.artifacts}
+            error={sessionArtifacts.error}
+            hasMore={sessionArtifacts.hasMore}
+            isLoading={sessionArtifacts.isLoading}
+            onLoadMore={() => void sessionArtifacts.loadMore()}
+            onSelect={handleSelectArtifact}
+          />
+        ) : null}
+
         {openResourceUri ? (
           <ResourcePane
             uri={openResourceUri}
@@ -546,7 +586,7 @@ export function TalonSession({
             isLoading={resourceLoading}
             error={resourceError}
             open={resourcePaneOpen}
-            onClose={closeResourcePane}
+            onClose={handleCloseResourcePane}
             onExitComplete={handleResourcePaneExitComplete}
             onResourceClick={handleResourceClick}
           />
