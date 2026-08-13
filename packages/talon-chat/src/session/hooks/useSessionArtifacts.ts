@@ -35,9 +35,9 @@ export function useSessionArtifacts({ enabled, gatewayClient, target }: UseSessi
   const [error, setError] = useState<Error | null>(null);
   const isLoadingRef = useRef(false);
 
-  const load = useCallback(async (reset: boolean, pageToken = "") => {
-    if (!available || !target || !listArtifacts) return;
-    if (!reset && (!pageToken || isLoadingRef.current)) return;
+  const load = useCallback(async (reset: boolean, pageToken = ""): Promise<SessionArtifact[] | null> => {
+    if (!available || !target || !listArtifacts) return null;
+    if (!reset && (!pageToken || isLoadingRef.current)) return null;
     requestRef.current?.abort();
     const controller = new AbortController();
     requestRef.current = controller;
@@ -64,10 +64,12 @@ export function useSessionArtifacts({ enabled, gatewayClient, target }: UseSessi
       setNextPageToken(typeof (response?.nextPageToken ?? response?.next_page_token) === "string"
         ? response.nextPageToken ?? response.next_page_token
         : "");
+      return fetched;
     } catch (reason) {
       if (!controller.signal.aborted && requestRef.current === controller && scopeRef.current === requestScope) {
         setError(reason instanceof Error ? reason : new Error(String(reason)));
       }
+      return null;
     } finally {
       if (!controller.signal.aborted && requestRef.current === controller && scopeRef.current === requestScope) {
         isLoadingRef.current = false;

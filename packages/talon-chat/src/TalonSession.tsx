@@ -16,7 +16,7 @@ import { useToolResultHydration } from "./session/hooks/useToolResultHydration";
 import { useTranscriptExpansionState } from "./session/hooks/useTranscriptExpansionState";
 import { useTranscriptPaginationAnchor } from "./session/hooks/useTranscriptPaginationAnchor";
 import { useTranscriptScrollState } from "./session/hooks/useTranscriptScrollState";
-import { fetchResourceFromGateway } from "./lib/resourceLoader";
+import { parseResourceUri } from "./lib/resourceUris";
 import { useSessionGeneration } from "./session/useSessionGeneration";
 import { createLocalMessageId, useSessionActions } from "./session/useSessionActions";
 import { useSessionLifecycle } from "./session/useSessionLifecycle";
@@ -248,9 +248,18 @@ export function TalonSession({
   });
   const wasSessionLiveRef = useRef(isSessionLive);
   useEffect(() => {
-    if (wasSessionLiveRef.current && !isSessionLive) void sessionArtifacts.refresh();
+    if (wasSessionLiveRef.current && !isSessionLive) {
+      void sessionArtifacts.refresh().then((latestArtifacts) => {
+        const parsed = openResourceUri ? parseResourceUri(openResourceUri) : null;
+        if (parsed?.kind !== "artifact" || resourceView?.kind !== "artifact" || !resourceView.objectKey) return;
+        const latest = latestArtifacts?.find((artifact) => artifact.id === parsed.artifactId);
+        if (latest?.objectKey && latest.objectKey !== resourceView.objectKey) {
+          void openResource(parsed.uri);
+        }
+      });
+    }
     wasSessionLiveRef.current = isSessionLive;
-  }, [isSessionLive, sessionArtifacts.refresh]);
+  }, [isSessionLive, openResource, openResourceUri, resourceView, sessionArtifacts.refresh]);
   const handleCloseResourcePane = useCallback(() => {
     closeResourcePane();
   }, [closeResourcePane]);

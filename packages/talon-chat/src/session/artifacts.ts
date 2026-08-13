@@ -2,6 +2,8 @@ export type SessionArtifact = {
   id: string;
   title: string;
   mediaType: string;
+  /** Immutable CAS/object-store key for detecting a revised artifact body. */
+  objectKey: string | undefined;
   sizeBytes: number | bigint | string | undefined;
   createdAt: number | bigint | string | undefined;
 };
@@ -25,12 +27,14 @@ export function normalizeSessionArtifact(value: unknown): SessionArtifact | null
   const object = objectRef && typeof objectRef === "object" ? objectRef as Record<string, unknown> : {};
   const title = valueOf(source, "title", "title");
   const mediaType = valueOf(source, "mediaType", "media_type");
+  const objectKey = valueOf(object, "key", "key");
   const sizeBytes = valueOf(object, "sizeBytes", "size_bytes");
   const createdAt = valueOf(source, "createdAt", "created_at");
   return {
     id,
     title: typeof title === "string" ? title : "",
     mediaType: typeof mediaType === "string" ? mediaType : "",
+    objectKey: typeof objectKey === "string" && objectKey ? objectKey : undefined,
     sizeBytes: typeof sizeBytes === "number" || typeof sizeBytes === "bigint" || typeof sizeBytes === "string"
       ? sizeBytes
       : undefined,

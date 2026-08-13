@@ -12,13 +12,14 @@ test("normalizes generated Artifact fields and constructs the owning session URI
     id: "draft",
     title: "Launch draft",
     media_type: "text/markdown",
-    object_ref: { size_bytes: "2048" },
+    object_ref: { key: "cas/Tenant%3Aacme/artifacts/draft-v2", size_bytes: "2048" },
     created_at: "1777755592000000",
   });
   assert.deepEqual(artifact, {
     id: "draft",
     title: "Launch draft",
     mediaType: "text/markdown",
+    objectKey: "cas/Tenant%3Aacme/artifacts/draft-v2",
     sizeBytes: "2048",
     createdAt: "1777755592000000",
   });
@@ -30,10 +31,10 @@ test("normalizes generated Artifact fields and constructs the owning session URI
 
 test("deduplicates paginated artifacts and displays newest artifacts first", () => {
   const merged = mergeSessionArtifacts(
-    [{ id: "old", title: "Old", mediaType: "text/plain", createdAt: 1_700_000_000_000_000 }],
+    [{ id: "old", title: "Old", mediaType: "text/plain", objectKey: "old-v1", createdAt: 1_700_000_000_000_000 }],
     [
-      { id: "old", title: "Old revision", mediaType: "text/plain", createdAt: 1_700_000_000_000_000 },
-      { id: "new", title: "New", mediaType: "text/plain", createdAt: 1_800_000_000_000_000 },
+      { id: "old", title: "Old revision", mediaType: "text/plain", objectKey: "old-v2", createdAt: 1_700_000_000_000_000 },
+      { id: "new", title: "New", mediaType: "text/plain", objectKey: "new-v1", createdAt: 1_800_000_000_000_000 },
     ],
   );
   assert.deepEqual(merged.map((artifact) => [artifact.id, artifact.title]), [

@@ -69,6 +69,11 @@ export async function fetchResourceFromGateway({
       title: (typeof artifact.title === "string" && artifact.title) || parsed.artifactId,
       mediaType,
       content, signedUrl,
+      objectKey: typeof artifact.objectRef?.key === "string"
+        ? artifact.objectRef.key
+        : typeof artifact.object_ref?.key === "string"
+          ? artifact.object_ref.key
+          : undefined,
       sessionId: parsed.sessionId, agent: parsed.agent,
     };
   }

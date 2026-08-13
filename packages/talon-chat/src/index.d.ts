@@ -48,6 +48,8 @@ export type ResourceViewModel = {
   mediaType: string;
   content?: Uint8Array | string;
   signedUrl?: string;
+  /** Immutable CAS/object-store key, if supplied by the gateway. */
+  objectKey?: string;
   path?: string;
   sessionId?: string;
   agent?: string;
