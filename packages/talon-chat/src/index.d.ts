@@ -16,7 +16,7 @@ export type CasServiceClientLike = Pick<TalonClient["cas"], "getObject">;
 export type ArtifactServiceClientLike = Pick<
   TalonClient["artifacts"],
   "readArtifact" | "getArtifactMetadata"
->;
+> & Partial<Pick<TalonClient["artifacts"], "listArtifacts">>;
 
 export type FileServiceClientLike = Pick<
   TalonClient["files"],
@@ -48,6 +48,8 @@ export type ResourceViewModel = {
   mediaType: string;
   content?: Uint8Array | string;
   signedUrl?: string;
+  /** Immutable CAS/object-store key, if supplied by the gateway. */
+  objectKey?: string;
   path?: string;
   sessionId?: string;
   agent?: string;
@@ -268,6 +270,8 @@ export type TalonSessionProps = {
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
   enableDebugMessageEditing?: boolean;
+  /** Show the current session's Artifact catalog in a collapsible corner card. */
+  showSessionArtifacts?: boolean;
   /**
    * Called when an artifact:// or file:// link is clicked.
    * If omitted, the built-in split pane opens when the matching client is available.

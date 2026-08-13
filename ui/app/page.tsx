@@ -1406,15 +1406,16 @@ function DebuggerPageContent() {
                     agent={selectedSession.agent || 'default'}
                     sessionId={selectedSession.sessionId}
                     gatewayClient={getGatewayClient()}
-                  historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
-                  enabledBuiltInCommands={['clear', 'compact', 'doctor']}
-                  onImageUpload={sessionComposerRole === 'assistant' || !imageUploadsEnabled ? undefined : uploadTalonImage}
-                  objectUrlForRef={imageUploadsEnabled ? talonObjectUrl : undefined}
-                  disabled={!isConnected}
-                  allowMessageEditing
-                  enableDebugMessageEditing={Boolean(sessionConnectorMetadata)}
-                  composerVariant="expanded"
-                  composerStartAdornment={
+                    showSessionArtifacts
+                    historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
+                    enabledBuiltInCommands={['clear', 'compact', 'doctor']}
+                    onImageUpload={sessionComposerRole === 'assistant' || !imageUploadsEnabled ? undefined : uploadTalonImage}
+                    objectUrlForRef={imageUploadsEnabled ? talonObjectUrl : undefined}
+                    disabled={!isConnected}
+                    allowMessageEditing
+                    enableDebugMessageEditing={Boolean(sessionConnectorMetadata)}
+                    composerVariant="expanded"
+                    composerStartAdornment={
                     <div className="flex h-8 overflow-hidden rounded-full border border-border bg-background/80 p-0.5">
                       {(['user', 'assistant'] as const).map((role) => (
                         <button

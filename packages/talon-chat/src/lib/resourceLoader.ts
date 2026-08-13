@@ -1,4 +1,5 @@
 import { parseResourceUri, type ResourceViewModel } from "./resourceUris";
+import { loadSignedInlineContent } from "./resourceSignedContent";
 import type { TalonClient } from "@impalasys/talon-client";
 
 type ResourceGatewayClient = {
@@ -54,11 +55,25 @@ export async function fetchResourceFromGateway({
     if (!artifacts?.readArtifact) throw new Error("Gateway client does not expose artifacts.readArtifact().");
     const response = await (artifacts.readArtifact as any)({ artifactUri: parsed.uri }, options);
     const artifact = response?.artifact ?? {};
+    const mediaType = artifact.mediaType || artifact.media_type || "application/octet-stream";
+    const signedUrl = response?.signedUrl || response?.signed_url || undefined;
+    const content = await loadSignedInlineContent({
+      content: contentBytes(response?.content),
+      mediaType,
+      signedUrl,
+      sizeBytes: artifact.objectRef?.sizeBytes ?? artifact.object_ref?.size_bytes,
+      signal,
+    });
     return {
       kind: "artifact", uri: parsed.uri,
       title: (typeof artifact.title === "string" && artifact.title) || parsed.artifactId,
-      mediaType: artifact.mediaType || artifact.media_type || "application/octet-stream",
-      content: contentBytes(response?.content), signedUrl: response?.signedUrl || response?.signed_url || undefined,
+      mediaType,
+      content, signedUrl,
+      objectKey: typeof artifact.objectRef?.key === "string"
+        ? artifact.objectRef.key
+        : typeof artifact.object_ref?.key === "string"
+          ? artifact.object_ref.key
+          : undefined,
       sessionId: parsed.sessionId, agent: parsed.agent,
     };
   }

@@ -395,6 +395,14 @@ function createSessionClient(messages: typeof resourceCatalogMessages): GatewayC
 const resourceGatewayClient: GatewayClientLike = {
   sessions: createSessionClient(resourceCatalogMessages),
   artifacts: {
+    listArtifacts: async ({ pageToken }) => {
+      const artifacts = [
+        { id: "final-draft", title: "Final draft", mediaType: "text/markdown", objectRef: { sizeBytes: 1_436 }, createdAt: 1_780_750_000_000_000 },
+        { id: "metrics-json", title: "Metrics snapshot", mediaType: "application/json", objectRef: { sizeBytes: 84 }, createdAt: 1_780_740_000_000_000 },
+        { id: "plain-notes", title: "Plain notes", mediaType: "text/plain", objectRef: { sizeBytes: 42 }, createdAt: 1_780_730_000_000_000 },
+      ];
+      return pageToken ? { artifacts: [], nextPageToken: "" } : { artifacts, nextPageToken: "more" };
+    },
     readArtifact: async ({ artifactUri }) => {
       if (artifactUri === ARTIFACT_DENIED_URI) {
         throw new Error("PermissionDenied: artifact access denied");
@@ -539,6 +547,22 @@ export const ResourceUris: Story = {
   },
   render: (args) => (
     <ResourceSessionFrame>
+      <TalonSession {...args} />
+    </ResourceSessionFrame>
+  ),
+};
+
+/** Session-scoped Artifacts are discoverable without a URI in the transcript. */
+export const SessionArtifactCatalog: Story = {
+  name: "Session artifacts · corner card",
+  args: {
+    gatewayClient: resourceGatewayClient,
+    sessionId: "storybook-session",
+    showSessionArtifacts: true,
+    placeholder: "Browse artifacts beside this session...",
+  },
+  render: (args) => (
+    <ResourceSessionFrame maxWidth={960}>
       <TalonSession {...args} />
     </ResourceSessionFrame>
   ),

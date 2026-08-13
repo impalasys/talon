@@ -17,7 +17,9 @@ export type SessionServiceClientLike = {
 }["sessions"];
 
 export type CasServiceClientLike = Pick<TalonClient["cas"], "getObject">;
-export type ArtifactServiceClientLike = Pick<TalonClient["artifacts"], "readArtifact" | "getArtifactMetadata">;
+export type ArtifactServiceClientLike =
+  Pick<TalonClient["artifacts"], "readArtifact" | "getArtifactMetadata">
+  & Partial<Pick<TalonClient["artifacts"], "listArtifacts">>;
 export type FileServiceClientLike = Pick<TalonClient["files"], "readFile" | "getFileMetadata">;
 
 export type GatewayClientLike = {
@@ -127,6 +129,8 @@ export type TalonSessionProps = {
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
   enableDebugMessageEditing?: boolean;
+  /** Show the current session's Artifact catalog in a collapsible corner card. */
+  showSessionArtifacts?: boolean;
   /** Override artifact:// and file:// interaction instead of opening the built-in pane. */
   onResourceClick?: (uri: string) => void;
   /** Override resource fetching for the built-in pane. */
