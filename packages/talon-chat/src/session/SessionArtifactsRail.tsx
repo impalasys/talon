@@ -47,7 +47,7 @@ export function SessionArtifactsRail({
         border: border("var(--talon-chat-divider, rgba(212,212,216,0.7))"),
         borderRadius: 18,
         background: "var(--talon-chat-resource-pane-bg, var(--talon-chat-composer-bg, rgba(255,255,255,0.96)))",
-        boxShadow: "0 12px 32px rgba(24,24,27,0.10), 0 2px 7px rgba(24,24,27,0.06)",
+        boxShadow: "0 5px 16px rgba(24,24,27,0.06), 0 1px 3px rgba(24,24,27,0.04)",
         transition: "width 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease",
       }}
     >
