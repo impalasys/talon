@@ -518,7 +518,7 @@ def test_interactive_messages_are_steered_and_batched_after_tool_result(
         requests_seen = state["chat_requests"]
         assert len(requests_seen) == 2, "steering burst should trigger one follow-up model request"
         follow_up_users = [
-            message_text(message)
+            message.get("content", "")
             for message in requests_seen[-1]["messages"]
             if message.get("role") == "user"
         ]

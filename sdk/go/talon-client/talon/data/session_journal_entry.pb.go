@@ -38,6 +38,9 @@ const (
 	// Durable model context compaction completed. The journal entry references
 	// an immutable summary object without storing a provider transcript snapshot.
 	SessionExecutionPhase_SESSION_EXECUTION_PHASE_COMPACTION SessionExecutionPhase = 4
+	// Interactive user input was absorbed into the active execution after a
+	// completed tool-call batch.
+	SessionExecutionPhase_SESSION_EXECUTION_PHASE_STEER_INPUT SessionExecutionPhase = 5
 )
 
 // Enum value maps for SessionExecutionPhase.
@@ -48,6 +51,7 @@ var (
 		2: "SESSION_EXECUTION_PHASE_TOOL_RESULT",
 		3: "SESSION_EXECUTION_PHASE_COMMITTED",
 		4: "SESSION_EXECUTION_PHASE_COMPACTION",
+		5: "SESSION_EXECUTION_PHASE_STEER_INPUT",
 	}
 	SessionExecutionPhase_value = map[string]int32{
 		"SESSION_EXECUTION_PHASE_UNSPECIFIED":  0,
@@ -55,6 +59,7 @@ var (
 		"SESSION_EXECUTION_PHASE_TOOL_RESULT":  2,
 		"SESSION_EXECUTION_PHASE_COMMITTED":    3,
 		"SESSION_EXECUTION_PHASE_COMPACTION":   4,
+		"SESSION_EXECUTION_PHASE_STEER_INPUT":  5,
 	}
 )
 
@@ -294,6 +299,52 @@ func (x *SessionJournalEntryPayloadCompaction) GetSummary() *ObjectRef {
 	return nil
 }
 
+type SessionJournalEntryPayloadSteerInput struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Canonical user SessionMessage ids appended to the active execution
+	// context, in admission order.
+	MessageIds    []string `protobuf:"bytes,1,rep,name=message_ids,json=messageIds,proto3" json:"message_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SessionJournalEntryPayloadSteerInput) Reset() {
+	*x = SessionJournalEntryPayloadSteerInput{}
+	mi := &file_proto_data_session_journal_entry_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SessionJournalEntryPayloadSteerInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SessionJournalEntryPayloadSteerInput) ProtoMessage() {}
+
+func (x *SessionJournalEntryPayloadSteerInput) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_data_session_journal_entry_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SessionJournalEntryPayloadSteerInput.ProtoReflect.Descriptor instead.
+func (*SessionJournalEntryPayloadSteerInput) Descriptor() ([]byte, []int) {
+	return file_proto_data_session_journal_entry_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SessionJournalEntryPayloadSteerInput) GetMessageIds() []string {
+	if x != nil {
+		return x.MessageIds
+	}
+	return nil
+}
+
 type SessionJournalEntryPayload struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Payload:
@@ -302,6 +353,7 @@ type SessionJournalEntryPayload struct {
 	//	*SessionJournalEntryPayload_ToolResult
 	//	*SessionJournalEntryPayload_Commit
 	//	*SessionJournalEntryPayload_Compaction
+	//	*SessionJournalEntryPayload_SteerInput
 	Payload       isSessionJournalEntryPayload_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -309,7 +361,7 @@ type SessionJournalEntryPayload struct {
 
 func (x *SessionJournalEntryPayload) Reset() {
 	*x = SessionJournalEntryPayload{}
-	mi := &file_proto_data_session_journal_entry_proto_msgTypes[4]
+	mi := &file_proto_data_session_journal_entry_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -321,7 +373,7 @@ func (x *SessionJournalEntryPayload) String() string {
 func (*SessionJournalEntryPayload) ProtoMessage() {}
 
 func (x *SessionJournalEntryPayload) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_session_journal_entry_proto_msgTypes[4]
+	mi := &file_proto_data_session_journal_entry_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -334,7 +386,7 @@ func (x *SessionJournalEntryPayload) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionJournalEntryPayload.ProtoReflect.Descriptor instead.
 func (*SessionJournalEntryPayload) Descriptor() ([]byte, []int) {
-	return file_proto_data_session_journal_entry_proto_rawDescGZIP(), []int{4}
+	return file_proto_data_session_journal_entry_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SessionJournalEntryPayload) GetPayload() isSessionJournalEntryPayload_Payload {
@@ -380,6 +432,15 @@ func (x *SessionJournalEntryPayload) GetCompaction() *SessionJournalEntryPayload
 	return nil
 }
 
+func (x *SessionJournalEntryPayload) GetSteerInput() *SessionJournalEntryPayloadSteerInput {
+	if x != nil {
+		if x, ok := x.Payload.(*SessionJournalEntryPayload_SteerInput); ok {
+			return x.SteerInput
+		}
+	}
+	return nil
+}
+
 type isSessionJournalEntryPayload_Payload interface {
 	isSessionJournalEntryPayload_Payload()
 }
@@ -400,6 +461,10 @@ type SessionJournalEntryPayload_Compaction struct {
 	Compaction *SessionJournalEntryPayloadCompaction `protobuf:"bytes,5,opt,name=compaction,proto3,oneof"`
 }
 
+type SessionJournalEntryPayload_SteerInput struct {
+	SteerInput *SessionJournalEntryPayloadSteerInput `protobuf:"bytes,6,opt,name=steer_input,json=steerInput,proto3,oneof"`
+}
+
 func (*SessionJournalEntryPayload_LlmResponse) isSessionJournalEntryPayload_Payload() {}
 
 func (*SessionJournalEntryPayload_ToolResult) isSessionJournalEntryPayload_Payload() {}
@@ -407,6 +472,8 @@ func (*SessionJournalEntryPayload_ToolResult) isSessionJournalEntryPayload_Paylo
 func (*SessionJournalEntryPayload_Commit) isSessionJournalEntryPayload_Payload() {}
 
 func (*SessionJournalEntryPayload_Compaction) isSessionJournalEntryPayload_Payload() {}
+
+func (*SessionJournalEntryPayload_SteerInput) isSessionJournalEntryPayload_Payload() {}
 
 type SessionJournalEntry struct {
 	state          protoimpl.MessageState      `protogen:"open.v1"`
@@ -428,7 +495,7 @@ type SessionJournalEntry struct {
 
 func (x *SessionJournalEntry) Reset() {
 	*x = SessionJournalEntry{}
-	mi := &file_proto_data_session_journal_entry_proto_msgTypes[5]
+	mi := &file_proto_data_session_journal_entry_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +507,7 @@ func (x *SessionJournalEntry) String() string {
 func (*SessionJournalEntry) ProtoMessage() {}
 
 func (x *SessionJournalEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_data_session_journal_entry_proto_msgTypes[5]
+	mi := &file_proto_data_session_journal_entry_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +520,7 @@ func (x *SessionJournalEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionJournalEntry.ProtoReflect.Descriptor instead.
 func (*SessionJournalEntry) Descriptor() ([]byte, []int) {
-	return file_proto_data_session_journal_entry_proto_rawDescGZIP(), []int{5}
+	return file_proto_data_session_journal_entry_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SessionJournalEntry) GetSubmissionId() string {
@@ -538,7 +605,10 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	" SessionJournalEntryPayloadCommit\x120\n" +
 	"\x14committed_message_id\x18\x01 \x01(\tR\x12committedMessageId\"W\n" +
 	"$SessionJournalEntryPayloadCompaction\x12/\n" +
-	"\asummary\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\asummary\"\xf0\x02\n" +
+	"\asummary\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\asummary\"G\n" +
+	"$SessionJournalEntryPayloadSteerInput\x12\x1f\n" +
+	"\vmessage_ids\x18\x01 \x03(\tR\n" +
+	"messageIds\"\xc5\x03\n" +
 	"\x1aSessionJournalEntryPayload\x12V\n" +
 	"\fllm_response\x18\x01 \x01(\v21.talon.data.SessionJournalEntryPayloadLlmResponseH\x00R\vllmResponse\x12S\n" +
 	"\vtool_result\x18\x02 \x01(\v20.talon.data.SessionJournalEntryPayloadToolResultH\x00R\n" +
@@ -546,7 +616,9 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	"\x06commit\x18\x03 \x01(\v2,.talon.data.SessionJournalEntryPayloadCommitH\x00R\x06commit\x12R\n" +
 	"\n" +
 	"compaction\x18\x05 \x01(\v20.talon.data.SessionJournalEntryPayloadCompactionH\x00R\n" +
-	"compactionB\t\n" +
+	"compaction\x12S\n" +
+	"\vsteer_input\x18\x06 \x01(\v20.talon.data.SessionJournalEntryPayloadSteerInputH\x00R\n" +
+	"steerInputB\t\n" +
 	"\apayload\"\xc5\x03\n" +
 	"\x13SessionJournalEntry\x12#\n" +
 	"\rsubmission_id\x18\x01 \x01(\tR\fsubmissionId\x12(\n" +
@@ -562,13 +634,14 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	"\fcommitted_at\x18\b \x01(\x03H\x00R\vcommittedAt\x88\x01\x01\x125\n" +
 	"\x14committed_message_id\x18\t \x01(\tH\x01R\x12committedMessageId\x88\x01\x01B\x0f\n" +
 	"\r_committed_atB\x17\n" +
-	"\x15_committed_message_id*\xe2\x01\n" +
+	"\x15_committed_message_id*\x8b\x02\n" +
 	"\x15SessionExecutionPhase\x12'\n" +
 	"#SESSION_EXECUTION_PHASE_UNSPECIFIED\x10\x00\x12(\n" +
 	"$SESSION_EXECUTION_PHASE_LLM_RESPONSE\x10\x01\x12'\n" +
 	"#SESSION_EXECUTION_PHASE_TOOL_RESULT\x10\x02\x12%\n" +
 	"!SESSION_EXECUTION_PHASE_COMMITTED\x10\x03\x12&\n" +
-	"\"SESSION_EXECUTION_PHASE_COMPACTION\x10\x04b\x06proto3"
+	"\"SESSION_EXECUTION_PHASE_COMPACTION\x10\x04\x12'\n" +
+	"#SESSION_EXECUTION_PHASE_STEER_INPUT\x10\x05b\x06proto3"
 
 var (
 	file_proto_data_session_journal_entry_proto_rawDescOnce sync.Once
@@ -583,35 +656,37 @@ func file_proto_data_session_journal_entry_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_data_session_journal_entry_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_data_session_journal_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_data_session_journal_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_data_session_journal_entry_proto_goTypes = []any{
 	(SessionExecutionPhase)(0),                    // 0: talon.data.SessionExecutionPhase
 	(*SessionJournalEntryPayloadLlmResponse)(nil), // 1: talon.data.SessionJournalEntryPayloadLlmResponse
 	(*SessionJournalEntryPayloadToolResult)(nil),  // 2: talon.data.SessionJournalEntryPayloadToolResult
 	(*SessionJournalEntryPayloadCommit)(nil),      // 3: talon.data.SessionJournalEntryPayloadCommit
 	(*SessionJournalEntryPayloadCompaction)(nil),  // 4: talon.data.SessionJournalEntryPayloadCompaction
-	(*SessionJournalEntryPayload)(nil),            // 5: talon.data.SessionJournalEntryPayload
-	(*SessionJournalEntry)(nil),                   // 6: talon.data.SessionJournalEntry
-	(*ChatResponse)(nil),                          // 7: talon.harness.ChatResponse
-	(*ObjectRef)(nil),                             // 8: talon.data.ObjectRef
-	(*ToolOutput)(nil),                            // 9: talon.harness.ToolOutput
+	(*SessionJournalEntryPayloadSteerInput)(nil),  // 5: talon.data.SessionJournalEntryPayloadSteerInput
+	(*SessionJournalEntryPayload)(nil),            // 6: talon.data.SessionJournalEntryPayload
+	(*SessionJournalEntry)(nil),                   // 7: talon.data.SessionJournalEntry
+	(*ChatResponse)(nil),                          // 8: talon.harness.ChatResponse
+	(*ObjectRef)(nil),                             // 9: talon.data.ObjectRef
+	(*ToolOutput)(nil),                            // 10: talon.harness.ToolOutput
 }
 var file_proto_data_session_journal_entry_proto_depIdxs = []int32{
-	7,  // 0: talon.data.SessionJournalEntryPayloadLlmResponse.response:type_name -> talon.harness.ChatResponse
-	8,  // 1: talon.data.SessionJournalEntryPayloadToolResult.object:type_name -> talon.data.ObjectRef
-	9,  // 2: talon.data.SessionJournalEntryPayloadToolResult.tool_output:type_name -> talon.harness.ToolOutput
-	8,  // 3: talon.data.SessionJournalEntryPayloadCompaction.summary:type_name -> talon.data.ObjectRef
+	8,  // 0: talon.data.SessionJournalEntryPayloadLlmResponse.response:type_name -> talon.harness.ChatResponse
+	9,  // 1: talon.data.SessionJournalEntryPayloadToolResult.object:type_name -> talon.data.ObjectRef
+	10, // 2: talon.data.SessionJournalEntryPayloadToolResult.tool_output:type_name -> talon.harness.ToolOutput
+	9,  // 3: talon.data.SessionJournalEntryPayloadCompaction.summary:type_name -> talon.data.ObjectRef
 	1,  // 4: talon.data.SessionJournalEntryPayload.llm_response:type_name -> talon.data.SessionJournalEntryPayloadLlmResponse
 	2,  // 5: talon.data.SessionJournalEntryPayload.tool_result:type_name -> talon.data.SessionJournalEntryPayloadToolResult
 	3,  // 6: talon.data.SessionJournalEntryPayload.commit:type_name -> talon.data.SessionJournalEntryPayloadCommit
 	4,  // 7: talon.data.SessionJournalEntryPayload.compaction:type_name -> talon.data.SessionJournalEntryPayloadCompaction
-	0,  // 8: talon.data.SessionJournalEntry.phase:type_name -> talon.data.SessionExecutionPhase
-	5,  // 9: talon.data.SessionJournalEntry.payload:type_name -> talon.data.SessionJournalEntryPayload
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	5,  // 8: talon.data.SessionJournalEntryPayload.steer_input:type_name -> talon.data.SessionJournalEntryPayloadSteerInput
+	0,  // 9: talon.data.SessionJournalEntry.phase:type_name -> talon.data.SessionExecutionPhase
+	6,  // 10: talon.data.SessionJournalEntry.payload:type_name -> talon.data.SessionJournalEntryPayload
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_proto_data_session_journal_entry_proto_init() }
@@ -621,20 +696,21 @@ func file_proto_data_session_journal_entry_proto_init() {
 	}
 	file_proto_data_data_proto_init()
 	file_proto_harness_llm_proto_init()
-	file_proto_data_session_journal_entry_proto_msgTypes[4].OneofWrappers = []any{
+	file_proto_data_session_journal_entry_proto_msgTypes[5].OneofWrappers = []any{
 		(*SessionJournalEntryPayload_LlmResponse)(nil),
 		(*SessionJournalEntryPayload_ToolResult)(nil),
 		(*SessionJournalEntryPayload_Commit)(nil),
 		(*SessionJournalEntryPayload_Compaction)(nil),
+		(*SessionJournalEntryPayload_SteerInput)(nil),
 	}
-	file_proto_data_session_journal_entry_proto_msgTypes[5].OneofWrappers = []any{}
+	file_proto_data_session_journal_entry_proto_msgTypes[6].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_data_session_journal_entry_proto_rawDesc), len(file_proto_data_session_journal_entry_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
