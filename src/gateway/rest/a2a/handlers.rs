@@ -4,6 +4,7 @@
 use std::convert::Infallible;
 use std::sync::Arc;
 
+use anyhow::Error as AnyhowError;
 use axum::{
     body::Bytes,
     extract::{Host, OriginalUri, Path, State},
@@ -190,7 +191,7 @@ async fn stream_message(
         }
     });
 
-    if let Err(err) = scheduling::send_or_queue_a2a_session_message(
+    let (_, disposition) = match scheduling::send_or_queue_a2a_session_message(
         gateway.kv.as_ref(),
         gateway.pubsub.as_ref(),
         &route.ns,
@@ -201,8 +202,17 @@ async fn stream_message(
     )
     .await
     {
+        Ok(result) => result,
+        Err(err) => {
+            watcher_cancel.cancel();
+            return scheduling_error_response(err);
+        }
+    };
+    if disposition == scheduling::A2aSessionMessageDisposition::Queued {
         watcher_cancel.cancel();
-        return scheduling_error_response(err);
+        return scheduling_error_response(AnyhowError::new(
+            scheduling::SessionCurrentlyProcessingError,
+        ));
     }
 
     let stream_gateway = gateway.clone();

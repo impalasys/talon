@@ -1241,19 +1241,18 @@ async fn dispatch_to_session(
     )
     .await
     .map_err(map_dispatch_error)?;
-    if queued.queue == crate::control::session_queue::NEXT_QUEUE {
-        crate::control::session_queue::dispatch_next_queued_message(
-            cp.kv.as_ref(),
-            cp.pubsub.as_ref(),
-            &agent_namespace,
-            agent_name,
-            &session_id,
-            crate::control::session_queue::NEXT_QUEUE,
-            chrono::Utc::now(),
-        )
-        .await
-        .map_err(map_dispatch_error)?;
-    }
+    let dispatch_queue = queued.queue.as_str();
+    crate::control::session_queue::dispatch_next_queued_message(
+        cp.kv.as_ref(),
+        cp.pubsub.as_ref(),
+        &agent_namespace,
+        agent_name,
+        &session_id,
+        dispatch_queue,
+        chrono::Utc::now(),
+    )
+    .await
+    .map_err(map_dispatch_error)?;
     tracing::info!(
         registration_id = %event.registration_id,
         connector_class = %event.connector_class,

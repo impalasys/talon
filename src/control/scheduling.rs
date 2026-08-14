@@ -648,6 +648,25 @@ pub async fn send_message(
                 kv, ns, agent, session_id, user_msg, now,
             )
             .await?;
+            if let Err(err) = crate::control::session_queue::dispatch_next_queued_message(
+                kv,
+                pubsub,
+                ns,
+                agent,
+                session_id,
+                crate::control::session_queue::STEER_QUEUE,
+                now,
+            )
+            .await
+            {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent,
+                    session = %session_id,
+                    error = %err,
+                    "failed to recheck queued interactive message after admission"
+                );
+            }
             return Ok(queued.entry_id);
         }
     }
@@ -922,6 +941,12 @@ pub async fn send_session_message(
     Ok(submission_id)
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum A2aSessionMessageDisposition {
+    Submitted,
+    Queued,
+}
+
 /// A2A requests are serialized turns. If a session is already busy, retain
 /// the request in NEXT and let the normal release path dispatch it later.
 pub async fn send_or_queue_a2a_session_message(
@@ -932,9 +957,9 @@ pub async fn send_or_queue_a2a_session_message(
     session_id: &str,
     user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
-) -> Result<String> {
+) -> Result<(String, A2aSessionMessageDisposition)> {
     match send_session_message(kv, pubsub, ns, agent, session_id, user_msg.clone(), now).await {
-        Ok(submission_id) => Ok(submission_id),
+        Ok(submission_id) => Ok((submission_id, A2aSessionMessageDisposition::Submitted)),
         Err(err)
             if err
                 .downcast_ref::<SessionCurrentlyProcessingError>()
@@ -954,7 +979,7 @@ pub async fn send_or_queue_a2a_session_message(
                 now,
             )
             .await?;
-            Ok(queued.id)
+            Ok((queued.id, A2aSessionMessageDisposition::Queued))
         }
         Err(err) => Err(err),
     }

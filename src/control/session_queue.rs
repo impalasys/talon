@@ -82,7 +82,25 @@ pub async fn prepare_steer_batch(
             continue;
         };
         let original_bytes = bytes.clone();
-        let mut message = data_proto::SessionMessage::decode(bytes.as_slice())?;
+        let mut message = match data_proto::SessionMessage::decode(bytes.as_slice()) {
+            Ok(message) => message,
+            Err(error) => {
+                tracing::warn!(
+                    %entry_id,
+                    error = %error,
+                    "dropping undecodable steer queue entry"
+                );
+                kv.delete(&keys::session_queue_entry(
+                    ns,
+                    agent,
+                    session_id,
+                    STEER_QUEUE,
+                    &entry_id,
+                ))
+                .await?;
+                continue;
+            }
+        };
         let text_chars = message
             .parts
             .iter()
@@ -120,7 +138,8 @@ pub async fn prepare_steer_batch(
             {
                 // Another worker claimed and canonicalized this entry. It will
                 // either commit it or make it visible on the next attempt.
-                continue;
+                // Stop here so the batch stays contiguous in admission order.
+                break;
             }
             message_id
         } else {
@@ -263,6 +282,27 @@ pub async fn queue_interactive_session_message(
         _ => NEXT_QUEUE,
     };
     queue_session_message(kv, ns, agent, session_id, queue, message, now).await
+}
+
+/// Move steering entries to NEXT when the active attempt has failed. The
+/// destination is written before the source is deleted so a crash can leave a
+/// duplicate queue copy, but never lose the input.
+pub async fn reclassify_steer_queue_to_next(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+) -> Result<()> {
+    let steer_prefix = keys::session_queue_prefix(ns, agent, session_id, STEER_QUEUE);
+    for (entry_key, bytes) in kv.list_entries(&steer_prefix, None).await? {
+        let Some(entry_id) = keys::direct_child_name(&steer_prefix, &entry_key) else {
+            continue;
+        };
+        let next_key = keys::session_queue_entry(ns, agent, session_id, NEXT_QUEUE, &entry_id);
+        kv.compare_and_swap(&next_key, None, &bytes).await?;
+        kv.delete(&entry_key).await?;
+    }
+    Ok(())
 }
 
 pub async fn dispatch_next_queued_message(
@@ -642,6 +682,108 @@ mod tests {
             .len(),
             1
         );
+    }
+
+    #[tokio::test]
+    async fn steer_batch_drops_malformed_entries_and_keeps_valid_entries() {
+        let kv = MockKvStore::new();
+        put_session(&kv, "PROCESSING").await;
+        let malformed_id = "00000000000000000001-malformed";
+        kv.set(
+            &keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                malformed_id,
+            ),
+            b"not-a-session-message",
+        )
+        .await
+        .unwrap();
+        queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "valid",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+
+        let batch = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            8,
+            100,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(batch.len(), 1);
+        assert_eq!(batch[0].message.parts[0].content, "valid");
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                malformed_id,
+            ))
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn reclassify_steer_entries_to_next_preserves_entries() {
+        let kv = MockKvStore::new();
+        put_session(&kv, "ERROR").await;
+        let queued = queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "recover me",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+
+        reclassify_steer_queue_to_next(&kv, "Tenant:acme:Ops", "agent", "session-1")
+            .await
+            .unwrap();
+
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                &queued.entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                NEXT_QUEUE,
+                &queued.entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_some());
     }
 
     #[tokio::test]

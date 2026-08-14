@@ -4,7 +4,7 @@
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
@@ -1458,13 +1458,14 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn take_steering_messages(&self) -> Result<Vec<crate::harness::executor::LoopMessage>> {
         const MAX_STEER_DRAINS: u8 = 4;
-        {
+        let drain_attempt = {
             let mut drains = self.steer_drains.lock().unwrap();
             if *drains >= MAX_STEER_DRAINS {
                 return Ok(Vec::new());
             }
             *drains += 1;
-        }
+            *drains
+        };
 
         let mut batch = session_queue::prepare_steer_batch(
             self.kv.as_ref(),
@@ -1476,8 +1477,8 @@ impl ExecutionSink for PubSubSessionSink {
             chrono::Utc::now(),
         )
         .await?;
-        if batch.is_empty() {
-            tokio::time::sleep(Duration::from_millis(500)).await;
+        if batch.is_empty() && drain_attempt == 1 {
+            tokio::time::sleep(Duration::from_millis(50)).await;
             batch = session_queue::prepare_steer_batch(
                 self.kv.as_ref(),
                 &self.ns,
@@ -1489,6 +1490,51 @@ impl ExecutionSink for PubSubSessionSink {
             )
             .await?;
         }
+        if batch.is_empty() {
+            return Ok(Vec::new());
+        }
+        let journaled_message_ids = sessions::list_journal_entries(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+        )
+        .await?
+        .into_iter()
+        .filter(|entry| {
+            entry.phase
+                == crate::gateway::rpc::data_proto::SessionExecutionPhase::SteerInput as i32
+        })
+        .filter_map(|entry| {
+            entry
+                .payload
+                .and_then(|payload| payload.payload)
+                .and_then(|payload| match payload {
+                    crate::gateway::rpc::data_proto::session_journal_entry_payload::Payload::SteerInput(
+                        payload,
+                    ) => Some(payload.message_ids),
+                    _ => None,
+                })
+        })
+        .flatten()
+        .collect::<HashSet<_>>();
+        let mut fresh_batch = Vec::with_capacity(batch.len());
+        for item in batch {
+            if journaled_message_ids.contains(&item.message_id) {
+                session_queue::commit_steer_batch(
+                    self.kv.as_ref(),
+                    &self.ns,
+                    &self.agent_id,
+                    &self.session_id,
+                    std::slice::from_ref(&item),
+                )
+                .await?;
+            } else {
+                fresh_batch.push(item);
+            }
+        }
+        let batch = fresh_batch;
         if batch.is_empty() {
             return Ok(Vec::new());
         }

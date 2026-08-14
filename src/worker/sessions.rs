@@ -1253,6 +1253,24 @@ impl WorkerEventHandler {
                 "failed to dispatch workflow from completed child session"
             );
         }
+        if session.status == "ERROR" {
+            if let Err(err) = crate::control::session_queue::reclassify_steer_queue_to_next(
+                self.cp.kv.as_ref(),
+                ns,
+                agent_id,
+                session_id,
+            )
+            .await
+            {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent_id,
+                    session = %session_id,
+                    error = %err,
+                    "failed to recover steering queue after session error"
+                );
+            }
+        }
         if completion_status != SessionCompletionStatus::Waiting {
             let delegated_completion = match completion_status {
                 SessionCompletionStatus::Completed => {
