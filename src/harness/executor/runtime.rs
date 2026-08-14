@@ -715,14 +715,24 @@ impl AgentExecutor {
             }
         }
         for name in &unavailable {
-            crate::harness::sessions::deactivate_skill(
+            if let Err(error) = crate::harness::sessions::deactivate_skill(
                 self.control_plane.kv.as_ref(),
                 &self.namespace,
                 &self.agent_id,
                 &self.session_id,
                 name,
             )
-            .await?;
+            .await
+            {
+                tracing::warn!(
+                    namespace = %self.namespace,
+                    agent = %self.agent_id,
+                    session = %self.session_id,
+                    skill = %name,
+                    %error,
+                    "failed to deactivate unavailable Skill"
+                );
+            }
         }
         let mut text = format_active_skill_context(&resolved);
         if !unavailable.is_empty() {

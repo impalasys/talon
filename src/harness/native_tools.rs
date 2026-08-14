@@ -806,10 +806,7 @@ pub async fn execute_tool_for_session_output(
         DEACTIVATE_SKILL_TOOL => {
             let skill_name = req_str(args, "name")?;
             if current_session.is_empty() {
-                return Ok(Some(ToolOutput::text(format!(
-                    "Deactivated skill '{}'.",
-                    skill_name
-                ))));
+                return Err(anyhow!("deactivate_skill requires a session"));
             }
             let removed = crate::harness::sessions::deactivate_skill(
                 cp.kv.as_ref(),
@@ -4456,6 +4453,25 @@ mod tests {
         .unwrap_err();
 
         assert!(err.to_string().contains("agent does not have capability"));
+    }
+
+    #[tokio::test]
+    async fn deactivate_skill_requires_a_session() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let err = execute_tool(
+            &cp,
+            "conic:test",
+            "assistant",
+            &manifests::AgentSpec::default(),
+            DEACTIVATE_SKILL_TOOL,
+            &json!({"name": "review"}),
+        )
+        .await
+        .unwrap_err();
+
+        assert!(err.to_string().contains("requires a session"));
     }
 
     #[tokio::test]

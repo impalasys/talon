@@ -2,7 +2,7 @@
   "rules": [
     {
       "id": "activate_review_skill",
-      "last_message_contains": "activate review skill",
+      "last_message_contains": "please activate the review skill",
       "tool_name": "activate_skill",
       "response": {
         "type": "tool_call",
@@ -24,7 +24,7 @@
     },
     {
       "id": "deactivate_review_skill",
-      "last_message_contains": "deactivate review skill",
+      "last_message_contains": "please deactivate the review skill",
       "tool_name": "deactivate_skill",
       "response": {
         "type": "tool_call",

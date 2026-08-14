@@ -183,7 +183,18 @@ impl AgentRuntime {
             }
             reg.register_mcp_tools(&server_config.server_name, accepted_tools);
         }
-        let available_skills = load_available_skills(cp, ns).await?;
+        let available_skills = match load_available_skills(cp, ns).await {
+            Ok(skills) => skills,
+            Err(error) => {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent_id,
+                    %error,
+                    "failed to load Skills; continuing without them"
+                );
+                Vec::new()
+            }
+        };
         register_skill_tools(&mut reg, &available_skills);
         let skill_catalog = format_skill_catalog(&available_skills);
         let registry = Arc::new(tokio::sync::RwLock::new(reg));

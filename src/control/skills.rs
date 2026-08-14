@@ -49,7 +49,11 @@ pub fn validate_skill_file_spec(spec: &resources_proto::FileSpec) -> Result<()> 
         bail!("Skill Files must live under /skills/<skill-id>/");
     };
     validate_skill_id(skill_id)?;
-    if remainder.is_empty() {
+    if remainder.is_empty()
+        || remainder
+            .split('/')
+            .any(|component| component.is_empty() || matches!(component, "." | ".."))
+    {
         bail!("Skill File path must name a package file");
     }
     if spec.index_policy != resources_proto::FileIndexPolicy::None as i32 {
@@ -81,6 +85,21 @@ mod tests {
         validate_skill_file_spec(&skill_file("/skills/review-code-2/SKILL.md")).unwrap();
         validate_skill_file_spec(&skill_file("/skills/review-code-2/references/checklist.md"))
             .unwrap();
+    }
+
+    #[test]
+    fn rejects_non_canonical_package_paths() {
+        for path in [
+            "/skills/review//SKILL.md",
+            "/skills/review/./SKILL.md",
+            "/skills/review/../outside.md",
+            "/skills/review/references/../../outside.md",
+        ] {
+            assert!(
+                validate_skill_file_spec(&skill_file(path)).is_err(),
+                "{path} should be rejected"
+            );
+        }
     }
 
     #[test]

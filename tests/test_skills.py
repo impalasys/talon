@@ -203,7 +203,7 @@ def test_skill_activation_and_deactivation_are_sticky_per_session(
             ns=namespace,
             agent=agent_name,
             session_id=session_id,
-            message="activate review skill",
+            message="please activate the review skill",
         )
     )
     _wait_for_turn(client, namespace, agent_name, session_id, "review skill is active")
@@ -236,7 +236,7 @@ def test_skill_activation_and_deactivation_are_sticky_per_session(
             ns=namespace,
             agent=agent_name,
             session_id=session_id,
-            message="deactivate review skill",
+            message="please deactivate the review skill",
         )
     )
     _wait_for_turn(client, namespace, agent_name, session_id, "review skill is inactive")
