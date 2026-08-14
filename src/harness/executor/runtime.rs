@@ -17,7 +17,11 @@ use crate::harness::llm::{
     TokenCounter, ToolCall,
 };
 use crate::harness::mcp::{call_tool_for_config, McpConnectionConfig};
-use crate::harness::skills::registry::ToolRegistry;
+use crate::harness::skills::{
+    namespace::{find_effective_skill, load_available_skills, load_skill_instructions},
+    registry::ToolRegistry,
+    render::format_active_skill_context,
+};
 use crate::harness::telemetry;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -697,26 +701,15 @@ impl AgentExecutor {
             &self.session_id,
         )
         .await?;
-        let available = crate::harness::skills::namespace::load_available_skills(
-            &self.control_plane,
-            &self.namespace,
-        )
-        .await?;
+        let available = load_available_skills(&self.control_plane, &self.namespace).await?;
         let mut resolved = Vec::new();
         let mut unavailable = Vec::new();
         for name in names {
-            let Some(skill) =
-                crate::harness::skills::namespace::find_effective_skill(&available, &name)
-            else {
+            let Some(skill) = find_effective_skill(&available, &name) else {
                 unavailable.push(name);
                 continue;
             };
-            match crate::harness::skills::namespace::load_skill_instructions(
-                &self.control_plane,
-                skill,
-            )
-            .await
-            {
+            match load_skill_instructions(&self.control_plane, skill).await {
                 Ok(instructions) => resolved.push((skill.clone(), instructions)),
                 Err(error) => {
                     tracing::warn!(skill = %skill.name, namespace = %skill.namespace, %error, "removing unavailable active Skill");
@@ -734,7 +727,7 @@ impl AgentExecutor {
             )
             .await?;
         }
-        let mut text = crate::harness::skills::namespace::format_active_skill_context(&resolved);
+        let mut text = format_active_skill_context(&resolved);
         if !unavailable.is_empty() {
             if !text.is_empty() {
                 text.push_str("\n\n");

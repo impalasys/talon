@@ -14,7 +14,10 @@ use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKi
 use crate::harness::executor::{
     load, AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
 };
-use crate::harness::skills::registry::ToolRegistry;
+use crate::harness::native_tools::register_skill_tools;
+use crate::harness::skills::{
+    namespace::load_available_skills, registry::ToolRegistry, render::format_skill_catalog,
+};
 
 /// Fully-assembled, ready-to-run environment for one agent session.
 /// Build it from identity coordinates; it resolves everything else
@@ -180,11 +183,9 @@ impl AgentRuntime {
             }
             reg.register_mcp_tools(&server_config.server_name, accepted_tools);
         }
-        let available_skills =
-            crate::harness::skills::namespace::load_available_skills(cp, ns).await?;
-        crate::harness::native_tools::register_skill_tools(&mut reg, &available_skills);
-        let skill_catalog =
-            crate::harness::skills::namespace::format_skill_catalog(&available_skills);
+        let available_skills = load_available_skills(cp, ns).await?;
+        register_skill_tools(&mut reg, &available_skills);
+        let skill_catalog = format_skill_catalog(&available_skills);
         let registry = Arc::new(tokio::sync::RwLock::new(reg));
 
         // 5. Build executor

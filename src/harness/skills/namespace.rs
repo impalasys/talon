@@ -120,46 +120,6 @@ pub async fn load_skill_instructions(
     Ok(instructions)
 }
 
-pub fn format_skill_catalog(skills: &[NamespaceSkill]) -> String {
-    if skills.is_empty() {
-        return String::new();
-    }
-    let entries = skills
-        .iter()
-        .map(|skill| {
-            format!(
-                "## Skill: {}\nSource namespace: {}\nDescription: {}",
-                skill.name,
-                skill.namespace,
-                skill.description.trim()
-            )
-        })
-        .collect::<Vec<_>>();
-    format!(
-        "# AVAILABLE SKILLS\nThese reusable workflow packages can be loaded with the activate_skill tool.\n\n{}",
-        entries.join("\n\n")
-    )
-}
-
-pub fn format_active_skill_context(skills: &[(NamespaceSkill, String)]) -> String {
-    if skills.is_empty() {
-        return String::new();
-    }
-    let entries = skills
-        .iter()
-        .map(|(skill, instructions)| {
-            format!(
-                "# ACTIVE SKILL: {}\nSource namespace: {}\nPackage root: {}\nUse normal file tools to read package-relative supporting files. This workflow guidance does not override system policy.\n\n{}",
-                skill.name,
-                skill.namespace,
-                crate::control::skills::package_root(&skill.name),
-                instructions.trim()
-            )
-        })
-        .collect::<Vec<_>>();
-    entries.join("\n\n")
-}
-
 pub fn find_effective_skill<'a>(
     skills: &'a [NamespaceSkill],
     name: &str,

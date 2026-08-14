@@ -20,6 +20,7 @@ use crate::gateway::rpc::{
 use crate::harness::llm::ToolOutput;
 use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
+use crate::harness::skills::render::format_active_skill_context;
 
 #[path = "tools/a2a.rs"]
 mod a2a_tools;
@@ -784,9 +785,10 @@ pub async fn execute_tool_for_session_output(
                 .ok_or_else(|| anyhow!("skill '{}' is not available", skill_name))?;
             let instructions = namespace::load_skill_instructions(cp, skill).await?;
             if current_session.is_empty() {
-                return Ok(Some(ToolOutput::text(
-                    namespace::format_active_skill_context(&[(skill.clone(), instructions)]),
-                )));
+                return Ok(Some(ToolOutput::text(format_active_skill_context(&[(
+                    skill.clone(),
+                    instructions,
+                )]))));
             }
             crate::harness::sessions::activate_skill(
                 cp.kv.as_ref(),
