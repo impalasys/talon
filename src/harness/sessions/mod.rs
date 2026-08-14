@@ -18,6 +18,7 @@ pub const SESSION_PROJECTION_STATE_COMMITTED: &str = "committed";
 pub const SESSION_PROJECTION_STATE_FAILED: &str = "failed";
 
 pub use crate::gateway::rpc::data_proto::{SessionJournalEntry, SessionSubmission};
+pub use journal::append_steer_input;
 pub use journal::{
     append_compaction, list_journal_entries, mark_terminal, repair_submission_pointer_to_latest,
 };

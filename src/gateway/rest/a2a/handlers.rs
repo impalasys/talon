@@ -190,7 +190,7 @@ async fn stream_message(
         }
     });
 
-    if let Err(err) = scheduling::send_session_message(
+    if let Err(err) = scheduling::send_or_queue_a2a_session_message(
         gateway.kv.as_ref(),
         gateway.pubsub.as_ref(),
         &route.ns,
@@ -388,7 +388,7 @@ async fn send_message(
         return response;
     }
 
-    if let Err(err) = scheduling::send_session_message(
+    if let Err(err) = scheduling::send_or_queue_a2a_session_message(
         gateway.kv.as_ref(),
         gateway.pubsub.as_ref(),
         &route.ns,

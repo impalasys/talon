@@ -14,6 +14,7 @@ use crate::control::delegation;
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::object_store::{default_object_store, ObjectStore};
 use crate::control::resources::ResourceStore;
+use crate::control::session_queue;
 use crate::control::tool_output::{self, ToolOutputExt, ToolOutputStorageContext};
 use crate::control::{
     keys::{self, ResourceKey},
@@ -367,6 +368,7 @@ pub struct PubSubSessionSink {
     last_flush: Mutex<Instant>, // Last time the UI projection was considered for persistence.
     latest_journal_entry_id: Mutex<Option<String>>, // Latest durable boundary reflected in projection labels.
     recorded_tool_results: Mutex<std::collections::HashMap<String, RecordedToolResult>>,
+    steer_drains: Mutex<u8>,
     persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
 
     // Run summary counters for logs/telemetry.
@@ -530,6 +532,7 @@ impl PubSubSessionSink {
             last_flush: Mutex::new(Instant::now()),
             latest_journal_entry_id: Mutex::new(None),
             recorded_tool_results: Mutex::new(std::collections::HashMap::new()),
+            steer_drains: Mutex::new(0),
             persist_lock: Arc::new(AsyncMutex::new(())),
             input_token_chunks: Mutex::new(0),
             input_token_chars: Mutex::new(0),
@@ -1451,6 +1454,76 @@ impl ExecutionSink for PubSubSessionSink {
         );
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
         Ok(())
+    }
+
+    async fn take_steering_messages(&self) -> Result<Vec<crate::harness::executor::LoopMessage>> {
+        const MAX_STEER_DRAINS: u8 = 4;
+        {
+            let mut drains = self.steer_drains.lock().unwrap();
+            if *drains >= MAX_STEER_DRAINS {
+                return Ok(Vec::new());
+            }
+            *drains += 1;
+        }
+
+        let mut batch = session_queue::prepare_steer_batch(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            session_queue::DEFAULT_STEER_BATCH_MAX_MESSAGES,
+            session_queue::DEFAULT_STEER_BATCH_MAX_CHARS,
+            chrono::Utc::now(),
+        )
+        .await?;
+        if batch.is_empty() {
+            tokio::time::sleep(Duration::from_millis(500)).await;
+            batch = session_queue::prepare_steer_batch(
+                self.kv.as_ref(),
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+                session_queue::DEFAULT_STEER_BATCH_MAX_MESSAGES,
+                session_queue::DEFAULT_STEER_BATCH_MAX_CHARS,
+                chrono::Utc::now(),
+            )
+            .await?;
+        }
+        if batch.is_empty() {
+            return Ok(Vec::new());
+        }
+        let message_ids = batch
+            .iter()
+            .map(|message| message.message_id.clone())
+            .collect::<Vec<_>>();
+        sessions::append_steer_input(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+            &self.attempt_id,
+            &message_ids,
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .await?;
+        session_queue::commit_steer_batch(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &batch,
+        )
+        .await?;
+        Ok(batch
+            .into_iter()
+            .map(|message| {
+                crate::harness::executor::LoopMessage::text(
+                    "user",
+                    crate::control::scheduling::session_message_text_projection(&message.message),
+                )
+            })
+            .collect())
     }
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput) {
