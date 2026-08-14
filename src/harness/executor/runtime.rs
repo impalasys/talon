@@ -484,12 +484,6 @@ struct ExecutionPrompts {
     post_history_prompt: Option<String>,
 }
 
-#[derive(Default)]
-struct ActiveSkillContext {
-    text: String,
-    continuation_invalidated: bool,
-}
-
 impl AgentExecutor {
     pub fn new(
         llm: Arc<dyn LlmProvider>,
@@ -629,7 +623,7 @@ impl AgentExecutor {
         context: &ExecutionContext,
         prompts: &ExecutionPrompts,
         tool_schema_chars: usize,
-        active_skill_context: &ActiveSkillContext,
+        active_skill_context: &str,
     ) -> Result<(Vec<ChatMessage>, ContextMetrics)> {
         let mut history = context.history.clone();
         if let Some(system_prompt) = prompts.system_prompt.as_deref() {
@@ -640,14 +634,14 @@ impl AgentExecutor {
         }
 
         let mut history_with_active_skill = history.clone();
-        if !active_skill_context.text.is_empty() {
+        if !active_skill_context.is_empty() {
             let insert_at = history_with_active_skill
                 .iter()
                 .take_while(|message| message.role == "system")
                 .count();
             history_with_active_skill.insert(
                 insert_at,
-                LoopMessage::text("user", active_skill_context.text.clone()),
+                LoopMessage::text("user", active_skill_context.to_string()),
             );
         }
 
@@ -659,16 +653,16 @@ impl AgentExecutor {
         let mut compacted_history = compact_history_for_llm_with_model_limits_and_tool_schema(
             &history,
             model_limits,
-            tool_schema_chars + active_skill_context.text.len(),
+            tool_schema_chars + active_skill_context.len(),
         );
-        if !active_skill_context.text.is_empty() {
+        if !active_skill_context.is_empty() {
             let insert_at = compacted_history
                 .iter()
                 .take_while(|message| message.role == "system")
                 .count();
             compacted_history.insert(
                 insert_at,
-                LoopMessage::text("user", active_skill_context.text.clone()),
+                LoopMessage::text("user", active_skill_context.to_string()),
             );
         }
         let metrics = context_metrics(
@@ -693,7 +687,10 @@ impl AgentExecutor {
         Ok((messages, metrics))
     }
 
-    async fn active_skill_context(&self) -> Result<ActiveSkillContext> {
+    async fn active_skill_context(
+        &self,
+        context_tokens: &mut Option<TokenCounter>,
+    ) -> Result<String> {
         let names = crate::harness::sessions::active_skill_names(
             self.control_plane.kv.as_ref(),
             &self.namespace,
@@ -738,19 +735,20 @@ impl AgentExecutor {
             ));
         }
         let digest = format!("{:x}", Sha256::digest(text.as_bytes()));
-        let continuation_invalidated =
-            crate::harness::sessions::persist_active_skill_context_digest(
-                self.control_plane.kv.as_ref(),
-                &self.namespace,
-                &self.agent_id,
-                &self.session_id,
-                &digest,
-            )
-            .await?;
-        Ok(ActiveSkillContext {
-            text,
-            continuation_invalidated,
-        })
+        let digest_changed = crate::harness::sessions::persist_active_skill_context_digest(
+            self.control_plane.kv.as_ref(),
+            &self.namespace,
+            &self.agent_id,
+            &self.session_id,
+            &digest,
+        )
+        .await?;
+        if digest_changed {
+            if let Some(counter) = context_tokens.as_mut() {
+                counter.provider_request_id = None;
+            }
+        }
+        Ok(text)
     }
 
     async fn hydrate_object_ref_parts_for_llm(
@@ -925,12 +923,7 @@ impl AgentExecutor {
                 reg.to_provider_tools()
             };
             let tool_schema_chars = telemetry::serialize_tool_definitions_json(&tools).len();
-            let active_skill_context = self.active_skill_context().await?;
-            if active_skill_context.continuation_invalidated {
-                if let Some(counter) = context_tokens.as_mut() {
-                    counter.provider_request_id = None;
-                }
-            }
+            let active_skill_context = self.active_skill_context(&mut context_tokens).await?;
 
             // Trigger durable compaction before preparing messages if the complete
             // request estimate exceeds the model's effective window. Compaction
@@ -940,12 +933,8 @@ impl AgentExecutor {
                 &self.llm_provider_key,
                 &self.llm_model,
             );
-            let estimated_context_budget = self.estimate_context_budget(
-                context,
-                &prompts,
-                &tools,
-                active_skill_context.text.len(),
-            );
+            let estimated_context_budget =
+                self.estimate_context_budget(context, &prompts, &tools, active_skill_context.len());
             let durable_budget = ContextBudget::default()
                 .with_model_limits(model_limits)
                 .with_tool_schema_chars(tool_schema_chars)
@@ -954,7 +943,7 @@ impl AgentExecutor {
                 context,
                 context_tokens.as_ref(),
                 prior_request_history_len,
-                active_skill_context.text.len(),
+                active_skill_context.len(),
             );
             let should_compact = !compaction_disabled
                 && match (
@@ -978,7 +967,7 @@ impl AgentExecutor {
                             context,
                             &prompts,
                             &tools,
-                            active_skill_context.text.len(),
+                            active_skill_context.len(),
                         );
                         if new_context_budget >= durable_budget {
                             compaction_disabled = true;
