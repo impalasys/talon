@@ -582,15 +582,25 @@ impl AgentExecutor {
     }
 
     fn render_execution_prompts(&self, context: &ExecutionContext) -> Result<ExecutionPrompts> {
-        let system_prompt = self.agent_spec.system_prompt.trim();
-        let system_prompt = if !system_prompt.is_empty() && !context.has_system_message() {
-            Some(
-                crate::control::manifest::templating::render_runtime_system_prompt_template(
-                    system_prompt,
-                )?,
-            )
-        } else {
-            None
+        let configured_system_prompt = self.agent_spec.system_prompt.trim();
+        let configured_system_prompt =
+            if !configured_system_prompt.is_empty() && !context.has_system_message() {
+                Some(
+                    crate::control::manifest::templating::render_runtime_system_prompt_template(
+                        configured_system_prompt,
+                    )?,
+                )
+            } else {
+                None
+            };
+        let skill_catalog = self.assembler.skill_context.trim();
+        let system_prompt = match (configured_system_prompt, skill_catalog) {
+            (Some(prompt), catalog) if !catalog.is_empty() => {
+                Some(format!("{prompt}\n\n{catalog}"))
+            }
+            (Some(prompt), _) => Some(prompt),
+            (None, catalog) if !catalog.is_empty() => Some(catalog.to_string()),
+            (None, _) => None,
         };
 
         let post_history_prompt = self.agent_spec.post_history_prompt.trim();
@@ -621,18 +631,20 @@ impl AgentExecutor {
         if let Some(system_prompt) = prompts.system_prompt.as_deref() {
             history.insert(0, LoopMessage::text("system", system_prompt.to_string()));
         }
+        if let Some(post_history_prompt) = prompts.post_history_prompt.as_deref() {
+            prefix_latest_user_message(&mut history, post_history_prompt);
+        }
+
+        let mut history_with_active_skill = history.clone();
         if !active_skill_context.text.is_empty() {
-            let insert_at = history
+            let insert_at = history_with_active_skill
                 .iter()
                 .take_while(|message| message.role == "system")
                 .count();
-            history.insert(
+            history_with_active_skill.insert(
                 insert_at,
                 LoopMessage::text("user", active_skill_context.text.clone()),
             );
-        }
-        if let Some(post_history_prompt) = prompts.post_history_prompt.as_deref() {
-            prefix_latest_user_message(&mut history, post_history_prompt);
         }
 
         let model_limits = model_context_limits(
@@ -640,12 +652,26 @@ impl AgentExecutor {
             &self.llm_provider_key,
             &self.llm_model,
         );
-        let compacted_history = compact_history_for_llm_with_model_limits_and_tool_schema(
+        let mut compacted_history = compact_history_for_llm_with_model_limits_and_tool_schema(
             &history,
             model_limits,
+            tool_schema_chars + active_skill_context.text.len(),
+        );
+        if !active_skill_context.text.is_empty() {
+            let insert_at = compacted_history
+                .iter()
+                .take_while(|message| message.role == "system")
+                .count();
+            compacted_history.insert(
+                insert_at,
+                LoopMessage::text("user", active_skill_context.text.clone()),
+            );
+        }
+        let metrics = context_metrics(
+            &history_with_active_skill,
+            &compacted_history,
             tool_schema_chars,
         );
-        let metrics = context_metrics(&history, &compacted_history, tool_schema_chars);
         let mut messages = compacted_history
             .iter()
             .map(|m| ChatMessage {
@@ -829,6 +855,7 @@ impl AgentExecutor {
         context: &ExecutionContext,
         context_tokens: Option<&TokenCounter>,
         prior_request_history_len: Option<usize>,
+        active_skill_context_chars: usize,
     ) -> Option<u64> {
         let counter = context_tokens.filter(|counter| {
             counter.usage_available
@@ -852,7 +879,13 @@ impl AgentExecutor {
             .map(serialized_message_weight)
             .sum::<usize>();
         let delta_tokens = (delta_chars as u64).saturating_add(3) / 4;
-        Some(counter.input_tokens.saturating_add(delta_tokens))
+        let active_tokens = (active_skill_context_chars as u64).saturating_add(3) / 4;
+        Some(
+            counter
+                .input_tokens
+                .saturating_add(delta_tokens)
+                .saturating_add(active_tokens),
+        )
     }
 
     /// Run the prepared execution context to completion, emitting events to
@@ -922,12 +955,13 @@ impl AgentExecutor {
             );
             let durable_budget = ContextBudget::default()
                 .with_model_limits(model_limits)
-                .with_tool_schema_chars(tool_schema_chars + active_skill_context.text.len())
+                .with_tool_schema_chars(tool_schema_chars)
                 .total_chars;
             let estimated_context_tokens = self.estimate_context_input_tokens(
                 context,
                 context_tokens.as_ref(),
                 prior_request_history_len,
+                active_skill_context.text.len(),
             );
             let should_compact = !compaction_disabled
                 && match (
@@ -2903,7 +2937,7 @@ mod tests {
         let delta_tokens = (serialized_message_weight(&context.history[1]) as u64 + 3) / 4;
 
         assert_eq!(
-            executor.estimate_context_input_tokens(&context, Some(&counter), None),
+            executor.estimate_context_input_tokens(&context, Some(&counter), None, 0),
             Some(100 + delta_tokens)
         );
     }
@@ -2933,7 +2967,7 @@ mod tests {
         };
 
         assert_eq!(
-            executor.estimate_context_input_tokens(&context, Some(&counter), None),
+            executor.estimate_context_input_tokens(&context, Some(&counter), None, 0),
             None
         );
     }

@@ -33,6 +33,9 @@ pub async fn activate_skill(
     name: &str,
 ) -> Result<()> {
     mutate_active_skills(kv, ns, agent, session_id, |skills| {
+        if skills.last().is_some_and(|skill| skill == name) {
+            return false;
+        }
         skills.retain(|skill| skill != name);
         skills.push(name.to_string());
         true

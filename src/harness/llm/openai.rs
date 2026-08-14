@@ -3,10 +3,10 @@
 
 use crate::control::cas::CasStore;
 use crate::harness::llm::provider::{
-    chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
-    provider_request_error, reasoning_delta_event, text_delta_event, tool_call_delta_event,
-    usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream,
-    ChatStreamEvent, LlmProvider, TokenCounter, ToolCallDelta,
+    chat_content_part, chat_message_text, chat_stream_event, content_parts_text,
+    object_ref_fallback_text, provider_request_error, reasoning_delta_event, text_delta_event,
+    tool_call_delta_event, usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
+    ChatStream, ChatStreamEvent, LlmProvider, TokenCounter, ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -756,6 +756,7 @@ impl OpenAiCompatibleProvider {
                 .filter(|(index, message)| {
                     message.role == "system"
                         || message.role == "developer"
+                        || is_active_skill_context(message)
                         || *index >= suffix_start
                 })
                 .map(|(_, message)| message)
@@ -945,6 +946,11 @@ impl OpenAiCompatibleProvider {
             Err(openai_api_error("OpenAI Responses API error", &error))
         }
     }
+}
+
+fn is_active_skill_context(message: &ChatMessage) -> bool {
+    message.role == "user"
+        && content_parts_text(&message.content_parts).starts_with("# ACTIVE SKILL:")
 }
 
 fn shared_http_client() -> reqwest::Client {
@@ -3015,6 +3021,32 @@ mod tests {
         assert_eq!(input[1]["role"], "developer");
         assert_eq!(input[2]["type"], "function_call_output");
         assert_eq!(input[3]["role"], "user");
+        assert!(!input
+            .iter()
+            .any(|item| item.to_string().contains("old question")));
+    }
+
+    #[tokio::test]
+    async fn responses_input_with_previous_id_replays_active_skill_context() {
+        let provider = test_provider();
+        let input = provider
+            .serialize_responses_input(
+                vec![
+                    chat_message_text("system", "system instructions"),
+                    chat_message_text("user", "# ACTIVE SKILL: review\nApply review guidance."),
+                    chat_message_text("user", "old question"),
+                    chat_message_text("assistant", "old answer"),
+                    chat_message_text("user", "new question"),
+                ],
+                Some("resp_previous"),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(input.len(), 3);
+        assert!(input
+            .iter()
+            .any(|item| item.to_string().contains("Apply review guidance.")));
         assert!(!input
             .iter()
             .any(|item| item.to_string().contains("old question")));

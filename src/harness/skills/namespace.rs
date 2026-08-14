@@ -226,7 +226,7 @@ async fn entrypoint_file(
         };
         if spec.path != expected_path
             || spec.purpose != resources_proto::FilePurpose::Skill as i32
-            || !spec.media_type.eq_ignore_ascii_case("text/markdown")
+            || !is_markdown_media_type(&spec.media_type)
         {
             continue;
         }
@@ -250,6 +250,13 @@ async fn entrypoint_file(
         }));
     }
     Ok(None)
+}
+
+fn is_markdown_media_type(media_type: &str) -> bool {
+    media_type
+        .split(';')
+        .next()
+        .is_some_and(|media_type| media_type.trim().eq_ignore_ascii_case("text/markdown"))
 }
 
 #[cfg(test)]

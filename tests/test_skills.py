@@ -60,8 +60,11 @@ def _wait_for_turn(
             GetSessionRequest(ns=namespace, agent=agent, session_id=session_id)
         )
         assistant = last_assistant_message(session.messages)
-        if session.state == "IDLE" and assistant is not None:
-            assert expected in message_text(assistant)
+        if (
+            session.state == "IDLE"
+            and assistant is not None
+            and expected in message_text(assistant)
+        ):
             return
     raise AssertionError(f"session {session_id} did not complete the expected turn")
 
@@ -215,6 +218,12 @@ def test_skill_activation_and_deactivation_are_sticky_per_session(
     assert any(
         message.get("role") == "user"
         and "# ACTIVE SKILL: review" in json.dumps(message)
+        for request in activation_requests
+        for message in request["messages"]
+    )
+    assert any(
+        message.get("role") == "system"
+        and "Review code" in json.dumps(message)
         for request in activation_requests
         for message in request["messages"]
     )
