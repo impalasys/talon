@@ -15044,41 +15044,65 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated string active_skill_names = 1;</code>
-     * @return A list containing the activeSkillNames.
+     * <pre>
+     * Ordered active skill IDs; later entries have higher precedence.
+     * </pre>
+     *
+     * <code>repeated string active_names = 1;</code>
+     * @return A list containing the activeNames.
      */
     java.util.List<java.lang.String>
-        getActiveSkillNamesList();
+        getActiveNamesList();
     /**
-     * <code>repeated string active_skill_names = 1;</code>
-     * @return The count of activeSkillNames.
+     * <pre>
+     * Ordered active skill IDs; later entries have higher precedence.
+     * </pre>
+     *
+     * <code>repeated string active_names = 1;</code>
+     * @return The count of activeNames.
      */
-    int getActiveSkillNamesCount();
+    int getActiveNamesCount();
     /**
-     * <code>repeated string active_skill_names = 1;</code>
+     * <pre>
+     * Ordered active skill IDs; later entries have higher precedence.
+     * </pre>
+     *
+     * <code>repeated string active_names = 1;</code>
      * @param index The index of the element to return.
-     * @return The activeSkillNames at the given index.
+     * @return The activeNames at the given index.
      */
-    java.lang.String getActiveSkillNames(int index);
+    java.lang.String getActiveNames(int index);
     /**
-     * <code>repeated string active_skill_names = 1;</code>
+     * <pre>
+     * Ordered active skill IDs; later entries have higher precedence.
+     * </pre>
+     *
+     * <code>repeated string active_names = 1;</code>
      * @param index The index of the value to return.
-     * @return The bytes of the activeSkillNames at the given index.
+     * @return The bytes of the activeNames at the given index.
      */
     com.google.protobuf.ByteString
-        getActiveSkillNamesBytes(int index);
+        getActiveNamesBytes(int index);
 
     /**
-     * <code>string active_skill_context_digest = 2;</code>
-     * @return The activeSkillContextDigest.
+     * <pre>
+     * Digest of the rendered active-skill context.
+     * </pre>
+     *
+     * <code>string context_digest = 2;</code>
+     * @return The contextDigest.
      */
-    java.lang.String getActiveSkillContextDigest();
+    java.lang.String getContextDigest();
     /**
-     * <code>string active_skill_context_digest = 2;</code>
-     * @return The bytes for activeSkillContextDigest.
+     * <pre>
+     * Digest of the rendered active-skill context.
+     * </pre>
+     *
+     * <code>string context_digest = 2;</code>
+     * @return The bytes for contextDigest.
      */
     com.google.protobuf.ByteString
-        getActiveSkillContextDigestBytes();
+        getContextDigestBytes();
   }
   /**
    * Protobuf type {@code talon.data.SessionSkillState}
@@ -15102,9 +15126,9 @@ java.lang.String defaultValue) {
       super(builder);
     }
     private SessionSkillState() {
-      activeSkillNames_ =
+      activeNames_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-      activeSkillContextDigest_ = "";
+      contextDigest_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -15125,76 +15149,100 @@ java.lang.String defaultValue) {
               talon.data.Data.SessionSkillState.class, talon.data.Data.SessionSkillState.Builder.class);
     }
 
-    public static final int ACTIVE_SKILL_NAMES_FIELD_NUMBER = 1;
+    public static final int ACTIVE_NAMES_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private com.google.protobuf.LazyStringArrayList activeSkillNames_ =
+    private com.google.protobuf.LazyStringArrayList activeNames_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
     /**
-     * <code>repeated string active_skill_names = 1;</code>
-     * @return A list containing the activeSkillNames.
+     * <pre>
+     * Ordered active skill IDs; later entries have higher precedence.
+     * </pre>
+     *
+     * <code>repeated string active_names = 1;</code>
+     * @return A list containing the activeNames.
      */
     public com.google.protobuf.ProtocolStringList
-        getActiveSkillNamesList() {
-      return activeSkillNames_;
+        getActiveNamesList() {
+      return activeNames_;
     }
     /**
-     * <code>repeated string active_skill_names = 1;</code>
-     * @return The count of activeSkillNames.
+     * <pre>
+     * Ordered active skill IDs; later entries have higher precedence.
+     * </pre>
+     *
+     * <code>repeated string active_names = 1;</code>
+     * @return The count of activeNames.
      */
-    public int getActiveSkillNamesCount() {
-      return activeSkillNames_.size();
+    public int getActiveNamesCount() {
+      return activeNames_.size();
     }
     /**
-     * <code>repeated string active_skill_names = 1;</code>
+     * <pre>
+     * Ordered active skill IDs; later entries have higher precedence.
+     * </pre>
+     *
+     * <code>repeated string active_names = 1;</code>
      * @param index The index of the element to return.
-     * @return The activeSkillNames at the given index.
+     * @return The activeNames at the given index.
      */
-    public java.lang.String getActiveSkillNames(int index) {
-      return activeSkillNames_.get(index);
+    public java.lang.String getActiveNames(int index) {
+      return activeNames_.get(index);
     }
     /**
-     * <code>repeated string active_skill_names = 1;</code>
+     * <pre>
+     * Ordered active skill IDs; later entries have higher precedence.
+     * </pre>
+     *
+     * <code>repeated string active_names = 1;</code>
      * @param index The index of the value to return.
-     * @return The bytes of the activeSkillNames at the given index.
+     * @return The bytes of the activeNames at the given index.
      */
     public com.google.protobuf.ByteString
-        getActiveSkillNamesBytes(int index) {
-      return activeSkillNames_.getByteString(index);
+        getActiveNamesBytes(int index) {
+      return activeNames_.getByteString(index);
     }
 
-    public static final int ACTIVE_SKILL_CONTEXT_DIGEST_FIELD_NUMBER = 2;
+    public static final int CONTEXT_DIGEST_FIELD_NUMBER = 2;
     @SuppressWarnings("serial")
-    private volatile java.lang.Object activeSkillContextDigest_ = "";
+    private volatile java.lang.Object contextDigest_ = "";
     /**
-     * <code>string active_skill_context_digest = 2;</code>
-     * @return The activeSkillContextDigest.
+     * <pre>
+     * Digest of the rendered active-skill context.
+     * </pre>
+     *
+     * <code>string context_digest = 2;</code>
+     * @return The contextDigest.
      */
     @java.lang.Override
-    public java.lang.String getActiveSkillContextDigest() {
-      java.lang.Object ref = activeSkillContextDigest_;
+    public java.lang.String getContextDigest() {
+      java.lang.Object ref = contextDigest_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        activeSkillContextDigest_ = s;
+        contextDigest_ = s;
         return s;
       }
     }
     /**
-     * <code>string active_skill_context_digest = 2;</code>
-     * @return The bytes for activeSkillContextDigest.
+     * <pre>
+     * Digest of the rendered active-skill context.
+     * </pre>
+     *
+     * <code>string context_digest = 2;</code>
+     * @return The bytes for contextDigest.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString
-        getActiveSkillContextDigestBytes() {
-      java.lang.Object ref = activeSkillContextDigest_;
+        getContextDigestBytes() {
+      java.lang.Object ref = contextDigest_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        activeSkillContextDigest_ = b;
+        contextDigest_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -15215,11 +15263,11 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      for (int i = 0; i < activeSkillNames_.size(); i++) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, activeSkillNames_.getRaw(i));
+      for (int i = 0; i < activeNames_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, activeNames_.getRaw(i));
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(activeSkillContextDigest_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, activeSkillContextDigest_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(contextDigest_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, contextDigest_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -15232,14 +15280,14 @@ java.lang.String defaultValue) {
       size = 0;
       {
         int dataSize = 0;
-        for (int i = 0; i < activeSkillNames_.size(); i++) {
-          dataSize += computeStringSizeNoTag(activeSkillNames_.getRaw(i));
+        for (int i = 0; i < activeNames_.size(); i++) {
+          dataSize += computeStringSizeNoTag(activeNames_.getRaw(i));
         }
         size += dataSize;
-        size += 1 * getActiveSkillNamesList().size();
+        size += 1 * getActiveNamesList().size();
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(activeSkillContextDigest_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, activeSkillContextDigest_);
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(contextDigest_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, contextDigest_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -15256,10 +15304,10 @@ java.lang.String defaultValue) {
       }
       talon.data.Data.SessionSkillState other = (talon.data.Data.SessionSkillState) obj;
 
-      if (!getActiveSkillNamesList()
-          .equals(other.getActiveSkillNamesList())) return false;
-      if (!getActiveSkillContextDigest()
-          .equals(other.getActiveSkillContextDigest())) return false;
+      if (!getActiveNamesList()
+          .equals(other.getActiveNamesList())) return false;
+      if (!getContextDigest()
+          .equals(other.getContextDigest())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -15271,12 +15319,12 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (getActiveSkillNamesCount() > 0) {
-        hash = (37 * hash) + ACTIVE_SKILL_NAMES_FIELD_NUMBER;
-        hash = (53 * hash) + getActiveSkillNamesList().hashCode();
+      if (getActiveNamesCount() > 0) {
+        hash = (37 * hash) + ACTIVE_NAMES_FIELD_NUMBER;
+        hash = (53 * hash) + getActiveNamesList().hashCode();
       }
-      hash = (37 * hash) + ACTIVE_SKILL_CONTEXT_DIGEST_FIELD_NUMBER;
-      hash = (53 * hash) + getActiveSkillContextDigest().hashCode();
+      hash = (37 * hash) + CONTEXT_DIGEST_FIELD_NUMBER;
+      hash = (53 * hash) + getContextDigest().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -15408,9 +15456,9 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        activeSkillNames_ =
+        activeNames_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
-        activeSkillContextDigest_ = "";
+        contextDigest_ = "";
         return this;
       }
 
@@ -15445,11 +15493,11 @@ java.lang.String defaultValue) {
       private void buildPartial0(talon.data.Data.SessionSkillState result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          activeSkillNames_.makeImmutable();
-          result.activeSkillNames_ = activeSkillNames_;
+          activeNames_.makeImmutable();
+          result.activeNames_ = activeNames_;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.activeSkillContextDigest_ = activeSkillContextDigest_;
+          result.contextDigest_ = contextDigest_;
         }
       }
 
@@ -15465,18 +15513,18 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.data.Data.SessionSkillState other) {
         if (other == talon.data.Data.SessionSkillState.getDefaultInstance()) return this;
-        if (!other.activeSkillNames_.isEmpty()) {
-          if (activeSkillNames_.isEmpty()) {
-            activeSkillNames_ = other.activeSkillNames_;
+        if (!other.activeNames_.isEmpty()) {
+          if (activeNames_.isEmpty()) {
+            activeNames_ = other.activeNames_;
             bitField0_ |= 0x00000001;
           } else {
-            ensureActiveSkillNamesIsMutable();
-            activeSkillNames_.addAll(other.activeSkillNames_);
+            ensureActiveNamesIsMutable();
+            activeNames_.addAll(other.activeNames_);
           }
           onChanged();
         }
-        if (!other.getActiveSkillContextDigest().isEmpty()) {
-          activeSkillContextDigest_ = other.activeSkillContextDigest_;
+        if (!other.getContextDigest().isEmpty()) {
+          contextDigest_ = other.contextDigest_;
           bitField0_ |= 0x00000002;
           onChanged();
         }
@@ -15507,12 +15555,12 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                ensureActiveSkillNamesIsMutable();
-                activeSkillNames_.add(input.readStringRequireUtf8());
+                ensureActiveNamesIsMutable();
+                activeNames_.add(input.readStringRequireUtf8());
                 break;
               } // case 10
               case 18: {
-                activeSkillContextDigest_ = input.readStringRequireUtf8();
+                contextDigest_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
@@ -15533,184 +15581,240 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private com.google.protobuf.LazyStringArrayList activeSkillNames_ =
+      private com.google.protobuf.LazyStringArrayList activeNames_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
-      private void ensureActiveSkillNamesIsMutable() {
-        if (!activeSkillNames_.isModifiable()) {
-          activeSkillNames_ = new com.google.protobuf.LazyStringArrayList(activeSkillNames_);
+      private void ensureActiveNamesIsMutable() {
+        if (!activeNames_.isModifiable()) {
+          activeNames_ = new com.google.protobuf.LazyStringArrayList(activeNames_);
         }
         bitField0_ |= 0x00000001;
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
-       * @return A list containing the activeSkillNames.
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
+       * @return A list containing the activeNames.
        */
       public com.google.protobuf.ProtocolStringList
-          getActiveSkillNamesList() {
-        activeSkillNames_.makeImmutable();
-        return activeSkillNames_;
+          getActiveNamesList() {
+        activeNames_.makeImmutable();
+        return activeNames_;
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
-       * @return The count of activeSkillNames.
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
+       * @return The count of activeNames.
        */
-      public int getActiveSkillNamesCount() {
-        return activeSkillNames_.size();
+      public int getActiveNamesCount() {
+        return activeNames_.size();
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
        * @param index The index of the element to return.
-       * @return The activeSkillNames at the given index.
+       * @return The activeNames at the given index.
        */
-      public java.lang.String getActiveSkillNames(int index) {
-        return activeSkillNames_.get(index);
+      public java.lang.String getActiveNames(int index) {
+        return activeNames_.get(index);
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
        * @param index The index of the value to return.
-       * @return The bytes of the activeSkillNames at the given index.
+       * @return The bytes of the activeNames at the given index.
        */
       public com.google.protobuf.ByteString
-          getActiveSkillNamesBytes(int index) {
-        return activeSkillNames_.getByteString(index);
+          getActiveNamesBytes(int index) {
+        return activeNames_.getByteString(index);
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
        * @param index The index to set the value at.
-       * @param value The activeSkillNames to set.
+       * @param value The activeNames to set.
        * @return This builder for chaining.
        */
-      public Builder setActiveSkillNames(
+      public Builder setActiveNames(
           int index, java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        ensureActiveSkillNamesIsMutable();
-        activeSkillNames_.set(index, value);
+        ensureActiveNamesIsMutable();
+        activeNames_.set(index, value);
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
-       * @param value The activeSkillNames to add.
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
+       * @param value The activeNames to add.
        * @return This builder for chaining.
        */
-      public Builder addActiveSkillNames(
+      public Builder addActiveNames(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        ensureActiveSkillNamesIsMutable();
-        activeSkillNames_.add(value);
+        ensureActiveNamesIsMutable();
+        activeNames_.add(value);
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
-       * @param values The activeSkillNames to add.
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
+       * @param values The activeNames to add.
        * @return This builder for chaining.
        */
-      public Builder addAllActiveSkillNames(
+      public Builder addAllActiveNames(
           java.lang.Iterable<java.lang.String> values) {
-        ensureActiveSkillNamesIsMutable();
+        ensureActiveNamesIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, activeSkillNames_);
+            values, activeNames_);
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
        * @return This builder for chaining.
        */
-      public Builder clearActiveSkillNames() {
-        activeSkillNames_ =
+      public Builder clearActiveNames() {
+        activeNames_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);;
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string active_skill_names = 1;</code>
-       * @param value The bytes of the activeSkillNames to add.
+       * <pre>
+       * Ordered active skill IDs; later entries have higher precedence.
+       * </pre>
+       *
+       * <code>repeated string active_names = 1;</code>
+       * @param value The bytes of the activeNames to add.
        * @return This builder for chaining.
        */
-      public Builder addActiveSkillNamesBytes(
+      public Builder addActiveNamesBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        ensureActiveSkillNamesIsMutable();
-        activeSkillNames_.add(value);
+        ensureActiveNamesIsMutable();
+        activeNames_.add(value);
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
 
-      private java.lang.Object activeSkillContextDigest_ = "";
+      private java.lang.Object contextDigest_ = "";
       /**
-       * <code>string active_skill_context_digest = 2;</code>
-       * @return The activeSkillContextDigest.
+       * <pre>
+       * Digest of the rendered active-skill context.
+       * </pre>
+       *
+       * <code>string context_digest = 2;</code>
+       * @return The contextDigest.
        */
-      public java.lang.String getActiveSkillContextDigest() {
-        java.lang.Object ref = activeSkillContextDigest_;
+      public java.lang.String getContextDigest() {
+        java.lang.Object ref = contextDigest_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          activeSkillContextDigest_ = s;
+          contextDigest_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>string active_skill_context_digest = 2;</code>
-       * @return The bytes for activeSkillContextDigest.
+       * <pre>
+       * Digest of the rendered active-skill context.
+       * </pre>
+       *
+       * <code>string context_digest = 2;</code>
+       * @return The bytes for contextDigest.
        */
       public com.google.protobuf.ByteString
-          getActiveSkillContextDigestBytes() {
-        java.lang.Object ref = activeSkillContextDigest_;
+          getContextDigestBytes() {
+        java.lang.Object ref = contextDigest_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          activeSkillContextDigest_ = b;
+          contextDigest_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>string active_skill_context_digest = 2;</code>
-       * @param value The activeSkillContextDigest to set.
+       * <pre>
+       * Digest of the rendered active-skill context.
+       * </pre>
+       *
+       * <code>string context_digest = 2;</code>
+       * @param value The contextDigest to set.
        * @return This builder for chaining.
        */
-      public Builder setActiveSkillContextDigest(
+      public Builder setContextDigest(
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
-        activeSkillContextDigest_ = value;
+        contextDigest_ = value;
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>string active_skill_context_digest = 2;</code>
+       * <pre>
+       * Digest of the rendered active-skill context.
+       * </pre>
+       *
+       * <code>string context_digest = 2;</code>
        * @return This builder for chaining.
        */
-      public Builder clearActiveSkillContextDigest() {
-        activeSkillContextDigest_ = getDefaultInstance().getActiveSkillContextDigest();
+      public Builder clearContextDigest() {
+        contextDigest_ = getDefaultInstance().getContextDigest();
         bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
       /**
-       * <code>string active_skill_context_digest = 2;</code>
-       * @param value The bytes for activeSkillContextDigest to set.
+       * <pre>
+       * Digest of the rendered active-skill context.
+       * </pre>
+       *
+       * <code>string context_digest = 2;</code>
+       * @param value The bytes for contextDigest to set.
        * @return This builder for chaining.
        */
-      public Builder setActiveSkillContextDigestBytes(
+      public Builder setContextDigestBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
-        activeSkillContextDigest_ = value;
+        contextDigest_ = value;
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
@@ -15938,19 +16042,19 @@ java.lang.String defaultValue);
     talon.data.Data.TokenCounterOrBuilder getContextTokensOrBuilder();
 
     /**
-     * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
-     * @return Whether the activeSkillState field is set.
+     * <code>.talon.data.SessionSkillState skill_state = 10;</code>
+     * @return Whether the skillState field is set.
      */
-    boolean hasActiveSkillState();
+    boolean hasSkillState();
     /**
-     * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
-     * @return The activeSkillState.
+     * <code>.talon.data.SessionSkillState skill_state = 10;</code>
+     * @return The skillState.
      */
-    talon.data.Data.SessionSkillState getActiveSkillState();
+    talon.data.Data.SessionSkillState getSkillState();
     /**
-     * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+     * <code>.talon.data.SessionSkillState skill_state = 10;</code>
      */
-    talon.data.Data.SessionSkillStateOrBuilder getActiveSkillStateOrBuilder();
+    talon.data.Data.SessionSkillStateOrBuilder getSkillStateOrBuilder();
   }
   /**
    * Protobuf type {@code talon.data.Session}
@@ -16398,30 +16502,30 @@ java.lang.String defaultValue) {
       return contextTokens_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : contextTokens_;
     }
 
-    public static final int ACTIVE_SKILL_STATE_FIELD_NUMBER = 10;
-    private talon.data.Data.SessionSkillState activeSkillState_;
+    public static final int SKILL_STATE_FIELD_NUMBER = 10;
+    private talon.data.Data.SessionSkillState skillState_;
     /**
-     * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
-     * @return Whether the activeSkillState field is set.
+     * <code>.talon.data.SessionSkillState skill_state = 10;</code>
+     * @return Whether the skillState field is set.
      */
     @java.lang.Override
-    public boolean hasActiveSkillState() {
+    public boolean hasSkillState() {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
-     * @return The activeSkillState.
+     * <code>.talon.data.SessionSkillState skill_state = 10;</code>
+     * @return The skillState.
      */
     @java.lang.Override
-    public talon.data.Data.SessionSkillState getActiveSkillState() {
-      return activeSkillState_ == null ? talon.data.Data.SessionSkillState.getDefaultInstance() : activeSkillState_;
+    public talon.data.Data.SessionSkillState getSkillState() {
+      return skillState_ == null ? talon.data.Data.SessionSkillState.getDefaultInstance() : skillState_;
     }
     /**
-     * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+     * <code>.talon.data.SessionSkillState skill_state = 10;</code>
      */
     @java.lang.Override
-    public talon.data.Data.SessionSkillStateOrBuilder getActiveSkillStateOrBuilder() {
-      return activeSkillState_ == null ? talon.data.Data.SessionSkillState.getDefaultInstance() : activeSkillState_;
+    public talon.data.Data.SessionSkillStateOrBuilder getSkillStateOrBuilder() {
+      return skillState_ == null ? talon.data.Data.SessionSkillState.getDefaultInstance() : skillState_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -16472,7 +16576,7 @@ java.lang.String defaultValue) {
         output.writeMessage(9, getContextTokens());
       }
       if (((bitField0_ & 0x00000002) != 0)) {
-        output.writeMessage(10, getActiveSkillState());
+        output.writeMessage(10, getSkillState());
       }
       getUnknownFields().writeTo(output);
     }
@@ -16529,7 +16633,7 @@ java.lang.String defaultValue) {
       }
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(10, getActiveSkillState());
+          .computeMessageSize(10, getSkillState());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -16567,10 +16671,10 @@ java.lang.String defaultValue) {
         if (!getContextTokens()
             .equals(other.getContextTokens())) return false;
       }
-      if (hasActiveSkillState() != other.hasActiveSkillState()) return false;
-      if (hasActiveSkillState()) {
-        if (!getActiveSkillState()
-            .equals(other.getActiveSkillState())) return false;
+      if (hasSkillState() != other.hasSkillState()) return false;
+      if (hasSkillState()) {
+        if (!getSkillState()
+            .equals(other.getSkillState())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -16609,9 +16713,9 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + CONTEXT_TOKENS_FIELD_NUMBER;
         hash = (53 * hash) + getContextTokens().hashCode();
       }
-      if (hasActiveSkillState()) {
-        hash = (37 * hash) + ACTIVE_SKILL_STATE_FIELD_NUMBER;
-        hash = (53 * hash) + getActiveSkillState().hashCode();
+      if (hasSkillState()) {
+        hash = (37 * hash) + SKILL_STATE_FIELD_NUMBER;
+        hash = (53 * hash) + getSkillState().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -16770,7 +16874,7 @@ java.lang.String defaultValue) {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
           internalGetContextTokensFieldBuilder();
-          internalGetActiveSkillStateFieldBuilder();
+          internalGetSkillStateFieldBuilder();
         }
       }
       @java.lang.Override
@@ -16790,10 +16894,10 @@ java.lang.String defaultValue) {
           contextTokensBuilder_.dispose();
           contextTokensBuilder_ = null;
         }
-        activeSkillState_ = null;
-        if (activeSkillStateBuilder_ != null) {
-          activeSkillStateBuilder_.dispose();
-          activeSkillStateBuilder_ = null;
+        skillState_ = null;
+        if (skillStateBuilder_ != null) {
+          skillStateBuilder_.dispose();
+          skillStateBuilder_ = null;
         }
         return this;
       }
@@ -16862,9 +16966,9 @@ java.lang.String defaultValue) {
           to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000200) != 0)) {
-          result.activeSkillState_ = activeSkillStateBuilder_ == null
-              ? activeSkillState_
-              : activeSkillStateBuilder_.build();
+          result.skillState_ = skillStateBuilder_ == null
+              ? skillState_
+              : skillStateBuilder_.build();
           to_bitField0_ |= 0x00000002;
         }
         result.bitField0_ |= to_bitField0_;
@@ -16917,8 +17021,8 @@ java.lang.String defaultValue) {
         if (other.hasContextTokens()) {
           mergeContextTokens(other.getContextTokens());
         }
-        if (other.hasActiveSkillState()) {
-          mergeActiveSkillState(other.getActiveSkillState());
+        if (other.hasSkillState()) {
+          mergeSkillState(other.getSkillState());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -17003,7 +17107,7 @@ java.lang.String defaultValue) {
               } // case 74
               case 82: {
                 input.readMessage(
-                    internalGetActiveSkillStateFieldBuilder().getBuilder(),
+                    internalGetSkillStateFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000200;
                 break;
@@ -17821,125 +17925,125 @@ java.lang.String defaultValue) {
         return contextTokensBuilder_;
       }
 
-      private talon.data.Data.SessionSkillState activeSkillState_;
+      private talon.data.Data.SessionSkillState skillState_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.data.Data.SessionSkillState, talon.data.Data.SessionSkillState.Builder, talon.data.Data.SessionSkillStateOrBuilder> activeSkillStateBuilder_;
+          talon.data.Data.SessionSkillState, talon.data.Data.SessionSkillState.Builder, talon.data.Data.SessionSkillStateOrBuilder> skillStateBuilder_;
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
-       * @return Whether the activeSkillState field is set.
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
+       * @return Whether the skillState field is set.
        */
-      public boolean hasActiveSkillState() {
+      public boolean hasSkillState() {
         return ((bitField0_ & 0x00000200) != 0);
       }
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
-       * @return The activeSkillState.
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
+       * @return The skillState.
        */
-      public talon.data.Data.SessionSkillState getActiveSkillState() {
-        if (activeSkillStateBuilder_ == null) {
-          return activeSkillState_ == null ? talon.data.Data.SessionSkillState.getDefaultInstance() : activeSkillState_;
+      public talon.data.Data.SessionSkillState getSkillState() {
+        if (skillStateBuilder_ == null) {
+          return skillState_ == null ? talon.data.Data.SessionSkillState.getDefaultInstance() : skillState_;
         } else {
-          return activeSkillStateBuilder_.getMessage();
+          return skillStateBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
        */
-      public Builder setActiveSkillState(talon.data.Data.SessionSkillState value) {
-        if (activeSkillStateBuilder_ == null) {
+      public Builder setSkillState(talon.data.Data.SessionSkillState value) {
+        if (skillStateBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          activeSkillState_ = value;
+          skillState_ = value;
         } else {
-          activeSkillStateBuilder_.setMessage(value);
+          skillStateBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000200;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
        */
-      public Builder setActiveSkillState(
+      public Builder setSkillState(
           talon.data.Data.SessionSkillState.Builder builderForValue) {
-        if (activeSkillStateBuilder_ == null) {
-          activeSkillState_ = builderForValue.build();
+        if (skillStateBuilder_ == null) {
+          skillState_ = builderForValue.build();
         } else {
-          activeSkillStateBuilder_.setMessage(builderForValue.build());
+          skillStateBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000200;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
        */
-      public Builder mergeActiveSkillState(talon.data.Data.SessionSkillState value) {
-        if (activeSkillStateBuilder_ == null) {
+      public Builder mergeSkillState(talon.data.Data.SessionSkillState value) {
+        if (skillStateBuilder_ == null) {
           if (((bitField0_ & 0x00000200) != 0) &&
-            activeSkillState_ != null &&
-            activeSkillState_ != talon.data.Data.SessionSkillState.getDefaultInstance()) {
-            getActiveSkillStateBuilder().mergeFrom(value);
+            skillState_ != null &&
+            skillState_ != talon.data.Data.SessionSkillState.getDefaultInstance()) {
+            getSkillStateBuilder().mergeFrom(value);
           } else {
-            activeSkillState_ = value;
+            skillState_ = value;
           }
         } else {
-          activeSkillStateBuilder_.mergeFrom(value);
+          skillStateBuilder_.mergeFrom(value);
         }
-        if (activeSkillState_ != null) {
+        if (skillState_ != null) {
           bitField0_ |= 0x00000200;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
        */
-      public Builder clearActiveSkillState() {
+      public Builder clearSkillState() {
         bitField0_ = (bitField0_ & ~0x00000200);
-        activeSkillState_ = null;
-        if (activeSkillStateBuilder_ != null) {
-          activeSkillStateBuilder_.dispose();
-          activeSkillStateBuilder_ = null;
+        skillState_ = null;
+        if (skillStateBuilder_ != null) {
+          skillStateBuilder_.dispose();
+          skillStateBuilder_ = null;
         }
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
        */
-      public talon.data.Data.SessionSkillState.Builder getActiveSkillStateBuilder() {
+      public talon.data.Data.SessionSkillState.Builder getSkillStateBuilder() {
         bitField0_ |= 0x00000200;
         onChanged();
-        return internalGetActiveSkillStateFieldBuilder().getBuilder();
+        return internalGetSkillStateFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
        */
-      public talon.data.Data.SessionSkillStateOrBuilder getActiveSkillStateOrBuilder() {
-        if (activeSkillStateBuilder_ != null) {
-          return activeSkillStateBuilder_.getMessageOrBuilder();
+      public talon.data.Data.SessionSkillStateOrBuilder getSkillStateOrBuilder() {
+        if (skillStateBuilder_ != null) {
+          return skillStateBuilder_.getMessageOrBuilder();
         } else {
-          return activeSkillState_ == null ?
-              talon.data.Data.SessionSkillState.getDefaultInstance() : activeSkillState_;
+          return skillState_ == null ?
+              talon.data.Data.SessionSkillState.getDefaultInstance() : skillState_;
         }
       }
       /**
-       * <code>.talon.data.SessionSkillState active_skill_state = 10;</code>
+       * <code>.talon.data.SessionSkillState skill_state = 10;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.data.Data.SessionSkillState, talon.data.Data.SessionSkillState.Builder, talon.data.Data.SessionSkillStateOrBuilder>
-          internalGetActiveSkillStateFieldBuilder() {
-        if (activeSkillStateBuilder_ == null) {
-          activeSkillStateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+          internalGetSkillStateFieldBuilder() {
+        if (skillStateBuilder_ == null) {
+          skillStateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               talon.data.Data.SessionSkillState, talon.data.Data.SessionSkillState.Builder, talon.data.Data.SessionSkillStateOrBuilder>(
-                  getActiveSkillState(),
+                  getSkillState(),
                   getParentForChildren(),
                   isClean());
-          activeSkillState_ = null;
+          skillState_ = null;
         }
-        return activeSkillStateBuilder_;
+        return skillStateBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.Session)
@@ -29230,82 +29334,82 @@ java.lang.String defaultValue) {
       "lon.data.SessionMessage.LabelsEntry\022-\n\005p" +
       "arts\030\006 \003(\0132\036.talon.data.SessionMessagePa" +
       "rt\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
-      "\002 \001(\t:\0028\001J\004\010\003\020\004\"T\n\021SessionSkillState\022\032\n\022" +
-      "active_skill_names\030\001 \003(\t\022#\n\033active_skill" +
-      "_context_digest\030\002 \001(\t\"\264\003\n\007Session\022\n\n\002id\030" +
-      "\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006stat" +
-      "us\030\004 \001(\t\022\022\n\ncreated_at\030\005 \001(\003\022\023\n\013last_act" +
-      "ive\030\006 \001(\003\0223\n\010metadata\030\007 \003(\0132!.talon.data" +
-      ".Session.MetadataEntry\022/\n\006labels\030\010 \003(\0132\037" +
-      ".talon.data.Session.LabelsEntry\0225\n\016conte" +
-      "xt_tokens\030\t \001(\0132\030.talon.data.TokenCounte" +
-      "rH\000\210\001\001\0229\n\022active_skill_state\030\n \001(\0132\035.tal" +
-      "on.data.SessionSkillState\032/\n\rMetadataEnt" +
-      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032-\n\013La" +
-      "belsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
-      "\001B\021\n\017_context_tokens\"\233\002\n\016ChannelMessage\022" +
-      "\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n\007channel\030\003 \001(\t" +
-      "\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006author\030\005 \001(\t\022\017\n" +
-      "\007content\030\006 \001(\t\022\022\n\ncreated_at\030\007 \001(\003\022\024\n\014so" +
-      "urce_agent\030\010 \001(\t\022\031\n\021source_session_id\030\t " +
-      "\001(\t\0226\n\006labels\030\n \003(\0132&.talon.data.Channel" +
-      "Message.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003ke" +
-      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\tKnowledge\022" +
-      "\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\022\022\n\nupdate" +
-      "d_at\030\003 \001(\003\022\021\n\tnamespace\030\004 \001(\t\022\014\n\004name\030\005 " +
-      "\001(\t\"k\n\025KnowledgeSearchResult\022\014\n\004path\030\001 \001" +
-      "(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005score\030\003 \001(\002\022\021\n\tti" +
-      "mestamp\030\004 \001(\003\022\021\n\tnamespace\030\005 \001(\t\"\313\003\n\013Wor" +
-      "kflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\n" +
-      "\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json" +
-      "\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022\023\n\013output_jso" +
-      "n\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003\022\022\n\nupdated_a" +
-      "t\030\t \001(\003\0223\n\006labels\030\n \003(\0132#.talon.data.Wor" +
-      "kflowRun.LabelsEntry\022\035\n\020claim_expires_at" +
-      "\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t\022\021\n\tspec_json\030" +
-      "\r \001(\t\022\031\n\021workflow_revision\030\016 \001(\004\022\023\n\013clai" +
-      "m_owner\030\017 \001(\t\022\025\n\rclaim_attempt\030\020 \001(\r\022\034\n\024" +
-      "last_dispatch_reason\030\021 \001(\t\032-\n\013LabelsEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\023\n\021_cl" +
-      "aim_expires_at\"\263\003\n\017WorkflowStepRun\022\n\n\002id" +
-      "\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007attempt\030\003 \001(\r" +
-      "\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_json\030\005 \001(\t\022\023\n\013" +
-      "output_json\030\006 \001(\t\022\r\n\005error\030\007 \001(\t\022\030\n\020chil" +
-      "d_session_id\030\010 \001(\t\022\035\n\025child_workflow_run" +
-      "_id\030\t \001(\t\022\023\n\013resume_json\030\n \001(\t\022\024\n\014suspen" +
-      "d_json\030\013 \001(\t\022\022\n\ncreated_at\030\014 \001(\003\022\022\n\nupda" +
-      "ted_at\030\r \001(\003\022\032\n\rnext_retry_at\030\016 \001(\003H\000\210\001\001" +
-      "\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022\032\n\022wait_wakeup" +
-      "_handle\030\020 \001(\t\022\032\n\rwait_until_at\030\021 \001(\003H\002\210\001" +
-      "\001B\020\n\016_next_retry_atB\r\n\013_timeout_atB\020\n\016_w" +
-      "ait_until_at\"\245\001\n\020WorkflowRunEvent\022\n\n\002id\030" +
-      "\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workflow\030\003 \001(\t\022\016\n\006r" +
-      "un_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022\017\n\007step_id\030\006 \001" +
-      "(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014payload_json\030\010 \001(" +
-      "\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013MessageRole\022\024\n\020R" +
-      "OLE_UNSPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE" +
-      "_ASSISTANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\316\004\n\026Sessio" +
-      "nMessagePartType\022)\n%SESSION_MESSAGE_PART" +
-      "_TYPE_UNSPECIFIED\020\000\022\"\n\036SESSION_MESSAGE_P" +
-      "ART_TYPE_TEXT\020\001\022\'\n#SESSION_MESSAGE_PART_" +
-      "TYPE_REASONING\020\002\022\'\n#SESSION_MESSAGE_PART" +
-      "_TYPE_TOOL_CALL\020\003\022)\n%SESSION_MESSAGE_PAR" +
-      "T_TYPE_TOOL_RESULT\020\004\022#\n\037SESSION_MESSAGE_" +
-      "PART_TYPE_USAGE\020\005\022#\n\037SESSION_MESSAGE_PAR" +
-      "T_TYPE_ERROR\020\006\022#\n\037SESSION_MESSAGE_PART_T" +
-      "YPE_IMAGE\020\007\022#\n\037SESSION_MESSAGE_PART_TYPE" +
-      "_AUDIO\020\010\022#\n\037SESSION_MESSAGE_PART_TYPE_VI" +
-      "DEO\020\t\022\"\n\036SESSION_MESSAGE_PART_TYPE_FILE\020" +
-      "\n\0220\n,SESSION_MESSAGE_PART_TYPE_REQUEST_P" +
-      "ERMISSION\020\013\022/\n+SESSION_MESSAGE_PART_TYPE" +
-      "_PERMISSION_RESULT\020\014\022(\n$SESSION_MESSAGE_" +
-      "PART_TYPE_COMPACTION\020\r*\355\001\n\tGoalPhase\022\032\n\026" +
-      "GOAL_PHASE_UNSPECIFIED\020\000\022\026\n\022GOAL_PHASE_R" +
-      "UNNING\020\001\022\025\n\021GOAL_PHASE_PAUSED\020\002\022\033\n\027GOAL_" +
-      "PHASE_NEEDS_REVIEW\020\003\022\030\n\024GOAL_PHASE_SUCCE" +
-      "EDED\020\004\022\025\n\021GOAL_PHASE_FAILED\020\005\022\026\n\022GOAL_PH" +
-      "ASE_BLOCKED\020\006\022\027\n\023GOAL_PHASE_CANCELED\020\007\022\026" +
-      "\n\022GOAL_PHASE_EXPIRED\020\010b\006proto3"
+      "\002 \001(\t:\0028\001J\004\010\003\020\004\"A\n\021SessionSkillState\022\024\n\014" +
+      "active_names\030\001 \003(\t\022\026\n\016context_digest\030\002 \001" +
+      "(\t\"\255\003\n\007Session\022\n\n\002id\030\001 \001(\t\022\r\n\005agent\030\002 \001(" +
+      "\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022\022\n\ncreated" +
+      "_at\030\005 \001(\003\022\023\n\013last_active\030\006 \001(\003\0223\n\010metada" +
+      "ta\030\007 \003(\0132!.talon.data.Session.MetadataEn" +
+      "try\022/\n\006labels\030\010 \003(\0132\037.talon.data.Session" +
+      ".LabelsEntry\0225\n\016context_tokens\030\t \001(\0132\030.t" +
+      "alon.data.TokenCounterH\000\210\001\001\0222\n\013skill_sta" +
+      "te\030\n \001(\0132\035.talon.data.SessionSkillState\032" +
+      "/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
+      " \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005" +
+      "value\030\002 \001(\t:\0028\001B\021\n\017_context_tokens\"\233\002\n\016C" +
+      "hannelMessage\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\017\n" +
+      "\007channel\030\003 \001(\t\022\023\n\013author_kind\030\004 \001(\t\022\016\n\006a" +
+      "uthor\030\005 \001(\t\022\017\n\007content\030\006 \001(\t\022\022\n\ncreated_" +
+      "at\030\007 \001(\003\022\024\n\014source_agent\030\010 \001(\t\022\031\n\021source" +
+      "_session_id\030\t \001(\t\0226\n\006labels\030\n \003(\0132&.talo" +
+      "n.data.ChannelMessage.LabelsEntry\032-\n\013Lab" +
+      "elsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001" +
+      "\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002" +
+      " \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tnamespace\030\004 " +
+      "\001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSearchResu" +
+      "lt\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022\r\n\005sco" +
+      "re\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnamespace" +
+      "\030\005 \001(\t\"\313\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010wo" +
+      "rkflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t" +
+      "\022\022\n\ninput_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t" +
+      "\022\023\n\013output_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(" +
+      "\003\022\022\n\nupdated_at\030\t \001(\003\0223\n\006labels\030\n \003(\0132#." +
+      "talon.data.WorkflowRun.LabelsEntry\022\035\n\020cl" +
+      "aim_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(\t" +
+      "\022\021\n\tspec_json\030\r \001(\t\022\031\n\021workflow_revision" +
+      "\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_att" +
+      "empt\030\020 \001(\r\022\034\n\024last_dispatch_reason\030\021 \001(\t" +
+      "\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
+      "\001(\t:\0028\001B\023\n\021_claim_expires_at\"\263\003\n\017Workflo" +
+      "wStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n" +
+      "\007attempt\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput_" +
+      "json\030\005 \001(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005error" +
+      "\030\007 \001(\t\022\030\n\020child_session_id\030\010 \001(\t\022\035\n\025chil" +
+      "d_workflow_run_id\030\t \001(\t\022\023\n\013resume_json\030\n" +
+      " \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022\022\n\ncreated_at" +
+      "\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retry" +
+      "_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001\022" +
+      "\032\n\022wait_wakeup_handle\030\020 \001(\t\022\032\n\rwait_unti" +
+      "l_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_ti" +
+      "meout_atB\020\n\016_wait_until_at\"\245\001\n\020WorkflowR" +
+      "unEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010workf" +
+      "low\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t\022" +
+      "\017\n\007step_id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014pay" +
+      "load_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013Me" +
+      "ssageRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE_" +
+      "USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYSTE" +
+      "M\020\003*\316\004\n\026SessionMessagePartType\022)\n%SESSIO" +
+      "N_MESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SES" +
+      "SION_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSION" +
+      "_MESSAGE_PART_TYPE_REASONING\020\002\022\'\n#SESSIO" +
+      "N_MESSAGE_PART_TYPE_TOOL_CALL\020\003\022)\n%SESSI" +
+      "ON_MESSAGE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037SE" +
+      "SSION_MESSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESSI" +
+      "ON_MESSAGE_PART_TYPE_ERROR\020\006\022#\n\037SESSION_" +
+      "MESSAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION_MES" +
+      "SAGE_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSAG" +
+      "E_PART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_P" +
+      "ART_TYPE_FILE\020\n\0220\n,SESSION_MESSAGE_PART_" +
+      "TYPE_REQUEST_PERMISSION\020\013\022/\n+SESSION_MES" +
+      "SAGE_PART_TYPE_PERMISSION_RESULT\020\014\022(\n$SE" +
+      "SSION_MESSAGE_PART_TYPE_COMPACTION\020\r*\355\001\n" +
+      "\tGoalPhase\022\032\n\026GOAL_PHASE_UNSPECIFIED\020\000\022\026" +
+      "\n\022GOAL_PHASE_RUNNING\020\001\022\025\n\021GOAL_PHASE_PAU" +
+      "SED\020\002\022\033\n\027GOAL_PHASE_NEEDS_REVIEW\020\003\022\030\n\024GO" +
+      "AL_PHASE_SUCCEEDED\020\004\022\025\n\021GOAL_PHASE_FAILE" +
+      "D\020\005\022\026\n\022GOAL_PHASE_BLOCKED\020\006\022\027\n\023GOAL_PHAS" +
+      "E_CANCELED\020\007\022\026\n\022GOAL_PHASE_EXPIRED\020\010b\006pr" +
+      "oto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -29406,13 +29510,13 @@ java.lang.String defaultValue) {
     internal_static_talon_data_SessionSkillState_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionSkillState_descriptor,
-        new java.lang.String[] { "ActiveSkillNames", "ActiveSkillContextDigest", });
+        new java.lang.String[] { "ActiveNames", "ContextDigest", });
     internal_static_talon_data_Session_descriptor =
       getDescriptor().getMessageType(9);
     internal_static_talon_data_Session_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_Session_descriptor,
-        new java.lang.String[] { "Id", "Agent", "Ns", "Status", "CreatedAt", "LastActive", "Metadata", "Labels", "ContextTokens", "ActiveSkillState", });
+        new java.lang.String[] { "Id", "Agent", "Ns", "Status", "CreatedAt", "LastActive", "Metadata", "Labels", "ContextTokens", "SkillState", });
     internal_static_talon_data_Session_MetadataEntry_descriptor =
       internal_static_talon_data_Session_descriptor.getNestedType(0);
     internal_static_talon_data_Session_MetadataEntry_fieldAccessorTable = new

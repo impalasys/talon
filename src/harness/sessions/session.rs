@@ -144,7 +144,7 @@ mod tests {
                 last_active: 2,
                 metadata: Default::default(),
                 labels: Default::default(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: Some(TokenCounter {
                     input_tokens: 42,
                     output_tokens: 7,
@@ -190,7 +190,7 @@ mod tests {
                 last_active: 2,
                 metadata: Default::default(),
                 labels: Default::default(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -221,7 +221,7 @@ mod tests {
                 labels: [("label".to_string(), "value".to_string())]
                     .into_iter()
                     .collect(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )

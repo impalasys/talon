@@ -284,15 +284,15 @@ class SessionMessage(_message.Message):
     def __init__(self, id: _Optional[str] = ..., role: _Optional[_Union[MessageRole, str]] = ..., created_at: _Optional[int] = ..., labels: _Optional[_Mapping[str, str]] = ..., parts: _Optional[_Iterable[_Union[SessionMessagePart, _Mapping]]] = ...) -> None: ...
 
 class SessionSkillState(_message.Message):
-    __slots__ = ("active_skill_names", "active_skill_context_digest")
-    ACTIVE_SKILL_NAMES_FIELD_NUMBER: _ClassVar[int]
-    ACTIVE_SKILL_CONTEXT_DIGEST_FIELD_NUMBER: _ClassVar[int]
-    active_skill_names: _containers.RepeatedScalarFieldContainer[str]
-    active_skill_context_digest: str
-    def __init__(self, active_skill_names: _Optional[_Iterable[str]] = ..., active_skill_context_digest: _Optional[str] = ...) -> None: ...
+    __slots__ = ("active_names", "context_digest")
+    ACTIVE_NAMES_FIELD_NUMBER: _ClassVar[int]
+    CONTEXT_DIGEST_FIELD_NUMBER: _ClassVar[int]
+    active_names: _containers.RepeatedScalarFieldContainer[str]
+    context_digest: str
+    def __init__(self, active_names: _Optional[_Iterable[str]] = ..., context_digest: _Optional[str] = ...) -> None: ...
 
 class Session(_message.Message):
-    __slots__ = ("id", "agent", "ns", "status", "created_at", "last_active", "metadata", "labels", "context_tokens", "active_skill_state")
+    __slots__ = ("id", "agent", "ns", "status", "created_at", "last_active", "metadata", "labels", "context_tokens", "skill_state")
     class MetadataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -316,7 +316,7 @@ class Session(_message.Message):
     METADATA_FIELD_NUMBER: _ClassVar[int]
     LABELS_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_TOKENS_FIELD_NUMBER: _ClassVar[int]
-    ACTIVE_SKILL_STATE_FIELD_NUMBER: _ClassVar[int]
+    SKILL_STATE_FIELD_NUMBER: _ClassVar[int]
     id: str
     agent: str
     ns: str
@@ -326,8 +326,8 @@ class Session(_message.Message):
     metadata: _containers.ScalarMap[str, str]
     labels: _containers.ScalarMap[str, str]
     context_tokens: TokenCounter
-    active_skill_state: SessionSkillState
-    def __init__(self, id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., status: _Optional[str] = ..., created_at: _Optional[int] = ..., last_active: _Optional[int] = ..., metadata: _Optional[_Mapping[str, str]] = ..., labels: _Optional[_Mapping[str, str]] = ..., context_tokens: _Optional[_Union[TokenCounter, _Mapping]] = ..., active_skill_state: _Optional[_Union[SessionSkillState, _Mapping]] = ...) -> None: ...
+    skill_state: SessionSkillState
+    def __init__(self, id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., status: _Optional[str] = ..., created_at: _Optional[int] = ..., last_active: _Optional[int] = ..., metadata: _Optional[_Mapping[str, str]] = ..., labels: _Optional[_Mapping[str, str]] = ..., context_tokens: _Optional[_Union[TokenCounter, _Mapping]] = ..., skill_state: _Optional[_Union[SessionSkillState, _Mapping]] = ...) -> None: ...
 
 class ChannelMessage(_message.Message):
     __slots__ = ("id", "ns", "channel", "author_kind", "author", "content", "created_at", "source_agent", "source_session_id", "labels")

@@ -1468,7 +1468,7 @@ mod tests {
                 last_active: 1,
                 metadata,
                 labels: HashMap::new(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -1774,7 +1774,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: session_labels,
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -2471,7 +2471,7 @@ mod tests {
             last_active: 123,
             metadata: HashMap::new(),
             labels: HashMap::new(),
-            active_skill_state: None,
+            skill_state: None,
             context_tokens: None,
         };
         kv.set_msg(
@@ -2516,7 +2516,7 @@ mod tests {
             last_active: 123,
             metadata: HashMap::new(),
             labels: HashMap::new(),
-            active_skill_state: None,
+            skill_state: None,
             context_tokens: None,
         };
         kv.set_msg(
@@ -2561,7 +2561,7 @@ mod tests {
             last_active: 123,
             metadata: HashMap::new(),
             labels: HashMap::new(),
-            active_skill_state: None,
+            skill_state: None,
             context_tokens: None,
         };
         kv.set_msg(
@@ -2773,7 +2773,7 @@ mod tests {
             last_active: 456,
             metadata: HashMap::new(),
             labels: HashMap::new(),
-            active_skill_state: None,
+            skill_state: None,
             context_tokens: None,
         };
         kv.set_msg(
@@ -2852,7 +2852,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -3077,7 +3077,7 @@ mod tests {
                         "T123".to_string(),
                     ),
                 ]),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -3207,7 +3207,7 @@ mod tests {
                         "1710000000.000100".to_string(),
                     ),
                 ]),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -3425,7 +3425,7 @@ mod tests {
                 ("talon.impalasys.com/connector-class", "stale-class"),
                 ("talon.impalasys.com/connector-match/teamId", "stale-team"),
             ]),
-            active_skill_state: None,
+            skill_state: None,
             context_tokens: None,
         };
 
@@ -3870,7 +3870,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -4036,7 +4036,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -4262,7 +4262,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -4339,7 +4339,7 @@ mod tests {
                 last_active: 123,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )

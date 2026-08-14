@@ -1109,11 +1109,13 @@ func (x *SessionMessage) GetParts() []*SessionMessagePart {
 }
 
 type SessionSkillState struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	ActiveSkillNames         []string               `protobuf:"bytes,1,rep,name=active_skill_names,json=activeSkillNames,proto3" json:"active_skill_names,omitempty"`
-	ActiveSkillContextDigest string                 `protobuf:"bytes,2,opt,name=active_skill_context_digest,json=activeSkillContextDigest,proto3" json:"active_skill_context_digest,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Ordered active skill IDs; later entries have higher precedence.
+	ActiveNames []string `protobuf:"bytes,1,rep,name=active_names,json=activeNames,proto3" json:"active_names,omitempty"`
+	// Digest of the rendered active-skill context.
+	ContextDigest string `protobuf:"bytes,2,opt,name=context_digest,json=contextDigest,proto3" json:"context_digest,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SessionSkillState) Reset() {
@@ -1146,16 +1148,16 @@ func (*SessionSkillState) Descriptor() ([]byte, []int) {
 	return file_proto_data_data_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *SessionSkillState) GetActiveSkillNames() []string {
+func (x *SessionSkillState) GetActiveNames() []string {
 	if x != nil {
-		return x.ActiveSkillNames
+		return x.ActiveNames
 	}
 	return nil
 }
 
-func (x *SessionSkillState) GetActiveSkillContextDigest() string {
+func (x *SessionSkillState) GetContextDigest() string {
 	if x != nil {
-		return x.ActiveSkillContextDigest
+		return x.ContextDigest
 	}
 	return ""
 }
@@ -1174,10 +1176,10 @@ type Session struct {
 	Labels     map[string]string `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Latest completed provider token snapshot for this session. This is not a
 	// cumulative usage or billing record.
-	ContextTokens    *TokenCounter      `protobuf:"bytes,9,opt,name=context_tokens,json=contextTokens,proto3,oneof" json:"context_tokens,omitempty"`
-	ActiveSkillState *SessionSkillState `protobuf:"bytes,10,opt,name=active_skill_state,json=activeSkillState,proto3" json:"active_skill_state,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	ContextTokens *TokenCounter      `protobuf:"bytes,9,opt,name=context_tokens,json=contextTokens,proto3,oneof" json:"context_tokens,omitempty"`
+	SkillState    *SessionSkillState `protobuf:"bytes,10,opt,name=skill_state,json=skillState,proto3" json:"skill_state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Session) Reset() {
@@ -1273,9 +1275,9 @@ func (x *Session) GetContextTokens() *TokenCounter {
 	return nil
 }
 
-func (x *Session) GetActiveSkillState() *SessionSkillState {
+func (x *Session) GetSkillState() *SessionSkillState {
 	if x != nil {
-		return x.ActiveSkillState
+		return x.SkillState
 	}
 	return nil
 }
@@ -2131,10 +2133,10 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"\x05parts\x18\x06 \x03(\v2\x1e.talon.data.SessionMessagePartR\x05parts\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x03\x10\x04\"\x80\x01\n" +
-	"\x11SessionSkillState\x12,\n" +
-	"\x12active_skill_names\x18\x01 \x03(\tR\x10activeSkillNames\x12=\n" +
-	"\x1bactive_skill_context_digest\x18\x02 \x01(\tR\x18activeSkillContextDigest\"\xad\x04\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x03\x10\x04\"]\n" +
+	"\x11SessionSkillState\x12!\n" +
+	"\factive_names\x18\x01 \x03(\tR\vactiveNames\x12%\n" +
+	"\x0econtext_digest\x18\x02 \x01(\tR\rcontextDigest\"\xa0\x04\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x0e\n" +
@@ -2146,9 +2148,10 @@ const file_proto_data_data_proto_rawDesc = "" +
 	"lastActive\x12=\n" +
 	"\bmetadata\x18\a \x03(\v2!.talon.data.Session.MetadataEntryR\bmetadata\x127\n" +
 	"\x06labels\x18\b \x03(\v2\x1f.talon.data.Session.LabelsEntryR\x06labels\x12D\n" +
-	"\x0econtext_tokens\x18\t \x01(\v2\x18.talon.data.TokenCounterH\x00R\rcontextTokens\x88\x01\x01\x12K\n" +
-	"\x12active_skill_state\x18\n" +
-	" \x01(\v2\x1d.talon.data.SessionSkillStateR\x10activeSkillState\x1a;\n" +
+	"\x0econtext_tokens\x18\t \x01(\v2\x18.talon.data.TokenCounterH\x00R\rcontextTokens\x88\x01\x01\x12>\n" +
+	"\vskill_state\x18\n" +
+	" \x01(\v2\x1d.talon.data.SessionSkillStateR\n" +
+	"skillState\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
@@ -2348,7 +2351,7 @@ var file_proto_data_data_proto_depIdxs = []int32{
 	26, // 13: talon.data.Session.metadata:type_name -> talon.data.Session.MetadataEntry
 	27, // 14: talon.data.Session.labels:type_name -> talon.data.Session.LabelsEntry
 	4,  // 15: talon.data.Session.context_tokens:type_name -> talon.data.TokenCounter
-	11, // 16: talon.data.Session.active_skill_state:type_name -> talon.data.SessionSkillState
+	11, // 16: talon.data.Session.skill_state:type_name -> talon.data.SessionSkillState
 	28, // 17: talon.data.ChannelMessage.labels:type_name -> talon.data.ChannelMessage.LabelsEntry
 	29, // 18: talon.data.WorkflowRun.labels:type_name -> talon.data.WorkflowRun.LabelsEntry
 	19, // [19:19] is the sub-list for method output_type

@@ -963,14 +963,18 @@ export class SessionMessage extends Message<SessionMessage> {
  */
 export class SessionSkillState extends Message<SessionSkillState> {
   /**
-   * @generated from field: repeated string active_skill_names = 1;
+   * Ordered active skill IDs; later entries have higher precedence.
+   *
+   * @generated from field: repeated string active_names = 1;
    */
-  activeSkillNames: string[] = [];
+  activeNames: string[] = [];
 
   /**
-   * @generated from field: string active_skill_context_digest = 2;
+   * Digest of the rendered active-skill context.
+   *
+   * @generated from field: string context_digest = 2;
    */
-  activeSkillContextDigest = "";
+  contextDigest = "";
 
   constructor(data?: PartialMessage<SessionSkillState>) {
     super();
@@ -980,8 +984,8 @@ export class SessionSkillState extends Message<SessionSkillState> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.data.SessionSkillState";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "active_skill_names", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 2, name: "active_skill_context_digest", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "active_names", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 2, name: "context_digest", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionSkillState {
@@ -1058,9 +1062,9 @@ export class Session extends Message<Session> {
   contextTokens?: TokenCounter;
 
   /**
-   * @generated from field: talon.data.SessionSkillState active_skill_state = 10;
+   * @generated from field: talon.data.SessionSkillState skill_state = 10;
    */
-  activeSkillState?: SessionSkillState;
+  skillState?: SessionSkillState;
 
   constructor(data?: PartialMessage<Session>) {
     super();
@@ -1079,7 +1083,7 @@ export class Session extends Message<Session> {
     { no: 7, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
     { no: 8, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
     { no: 9, name: "context_tokens", kind: "message", T: TokenCounter, opt: true },
-    { no: 10, name: "active_skill_state", kind: "message", T: SessionSkillState },
+    { no: 10, name: "skill_state", kind: "message", T: SessionSkillState },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Session {

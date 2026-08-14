@@ -1127,7 +1127,7 @@ mod tests {
             last_active: 2,
             metadata: HashMap::new(),
             labels: HashMap::from([("env".to_string(), "test".to_string())]),
-            active_skill_state: None,
+            skill_state: None,
             context_tokens: None,
         };
         let session_key = keys::session("ns", "agent", "session-1");

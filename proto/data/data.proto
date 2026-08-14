@@ -204,8 +204,10 @@ message SessionMessage {
 }
 
 message SessionSkillState {
-  repeated string active_skill_names = 1;
-  string active_skill_context_digest = 2;
+  // Ordered active skill IDs; later entries have higher precedence.
+  repeated string active_names = 1;
+  // Digest of the rendered active-skill context.
+  string context_digest = 2;
 }
 
 message Session {
@@ -222,7 +224,7 @@ message Session {
   // Latest completed provider token snapshot for this session. This is not a
   // cumulative usage or billing record.
   optional TokenCounter context_tokens = 9;
-  SessionSkillState active_skill_state = 10;
+  SessionSkillState skill_state = 10;
 }
 
 message ChannelMessage {

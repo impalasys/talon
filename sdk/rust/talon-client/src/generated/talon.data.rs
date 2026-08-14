@@ -312,10 +312,12 @@ pub struct SessionMessage {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionSkillState {
+    /// Ordered active skill IDs; later entries have higher precedence.
     #[prost(string, repeated, tag = "1")]
-    pub active_skill_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    pub active_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Digest of the rendered active-skill context.
     #[prost(string, tag = "2")]
-    pub active_skill_context_digest: ::prost::alloc::string::String,
+    pub context_digest: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Session {
@@ -348,7 +350,7 @@ pub struct Session {
     #[prost(message, optional, tag = "9")]
     pub context_tokens: ::core::option::Option<TokenCounter>,
     #[prost(message, optional, tag = "10")]
-    pub active_skill_state: ::core::option::Option<SessionSkillState>,
+    pub skill_state: ::core::option::Option<SessionSkillState>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChannelMessage {

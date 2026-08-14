@@ -568,7 +568,7 @@ mod tests {
                 last_active: 0,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: None,
             },
         )

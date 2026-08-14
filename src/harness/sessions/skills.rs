@@ -20,8 +20,8 @@ pub async fn active_skill_names(
     };
     let session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
     Ok(session
-        .active_skill_state
-        .map(|state| state.active_skill_names)
+        .skill_state
+        .map(|state| state.active_names)
         .unwrap_or_default())
 }
 
@@ -75,17 +75,15 @@ pub async fn persist_active_skill_context_digest(
         };
         let mut session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
         if session
-            .active_skill_state
+            .skill_state
             .as_ref()
-            .map(|state| state.active_skill_context_digest.as_str())
+            .map(|state| state.context_digest.as_str())
             == Some(digest)
         {
             return Ok(false);
         }
-        let state = session
-            .active_skill_state
-            .get_or_insert_with(Default::default);
-        state.active_skill_context_digest = digest.to_string();
+        let state = session.skill_state.get_or_insert_with(Default::default);
+        state.context_digest = digest.to_string();
         if let Some(counter) = session.context_tokens.as_mut() {
             counter.provider_request_id = None;
         }
@@ -119,19 +117,17 @@ where
             .ok_or_else(|| anyhow!("session not found"))?;
         let mut session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
         let mut active_skills = session
-            .active_skill_state
+            .skill_state
             .as_ref()
-            .map(|state| state.active_skill_names.clone())
+            .map(|state| state.active_names.clone())
             .unwrap_or_default();
         let changed = mutate(&mut active_skills);
         if !changed {
             return Ok(false);
         }
-        let state = session
-            .active_skill_state
-            .get_or_insert_with(Default::default);
-        state.active_skill_names = active_skills;
-        state.active_skill_context_digest.clear();
+        let state = session.skill_state.get_or_insert_with(Default::default);
+        state.active_names = active_skills;
+        state.context_digest.clear();
         if let Some(counter) = session.context_tokens.as_mut() {
             counter.provider_request_id = None;
         }
@@ -167,7 +163,7 @@ mod tests {
                     .into_iter()
                     .collect(),
                 labels: Default::default(),
-                active_skill_state: None,
+                skill_state: None,
                 context_tokens: Some(TokenCounter {
                     provider_request_id: Some("resp-1".to_string()),
                     ..Default::default()
@@ -209,10 +205,10 @@ mod tests {
             Some(&"preserved".to_string())
         );
         assert_eq!(
-            session.active_skill_state,
+            session.skill_state,
             Some(SessionSkillState {
-                active_skill_names: vec!["release".to_string(), "review".to_string()],
-                active_skill_context_digest: String::new(),
+                active_names: vec!["release".to_string(), "review".to_string()],
+                context_digest: String::new(),
             })
         );
         assert!(session
@@ -256,9 +252,9 @@ mod tests {
             .unwrap();
         assert_eq!(
             session
-                .active_skill_state
+                .skill_state
                 .as_ref()
-                .map(|state| state.active_skill_context_digest.as_str()),
+                .map(|state| state.context_digest.as_str()),
             Some("digest-1")
         );
         assert!(
@@ -277,10 +273,10 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(
-            session.active_skill_state,
+            session.skill_state,
             Some(SessionSkillState {
-                active_skill_names: Vec::new(),
-                active_skill_context_digest: String::new(),
+                active_names: Vec::new(),
+                context_digest: String::new(),
             })
         );
     }
