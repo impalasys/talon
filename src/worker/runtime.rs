@@ -750,6 +750,7 @@ mod tests {
                 ns: "conic".to_string(),
                 status: "active".to_string(),
                 labels: reply_labels,
+                active_skill_state: None,
                 context_tokens: None,
                 ..Default::default()
             },
@@ -774,6 +775,7 @@ mod tests {
                 ns: "conic".to_string(),
                 status: "active".to_string(),
                 labels: no_reply_labels,
+                active_skill_state: None,
                 context_tokens: None,
                 ..Default::default()
             },
@@ -842,6 +844,7 @@ mod tests {
                     crate::control::delegation::LABEL_TASK_ROLE.to_string(),
                     "delegate".to_string(),
                 )]),
+                active_skill_state: None,
                 context_tokens: None,
                 ..Default::default()
             },

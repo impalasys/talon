@@ -180,6 +180,7 @@ mod tests {
                 last_active: 200,
                 metadata: std::collections::HashMap::new(),
                 labels: std::collections::HashMap::new(),
+                active_skill_state: None,
                 context_tokens: None,
             },
         )
@@ -213,6 +214,7 @@ mod tests {
                 last_active: 100,
                 metadata: std::collections::HashMap::new(),
                 labels: std::collections::HashMap::new(),
+                active_skill_state: None,
                 context_tokens: None,
             },
         )

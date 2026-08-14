@@ -259,6 +259,7 @@ pub(super) async fn ensure_a2a_session(
         metadata: HashMap::new(),
         labels,
         context_tokens: None,
+        active_skill_state: None,
     };
     let inserted = gateway
         .kv

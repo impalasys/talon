@@ -311,6 +311,13 @@ pub struct SessionMessage {
     pub parts: ::prost::alloc::vec::Vec<SessionMessagePart>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionSkillState {
+    #[prost(string, repeated, tag = "1")]
+    pub active_skill_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "2")]
+    pub active_skill_context_digest: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Session {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
@@ -340,6 +347,8 @@ pub struct Session {
     /// cumulative usage or billing record.
     #[prost(message, optional, tag = "9")]
     pub context_tokens: ::core::option::Option<TokenCounter>,
+    #[prost(message, optional, tag = "10")]
+    pub active_skill_state: ::core::option::Option<SessionSkillState>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChannelMessage {

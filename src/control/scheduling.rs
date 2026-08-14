@@ -567,6 +567,7 @@ pub async fn create_session_with_labels(
         metadata: std::collections::HashMap::new(),
         labels,
         context_tokens: None,
+        active_skill_state: None,
     };
     cp.kv
         .set_msg(&keys::session(ns, agent, &session_id), &session)
@@ -1475,6 +1476,7 @@ mod tests {
             last_active: 0,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            active_skill_state: None,
             context_tokens: None,
         };
         kv.set_msg(
@@ -1585,6 +1587,7 @@ mod tests {
             last_active: 0,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            active_skill_state: None,
             context_tokens: None,
         };
         kv.set_msg(
@@ -1892,6 +1895,7 @@ mod tests {
             last_active: 0,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            active_skill_state: None,
             context_tokens: None,
         };
         kv.set_msg(
@@ -1939,6 +1943,7 @@ mod tests {
             last_active: 0,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            active_skill_state: None,
             context_tokens: None,
         };
         kv.set_msg(

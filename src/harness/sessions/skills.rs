@@ -7,9 +7,6 @@ use anyhow::{anyhow, Result};
 use prost::Message;
 
 const CAS_RETRIES: usize = 8;
-const ACTIVE_SKILLS_METADATA_KEY: &str = "talon.impalasys.com/active-skills";
-const ACTIVE_SKILL_CONTEXT_DIGEST_METADATA_KEY: &str =
-    "talon.impalasys.com/active-skill-context-digest";
 
 pub async fn active_skill_names(
     kv: &dyn crate::control::KeyValueStore,
@@ -22,7 +19,10 @@ pub async fn active_skill_names(
         return Ok(Vec::new());
     };
     let session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
-    Ok(decode_active_skill_names(&session.metadata))
+    Ok(session
+        .active_skill_state
+        .map(|state| state.active_skill_names)
+        .unwrap_or_default())
 }
 
 pub async fn activate_skill(
@@ -75,17 +75,17 @@ pub async fn persist_active_skill_context_digest(
         };
         let mut session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
         if session
-            .metadata
-            .get(ACTIVE_SKILL_CONTEXT_DIGEST_METADATA_KEY)
-            .map(String::as_str)
+            .active_skill_state
+            .as_ref()
+            .map(|state| state.active_skill_context_digest.as_str())
             == Some(digest)
         {
             return Ok(false);
         }
-        session.metadata.insert(
-            ACTIVE_SKILL_CONTEXT_DIGEST_METADATA_KEY.to_string(),
-            digest.to_string(),
-        );
+        let state = session
+            .active_skill_state
+            .get_or_insert_with(Default::default);
+        state.active_skill_context_digest = digest.to_string();
         if let Some(counter) = session.context_tokens.as_mut() {
             counter.provider_request_id = None;
         }
@@ -118,18 +118,20 @@ where
             .await?
             .ok_or_else(|| anyhow!("session not found"))?;
         let mut session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
-        let mut active_skills = decode_active_skill_names(&session.metadata);
+        let mut active_skills = session
+            .active_skill_state
+            .as_ref()
+            .map(|state| state.active_skill_names.clone())
+            .unwrap_or_default();
         let changed = mutate(&mut active_skills);
         if !changed {
             return Ok(false);
         }
-        session.metadata.insert(
-            ACTIVE_SKILLS_METADATA_KEY.to_string(),
-            serde_json::to_string(&active_skills).expect("active Skill names should serialize"),
-        );
-        session
-            .metadata
-            .remove(ACTIVE_SKILL_CONTEXT_DIGEST_METADATA_KEY);
+        let state = session
+            .active_skill_state
+            .get_or_insert_with(Default::default);
+        state.active_skill_names = active_skills;
+        state.active_skill_context_digest.clear();
         if let Some(counter) = session.context_tokens.as_mut() {
             counter.provider_request_id = None;
         }
@@ -143,21 +145,11 @@ where
     Err(anyhow!("failed to update active Skills after CAS retries"))
 }
 
-fn decode_active_skill_names(metadata: &std::collections::HashMap<String, String>) -> Vec<String> {
-    metadata
-        .get(ACTIVE_SKILLS_METADATA_KEY)
-        .and_then(|value| serde_json::from_str::<Vec<String>>(value).ok())
-        .unwrap_or_default()
-        .into_iter()
-        .filter(|name| !name.is_empty())
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::control::{keys, ProtoKeyValueStoreExt};
-    use crate::gateway::rpc::data_proto::{self, TokenCounter};
+    use crate::gateway::rpc::data_proto::{self, SessionSkillState, TokenCounter};
     use crate::test_support::MockKvStore;
     use std::sync::Arc;
 
@@ -175,6 +167,7 @@ mod tests {
                     .into_iter()
                     .collect(),
                 labels: Default::default(),
+                active_skill_state: None,
                 context_tokens: Some(TokenCounter {
                     provider_request_id: Some("resp-1".to_string()),
                     ..Default::default()
@@ -215,6 +208,13 @@ mod tests {
             session.metadata.get("unrelated"),
             Some(&"preserved".to_string())
         );
+        assert_eq!(
+            session.active_skill_state,
+            Some(SessionSkillState {
+                active_skill_names: vec!["release".to_string(), "review".to_string()],
+                active_skill_context_digest: String::new(),
+            })
+        );
         assert!(session
             .context_tokens
             .as_ref()
@@ -249,6 +249,18 @@ mod tests {
         )
         .await
         .unwrap());
+        let session = kv
+            .get_msg::<data_proto::Session>(&keys::session("ns", "agent", "session"))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            session
+                .active_skill_state
+                .as_ref()
+                .map(|state| state.active_skill_context_digest.as_str()),
+            Some("digest-1")
+        );
         assert!(
             deactivate_skill(kv.as_ref(), "ns", "agent", "session", "review")
                 .await
@@ -258,6 +270,18 @@ mod tests {
             !deactivate_skill(kv.as_ref(), "ns", "agent", "session", "review")
                 .await
                 .unwrap()
+        );
+        let session = kv
+            .get_msg::<data_proto::Session>(&keys::session("ns", "agent", "session"))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            session.active_skill_state,
+            Some(SessionSkillState {
+                active_skill_names: Vec::new(),
+                active_skill_context_digest: String::new(),
+            })
         );
     }
 }

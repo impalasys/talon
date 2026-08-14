@@ -203,6 +203,11 @@ message SessionMessage {
   repeated SessionMessagePart parts = 6;
 }
 
+message SessionSkillState {
+  repeated string active_skill_names = 1;
+  string active_skill_context_digest = 2;
+}
+
 message Session {
   string id = 1;
   string agent = 2;
@@ -217,6 +222,7 @@ message Session {
   // Latest completed provider token snapshot for this session. This is not a
   // cumulative usage or billing record.
   optional TokenCounter context_tokens = 9;
+  SessionSkillState active_skill_state = 10;
 }
 
 message ChannelMessage {

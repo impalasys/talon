@@ -1669,6 +1669,7 @@ mod tests {
                 .into_iter()
                 .collect(),
                 labels: Default::default(),
+                active_skill_state: None,
                 context_tokens: None,
             },
         )
@@ -1685,6 +1686,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                active_skill_state: None,
                 context_tokens: None,
             },
         )

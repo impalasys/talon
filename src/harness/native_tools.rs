@@ -3935,6 +3935,7 @@ mod tests {
                 last_active: now,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                active_skill_state: None,
                 context_tokens: None,
             },
         )
