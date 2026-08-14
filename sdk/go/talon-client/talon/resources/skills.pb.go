@@ -24,7 +24,6 @@ const (
 type SkillSpec struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Description   string                 `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
-	Instructions  string                 `protobuf:"bytes,2,opt,name=instructions,proto3" json:"instructions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -62,13 +61,6 @@ func (*SkillSpec) Descriptor() ([]byte, []int) {
 func (x *SkillSpec) GetDescription() string {
 	if x != nil {
 		return x.Description
-	}
-	return ""
-}
-
-func (x *SkillSpec) GetInstructions() string {
-	if x != nil {
-		return x.Instructions
 	}
 	return ""
 }
@@ -137,10 +129,9 @@ var File_proto_resources_skills_proto protoreflect.FileDescriptor
 
 const file_proto_resources_skills_proto_rawDesc = "" +
 	"\n" +
-	"\x1cproto/resources/skills.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"Q\n" +
+	"\x1cproto/resources/skills.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"A\n" +
 	"\tSkillSpec\x12 \n" +
-	"\vdescription\x18\x01 \x01(\tR\vdescription\x12\"\n" +
-	"\finstructions\x18\x02 \x01(\tR\finstructions\"\xb1\x01\n" +
+	"\vdescription\x18\x01 \x01(\tR\vdescriptionJ\x04\b\x02\x10\x03R\finstructions\"\xb1\x01\n" +
 	"\x05Skill\x129\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12.\n" +
 	"\x04spec\x18\x02 \x01(\v2\x1a.talon.resources.SkillSpecR\x04spec\x12=\n" +

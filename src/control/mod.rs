@@ -20,6 +20,7 @@ pub mod scheduling;
 pub mod search;
 pub mod security;
 pub mod session_queue;
+pub mod skills;
 pub mod telemetry;
 pub mod tool_output;
 pub mod topics;
@@ -1126,6 +1127,7 @@ mod tests {
             last_active: 2,
             metadata: HashMap::new(),
             labels: HashMap::from([("env".to_string(), "test".to_string())]),
+            skill_state: None,
             context_tokens: None,
         };
         let session_key = keys::session("ns", "agent", "session-1");

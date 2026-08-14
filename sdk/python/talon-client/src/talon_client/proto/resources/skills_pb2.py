@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from talon_client.proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cproto/resources/skills.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"6\n\tSkillSpec\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\x12\x14\n\x0cinstructions\x18\x02 \x01(\t\"\x99\x01\n\x05Skill\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12(\n\x04spec\x18\x02 \x01(\x0b\x32\x1a.talon.resources.SkillSpec\x12\x35\n\x06status\x18\x03 \x01(\x0b\x32%.talon.resources.CommonResourceStatusb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cproto/resources/skills.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"4\n\tSkillSpec\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\tJ\x04\x08\x02\x10\x03R\x0cinstructions\"\x99\x01\n\x05Skill\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12(\n\x04spec\x18\x02 \x01(\x0b\x32\x1a.talon.resources.SkillSpec\x12\x35\n\x06status\x18\x03 \x01(\x0b\x32%.talon.resources.CommonResourceStatusb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,7 +33,7 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.resources.skills_pb2'
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_SKILLSPEC']._serialized_start=79
-  _globals['_SKILLSPEC']._serialized_end=133
-  _globals['_SKILL']._serialized_start=136
-  _globals['_SKILL']._serialized_end=289
+  _globals['_SKILLSPEC']._serialized_end=131
+  _globals['_SKILL']._serialized_start=134
+  _globals['_SKILL']._serialized_end=287
 # @@protoc_insertion_point(module_scope)

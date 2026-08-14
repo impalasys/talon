@@ -14,7 +14,10 @@ use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKi
 use crate::harness::executor::{
     load, AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
 };
-use crate::harness::skills::registry::ToolRegistry;
+use crate::harness::native_tools::register_skill_tools;
+use crate::harness::skills::{
+    namespace::load_available_skills, registry::ToolRegistry, render::format_skill_catalog,
+};
 
 /// Fully-assembled, ready-to-run environment for one agent session.
 /// Build it from identity coordinates; it resolves everything else
@@ -180,6 +183,20 @@ impl AgentRuntime {
             }
             reg.register_mcp_tools(&server_config.server_name, accepted_tools);
         }
+        let available_skills = match load_available_skills(cp, ns).await {
+            Ok(skills) => skills,
+            Err(error) => {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent_id,
+                    %error,
+                    "failed to load Skills; continuing without them"
+                );
+                Vec::new()
+            }
+        };
+        register_skill_tools(&mut reg, &available_skills);
+        let skill_catalog = format_skill_catalog(&available_skills);
         let registry = Arc::new(tokio::sync::RwLock::new(reg));
 
         // 5. Build executor
@@ -187,7 +204,7 @@ impl AgentRuntime {
             llm.provider,
             llm.provider_key,
             llm.model,
-            ContextAssembler::new("."),
+            ContextAssembler::new_with_skill_context(".", skill_catalog),
             registry,
             Arc::new(config.clone()),
             ns.to_string(),
@@ -345,6 +362,8 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::BLOCK_GOAL_TOOL,
         crate::harness::native_tools::CHANNEL_PUBLISH_TOOL,
         crate::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL,
+        crate::harness::native_tools::ACTIVATE_SKILL_TOOL,
+        crate::harness::native_tools::DEACTIVATE_SKILL_TOOL,
         crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL,
         crate::harness::native_tools::CREATE_ARTIFACT_TOOL,
         crate::harness::native_tools::UPDATE_ARTIFACT_TOOL,
@@ -743,6 +762,7 @@ mod tests {
                 ns: "conic".to_string(),
                 status: "active".to_string(),
                 labels: reply_labels,
+                skill_state: None,
                 context_tokens: None,
                 ..Default::default()
             },
@@ -767,6 +787,7 @@ mod tests {
                 ns: "conic".to_string(),
                 status: "active".to_string(),
                 labels: no_reply_labels,
+                skill_state: None,
                 context_tokens: None,
                 ..Default::default()
             },
@@ -835,6 +856,7 @@ mod tests {
                     crate::control::delegation::LABEL_TASK_ROLE.to_string(),
                     "delegate".to_string(),
                 )]),
+                skill_state: None,
                 context_tokens: None,
                 ..Default::default()
             },

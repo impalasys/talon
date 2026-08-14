@@ -33,12 +33,20 @@ export enum FilePurpose {
    * @generated from enum value: FILE_PURPOSE_ARTIFACT = 2;
    */
   ARTIFACT = 2,
+
+  /**
+   * A file belonging to a namespace Skill package under /skills/<skill-id>/.
+   *
+   * @generated from enum value: FILE_PURPOSE_SKILL = 3;
+   */
+  SKILL = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(FilePurpose)
 proto3.util.setEnumType(FilePurpose, "talon.resources.FilePurpose", [
   { no: 0, name: "FILE_PURPOSE_UNSPECIFIED" },
   { no: 1, name: "FILE_PURPOSE_MEMORY" },
   { no: 2, name: "FILE_PURPOSE_ARTIFACT" },
+  { no: 3, name: "FILE_PURPOSE_SKILL" },
 ]);
 
 /**

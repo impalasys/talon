@@ -490,6 +490,7 @@ fn parse_purpose(value: &str) -> Result<i32> {
     match value.to_ascii_lowercase().as_str() {
         "memory" => Ok(talon_client::resources::FilePurpose::Memory as i32),
         "artifact" => Ok(talon_client::resources::FilePurpose::Artifact as i32),
+        "skill" => Ok(talon_client::resources::FilePurpose::Skill as i32),
         other => anyhow::bail!("unknown purpose '{}'", other),
     }
 }

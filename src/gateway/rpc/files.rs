@@ -119,7 +119,7 @@ impl GrpcGatewayHandler {
         content: &[u8],
     ) -> Result<(resources_proto::File, String)> {
         let path = normalize_logical_path(path)?;
-        validate_file_spec(purpose, index_policy, retention)?;
+        validate_file_spec(&path, purpose, index_policy, retention)?;
         let media_type = normalize_media_type(media_type)?;
         let existing = self.find_file_by_path(namespace, &path).await?;
         let is_new_file = existing.is_none();
@@ -335,7 +335,7 @@ impl GrpcGatewayHandler {
         retention: i32,
     ) -> Result<(resources_proto::File, bool)> {
         let path = normalize_logical_path(path)?;
-        validate_file_spec(purpose, index_policy, retention)?;
+        validate_file_spec(&path, purpose, index_policy, retention)?;
         let media_type = normalize_media_type(media_type)?;
         let existing = self.find_file_by_path(namespace, &path).await?;
         let is_new_file = existing.is_none();
@@ -1620,7 +1620,7 @@ fn validate_uri_segment(segment: &str, name: &str) -> Result<String> {
     Ok(segment.to_string())
 }
 
-fn validate_file_spec(purpose: i32, index_policy: i32, retention: i32) -> Result<()> {
+fn validate_file_spec(path: &str, purpose: i32, index_policy: i32, retention: i32) -> Result<()> {
     if resources_proto::FilePurpose::try_from(purpose).is_err() || purpose == 0 {
         return Err(invalid_argument("File purpose is required"));
     }
@@ -1630,6 +1630,14 @@ fn validate_file_spec(purpose: i32, index_policy: i32, retention: i32) -> Result
     if resources_proto::FileRetention::try_from(retention).is_err() || retention == 0 {
         return Err(invalid_argument("File retention is required"));
     }
+    crate::control::skills::validate_skill_file_spec(&resources_proto::FileSpec {
+        path: path.to_string(),
+        media_type: String::new(),
+        purpose,
+        index_policy,
+        retention,
+    })
+    .map_err(|error| invalid_argument(error.to_string()))?;
     Ok(())
 }
 
@@ -1813,6 +1821,7 @@ fn purpose_label(value: i32) -> &'static str {
     match resources_proto::FilePurpose::try_from(value).ok() {
         Some(resources_proto::FilePurpose::Memory) => "memory",
         Some(resources_proto::FilePurpose::Artifact) => "artifact",
+        Some(resources_proto::FilePurpose::Skill) => "skill",
         _ => "unspecified",
     }
 }

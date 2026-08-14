@@ -17,13 +17,18 @@ use crate::harness::llm::{
     TokenCounter, ToolCall,
 };
 use crate::harness::mcp::{call_tool_for_config, McpConnectionConfig};
-use crate::harness::skills::registry::ToolRegistry;
+use crate::harness::skills::{
+    namespace::{find_effective_skill, load_available_skills, load_skill_instructions},
+    registry::ToolRegistry,
+    render::format_active_skill_context,
+};
 use crate::harness::telemetry;
 use anyhow::Result;
 use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -575,15 +580,25 @@ impl AgentExecutor {
     }
 
     fn render_execution_prompts(&self, context: &ExecutionContext) -> Result<ExecutionPrompts> {
-        let system_prompt = self.agent_spec.system_prompt.trim();
-        let system_prompt = if !system_prompt.is_empty() && !context.has_system_message() {
-            Some(
-                crate::control::manifest::templating::render_runtime_system_prompt_template(
-                    system_prompt,
-                )?,
-            )
-        } else {
-            None
+        let configured_system_prompt = self.agent_spec.system_prompt.trim();
+        let configured_system_prompt =
+            if !configured_system_prompt.is_empty() && !context.has_system_message() {
+                Some(
+                    crate::control::manifest::templating::render_runtime_system_prompt_template(
+                        configured_system_prompt,
+                    )?,
+                )
+            } else {
+                None
+            };
+        let skill_catalog = self.assembler.skill_context.trim();
+        let system_prompt = match (configured_system_prompt, skill_catalog) {
+            (Some(prompt), catalog) if !catalog.is_empty() => {
+                Some(format!("{prompt}\n\n{catalog}"))
+            }
+            (Some(prompt), _) => Some(prompt),
+            (None, catalog) if !catalog.is_empty() => Some(catalog.to_string()),
+            (None, _) => None,
         };
 
         let post_history_prompt = self.agent_spec.post_history_prompt.trim();
@@ -608,6 +623,7 @@ impl AgentExecutor {
         context: &ExecutionContext,
         prompts: &ExecutionPrompts,
         tool_schema_chars: usize,
+        active_skill_context: &str,
     ) -> Result<(Vec<ChatMessage>, ContextMetrics)> {
         let mut history = context.history.clone();
         if let Some(system_prompt) = prompts.system_prompt.as_deref() {
@@ -617,17 +633,43 @@ impl AgentExecutor {
             prefix_latest_user_message(&mut history, post_history_prompt);
         }
 
+        let mut history_with_active_skill = history.clone();
+        if !active_skill_context.is_empty() {
+            let insert_at = history_with_active_skill
+                .iter()
+                .take_while(|message| message.role == "system")
+                .count();
+            history_with_active_skill.insert(
+                insert_at,
+                LoopMessage::text("user", active_skill_context.to_string()),
+            );
+        }
+
         let model_limits = model_context_limits(
             self.config.as_ref(),
             &self.llm_provider_key,
             &self.llm_model,
         );
-        let compacted_history = compact_history_for_llm_with_model_limits_and_tool_schema(
+        let mut compacted_history = compact_history_for_llm_with_model_limits_and_tool_schema(
             &history,
             model_limits,
+            tool_schema_chars + active_skill_context.len(),
+        );
+        if !active_skill_context.is_empty() {
+            let insert_at = compacted_history
+                .iter()
+                .take_while(|message| message.role == "system")
+                .count();
+            compacted_history.insert(
+                insert_at,
+                LoopMessage::text("user", active_skill_context.to_string()),
+            );
+        }
+        let metrics = context_metrics(
+            &history_with_active_skill,
+            &compacted_history,
             tool_schema_chars,
         );
-        let metrics = context_metrics(&history, &compacted_history, tool_schema_chars);
         let mut messages = compacted_history
             .iter()
             .map(|m| ChatMessage {
@@ -643,6 +685,80 @@ impl AgentExecutor {
                 .await?;
         }
         Ok((messages, metrics))
+    }
+
+    async fn active_skill_context(
+        &self,
+        context_tokens: &mut Option<TokenCounter>,
+    ) -> Result<String> {
+        let names = crate::harness::sessions::active_skill_names(
+            self.control_plane.kv.as_ref(),
+            &self.namespace,
+            &self.agent_id,
+            &self.session_id,
+        )
+        .await?;
+        let available = load_available_skills(&self.control_plane, &self.namespace).await?;
+        let mut resolved = Vec::new();
+        let mut unavailable = Vec::new();
+        for name in names {
+            let Some(skill) = find_effective_skill(&available, &name) else {
+                unavailable.push(name);
+                continue;
+            };
+            match load_skill_instructions(&self.control_plane, skill).await {
+                Ok(instructions) => resolved.push((skill.clone(), instructions)),
+                Err(error) => {
+                    tracing::warn!(skill = %skill.name, namespace = %skill.namespace, %error, "removing unavailable active Skill");
+                    unavailable.push(name);
+                }
+            }
+        }
+        for name in &unavailable {
+            if let Err(error) = crate::harness::sessions::deactivate_skill(
+                self.control_plane.kv.as_ref(),
+                &self.namespace,
+                &self.agent_id,
+                &self.session_id,
+                name,
+            )
+            .await
+            {
+                tracing::warn!(
+                    namespace = %self.namespace,
+                    agent = %self.agent_id,
+                    session = %self.session_id,
+                    skill = %name,
+                    %error,
+                    "failed to deactivate unavailable Skill"
+                );
+            }
+        }
+        let mut text = format_active_skill_context(&resolved);
+        if !unavailable.is_empty() {
+            if !text.is_empty() {
+                text.push_str("\n\n");
+            }
+            text.push_str(&format!(
+                "# SKILL NOTICE\nThe following previously active Skills are no longer available and were deactivated: {}.",
+                unavailable.join(", ")
+            ));
+        }
+        let digest = format!("{:x}", Sha256::digest(text.as_bytes()));
+        let digest_changed = crate::harness::sessions::persist_active_skill_context_digest(
+            self.control_plane.kv.as_ref(),
+            &self.namespace,
+            &self.agent_id,
+            &self.session_id,
+            &digest,
+        )
+        .await?;
+        if digest_changed {
+            if let Some(counter) = context_tokens.as_mut() {
+                counter.provider_request_id = None;
+            }
+        }
+        Ok(text)
     }
 
     async fn hydrate_object_ref_parts_for_llm(
@@ -711,6 +827,7 @@ impl AgentExecutor {
         context: &ExecutionContext,
         prompts: &ExecutionPrompts,
         tools: &[crate::harness::llm::Tool],
+        active_skill_context_chars: usize,
     ) -> usize {
         let history_weight = context
             .history
@@ -731,7 +848,7 @@ impl AgentExecutor {
             .iter()
             .map(|tool| tool.name.len() + tool.description.len() + tool.input_schema_json.len())
             .sum::<usize>();
-        history_weight + prompt_weight + tool_weight
+        history_weight + prompt_weight + tool_weight + active_skill_context_chars
     }
 
     fn estimate_context_input_tokens(
@@ -739,6 +856,7 @@ impl AgentExecutor {
         context: &ExecutionContext,
         context_tokens: Option<&TokenCounter>,
         prior_request_history_len: Option<usize>,
+        active_skill_context_chars: usize,
     ) -> Option<u64> {
         let counter = context_tokens.filter(|counter| {
             counter.usage_available
@@ -762,7 +880,13 @@ impl AgentExecutor {
             .map(serialized_message_weight)
             .sum::<usize>();
         let delta_tokens = (delta_chars as u64).saturating_add(3) / 4;
-        Some(counter.input_tokens.saturating_add(delta_tokens))
+        let active_tokens = (active_skill_context_chars as u64).saturating_add(3) / 4;
+        Some(
+            counter
+                .input_tokens
+                .saturating_add(delta_tokens)
+                .saturating_add(active_tokens),
+        )
     }
 
     /// Run the prepared execution context to completion, emitting events to
@@ -809,6 +933,7 @@ impl AgentExecutor {
                 reg.to_provider_tools()
             };
             let tool_schema_chars = telemetry::serialize_tool_definitions_json(&tools).len();
+            let active_skill_context = self.active_skill_context(&mut context_tokens).await?;
 
             // Trigger durable compaction before preparing messages if the complete
             // request estimate exceeds the model's effective window. Compaction
@@ -818,7 +943,8 @@ impl AgentExecutor {
                 &self.llm_provider_key,
                 &self.llm_model,
             );
-            let estimated_context_budget = self.estimate_context_budget(context, &prompts, &tools);
+            let estimated_context_budget =
+                self.estimate_context_budget(context, &prompts, &tools, active_skill_context.len());
             let durable_budget = ContextBudget::default()
                 .with_model_limits(model_limits)
                 .with_tool_schema_chars(tool_schema_chars)
@@ -827,6 +953,7 @@ impl AgentExecutor {
                 context,
                 context_tokens.as_ref(),
                 prior_request_history_len,
+                active_skill_context.len(),
             );
             let should_compact = !compaction_disabled
                 && match (
@@ -846,8 +973,12 @@ impl AgentExecutor {
                         if let Some(counter) = context_tokens.as_mut() {
                             counter.provider_request_id = None;
                         }
-                        let new_context_budget =
-                            self.estimate_context_budget(context, &prompts, &tools);
+                        let new_context_budget = self.estimate_context_budget(
+                            context,
+                            &prompts,
+                            &tools,
+                            active_skill_context.len(),
+                        );
                         if new_context_budget >= durable_budget {
                             compaction_disabled = true;
                         }
@@ -869,7 +1000,7 @@ impl AgentExecutor {
             }
 
             let (messages, context_metrics) = self
-                .messages_for_llm(context, &prompts, tool_schema_chars)
+                .messages_for_llm(context, &prompts, tool_schema_chars, &active_skill_context)
                 .await?;
 
             let mut final_reply = String::new();
@@ -1530,6 +1661,7 @@ mod tests {
                 .into_iter()
                 .collect(),
                 labels: Default::default(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -1546,6 +1678,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -2798,7 +2931,7 @@ mod tests {
         let delta_tokens = (serialized_message_weight(&context.history[1]) as u64 + 3) / 4;
 
         assert_eq!(
-            executor.estimate_context_input_tokens(&context, Some(&counter), None),
+            executor.estimate_context_input_tokens(&context, Some(&counter), None, 0),
             Some(100 + delta_tokens)
         );
     }
@@ -2828,7 +2961,7 @@ mod tests {
         };
 
         assert_eq!(
-            executor.estimate_context_input_tokens(&context, Some(&counter), None),
+            executor.estimate_context_input_tokens(&context, Some(&counter), None, 0),
             None
         );
     }

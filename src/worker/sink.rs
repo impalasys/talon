@@ -2970,6 +2970,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -3067,6 +3068,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                skill_state: None,
                 context_tokens: None,
             },
         )

@@ -2022,6 +2022,7 @@ mod tests {
                 last_active,
                 metadata: Default::default(),
                 labels: Default::default(),
+                skill_state: None,
                 context_tokens: None,
             },
         )

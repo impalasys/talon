@@ -35,6 +35,7 @@ pub mod file_purpose {
         serializer.serialize_str(match resources_proto::FilePurpose::try_from(*value).ok() {
             Some(resources_proto::FilePurpose::Memory) => "MEMORY",
             Some(resources_proto::FilePurpose::Artifact) => "ARTIFACT",
+            Some(resources_proto::FilePurpose::Skill) => "SKILL",
             _ => "UNSPECIFIED",
         })
     }
@@ -52,6 +53,7 @@ pub mod file_purpose {
                     "" | "UNSPECIFIED" => Ok(resources_proto::FilePurpose::Unspecified as i32),
                     "MEMORY" => Ok(resources_proto::FilePurpose::Memory as i32),
                     "ARTIFACT" => Ok(resources_proto::FilePurpose::Artifact as i32),
+                    "SKILL" => Ok(resources_proto::FilePurpose::Skill as i32),
                     other => Err(format!("unsupported value '{other}'")),
                 }
             }

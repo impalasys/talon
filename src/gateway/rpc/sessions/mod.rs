@@ -724,6 +724,7 @@ impl GrpcGatewayHandler {
             metadata: std::collections::HashMap::new(),
             labels: req.labels.clone(),
             context_tokens: None,
+            skill_state: None,
         };
 
         let session_db_key = keys::session(&req.ns, &req.agent, &session_id);
@@ -2316,6 +2317,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -2412,6 +2414,7 @@ mod tests {
                 last_active: 10,
                 metadata: Default::default(),
                 labels: Default::default(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -2429,6 +2432,7 @@ mod tests {
                 last_active: 1,
                 metadata: Default::default(),
                 labels: Default::default(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -3192,6 +3196,7 @@ mod tests {
                 last_active: 20,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -3380,6 +3385,7 @@ mod tests {
                 last_active: 2,
                 metadata: std::collections::HashMap::new(),
                 labels: std::collections::HashMap::new(),
+                skill_state: None,
                 context_tokens: None,
             },
         )

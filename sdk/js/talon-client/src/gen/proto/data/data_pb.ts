@@ -959,6 +959,53 @@ export class SessionMessage extends Message<SessionMessage> {
 }
 
 /**
+ * @generated from message talon.data.SessionSkillState
+ */
+export class SessionSkillState extends Message<SessionSkillState> {
+  /**
+   * Ordered active skill IDs; later entries have higher precedence.
+   *
+   * @generated from field: repeated string active_names = 1;
+   */
+  activeNames: string[] = [];
+
+  /**
+   * Digest of the rendered active-skill context.
+   *
+   * @generated from field: string context_digest = 2;
+   */
+  contextDigest = "";
+
+  constructor(data?: PartialMessage<SessionSkillState>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.SessionSkillState";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "active_names", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 2, name: "context_digest", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionSkillState {
+    return new SessionSkillState().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SessionSkillState {
+    return new SessionSkillState().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SessionSkillState {
+    return new SessionSkillState().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SessionSkillState | PlainMessage<SessionSkillState> | undefined, b: SessionSkillState | PlainMessage<SessionSkillState> | undefined): boolean {
+    return proto3.util.equals(SessionSkillState, a, b);
+  }
+}
+
+/**
  * @generated from message talon.data.Session
  */
 export class Session extends Message<Session> {
@@ -1014,6 +1061,11 @@ export class Session extends Message<Session> {
    */
   contextTokens?: TokenCounter;
 
+  /**
+   * @generated from field: talon.data.SessionSkillState skill_state = 10;
+   */
+  skillState?: SessionSkillState;
+
   constructor(data?: PartialMessage<Session>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1031,6 +1083,7 @@ export class Session extends Message<Session> {
     { no: 7, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
     { no: 8, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
     { no: 9, name: "context_tokens", kind: "message", T: TokenCounter, opt: true },
+    { no: 10, name: "skill_state", kind: "message", T: SessionSkillState },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Session {

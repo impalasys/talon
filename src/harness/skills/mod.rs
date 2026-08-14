@@ -7,6 +7,7 @@
 pub mod loader;
 pub mod namespace;
 pub mod registry;
+pub mod render;
 
 pub use loader::{Skill, SkillLoader};
 pub use registry::{ToolDefinition, ToolRegistry, ToolSource};

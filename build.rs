@@ -146,6 +146,7 @@ fn main() -> std::io::Result<()> {
         ".talon.data.SessionMessageConsumer",
         ".talon.data.WorkflowMessageConsumer",
         ".talon.data.Session",
+        ".talon.data.SessionSkillState",
         ".talon.data.TokenCounter",
         ".talon.data.SessionMessage",
         ".talon.data.SessionMessagePart",

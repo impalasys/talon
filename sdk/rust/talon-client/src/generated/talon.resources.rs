@@ -857,6 +857,8 @@ pub enum FilePurpose {
     /// Durable namespace-level artifact, usually promoted from a session Artifact
     /// or created by privileged file APIs.
     Artifact = 2,
+    /// A file belonging to a namespace Skill package under /skills/<skill-id>/.
+    Skill = 3,
 }
 impl FilePurpose {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -868,6 +870,7 @@ impl FilePurpose {
             Self::Unspecified => "FILE_PURPOSE_UNSPECIFIED",
             Self::Memory => "FILE_PURPOSE_MEMORY",
             Self::Artifact => "FILE_PURPOSE_ARTIFACT",
+            Self::Skill => "FILE_PURPOSE_SKILL",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -876,6 +879,7 @@ impl FilePurpose {
             "FILE_PURPOSE_UNSPECIFIED" => Some(Self::Unspecified),
             "FILE_PURPOSE_MEMORY" => Some(Self::Memory),
             "FILE_PURPOSE_ARTIFACT" => Some(Self::Artifact),
+            "FILE_PURPOSE_SKILL" => Some(Self::Skill),
             _ => None,
         }
     }
@@ -1142,8 +1146,6 @@ pub struct SessionStatus {
 pub struct SkillSpec {
     #[prost(string, tag = "1")]
     pub description: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub instructions: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Skill {

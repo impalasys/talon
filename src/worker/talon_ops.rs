@@ -2304,6 +2304,7 @@ mod tests {
                 last_active: 100,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
@@ -2320,6 +2321,7 @@ mod tests {
                 last_active: 200,
                 metadata: HashMap::new(),
                 labels: HashMap::new(),
+                skill_state: None,
                 context_tokens: None,
             },
         )
