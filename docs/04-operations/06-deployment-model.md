@@ -37,6 +37,14 @@ Cloud Run Worker Pool requirements:
 - Allow the gateway's source range or identity in the worker firewall rules for the worker listener port (normally `8081`, or the configured `PORT`). Do not expose the worker listener publicly for this discovery mode.
 - Worker Pool addresses are ephemeral and can change whenever an instance restarts. Each new instance registers its current address; heartbeat TTL expiry removes stale registrations.
 
+When code execution is enabled on ordinary workers, start with `1 vCPU` and
+`512 MiB` per instance, one active code execution per instance, and the
+`TALON_CODE_*` admission values documented in Configuration. Keep a finite
+maximum instance count: code throughput is one active run per worker at this
+profile. Monitor code-admission queue timeouts, Monty failures, container
+restarts, and memory utilization before increasing code concurrency or the
+per-run heap maximum.
+
 Minimal worker configuration:
 
 ```bash

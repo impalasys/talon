@@ -92,6 +92,11 @@ RUN python3 -m venv /opt/talon-e2e-venv && \
     /opt/talon-e2e-venv/bin/pip install --no-cache-dir -r /tmp/talon-e2e-requirements.txt && \
     rm -f /tmp/talon-e2e-requirements.txt
 
+RUN python3 -m venv /opt/talon-monty-venv && \
+    /opt/talon-monty-venv/bin/pip install --no-cache-dir pydantic-monty-runtime==0.0.19 && \
+    ln -s /opt/talon-monty-venv/bin/monty /usr/local/bin/monty && \
+    monty --version
+
 COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
 COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker
 COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli

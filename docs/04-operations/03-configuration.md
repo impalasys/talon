@@ -326,6 +326,38 @@ Common runtime environment variables include:
 - `TALON_JWT_PRIVATE_KEY_PEM`
 - `TALON_JWT_ISSUER`
 
+### Serverless code execution
+
+`run_python_code` uses Monty's per-invocation resource limits and a separate,
+process-local admission budget. Configure this budget on every worker that can
+run agents with the `code:run` capability. The limiter is intentionally local:
+it prevents one Cloud Run container from being overcommitted, but it is not a
+cross-instance tenant quota.
+
+For a `1 vCPU` / `512 MiB` Cloud Run Worker Pool instance, use these initial
+values:
+
+```bash
+TALON_CODE_MAX_CONCURRENT_RUNS=1
+TALON_CODE_MEMORY_BUDGET_BYTES=268435456
+TALON_CODE_QUEUE_TIMEOUT_MS=30000
+TALON_CODE_MAX_QUEUED_RUNS=8
+TALON_CODE_MAX_TOOL_CALLS=16
+```
+
+The reservation for a run includes its requested Monty heap limit, `64 MiB` of
+runtime overhead, and the maximum `25 MiB` input and `25 MiB` output staging
+budgets. A request which cannot fit is rejected before file hydration or a
+Monty subprocess is started. Calls wait for capacity for at most the configured
+queue timeout; a full queue or elapsed timeout returns a retryable capacity
+error. The reservation remains held while output artifacts are persisted.
+
+The worker image must include the `monty` runtime binary, or set
+`TALON_MONTY_BIN` to its absolute path. Keep the worker listener private and
+avoid granting the worker network egress solely for code execution; Monty code
+does not receive host networking, environment variables, or unrestricted host
+filesystem access.
+
 ### Cloud Run Worker Pool endpoint discovery
 
 Cloud Run automatically sets `CLOUD_RUN_WORKER_POOL` inside Worker Pool

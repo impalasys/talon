@@ -9,7 +9,11 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::{Component, Path, PathBuf};
-use std::time::Duration;
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc, OnceLock,
+};
+use std::time::{Duration, Instant};
 
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
@@ -1347,6 +1351,17 @@ const MAX_CODE_MOUNTS: usize = 25;
 const MAX_CODE_INPUT_BYTES: u64 = 25 * 1024 * 1024;
 const MAX_CODE_OUTPUT_FILES: usize = 100;
 const MAX_CODE_OUTPUT_BYTES: u64 = 25 * 1024 * 1024;
+const DEFAULT_CODE_MAX_CONCURRENT_RUNS: usize = 1;
+const DEFAULT_CODE_MEMORY_BUDGET_BYTES: usize = 256 * 1024 * 1024;
+const DEFAULT_CODE_QUEUE_TIMEOUT_MS: u64 = 30_000;
+const DEFAULT_CODE_MAX_QUEUED_RUNS: usize = 8;
+const DEFAULT_CODE_MAX_TOOL_CALLS: usize = 16;
+const CODE_RUNTIME_OVERHEAD_BYTES: usize = 64 * 1024 * 1024;
+const MAX_CODE_CONCURRENT_RUNS: usize = 1_024;
+const MAX_CODE_MEMORY_BUDGET_BYTES: usize = 1024 * 1024 * 1024;
+const MAX_CODE_QUEUED_RUNS: usize = 10_000;
+
+static CODE_EXECUTION_LIMITER: OnceLock<CodeExecutionLimiter> = OnceLock::new();
 
 struct CodeMountBundle {
     _temp_dir: tempfile::TempDir,
@@ -1355,14 +1370,227 @@ struct CodeMountBundle {
     mounted_inputs: Vec<Value>,
 }
 
+#[derive(Clone)]
 struct CodeRunContext {
     tool_tx: tokio::sync::mpsc::Sender<CodeToolRequest>,
+    deadline: Instant,
+    tool_calls: Arc<AtomicUsize>,
+    max_tool_calls: usize,
 }
 
 struct CodeToolRequest {
     tool_name: String,
     tool_args: Value,
     response_tx: std::sync::mpsc::Sender<Result<String, String>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct CodeExecutionConfig {
+    max_concurrent_runs: usize,
+    memory_budget_bytes: usize,
+    queue_timeout: Duration,
+    max_queued_runs: usize,
+    max_tool_calls: usize,
+}
+
+impl CodeExecutionConfig {
+    fn from_env() -> Self {
+        Self::from_getter(|name| std::env::var(name).ok())
+    }
+
+    fn from_getter<F>(mut get: F) -> Self
+    where
+        F: FnMut(&str) -> Option<String>,
+    {
+        Self {
+            max_concurrent_runs: env_positive_usize(
+                &mut get,
+                "TALON_CODE_MAX_CONCURRENT_RUNS",
+                DEFAULT_CODE_MAX_CONCURRENT_RUNS,
+            )
+            .min(MAX_CODE_CONCURRENT_RUNS),
+            memory_budget_bytes: env_positive_usize(
+                &mut get,
+                "TALON_CODE_MEMORY_BUDGET_BYTES",
+                DEFAULT_CODE_MEMORY_BUDGET_BYTES,
+            )
+            .min(MAX_CODE_MEMORY_BUDGET_BYTES),
+            queue_timeout: Duration::from_millis(env_positive_u64(
+                &mut get,
+                "TALON_CODE_QUEUE_TIMEOUT_MS",
+                DEFAULT_CODE_QUEUE_TIMEOUT_MS,
+            )),
+            max_queued_runs: env_usize(
+                &mut get,
+                "TALON_CODE_MAX_QUEUED_RUNS",
+                DEFAULT_CODE_MAX_QUEUED_RUNS,
+            )
+            .min(MAX_CODE_QUEUED_RUNS),
+            max_tool_calls: env_positive_usize(
+                &mut get,
+                "TALON_CODE_MAX_TOOL_CALLS",
+                DEFAULT_CODE_MAX_TOOL_CALLS,
+            ),
+        }
+    }
+}
+
+struct CodeExecutionLimiter {
+    config: CodeExecutionConfig,
+    cpu_slots: Arc<tokio::sync::Semaphore>,
+    memory_bytes: Arc<tokio::sync::Semaphore>,
+    queued_or_active: Arc<AtomicUsize>,
+}
+
+impl CodeExecutionLimiter {
+    fn new(config: CodeExecutionConfig) -> Self {
+        Self {
+            cpu_slots: Arc::new(tokio::sync::Semaphore::new(config.max_concurrent_runs)),
+            memory_bytes: Arc::new(tokio::sync::Semaphore::new(config.memory_budget_bytes)),
+            queued_or_active: Arc::new(AtomicUsize::new(0)),
+            config,
+        }
+    }
+
+    async fn acquire(&self, requested_memory_bytes: usize) -> Result<CodeExecutionReservation> {
+        let reservation_bytes = code_memory_reservation_bytes(requested_memory_bytes)?;
+        if reservation_bytes > self.config.memory_budget_bytes {
+            tracing::warn!(
+                requested_memory_bytes,
+                reservation_bytes,
+                memory_budget_bytes = self.config.memory_budget_bytes,
+                "rejected Monty code execution that exceeds the worker memory budget"
+            );
+            return Err(anyhow!(
+                "code execution capacity unavailable: requested {} bytes exceeds the worker's {} byte code memory budget",
+                reservation_bytes,
+                self.config.memory_budget_bytes
+            ));
+        }
+
+        let max_occupancy = self
+            .config
+            .max_concurrent_runs
+            .saturating_add(self.config.max_queued_runs);
+        let occupancy = self
+            .queued_or_active
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |current| {
+                (current < max_occupancy).then_some(current + 1)
+            })
+            .map_err(|_| {
+                tracing::warn!(
+                    max_occupancy,
+                    "rejected Monty code execution because the worker queue is full"
+                );
+                anyhow!("code execution capacity unavailable: worker queue is full; retry later")
+            })?;
+        let started = Instant::now();
+        let cpu_slot = match tokio::time::timeout(
+            self.config.queue_timeout,
+            self.cpu_slots.clone().acquire_owned(),
+        )
+        .await
+        {
+            Ok(Ok(permit)) => permit,
+            Ok(Err(_)) | Err(_) => {
+                self.queued_or_active.fetch_sub(1, Ordering::AcqRel);
+                tracing::warn!(
+                    queue_timeout_ms = self.config.queue_timeout.as_millis() as u64,
+                    "timed out waiting for a Monty code execution slot"
+                );
+                return Err(anyhow!(
+                    "code execution capacity unavailable: waited {} ms for a worker slot; retry later",
+                    self.config.queue_timeout.as_millis()
+                ));
+            }
+        };
+        let remaining = self.config.queue_timeout.saturating_sub(started.elapsed());
+        let memory_permit = match tokio::time::timeout(
+            remaining,
+            self.memory_bytes
+                .clone()
+                .acquire_many_owned(reservation_bytes as u32),
+        )
+        .await
+        {
+            Ok(Ok(permit)) => permit,
+            Ok(Err(_)) | Err(_) => {
+                drop(cpu_slot);
+                self.queued_or_active.fetch_sub(1, Ordering::AcqRel);
+                tracing::warn!(
+                    queue_timeout_ms = self.config.queue_timeout.as_millis() as u64,
+                    "timed out waiting for a Monty code execution memory reservation"
+                );
+                return Err(anyhow!(
+                    "code execution capacity unavailable: waited {} ms for worker memory; retry later",
+                    self.config.queue_timeout.as_millis()
+                ));
+            }
+        };
+        tracing::info!(
+            requested_memory_bytes,
+            reservation_bytes,
+            queue_wait_ms = started.elapsed().as_millis() as u64,
+            queued_or_active = occupancy + 1,
+            "admitted Monty code execution"
+        );
+        Ok(CodeExecutionReservation {
+            _cpu_slot: cpu_slot,
+            _memory_permit: memory_permit,
+            queued_or_active: self.queued_or_active.clone(),
+        })
+    }
+}
+
+struct CodeExecutionReservation {
+    _cpu_slot: tokio::sync::OwnedSemaphorePermit,
+    _memory_permit: tokio::sync::OwnedSemaphorePermit,
+    queued_or_active: Arc<AtomicUsize>,
+}
+
+impl Drop for CodeExecutionReservation {
+    fn drop(&mut self) {
+        self.queued_or_active.fetch_sub(1, Ordering::AcqRel);
+    }
+}
+
+fn code_execution_limiter() -> &'static CodeExecutionLimiter {
+    CODE_EXECUTION_LIMITER
+        .get_or_init(|| CodeExecutionLimiter::new(CodeExecutionConfig::from_env()))
+}
+
+fn code_memory_reservation_bytes(requested_memory_bytes: usize) -> Result<usize> {
+    requested_memory_bytes
+        .checked_add(CODE_RUNTIME_OVERHEAD_BYTES)
+        .and_then(|value| value.checked_add(MAX_CODE_INPUT_BYTES as usize))
+        .and_then(|value| value.checked_add(MAX_CODE_OUTPUT_BYTES as usize))
+        .ok_or_else(|| anyhow!("code memory reservation overflowed"))
+}
+
+fn env_usize<F>(get: &mut F, name: &str, default: usize) -> usize
+where
+    F: FnMut(&str) -> Option<String>,
+{
+    get(name)
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(default)
+}
+
+fn env_positive_usize<F>(get: &mut F, name: &str, default: usize) -> usize
+where
+    F: FnMut(&str) -> Option<String>,
+{
+    env_usize(get, name, default).max(1)
+}
+
+fn env_positive_u64<F>(get: &mut F, name: &str, default: u64) -> u64
+where
+    F: FnMut(&str) -> Option<String>,
+{
+    get(name)
+        .and_then(|value| value.parse::<u64>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(default)
 }
 
 async fn run_python_code_tool(
@@ -1398,6 +1626,9 @@ async fn run_python_code_tool(
         .get("persist_outputs")
         .and_then(Value::as_bool)
         .unwrap_or(true);
+    let limiter = code_execution_limiter();
+    let reservation = limiter.acquire(memory_bytes).await?;
+    let execution_started = Instant::now();
     let CodeMountBundle {
         _temp_dir,
         output_dir,
@@ -1413,9 +1644,22 @@ async fn run_python_code_tool(
     )
     .await?;
     let (tool_tx, mut tool_rx) = tokio::sync::mpsc::channel::<CodeToolRequest>(8);
-    let context = CodeRunContext { tool_tx };
+    let context = CodeRunContext {
+        tool_tx,
+        deadline: Instant::now() + Duration::from_millis(timeout_ms),
+        tool_calls: Arc::new(AtomicUsize::new(0)),
+        max_tool_calls: limiter.config.max_tool_calls,
+    };
+    let monty_context = context.clone();
     let join = tokio::task::spawn_blocking(move || {
-        run_monty_python(code, inputs, mounts, context, timeout_ms, memory_bytes)
+        run_monty_python(
+            code,
+            inputs,
+            mounts,
+            monty_context,
+            timeout_ms,
+            memory_bytes,
+        )
     });
     tokio::pin!(join);
     let mut result: Value = loop {
@@ -1425,20 +1669,28 @@ async fn run_python_code_tool(
                     .map_err(|err| anyhow!("Monty execution task failed: {err}"))??;
             }
             Some(request) = tool_rx.recv() => {
-                let output = Box::pin(execute_tool_for_session(
-                    cp,
-                    current_namespace,
-                    current_agent,
-                    current_session,
-                    spec,
-                    &request.tool_name,
-                    &request.tool_args,
-                ))
-                .await
-                .and_then(|output| {
-                    output.ok_or_else(|| anyhow!("unknown Talon tool '{}'", request.tool_name))
-                })
-                .map_err(|err| err.to_string());
+                let output = match context.remaining() {
+                    Ok(remaining) => tokio::time::timeout(
+                        remaining,
+                        Box::pin(execute_tool_for_session(
+                            cp,
+                            current_namespace,
+                            current_agent,
+                            current_session,
+                            spec,
+                            &request.tool_name,
+                            &request.tool_args,
+                        )),
+                    )
+                    .await
+                    .map_err(|_| anyhow!("Talon tool bridge exceeded the code execution deadline"))
+                    .and_then(|result| result)
+                    .and_then(|output| {
+                        output.ok_or_else(|| anyhow!("unknown Talon tool '{}'", request.tool_name))
+                    })
+                    .map_err(|err| err.to_string()),
+                    Err(err) => Err(err.to_string()),
+                };
                 let _ = request.response_tx.send(output);
             }
         }
@@ -1456,12 +1708,52 @@ async fn run_python_code_tool(
     } else {
         Vec::new()
     };
+    let mounted_input_bytes = mounted_inputs
+        .iter()
+        .filter_map(|input| input.get("sizeBytes").and_then(Value::as_u64))
+        .sum::<u64>();
+    let output_bytes = outputs
+        .iter()
+        .filter_map(|output| output.get("sizeBytes").and_then(Value::as_u64))
+        .sum::<u64>();
     if let Some(object) = result.as_object_mut() {
         object.insert("mountedInputs".to_string(), json!(mounted_inputs));
         object.insert("outputMount".to_string(), json!(CODE_OUTPUT_MOUNT));
         object.insert("outputs".to_string(), json!(outputs));
     }
+    tracing::info!(
+        duration_ms = execution_started.elapsed().as_millis() as u64,
+        mounted_input_bytes,
+        output_bytes,
+        output_files = outputs.len(),
+        "completed Monty code execution"
+    );
+    drop(reservation);
     Ok(serde_json::to_string_pretty(&result)?)
+}
+
+impl CodeRunContext {
+    fn remaining(&self) -> Result<Duration> {
+        self.deadline
+            .checked_duration_since(Instant::now())
+            .filter(|duration| !duration.is_zero())
+            .ok_or_else(|| anyhow!("code execution deadline exceeded"))
+    }
+
+    fn reserve_tool_call(&self) -> Result<()> {
+        self.tool_calls
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |current| {
+                (current < self.max_tool_calls).then_some(current + 1)
+            })
+            .map_err(|_| {
+                anyhow!(
+                    "Talon tool bridge exceeded the {} call limit for one code execution",
+                    self.max_tool_calls
+                )
+            })?;
+        self.remaining()?;
+        Ok(())
+    }
 }
 
 fn run_monty_python(
@@ -1683,6 +1975,13 @@ async fn read_code_mount_source(
         let file = find_file_by_path(cp, &namespace, &path)
             .await?
             .ok_or_else(|| anyhow!("File '{}' not found", path))?;
+        let object_key = file
+            .status
+            .as_ref()
+            .and_then(|status| status.object_ref.as_ref())
+            .map(|object_ref| object_ref.key.as_str())
+            .ok_or_else(|| anyhow!("File has no objectRef"))?;
+        preflight_code_mount_size(cp, object_key).await?;
         let media_type = file
             .spec
             .as_ref()
@@ -1696,6 +1995,7 @@ async fn read_code_mount_source(
             .object_ref
             .as_ref()
             .ok_or_else(|| anyhow!("Artifact has no objectRef"))?;
+        preflight_code_mount_size(cp, &object_ref.key).await?;
         let object = cp
             .objects
             .get(&object_ref.key)
@@ -1705,6 +2005,23 @@ async fn read_code_mount_source(
     } else {
         Err(anyhow!("mount uri must start with file:// or artifact://"))
     }
+}
+
+async fn preflight_code_mount_size(cp: &ControlPlane, object_key: &str) -> Result<()> {
+    let metadata = cp
+        .objects
+        .head(object_key)
+        .await?
+        .ok_or_else(|| anyhow!("mounted object '{}' not found", object_key))?;
+    if metadata.size_bytes > MAX_CODE_INPUT_BYTES {
+        return Err(anyhow!(
+            "mounted object '{}' is {} bytes, exceeding {} byte input limit",
+            object_key,
+            metadata.size_bytes,
+            MAX_CODE_INPUT_BYTES
+        ));
+    }
+    Ok(())
 }
 
 fn validate_code_mount_path(value: &str) -> Result<PathBuf> {
@@ -1900,6 +2217,7 @@ fn call_talon_tool(
     if tool_name == RUN_PYTHON_CODE_TOOL {
         return Err(anyhow!("run_python_code cannot be called from code"));
     }
+    context.reserve_tool_call()?;
     let tool_args = match args.get(1) {
         Some(value) => monty_object_to_json(value)?,
         None => json!({}),
@@ -4526,6 +4844,50 @@ mod tests {
             self.cancelled.lock().await.push(handle.to_string());
             Ok(())
         }
+    }
+
+    #[test]
+    fn code_execution_config_uses_serverless_defaults_and_ignores_invalid_values() {
+        let config = CodeExecutionConfig::from_getter(|name| match name {
+            "TALON_CODE_MAX_CONCURRENT_RUNS" => Some("0".to_string()),
+            "TALON_CODE_MEMORY_BUDGET_BYTES" => Some("invalid".to_string()),
+            "TALON_CODE_QUEUE_TIMEOUT_MS" => Some("0".to_string()),
+            "TALON_CODE_MAX_QUEUED_RUNS" => Some("3".to_string()),
+            "TALON_CODE_MAX_TOOL_CALLS" => Some("2".to_string()),
+            _ => None,
+        });
+        assert_eq!(config.max_concurrent_runs, 1);
+        assert_eq!(config.memory_budget_bytes, DEFAULT_CODE_MEMORY_BUDGET_BYTES);
+        assert_eq!(config.queue_timeout, Duration::from_secs(30));
+        assert_eq!(config.max_queued_runs, 3);
+        assert_eq!(config.max_tool_calls, 2);
+    }
+
+    #[tokio::test]
+    async fn code_execution_limiter_bounds_queue_and_releases_reservations() {
+        let limiter = CodeExecutionLimiter::new(CodeExecutionConfig {
+            max_concurrent_runs: 1,
+            memory_budget_bytes: code_memory_reservation_bytes(1).unwrap(),
+            queue_timeout: Duration::from_millis(10),
+            max_queued_runs: 0,
+            max_tool_calls: 1,
+        });
+        let reservation = limiter.acquire(1).await.unwrap();
+        let error = match limiter.acquire(1).await {
+            Ok(_) => panic!("second code execution should not be admitted"),
+            Err(error) => error.to_string(),
+        };
+        assert!(error.contains("worker queue is full"), "{error}");
+        drop(reservation);
+        assert!(limiter.acquire(1).await.is_ok());
+    }
+
+    #[test]
+    fn code_memory_reservation_covers_runtime_and_mount_bounds() {
+        assert_eq!(
+            code_memory_reservation_bytes(128 * 1024 * 1024).unwrap(),
+            242 * 1024 * 1024
+        );
     }
 
     fn spec(capabilities: &[&str]) -> manifests::AgentSpec {
