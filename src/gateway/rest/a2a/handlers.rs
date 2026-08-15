@@ -4,7 +4,6 @@
 use std::convert::Infallible;
 use std::sync::Arc;
 
-use anyhow::Error as AnyhowError;
 use axum::{
     body::Bytes,
     extract::{Host, OriginalUri, Path, State},
@@ -210,9 +209,7 @@ async fn stream_message(
     };
     if disposition == scheduling::A2aSessionMessageDisposition::Queued {
         watcher_cancel.cancel();
-        return scheduling_error_response(AnyhowError::new(
-            scheduling::SessionCurrentlyProcessingError,
-        ));
+        return queued_a2a_stream_response(&task_id, &context_id);
     }
 
     let stream_gateway = gateway.clone();
@@ -675,6 +672,33 @@ fn a2a_sse_line(value: Value) -> String {
         "data: {}\n\n",
         serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
     )
+}
+
+fn queued_a2a_stream_response(task_id: &str, context_id: &str) -> Response {
+    let task_id = task_id.to_string();
+    let context_id = context_id.to_string();
+    let stream = async_stream::stream! {
+        yield Ok::<_, Infallible>(a2a_sse_line(json!({
+            "task": {
+                "id": task_id.clone(),
+                "contextId": context_id.clone(),
+                "status": { "state": "TASK_STATE_SUBMITTED" }
+            }
+        })));
+        yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_status_update_value(
+            &task_id,
+            &context_id,
+            "TASK_STATE_SUBMITTED",
+            None,
+            true,
+        )));
+    };
+
+    (
+        [(header::CONTENT_TYPE, "text/event-stream; charset=utf-8")],
+        axum::body::Body::from_stream(stream),
+    )
+        .into_response()
 }
 
 fn a2a_stream_status_update_value(
