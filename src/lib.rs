@@ -5,6 +5,8 @@ pub mod cli;
 pub mod control;
 pub mod gateway;
 pub mod harness;
+#[doc(hidden)]
+pub mod monty_subprocess;
 pub mod worker;
 pub use crate::control::security::encryption::SecurityProvider;
 pub use crate::harness::executor::{

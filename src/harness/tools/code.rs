@@ -16,7 +16,7 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
     if has_capability_action(spec, "code", "run") {
         registry.register_builtin(
             super::RUN_PYTHON_CODE_TOOL,
-            "Run Python code in Monty, a restricted interpreter for agent-written code. Requires TALON_MONTY_BIN or a monty runtime binary on PATH. Host filesystem, environment, and network access are not available; declared Talon files/artifacts may be mounted under /talon/input and outputs written under /talon/output are persisted as session artifacts. Code may call Talon native tools with talon_tool(name, args), except run_python_code itself.",
+            "Run Python code in Monty, a restricted interpreter for agent-written code. Monty runs in an isolated subprocess of the current Talon binary; set TALON_MONTY_BIN to use an external runtime instead. Host filesystem, environment, and network access are not available; declared Talon files/artifacts may be mounted under /talon/input and outputs written under /talon/output are persisted as session artifacts. Code may call Talon native tools with talon_tool(name, args), except run_python_code itself.",
             json!({
                 "type": "object",
                 "properties": {
@@ -662,9 +662,17 @@ async fn run_monty_python(
     let limits = monty_types::ResourceLimits::default()
         .max_duration(Duration::from_millis(timeout_ms))
         .max_memory(memory_bytes);
-    let mut config = monty_pool::PoolConfig::subprocess(
-        std::env::var("TALON_MONTY_BIN").unwrap_or_else(|_| "monty".to_string()),
-    );
+    let monty_binary = std::env::var_os("TALON_MONTY_BIN")
+        .map(std::path::PathBuf::from)
+        .map(Ok)
+        .unwrap_or_else(|| {
+            std::env::current_exe().map_err(|err| {
+                anyhow!(
+                    "unable to locate the current Talon executable for the embedded Monty worker: {err}; set TALON_MONTY_BIN to an external monty runtime"
+                )
+            })
+        })?;
+    let mut config = monty_pool::PoolConfig::subprocess(monty_binary);
     config.min_processes = 0;
     config.max_processes = 1;
     config.request_timeout =
@@ -672,7 +680,7 @@ async fn run_monty_python(
     config.checkout_timeout = Some(Duration::from_secs(5));
     let pool = monty_pool::Pool::new(config).await.map_err(|err| {
         anyhow!(
-            "failed to start Monty runtime: {err}. Install pydantic-monty-runtime or set TALON_MONTY_BIN to the monty binary"
+            "failed to start Monty runtime: {err}. The current Talon binary contains the embedded worker; set TALON_MONTY_BIN to an external monty runtime to override it"
         )
     })?;
     let repl = monty_pool::ReplConfig {

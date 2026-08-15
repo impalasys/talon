@@ -120,8 +120,15 @@ where
     run_gateway_with(cp, trust_config, addr_get, shutdown).await
 }
 
+fn main() -> Result<()> {
+    if let Some(status) = talon::monty_subprocess::run_if_requested() {
+        std::process::exit(status);
+    }
+    talon_server_main()
+}
+
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn talon_server_main() -> Result<()> {
     talon::control::security::install_jwt_crypto_provider();
     let _telemetry_guard = talon::control::telemetry::init_from_env("talon-server")?;
     talon::control::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
