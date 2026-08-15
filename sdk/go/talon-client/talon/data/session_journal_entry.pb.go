@@ -91,10 +91,12 @@ func (SessionExecutionPhase) EnumDescriptor() ([]byte, []int) {
 }
 
 type SessionJournalEntryPayloadLlmResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Response      *ChatResponse          `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Response *ChatResponse          `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
+	// Assistant SessionMessage projection that owns this model response.
+	AssistantMessageId string `protobuf:"bytes,2,opt,name=assistant_message_id,json=assistantMessageId,proto3" json:"assistant_message_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *SessionJournalEntryPayloadLlmResponse) Reset() {
@@ -132,6 +134,13 @@ func (x *SessionJournalEntryPayloadLlmResponse) GetResponse() *ChatResponse {
 		return x.Response
 	}
 	return nil
+}
+
+func (x *SessionJournalEntryPayloadLlmResponse) GetAssistantMessageId() string {
+	if x != nil {
+		return x.AssistantMessageId
+	}
+	return ""
 }
 
 type SessionJournalEntryPayloadToolResult struct {
@@ -303,9 +312,13 @@ type SessionJournalEntryPayloadSteerInput struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Canonical user SessionMessage ids appended to the active execution
 	// context, in admission order.
-	MessageIds    []string `protobuf:"bytes,1,rep,name=message_ids,json=messageIds,proto3" json:"message_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	MessageIds []string `protobuf:"bytes,1,rep,name=message_ids,json=messageIds,proto3" json:"message_ids,omitempty"`
+	// The assistant projection finalized before this steer batch.
+	PreviousAssistantMessageId string `protobuf:"bytes,2,opt,name=previous_assistant_message_id,json=previousAssistantMessageId,proto3" json:"previous_assistant_message_id,omitempty"`
+	// The assistant projection that owns the continuation after this steer batch.
+	NextAssistantMessageId string `protobuf:"bytes,3,opt,name=next_assistant_message_id,json=nextAssistantMessageId,proto3" json:"next_assistant_message_id,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *SessionJournalEntryPayloadSteerInput) Reset() {
@@ -343,6 +356,20 @@ func (x *SessionJournalEntryPayloadSteerInput) GetMessageIds() []string {
 		return x.MessageIds
 	}
 	return nil
+}
+
+func (x *SessionJournalEntryPayloadSteerInput) GetPreviousAssistantMessageId() string {
+	if x != nil {
+		return x.PreviousAssistantMessageId
+	}
+	return ""
+}
+
+func (x *SessionJournalEntryPayloadSteerInput) GetNextAssistantMessageId() string {
+	if x != nil {
+		return x.NextAssistantMessageId
+	}
+	return ""
 }
 
 type SessionJournalEntryPayload struct {
@@ -591,9 +618,10 @@ var File_proto_data_session_journal_entry_proto protoreflect.FileDescriptor
 const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	"\n" +
 	"&proto/data/session_journal_entry.proto\x12\n" +
-	"talon.data\x1a\x15proto/data/data.proto\x1a\x17proto/harness/llm.proto\"`\n" +
+	"talon.data\x1a\x15proto/data/data.proto\x1a\x17proto/harness/llm.proto\"\x92\x01\n" +
 	"%SessionJournalEntryPayloadLlmResponse\x127\n" +
-	"\bresponse\x18\x01 \x01(\v2\x1b.talon.harness.ChatResponseR\bresponse\"\xdf\x01\n" +
+	"\bresponse\x18\x01 \x01(\v2\x1b.talon.harness.ChatResponseR\bresponse\x120\n" +
+	"\x14assistant_message_id\x18\x02 \x01(\tR\x12assistantMessageId\"\xdf\x01\n" +
 	"$SessionJournalEntryPayloadToolResult\x12 \n" +
 	"\ftool_call_id\x18\x01 \x01(\tR\n" +
 	"toolCallId\x12\x12\n" +
@@ -605,10 +633,12 @@ const file_proto_data_session_journal_entry_proto_rawDesc = "" +
 	" SessionJournalEntryPayloadCommit\x120\n" +
 	"\x14committed_message_id\x18\x01 \x01(\tR\x12committedMessageId\"W\n" +
 	"$SessionJournalEntryPayloadCompaction\x12/\n" +
-	"\asummary\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\asummary\"G\n" +
+	"\asummary\x18\x01 \x01(\v2\x15.talon.data.ObjectRefR\asummary\"\xc5\x01\n" +
 	"$SessionJournalEntryPayloadSteerInput\x12\x1f\n" +
 	"\vmessage_ids\x18\x01 \x03(\tR\n" +
-	"messageIds\"\xc5\x03\n" +
+	"messageIds\x12A\n" +
+	"\x1dprevious_assistant_message_id\x18\x02 \x01(\tR\x1apreviousAssistantMessageId\x129\n" +
+	"\x19next_assistant_message_id\x18\x03 \x01(\tR\x16nextAssistantMessageId\"\xc5\x03\n" +
 	"\x1aSessionJournalEntryPayload\x12V\n" +
 	"\fllm_response\x18\x01 \x01(\v21.talon.data.SessionJournalEntryPayloadLlmResponseH\x00R\vllmResponse\x12S\n" +
 	"\vtool_result\x18\x02 \x01(\v20.talon.data.SessionJournalEntryPayloadToolResultH\x00R\n" +

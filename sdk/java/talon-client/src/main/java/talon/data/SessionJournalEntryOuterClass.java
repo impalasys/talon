@@ -255,6 +255,26 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      * <code>.talon.harness.ChatResponse response = 1;</code>
      */
     talon.harness.Llm.ChatResponseOrBuilder getResponseOrBuilder();
+
+    /**
+     * <pre>
+     * Assistant SessionMessage projection that owns this model response.
+     * </pre>
+     *
+     * <code>string assistant_message_id = 2;</code>
+     * @return The assistantMessageId.
+     */
+    java.lang.String getAssistantMessageId();
+    /**
+     * <pre>
+     * Assistant SessionMessage projection that owns this model response.
+     * </pre>
+     *
+     * <code>string assistant_message_id = 2;</code>
+     * @return The bytes for assistantMessageId.
+     */
+    com.google.protobuf.ByteString
+        getAssistantMessageIdBytes();
   }
   /**
    * Protobuf type {@code talon.data.SessionJournalEntryPayloadLlmResponse}
@@ -278,6 +298,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       super(builder);
     }
     private SessionJournalEntryPayloadLlmResponse() {
+      assistantMessageId_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -325,6 +346,53 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       return response_ == null ? talon.harness.Llm.ChatResponse.getDefaultInstance() : response_;
     }
 
+    public static final int ASSISTANT_MESSAGE_ID_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object assistantMessageId_ = "";
+    /**
+     * <pre>
+     * Assistant SessionMessage projection that owns this model response.
+     * </pre>
+     *
+     * <code>string assistant_message_id = 2;</code>
+     * @return The assistantMessageId.
+     */
+    @java.lang.Override
+    public java.lang.String getAssistantMessageId() {
+      java.lang.Object ref = assistantMessageId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        assistantMessageId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Assistant SessionMessage projection that owns this model response.
+     * </pre>
+     *
+     * <code>string assistant_message_id = 2;</code>
+     * @return The bytes for assistantMessageId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAssistantMessageIdBytes() {
+      java.lang.Object ref = assistantMessageId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        assistantMessageId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -342,6 +410,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(1, getResponse());
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(assistantMessageId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, assistantMessageId_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -354,6 +425,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getResponse());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(assistantMessageId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, assistantMessageId_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -375,6 +449,8 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         if (!getResponse()
             .equals(other.getResponse())) return false;
       }
+      if (!getAssistantMessageId()
+          .equals(other.getAssistantMessageId())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -390,6 +466,8 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         hash = (37 * hash) + RESPONSE_FIELD_NUMBER;
         hash = (53 * hash) + getResponse().hashCode();
       }
+      hash = (37 * hash) + ASSISTANT_MESSAGE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getAssistantMessageId().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -532,6 +610,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           responseBuilder_.dispose();
           responseBuilder_ = null;
         }
+        assistantMessageId_ = "";
         return this;
       }
 
@@ -572,6 +651,9 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
               : responseBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.assistantMessageId_ = assistantMessageId_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -589,6 +671,11 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         if (other == talon.data.SessionJournalEntryOuterClass.SessionJournalEntryPayloadLlmResponse.getDefaultInstance()) return this;
         if (other.hasResponse()) {
           mergeResponse(other.getResponse());
+        }
+        if (!other.getAssistantMessageId().isEmpty()) {
+          assistantMessageId_ = other.assistantMessageId_;
+          bitField0_ |= 0x00000002;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -623,6 +710,11 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
+              case 18: {
+                assistantMessageId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -759,6 +851,98 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           response_ = null;
         }
         return responseBuilder_;
+      }
+
+      private java.lang.Object assistantMessageId_ = "";
+      /**
+       * <pre>
+       * Assistant SessionMessage projection that owns this model response.
+       * </pre>
+       *
+       * <code>string assistant_message_id = 2;</code>
+       * @return The assistantMessageId.
+       */
+      public java.lang.String getAssistantMessageId() {
+        java.lang.Object ref = assistantMessageId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          assistantMessageId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Assistant SessionMessage projection that owns this model response.
+       * </pre>
+       *
+       * <code>string assistant_message_id = 2;</code>
+       * @return The bytes for assistantMessageId.
+       */
+      public com.google.protobuf.ByteString
+          getAssistantMessageIdBytes() {
+        java.lang.Object ref = assistantMessageId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          assistantMessageId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Assistant SessionMessage projection that owns this model response.
+       * </pre>
+       *
+       * <code>string assistant_message_id = 2;</code>
+       * @param value The assistantMessageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAssistantMessageId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        assistantMessageId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Assistant SessionMessage projection that owns this model response.
+       * </pre>
+       *
+       * <code>string assistant_message_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAssistantMessageId() {
+        assistantMessageId_ = getDefaultInstance().getAssistantMessageId();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Assistant SessionMessage projection that owns this model response.
+       * </pre>
+       *
+       * <code>string assistant_message_id = 2;</code>
+       * @param value The bytes for assistantMessageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAssistantMessageIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        assistantMessageId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.data.SessionJournalEntryPayloadLlmResponse)
@@ -3229,6 +3413,46 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
      */
     com.google.protobuf.ByteString
         getMessageIdsBytes(int index);
+
+    /**
+     * <pre>
+     * The assistant projection finalized before this steer batch.
+     * </pre>
+     *
+     * <code>string previous_assistant_message_id = 2;</code>
+     * @return The previousAssistantMessageId.
+     */
+    java.lang.String getPreviousAssistantMessageId();
+    /**
+     * <pre>
+     * The assistant projection finalized before this steer batch.
+     * </pre>
+     *
+     * <code>string previous_assistant_message_id = 2;</code>
+     * @return The bytes for previousAssistantMessageId.
+     */
+    com.google.protobuf.ByteString
+        getPreviousAssistantMessageIdBytes();
+
+    /**
+     * <pre>
+     * The assistant projection that owns the continuation after this steer batch.
+     * </pre>
+     *
+     * <code>string next_assistant_message_id = 3;</code>
+     * @return The nextAssistantMessageId.
+     */
+    java.lang.String getNextAssistantMessageId();
+    /**
+     * <pre>
+     * The assistant projection that owns the continuation after this steer batch.
+     * </pre>
+     *
+     * <code>string next_assistant_message_id = 3;</code>
+     * @return The bytes for nextAssistantMessageId.
+     */
+    com.google.protobuf.ByteString
+        getNextAssistantMessageIdBytes();
   }
   /**
    * Protobuf type {@code talon.data.SessionJournalEntryPayloadSteerInput}
@@ -3254,6 +3478,8 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     private SessionJournalEntryPayloadSteerInput() {
       messageIds_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
+      previousAssistantMessageId_ = "";
+      nextAssistantMessageId_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -3331,6 +3557,100 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
       return messageIds_.getByteString(index);
     }
 
+    public static final int PREVIOUS_ASSISTANT_MESSAGE_ID_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object previousAssistantMessageId_ = "";
+    /**
+     * <pre>
+     * The assistant projection finalized before this steer batch.
+     * </pre>
+     *
+     * <code>string previous_assistant_message_id = 2;</code>
+     * @return The previousAssistantMessageId.
+     */
+    @java.lang.Override
+    public java.lang.String getPreviousAssistantMessageId() {
+      java.lang.Object ref = previousAssistantMessageId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        previousAssistantMessageId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * The assistant projection finalized before this steer batch.
+     * </pre>
+     *
+     * <code>string previous_assistant_message_id = 2;</code>
+     * @return The bytes for previousAssistantMessageId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPreviousAssistantMessageIdBytes() {
+      java.lang.Object ref = previousAssistantMessageId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        previousAssistantMessageId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NEXT_ASSISTANT_MESSAGE_ID_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object nextAssistantMessageId_ = "";
+    /**
+     * <pre>
+     * The assistant projection that owns the continuation after this steer batch.
+     * </pre>
+     *
+     * <code>string next_assistant_message_id = 3;</code>
+     * @return The nextAssistantMessageId.
+     */
+    @java.lang.Override
+    public java.lang.String getNextAssistantMessageId() {
+      java.lang.Object ref = nextAssistantMessageId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        nextAssistantMessageId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * The assistant projection that owns the continuation after this steer batch.
+     * </pre>
+     *
+     * <code>string next_assistant_message_id = 3;</code>
+     * @return The bytes for nextAssistantMessageId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNextAssistantMessageIdBytes() {
+      java.lang.Object ref = nextAssistantMessageId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        nextAssistantMessageId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -3347,6 +3667,12 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
                         throws java.io.IOException {
       for (int i = 0; i < messageIds_.size(); i++) {
         com.google.protobuf.GeneratedMessage.writeString(output, 1, messageIds_.getRaw(i));
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(previousAssistantMessageId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, previousAssistantMessageId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(nextAssistantMessageId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, nextAssistantMessageId_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3365,6 +3691,12 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         size += dataSize;
         size += 1 * getMessageIdsList().size();
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(previousAssistantMessageId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, previousAssistantMessageId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(nextAssistantMessageId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, nextAssistantMessageId_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -3382,6 +3714,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
 
       if (!getMessageIdsList()
           .equals(other.getMessageIdsList())) return false;
+      if (!getPreviousAssistantMessageId()
+          .equals(other.getPreviousAssistantMessageId())) return false;
+      if (!getNextAssistantMessageId()
+          .equals(other.getNextAssistantMessageId())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -3397,6 +3733,10 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         hash = (37 * hash) + MESSAGE_IDS_FIELD_NUMBER;
         hash = (53 * hash) + getMessageIdsList().hashCode();
       }
+      hash = (37 * hash) + PREVIOUS_ASSISTANT_MESSAGE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getPreviousAssistantMessageId().hashCode();
+      hash = (37 * hash) + NEXT_ASSISTANT_MESSAGE_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getNextAssistantMessageId().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -3530,6 +3870,8 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         bitField0_ = 0;
         messageIds_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
+        previousAssistantMessageId_ = "";
+        nextAssistantMessageId_ = "";
         return this;
       }
 
@@ -3567,6 +3909,12 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
           messageIds_.makeImmutable();
           result.messageIds_ = messageIds_;
         }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.previousAssistantMessageId_ = previousAssistantMessageId_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.nextAssistantMessageId_ = nextAssistantMessageId_;
+        }
       }
 
       @java.lang.Override
@@ -3589,6 +3937,16 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
             ensureMessageIdsIsMutable();
             messageIds_.addAll(other.messageIds_);
           }
+          onChanged();
+        }
+        if (!other.getPreviousAssistantMessageId().isEmpty()) {
+          previousAssistantMessageId_ = other.previousAssistantMessageId_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getNextAssistantMessageId().isEmpty()) {
+          nextAssistantMessageId_ = other.nextAssistantMessageId_;
+          bitField0_ |= 0x00000004;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -3622,6 +3980,16 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
                 messageIds_.add(input.readStringRequireUtf8());
                 break;
               } // case 10
+              case 18: {
+                previousAssistantMessageId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                nextAssistantMessageId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3791,6 +4159,190 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
         ensureMessageIdsIsMutable();
         messageIds_.add(value);
         bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object previousAssistantMessageId_ = "";
+      /**
+       * <pre>
+       * The assistant projection finalized before this steer batch.
+       * </pre>
+       *
+       * <code>string previous_assistant_message_id = 2;</code>
+       * @return The previousAssistantMessageId.
+       */
+      public java.lang.String getPreviousAssistantMessageId() {
+        java.lang.Object ref = previousAssistantMessageId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          previousAssistantMessageId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * The assistant projection finalized before this steer batch.
+       * </pre>
+       *
+       * <code>string previous_assistant_message_id = 2;</code>
+       * @return The bytes for previousAssistantMessageId.
+       */
+      public com.google.protobuf.ByteString
+          getPreviousAssistantMessageIdBytes() {
+        java.lang.Object ref = previousAssistantMessageId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          previousAssistantMessageId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * The assistant projection finalized before this steer batch.
+       * </pre>
+       *
+       * <code>string previous_assistant_message_id = 2;</code>
+       * @param value The previousAssistantMessageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPreviousAssistantMessageId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        previousAssistantMessageId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * The assistant projection finalized before this steer batch.
+       * </pre>
+       *
+       * <code>string previous_assistant_message_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPreviousAssistantMessageId() {
+        previousAssistantMessageId_ = getDefaultInstance().getPreviousAssistantMessageId();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * The assistant projection finalized before this steer batch.
+       * </pre>
+       *
+       * <code>string previous_assistant_message_id = 2;</code>
+       * @param value The bytes for previousAssistantMessageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPreviousAssistantMessageIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        previousAssistantMessageId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object nextAssistantMessageId_ = "";
+      /**
+       * <pre>
+       * The assistant projection that owns the continuation after this steer batch.
+       * </pre>
+       *
+       * <code>string next_assistant_message_id = 3;</code>
+       * @return The nextAssistantMessageId.
+       */
+      public java.lang.String getNextAssistantMessageId() {
+        java.lang.Object ref = nextAssistantMessageId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          nextAssistantMessageId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * The assistant projection that owns the continuation after this steer batch.
+       * </pre>
+       *
+       * <code>string next_assistant_message_id = 3;</code>
+       * @return The bytes for nextAssistantMessageId.
+       */
+      public com.google.protobuf.ByteString
+          getNextAssistantMessageIdBytes() {
+        java.lang.Object ref = nextAssistantMessageId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          nextAssistantMessageId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * The assistant projection that owns the continuation after this steer batch.
+       * </pre>
+       *
+       * <code>string next_assistant_message_id = 3;</code>
+       * @param value The nextAssistantMessageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNextAssistantMessageId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        nextAssistantMessageId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * The assistant projection that owns the continuation after this steer batch.
+       * </pre>
+       *
+       * <code>string next_assistant_message_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNextAssistantMessageId() {
+        nextAssistantMessageId_ = getDefaultInstance().getNextAssistantMessageId();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * The assistant projection that owns the continuation after this steer batch.
+       * </pre>
+       *
+       * <code>string next_assistant_message_id = 3;</code>
+       * @param value The bytes for nextAssistantMessageId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNextAssistantMessageIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        nextAssistantMessageId_ = value;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
@@ -7066,44 +7618,47 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     java.lang.String[] descriptorData = {
       "\n&proto/data/session_journal_entry.proto" +
       "\022\ntalon.data\032\025proto/data/data.proto\032\027pro" +
-      "to/harness/llm.proto\"V\n%SessionJournalEn" +
+      "to/harness/llm.proto\"t\n%SessionJournalEn" +
       "tryPayloadLlmResponse\022-\n\010response\030\001 \001(\0132" +
-      "\033.talon.harness.ChatResponse\"\261\001\n$Session" +
-      "JournalEntryPayloadToolResult\022\024\n\014tool_ca" +
-      "ll_id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\016\n\006output\030\003 \001(" +
-      "\t\022%\n\006object\030\004 \001(\0132\025.talon.data.ObjectRef" +
-      "\022.\n\013tool_output\030\005 \001(\0132\031.talon.harness.To" +
-      "olOutput\"@\n SessionJournalEntryPayloadCo" +
-      "mmit\022\034\n\024committed_message_id\030\001 \001(\t\"N\n$Se" +
-      "ssionJournalEntryPayloadCompaction\022&\n\007su" +
-      "mmary\030\001 \001(\0132\025.talon.data.ObjectRef\";\n$Se" +
-      "ssionJournalEntryPayloadSteerInput\022\023\n\013me" +
-      "ssage_ids\030\001 \003(\t\"\214\003\n\032SessionJournalEntryP" +
-      "ayload\022I\n\014llm_response\030\001 \001(\01321.talon.dat" +
-      "a.SessionJournalEntryPayloadLlmResponseH" +
-      "\000\022G\n\013tool_result\030\002 \001(\01320.talon.data.Sess" +
-      "ionJournalEntryPayloadToolResultH\000\022>\n\006co" +
-      "mmit\030\003 \001(\0132,.talon.data.SessionJournalEn" +
-      "tryPayloadCommitH\000\022F\n\ncompaction\030\005 \001(\01320" +
-      ".talon.data.SessionJournalEntryPayloadCo" +
-      "mpactionH\000\022G\n\013steer_input\030\006 \001(\01320.talon." +
-      "data.SessionJournalEntryPayloadSteerInpu" +
-      "tH\000B\t\n\007payload\"\325\002\n\023SessionJournalEntry\022\025" +
-      "\n\rsubmission_id\030\001 \001(\t\022\030\n\020journal_entry_i" +
-      "d\030\002 \001(\t\022\022\n\nattempt_id\030\003 \001(\t\0220\n\005phase\030\004 \001" +
-      "(\0162!.talon.data.SessionExecutionPhase\0227\n" +
-      "\007payload\030\005 \001(\0132&.talon.data.SessionJourn" +
-      "alEntryPayload\022\022\n\ncreated_at\030\006 \001(\003\022\022\n\nup" +
-      "dated_at\030\007 \001(\003\022\031\n\014committed_at\030\010 \001(\003H\000\210\001" +
-      "\001\022!\n\024committed_message_id\030\t \001(\tH\001\210\001\001B\017\n\r" +
-      "_committed_atB\027\n\025_committed_message_id*\213" +
-      "\002\n\025SessionExecutionPhase\022\'\n#SESSION_EXEC" +
-      "UTION_PHASE_UNSPECIFIED\020\000\022(\n$SESSION_EXE" +
-      "CUTION_PHASE_LLM_RESPONSE\020\001\022\'\n#SESSION_E" +
-      "XECUTION_PHASE_TOOL_RESULT\020\002\022%\n!SESSION_" +
-      "EXECUTION_PHASE_COMMITTED\020\003\022&\n\"SESSION_E" +
-      "XECUTION_PHASE_COMPACTION\020\004\022\'\n#SESSION_E" +
-      "XECUTION_PHASE_STEER_INPUT\020\005b\006proto3"
+      "\033.talon.harness.ChatResponse\022\034\n\024assistan" +
+      "t_message_id\030\002 \001(\t\"\261\001\n$SessionJournalEnt" +
+      "ryPayloadToolResult\022\024\n\014tool_call_id\030\001 \001(" +
+      "\t\022\014\n\004name\030\002 \001(\t\022\016\n\006output\030\003 \001(\t\022%\n\006objec" +
+      "t\030\004 \001(\0132\025.talon.data.ObjectRef\022.\n\013tool_o" +
+      "utput\030\005 \001(\0132\031.talon.harness.ToolOutput\"@" +
+      "\n SessionJournalEntryPayloadCommit\022\034\n\024co" +
+      "mmitted_message_id\030\001 \001(\t\"N\n$SessionJourn" +
+      "alEntryPayloadCompaction\022&\n\007summary\030\001 \001(" +
+      "\0132\025.talon.data.ObjectRef\"\205\001\n$SessionJour" +
+      "nalEntryPayloadSteerInput\022\023\n\013message_ids" +
+      "\030\001 \003(\t\022%\n\035previous_assistant_message_id\030" +
+      "\002 \001(\t\022!\n\031next_assistant_message_id\030\003 \001(\t" +
+      "\"\214\003\n\032SessionJournalEntryPayload\022I\n\014llm_r" +
+      "esponse\030\001 \001(\01321.talon.data.SessionJourna" +
+      "lEntryPayloadLlmResponseH\000\022G\n\013tool_resul" +
+      "t\030\002 \001(\01320.talon.data.SessionJournalEntry" +
+      "PayloadToolResultH\000\022>\n\006commit\030\003 \001(\0132,.ta" +
+      "lon.data.SessionJournalEntryPayloadCommi" +
+      "tH\000\022F\n\ncompaction\030\005 \001(\01320.talon.data.Ses" +
+      "sionJournalEntryPayloadCompactionH\000\022G\n\013s" +
+      "teer_input\030\006 \001(\01320.talon.data.SessionJou" +
+      "rnalEntryPayloadSteerInputH\000B\t\n\007payload\"" +
+      "\325\002\n\023SessionJournalEntry\022\025\n\rsubmission_id" +
+      "\030\001 \001(\t\022\030\n\020journal_entry_id\030\002 \001(\t\022\022\n\natte" +
+      "mpt_id\030\003 \001(\t\0220\n\005phase\030\004 \001(\0162!.talon.data" +
+      ".SessionExecutionPhase\0227\n\007payload\030\005 \001(\0132" +
+      "&.talon.data.SessionJournalEntryPayload\022" +
+      "\022\n\ncreated_at\030\006 \001(\003\022\022\n\nupdated_at\030\007 \001(\003\022" +
+      "\031\n\014committed_at\030\010 \001(\003H\000\210\001\001\022!\n\024committed_" +
+      "message_id\030\t \001(\tH\001\210\001\001B\017\n\r_committed_atB\027" +
+      "\n\025_committed_message_id*\213\002\n\025SessionExecu" +
+      "tionPhase\022\'\n#SESSION_EXECUTION_PHASE_UNS" +
+      "PECIFIED\020\000\022(\n$SESSION_EXECUTION_PHASE_LL" +
+      "M_RESPONSE\020\001\022\'\n#SESSION_EXECUTION_PHASE_" +
+      "TOOL_RESULT\020\002\022%\n!SESSION_EXECUTION_PHASE" +
+      "_COMMITTED\020\003\022&\n\"SESSION_EXECUTION_PHASE_" +
+      "COMPACTION\020\004\022\'\n#SESSION_EXECUTION_PHASE_" +
+      "STEER_INPUT\020\005b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -7116,7 +7671,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     internal_static_talon_data_SessionJournalEntryPayloadLlmResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadLlmResponse_descriptor,
-        new java.lang.String[] { "Response", });
+        new java.lang.String[] { "Response", "AssistantMessageId", });
     internal_static_talon_data_SessionJournalEntryPayloadToolResult_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_talon_data_SessionJournalEntryPayloadToolResult_fieldAccessorTable = new
@@ -7140,7 +7695,7 @@ public final class SessionJournalEntryOuterClass extends com.google.protobuf.Gen
     internal_static_talon_data_SessionJournalEntryPayloadSteerInput_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_data_SessionJournalEntryPayloadSteerInput_descriptor,
-        new java.lang.String[] { "MessageIds", });
+        new java.lang.String[] { "MessageIds", "PreviousAssistantMessageId", "NextAssistantMessageId", });
     internal_static_talon_data_SessionJournalEntryPayload_descriptor =
       getDescriptor().getMessageType(5);
     internal_static_talon_data_SessionJournalEntryPayload_fieldAccessorTable = new

@@ -34,6 +34,7 @@ from talon_client.data import (
     SessionSubmission,
     SESSION_EXECUTION_PHASE_COMMITTED,
     SESSION_EXECUTION_PHASE_LLM_RESPONSE,
+    SESSION_EXECUTION_PHASE_STEER_INPUT,
     SESSION_EXECUTION_PHASE_TOOL_RESULT,
     SessionJournalEntry,
 )
@@ -632,6 +633,7 @@ def journal_payload_dict(entry: SessionJournalEntry) -> dict[str, Any] | None:
                     }
                     for tool in response.tool_calls
                 ],
+                "assistantMessageId": getattr(response, "assistant_message_id", ""),
             }
         }
     if payload_kind == "tool_result":
@@ -647,6 +649,19 @@ def journal_payload_dict(entry: SessionJournalEntry) -> dict[str, Any] | None:
         return {
             "commit": {
                 "committedMessageId": entry.payload.commit.committed_message_id,
+            }
+        }
+    if payload_kind == "steer_input":
+        steer = entry.payload.steer_input
+        return {
+            "steerInput": {
+                "messageIds": list(steer.message_ids),
+                "previousAssistantMessageId": getattr(
+                    steer, "previous_assistant_message_id", ""
+                ),
+                "nextAssistantMessageId": getattr(
+                    steer, "next_assistant_message_id", ""
+                ),
             }
         }
     return None
@@ -881,6 +896,29 @@ class SessionSnooper:
             delay=0.005,
         )
 
+    def wait_for_steer_boundary(
+        self, submission_id: str
+    ) -> tuple[SubmissionRecord, list[JournalEntryRecord]]:
+        def observed_steer_boundary():
+            submission = self.kv.read_submission(
+                self.namespace, self.agent, self.session_id, submission_id
+            )
+            if submission is None:
+                return None
+            entries = self.kv.read_journal_entries(
+                self.namespace, self.agent, self.session_id, submission_id
+            )
+            if entries_with_phase(entries, SESSION_EXECUTION_PHASE_STEER_INPUT):
+                return submission, entries
+            return None
+
+        return self._wait_for_condition(
+            "steer journal boundary",
+            observed_steer_boundary,
+            attempts=1000,
+            delay=0.005,
+        )
+
 
 @pytest.mark.stress
 # Kill the worker while an LLM stream is in progress. This is meant to catch any
@@ -1092,6 +1130,114 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     # only the follow-up LLM call needed to produce the final assistant answer.
     assert final_mock_state["request_count"] == mock_state_at_crash["request_count"] + 1
     assert_mock_llm_saw_user_message_once(final_mock_state, message)
+
+
+@pytest.mark.stress
+def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
+    talon_infrastructure_sqlite: DurableSessionStack,
+    gateway_channel_sqlite: grpc.Channel,
+    mock_llm_server: Any,
+) -> None:
+    """A restart after steer absorption preserves segment IDs and transcript order."""
+    infra: DurableSessionStack = talon_infrastructure_sqlite
+    stub = TalonClient(gateway_channel_sqlite)
+    namespace = f"durable-steer-recovery-{uuid.uuid4().hex[:8]}"
+    agent = "stress-agent"
+    create_agent(stub, namespace, agent, mcp_server_refs=[BLOCKING_MCP_SERVER])
+    create_blocking_mcp_server(stub, namespace)
+    session_id = stub.sessions.Create(CreateSessionRequest(agent=agent, ns=namespace)).session_id
+    snooper = SessionSnooper(
+        stack=infra, stub=stub, namespace=namespace, agent=agent, session_id=session_id
+    )
+
+    mock_control("POST", "/__control/reset")
+    mock_control("POST", "/__control/block_mcp_tool")
+    mock_control("POST", "/__control/block_stream_after_chunks", {"chunks": 1})
+    initial_message = "Please run a blocking lookup docs.example.com and summarize what you found."
+    steer_message = "Also include a short note that this was requested during the lookup."
+    try:
+        stub.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent,
+                session_id=session_id,
+                ns=namespace,
+                message=initial_message,
+            )
+        )
+        wait_for_mock_mcp_tool_blocked()
+        submission = snooper.wait_for_submission()
+        submission_id = submission["_kv_name"]
+
+        stub.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent,
+                session_id=session_id,
+                ns=namespace,
+                message=steer_message,
+            )
+        )
+        mock_control("POST", "/__control/unblock_mcp_tool")
+        _, entries_at_boundary = snooper.wait_for_steer_boundary(submission_id)
+        steer_entries = entries_with_phase(
+            entries_at_boundary, SESSION_EXECUTION_PHASE_STEER_INPUT
+        )
+        assert len(steer_entries) == 1
+        steer_payload = steer_entries[0]["payload"]["steerInput"]
+        assert steer_payload["previousAssistantMessageId"]
+        assert steer_payload["nextAssistantMessageId"]
+
+        infra.kill_worker()
+        time.sleep(1.3)
+        mock_control("POST", "/__control/unblock_stream")
+        infra.start_worker()
+        with SessionStreamBuffer(
+            grpc_port=infra.grpc_port,
+            namespace=namespace,
+            agent=agent,
+            session_id=session_id,
+        ):
+            snooper.wait_for_reclaimed_submission(
+                submission_id, submission["attemptCount"]
+            )
+            session = snooper.wait_for_completed_session(
+                "steer recovery session completion"
+            )
+
+        messages = list(session.messages)
+        users = [message for message in messages if message.role == ROLE_USER]
+        assistants = [message for message in messages if message.role == ROLE_ASSISTANT]
+        assert len(users) == 2
+        assert len(assistants) == 2
+        assert [message.id for message in assistants] == sorted(
+            message.id for message in assistants
+        )
+        assert messages.index(assistants[0]) < messages.index(users[1])
+        assert messages.index(users[1]) < messages.index(assistants[1])
+        assert initial_message in text_from_parts(text_parts_for(users[0]))
+        assert steer_message in text_from_parts(text_parts_for(users[1]))
+        assert_single_tool_call_and_result(
+            assistants[0], tool_call_id=BLOCKING_TOOL_CALL_ID
+        )
+        assert not parts_for_type(assistants[1], PART_TYPE_TOOL_CALL)
+        assert not parts_for_type(assistants[1], PART_TYPE_TOOL_RESULT)
+        assert projection_state(assistants[0]) == "committed"
+        assert projection_state(assistants[1]) == "committed"
+
+        final_submission = infra.kv.read_submission(
+            namespace, agent, session_id, submission_id
+        )
+        assert final_submission is not None
+        final_entries = infra.kv.read_journal_entries(
+            namespace, agent, session_id, submission_id
+        )
+        assert final_submission["attemptCount"] >= 2
+        assert final_submission["committedMessageId"] == assistants[1].id
+        assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_STEER_INPUT)) == 1
+        assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_COMMITTED)) == 1
+    finally:
+        mock_control("POST", "/__control/unblock_mcp_tool")
+        mock_control("POST", "/__control/unblock_stream")
+        mock_control("POST", "/__control/reset")
 
 
 @pytest.mark.stress

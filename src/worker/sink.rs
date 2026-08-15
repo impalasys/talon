@@ -342,8 +342,8 @@ pub struct PubSubSessionSink {
 
     // The assistant message that will be committed once generation reaches a
     // terminal boundary.
-    pub reply_msg_id: String,
-    pub reply_msg_key: ResourceKey,
+    pub reply_msg_id: Mutex<String>,
+    pub reply_msg_key: Mutex<ResourceKey>,
 
     // Durable work identity. Journal writes are fenced by `attempt_id` so a
     // worker whose lease expired cannot keep appending state after reclaim.
@@ -519,8 +519,8 @@ impl PubSubSessionSink {
             ns,
             session_id,
             agent_id,
-            reply_msg_id: reply_msg_id.into(),
-            reply_msg_key,
+            reply_msg_id: Mutex::new(reply_msg_id.into()),
+            reply_msg_key: Mutex::new(reply_msg_key),
             claim,
             submission_id,
             attempt_id,
@@ -550,6 +550,29 @@ impl PubSubSessionSink {
         let mut next = self.next_part_index.lock().unwrap();
         *next += 1;
         format!("{:06}", *next)
+    }
+
+    pub fn current_reply_msg_id(&self) -> String {
+        self.reply_msg_id.lock().unwrap().clone()
+    }
+
+    pub fn current_reply_msg_key(&self) -> ResourceKey {
+        self.reply_msg_key.lock().unwrap().clone()
+    }
+
+    pub(crate) fn rotate_reply_message(&self, message_id: String) {
+        let key = crate::control::keys::session_message(
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &message_id,
+        );
+        *self.reply_msg_id.lock().unwrap() = message_id;
+        *self.reply_msg_key.lock().unwrap() = key;
+        self.durable_parts.lock().unwrap().clear();
+        self.active_stream_buffer.lock().unwrap().take();
+        self.recorded_tool_results.lock().unwrap().clear();
+        *self.next_part_index.lock().unwrap() = 0;
     }
 
     pub(crate) fn advance_next_part_id_past(&self, part_id: &str) {
@@ -679,7 +702,7 @@ impl PubSubSessionSink {
                 ns: &self.ns,
                 agent: &self.agent_id,
                 session_id: &self.session_id,
-                message_id: &self.reply_msg_id,
+                message_id: &self.current_reply_msg_id(),
                 part_id,
                 tool_call_id: id,
                 tool_name: name,
@@ -746,7 +769,7 @@ impl PubSubSessionSink {
         tag: &InlineArtifactTag,
         index: usize,
     ) -> anyhow::Result<String> {
-        let artifact_id = format!("artifact-{}-inline-{index:03}", self.reply_msg_id);
+        let artifact_id = format!("artifact-{}-inline-{index:03}", self.current_reply_msg_id());
         let mut metadata = HashMap::new();
         metadata.insert(
             "source".to_string(),
@@ -1032,7 +1055,7 @@ impl PubSubSessionSink {
             timestamp: chrono::Utc::now().timestamp_micros(),
             agent: self.agent_id.clone(),
             ns: self.ns.clone(),
-            message_id: self.reply_msg_id.clone(),
+            message_id: self.current_reply_msg_id(),
         };
         async {
             self.fanout_hub
@@ -1089,7 +1112,7 @@ impl PubSubSessionSink {
 
     fn projection_message(&self, state: &str) -> data_proto::SessionMessage {
         data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
+            id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(state),
@@ -1153,7 +1176,7 @@ impl PubSubSessionSink {
                 }
                 if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
                     self.kv.as_ref(),
-                    &self.reply_msg_key,
+                    &self.current_reply_msg_key(),
                     &msg,
                 )
                 .await
@@ -1168,7 +1191,7 @@ impl PubSubSessionSink {
 
     async fn persist_durable_message(&self, span_name: &'static str) {
         let msg = data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
+            id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
@@ -1178,7 +1201,7 @@ impl PubSubSessionSink {
             let _guard = self.persist_lock.lock().await;
             crate::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
-                &self.reply_msg_key,
+                &self.current_reply_msg_key(),
                 &msg,
             )
             .await
@@ -1202,12 +1225,31 @@ impl PubSubSessionSink {
         self.publish_reply_index_event().await;
     }
 
+    async fn finalize_assistant_segment(&self) -> Result<String> {
+        self.flush_active_stream_event_buffer().await;
+        let parts = self.final_message_parts()?;
+        let message_id = self.current_reply_msg_id();
+        let message = data_proto::SessionMessage {
+            id: message_id.clone(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMMITTED),
+            parts,
+        };
+        let key = self.current_reply_msg_key();
+        let _guard = self.persist_lock.lock().await;
+        crate::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &message).await?;
+        drop(_guard);
+        self.publish_reply_index_event().await;
+        Ok(message_id)
+    }
+
     async fn publish_reply_index_event(&self) {
         if let Err(error) = crate::control::search::publish_index_event(
             self.pubsub.as_ref(),
             crate::control::events::IndexEvent {
                 operation: crate::control::events::IndexOperation::Upsert as i32,
-                key: self.reply_msg_key.canonical(),
+                key: self.current_reply_msg_key().canonical(),
                 ..Default::default()
             },
         )
@@ -1218,7 +1260,7 @@ impl PubSubSessionSink {
                 namespace = %self.ns,
                 agent = %self.agent_id,
                 session_id = %self.session_id,
-                message_id = %self.reply_msg_id,
+                message_id = %self.current_reply_msg_id(),
                 "failed to publish search index event for durable assistant message"
             );
         }
@@ -1233,7 +1275,7 @@ impl PubSubSessionSink {
             &self.submission_id,
             &self.attempt_id,
             status,
-            &self.reply_msg_id,
+            &self.current_reply_msg_id(),
             chrono::Utc::now().timestamp_micros(),
         )
         .await
@@ -1289,6 +1331,7 @@ impl ExecutionSink for PubSubSessionSink {
             &self.session_id,
             &self.submission_id,
             &self.attempt_id,
+            &self.current_reply_msg_id(),
             &durable_response,
             chrono::Utc::now().timestamp_micros(),
         )
@@ -1424,7 +1467,7 @@ impl ExecutionSink for PubSubSessionSink {
             &self.ns,
             &self.agent_id,
             &self.session_id,
-            &self.reply_msg_id,
+            &self.current_reply_msg_id(),
             &part_id,
             &self.submission_id,
             &self.attempt_id,
@@ -1542,6 +1585,11 @@ impl ExecutionSink for PubSubSessionSink {
             .iter()
             .map(|message| message.message_id.clone())
             .collect::<Vec<_>>();
+        let previous_assistant_message_id = self.finalize_assistant_segment().await?;
+        // The steer messages were assigned their UUID7 ids while preparing the
+        // batch. Allocate the continuation only after them so session-key
+        // ordering matches conversational ordering.
+        let next_assistant_message_id = crate::control::uuid::session_message_id();
         sessions::append_steer_input(
             self.kv.as_ref(),
             &self.ns,
@@ -1550,6 +1598,8 @@ impl ExecutionSink for PubSubSessionSink {
             &self.submission_id,
             &self.attempt_id,
             &message_ids,
+            &previous_assistant_message_id,
+            &next_assistant_message_id,
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
@@ -1561,6 +1611,7 @@ impl ExecutionSink for PubSubSessionSink {
             &batch,
         )
         .await?;
+        self.rotate_reply_message(next_assistant_message_id);
         Ok(batch
             .into_iter()
             .map(|message| {
@@ -1589,7 +1640,7 @@ impl ExecutionSink for PubSubSessionSink {
                         ns: &self.ns,
                         agent: &self.agent_id,
                         session_id: &self.session_id,
-                        message_id: &self.reply_msg_id,
+                        message_id: &self.current_reply_msg_id(),
                         part_id: &part_id,
                         tool_call_id: id,
                         tool_name: name,
@@ -1735,7 +1786,7 @@ impl ExecutionSink for PubSubSessionSink {
             return;
         }
         let msg = data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
+            id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
@@ -1745,7 +1796,7 @@ impl ExecutionSink for PubSubSessionSink {
             let _guard = self.persist_lock.lock().await;
             crate::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
-                &self.reply_msg_key,
+                &self.current_reply_msg_key(),
                 &msg,
             )
             .await
@@ -1772,7 +1823,7 @@ impl ExecutionSink for PubSubSessionSink {
                         let _guard = self.persist_lock.lock().await;
                         crate::control::ProtoKeyValueStoreExt::set_msg(
                             self.kv.as_ref(),
-                            &self.reply_msg_key,
+                            &self.current_reply_msg_key(),
                             &committed_msg,
                         )
                         .await
@@ -1816,7 +1867,7 @@ impl ExecutionSink for PubSubSessionSink {
             String::new(),
         );
         let msg = data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
+            id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_FAILED),
@@ -1826,7 +1877,7 @@ impl ExecutionSink for PubSubSessionSink {
             let _guard = self.persist_lock.lock().await;
             crate::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
-                &self.reply_msg_key,
+                &self.current_reply_msg_key(),
                 &msg,
             )
             .await

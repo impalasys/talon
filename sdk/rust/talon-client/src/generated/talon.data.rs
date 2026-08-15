@@ -734,6 +734,9 @@ pub struct Route {
 pub struct SessionJournalEntryPayloadLlmResponse {
     #[prost(message, optional, tag = "1")]
     pub response: ::core::option::Option<super::harness::ChatResponse>,
+    /// Assistant SessionMessage projection that owns this model response.
+    #[prost(string, tag = "2")]
+    pub assistant_message_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayloadToolResult {
@@ -765,6 +768,12 @@ pub struct SessionJournalEntryPayloadSteerInput {
     /// context, in admission order.
     #[prost(string, repeated, tag = "1")]
     pub message_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// The assistant projection finalized before this steer batch.
+    #[prost(string, tag = "2")]
+    pub previous_assistant_message_id: ::prost::alloc::string::String,
+    /// The assistant projection that owns the continuation after this steer batch.
+    #[prost(string, tag = "3")]
+    pub next_assistant_message_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayload {

@@ -32,6 +32,8 @@ enum SessionExecutionPhase {
 
 message SessionJournalEntryPayloadLlmResponse {
   talon.harness.ChatResponse response = 1;
+  // Assistant SessionMessage projection that owns this model response.
+  string assistant_message_id = 2;
 }
 
 message SessionJournalEntryPayloadToolResult {
@@ -55,6 +57,10 @@ message SessionJournalEntryPayloadSteerInput {
   // Canonical user SessionMessage ids appended to the active execution
   // context, in admission order.
   repeated string message_ids = 1;
+  // The assistant projection finalized before this steer batch.
+  string previous_assistant_message_id = 2;
+  // The assistant projection that owns the continuation after this steer batch.
+  string next_assistant_message_id = 3;
 }
 
 message SessionJournalEntryPayload {

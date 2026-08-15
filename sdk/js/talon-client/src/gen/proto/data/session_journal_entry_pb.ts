@@ -78,6 +78,13 @@ export class SessionJournalEntryPayloadLlmResponse extends Message<SessionJourna
    */
   response?: ChatResponse;
 
+  /**
+   * Assistant SessionMessage projection that owns this model response.
+   *
+   * @generated from field: string assistant_message_id = 2;
+   */
+  assistantMessageId = "";
+
   constructor(data?: PartialMessage<SessionJournalEntryPayloadLlmResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -87,6 +94,7 @@ export class SessionJournalEntryPayloadLlmResponse extends Message<SessionJourna
   static readonly typeName = "talon.data.SessionJournalEntryPayloadLlmResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "response", kind: "message", T: ChatResponse },
+    { no: 2, name: "assistant_message_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayloadLlmResponse {
@@ -255,6 +263,20 @@ export class SessionJournalEntryPayloadSteerInput extends Message<SessionJournal
    */
   messageIds: string[] = [];
 
+  /**
+   * The assistant projection finalized before this steer batch.
+   *
+   * @generated from field: string previous_assistant_message_id = 2;
+   */
+  previousAssistantMessageId = "";
+
+  /**
+   * The assistant projection that owns the continuation after this steer batch.
+   *
+   * @generated from field: string next_assistant_message_id = 3;
+   */
+  nextAssistantMessageId = "";
+
   constructor(data?: PartialMessage<SessionJournalEntryPayloadSteerInput>) {
     super();
     proto3.util.initPartial(data, this);
@@ -264,6 +286,8 @@ export class SessionJournalEntryPayloadSteerInput extends Message<SessionJournal
   static readonly typeName = "talon.data.SessionJournalEntryPayloadSteerInput";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "message_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 2, name: "previous_assistant_message_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "next_assistant_message_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayloadSteerInput {

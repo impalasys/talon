@@ -265,6 +265,19 @@ async fn prepare_context_for_claimed_submission(
         }
 
         if entry.phase == SessionExecutionPhase::SteerInput as i32 {
+            if let Some(session_journal_entry_payload::Payload::SteerInput(payload)) = entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+            {
+                // Segments before this boundary are already finalized canonical
+                // messages. Rebuild only the active continuation projection.
+                if !payload.next_assistant_message_id.is_empty() {
+                    projection_parts.clear();
+                    next_projection_part_index = 0;
+                    latest_final_response = None;
+                }
+            }
             hydrate_steering_input(cp, ns, agent, session_id, entry, runtime).await?;
             index += 1;
             continue;
@@ -338,6 +351,7 @@ async fn prepare_context_for_claimed_submission(
         let mut stop_after_tool_results = false;
         let mut results_by_call_id = BTreeMap::new();
         let mut steering_entries = Vec::new();
+        let mut steer_boundary_seen = false;
         while index < journal_entries.len() {
             let entry = &journal_entries[index];
             if entry.phase == SessionExecutionPhase::LlmResponse as i32
@@ -375,6 +389,7 @@ async fn prepare_context_for_claimed_submission(
                 (phase, Some(session_journal_entry_payload::Payload::SteerInput(_)))
                     if phase == SessionExecutionPhase::SteerInput as i32 =>
                 {
+                    steer_boundary_seen = true;
                     steering_entries.push(entry.clone());
                 }
                 _ => {}
@@ -445,6 +460,15 @@ async fn prepare_context_for_claimed_submission(
                 .push(tool_output_loop_message(&tool.id, &result_output));
             stop_after_tool_results |=
                 crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
+        }
+        // Reconstruct the completed pre-steer tool turn in the execution
+        // context, but keep its projection parts on the finalized assistant
+        // message. The next assistant projection starts with the steered
+        // continuation.
+        if steer_boundary_seen {
+            projection_parts.clear();
+            next_projection_part_index = 0;
+            latest_final_response = None;
         }
         for entry in steering_entries {
             hydrate_steering_input(cp, ns, agent, session_id, &entry, runtime).await?;
@@ -643,6 +667,31 @@ impl WorkerEventHandler {
             &submission.submission_id,
         )
         .await?;
+        let recovered_reply_msg_id =
+            journal_entries.iter().fold(None, |current, entry| {
+                match entry
+                    .payload
+                    .as_ref()
+                    .and_then(|payload| payload.payload.as_ref())
+                {
+                    Some(session_journal_entry_payload::Payload::LlmResponse(response))
+                        if !response.assistant_message_id.is_empty() =>
+                    {
+                        Some(response.assistant_message_id.clone())
+                    }
+                    Some(session_journal_entry_payload::Payload::SteerInput(steer))
+                        if !steer.next_assistant_message_id.is_empty() =>
+                    {
+                        Some(steer.next_assistant_message_id.clone())
+                    }
+                    _ => current,
+                }
+            });
+        if let Some(recovered_reply_msg_id) = recovered_reply_msg_id {
+            if recovered_reply_msg_id != reply_msg_id {
+                sink.rotate_reply_message(recovered_reply_msg_id);
+            }
+        }
         sink.seed_latest_journal_entry_id(
             journal_entries
                 .last()
@@ -986,7 +1035,7 @@ impl WorkerEventHandler {
                         ns,
                         &event.agent,
                         &event.session_id,
-                        &sink.reply_msg_key,
+                        &sink.current_reply_msg_key(),
                     )
                     .await
                 {
@@ -994,7 +1043,7 @@ impl WorkerEventHandler {
                         error = %err,
                         agent = %event.agent,
                         session = %event.session_id,
-                        message_id = %sink.reply_msg_id,
+                        message_id = %sink.current_reply_msg_id(),
                         "failed to auto-forward completed A2A session reply to owner"
                     );
                 }
@@ -1011,7 +1060,7 @@ impl WorkerEventHandler {
                     ns,
                     &event.agent,
                     &event.session_id,
-                    &sink.reply_msg_id,
+                    &sink.current_reply_msg_id(),
                 )
                 .await
             {
@@ -1019,7 +1068,7 @@ impl WorkerEventHandler {
                     error = %err,
                     agent = %event.agent,
                     session = %event.session_id,
-                    message_id = %sink.reply_msg_id,
+                        message_id = %sink.current_reply_msg_id(),
                     "failed to deliver connector session reply"
                 );
             }
@@ -1035,7 +1084,7 @@ impl WorkerEventHandler {
         {
             match crate::control::ProtoKeyValueStoreExt::get_msg::<data_proto::SessionMessage>(
                 self.cp.kv.as_ref(),
-                &sink.reply_msg_key,
+                &sink.current_reply_msg_key(),
             )
             .await
             {
@@ -1048,7 +1097,7 @@ impl WorkerEventHandler {
                         &submission.submission_id,
                         &submission.attempt_id,
                         SessionSubmissionStatus::Failed as i32,
-                        &sink.reply_msg_id,
+                        &sink.current_reply_msg_id(),
                         chrono::Utc::now().timestamp_micros(),
                     )
                     .await
@@ -1085,7 +1134,7 @@ impl WorkerEventHandler {
                     ns,
                     &event.agent,
                     &event.session_id,
-                    &sink.reply_msg_id,
+                    &sink.current_reply_msg_id(),
                 )
                 .await
             {
@@ -1093,7 +1142,7 @@ impl WorkerEventHandler {
                     error = %err,
                     agent = %event.agent,
                     session = %event.session_id,
-                    message_id = %sink.reply_msg_id,
+                        message_id = %sink.current_reply_msg_id(),
                     "failed to deliver failed connector session reply"
                 );
             }
@@ -4625,6 +4674,7 @@ mod tests {
             "session-1",
             "submission-1",
             "attempt-1",
+            "reply-1",
             &call_response,
             20,
         )
@@ -4667,6 +4717,7 @@ mod tests {
             "session-1",
             "submission-1",
             "attempt-1",
+            "reply-1",
             &ChatResponse {
                 content: "continued after recovery".to_string(),
                 tool_calls: Vec::new(),
