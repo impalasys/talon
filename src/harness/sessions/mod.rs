@@ -26,7 +26,9 @@ pub use journal::{
 };
 pub use journal::{append_llm_response, append_tool_result};
 pub use lease::{SubmissionLease, SubmissionLeaseRenewer};
-pub(crate) use recovery::{latest_submission_projection_message_id, plan_journal_recovery};
+pub(crate) use recovery::{
+    latest_submission_projection_message_id, plan_journal_recovery, JournalRecoveryPlan,
+};
 pub use session::{
     clear_provider_request_id, persist_context_tokens, reset_provider_request_id_if_idle,
 };
