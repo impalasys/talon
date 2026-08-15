@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{anyhow, Result};
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use super::mcp_registry::McpRegistry;
@@ -12,7 +13,8 @@ use crate::gateway::rpc::data_proto;
 use crate::gateway::rpc::resources_proto;
 use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 use crate::harness::executor::{
-    load, AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
+    load_excluding_message_ids, AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage,
+    RegisteredMcpTool,
 };
 use crate::harness::native_tools::register_skill_tools;
 use crate::harness::skills::{
@@ -55,6 +57,29 @@ impl AgentRuntime {
         config: &Config,
         mcp_registry: &McpRegistry,
     ) -> Result<Self> {
+        Self::build_from_agent_excluding_history_messages(
+            ns,
+            agent_id,
+            session_id,
+            agent,
+            cp,
+            config,
+            mcp_registry,
+            &HashSet::new(),
+        )
+        .await
+    }
+
+    pub(crate) async fn build_from_agent_excluding_history_messages(
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+        agent: resources_proto::Agent,
+        cp: &ControlPlane,
+        config: &Config,
+        mcp_registry: &McpRegistry,
+        excluded_history_message_ids: &HashSet<String>,
+    ) -> Result<Self> {
         let mut spec = agent
             .spec
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' has no spec", agent_id))?;
@@ -86,12 +111,13 @@ impl AgentRuntime {
             .unwrap_or(false);
 
         // 2. Load session history from KV.
-        let loaded = load(
+        let loaded = load_excluding_message_ids(
             cp.kv.as_ref(),
             cp.objects.as_ref(),
             ns,
             agent_id,
             session_id,
+            excluded_history_message_ids,
         )
         .await?;
         let mut history = loaded.messages;

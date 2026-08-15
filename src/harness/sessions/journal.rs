@@ -18,6 +18,46 @@ use crate::gateway::rpc::data_proto::{
 use crate::harness::llm::ChatResponse;
 use crate::harness::llm::ToolOutput;
 
+// Typed payload accessors
+
+pub(crate) trait SessionJournalEntryExt {
+    fn as_steer_input(&self) -> Option<&SessionJournalEntryPayloadSteerInput>;
+
+    fn as_llm_response(&self) -> Option<&SessionJournalEntryPayloadLlmResponse>;
+}
+
+impl SessionJournalEntryExt for SessionJournalEntry {
+    fn as_steer_input(&self) -> Option<&SessionJournalEntryPayloadSteerInput> {
+        if self.phase != SessionExecutionPhase::SteerInput as i32 {
+            return None;
+        }
+        match self
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+        {
+            Some(session_journal_entry_payload::Payload::SteerInput(payload)) => Some(payload),
+            _ => None,
+        }
+    }
+
+    fn as_llm_response(&self) -> Option<&SessionJournalEntryPayloadLlmResponse> {
+        if self.phase != SessionExecutionPhase::LlmResponse as i32 {
+            return None;
+        }
+        match self
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+        {
+            Some(session_journal_entry_payload::Payload::LlmResponse(payload)) => Some(payload),
+            _ => None,
+        }
+    }
+}
+
+// Journal append operations
+
 pub async fn append_compaction(
     kv: &dyn KeyValueStore,
     cas: &CasStore,
@@ -116,6 +156,7 @@ pub async fn append_llm_response(
     session_id: &str,
     submission_id: &str,
     attempt_id: &str,
+    assistant_message_id: &str,
     response: &ChatResponse,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
@@ -132,6 +173,7 @@ pub async fn append_llm_response(
             payload: Some(session_journal_entry_payload::Payload::LlmResponse(
                 SessionJournalEntryPayloadLlmResponse {
                     response: Some(response.clone()),
+                    assistant_message_id: assistant_message_id.to_string(),
                 },
             )),
         }),
@@ -205,6 +247,8 @@ pub async fn append_steer_input(
     submission_id: &str,
     attempt_id: &str,
     message_ids: &[String],
+    previous_assistant_message_id: &str,
+    next_assistant_message_id: &str,
     now_micros: i64,
 ) -> Result<SessionJournalEntry> {
     ensure_submission_attempt_current(kv, ns, agent_id, session_id, submission_id, attempt_id)
@@ -221,6 +265,8 @@ pub async fn append_steer_input(
             payload: Some(session_journal_entry_payload::Payload::SteerInput(
                 SessionJournalEntryPayloadSteerInput {
                     message_ids: message_ids.to_vec(),
+                    previous_assistant_message_id: previous_assistant_message_id.to_string(),
+                    next_assistant_message_id: next_assistant_message_id.to_string(),
                 },
             )),
         }),
@@ -550,6 +596,7 @@ mod tests {
             "session-1",
             "submission-1",
             "attempt-1",
+            "assistant-1",
             &response,
             2,
         )
@@ -740,6 +787,7 @@ mod tests {
             "session-1",
             "submission-1",
             "stale-attempt",
+            "assistant-1",
             &response,
             2,
         )

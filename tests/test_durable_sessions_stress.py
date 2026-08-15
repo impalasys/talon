@@ -31,9 +31,11 @@ from talon_client.data import (
     SESSION_SUBMISSION_STATUS_CLAIMED,
     SESSION_SUBMISSION_STATUS_COMMITTED,
     SessionMessage,
+    SessionMessagePart,
     SessionSubmission,
     SESSION_EXECUTION_PHASE_COMMITTED,
     SESSION_EXECUTION_PHASE_LLM_RESPONSE,
+    SESSION_EXECUTION_PHASE_STEER_INPUT,
     SESSION_EXECUTION_PHASE_TOOL_RESULT,
     SessionJournalEntry,
 )
@@ -137,6 +139,39 @@ class DurableSessionKvProbe:
             message.ParseFromString(row["value"])
             messages.append(message)
         return messages
+
+    def queue_raw_steer_message(
+        self, namespace: str, agent: str, session_id: str, content: str
+    ) -> None:
+        """Inject a STEER entry to deterministically model input at a crash edge."""
+        now_micros = time.time_ns() // 1_000
+        entry_id = f"{now_micros:020}-{uuid.uuid4()}"
+        message = SessionMessage(
+            role=ROLE_USER,
+            created_at=now_micros,
+            parts=[
+                SessionMessagePart(
+                    id="000000",
+                    part_type=PART_TYPE_TEXT,
+                    content=content,
+                    created_at=now_micros,
+                )
+            ],
+        )
+        with sqlite3.connect(self.sqlite_db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO talon_kv_store (namespace, parent_path, kind, name, value)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    namespace,
+                    f"{session_parent(agent, session_id)}/Queue/steer",
+                    "SessionMessage",
+                    entry_id,
+                    message.SerializeToString(),
+                ),
+            )
 
     def assistant_messages(
         self, namespace: str, agent: str, session_id: str
@@ -620,7 +655,8 @@ def journal_payload_dict(entry: SessionJournalEntry) -> dict[str, Any] | None:
         return None
     payload_kind = entry.payload.WhichOneof("payload")
     if payload_kind == "llm_response":
-        response = entry.payload.llm_response.response
+        llm_response = entry.payload.llm_response
+        response = llm_response.response
         return {
             "llmResponse": {
                 "content": response.content,
@@ -632,6 +668,7 @@ def journal_payload_dict(entry: SessionJournalEntry) -> dict[str, Any] | None:
                     }
                     for tool in response.tool_calls
                 ],
+                "assistantMessageId": llm_response.assistant_message_id,
             }
         }
     if payload_kind == "tool_result":
@@ -641,12 +678,30 @@ def journal_payload_dict(entry: SessionJournalEntry) -> dict[str, Any] | None:
                 "toolCallId": result.tool_call_id,
                 "name": result.name,
                 "output": result.output,
+                "objectKeys": [
+                    part.object_ref.key
+                    for part in result.tool_output.content_parts
+                    if part.HasField("object_ref")
+                ],
             }
         }
     if payload_kind == "commit":
         return {
             "commit": {
                 "committedMessageId": entry.payload.commit.committed_message_id,
+            }
+        }
+    if payload_kind == "steer_input":
+        steer = entry.payload.steer_input
+        return {
+            "steerInput": {
+                "messageIds": list(steer.message_ids),
+                "previousAssistantMessageId": getattr(
+                    steer, "previous_assistant_message_id", ""
+                ),
+                "nextAssistantMessageId": getattr(
+                    steer, "next_assistant_message_id", ""
+                ),
             }
         }
     return None
@@ -881,6 +936,29 @@ class SessionSnooper:
             delay=0.005,
         )
 
+    def wait_for_steer_boundary(
+        self, submission_id: str
+    ) -> tuple[SubmissionRecord, list[JournalEntryRecord]]:
+        def observed_steer_boundary():
+            submission = self.kv.read_submission(
+                self.namespace, self.agent, self.session_id, submission_id
+            )
+            if submission is None:
+                return None
+            entries = self.kv.read_journal_entries(
+                self.namespace, self.agent, self.session_id, submission_id
+            )
+            if entries_with_phase(entries, SESSION_EXECUTION_PHASE_STEER_INPUT):
+                return submission, entries
+            return None
+
+        return self._wait_for_condition(
+            "steer journal boundary",
+            observed_steer_boundary,
+            attempts=1000,
+            delay=0.005,
+        )
+
 
 @pytest.mark.stress
 # Kill the worker while an LLM stream is in progress. This is meant to catch any
@@ -1066,6 +1144,19 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     assert final_submission is not None
     final_entries = infra.kv.read_journal_entries(namespace, agent, session_id, submission_id)
     final_mock_state = mock_control("GET", "/__control/state")
+    llm_entries = entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_LLM_RESPONSE)
+    assert len(llm_entries) == 2
+    assert all(
+        entry["payload"]["llmResponse"]["assistantMessageId"] == assistants[0].id
+        for entry in llm_entries
+    )
+    tool_result_entries = entries_with_phase(
+        final_entries, SESSION_EXECUTION_PHASE_TOOL_RESULT
+    )
+    assert len(tool_result_entries) == 1
+    object_keys = tool_result_entries[0]["payload"]["toolResult"]["objectKeys"]
+    assert len(object_keys) == 1
+    assert f"/messages/{assistants[0].id}/" in object_keys[0]
 
     assert final_submission["status"] == SESSION_SUBMISSION_STATUS_COMMITTED
     assert final_submission["currentPhase"] == SESSION_EXECUTION_PHASE_COMMITTED
@@ -1092,6 +1183,318 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     # only the follow-up LLM call needed to produce the final assistant answer.
     assert final_mock_state["request_count"] == mock_state_at_crash["request_count"] + 1
     assert_mock_llm_saw_user_message_once(final_mock_state, message)
+
+
+@pytest.mark.stress
+def test_pre_response_steering_batches_without_empty_assistant_and_recovers(
+    talon_infrastructure_sqlite: DurableSessionStack,
+    gateway_channel_sqlite: grpc.Channel,
+    mock_llm_server: Any,
+) -> None:
+    """Rapid initial steering is checkpointed before output and survives restart."""
+    infra: DurableSessionStack = talon_infrastructure_sqlite
+    stub = TalonClient(gateway_channel_sqlite)
+    namespace = f"durable-pre-response-steer-{uuid.uuid4().hex[:8]}"
+    agent = "stress-agent"
+    create_agent(stub, namespace, agent)
+    session_id = stub.sessions.Create(CreateSessionRequest(agent=agent, ns=namespace)).session_id
+    snooper = SessionSnooper(
+        stack=infra, stub=stub, namespace=namespace, agent=agent, session_id=session_id
+    )
+
+    initial_message = "Start one response that incorporates my rapid follow-up messages."
+    steer_messages = [
+        "Include the first follow-up in the same response.",
+        "Please stream a long durable response "
+        + " ".join(f"batch-token-{index}" for index in range(40)),
+    ]
+    late_steer_message = "Also include this instruction that arrived during restart."
+
+    mock_control("POST", "/__control/reset")
+    mock_control("POST", "/__control/block_stream_after_chunks", {"chunks": 15})
+    try:
+        infra.kill_worker()
+        stub.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent,
+                session_id=session_id,
+                ns=namespace,
+                message=initial_message,
+            )
+        )
+        for message in steer_messages:
+            stub.sessions.SendMessage(
+                SendMessageRequest(
+                    agent=agent,
+                    session_id=session_id,
+                    ns=namespace,
+                    message=message,
+                )
+            )
+
+        submission = snooper.wait_for_submission()
+        submission_id = submission["_kv_name"]
+        infra.start_worker()
+        with SessionStreamBuffer(
+            grpc_port=infra.grpc_port,
+            namespace=namespace,
+            agent=agent,
+            session_id=session_id,
+        ):
+            claimed_submission, entries_at_boundary = snooper.wait_for_steer_boundary(
+                submission_id
+            )
+            wait_for_mock_blocked()
+            stale_projection = snooper.wait_for_in_progress_projection()
+
+            first_steer_entries = entries_with_phase(
+                entries_at_boundary, SESSION_EXECUTION_PHASE_STEER_INPUT
+            )
+            assert len(first_steer_entries) == 1
+            first_steer = first_steer_entries[0]["payload"]["steerInput"]
+            assert first_steer["previousAssistantMessageId"] == ""
+            assert first_steer["nextAssistantMessageId"] == stale_projection.id
+            assert len(first_steer["messageIds"]) == len(steer_messages)
+
+            first_request_messages = mock_control("GET", "/__control/state")["chat_requests"][0][
+                "messages"
+            ]
+            first_request_users = [
+                message.get("content")
+                for message in first_request_messages
+                if message.get("role") == "user"
+            ]
+            assert first_request_users[-3:] == [initial_message, *steer_messages]
+
+            infra.kv.queue_raw_steer_message(
+                namespace, agent, session_id, late_steer_message
+            )
+            infra.kill_worker()
+            time.sleep(1.3)
+            mock_control("POST", "/__control/unblock_stream")
+            infra.start_worker()
+            snooper.wait_for_reclaimed_submission(
+                submission_id, claimed_submission["attemptCount"]
+            )
+            session = snooper.wait_for_completed_session(
+                "pre-response steering recovery completion"
+            )
+
+        messages = list(session.messages)
+        users = [message for message in messages if message.role == ROLE_USER]
+        assistants = [message for message in messages if message.role == ROLE_ASSISTANT]
+        expected_users = [initial_message, *steer_messages, late_steer_message]
+        assert [text_from_parts(text_parts_for(user)) for user in users] == expected_users
+        assert len(assistants) == 1
+        assert all(messages.index(user) < messages.index(assistants[0]) for user in users)
+        assert projection_state(assistants[0]) == "committed"
+        assert stale_projection.id != assistants[0].id
+        assert all(message.id != stale_projection.id for message in messages)
+
+        final_entries = infra.kv.read_journal_entries(
+            namespace, agent, session_id, submission_id
+        )
+        final_steers = entries_with_phase(
+            final_entries, SESSION_EXECUTION_PHASE_STEER_INPUT
+        )
+        assert len(final_steers) == 2
+        assert all(
+            entry["payload"]["steerInput"]["previousAssistantMessageId"] == ""
+            for entry in final_steers
+        )
+        assert final_steers[-1]["payload"]["steerInput"]["nextAssistantMessageId"] == assistants[
+            0
+        ].id
+
+        recovered_request_messages = mock_control("GET", "/__control/state")["chat_requests"][-1][
+            "messages"
+        ]
+        recovered_request_users = [
+            message.get("content")
+            for message in recovered_request_messages
+            if message.get("role") == "user"
+        ]
+        assert recovered_request_users[-len(expected_users) :] == expected_users
+        for expected in expected_users:
+            assert recovered_request_users.count(expected) == 1
+
+        final_submission = infra.kv.read_submission(
+            namespace, agent, session_id, submission_id
+        )
+        assert final_submission is not None
+        assert final_submission["committedMessageId"] == assistants[0].id
+        assert final_submission["attemptCount"] >= 2
+    finally:
+        mock_control("POST", "/__control/unblock_stream")
+        mock_control("POST", "/__control/reset")
+
+
+@pytest.mark.stress
+def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
+    talon_infrastructure_sqlite: DurableSessionStack,
+    gateway_channel_sqlite: grpc.Channel,
+    mock_llm_server: Any,
+) -> None:
+    """A restart after steer absorption preserves segment IDs and transcript order."""
+    infra: DurableSessionStack = talon_infrastructure_sqlite
+    stub = TalonClient(gateway_channel_sqlite)
+    namespace = f"durable-steer-recovery-{uuid.uuid4().hex[:8]}"
+    agent = "stress-agent"
+    create_agent(stub, namespace, agent, mcp_server_refs=[BLOCKING_MCP_SERVER])
+    create_blocking_mcp_server(stub, namespace)
+    session_id = stub.sessions.Create(CreateSessionRequest(agent=agent, ns=namespace)).session_id
+    snooper = SessionSnooper(
+        stack=infra, stub=stub, namespace=namespace, agent=agent, session_id=session_id
+    )
+
+    mock_control("POST", "/__control/reset")
+    mock_control("POST", "/__control/block_mcp_tool")
+    mock_control("POST", "/__control/block_stream_after_chunks", {"chunks": 1})
+    initial_message = "Please run a blocking lookup docs.example.com and summarize what you found."
+    steer_messages = [
+        "Also include a short note that this was requested during the lookup.",
+        "Keep that note to one sentence.",
+    ]
+    late_steer_message = "Mention that I added this instruction during the worker restart."
+    try:
+        stub.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent,
+                session_id=session_id,
+                ns=namespace,
+                message=initial_message,
+            )
+        )
+        wait_for_mock_mcp_tool_blocked()
+        submission = snooper.wait_for_submission()
+        submission_id = submission["_kv_name"]
+
+        for steer_message in steer_messages:
+            stub.sessions.SendMessage(
+                SendMessageRequest(
+                    agent=agent,
+                    session_id=session_id,
+                    ns=namespace,
+                    message=steer_message,
+                )
+            )
+        mock_control("POST", "/__control/unblock_mcp_tool")
+        _, entries_at_boundary = snooper.wait_for_steer_boundary(submission_id)
+        steer_entries = entries_with_phase(
+            entries_at_boundary, SESSION_EXECUTION_PHASE_STEER_INPUT
+        )
+        assert len(steer_entries) == 1
+        steer_payload = steer_entries[0]["payload"]["steerInput"]
+        assert steer_payload["previousAssistantMessageId"]
+        assert steer_payload["nextAssistantMessageId"]
+        assert len(steer_payload["messageIds"]) == len(steer_messages)
+
+        infra.kv.queue_raw_steer_message(
+            namespace, agent, session_id, late_steer_message
+        )
+        infra.kill_worker()
+        time.sleep(1.3)
+        mock_control("POST", "/__control/unblock_stream")
+        infra.start_worker()
+        with SessionStreamBuffer(
+            grpc_port=infra.grpc_port,
+            namespace=namespace,
+            agent=agent,
+            session_id=session_id,
+        ):
+            snooper.wait_for_reclaimed_submission(
+                submission_id, submission["attemptCount"]
+            )
+            session = snooper.wait_for_completed_session(
+                "steer recovery session completion"
+            )
+
+        messages = list(session.messages)
+        users = [message for message in messages if message.role == ROLE_USER]
+        assistants = [message for message in messages if message.role == ROLE_ASSISTANT]
+        all_steer_messages = [*steer_messages, late_steer_message]
+        assert len(users) == 4
+        assert len(assistants) == 2
+        assert [message.id for message in assistants] == sorted(
+            message.id for message in assistants
+        )
+        assert messages.index(assistants[0]) < messages.index(users[1])
+        assert messages.index(users[1]) < messages.index(users[2])
+        assert messages.index(users[2]) < messages.index(users[3])
+        assert messages.index(users[3]) < messages.index(assistants[1])
+        assert initial_message in text_from_parts(text_parts_for(users[0]))
+        assert [text_from_parts(text_parts_for(user)) for user in users[1:]] == all_steer_messages
+        assert_single_tool_call_and_result(
+            assistants[0], tool_call_id=BLOCKING_TOOL_CALL_ID
+        )
+        assert not parts_for_type(assistants[1], PART_TYPE_TOOL_CALL)
+        assert not parts_for_type(assistants[1], PART_TYPE_TOOL_RESULT)
+        assert projection_state(assistants[0]) == "committed"
+        assert projection_state(assistants[1]) == "committed"
+
+        final_submission = infra.kv.read_submission(
+            namespace, agent, session_id, submission_id
+        )
+        assert final_submission is not None
+        final_entries = infra.kv.read_journal_entries(
+            namespace, agent, session_id, submission_id
+        )
+        final_mock_state = mock_control("GET", "/__control/state")
+        recovered_messages = final_mock_state["chat_requests"][-1]["messages"]
+        recovered_user_texts = [
+            message.get("content")
+            for message in recovered_messages
+            if message.get("role") == "user"
+        ]
+        assert recovered_user_texts.count(initial_message) == 1
+        for steer_message in all_steer_messages:
+            assert recovered_user_texts.count(steer_message) == 1
+        assert recovered_user_texts[-len(all_steer_messages) :] == all_steer_messages
+        assistant_tool_indexes = [
+            index
+            for index, message in enumerate(recovered_messages)
+            if message.get("role") == "assistant"
+            and any(
+                tool_call.get("id") == BLOCKING_TOOL_CALL_ID
+                for tool_call in message.get("tool_calls", [])
+            )
+        ]
+        tool_result_indexes = [
+            index
+            for index, message in enumerate(recovered_messages)
+            if message.get("role") == "tool"
+            and message.get("tool_call_id") == BLOCKING_TOOL_CALL_ID
+        ]
+        assert len(assistant_tool_indexes) == 1
+        assert len(tool_result_indexes) == 1
+        first_steer_index = next(
+            index
+            for index, message in enumerate(recovered_messages)
+            if message.get("role") == "user" and message.get("content") == steer_messages[0]
+        )
+        assert assistant_tool_indexes[0] < tool_result_indexes[0] < first_steer_index
+        llm_assistant_ids = {
+            entry["payload"]["llmResponse"]["assistantMessageId"]
+            for entry in entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_LLM_RESPONSE)
+        }
+        assert {assistants[0].id, assistants[1].id} <= llm_assistant_ids
+        assert final_submission["attemptCount"] >= 2
+        assert final_submission["committedMessageId"] == assistants[1].id
+        final_steer_entries = entries_with_phase(
+            final_entries, SESSION_EXECUTION_PHASE_STEER_INPUT
+        )
+        assert len(final_steer_entries) == 2
+        first_steer_payload = final_steer_entries[0]["payload"]["steerInput"]
+        recovery_steer_payload = final_steer_entries[1]["payload"]["steerInput"]
+        assert first_steer_payload["previousAssistantMessageId"] == assistants[0].id
+        assert recovery_steer_payload["previousAssistantMessageId"] == ""
+        assert recovery_steer_payload["nextAssistantMessageId"] == assistants[1].id
+        assert first_steer_payload["nextAssistantMessageId"] != assistants[1].id
+        assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_COMMITTED)) == 1
+    finally:
+        mock_control("POST", "/__control/unblock_mcp_tool")
+        mock_control("POST", "/__control/unblock_stream")
+        mock_control("POST", "/__control/reset")
 
 
 @pytest.mark.stress

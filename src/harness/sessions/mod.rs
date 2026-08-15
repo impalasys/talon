@@ -3,6 +3,7 @@
 
 mod journal;
 mod lease;
+mod recovery;
 mod session;
 mod skills;
 mod submission;
@@ -19,11 +20,13 @@ pub const SESSION_PROJECTION_STATE_FAILED: &str = "failed";
 
 pub use crate::gateway::rpc::data_proto::{SessionJournalEntry, SessionSubmission};
 pub use journal::append_steer_input;
+pub(crate) use journal::SessionJournalEntryExt;
 pub use journal::{
     append_compaction, list_journal_entries, mark_terminal, repair_submission_pointer_to_latest,
 };
 pub use journal::{append_llm_response, append_tool_result};
 pub use lease::{SubmissionLease, SubmissionLeaseRenewer};
+pub(crate) use recovery::{latest_submission_projection_message_id, plan_journal_recovery};
 pub use session::{
     clear_provider_request_id, persist_context_tokens, reset_provider_request_id_if_idle,
 };

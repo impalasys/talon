@@ -4,7 +4,7 @@
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use serde_json::Value;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
@@ -342,8 +342,8 @@ pub struct PubSubSessionSink {
 
     // The assistant message that will be committed once generation reaches a
     // terminal boundary.
-    pub reply_msg_id: String,
-    pub reply_msg_key: ResourceKey,
+    pub reply_msg_id: Mutex<String>,
+    pub reply_msg_key: Mutex<ResourceKey>,
 
     // Durable work identity. Journal writes are fenced by `attempt_id` so a
     // worker whose lease expired cannot keep appending state after reclaim.
@@ -519,8 +519,8 @@ impl PubSubSessionSink {
             ns,
             session_id,
             agent_id,
-            reply_msg_id: reply_msg_id.into(),
-            reply_msg_key,
+            reply_msg_id: Mutex::new(reply_msg_id.into()),
+            reply_msg_key: Mutex::new(reply_msg_key),
             claim,
             submission_id,
             attempt_id,
@@ -550,6 +550,29 @@ impl PubSubSessionSink {
         let mut next = self.next_part_index.lock().unwrap();
         *next += 1;
         format!("{:06}", *next)
+    }
+
+    pub fn current_reply_msg_id(&self) -> String {
+        self.reply_msg_id.lock().unwrap().clone()
+    }
+
+    pub fn current_reply_msg_key(&self) -> ResourceKey {
+        self.reply_msg_key.lock().unwrap().clone()
+    }
+
+    pub(crate) fn rotate_reply_message(&self, message_id: String) {
+        let key = crate::control::keys::session_message(
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &message_id,
+        );
+        *self.reply_msg_id.lock().unwrap() = message_id;
+        *self.reply_msg_key.lock().unwrap() = key;
+        self.durable_parts.lock().unwrap().clear();
+        self.active_stream_buffer.lock().unwrap().take();
+        self.recorded_tool_results.lock().unwrap().clear();
+        *self.next_part_index.lock().unwrap() = 0;
     }
 
     pub(crate) fn advance_next_part_id_past(&self, part_id: &str) {
@@ -679,7 +702,7 @@ impl PubSubSessionSink {
                 ns: &self.ns,
                 agent: &self.agent_id,
                 session_id: &self.session_id,
-                message_id: &self.reply_msg_id,
+                message_id: &self.current_reply_msg_id(),
                 part_id,
                 tool_call_id: id,
                 tool_name: name,
@@ -746,7 +769,7 @@ impl PubSubSessionSink {
         tag: &InlineArtifactTag,
         index: usize,
     ) -> anyhow::Result<String> {
-        let artifact_id = format!("artifact-{}-inline-{index:03}", self.reply_msg_id);
+        let artifact_id = format!("artifact-{}-inline-{index:03}", self.current_reply_msg_id());
         let mut metadata = HashMap::new();
         metadata.insert(
             "source".to_string(),
@@ -1032,7 +1055,7 @@ impl PubSubSessionSink {
             timestamp: chrono::Utc::now().timestamp_micros(),
             agent: self.agent_id.clone(),
             ns: self.ns.clone(),
-            message_id: self.reply_msg_id.clone(),
+            message_id: self.current_reply_msg_id(),
         };
         async {
             self.fanout_hub
@@ -1089,7 +1112,7 @@ impl PubSubSessionSink {
 
     fn projection_message(&self, state: &str) -> data_proto::SessionMessage {
         data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
+            id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(state),
@@ -1153,7 +1176,7 @@ impl PubSubSessionSink {
                 }
                 if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
                     self.kv.as_ref(),
-                    &self.reply_msg_key,
+                    &self.current_reply_msg_key(),
                     &msg,
                 )
                 .await
@@ -1168,7 +1191,7 @@ impl PubSubSessionSink {
 
     async fn persist_durable_message(&self, span_name: &'static str) {
         let msg = data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
+            id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
@@ -1178,7 +1201,7 @@ impl PubSubSessionSink {
             let _guard = self.persist_lock.lock().await;
             crate::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
-                &self.reply_msg_key,
+                &self.current_reply_msg_key(),
                 &msg,
             )
             .await
@@ -1202,12 +1225,31 @@ impl PubSubSessionSink {
         self.publish_reply_index_event().await;
     }
 
+    async fn finalize_assistant_segment(&self) -> Result<String> {
+        self.flush_active_stream_event_buffer().await;
+        let parts = self.final_message_parts()?;
+        let message_id = self.current_reply_msg_id();
+        let message = data_proto::SessionMessage {
+            id: message_id.clone(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMMITTED),
+            parts,
+        };
+        let key = self.current_reply_msg_key();
+        let _guard = self.persist_lock.lock().await;
+        crate::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &message).await?;
+        drop(_guard);
+        self.publish_reply_index_event().await;
+        Ok(message_id)
+    }
+
     async fn publish_reply_index_event(&self) {
         if let Err(error) = crate::control::search::publish_index_event(
             self.pubsub.as_ref(),
             crate::control::events::IndexEvent {
                 operation: crate::control::events::IndexOperation::Upsert as i32,
-                key: self.reply_msg_key.canonical(),
+                key: self.current_reply_msg_key().canonical(),
                 ..Default::default()
             },
         )
@@ -1218,7 +1260,7 @@ impl PubSubSessionSink {
                 namespace = %self.ns,
                 agent = %self.agent_id,
                 session_id = %self.session_id,
-                message_id = %self.reply_msg_id,
+                message_id = %self.current_reply_msg_id(),
                 "failed to publish search index event for durable assistant message"
             );
         }
@@ -1233,7 +1275,7 @@ impl PubSubSessionSink {
             &self.submission_id,
             &self.attempt_id,
             status,
-            &self.reply_msg_id,
+            &self.current_reply_msg_id(),
             chrono::Utc::now().timestamp_micros(),
         )
         .await
@@ -1289,6 +1331,7 @@ impl ExecutionSink for PubSubSessionSink {
             &self.session_id,
             &self.submission_id,
             &self.attempt_id,
+            &self.current_reply_msg_id(),
             &durable_response,
             chrono::Utc::now().timestamp_micros(),
         )
@@ -1424,7 +1467,7 @@ impl ExecutionSink for PubSubSessionSink {
             &self.ns,
             &self.agent_id,
             &self.session_id,
-            &self.reply_msg_id,
+            &self.current_reply_msg_id(),
             &part_id,
             &self.submission_id,
             &self.attempt_id,
@@ -1493,55 +1536,65 @@ impl ExecutionSink for PubSubSessionSink {
         if batch.is_empty() {
             return Ok(Vec::new());
         }
-        let journaled_message_ids = sessions::list_journal_entries(
-            self.kv.as_ref(),
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            &self.submission_id,
-        )
-        .await?
-        .into_iter()
-        .filter(|entry| {
-            entry.phase
-                == crate::gateway::rpc::data_proto::SessionExecutionPhase::SteerInput as i32
-        })
-        .filter_map(|entry| {
-            entry
-                .payload
-                .and_then(|payload| payload.payload)
-                .and_then(|payload| match payload {
-                    crate::gateway::rpc::data_proto::session_journal_entry_payload::Payload::SteerInput(
-                        payload,
-                    ) => Some(payload.message_ids),
-                    _ => None,
-                })
-        })
-        .flatten()
-        .collect::<HashSet<_>>();
-        let mut fresh_batch = Vec::with_capacity(batch.len());
-        for item in batch {
-            if journaled_message_ids.contains(&item.message_id) {
-                session_queue::commit_steer_batch(
-                    self.kv.as_ref(),
-                    &self.ns,
-                    &self.agent_id,
-                    &self.session_id,
-                    std::slice::from_ref(&item),
-                )
-                .await?;
-            } else {
-                fresh_batch.push(item);
-            }
-        }
-        let batch = fresh_batch;
-        if batch.is_empty() {
-            return Ok(Vec::new());
-        }
+
         let message_ids = batch
             .iter()
             .map(|message| message.message_id.clone())
             .collect::<Vec<_>>();
+        // Choose the assistant side of the checkpoint without creating a
+        // transcript gap. Real output is finalized, an already committed
+        // segment is reused after recovery, and an owned partial projection is
+        // discarded so pre-output steering can leave the previous ID empty.
+        let has_active_assistant_output = !self.durable_parts.lock().unwrap().is_empty()
+            || self
+                .active_stream_buffer
+                .lock()
+                .unwrap()
+                .as_ref()
+                .is_some_and(|buffer| !buffer.unclosed_content().is_empty());
+        let previous_assistant_message_id = if has_active_assistant_output {
+            self.finalize_assistant_segment().await?
+        } else {
+            let key = self.current_reply_msg_key();
+            match self.kv.get_msg::<data_proto::SessionMessage>(&key).await? {
+                Some(message) => {
+                    let projection_state = message
+                        .labels
+                        .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                        .map(String::as_str);
+                    let projection_submission_id = message
+                        .labels
+                        .get(sessions::SESSION_LABEL_SUBMISSION_ID)
+                        .map(String::as_str);
+                    let belongs_to_submission = projection_submission_id
+                        .is_none_or(|submission_id| submission_id == self.submission_id);
+
+                    if message.role == data_proto::MessageRole::RoleAssistant as i32
+                        && projection_state == Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+                        && belongs_to_submission
+                    {
+                        message.id
+                    } else {
+                        if projection_submission_id == Some(self.submission_id.as_str())
+                            && matches!(
+                                projection_state,
+                                Some(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS)
+                                    | Some(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED)
+                            )
+                        {
+                            self.kv.delete(&key).await?;
+                        }
+                        String::new()
+                    }
+                }
+                None => String::new(),
+            }
+        };
+
+        // The steer messages were assigned their UUID7 ids while preparing the
+        // batch. Allocate the continuation only after them so session-key
+        // ordering matches conversational ordering.
+        let next_assistant_message_id = crate::control::uuid::session_message_id();
         sessions::append_steer_input(
             self.kv.as_ref(),
             &self.ns,
@@ -1550,6 +1603,8 @@ impl ExecutionSink for PubSubSessionSink {
             &self.submission_id,
             &self.attempt_id,
             &message_ids,
+            &previous_assistant_message_id,
+            &next_assistant_message_id,
             chrono::Utc::now().timestamp_micros(),
         )
         .await?;
@@ -1561,6 +1616,7 @@ impl ExecutionSink for PubSubSessionSink {
             &batch,
         )
         .await?;
+        self.rotate_reply_message(next_assistant_message_id);
         Ok(batch
             .into_iter()
             .map(|message| {
@@ -1589,7 +1645,7 @@ impl ExecutionSink for PubSubSessionSink {
                         ns: &self.ns,
                         agent: &self.agent_id,
                         session_id: &self.session_id,
-                        message_id: &self.reply_msg_id,
+                        message_id: &self.current_reply_msg_id(),
                         part_id: &part_id,
                         tool_call_id: id,
                         tool_name: name,
@@ -1735,7 +1791,7 @@ impl ExecutionSink for PubSubSessionSink {
             return;
         }
         let msg = data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
+            id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED),
@@ -1745,7 +1801,7 @@ impl ExecutionSink for PubSubSessionSink {
             let _guard = self.persist_lock.lock().await;
             crate::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
-                &self.reply_msg_key,
+                &self.current_reply_msg_key(),
                 &msg,
             )
             .await
@@ -1772,7 +1828,7 @@ impl ExecutionSink for PubSubSessionSink {
                         let _guard = self.persist_lock.lock().await;
                         crate::control::ProtoKeyValueStoreExt::set_msg(
                             self.kv.as_ref(),
-                            &self.reply_msg_key,
+                            &self.current_reply_msg_key(),
                             &committed_msg,
                         )
                         .await
@@ -1816,7 +1872,7 @@ impl ExecutionSink for PubSubSessionSink {
             String::new(),
         );
         let msg = data_proto::SessionMessage {
-            id: self.reply_msg_id.clone(),
+            id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_FAILED),
@@ -1826,7 +1882,7 @@ impl ExecutionSink for PubSubSessionSink {
             let _guard = self.persist_lock.lock().await;
             crate::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
-                &self.reply_msg_key,
+                &self.current_reply_msg_key(),
                 &msg,
             )
             .await
@@ -3068,6 +3124,413 @@ mod tests {
             stored_submission.current_phase,
             data_proto::SessionExecutionPhase::Committed as i32
         );
+    }
+
+    #[tokio::test]
+    async fn steering_before_first_response_does_not_persist_empty_assistant() {
+        use crate::control::session_queue::{self, STEER_QUEUE};
+        use crate::control::ProtoKeyValueStoreExt;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            &submission,
+        )
+        .await
+        .unwrap();
+        let initial_reply_id = crate::control::uuid::session_message_id();
+        let initial_reply_key =
+            keys::session_message("conic", "infra", "session-1", &initial_reply_id);
+        for message in ["first follow-up", "second follow-up"] {
+            session_queue::queue_text_message(
+                kv.as_ref(),
+                "conic",
+                "infra",
+                "session-1",
+                STEER_QUEUE,
+                message,
+                Default::default(),
+                chrono::Utc::now(),
+            )
+            .await
+            .unwrap();
+        }
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            initial_reply_id.clone(),
+            initial_reply_key.clone(),
+            "submission-1",
+            "attempt-1",
+        );
+
+        let steering = sink.take_steering_messages().await.unwrap();
+
+        assert_eq!(steering.len(), 2);
+        assert!(kv
+            .get_msg::<data_proto::SessionMessage>(&initial_reply_key)
+            .await
+            .unwrap()
+            .is_none());
+        let entries = sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap();
+        assert_eq!(entries.len(), 1);
+        let Some(data_proto::session_journal_entry_payload::Payload::SteerInput(steer)) = entries
+            [0]
+        .payload
+        .as_ref()
+        .and_then(|payload| payload.payload.as_ref()) else {
+            panic!("expected steer-input journal payload");
+        };
+        assert!(steer.previous_assistant_message_id.is_empty());
+        assert_eq!(steer.next_assistant_message_id, sink.current_reply_msg_id());
+        assert!(steer
+            .message_ids
+            .iter()
+            .all(|message_id| message_id < &steer.next_assistant_message_id));
+        assert_ne!(sink.current_reply_msg_id(), initial_reply_id);
+    }
+
+    #[tokio::test]
+    async fn empty_steering_queue_does_not_persist_projection_or_journal() {
+        use crate::control::ProtoKeyValueStoreExt;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+
+        let steering = sink.take_steering_messages().await.unwrap();
+
+        assert!(steering.is_empty());
+        assert!(kv
+            .get_msg::<data_proto::SessionMessage>(&reply_key())
+            .await
+            .unwrap()
+            .is_none());
+        assert!(sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap()
+        .is_empty());
+    }
+
+    #[tokio::test]
+    async fn recovered_tool_only_segment_is_finalized_before_steering() {
+        use crate::control::session_queue::{self, STEER_QUEUE};
+        use crate::control::ProtoKeyValueStoreExt;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            &submission,
+        )
+        .await
+        .unwrap();
+        session_queue::queue_text_message(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            STEER_QUEUE,
+            "change direction",
+            Default::default(),
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+        sink.seed_recovered_tool_call_part("000001", "tool-1", "lookup", &json!({}));
+
+        let steering = sink.take_steering_messages().await.unwrap();
+
+        assert_eq!(steering.len(), 1);
+        let assistant = kv
+            .get_msg::<data_proto::SessionMessage>(&reply_key())
+            .await
+            .unwrap()
+            .expect("recovered assistant should be finalized");
+        assert_eq!(assistant.parts.len(), 1);
+        assert_eq!(
+            assistant.parts[0].part_type,
+            data_proto::SessionMessagePartType::ToolCall as i32
+        );
+        assert_eq!(
+            assistant
+                .labels
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+        );
+        let entries = sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap();
+        let steer = entries[0]
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+            .and_then(|payload| match payload {
+                data_proto::session_journal_entry_payload::Payload::SteerInput(steer) => {
+                    Some(steer)
+                }
+                _ => None,
+            })
+            .expect("steer-input payload");
+        assert_eq!(steer.previous_assistant_message_id, "reply-1");
+    }
+
+    #[tokio::test]
+    async fn recovery_steer_preserves_an_already_finalized_assistant_segment() {
+        use crate::control::session_queue::{self, STEER_QUEUE};
+        use crate::control::ProtoKeyValueStoreExt;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        kv.set_msg(
+            &keys::session("conic", "infra", "session-1"),
+            &data_proto::Session {
+                id: "session-1".to_string(),
+                agent: "infra".to_string(),
+                ns: "conic".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 1,
+                metadata: Default::default(),
+                labels: Default::default(),
+                skill_state: None,
+                context_tokens: None,
+            },
+        )
+        .await
+        .unwrap();
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            &submission,
+        )
+        .await
+        .unwrap();
+        let committed_part = data_proto::SessionMessagePart {
+            part_type: data_proto::SessionMessagePartType::Text as i32,
+            content: "completed tool turn".to_string(),
+            ..Default::default()
+        };
+        kv.set_msg(
+            &reply_key(),
+            &data_proto::SessionMessage {
+                id: "reply-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 2,
+                labels: std::collections::HashMap::from([(
+                    sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                    sessions::SESSION_PROJECTION_STATE_COMMITTED.to_string(),
+                )]),
+                parts: vec![committed_part.clone()],
+            },
+        )
+        .await
+        .unwrap();
+        session_queue::queue_text_message(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            STEER_QUEUE,
+            "change direction",
+            Default::default(),
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+
+        let steering = sink.take_steering_messages().await.unwrap();
+
+        assert_eq!(steering.len(), 1);
+        let unused_continuation_message_id = sink.current_reply_msg_id();
+        kv.set_msg(
+            &keys::session_message(
+                "conic",
+                "infra",
+                "session-1",
+                &unused_continuation_message_id,
+            ),
+            &data_proto::SessionMessage {
+                id: unused_continuation_message_id.clone(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                labels: std::collections::HashMap::from([
+                    (
+                        sessions::SESSION_LABEL_SUBMISSION_ID.to_string(),
+                        "submission-1".to_string(),
+                    ),
+                    (
+                        sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                        sessions::SESSION_PROJECTION_STATE_IN_PROGRESS.to_string(),
+                    ),
+                ]),
+                parts: vec![data_proto::SessionMessagePart {
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "partial abandoned continuation".to_string(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        session_queue::queue_text_message(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            STEER_QUEUE,
+            "arrived during restart",
+            Default::default(),
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        let late_steering = sink.take_steering_messages().await.unwrap();
+        assert_eq!(late_steering.len(), 1);
+        assert_ne!(sink.current_reply_msg_id(), unused_continuation_message_id);
+        assert!(kv
+            .get_msg::<data_proto::SessionMessage>(&keys::session_message(
+                "conic",
+                "infra",
+                "session-1",
+                &unused_continuation_message_id,
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        let committed = kv
+            .get_msg::<data_proto::SessionMessage>(&reply_key())
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(committed.parts, vec![committed_part]);
+        assert_eq!(
+            committed
+                .labels
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+        );
+        let entries = sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap();
+        let steers = entries
+            .iter()
+            .filter_map(|entry| {
+                entry
+                    .payload
+                    .as_ref()
+                    .and_then(|payload| payload.payload.as_ref())
+                    .and_then(|payload| match payload {
+                        data_proto::session_journal_entry_payload::Payload::SteerInput(steer) => {
+                            Some(steer)
+                        }
+                        _ => None,
+                    })
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(steers.len(), 2);
+        assert_eq!(steers[0].previous_assistant_message_id, "reply-1");
+        assert!(steers[1].previous_assistant_message_id.is_empty());
+        assert_eq!(
+            steers[0].next_assistant_message_id,
+            unused_continuation_message_id
+        );
+        assert_eq!(
+            steers[1].next_assistant_message_id,
+            sink.current_reply_msg_id()
+        );
+        assert!(kv
+            .list_keys(
+                &keys::session_queue_prefix("conic", "infra", "session-1", STEER_QUEUE),
+                None,
+            )
+            .await
+            .unwrap()
+            .is_empty());
     }
 
     #[tokio::test]

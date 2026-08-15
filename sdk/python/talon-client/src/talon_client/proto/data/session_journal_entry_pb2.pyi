@@ -25,10 +25,12 @@ SESSION_EXECUTION_PHASE_COMPACTION: SessionExecutionPhase
 SESSION_EXECUTION_PHASE_STEER_INPUT: SessionExecutionPhase
 
 class SessionJournalEntryPayloadLlmResponse(_message.Message):
-    __slots__ = ("response",)
+    __slots__ = ("response", "assistant_message_id")
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    ASSISTANT_MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
     response: _llm_pb2.ChatResponse
-    def __init__(self, response: _Optional[_Union[_llm_pb2.ChatResponse, _Mapping]] = ...) -> None: ...
+    assistant_message_id: str
+    def __init__(self, response: _Optional[_Union[_llm_pb2.ChatResponse, _Mapping]] = ..., assistant_message_id: _Optional[str] = ...) -> None: ...
 
 class SessionJournalEntryPayloadToolResult(_message.Message):
     __slots__ = ("tool_call_id", "name", "output", "object", "tool_output")
@@ -57,10 +59,14 @@ class SessionJournalEntryPayloadCompaction(_message.Message):
     def __init__(self, summary: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class SessionJournalEntryPayloadSteerInput(_message.Message):
-    __slots__ = ("message_ids",)
+    __slots__ = ("message_ids", "previous_assistant_message_id", "next_assistant_message_id")
     MESSAGE_IDS_FIELD_NUMBER: _ClassVar[int]
+    PREVIOUS_ASSISTANT_MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
+    NEXT_ASSISTANT_MESSAGE_ID_FIELD_NUMBER: _ClassVar[int]
     message_ids: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, message_ids: _Optional[_Iterable[str]] = ...) -> None: ...
+    previous_assistant_message_id: str
+    next_assistant_message_id: str
+    def __init__(self, message_ids: _Optional[_Iterable[str]] = ..., previous_assistant_message_id: _Optional[str] = ..., next_assistant_message_id: _Optional[str] = ...) -> None: ...
 
 class SessionJournalEntryPayload(_message.Message):
     __slots__ = ("llm_response", "tool_result", "commit", "compaction", "steer_input")
