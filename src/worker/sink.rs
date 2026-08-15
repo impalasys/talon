@@ -1244,31 +1244,6 @@ impl PubSubSessionSink {
         Ok(message_id)
     }
 
-    async fn discard_current_uncommitted_projection(&self) -> Result<()> {
-        let key = self.current_reply_msg_key();
-        let Some(message) = self.kv.get_msg::<data_proto::SessionMessage>(&key).await? else {
-            return Ok(());
-        };
-        let projection_state = message
-            .labels
-            .get(sessions::SESSION_LABEL_PROJECTION_STATE)
-            .map(String::as_str);
-        if message
-            .labels
-            .get(sessions::SESSION_LABEL_SUBMISSION_ID)
-            .map(String::as_str)
-            == Some(self.submission_id.as_str())
-            && matches!(
-                projection_state,
-                Some(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS)
-                    | Some(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED)
-            )
-        {
-            self.kv.delete(&key).await?;
-        }
-        Ok(())
-    }
-
     async fn publish_reply_index_event(&self) {
         if let Err(error) = crate::control::search::publish_index_event(
             self.pubsub.as_ref(),
@@ -1607,7 +1582,7 @@ impl ExecutionSink for PubSubSessionSink {
                                     | Some(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED)
                             )
                         {
-                            self.discard_current_uncommitted_projection().await?;
+                            self.kv.delete(&key).await?;
                         }
                         String::new()
                     }
