@@ -22,6 +22,12 @@ pub(crate) struct JournalRecoveryPlan {
     pub(crate) unstarted_checkpoint_previous_assistant_message_id: Option<String>,
 }
 
+/// Detects whether the transcript-covered journal prefix ended after every
+/// tool call received a result.
+///
+/// Recovery may replay an empty suffix after skipping a committed assistant
+/// segment. This signal tells the worker to drain pending steering before the
+/// next LLM call without finalizing that assistant segment again.
 fn journal_prefix_ends_after_complete_tool_results(
     journal_entries: &[SessionJournalEntry],
 ) -> bool {
@@ -60,6 +66,11 @@ fn journal_prefix_ends_after_complete_tool_results(
     ends_after_tool_results
 }
 
+/// Returns the last journal entry already represented by a committed assistant
+/// projection.
+///
+/// This closes the crash window where the assistant was finalized but the
+/// following `STEER_INPUT` checkpoint was not appended.
 async fn committed_assistant_journal_watermark(
     cp: &ControlPlane,
     ns: &str,
@@ -98,6 +109,11 @@ async fn committed_assistant_journal_watermark(
         .cloned())
 }
 
+/// Finds the newest uncommitted assistant projection owned by this submission.
+///
+/// A worker can crash after writing its projection but before its first journal
+/// entry. Reusing that message ID prevents recovery from creating a duplicate
+/// assistant projection.
 pub(crate) async fn latest_submission_projection_message_id(
     cp: &ControlPlane,
     ns: &str,
@@ -136,6 +152,11 @@ pub(crate) async fn latest_submission_projection_message_id(
     Ok(None)
 }
 
+/// Chooses the canonical transcript boundary and journal suffix for recovery.
+///
+/// New-format `STEER_INPUT` entries are transcript checkpoints. Legacy steer
+/// entries remain on the full-replay path, while committed assistant watermarks
+/// cover the finalization-before-checkpoint crash window.
 pub(crate) async fn plan_journal_recovery(
     cp: &ControlPlane,
     ns: &str,
