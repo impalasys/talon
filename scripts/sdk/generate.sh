@@ -196,7 +196,7 @@ JAVA_GRPC_PLUGIN="$ROOT/.tools/protoc-gen-grpc-java/protoc-gen-grpc-java-${JAVA_
 if [[ ! -x "$JAVA_GRPC_PLUGIN" ]]; then
   mkdir -p "$(dirname "$JAVA_GRPC_PLUGIN")"
   curl -fL -o "$JAVA_GRPC_PLUGIN" \
-    "https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/${JAVA_GRPC_VERSION}/protoc-gen-grpc-java-${JAVA_GRPC_VERSION}-${JAVA_GRPC_PLATFORM}.exe"
+    "https://repo.maven.apache.org/maven2/io/grpc/protoc-gen-grpc-java/${JAVA_GRPC_VERSION}/protoc-gen-grpc-java-${JAVA_GRPC_VERSION}-${JAVA_GRPC_PLATFORM}.exe"
   chmod +x "$JAVA_GRPC_PLUGIN"
 fi
 
