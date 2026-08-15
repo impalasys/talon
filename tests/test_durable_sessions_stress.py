@@ -31,6 +31,7 @@ from talon_client.data import (
     SESSION_SUBMISSION_STATUS_CLAIMED,
     SESSION_SUBMISSION_STATUS_COMMITTED,
     SessionMessage,
+    SessionMessagePart,
     SessionSubmission,
     SESSION_EXECUTION_PHASE_COMMITTED,
     SESSION_EXECUTION_PHASE_LLM_RESPONSE,
@@ -138,6 +139,39 @@ class DurableSessionKvProbe:
             message.ParseFromString(row["value"])
             messages.append(message)
         return messages
+
+    def queue_raw_steer_message(
+        self, namespace: str, agent: str, session_id: str, content: str
+    ) -> None:
+        """Inject a STEER entry to deterministically model input at a crash edge."""
+        now_micros = time.time_ns() // 1_000
+        entry_id = f"{now_micros:020}-{uuid.uuid4()}"
+        message = SessionMessage(
+            role=ROLE_USER,
+            created_at=now_micros,
+            parts=[
+                SessionMessagePart(
+                    id="000000",
+                    part_type=PART_TYPE_TEXT,
+                    content=content,
+                    created_at=now_micros,
+                )
+            ],
+        )
+        with sqlite3.connect(self.sqlite_db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO talon_kv_store (namespace, parent_path, kind, name, value)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    namespace,
+                    f"{session_parent(agent, session_id)}/Queue/steer",
+                    "SessionMessage",
+                    entry_id,
+                    message.SerializeToString(),
+                ),
+            )
 
     def assistant_messages(
         self, namespace: str, agent: str, session_id: str
@@ -1173,7 +1207,11 @@ def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
     mock_control("POST", "/__control/block_mcp_tool")
     mock_control("POST", "/__control/block_stream_after_chunks", {"chunks": 1})
     initial_message = "Please run a blocking lookup docs.example.com and summarize what you found."
-    steer_message = "Also include a short note that this was requested during the lookup."
+    steer_messages = [
+        "Also include a short note that this was requested during the lookup.",
+        "Keep that note to one sentence.",
+    ]
+    late_steer_message = "Mention that I added this instruction during the worker restart."
     try:
         stub.sessions.SendMessage(
             SendMessageRequest(
@@ -1187,14 +1225,15 @@ def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
         submission = snooper.wait_for_submission()
         submission_id = submission["_kv_name"]
 
-        stub.sessions.SendMessage(
-            SendMessageRequest(
-                agent=agent,
-                session_id=session_id,
-                ns=namespace,
-                message=steer_message,
+        for steer_message in steer_messages:
+            stub.sessions.SendMessage(
+                SendMessageRequest(
+                    agent=agent,
+                    session_id=session_id,
+                    ns=namespace,
+                    message=steer_message,
+                )
             )
-        )
         mock_control("POST", "/__control/unblock_mcp_tool")
         _, entries_at_boundary = snooper.wait_for_steer_boundary(submission_id)
         steer_entries = entries_with_phase(
@@ -1204,7 +1243,11 @@ def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
         steer_payload = steer_entries[0]["payload"]["steerInput"]
         assert steer_payload["previousAssistantMessageId"]
         assert steer_payload["nextAssistantMessageId"]
+        assert len(steer_payload["messageIds"]) == len(steer_messages)
 
+        infra.kv.queue_raw_steer_message(
+            namespace, agent, session_id, late_steer_message
+        )
         infra.kill_worker()
         time.sleep(1.3)
         mock_control("POST", "/__control/unblock_stream")
@@ -1225,15 +1268,18 @@ def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
         messages = list(session.messages)
         users = [message for message in messages if message.role == ROLE_USER]
         assistants = [message for message in messages if message.role == ROLE_ASSISTANT]
-        assert len(users) == 2
+        all_steer_messages = [*steer_messages, late_steer_message]
+        assert len(users) == 4
         assert len(assistants) == 2
         assert [message.id for message in assistants] == sorted(
             message.id for message in assistants
         )
         assert messages.index(assistants[0]) < messages.index(users[1])
-        assert messages.index(users[1]) < messages.index(assistants[1])
+        assert messages.index(users[1]) < messages.index(users[2])
+        assert messages.index(users[2]) < messages.index(users[3])
+        assert messages.index(users[3]) < messages.index(assistants[1])
         assert initial_message in text_from_parts(text_parts_for(users[0]))
-        assert steer_message in text_from_parts(text_parts_for(users[1]))
+        assert [text_from_parts(text_parts_for(user)) for user in users[1:]] == all_steer_messages
         assert_single_tool_call_and_result(
             assistants[0], tool_call_id=BLOCKING_TOOL_CALL_ID
         )
@@ -1249,6 +1295,40 @@ def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
         final_entries = infra.kv.read_journal_entries(
             namespace, agent, session_id, submission_id
         )
+        final_mock_state = mock_control("GET", "/__control/state")
+        recovered_messages = final_mock_state["chat_requests"][-1]["messages"]
+        recovered_user_texts = [
+            message.get("content")
+            for message in recovered_messages
+            if message.get("role") == "user"
+        ]
+        assert recovered_user_texts.count(initial_message) == 1
+        for steer_message in all_steer_messages:
+            assert recovered_user_texts.count(steer_message) == 1
+        assert recovered_user_texts[-len(all_steer_messages) :] == all_steer_messages
+        assistant_tool_indexes = [
+            index
+            for index, message in enumerate(recovered_messages)
+            if message.get("role") == "assistant"
+            and any(
+                tool_call.get("id") == BLOCKING_TOOL_CALL_ID
+                for tool_call in message.get("tool_calls", [])
+            )
+        ]
+        tool_result_indexes = [
+            index
+            for index, message in enumerate(recovered_messages)
+            if message.get("role") == "tool"
+            and message.get("tool_call_id") == BLOCKING_TOOL_CALL_ID
+        ]
+        assert len(assistant_tool_indexes) == 1
+        assert len(tool_result_indexes) == 1
+        first_steer_index = next(
+            index
+            for index, message in enumerate(recovered_messages)
+            if message.get("role") == "user" and message.get("content") == steer_messages[0]
+        )
+        assert assistant_tool_indexes[0] < tool_result_indexes[0] < first_steer_index
         llm_assistant_ids = {
             entry["payload"]["llmResponse"]["assistantMessageId"]
             for entry in entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_LLM_RESPONSE)
@@ -1256,7 +1336,15 @@ def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
         assert {assistants[0].id, assistants[1].id} <= llm_assistant_ids
         assert final_submission["attemptCount"] >= 2
         assert final_submission["committedMessageId"] == assistants[1].id
-        assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_STEER_INPUT)) == 1
+        final_steer_entries = entries_with_phase(
+            final_entries, SESSION_EXECUTION_PHASE_STEER_INPUT
+        )
+        assert len(final_steer_entries) == 2
+        assert all(
+            entry["payload"]["steerInput"]["previousAssistantMessageId"]
+            == assistants[0].id
+            for entry in final_steer_entries
+        )
         assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_COMMITTED)) == 1
     finally:
         mock_control("POST", "/__control/unblock_mcp_tool")

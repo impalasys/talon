@@ -5,7 +5,7 @@ use anyhow::{anyhow, Result};
 use futures::FutureExt;
 use prost::Message;
 use serde_json::Value;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::panic::AssertUnwindSafe;
 
 use super::runtime::AgentRuntime;
@@ -13,7 +13,9 @@ use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
 use crate::control::cas::{decode_stored_object_bytes, CasStore};
 use crate::control::tool_output::{self, ToolOutputExt};
-use crate::control::{events::SessionDispatchEvent, ControlPlane, ProtoKeyValueStoreExt};
+use crate::control::{
+    events::SessionDispatchEvent, ControlPlane, ListOptions, ProtoKeyValueStoreExt,
+};
 use crate::gateway::rpc::connectors as connector_rpc;
 use crate::gateway::rpc::data_proto::{
     self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionKind,
@@ -110,8 +112,13 @@ pub(super) enum SessionCompletionStatus {
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum PreparedSubmissionState {
     ContinueExecution,
+    ContinueAfterToolResults {
+        assistant_segment_already_finalized: bool,
+    },
     StopAfterToolResult,
-    FinalResponseReady { content: String },
+    FinalResponseReady {
+        content: String,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -138,6 +145,278 @@ enum RecoveredProjectionPart {
 struct PreparedSubmission {
     state: PreparedSubmissionState,
     projection_parts: Vec<RecoveredProjectionPart>,
+    latest_appended_journal_entry_id: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct JournalRecoveryPlan {
+    replay_start_index: usize,
+    excluded_history_message_ids: HashSet<String>,
+    replay_prefix_ends_after_finalized_tool_results: bool,
+    unstarted_checkpoint_previous_assistant_message_id: Option<String>,
+}
+
+fn steer_payload(
+    entry: &sessions::SessionJournalEntry,
+) -> Option<&data_proto::SessionJournalEntryPayloadSteerInput> {
+    if entry.phase != SessionExecutionPhase::SteerInput as i32 {
+        return None;
+    }
+    match entry
+        .payload
+        .as_ref()
+        .and_then(|payload| payload.payload.as_ref())
+    {
+        Some(session_journal_entry_payload::Payload::SteerInput(payload)) => Some(payload),
+        _ => None,
+    }
+}
+
+fn llm_response_payload(
+    entry: &sessions::SessionJournalEntry,
+) -> Option<&data_proto::SessionJournalEntryPayloadLlmResponse> {
+    if entry.phase != SessionExecutionPhase::LlmResponse as i32 {
+        return None;
+    }
+    match entry
+        .payload
+        .as_ref()
+        .and_then(|payload| payload.payload.as_ref())
+    {
+        Some(session_journal_entry_payload::Payload::LlmResponse(payload)) => Some(payload),
+        _ => None,
+    }
+}
+
+fn journal_prefix_ends_after_complete_tool_results(
+    journal_entries: &[sessions::SessionJournalEntry],
+) -> bool {
+    let mut pending_tool_call_ids = HashSet::new();
+    let mut ends_after_tool_results = false;
+    for entry in journal_entries {
+        if let Some(payload) = llm_response_payload(entry) {
+            let Some(response) = payload.response.as_ref() else {
+                pending_tool_call_ids.clear();
+                ends_after_tool_results = false;
+                continue;
+            };
+            pending_tool_call_ids = response
+                .tool_calls
+                .iter()
+                .map(|tool| tool.id.clone())
+                .collect();
+            ends_after_tool_results = false;
+            continue;
+        }
+        if entry.phase == SessionExecutionPhase::ToolResult as i32 {
+            if let Some(session_journal_entry_payload::Payload::ToolResult(result)) = entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+            {
+                pending_tool_call_ids.remove(&result.tool_call_id);
+                ends_after_tool_results = pending_tool_call_ids.is_empty();
+            }
+            continue;
+        }
+        if entry.phase == SessionExecutionPhase::SteerInput as i32 {
+            ends_after_tool_results = false;
+        }
+    }
+    ends_after_tool_results
+}
+
+async fn committed_assistant_journal_watermark(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    message_id: &str,
+    submission_id: &str,
+) -> Result<Option<String>> {
+    let Some(message) = cp
+        .kv
+        .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            ns, agent, session_id, message_id,
+        ))
+        .await?
+    else {
+        return Ok(None);
+    };
+    if message.role != data_proto::MessageRole::RoleAssistant as i32
+        || message
+            .labels
+            .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+            .map(String::as_str)
+            != Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+        || message
+            .labels
+            .get(sessions::SESSION_LABEL_SUBMISSION_ID)
+            .map(String::as_str)
+            != Some(submission_id)
+    {
+        return Ok(None);
+    }
+    Ok(message
+        .labels
+        .get(sessions::SESSION_LABEL_LATEST_JOURNAL_ENTRY_ID)
+        .filter(|entry_id| !entry_id.is_empty())
+        .cloned())
+}
+
+async fn latest_submission_projection_message_id(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    submission_id: &str,
+) -> Result<Option<String>> {
+    let prefix = crate::control::keys::session_message_prefix(ns, agent, session_id);
+    for (_, bytes) in cp
+        .kv
+        .list_entries(&prefix, Some(ListOptions::desc()))
+        .await?
+    {
+        let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) else {
+            continue;
+        };
+        let projection_state = message
+            .labels
+            .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+            .map(String::as_str);
+        if message.role == data_proto::MessageRole::RoleAssistant as i32
+            && message
+                .labels
+                .get(sessions::SESSION_LABEL_SUBMISSION_ID)
+                .map(String::as_str)
+                == Some(submission_id)
+            && matches!(
+                projection_state,
+                Some(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS)
+                    | Some(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED)
+            )
+        {
+            return Ok(Some(message.id));
+        }
+    }
+    Ok(None)
+}
+
+async fn plan_journal_recovery(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    submission_id: &str,
+    journal_entries: &[sessions::SessionJournalEntry],
+) -> Result<JournalRecoveryPlan> {
+    let latest_checkpoint = journal_entries
+        .iter()
+        .enumerate()
+        .rev()
+        .find_map(|(index, entry)| {
+            let payload = steer_payload(entry)?;
+            (!payload.previous_assistant_message_id.is_empty()
+                && !payload.next_assistant_message_id.is_empty())
+            .then_some((
+                index,
+                payload.previous_assistant_message_id.clone(),
+                payload.next_assistant_message_id.clone(),
+            ))
+        });
+    let mut replay_start_index = latest_checkpoint
+        .as_ref()
+        .map_or(0, |(index, _, _)| index + 1);
+    let unstarted_checkpoint_previous_assistant_message_id = latest_checkpoint
+        .as_ref()
+        .filter(|(index, _, _)| index + 1 == journal_entries.len())
+        .map(|(_, previous_message_id, _)| previous_message_id.clone());
+    let mut active_assistant_message_id =
+        latest_checkpoint.map(|(_, _, next_message_id)| next_message_id);
+    let initial_replay_start = replay_start_index;
+    let journal_entry_ids = journal_entries
+        .iter()
+        .map(|entry| entry.journal_entry_id.as_str())
+        .collect::<HashSet<_>>();
+    let mut committed_watermark_cache: HashMap<String, Option<String>> = HashMap::new();
+
+    // A committed assistant after the latest checkpoint identifies the narrow
+    // crash window between finalizing that segment and appending its steer
+    // boundary. Never use this shortcut across a steer entry: legacy steer
+    // records must continue through the full replay path.
+    let pending_slice_contains_steer = journal_entries[replay_start_index..]
+        .iter()
+        .any(|entry| steer_payload(entry).is_some());
+    if !pending_slice_contains_steer {
+        while replay_start_index < journal_entries.len() {
+            let entry = &journal_entries[replay_start_index];
+            if entry.phase != SessionExecutionPhase::LlmResponse as i32
+                && entry.phase != SessionExecutionPhase::ToolResult as i32
+            {
+                break;
+            }
+            if let Some(payload) = llm_response_payload(entry) {
+                if !payload.assistant_message_id.is_empty() {
+                    active_assistant_message_id = Some(payload.assistant_message_id.clone());
+                }
+            }
+            let Some(message_id) = active_assistant_message_id.as_deref() else {
+                break;
+            };
+            let watermark = if let Some(watermark) = committed_watermark_cache.get(message_id) {
+                watermark.clone()
+            } else {
+                let watermark = committed_assistant_journal_watermark(
+                    cp,
+                    ns,
+                    agent,
+                    session_id,
+                    message_id,
+                    submission_id,
+                )
+                .await?;
+                committed_watermark_cache.insert(message_id.to_string(), watermark.clone());
+                watermark
+            };
+            let Some(watermark) = watermark else {
+                break;
+            };
+            if !journal_entry_ids.contains(watermark.as_str()) || entry.journal_entry_id > watermark
+            {
+                break;
+            }
+            replay_start_index += 1;
+        }
+    }
+
+    let replay_prefix_ends_after_finalized_tool_results = replay_start_index > initial_replay_start
+        && journal_prefix_ends_after_complete_tool_results(
+            &journal_entries[initial_replay_start..replay_start_index],
+        );
+    let mut excluded_history_message_ids = journal_entries[replay_start_index..]
+        .iter()
+        .filter_map(steer_payload)
+        .flat_map(|payload| payload.message_ids.iter().cloned())
+        .collect::<HashSet<_>>();
+    if pending_slice_contains_steer {
+        // Legacy steer records stay on the full replay path. Exclude canonical
+        // assistant projections represented by that same journal so the
+        // assistant/tool exchange is reconstructed exactly once.
+        excluded_history_message_ids.extend(
+            journal_entries[replay_start_index..]
+                .iter()
+                .filter_map(llm_response_payload)
+                .map(|payload| payload.assistant_message_id.clone())
+                .filter(|message_id| !message_id.is_empty()),
+        );
+    }
+
+    Ok(JournalRecoveryPlan {
+        replay_start_index,
+        excluded_history_message_ids,
+        replay_prefix_ends_after_finalized_tool_results,
+        unstarted_checkpoint_previous_assistant_message_id,
+    })
 }
 
 async fn tool_output_from_recorded_object(
@@ -185,6 +464,7 @@ async fn prepare_context_for_claimed_submission(
     submission_id: &str,
     attempt_id: &str,
     journal_entries: &[sessions::SessionJournalEntry],
+    replay_prefix_ends_after_finalized_tool_results: bool,
     runtime: &mut AgentRuntime,
 ) -> Result<PreparedSubmission> {
     async fn hydrate_steering_input(
@@ -193,6 +473,7 @@ async fn prepare_context_for_claimed_submission(
         agent: &str,
         session_id: &str,
         entry: &sessions::SessionJournalEntry,
+        hydrated_message_ids: &mut HashSet<String>,
         runtime: &mut AgentRuntime,
     ) -> Result<()> {
         let Some(session_journal_entry_payload::Payload::SteerInput(payload)) = entry
@@ -203,6 +484,9 @@ async fn prepare_context_for_claimed_submission(
             return Err(anyhow!("STEER_INPUT entry is missing payload"));
         };
         for message_id in &payload.message_ids {
+            if !hydrated_message_ids.insert(message_id.clone()) {
+                continue;
+            }
             let key = crate::control::keys::session_message(ns, agent, session_id, message_id);
             let bytes =
                 cp.kv.get(&key).await?.ok_or_else(|| {
@@ -220,6 +504,11 @@ async fn prepare_context_for_claimed_submission(
     let mut latest_final_response = None;
     let mut projection_parts = Vec::new();
     let mut next_projection_part_index = 0usize;
+    let mut hydrated_steering_message_ids = HashSet::new();
+    let mut last_boundary_completed_tool_results = replay_prefix_ends_after_finalized_tool_results;
+    let mut last_completed_tool_turn_already_finalized =
+        replay_prefix_ends_after_finalized_tool_results;
+    let mut latest_appended_journal_entry_id = None;
     let mut index = 0;
     while index < journal_entries.len() {
         let entry = &journal_entries[index];
@@ -256,6 +545,8 @@ async fn prepare_context_for_claimed_submission(
                     .push(LoopMessage::text("assistant", summary));
                 // Drop derived recovery state since the compaction boundary replaces history.
                 latest_final_response = None;
+                last_boundary_completed_tool_results = false;
+                last_completed_tool_turn_already_finalized = false;
             } else {
                 return Err(anyhow!("COMPACTION entry is missing payload"));
             }
@@ -265,20 +556,18 @@ async fn prepare_context_for_claimed_submission(
         }
 
         if entry.phase == SessionExecutionPhase::SteerInput as i32 {
-            if let Some(session_journal_entry_payload::Payload::SteerInput(payload)) = entry
-                .payload
-                .as_ref()
-                .and_then(|payload| payload.payload.as_ref())
-            {
-                // Segments before this boundary are already finalized canonical
-                // messages. Rebuild only the active continuation projection.
-                if !payload.next_assistant_message_id.is_empty() {
-                    projection_parts.clear();
-                    next_projection_part_index = 0;
-                    latest_final_response = None;
-                }
-            }
-            hydrate_steering_input(cp, ns, agent, session_id, entry, runtime).await?;
+            hydrate_steering_input(
+                cp,
+                ns,
+                agent,
+                session_id,
+                entry,
+                &mut hydrated_steering_message_ids,
+                runtime,
+            )
+            .await?;
+            last_boundary_completed_tool_results = false;
+            last_completed_tool_turn_already_finalized = false;
             index += 1;
             continue;
         }
@@ -330,11 +619,14 @@ async fn prepare_context_for_claimed_submission(
         };
         if response.tool_calls.is_empty() {
             latest_final_response = Some(response);
+            last_boundary_completed_tool_results = false;
+            last_completed_tool_turn_already_finalized = false;
             index += 1;
             continue;
         }
 
         latest_final_response = None;
+        last_completed_tool_turn_already_finalized = false;
         let tool_calls = response.tool_calls.clone();
         let mut assistant_message = LoopMessage::text("assistant", response.content.clone());
         assistant_message.tool_calls = Some(tool_calls.clone());
@@ -351,7 +643,6 @@ async fn prepare_context_for_claimed_submission(
         let mut stop_after_tool_results = false;
         let mut results_by_call_id = BTreeMap::new();
         let mut steering_entries = Vec::new();
-        let mut steer_boundary_seen = false;
         while index < journal_entries.len() {
             let entry = &journal_entries[index];
             if entry.phase == SessionExecutionPhase::LlmResponse as i32
@@ -389,7 +680,6 @@ async fn prepare_context_for_claimed_submission(
                 (phase, Some(session_journal_entry_payload::Payload::SteerInput(payload)))
                     if phase == SessionExecutionPhase::SteerInput as i32 =>
                 {
-                    steer_boundary_seen |= !payload.next_assistant_message_id.is_empty();
                     steering_entries.push(entry.clone());
                 }
                 _ => {}
@@ -435,6 +725,7 @@ async fn prepare_context_for_claimed_submission(
                     chrono::Utc::now().timestamp_micros(),
                 )
                 .await?;
+                latest_appended_journal_entry_id = Some(entry.journal_entry_id.clone());
                 entry
                     .payload
                     .as_ref()
@@ -461,22 +752,25 @@ async fn prepare_context_for_claimed_submission(
             stop_after_tool_results |=
                 crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
         }
-        // Reconstruct the completed pre-steer tool turn in the execution
-        // context, but keep its projection parts on the finalized assistant
-        // message. The next assistant projection starts with the steered
-        // continuation.
-        if steer_boundary_seen {
-            projection_parts.clear();
-            next_projection_part_index = 0;
-            latest_final_response = None;
-        }
+        last_boundary_completed_tool_results = steering_entries.is_empty();
         for entry in steering_entries {
-            hydrate_steering_input(cp, ns, agent, session_id, &entry, runtime).await?;
+            hydrate_steering_input(
+                cp,
+                ns,
+                agent,
+                session_id,
+                &entry,
+                &mut hydrated_steering_message_ids,
+                runtime,
+            )
+            .await?;
+            last_boundary_completed_tool_results = false;
         }
         if stop_after_tool_results {
             return Ok(PreparedSubmission {
                 state: PreparedSubmissionState::StopAfterToolResult,
                 projection_parts,
+                latest_appended_journal_entry_id,
             });
         }
     }
@@ -487,12 +781,20 @@ async fn prepare_context_for_claimed_submission(
                 content: response.content,
             },
             projection_parts,
+            latest_appended_journal_entry_id,
         });
     }
 
     Ok(PreparedSubmission {
-        state: PreparedSubmissionState::ContinueExecution,
+        state: if last_boundary_completed_tool_results {
+            PreparedSubmissionState::ContinueAfterToolResults {
+                assistant_segment_already_finalized: last_completed_tool_turn_already_finalized,
+            }
+        } else {
+            PreparedSubmissionState::ContinueExecution
+        },
         projection_parts,
+        latest_appended_journal_entry_id,
     })
 }
 
@@ -687,7 +989,21 @@ impl WorkerEventHandler {
                     _ => current,
                 }
             });
-        let effective_reply_msg_id = recovered_reply_msg_id.unwrap_or_else(|| reply_msg_id.clone());
+        let recovered_projection_msg_id = if recovered_reply_msg_id.is_none() {
+            latest_submission_projection_message_id(
+                &self.cp,
+                ns,
+                &event.agent,
+                &event.session_id,
+                &submission.submission_id,
+            )
+            .await?
+        } else {
+            None
+        };
+        let effective_reply_msg_id = recovered_reply_msg_id
+            .or(recovered_projection_msg_id)
+            .unwrap_or_else(|| reply_msg_id.clone());
         if effective_reply_msg_id != reply_msg_id {
             sink.rotate_reply_message(effective_reply_msg_id.clone());
         }
@@ -868,9 +1184,42 @@ impl WorkerEventHandler {
                 .map(|status| (status, sink.summary()));
             }
 
+            let mut recovery_plan = plan_journal_recovery(
+                &self.cp,
+                ns,
+                &event.agent,
+                &event.session_id,
+                &submission.submission_id,
+                &journal_entries,
+            )
+            .await?;
+            let journaled_steer_message_ids = journal_entries
+                .iter()
+                .filter_map(steer_payload)
+                .flat_map(|payload| payload.message_ids.iter().cloned())
+                .collect::<HashSet<_>>();
+            crate::control::session_queue::commit_journaled_steer_queue_entries(
+                self.cp.kv.as_ref(),
+                ns,
+                &event.agent,
+                &event.session_id,
+                &journaled_steer_message_ids,
+            )
+            .await?;
+            recovery_plan.excluded_history_message_ids.extend(
+                crate::control::session_queue::list_prepared_steer_message_ids(
+                    self.cp.kv.as_ref(),
+                    ns,
+                    &event.agent,
+                    &event.session_id,
+                )
+                .await?,
+            );
+
             // Build the LLM-loop runtime from canonical SessionMessage history.
-            // Active in-progress projections are ignored by AgentRuntime.
-            let mut runtime = match AgentRuntime::build_from_agent(
+            // Active projections and canonicalized-but-unabsorbed steer inputs
+            // are omitted; the active journal replays them at their boundary.
+            let mut runtime = match AgentRuntime::build_from_agent_excluding_history_messages(
                 ns,
                 &event.agent,
                 &event.session_id,
@@ -878,6 +1227,7 @@ impl WorkerEventHandler {
                 &self.cp,
                 &self.config,
                 &self.mcp_registry,
+                &recovery_plan.excluded_history_message_ids,
             )
             .instrument(tracing::info_span!("AgentRuntime.build"))
             .await
@@ -919,10 +1269,17 @@ impl WorkerEventHandler {
                 &effective_reply_msg_id,
                 &submission.submission_id,
                 &submission.attempt_id,
-                &journal_entries,
+                &journal_entries[recovery_plan.replay_start_index..],
+                recovery_plan.replay_prefix_ends_after_finalized_tool_results,
                 &mut runtime,
             )
             .await?;
+            if let Some(entry_id) = prepared_submission
+                .latest_appended_journal_entry_id
+                .as_deref()
+            {
+                sink.seed_latest_journal_entry_id(Some(entry_id));
+            }
             for part in &prepared_submission.projection_parts {
                 match part {
                     RecoveredProjectionPart::Text { part_id, content } => {
@@ -960,6 +1317,27 @@ impl WorkerEventHandler {
             if prepared_submission.state == PreparedSubmissionState::StopAfterToolResult {
                 sink.on_done().await;
                 return Ok((SessionCompletionStatus::Waiting, sink.summary()));
+            }
+            if let PreparedSubmissionState::ContinueAfterToolResults {
+                assistant_segment_already_finalized,
+            } = prepared_submission.state
+            {
+                let steering = sink
+                    .take_recovery_steering_messages(assistant_segment_already_finalized)
+                    .await?;
+                runtime.context.push_many(steering);
+            } else if let Some(previous_assistant_message_id) = recovery_plan
+                .unstarted_checkpoint_previous_assistant_message_id
+                .as_deref()
+            {
+                // The latest checkpoint allocated a continuation ID, but no
+                // continuation journal record was written before the crash.
+                // Fold any steering that arrived while the worker was down
+                // into a replacement checkpoint before the first LLM call.
+                let steering = sink
+                    .take_recovery_steering_messages_after_checkpoint(previous_assistant_message_id)
+                    .await?;
+                runtime.context.push_many(steering);
             }
 
             // Continue execution from the prepared context. The executor only
@@ -4759,6 +5137,7 @@ mod tests {
             "submission-1",
             "attempt-1",
             &entries,
+            false,
             &mut runtime,
         )
         .await
@@ -4906,6 +5285,30 @@ mod tests {
                 .await
                 .unwrap();
         assert_eq!(entries[2].phase, DataPhase::SteerInput as i32);
+        kv.set_msg(
+            &crate::control::keys::session_message("ns", "agent", "session-1", "reply-1"),
+            &data_proto::SessionMessage {
+                id: "reply-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 30,
+                labels: HashMap::from([(
+                    sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                    sessions::SESSION_PROJECTION_STATE_COMMITTED.to_string(),
+                )]),
+                parts: Vec::new(),
+            },
+        )
+        .await
+        .unwrap();
+        let recovery_plan =
+            super::plan_journal_recovery(&cp, "ns", "agent", "session-1", "submission-1", &entries)
+                .await
+                .unwrap();
+        assert_eq!(recovery_plan.replay_start_index, 0);
+        assert_eq!(
+            recovery_plan.excluded_history_message_ids,
+            std::collections::HashSet::from(["reply-1".to_string(), "user-steer".to_string(),])
+        );
 
         let prepared = super::prepare_context_for_claimed_submission(
             &cp,
@@ -4916,6 +5319,7 @@ mod tests {
             "submission-1",
             "attempt-1",
             &entries,
+            false,
             &mut runtime,
         )
         .await
@@ -4938,5 +5342,407 @@ mod tests {
             runtime.context.history.last().unwrap().text_content(),
             "continue with this extra request"
         );
+    }
+
+    #[tokio::test]
+    async fn recovery_reuses_latest_uncommitted_projection_when_journal_is_empty() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(
+            kv.clone(),
+            Arc::new(crate::test_support::RecordingPubSub::default()),
+        )
+        .build();
+        for (id, submission_id, projection_state) in [
+            (
+                "000001",
+                "submission-1",
+                sessions::SESSION_PROJECTION_STATE_IN_PROGRESS,
+            ),
+            (
+                "000002",
+                "other-submission",
+                sessions::SESSION_PROJECTION_STATE_IN_PROGRESS,
+            ),
+            (
+                "000003",
+                "submission-1",
+                sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED,
+            ),
+            (
+                "000004",
+                "submission-1",
+                sessions::SESSION_PROJECTION_STATE_COMMITTED,
+            ),
+        ] {
+            kv.set_msg(
+                &crate::control::keys::session_message("ns", "agent", "session-1", id),
+                &data_proto::SessionMessage {
+                    id: id.to_string(),
+                    role: data_proto::MessageRole::RoleAssistant as i32,
+                    labels: HashMap::from([
+                        (
+                            sessions::SESSION_LABEL_SUBMISSION_ID.to_string(),
+                            submission_id.to_string(),
+                        ),
+                        (
+                            sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                            projection_state.to_string(),
+                        ),
+                    ]),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+        }
+
+        assert_eq!(
+            super::latest_submission_projection_message_id(
+                &cp,
+                "ns",
+                "agent",
+                "session-1",
+                "submission-1",
+            )
+            .await
+            .unwrap()
+            .as_deref(),
+            Some("000003")
+        );
+    }
+
+    #[tokio::test]
+    async fn recovery_reports_the_watermark_of_a_recreated_tool_result() {
+        use crate::gateway::rpc::data_proto::SessionSubmissionStatus;
+        use crate::harness::executor::{AgentExecutor, ContextAssembler, ExecutionContext};
+        use crate::harness::llm::{ChatResponse, MockLlmProvider, ToolCall};
+        use crate::harness::skills::registry::ToolRegistry;
+
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(
+            kv.clone(),
+            Arc::new(crate::test_support::RecordingPubSub::default()),
+        )
+        .build();
+        let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
+        submission.status = SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(&*kv, "ns", "agent", "session-1", &submission)
+            .await
+            .unwrap();
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "reply-1",
+            &ChatResponse {
+                content: "calling a tool".to_string(),
+                tool_calls: vec![ToolCall {
+                    id: "tool-1".to_string(),
+                    name: "missing-tool".to_string(),
+                    arguments: "{}".to_string(),
+                }],
+                usage: None,
+            },
+            10,
+        )
+        .await
+        .unwrap();
+        let entries =
+            sessions::list_journal_entries(&*kv, "ns", "agent", "session-1", "submission-1")
+                .await
+                .unwrap();
+        let mut runtime = super::AgentRuntime {
+            executor: AgentExecutor::new_with_session(
+                Arc::new(MockLlmProvider),
+                "test-provider".to_string(),
+                "test-model".to_string(),
+                ContextAssembler::new("."),
+                Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
+                Arc::new(Config::default()),
+                "ns".to_string(),
+                "agent".to_string(),
+                "session-1".to_string(),
+                None,
+                cp.clone(),
+                manifests::AgentSpec::default(),
+                HashMap::new(),
+            ),
+            context: ExecutionContext::new("agent"),
+        };
+
+        let prepared = super::prepare_context_for_claimed_submission(
+            &cp,
+            "ns",
+            "agent",
+            "session-1",
+            "reply-1",
+            "submission-1",
+            "attempt-1",
+            &entries,
+            false,
+            &mut runtime,
+        )
+        .await
+        .unwrap();
+        let recovered_entries =
+            sessions::list_journal_entries(&*kv, "ns", "agent", "session-1", "submission-1")
+                .await
+                .unwrap();
+
+        assert_eq!(recovered_entries.len(), 2);
+        assert_eq!(
+            prepared.latest_appended_journal_entry_id.as_deref(),
+            Some(recovered_entries[1].journal_entry_id.as_str())
+        );
+        assert_eq!(
+            recovered_entries[1].phase,
+            data_proto::SessionExecutionPhase::ToolResult as i32
+        );
+    }
+
+    #[tokio::test]
+    async fn journal_recovery_starts_after_latest_new_format_steer_checkpoint() {
+        use crate::gateway::rpc::data_proto::SessionSubmissionStatus;
+        use crate::harness::llm::{ChatResponse, ToolCall};
+
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(
+            kv.clone(),
+            Arc::new(crate::test_support::RecordingPubSub::default()),
+        )
+        .build();
+        let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
+        submission.status = SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(&*kv, "ns", "agent", "session-1", &submission)
+            .await
+            .unwrap();
+
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "assistant-1",
+            &ChatResponse {
+                content: "working".to_string(),
+                tool_calls: vec![ToolCall {
+                    id: "tool-1".to_string(),
+                    name: "lookup".to_string(),
+                    arguments: "{}".to_string(),
+                }],
+                usage: None,
+            },
+            10,
+        )
+        .await
+        .unwrap();
+        sessions::append_steer_input(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &["steer-1".to_string()],
+            "assistant-1",
+            "assistant-2",
+            20,
+        )
+        .await
+        .unwrap();
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "assistant-2",
+            &ChatResponse {
+                content: "continuing".to_string(),
+                tool_calls: vec![ToolCall {
+                    id: "tool-2".to_string(),
+                    name: "lookup".to_string(),
+                    arguments: "{}".to_string(),
+                }],
+                usage: None,
+            },
+            30,
+        )
+        .await
+        .unwrap();
+        sessions::append_steer_input(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &["steer-2".to_string(), "steer-3".to_string()],
+            "assistant-2",
+            "assistant-3",
+            40,
+        )
+        .await
+        .unwrap();
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "assistant-3",
+            &ChatResponse {
+                content: "active continuation".to_string(),
+                tool_calls: Vec::new(),
+                usage: None,
+            },
+            50,
+        )
+        .await
+        .unwrap();
+
+        let entries =
+            sessions::list_journal_entries(&*kv, "ns", "agent", "session-1", "submission-1")
+                .await
+                .unwrap();
+        let plan =
+            super::plan_journal_recovery(&cp, "ns", "agent", "session-1", "submission-1", &entries)
+                .await
+                .unwrap();
+
+        assert_eq!(plan.replay_start_index, 4);
+        assert!(plan.excluded_history_message_ids.is_empty());
+        assert_eq!(
+            plan.unstarted_checkpoint_previous_assistant_message_id
+                .as_deref(),
+            None
+        );
+        assert_eq!(
+            super::llm_response_payload(&entries[plan.replay_start_index])
+                .unwrap()
+                .assistant_message_id,
+            "assistant-3"
+        );
+    }
+
+    #[tokio::test]
+    async fn journal_recovery_uses_committed_tool_segment_before_unjournaled_steer() {
+        use crate::control::cas::CasStore;
+        use crate::gateway::rpc::data_proto::SessionSubmissionStatus;
+        use crate::harness::llm::{ChatResponse, ToolCall, ToolOutput};
+
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(
+            kv.clone(),
+            Arc::new(crate::test_support::RecordingPubSub::default()),
+        )
+        .build();
+        let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
+        submission.status = SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(&*kv, "ns", "agent", "session-1", &submission)
+            .await
+            .unwrap();
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "assistant-1",
+            &ChatResponse {
+                content: "working".to_string(),
+                tool_calls: vec![ToolCall {
+                    id: "tool-1".to_string(),
+                    name: "lookup".to_string(),
+                    arguments: "{}".to_string(),
+                }],
+                usage: None,
+            },
+            10,
+        )
+        .await
+        .unwrap();
+        let tool_result_entry = sessions::append_tool_result(
+            kv.as_ref(),
+            &CasStore::new(cp.objects.clone()),
+            "ns",
+            "agent",
+            "session-1",
+            "assistant-1",
+            "part-1",
+            "submission-1",
+            "attempt-1",
+            "tool-1",
+            "lookup",
+            &ToolOutput::text("result"),
+            20,
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message("ns", "agent", "session-1", "assistant-1"),
+            &data_proto::SessionMessage {
+                id: "assistant-1".to_string(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: 20,
+                labels: HashMap::from([
+                    (
+                        sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+                        sessions::SESSION_PROJECTION_STATE_COMMITTED.to_string(),
+                    ),
+                    (
+                        sessions::SESSION_LABEL_SUBMISSION_ID.to_string(),
+                        "submission-1".to_string(),
+                    ),
+                    (
+                        sessions::SESSION_LABEL_LATEST_JOURNAL_ENTRY_ID.to_string(),
+                        tool_result_entry.journal_entry_id.clone(),
+                    ),
+                ]),
+                parts: Vec::new(),
+            },
+        )
+        .await
+        .unwrap();
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "assistant-1",
+            &ChatResponse {
+                content: "not covered by the committed projection".to_string(),
+                tool_calls: Vec::new(),
+                usage: None,
+            },
+            30,
+        )
+        .await
+        .unwrap();
+
+        let entries =
+            sessions::list_journal_entries(&*kv, "ns", "agent", "session-1", "submission-1")
+                .await
+                .unwrap();
+        let plan =
+            super::plan_journal_recovery(&cp, "ns", "agent", "session-1", "submission-1", &entries)
+                .await
+                .unwrap();
+
+        assert_eq!(plan.replay_start_index, 2);
+        assert!(plan.replay_prefix_ends_after_finalized_tool_results);
     }
 }

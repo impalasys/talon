@@ -12,7 +12,7 @@ pub use compaction::{
     compact_history_for_llm_with_model_limits, tool_result_preview, ContextBudget,
     ModelContextLimits,
 };
-pub use history::load;
+pub use history::{load, load_excluding_message_ids};
 pub use rpc::{RpcMessage, RpcRequest, RpcResponse};
 pub use runtime::{
     tool_output_loop_message, tool_result_loop_message, AgentEvent, AgentExecutor, CaptureSink,

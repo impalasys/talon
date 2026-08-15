@@ -12,6 +12,7 @@ use crate::harness::llm::{
 };
 use anyhow::{anyhow, Result};
 use prost::Message;
+use std::collections::HashSet;
 use std::path::Path;
 
 pub struct Loaded {
@@ -34,6 +35,19 @@ pub async fn load(
     ns: &str,
     agent_id: &str,
     session_id: &str,
+) -> Result<Loaded> {
+    load_excluding_message_ids(kv, objects, ns, agent_id, session_id, &HashSet::new()).await
+}
+
+/// Rebuild model-visible history while omitting canonical messages whose
+/// placement is still owned by the active submission journal or steer queue.
+pub async fn load_excluding_message_ids(
+    kv: &dyn KeyValueStore,
+    objects: &(dyn ObjectStore + Send + Sync),
+    ns: &str,
+    agent_id: &str,
+    session_id: &str,
+    excluded_message_ids: &HashSet<String>,
 ) -> Result<Loaded> {
     let prefix = crate::control::keys::session_message_prefix(ns, agent_id, session_id);
     let mut later_messages = Vec::new();
@@ -60,6 +74,9 @@ pub async fn load(
             let Ok(message) = data_proto::SessionMessage::decode(value.as_slice()) else {
                 continue;
             };
+            if excluded_message_ids.contains(&message.id) {
+                continue;
+            }
             if message
                 .labels
                 .get(crate::control::delegation::LABEL_TASK_ROLE)
@@ -566,7 +583,7 @@ fn unavailable_historical_tool_output() -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        load, message_content_parts, session_message_to_loop_messages,
+        load, load_excluding_message_ids, message_content_parts, session_message_to_loop_messages,
         tool_result_message_from_part,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
@@ -576,7 +593,7 @@ mod tests {
     use crate::harness::llm::{content_part_object_ref, object_ref_part, text_part, ToolOutput};
     use crate::test_support::MockKvStore;
     use prost::Message;
-    use std::collections::HashMap;
+    use std::collections::{HashMap, HashSet};
 
     fn tool_result_part(content: String, payload_json: String) -> data_proto::SessionMessagePart {
         data_proto::SessionMessagePart {
@@ -711,6 +728,47 @@ mod tests {
                 "retained assistant tail",
                 "recent question"
             ]
+        );
+    }
+
+    #[tokio::test]
+    async fn load_can_exclude_messages_owned_by_active_journal_recovery() {
+        let kv = MockKvStore::new();
+        let objects = InMemoryObjectStore::default();
+        for (id, text) in [
+            ("000001", "initial request"),
+            ("000002", "first steer"),
+            ("000003", "second steer"),
+        ] {
+            let message = data_proto::SessionMessage {
+                id: id.to_string(),
+                role: data_proto::MessageRole::RoleUser as i32,
+                created_at: 0,
+                labels: HashMap::new(),
+                parts: vec![session_text_part("000001", text)],
+            };
+            kv.set(
+                &crate::control::keys::session_message("ns", "agent", "session", id),
+                &message.encode_to_vec(),
+            )
+            .await
+            .unwrap();
+        }
+
+        let excluded = HashSet::from(["000002".to_string(), "000003".to_string()]);
+        let loaded = load_excluding_message_ids(&kv, &objects, "ns", "agent", "session", &excluded)
+            .await
+            .unwrap();
+
+        assert_eq!(loaded.messages.len(), 1);
+        assert_eq!(loaded.messages[0].text_content(), "initial request");
+        assert_eq!(
+            load(&kv, &objects, "ns", "agent", "session")
+                .await
+                .unwrap()
+                .messages
+                .len(),
+            3
         );
     }
 

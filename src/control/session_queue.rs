@@ -4,6 +4,7 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, Utc};
 use prost::Message;
+use std::collections::HashSet;
 use std::time::Duration;
 
 use crate::control::{
@@ -171,6 +172,50 @@ pub async fn commit_steer_batch(
             &item.entry_id,
         ))
         .await?;
+    }
+    Ok(())
+}
+
+/// Return message IDs that have already been materialized from STEER queue
+/// entries into canonical SessionMessages but remain queued until a durable
+/// STEER_INPUT journal boundary absorbs them.
+pub async fn list_prepared_steer_message_ids(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+) -> Result<HashSet<String>> {
+    let prefix = keys::session_queue_prefix(ns, agent, session_id, STEER_QUEUE);
+    Ok(kv
+        .list_entries(&prefix, None)
+        .await?
+        .into_iter()
+        .filter_map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).ok())
+        .filter_map(|message| (!message.id.is_empty()).then_some(message.id))
+        .collect())
+}
+
+/// Remove queue copies whose message IDs are already protected by a durable
+/// STEER_INPUT journal entry. This closes the crash window between journaling
+/// the boundary and deleting the prepared queue batch.
+pub async fn commit_journaled_steer_queue_entries(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    journaled_message_ids: &HashSet<String>,
+) -> Result<()> {
+    if journaled_message_ids.is_empty() {
+        return Ok(());
+    }
+    let prefix = keys::session_queue_prefix(ns, agent, session_id, STEER_QUEUE);
+    for (entry_key, bytes) in kv.list_entries(&prefix, None).await? {
+        let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) else {
+            continue;
+        };
+        if journaled_message_ids.contains(&message.id) {
+            kv.delete(&entry_key).await?;
+        }
     }
     Ok(())
 }
@@ -681,6 +726,78 @@ mod tests {
             .unwrap()
             .len(),
             1
+        );
+    }
+
+    #[tokio::test]
+    async fn recovery_cleanup_removes_only_journaled_prepared_steer_entries() {
+        let kv = MockKvStore::new();
+        put_session(&kv, "PROCESSING").await;
+        for text in ["journaled", "not journaled"] {
+            queue_text_message(
+                &kv,
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                text,
+                Default::default(),
+                Utc::now(),
+            )
+            .await
+            .unwrap();
+        }
+
+        let batch = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            8,
+            100,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let journaled_message_ids = HashSet::from([batch[0].message_id.clone()]);
+
+        commit_journaled_steer_queue_entries(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            &journaled_message_ids,
+        )
+        .await
+        .unwrap();
+
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                &batch[0].entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                &batch[1].entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_some());
+        assert_eq!(
+            list_prepared_steer_message_ids(&kv, "Tenant:acme:Ops", "agent", "session-1")
+                .await
+                .unwrap(),
+            HashSet::from([batch[1].message_id.clone()])
         );
     }
 
