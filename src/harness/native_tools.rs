@@ -1351,6 +1351,12 @@ const MAX_CODE_MOUNTS: usize = 25;
 const MAX_CODE_INPUT_BYTES: u64 = 25 * 1024 * 1024;
 const MAX_CODE_OUTPUT_FILES: usize = 100;
 const MAX_CODE_OUTPUT_BYTES: u64 = 25 * 1024 * 1024;
+const MAX_CODE_OUTPUT_ENTRIES: usize = 100;
+const MAX_CODE_STDOUT_BYTES: usize = 1024 * 1024;
+const MAX_CODE_STDERR_BYTES: usize = 1024 * 1024;
+const CODE_CAPTURE_OVERHEAD_BYTES: usize = MAX_CODE_STDOUT_BYTES + MAX_CODE_STDERR_BYTES;
+// CODE_RUNTIME_OVERHEAD_BYTES also covers transient artifact/base64
+// serialization allocations while output artifacts are persisted.
 const DEFAULT_CODE_MAX_CONCURRENT_RUNS: usize = 1;
 const DEFAULT_CODE_MEMORY_BUDGET_BYTES: usize = 256 * 1024 * 1024;
 const DEFAULT_CODE_QUEUE_TIMEOUT_MS: u64 = 30_000;
@@ -1370,18 +1376,78 @@ struct CodeMountBundle {
     mounted_inputs: Vec<Value>,
 }
 
-#[derive(Clone)]
 struct CodeRunContext {
-    tool_tx: tokio::sync::mpsc::Sender<CodeToolRequest>,
     deadline: Instant,
     tool_calls: Arc<AtomicUsize>,
     max_tool_calls: usize,
 }
 
-struct CodeToolRequest {
-    tool_name: String,
-    tool_args: Value,
-    response_tx: std::sync::mpsc::Sender<Result<String, String>>,
+#[derive(Clone)]
+struct CodeOutputCapture {
+    stdout: String,
+    stderr: String,
+    stdout_bytes: usize,
+    stderr_bytes: usize,
+    truncated_stdout: bool,
+    truncated_stderr: bool,
+}
+
+impl CodeOutputCapture {
+    fn new() -> Self {
+        Self {
+            stdout: String::new(),
+            stderr: String::new(),
+            stdout_bytes: 0,
+            stderr_bytes: 0,
+            truncated_stdout: false,
+            truncated_stderr: false,
+        }
+    }
+
+    fn push(&mut self, stream: monty_types::PrintStream, text: &str) {
+        let (output, used, limit, truncated) = match stream {
+            monty_types::PrintStream::Stdout => (
+                &mut self.stdout,
+                &mut self.stdout_bytes,
+                MAX_CODE_STDOUT_BYTES,
+                &mut self.truncated_stdout,
+            ),
+            monty_types::PrintStream::Stderr => (
+                &mut self.stderr,
+                &mut self.stderr_bytes,
+                MAX_CODE_STDERR_BYTES,
+                &mut self.truncated_stderr,
+            ),
+        };
+        let remaining = limit.saturating_sub(*used);
+        if remaining == 0 {
+            *truncated = true;
+            return;
+        }
+        let mut end = text.len().min(remaining);
+        while end > 0 && !text.is_char_boundary(end) {
+            end -= 1;
+        }
+        output.push_str(&text[..end]);
+        *used += end;
+        if end < text.len() {
+            *truncated = true;
+        }
+    }
+
+    fn truncated(&self) -> bool {
+        self.truncated_stdout || self.truncated_stderr
+    }
+
+    fn finish(mut self) -> (String, String) {
+        if self.truncated_stdout {
+            self.stdout.push_str("\n...[stdout truncated at 1 MiB]");
+        }
+        if self.truncated_stderr {
+            self.stderr.push_str("\n...[stderr truncated at 1 MiB]");
+        }
+        (self.stdout, self.stderr)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1472,8 +1538,7 @@ impl CodeExecutionLimiter {
             .config
             .max_concurrent_runs
             .saturating_add(self.config.max_queued_runs);
-        let occupancy = self
-            .queued_or_active
+        self.queued_or_active
             .fetch_update(Ordering::AcqRel, Ordering::Acquire, |current| {
                 (current < max_occupancy).then_some(current + 1)
             })
@@ -1484,6 +1549,9 @@ impl CodeExecutionLimiter {
                 );
                 anyhow!("code execution capacity unavailable: worker queue is full; retry later")
             })?;
+        let occupancy_guard = CodeOccupancyGuard {
+            counter: self.queued_or_active.clone(),
+        };
         let started = Instant::now();
         let cpu_slot = match tokio::time::timeout(
             self.config.queue_timeout,
@@ -1493,7 +1561,6 @@ impl CodeExecutionLimiter {
         {
             Ok(Ok(permit)) => permit,
             Ok(Err(_)) | Err(_) => {
-                self.queued_or_active.fetch_sub(1, Ordering::AcqRel);
                 tracing::warn!(
                     queue_timeout_ms = self.config.queue_timeout.as_millis() as u64,
                     "timed out waiting for a Monty code execution slot"
@@ -1516,7 +1583,6 @@ impl CodeExecutionLimiter {
             Ok(Ok(permit)) => permit,
             Ok(Err(_)) | Err(_) => {
                 drop(cpu_slot);
-                self.queued_or_active.fetch_sub(1, Ordering::AcqRel);
                 tracing::warn!(
                     queue_timeout_ms = self.config.queue_timeout.as_millis() as u64,
                     "timed out waiting for a Monty code execution memory reservation"
@@ -1527,31 +1593,40 @@ impl CodeExecutionLimiter {
                 ));
             }
         };
+        let queue_wait_ms = started.elapsed().as_millis() as u64;
         tracing::info!(
             requested_memory_bytes,
             reservation_bytes,
-            queue_wait_ms = started.elapsed().as_millis() as u64,
-            queued_or_active = occupancy + 1,
+            queue_wait_ms,
+            queued_or_active = self.queued_or_active.load(Ordering::Acquire),
             "admitted Monty code execution"
         );
         Ok(CodeExecutionReservation {
             _cpu_slot: cpu_slot,
             _memory_permit: memory_permit,
-            queued_or_active: self.queued_or_active.clone(),
+            _occupancy_guard: occupancy_guard,
+            queue_wait_ms,
+            reservation_bytes,
         })
+    }
+}
+
+struct CodeOccupancyGuard {
+    counter: Arc<AtomicUsize>,
+}
+
+impl Drop for CodeOccupancyGuard {
+    fn drop(&mut self) {
+        self.counter.fetch_sub(1, Ordering::AcqRel);
     }
 }
 
 struct CodeExecutionReservation {
     _cpu_slot: tokio::sync::OwnedSemaphorePermit,
     _memory_permit: tokio::sync::OwnedSemaphorePermit,
-    queued_or_active: Arc<AtomicUsize>,
-}
-
-impl Drop for CodeExecutionReservation {
-    fn drop(&mut self) {
-        self.queued_or_active.fetch_sub(1, Ordering::AcqRel);
-    }
+    _occupancy_guard: CodeOccupancyGuard,
+    queue_wait_ms: u64,
+    reservation_bytes: usize,
 }
 
 fn code_execution_limiter() -> &'static CodeExecutionLimiter {
@@ -1564,6 +1639,7 @@ fn code_memory_reservation_bytes(requested_memory_bytes: usize) -> Result<usize>
         .checked_add(CODE_RUNTIME_OVERHEAD_BYTES)
         .and_then(|value| value.checked_add(MAX_CODE_INPUT_BYTES as usize))
         .and_then(|value| value.checked_add(MAX_CODE_OUTPUT_BYTES as usize))
+        .and_then(|value| value.checked_add(CODE_CAPTURE_OVERHEAD_BYTES))
         .ok_or_else(|| anyhow!("code memory reservation overflowed"))
 }
 
@@ -1591,6 +1667,92 @@ where
         .and_then(|value| value.parse::<u64>().ok())
         .filter(|value| *value > 0)
         .unwrap_or(default)
+}
+
+#[derive(Debug)]
+struct CodeDeadlineExceeded;
+
+impl std::fmt::Display for CodeDeadlineExceeded {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("code execution deadline exceeded")
+    }
+}
+
+impl std::error::Error for CodeDeadlineExceeded {}
+
+struct CodeExecutionTelemetry {
+    started: Instant,
+    requested_memory_bytes: usize,
+    reserved_memory_bytes: Option<usize>,
+    queue_wait_ms: Option<u64>,
+    mounted_input_bytes: u64,
+    output_bytes: u64,
+    output_files: usize,
+    finished: bool,
+}
+
+impl CodeExecutionTelemetry {
+    fn new(requested_memory_bytes: usize) -> Self {
+        Self {
+            started: Instant::now(),
+            requested_memory_bytes,
+            reserved_memory_bytes: None,
+            queue_wait_ms: None,
+            mounted_input_bytes: 0,
+            output_bytes: 0,
+            output_files: 0,
+            finished: false,
+        }
+    }
+
+    fn finish(&mut self, outcome: &'static str) {
+        if self.finished {
+            return;
+        }
+        self.finished = true;
+        let fields = tracing::info_span!(
+            "monty_code_execution",
+            outcome,
+            duration_ms = self.started.elapsed().as_millis() as u64,
+            requested_memory_bytes = self.requested_memory_bytes,
+            reserved_memory_bytes = self.reserved_memory_bytes.unwrap_or_default(),
+            queue_wait_ms = self.queue_wait_ms.unwrap_or_default(),
+            mounted_input_bytes = self.mounted_input_bytes,
+            output_bytes = self.output_bytes,
+            output_files = self.output_files,
+        );
+        let _entered = fields.enter();
+        if outcome == "success" {
+            tracing::info!("completed Monty code execution");
+        } else {
+            tracing::warn!("Monty code execution ended without success");
+        }
+    }
+}
+
+impl Drop for CodeExecutionTelemetry {
+    fn drop(&mut self) {
+        if !self.finished {
+            self.finish("cancelled");
+        }
+    }
+}
+
+fn code_error_outcome(error: &anyhow::Error) -> &'static str {
+    let message = error.to_string();
+    if message.contains("deadline exceeded") || message.contains("timed out") {
+        "timeout"
+    } else if message.contains("capacity unavailable") {
+        "capacity_rejected"
+    } else if message.contains("mount") || message.contains("mounted") {
+        "mount_failed"
+    } else if message.contains("output") || message.contains("artifact") {
+        "output_failed"
+    } else if message.contains("tool bridge") || message.contains("Talon tool") {
+        "tool_bridge_failed"
+    } else {
+        "monty_failed"
+    }
 }
 
 async fn run_python_code_tool(
@@ -1626,110 +1788,102 @@ async fn run_python_code_tool(
         .get("persist_outputs")
         .and_then(Value::as_bool)
         .unwrap_or(true);
+    let mut telemetry = CodeExecutionTelemetry::new(memory_bytes);
     let limiter = code_execution_limiter();
-    let reservation = limiter.acquire(memory_bytes).await?;
-    let execution_started = Instant::now();
-    let CodeMountBundle {
-        _temp_dir,
-        output_dir,
-        mounts,
-        mounted_inputs,
-    } = prepare_code_mounts(
-        cp,
-        current_namespace,
-        current_agent,
-        current_session,
-        spec,
-        args,
-    )
-    .await?;
-    let (tool_tx, mut tool_rx) = tokio::sync::mpsc::channel::<CodeToolRequest>(8);
-    let context = CodeRunContext {
-        tool_tx,
-        deadline: Instant::now() + Duration::from_millis(timeout_ms),
-        tool_calls: Arc::new(AtomicUsize::new(0)),
-        max_tool_calls: limiter.config.max_tool_calls,
-    };
-    let monty_context = context.clone();
-    let join = tokio::task::spawn_blocking(move || {
-        run_monty_python(
-            code,
-            inputs,
-            mounts,
-            monty_context,
-            timeout_ms,
-            memory_bytes,
-        )
-    });
-    tokio::pin!(join);
-    let mut result: Value = loop {
-        tokio::select! {
-            run_result = &mut join => {
-                break run_result
-                    .map_err(|err| anyhow!("Monty execution task failed: {err}"))??;
-            }
-            Some(request) = tool_rx.recv() => {
-                let output = match context.remaining() {
-                    Ok(remaining) => tokio::time::timeout(
-                        remaining,
-                        Box::pin(execute_tool_for_session(
-                            cp,
-                            current_namespace,
-                            current_agent,
-                            current_session,
-                            spec,
-                            &request.tool_name,
-                            &request.tool_args,
-                        )),
-                    )
-                    .await
-                    .map_err(|_| anyhow!("Talon tool bridge exceeded the code execution deadline"))
-                    .and_then(|result| result)
-                    .and_then(|output| {
-                        output.ok_or_else(|| anyhow!("unknown Talon tool '{}'", request.tool_name))
-                    })
-                    .map_err(|err| err.to_string()),
-                    Err(err) => Err(err.to_string()),
-                };
-                let _ = request.response_tx.send(output);
-            }
+    let reservation = match limiter.acquire(memory_bytes).await {
+        Ok(reservation) => reservation,
+        Err(error) => {
+            telemetry.finish(code_error_outcome(&error));
+            return Err(error);
         }
     };
+    telemetry.queue_wait_ms = Some(reservation.queue_wait_ms);
+    telemetry.reserved_memory_bytes = Some(reservation.reservation_bytes);
+    let deadline = Instant::now() + Duration::from_millis(timeout_ms);
+    let timeout_duration = Duration::from_millis(timeout_ms);
 
-    let outputs = if persist_outputs {
-        persist_code_outputs(
+    let run = async {
+        let CodeMountBundle {
+            _temp_dir,
+            output_dir,
+            mounts,
+            mounted_inputs,
+        } = prepare_code_mounts(
             cp,
             current_namespace,
             current_agent,
             current_session,
-            &output_dir,
+            spec,
+            args,
         )
-        .await?
-    } else {
-        Vec::new()
+        .await
+        .map_err(|error| anyhow!("Monty mount preparation failed: {error}"))?;
+        telemetry.mounted_input_bytes = mounted_inputs
+            .iter()
+            .filter_map(|input| input.get("sizeBytes").and_then(Value::as_u64))
+            .sum();
+        let context = CodeRunContext {
+            deadline,
+            tool_calls: Arc::new(AtomicUsize::new(0)),
+            max_tool_calls: limiter.config.max_tool_calls,
+        };
+        let mut result = run_monty_python(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            code,
+            inputs,
+            mounts,
+            &output_dir,
+            context,
+            timeout_ms,
+            memory_bytes,
+        )
+        .await
+        .map_err(|error| anyhow!("Monty execution failed: {error}"))?;
+        let (output_bytes, output_files) = code_output_stats(&output_dir)?;
+        let outputs = if persist_outputs {
+            persist_code_outputs(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                &output_dir,
+            )
+            .await
+            .map_err(|error| anyhow!("output persistence failed: {error}"))?
+        } else {
+            Vec::new()
+        };
+        telemetry.output_bytes = output_bytes;
+        telemetry.output_files = output_files;
+        if let Some(object) = result.as_object_mut() {
+            object.insert("mountedInputs".to_string(), json!(mounted_inputs));
+            object.insert("outputMount".to_string(), json!(CODE_OUTPUT_MOUNT));
+            object.insert("outputs".to_string(), json!(outputs));
+        }
+        Ok::<_, anyhow::Error>(serde_json::to_string_pretty(&result)?)
     };
-    let mounted_input_bytes = mounted_inputs
-        .iter()
-        .filter_map(|input| input.get("sizeBytes").and_then(Value::as_u64))
-        .sum::<u64>();
-    let output_bytes = outputs
-        .iter()
-        .filter_map(|output| output.get("sizeBytes").and_then(Value::as_u64))
-        .sum::<u64>();
-    if let Some(object) = result.as_object_mut() {
-        object.insert("mountedInputs".to_string(), json!(mounted_inputs));
-        object.insert("outputMount".to_string(), json!(CODE_OUTPUT_MOUNT));
-        object.insert("outputs".to_string(), json!(outputs));
-    }
-    tracing::info!(
-        duration_ms = execution_started.elapsed().as_millis() as u64,
-        mounted_input_bytes,
-        output_bytes,
-        output_files = outputs.len(),
-        "completed Monty code execution"
-    );
+
+    let result = match tokio::time::timeout(timeout_duration, run).await {
+        Ok(Ok(result)) => {
+            telemetry.finish("success");
+            Ok(result)
+        }
+        Ok(Err(error)) => {
+            telemetry.finish(code_error_outcome(&error));
+            Err(error)
+        }
+        Err(_) => {
+            let error = anyhow!(CodeDeadlineExceeded);
+            telemetry.finish("timeout");
+            Err(error)
+        }
+    };
     drop(reservation);
-    Ok(serde_json::to_string_pretty(&result)?)
+    result
 }
 
 impl CodeRunContext {
@@ -1737,7 +1891,7 @@ impl CodeRunContext {
         self.deadline
             .checked_duration_since(Instant::now())
             .filter(|duration| !duration.is_zero())
-            .ok_or_else(|| anyhow!("code execution deadline exceeded"))
+            .ok_or_else(|| anyhow::Error::new(CodeDeadlineExceeded))
     }
 
     fn reserve_tool_call(&self) -> Result<()> {
@@ -1756,10 +1910,16 @@ impl CodeRunContext {
     }
 }
 
-fn run_monty_python(
+async fn run_monty_python(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
     code: String,
     inputs: Vec<(String, monty_types::MontyObject)>,
     mounts: Vec<monty_pool::MountSpec>,
+    output_dir: &Path,
     context: CodeRunContext,
     timeout_ms: u64,
     memory_bytes: usize,
@@ -1768,7 +1928,7 @@ fn run_monty_python(
         .iter()
         .map(|(name, _)| name.clone())
         .collect::<Vec<_>>();
-    let limits = monty_types::ResourceLimits::new()
+    let limits = monty_types::ResourceLimits::default()
         .max_duration(Duration::from_millis(timeout_ms))
         .max_memory(memory_bytes);
     let mut config = monty_pool::PoolConfig::subprocess(
@@ -1779,7 +1939,7 @@ fn run_monty_python(
     config.request_timeout =
         Some(Duration::from_millis(timeout_ms).saturating_add(Duration::from_secs(1)));
     config.checkout_timeout = Some(Duration::from_secs(5));
-    let pool = monty_pool::Pool::new(config).map_err(|err| {
+    let pool = monty_pool::Pool::new(config).await.map_err(|err| {
         anyhow!(
             "failed to start Monty runtime: {err}. Install pydantic-monty-runtime or set TALON_MONTY_BIN to the monty binary"
         )
@@ -1789,14 +1949,26 @@ fn run_monty_python(
         limits: Some(limits),
         ..Default::default()
     };
-    let mut session = pool.checkout(&repl)?;
-    let mut stdout = String::new();
-    let mut stderr = String::new();
-    let mut on_print = |stream: monty_types::PrintStream, text: &str| match stream {
-        monty_types::PrintStream::Stdout => stdout.push_str(text),
-        monty_types::PrintStream::Stderr => stderr.push_str(text),
-    };
-    let mut event = session.feed(&code, inputs, mounts, true, &mut on_print)?;
+    let mut session = pool.checkout(&repl).await?;
+    let capture = Arc::new(std::sync::Mutex::new(CodeOutputCapture::new()));
+    let capture_for_print = Arc::clone(&capture);
+    let mut on_print = monty_pool::on_print_sync(move |stream, text| {
+        if let Ok(mut capture) = capture_for_print.lock() {
+            capture.push(stream, text);
+        }
+    });
+    let mut event = session
+        .feed(&code, inputs, mounts, true, &mut on_print)
+        .await?;
+    if capture
+        .lock()
+        .map(|capture| capture.truncated())
+        .unwrap_or(true)
+    {
+        return Err(anyhow!(
+            "Monty stdout/stderr capture exceeded 1 MiB per stream; [stdout truncated at 1 MiB] or [stderr truncated at 1 MiB]"
+        ));
+    }
     let result = loop {
         match event {
             monty_pool::TurnEvent::Complete(value) => break value,
@@ -1807,16 +1979,56 @@ fn run_monty_python(
                 method_call,
                 ..
             } => {
-                let value =
-                    handle_code_function_call(&context, &function_name, args, kwargs, method_call);
-                event = session.resume(value, &mut on_print)?;
+                let value = match call_talon_tool(
+                    cp,
+                    current_namespace,
+                    current_agent,
+                    current_session,
+                    spec,
+                    &context,
+                    &function_name,
+                    args,
+                    kwargs,
+                    method_call,
+                )
+                .await
+                {
+                    Ok(value) => monty_pool::ResumeValue::Return(value),
+                    Err(error) if error.downcast_ref::<CodeDeadlineExceeded>().is_some() => {
+                        return Err(error);
+                    }
+                    Err(error) => monty_pool::ResumeValue::Error(monty_types::MontyException::new(
+                        monty_types::ExcType::RuntimeError,
+                        Some(error.to_string()),
+                    )),
+                };
+                event = session.resume(value, &mut on_print).await?;
+                if capture
+                    .lock()
+                    .map(|capture| capture.truncated())
+                    .unwrap_or(true)
+                {
+                    return Err(anyhow!(
+                        "Monty stdout/stderr capture exceeded 1 MiB per stream; [stdout truncated at 1 MiB] or [stderr truncated at 1 MiB]"
+                    ));
+                }
             }
             monty_pool::TurnEvent::OsCall { function_name, .. } => {
-                if let Some(next) = session.resume_from_mounts(&mut on_print)? {
+                if let Some(next) = session.resume_from_mounts(&mut on_print).await? {
                     event = next;
                 } else {
                     return Err(anyhow!(
                         "Monty code requested OS operation '{function_name}', but only filesystem access under {CODE_INPUT_MOUNT} and {CODE_OUTPUT_MOUNT} is available"
+                    ));
+                }
+                enforce_code_output_entry_limit(output_dir)?;
+                if capture
+                    .lock()
+                    .map(|capture| capture.truncated())
+                    .unwrap_or(true)
+                {
+                    return Err(anyhow!(
+                        "Monty stdout/stderr capture exceeded 1 MiB per stream; [stdout truncated at 1 MiB] or [stderr truncated at 1 MiB]"
                     ));
                 }
             }
@@ -1838,7 +2050,12 @@ fn run_monty_python(
         }
     };
     drop(on_print);
-    session.finish()?;
+    let (stdout, stderr) = capture
+        .lock()
+        .map_err(|_| anyhow!("Monty output capture mutex was poisoned"))?
+        .clone()
+        .finish();
+    session.finish().await?;
     Ok(json!({
         "ok": true,
         "runtime": "monty",
@@ -1937,21 +2154,24 @@ async fn prepare_code_mounts(
         }));
     }
 
+    let input_mount = monty_pool::MountSpec::new(
+        CODE_INPUT_MOUNT,
+        input_dir,
+        monty_pool::MountSpecMode::ReadOnly,
+    )
+    .map_err(|error| anyhow!("failed to configure Monty input mount: {error}"))?;
+    let mut output_mount = monty_pool::MountSpec::new(
+        CODE_OUTPUT_MOUNT,
+        output_dir.clone(),
+        monty_pool::MountSpecMode::ReadWrite,
+    )
+    .map_err(|error| anyhow!("failed to configure Monty output mount: {error}"))?;
+    output_mount.write_bytes_limit = Some(MAX_CODE_OUTPUT_BYTES);
+
     Ok(CodeMountBundle {
         _temp_dir: temp_dir,
-        output_dir: output_dir.clone(),
-        mounts: vec![
-            monty_pool::MountSpec::new(
-                CODE_INPUT_MOUNT.to_string(),
-                input_dir,
-                monty_pool::MountSpecMode::ReadOnly,
-            ),
-            monty_pool::MountSpec::new(
-                CODE_OUTPUT_MOUNT.to_string(),
-                output_dir,
-                monty_pool::MountSpecMode::ReadWrite,
-            ),
-        ],
+        output_dir,
+        mounts: vec![input_mount, output_mount],
         mounted_inputs,
     })
 }
@@ -2150,6 +2370,33 @@ async fn persist_code_outputs(
     Ok(outputs)
 }
 
+fn code_output_stats(output_dir: &Path) -> Result<(u64, usize)> {
+    enforce_code_output_entry_limit(output_dir)?;
+    let mut paths = Vec::new();
+    collect_code_output_files(output_dir, output_dir, &mut paths)?;
+    if paths.len() > MAX_CODE_OUTPUT_FILES {
+        return Err(anyhow!(
+            "code output contains {} files, exceeding limit of {}",
+            paths.len(),
+            MAX_CODE_OUTPUT_FILES
+        ));
+    }
+    let mut total_bytes = 0_u64;
+    for relative in &paths {
+        let size = fs::metadata(output_dir.join(relative))?.len();
+        total_bytes = total_bytes
+            .checked_add(size)
+            .ok_or_else(|| anyhow!("output byte count overflowed"))?;
+        if total_bytes > MAX_CODE_OUTPUT_BYTES {
+            return Err(anyhow!(
+                "code outputs exceed {} byte limit",
+                MAX_CODE_OUTPUT_BYTES
+            ));
+        }
+    }
+    Ok((total_bytes, paths.len()))
+}
+
 fn code_virtual_mount_path(root: &str, relative: &Path) -> String {
     format!("{root}/{}", code_relative_virtual_path(relative))
 }
@@ -2174,23 +2421,42 @@ fn collect_code_output_files(root: &Path, dir: &Path, paths: &mut Vec<PathBuf>) 
     Ok(())
 }
 
-fn handle_code_function_call(
-    context: &CodeRunContext,
-    function_name: &str,
-    args: Vec<monty_types::MontyObject>,
-    kwargs: Vec<(monty_types::MontyObject, monty_types::MontyObject)>,
-    method_call: bool,
-) -> monty_pool::ResumeValue {
-    match call_talon_tool(context, function_name, args, kwargs, method_call) {
-        Ok(value) => monty_pool::ResumeValue::Return(value),
-        Err(error) => monty_pool::ResumeValue::Error(monty_types::MontyException::new(
-            monty_types::ExcType::RuntimeError,
-            Some(error.to_string()),
-        )),
+fn count_code_output_entries(dir: &Path) -> Result<usize> {
+    let mut count = 0;
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        count += 1;
+        if count > MAX_CODE_OUTPUT_ENTRIES {
+            return Ok(count);
+        }
+        if entry.file_type()?.is_dir() {
+            count += count_code_output_entries(&entry.path())?;
+            if count > MAX_CODE_OUTPUT_ENTRIES {
+                return Ok(count);
+            }
+        }
     }
+    Ok(count)
 }
 
-fn call_talon_tool(
+fn enforce_code_output_entry_limit(output_dir: &Path) -> Result<()> {
+    let entries = count_code_output_entries(output_dir)?;
+    if entries > MAX_CODE_OUTPUT_ENTRIES {
+        return Err(anyhow!(
+            "code output contains {} files or directories, exceeding limit of {} entries",
+            entries,
+            MAX_CODE_OUTPUT_ENTRIES
+        ));
+    }
+    Ok(())
+}
+
+async fn call_talon_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
     context: &CodeRunContext,
     function_name: &str,
     args: Vec<monty_types::MontyObject>,
@@ -2227,19 +2493,29 @@ fn call_talon_tool(
             "{TALON_TOOL_FUNCTION} second argument must be a dict/object"
         ));
     }
-    let (response_tx, response_rx) = std::sync::mpsc::channel();
-    context
-        .tool_tx
-        .blocking_send(CodeToolRequest {
-            tool_name: tool_name.clone(),
-            tool_args,
-            response_tx,
-        })
-        .map_err(|_| anyhow!("Talon tool bridge is no longer available"))?;
-    let output = response_rx
-        .recv()
-        .map_err(|_| anyhow!("Talon tool bridge closed before returning a result"))?
-        .map_err(|err| anyhow!(err))?;
+    let remaining = context.remaining()?;
+    let output = tokio::time::timeout(
+        remaining,
+        Box::pin(execute_tool_for_session(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            &tool_name,
+            &tool_args,
+        )),
+    )
+    .await
+    .map_err(|_| anyhow::Error::new(CodeDeadlineExceeded))?
+    .map_err(|error| {
+        if error.downcast_ref::<CodeDeadlineExceeded>().is_some() {
+            error
+        } else {
+            anyhow!("Talon tool bridge failed: {error}")
+        }
+    })?
+    .ok_or_else(|| anyhow!("unknown Talon tool '{}'", tool_name))?;
     match serde_json::from_str::<Value>(&output) {
         Ok(value) => json_to_monty_object(&value),
         Err(_) => Ok(monty_types::MontyObject::String(output)),
@@ -4882,11 +5158,108 @@ mod tests {
         assert!(limiter.acquire(1).await.is_ok());
     }
 
+    #[tokio::test]
+    async fn cancelled_limiter_waits_release_queue_occupancy() {
+        let reservation_bytes = code_memory_reservation_bytes(1).unwrap();
+        let limiter = CodeExecutionLimiter::new(CodeExecutionConfig {
+            max_concurrent_runs: 1,
+            memory_budget_bytes: reservation_bytes,
+            queue_timeout: Duration::from_secs(30),
+            max_queued_runs: 1,
+            max_tool_calls: 1,
+        });
+        let reservation = limiter.acquire(1).await.unwrap();
+        assert!(
+            tokio::time::timeout(Duration::from_millis(1), limiter.acquire(1))
+                .await
+                .is_err()
+        );
+        assert_eq!(limiter.queued_or_active.load(Ordering::Acquire), 1);
+        drop(reservation);
+        assert_eq!(limiter.queued_or_active.load(Ordering::Acquire), 0);
+        assert!(limiter.acquire(1).await.is_ok());
+    }
+
+    #[tokio::test]
+    async fn cancelled_memory_wait_releases_queue_occupancy() {
+        let reservation_bytes = code_memory_reservation_bytes(1).unwrap();
+        let limiter = CodeExecutionLimiter::new(CodeExecutionConfig {
+            max_concurrent_runs: 2,
+            memory_budget_bytes: reservation_bytes,
+            queue_timeout: Duration::from_secs(30),
+            max_queued_runs: 1,
+            max_tool_calls: 1,
+        });
+        let reservation = limiter.acquire(1).await.unwrap();
+        assert!(
+            tokio::time::timeout(Duration::from_millis(1), limiter.acquire(1))
+                .await
+                .is_err()
+        );
+        assert_eq!(limiter.queued_or_active.load(Ordering::Acquire), 1);
+        drop(reservation);
+        assert_eq!(limiter.queued_or_active.load(Ordering::Acquire), 0);
+        assert!(limiter.acquire(1).await.is_ok());
+    }
+
+    #[tokio::test]
+    async fn internal_queue_timeout_releases_occupancy_once() {
+        let reservation_bytes = code_memory_reservation_bytes(1).unwrap();
+        let limiter = CodeExecutionLimiter::new(CodeExecutionConfig {
+            max_concurrent_runs: 1,
+            memory_budget_bytes: reservation_bytes,
+            queue_timeout: Duration::from_millis(1),
+            max_queued_runs: 1,
+            max_tool_calls: 1,
+        });
+        let reservation = limiter.acquire(1).await.unwrap();
+        let error = match limiter.acquire(1).await {
+            Ok(_) => panic!("second code execution should time out"),
+            Err(error) => error.to_string(),
+        };
+        assert!(error.contains("worker slot"), "{error}");
+        assert_eq!(limiter.queued_or_active.load(Ordering::Acquire), 1);
+        drop(reservation);
+        assert_eq!(limiter.queued_or_active.load(Ordering::Acquire), 0);
+        assert!(limiter.acquire(1).await.is_ok());
+    }
+
+    #[test]
+    fn code_output_capture_is_bounded_per_stream() {
+        let mut capture = CodeOutputCapture::new();
+        capture.push(
+            monty_types::PrintStream::Stdout,
+            &"x".repeat(MAX_CODE_STDOUT_BYTES + 32),
+        );
+        capture.push(
+            monty_types::PrintStream::Stderr,
+            &"y".repeat(MAX_CODE_STDERR_BYTES + 32),
+        );
+        assert!(capture.truncated());
+        let (stdout, stderr) = capture.finish();
+        assert!(stdout.len() <= MAX_CODE_STDOUT_BYTES + 64);
+        assert!(stderr.len() <= MAX_CODE_STDERR_BYTES + 64);
+        assert!(stdout.contains("stdout truncated"));
+        assert!(stderr.contains("stderr truncated"));
+    }
+
+    #[test]
+    fn code_output_entry_limit_rejects_excessive_directories() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        for index in 0..=MAX_CODE_OUTPUT_ENTRIES {
+            fs::create_dir(temp_dir.path().join(format!("entry-{index}"))).unwrap();
+        }
+        let error = enforce_code_output_entry_limit(temp_dir.path())
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("exceeding limit"), "{error}");
+    }
+
     #[test]
     fn code_memory_reservation_covers_runtime_and_mount_bounds() {
         assert_eq!(
             code_memory_reservation_bytes(128 * 1024 * 1024).unwrap(),
-            242 * 1024 * 1024
+            244 * 1024 * 1024
         );
     }
 
@@ -5314,6 +5687,101 @@ mod tests {
         assert_eq!(value["runtime"], "monty");
         assert_eq!(value["stdout"], "checking\n");
         assert_eq!(value["result"], "10");
+    }
+
+    #[tokio::test]
+    async fn run_python_code_enforces_hard_wall_deadline() {
+        if !monty_runtime_available_for_test() {
+            return;
+        }
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let started = Instant::now();
+        let error = execute_tool_for_session(
+            &cp,
+            "Tenant:test:Workspace:main",
+            "analyst",
+            "session-1",
+            &code_spec(&["run"]),
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "while True: pass",
+                "timeout_ms": 100,
+                "memory_bytes": 1048576,
+                "persist_outputs": false
+            }),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(started.elapsed() < Duration::from_secs(3));
+        assert!(
+            error.contains("deadline") || error.contains("timeout"),
+            "{error}"
+        );
+    }
+
+    #[tokio::test]
+    async fn run_python_code_rejects_oversized_output_without_persistence() {
+        if !monty_runtime_available_for_test() {
+            return;
+        }
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let error = execute_tool_for_session(
+            &cp,
+            "Tenant:test:Workspace:main",
+            "analyst",
+            "session-1",
+            &code_spec(&["run"]),
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "from pathlib import Path\nPath('/talon/output/too-large.bin').write_bytes(b'x' * (25 * 1024 * 1024 + 1))",
+                "timeout_ms": 3000,
+                "memory_bytes": 128 * 1024 * 1024,
+                "persist_outputs": false
+            }),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(
+            error.contains("output") || error.contains("write"),
+            "{error}"
+        );
+    }
+
+    #[tokio::test]
+    async fn run_python_code_rejects_excessive_output_entries_during_execution() {
+        if !monty_runtime_available_for_test() {
+            return;
+        }
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let error = execute_tool_for_session(
+            &cp,
+            "Tenant:test:Workspace:main",
+            "analyst",
+            "session-1",
+            &code_spec(&["run"]),
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "from pathlib import Path\nroot = Path('/talon/output')\nfor index in range(101):\n    (root / f'dir-{index}').mkdir()",
+                "timeout_ms": 3000,
+                "memory_bytes": 1048576,
+                "persist_outputs": false
+            }),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(
+            error.contains("exceeding limit") || error.contains("entries"),
+            "{error}"
+        );
     }
 
     #[tokio::test]

@@ -93,7 +93,7 @@ RUN python3 -m venv /opt/talon-e2e-venv && \
     rm -f /tmp/talon-e2e-requirements.txt
 
 RUN python3 -m venv /opt/talon-monty-venv && \
-    /opt/talon-monty-venv/bin/pip install --no-cache-dir pydantic-monty-runtime==0.0.19 && \
+    /opt/talon-monty-venv/bin/pip install --no-cache-dir pydantic-monty-runtime==0.0.21 && \
     ln -s /opt/talon-monty-venv/bin/monty /usr/local/bin/monty && \
     monty --version
 

@@ -346,11 +346,15 @@ TALON_CODE_MAX_TOOL_CALLS=16
 ```
 
 The reservation for a run includes its requested Monty heap limit, `64 MiB` of
-runtime overhead, and the maximum `25 MiB` input and `25 MiB` output staging
+runtime and artifact-serialization overhead, bounded `1 MiB` stdout/stderr
+capture buffers, and the maximum `25 MiB` input and `25 MiB` output staging
 budgets. A request which cannot fit is rejected before file hydration or a
-Monty subprocess is started. Calls wait for capacity for at most the configured
-queue timeout; a full queue or elapsed timeout returns a retryable capacity
-error. The reservation remains held while output artifacts are persisted.
+Monty subprocess is started. The `timeout_ms` value is a hard wall-clock
+deadline covering hydration, execution, tool bridges, and output persistence.
+Calls wait for capacity for at most the configured queue timeout; a full queue
+or elapsed timeout returns a retryable capacity error. The reservation remains
+held while output artifacts are persisted and while a cancelled Monty process
+is being reaped.
 
 The worker image must include the `monty` runtime binary, or set
 `TALON_MONTY_BIN` to its absolute path. Keep the worker listener private and
