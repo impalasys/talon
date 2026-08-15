@@ -383,17 +383,6 @@ pub struct PubSubSessionSink {
     usage_events: Mutex<u64>,
 }
 
-enum SteeringCheckpointMode {
-    Live,
-    RecoveryAfterUnfinalizedSegment,
-    RecoveryAfterFinalizedSegment {
-        previous_assistant_message_id: String,
-    },
-    ReplaceUnstartedContinuation {
-        previous_assistant_message_id: String,
-    },
-}
-
 impl PubSubSessionSink {
     pub fn new(
         kv: Arc<dyn KeyValueStore>,
@@ -1280,6 +1269,60 @@ impl PubSubSessionSink {
         Ok(())
     }
 
+    fn has_active_assistant_output(&self) -> bool {
+        !self.durable_parts.lock().unwrap().is_empty()
+            || self
+                .active_stream_buffer
+                .lock()
+                .unwrap()
+                .as_ref()
+                .is_some_and(|buffer| !buffer.unclosed_content().is_empty())
+    }
+
+    /// Chooses the assistant side of a steering checkpoint without creating a
+    /// transcript gap. Real output is finalized, an already committed segment
+    /// is reused after recovery, and an owned partial projection is discarded
+    /// so pre-output steering can use an empty previous assistant ID.
+    async fn previous_assistant_message_id_for_steer(&self) -> Result<String> {
+        if self.has_active_assistant_output() {
+            return self.finalize_assistant_segment().await;
+        }
+
+        let key = self.current_reply_msg_key();
+        let Some(message) = self.kv.get_msg::<data_proto::SessionMessage>(&key).await? else {
+            return Ok(String::new());
+        };
+        let projection_state = message
+            .labels
+            .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+            .map(String::as_str);
+        let projection_submission_id = message
+            .labels
+            .get(sessions::SESSION_LABEL_SUBMISSION_ID)
+            .map(String::as_str);
+        let belongs_to_submission = projection_submission_id
+            .is_none_or(|submission_id| submission_id == self.submission_id);
+
+        if message.role == data_proto::MessageRole::RoleAssistant as i32
+            && projection_state == Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+            && belongs_to_submission
+        {
+            return Ok(message.id);
+        }
+
+        if projection_submission_id == Some(self.submission_id.as_str())
+            && matches!(
+                projection_state,
+                Some(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS)
+                    | Some(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED)
+            )
+        {
+            self.discard_current_uncommitted_projection().await?;
+        }
+
+        Ok(String::new())
+    }
+
     async fn publish_reply_index_event(&self) {
         if let Err(error) = crate::control::search::publish_index_event(
             self.pubsub.as_ref(),
@@ -1346,33 +1389,8 @@ impl PubSubSessionSink {
         sessions::clear_provider_request_id(self.kv.as_ref(), &self.claim).await
     }
 
-    pub(crate) async fn take_recovery_steering_messages(
-        &self,
-        assistant_segment_already_finalized: bool,
-    ) -> Result<Vec<crate::harness::executor::LoopMessage>> {
-        let mode = if assistant_segment_already_finalized {
-            SteeringCheckpointMode::RecoveryAfterFinalizedSegment {
-                previous_assistant_message_id: self.current_reply_msg_id(),
-            }
-        } else {
-            SteeringCheckpointMode::RecoveryAfterUnfinalizedSegment
-        };
-        self.checkpoint_steering_batch(mode).await
-    }
-
-    pub(crate) async fn take_recovery_steering_messages_after_checkpoint(
-        &self,
-        previous_assistant_message_id: &str,
-    ) -> Result<Vec<crate::harness::executor::LoopMessage>> {
-        self.checkpoint_steering_batch(SteeringCheckpointMode::ReplaceUnstartedContinuation {
-            previous_assistant_message_id: previous_assistant_message_id.to_string(),
-        })
-        .await
-    }
-
     async fn checkpoint_steering_batch(
         &self,
-        mode: SteeringCheckpointMode,
     ) -> Result<Vec<crate::harness::executor::LoopMessage>> {
         const MAX_STEER_DRAINS: u8 = 4;
         let drain_attempt = {
@@ -1414,25 +1432,7 @@ impl PubSubSessionSink {
             .iter()
             .map(|message| message.message_id.clone())
             .collect::<Vec<_>>();
-        let previous_assistant_message_id = match mode {
-            SteeringCheckpointMode::Live
-            | SteeringCheckpointMode::RecoveryAfterUnfinalizedSegment => {
-                self.finalize_assistant_segment().await?
-            }
-            SteeringCheckpointMode::RecoveryAfterFinalizedSegment {
-                previous_assistant_message_id,
-            } => previous_assistant_message_id,
-            SteeringCheckpointMode::ReplaceUnstartedContinuation {
-                previous_assistant_message_id,
-            } => {
-                // This projection has no completed LLM journal entry. Remove it
-                // before making the replacement checkpoint durable so every crash
-                // state is recoverable from the old checkpoint plus the queue, or
-                // from the new checkpoint without a stale visible assistant.
-                self.discard_current_uncommitted_projection().await?;
-                previous_assistant_message_id
-            }
-        };
+        let previous_assistant_message_id = self.previous_assistant_message_id_for_steer().await?;
         // The steer messages were assigned their UUID7 ids while preparing the
         // batch. Allocate the continuation only after them so session-key
         // ordering matches conversational ordering.
@@ -1660,8 +1660,7 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn take_steering_messages(&self) -> Result<Vec<crate::harness::executor::LoopMessage>> {
-        self.checkpoint_steering_batch(SteeringCheckpointMode::Live)
-            .await
+        self.checkpoint_steering_batch().await
     }
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput) {
@@ -3163,6 +3162,215 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn steering_before_first_response_does_not_persist_empty_assistant() {
+        use crate::control::session_queue::{self, STEER_QUEUE};
+        use crate::control::ProtoKeyValueStoreExt;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            &submission,
+        )
+        .await
+        .unwrap();
+        let initial_reply_id = crate::control::uuid::session_message_id();
+        let initial_reply_key =
+            keys::session_message("conic", "infra", "session-1", &initial_reply_id);
+        for message in ["first follow-up", "second follow-up"] {
+            session_queue::queue_text_message(
+                kv.as_ref(),
+                "conic",
+                "infra",
+                "session-1",
+                STEER_QUEUE,
+                message,
+                Default::default(),
+                chrono::Utc::now(),
+            )
+            .await
+            .unwrap();
+        }
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            initial_reply_id.clone(),
+            initial_reply_key.clone(),
+            "submission-1",
+            "attempt-1",
+        );
+
+        let steering = sink.take_steering_messages().await.unwrap();
+
+        assert_eq!(steering.len(), 2);
+        assert!(kv
+            .get_msg::<data_proto::SessionMessage>(&initial_reply_key)
+            .await
+            .unwrap()
+            .is_none());
+        let entries = sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap();
+        assert_eq!(entries.len(), 1);
+        let Some(data_proto::session_journal_entry_payload::Payload::SteerInput(steer)) = entries
+            [0]
+        .payload
+        .as_ref()
+        .and_then(|payload| payload.payload.as_ref()) else {
+            panic!("expected steer-input journal payload");
+        };
+        assert!(steer.previous_assistant_message_id.is_empty());
+        assert_eq!(steer.next_assistant_message_id, sink.current_reply_msg_id());
+        assert!(steer
+            .message_ids
+            .iter()
+            .all(|message_id| message_id < &steer.next_assistant_message_id));
+        assert_ne!(sink.current_reply_msg_id(), initial_reply_id);
+    }
+
+    #[tokio::test]
+    async fn empty_steering_queue_does_not_persist_projection_or_journal() {
+        use crate::control::ProtoKeyValueStoreExt;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+
+        let steering = sink.take_steering_messages().await.unwrap();
+
+        assert!(steering.is_empty());
+        assert!(kv
+            .get_msg::<data_proto::SessionMessage>(&reply_key())
+            .await
+            .unwrap()
+            .is_none());
+        assert!(sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap()
+        .is_empty());
+    }
+
+    #[tokio::test]
+    async fn recovered_tool_only_segment_is_finalized_before_steering() {
+        use crate::control::session_queue::{self, STEER_QUEUE};
+        use crate::control::ProtoKeyValueStoreExt;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            &submission,
+        )
+        .await
+        .unwrap();
+        session_queue::queue_text_message(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            STEER_QUEUE,
+            "change direction",
+            Default::default(),
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+        sink.seed_recovered_tool_call_part("000001", "tool-1", "lookup", &json!({}));
+
+        let steering = sink.take_steering_messages().await.unwrap();
+
+        assert_eq!(steering.len(), 1);
+        let assistant = kv
+            .get_msg::<data_proto::SessionMessage>(&reply_key())
+            .await
+            .unwrap()
+            .expect("recovered assistant should be finalized");
+        assert_eq!(assistant.parts.len(), 1);
+        assert_eq!(
+            assistant.parts[0].part_type,
+            data_proto::SessionMessagePartType::ToolCall as i32
+        );
+        assert_eq!(
+            assistant
+                .labels
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+        );
+        let entries = sessions::list_journal_entries(
+            kv.as_ref(),
+            "conic",
+            "infra",
+            "session-1",
+            "submission-1",
+        )
+        .await
+        .unwrap();
+        let steer = entries[0]
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+            .and_then(|payload| match payload {
+                data_proto::session_journal_entry_payload::Payload::SteerInput(steer) => {
+                    Some(steer)
+                }
+                _ => None,
+            })
+            .expect("steer-input payload");
+        assert_eq!(steer.previous_assistant_message_id, "reply-1");
+    }
+
+    #[tokio::test]
     async fn recovery_steer_preserves_an_already_finalized_assistant_segment() {
         use crate::control::session_queue::{self, STEER_QUEUE};
         use crate::control::ProtoKeyValueStoreExt;
@@ -3243,7 +3451,7 @@ mod tests {
             "attempt-1",
         );
 
-        let steering = sink.take_recovery_steering_messages(true).await.unwrap();
+        let steering = sink.take_steering_messages().await.unwrap();
 
         assert_eq!(steering.len(), 1);
         let unused_continuation_message_id = sink.current_reply_msg_id();
@@ -3289,10 +3497,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let late_steering = sink
-            .take_recovery_steering_messages_after_checkpoint("reply-1")
-            .await
-            .unwrap();
+        let late_steering = sink.take_steering_messages().await.unwrap();
         assert_eq!(late_steering.len(), 1);
         assert_ne!(sink.current_reply_msg_id(), unused_continuation_message_id);
         assert!(kv
@@ -3343,9 +3548,8 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert_eq!(steers.len(), 2);
-        assert!(steers
-            .iter()
-            .all(|steer| steer.previous_assistant_message_id == "reply-1"));
+        assert_eq!(steers[0].previous_assistant_message_id, "reply-1");
+        assert!(steers[1].previous_assistant_message_id.is_empty());
         assert_eq!(
             steers[0].next_assistant_message_id,
             unused_continuation_message_id

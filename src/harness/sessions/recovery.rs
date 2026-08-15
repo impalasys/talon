@@ -12,58 +12,12 @@ use super::{
     SESSION_PROJECTION_STATE_IN_PROGRESS,
 };
 use crate::control::{ControlPlane, ListOptions, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::data_proto::{self, session_journal_entry_payload, SessionExecutionPhase};
+use crate::gateway::rpc::data_proto::{self, SessionExecutionPhase};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct JournalRecoveryPlan {
     pub(crate) replay_start_index: usize,
     pub(crate) excluded_history_message_ids: HashSet<String>,
-    pub(crate) replay_prefix_ends_after_finalized_tool_results: bool,
-    pub(crate) unstarted_checkpoint_previous_assistant_message_id: Option<String>,
-}
-
-/// Detects whether the transcript-covered journal prefix ended after every
-/// tool call received a result.
-///
-/// Recovery may replay an empty suffix after skipping a committed assistant
-/// segment. This signal tells the worker to drain pending steering before the
-/// next LLM call without finalizing that assistant segment again.
-fn journal_prefix_ends_after_complete_tool_results(
-    journal_entries: &[SessionJournalEntry],
-) -> bool {
-    let mut pending_tool_call_ids = HashSet::new();
-    let mut ends_after_tool_results = false;
-    for entry in journal_entries {
-        if let Some(payload) = entry.as_llm_response() {
-            let Some(response) = payload.response.as_ref() else {
-                pending_tool_call_ids.clear();
-                ends_after_tool_results = false;
-                continue;
-            };
-            pending_tool_call_ids = response
-                .tool_calls
-                .iter()
-                .map(|tool| tool.id.clone())
-                .collect();
-            ends_after_tool_results = false;
-            continue;
-        }
-        if entry.phase == SessionExecutionPhase::ToolResult as i32 {
-            if let Some(session_journal_entry_payload::Payload::ToolResult(result)) = entry
-                .payload
-                .as_ref()
-                .and_then(|payload| payload.payload.as_ref())
-            {
-                pending_tool_call_ids.remove(&result.tool_call_id);
-                ends_after_tool_results = pending_tool_call_ids.is_empty();
-            }
-            continue;
-        }
-        if entry.phase == SessionExecutionPhase::SteerInput as i32 {
-            ends_after_tool_results = false;
-        }
-    }
-    ends_after_tool_results
 }
 
 /// Returns the last journal entry already represented by a committed assistant
@@ -154,9 +108,10 @@ pub(crate) async fn latest_submission_projection_message_id(
 
 /// Chooses the canonical transcript boundary and journal suffix for recovery.
 ///
-/// New-format `STEER_INPUT` entries are transcript checkpoints. Legacy steer
-/// entries remain on the full-replay path, while committed assistant watermarks
-/// cover the finalization-before-checkpoint crash window.
+/// A `STEER_INPUT` with a continuation ID is a transcript checkpoint, whether
+/// or not an assistant segment preceded it. Legacy steer entries without a
+/// continuation ID remain on the full-replay path, while committed assistant
+/// watermarks cover the finalization-before-checkpoint crash window.
 pub(crate) async fn plan_journal_recovery(
     cp: &ControlPlane,
     ns: &str,
@@ -171,24 +126,12 @@ pub(crate) async fn plan_journal_recovery(
         .rev()
         .find_map(|(index, entry)| {
             let payload = entry.as_steer_input()?;
-            (!payload.previous_assistant_message_id.is_empty()
-                && !payload.next_assistant_message_id.is_empty())
-            .then_some((
-                index,
-                payload.previous_assistant_message_id.clone(),
-                payload.next_assistant_message_id.clone(),
-            ))
+            (!payload.next_assistant_message_id.is_empty())
+                .then_some((index, payload.next_assistant_message_id.clone()))
         });
-    let mut replay_start_index = latest_checkpoint
-        .as_ref()
-        .map_or(0, |(index, _, _)| index + 1);
-    let unstarted_checkpoint_previous_assistant_message_id = latest_checkpoint
-        .as_ref()
-        .filter(|(index, _, _)| index + 1 == journal_entries.len())
-        .map(|(_, previous_message_id, _)| previous_message_id.clone());
+    let mut replay_start_index = latest_checkpoint.as_ref().map_or(0, |(index, _)| index + 1);
     let mut active_assistant_message_id =
-        latest_checkpoint.map(|(_, _, next_message_id)| next_message_id);
-    let initial_replay_start = replay_start_index;
+        latest_checkpoint.map(|(_, next_message_id)| next_message_id);
     let journal_entry_ids = journal_entries
         .iter()
         .map(|entry| entry.journal_entry_id.as_str())
@@ -244,10 +187,6 @@ pub(crate) async fn plan_journal_recovery(
         }
     }
 
-    let replay_prefix_ends_after_finalized_tool_results = replay_start_index > initial_replay_start
-        && journal_prefix_ends_after_complete_tool_results(
-            &journal_entries[initial_replay_start..replay_start_index],
-        );
     let mut excluded_history_message_ids = journal_entries[replay_start_index..]
         .iter()
         .filter_map(|entry| entry.as_steer_input())
@@ -269,8 +208,6 @@ pub(crate) async fn plan_journal_recovery(
     Ok(JournalRecoveryPlan {
         replay_start_index,
         excluded_history_message_ids,
-        replay_prefix_ends_after_finalized_tool_results,
-        unstarted_checkpoint_previous_assistant_message_id,
     })
 }
 
@@ -470,10 +407,6 @@ mod tests {
         assert_eq!(plan.replay_start_index, 4);
         assert!(plan.excluded_history_message_ids.is_empty());
         assert_eq!(
-            plan.unstarted_checkpoint_previous_assistant_message_id,
-            None
-        );
-        assert_eq!(
             entries[plan.replay_start_index]
                 .as_llm_response()
                 .unwrap()
@@ -577,6 +510,115 @@ mod tests {
             .unwrap();
 
         assert_eq!(plan.replay_start_index, 2);
-        assert!(plan.replay_prefix_ends_after_finalized_tool_results);
+    }
+
+    #[tokio::test]
+    async fn starts_after_pre_assistant_steer_checkpoint() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        create_claimed_submission(kv.as_ref()).await;
+
+        sessions::append_steer_input(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &["steer-1".to_string(), "steer-2".to_string()],
+            "",
+            "assistant-1",
+            10,
+        )
+        .await
+        .unwrap();
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "assistant-1",
+            &ChatResponse {
+                content: "working".to_string(),
+                tool_calls: vec![ToolCall {
+                    id: "tool-1".to_string(),
+                    name: "lookup".to_string(),
+                    arguments: "{}".to_string(),
+                }],
+                usage: None,
+            },
+            15,
+        )
+        .await
+        .unwrap();
+        sessions::append_steer_input(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &["steer-3".to_string()],
+            "assistant-1",
+            "assistant-2",
+            20,
+        )
+        .await
+        .unwrap();
+        sessions::append_steer_input(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &["steer-4".to_string()],
+            "",
+            "assistant-3",
+            25,
+        )
+        .await
+        .unwrap();
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "assistant-3",
+            &ChatResponse {
+                content: "continuing".to_string(),
+                tool_calls: vec![ToolCall {
+                    id: "tool-2".to_string(),
+                    name: "lookup".to_string(),
+                    arguments: "{}".to_string(),
+                }],
+                usage: None,
+            },
+            30,
+        )
+        .await
+        .unwrap();
+
+        let entries =
+            sessions::list_journal_entries(kv.as_ref(), "ns", "agent", "session-1", "submission-1")
+                .await
+                .unwrap();
+        let plan = plan_journal_recovery(&cp, "ns", "agent", "session-1", "submission-1", &entries)
+            .await
+            .unwrap();
+
+        assert_eq!(plan.replay_start_index, 4);
+        assert!(plan.excluded_history_message_ids.is_empty());
+        assert_eq!(
+            entries[plan.replay_start_index]
+                .as_llm_response()
+                .unwrap()
+                .assistant_message_id,
+            "assistant-3"
+        );
     }
 }

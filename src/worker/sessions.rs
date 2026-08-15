@@ -113,13 +113,8 @@ pub(super) enum SessionCompletionStatus {
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum PreparedSubmissionState {
     ContinueExecution,
-    ContinueAfterToolResults {
-        assistant_segment_already_finalized: bool,
-    },
     StopAfterToolResult,
-    FinalResponseReady {
-        content: String,
-    },
+    FinalResponseReady { content: String },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -194,7 +189,6 @@ async fn prepare_context_for_claimed_submission(
     submission_id: &str,
     attempt_id: &str,
     journal_entries: &[sessions::SessionJournalEntry],
-    replay_prefix_ends_after_finalized_tool_results: bool,
     runtime: &mut AgentRuntime,
 ) -> Result<PreparedSubmission> {
     async fn hydrate_steering_input(
@@ -235,9 +229,6 @@ async fn prepare_context_for_claimed_submission(
     let mut projection_parts = Vec::new();
     let mut next_projection_part_index = 0usize;
     let mut hydrated_steering_message_ids = HashSet::new();
-    let mut last_boundary_completed_tool_results = replay_prefix_ends_after_finalized_tool_results;
-    let mut last_completed_tool_turn_already_finalized =
-        replay_prefix_ends_after_finalized_tool_results;
     let mut latest_appended_journal_entry_id = None;
     let mut index = 0;
     while index < journal_entries.len() {
@@ -275,8 +266,6 @@ async fn prepare_context_for_claimed_submission(
                     .push(LoopMessage::text("assistant", summary));
                 // Drop derived recovery state since the compaction boundary replaces history.
                 latest_final_response = None;
-                last_boundary_completed_tool_results = false;
-                last_completed_tool_turn_already_finalized = false;
             } else {
                 return Err(anyhow!("COMPACTION entry is missing payload"));
             }
@@ -296,8 +285,6 @@ async fn prepare_context_for_claimed_submission(
                 runtime,
             )
             .await?;
-            last_boundary_completed_tool_results = false;
-            last_completed_tool_turn_already_finalized = false;
             index += 1;
             continue;
         }
@@ -349,14 +336,11 @@ async fn prepare_context_for_claimed_submission(
         };
         if response.tool_calls.is_empty() {
             latest_final_response = Some(response);
-            last_boundary_completed_tool_results = false;
-            last_completed_tool_turn_already_finalized = false;
             index += 1;
             continue;
         }
 
         latest_final_response = None;
-        last_completed_tool_turn_already_finalized = false;
         let tool_calls = response.tool_calls.clone();
         let mut assistant_message = LoopMessage::text("assistant", response.content.clone());
         assistant_message.tool_calls = Some(tool_calls.clone());
@@ -482,7 +466,6 @@ async fn prepare_context_for_claimed_submission(
             stop_after_tool_results |=
                 crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
         }
-        last_boundary_completed_tool_results = steering_entries.is_empty();
         for entry in steering_entries {
             hydrate_steering_input(
                 cp,
@@ -494,7 +477,6 @@ async fn prepare_context_for_claimed_submission(
                 runtime,
             )
             .await?;
-            last_boundary_completed_tool_results = false;
         }
         if stop_after_tool_results {
             return Ok(PreparedSubmission {
@@ -516,13 +498,7 @@ async fn prepare_context_for_claimed_submission(
     }
 
     Ok(PreparedSubmission {
-        state: if last_boundary_completed_tool_results {
-            PreparedSubmissionState::ContinueAfterToolResults {
-                assistant_segment_already_finalized: last_completed_tool_turn_already_finalized,
-            }
-        } else {
-            PreparedSubmissionState::ContinueExecution
-        },
+        state: PreparedSubmissionState::ContinueExecution,
         projection_parts,
         latest_appended_journal_entry_id,
     })
@@ -1000,7 +976,6 @@ impl WorkerEventHandler {
                 &submission.submission_id,
                 &submission.attempt_id,
                 &journal_entries[recovery_plan.replay_start_index..],
-                recovery_plan.replay_prefix_ends_after_finalized_tool_results,
                 &mut runtime,
             )
             .await?;
@@ -1048,27 +1023,8 @@ impl WorkerEventHandler {
                 sink.on_done().await;
                 return Ok((SessionCompletionStatus::Waiting, sink.summary()));
             }
-            if let PreparedSubmissionState::ContinueAfterToolResults {
-                assistant_segment_already_finalized,
-            } = prepared_submission.state
-            {
-                let steering = sink
-                    .take_recovery_steering_messages(assistant_segment_already_finalized)
-                    .await?;
-                runtime.context.push_many(steering);
-            } else if let Some(previous_assistant_message_id) = recovery_plan
-                .unstarted_checkpoint_previous_assistant_message_id
-                .as_deref()
-            {
-                // The latest checkpoint allocated a continuation ID, but no
-                // continuation journal record was written before the crash.
-                // Fold any steering that arrived while the worker was down
-                // into a replacement checkpoint before the first LLM call.
-                let steering = sink
-                    .take_recovery_steering_messages_after_checkpoint(previous_assistant_message_id)
-                    .await?;
-                runtime.context.push_many(steering);
-            }
+            let steering = sink.take_steering_messages().await?;
+            runtime.context.push_many(steering);
 
             // Continue execution from the prepared context. The executor only
             // appends new durable journal boundaries after this point.
@@ -4867,7 +4823,6 @@ mod tests {
             "submission-1",
             "attempt-1",
             &entries,
-            false,
             &mut runtime,
         )
         .await
@@ -5049,7 +5004,6 @@ mod tests {
             "submission-1",
             "attempt-1",
             &entries,
-            false,
             &mut runtime,
         )
         .await
@@ -5146,7 +5100,6 @@ mod tests {
             "submission-1",
             "attempt-1",
             &entries,
-            false,
             &mut runtime,
         )
         .await
@@ -5157,6 +5110,10 @@ mod tests {
                 .unwrap();
 
         assert_eq!(recovered_entries.len(), 2);
+        assert_eq!(
+            prepared.state,
+            super::PreparedSubmissionState::ContinueExecution
+        );
         assert_eq!(
             prepared.latest_appended_journal_entry_id.as_deref(),
             Some(recovered_entries[1].journal_entry_id.as_str())
