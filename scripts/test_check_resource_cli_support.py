@@ -69,8 +69,15 @@ class ResourceCliSupportCheckTests(unittest.TestCase):
 
     def test_missing_resource_is_reported(self) -> None:
         self.assertIn(
-            "Skill: missing from proto/resources.toml",
+            "Skill: missing from proto/resources.toml (ResourceSpec)",
             validate(PROTO, REGISTRY.replace('kind = "Skill"', 'kind = "Missing"', 1)),
+        )
+
+    def test_resource_envelopes_are_checked_independently(self) -> None:
+        status_missing_skill = PROTO.replace("CommonResourceStatus skill = 2;", "")
+        self.assertIn(
+            "Skill: ResourceSpec arm is missing from ResourceStatus",
+            validate(status_missing_skill, REGISTRY),
         )
 
     def test_stale_resource_is_reported(self) -> None:
@@ -95,6 +102,17 @@ cli_list = true
     def test_internal_resource_cannot_be_user_authorable(self) -> None:
         invalid = REGISTRY.replace("user_authorable = false", "user_authorable = true", 1)
         self.assertTrue(any("Worker: user_authorable resources" in error for error in validate(PROTO, invalid)))
+
+    def test_runtime_policy_enums_are_validated(self) -> None:
+        invalid = (
+            REGISTRY.replace('lookup_namespace = "required"', 'lookup_namespace = "agnet"', 1)
+            .replace('list_namespace = "default"', 'list_namespace = "defualt"', 1)
+            .replace('name_policy = "plain"', 'name_policy = "plian"', 1)
+        )
+        errors = validate(PROTO, invalid)
+        self.assertTrue(any("lookup_namespace" in error for error in errors))
+        self.assertTrue(any("list_namespace" in error for error in errors))
+        self.assertTrue(any("name_policy" in error for error in errors))
 
 
 if __name__ == "__main__":

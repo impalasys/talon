@@ -18,6 +18,16 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROTO = ROOT / "proto/resources/resource.proto"
 DEFAULT_REGISTRY = ROOT / "proto/resources.toml"
 EXPECTED_ROUTES = {"generic", "legacy", "namespace", "internal"}
+EXPECTED_LOOKUP_NAMESPACES = {
+    "agent",
+    "default",
+    "none",
+    "required",
+    "system",
+    "system_fixed",
+}
+EXPECTED_LIST_NAMESPACES = {"default", "system"}
+EXPECTED_NAME_POLICIES = {"agent", "channel_subscription", "plain"}
 IGNORED_KINDS = {"Raw"}
 
 
@@ -41,9 +51,10 @@ def _pascal_case(value: str) -> str:
     return "".join(part[:1].upper() + part[1:] for part in value.split("_"))
 
 
-def protobuf_resource_kinds(source: str) -> set[str]:
-    kinds: set[str] = set()
+def protobuf_resource_kinds(source: str) -> tuple[set[str], set[str]]:
+    envelope_kinds: dict[str, set[str]] = {}
     for message in ("ResourceSpec", "ResourceStatus"):
+        kinds: set[str] = set()
         body = _block(source, rf"message\s+{message}\s*\{{")
         oneof = _block(body, r"oneof\s+kind\s*\{")
         for field in re.finditer(
@@ -52,7 +63,17 @@ def protobuf_resource_kinds(source: str) -> set[str]:
             re.MULTILINE,
         ):
             kinds.add(_pascal_case(field.group(1)))
-    return kinds - IGNORED_KINDS
+        envelope_kinds[message] = kinds - IGNORED_KINDS
+    return envelope_kinds["ResourceSpec"], envelope_kinds["ResourceStatus"]
+
+
+def _validate_enum(
+    errors: list[str], kind: str, field: str, value: object, expected: set[str]
+) -> None:
+    if not isinstance(value, str) or value not in expected:
+        errors.append(
+            f"{kind}: {field} must be one of {', '.join(sorted(expected))}; got {value!r}"
+        )
 
 
 def registry_kinds(registry_text: str) -> tuple[dict[str, dict], list[str]]:
@@ -93,10 +114,24 @@ def registry_kinds(registry_text: str) -> tuple[dict[str, dict], list[str]]:
             errors.append(f"duplicate registry kind: {kind}")
         entries[kind] = entry
 
-        if entry["apply_route"] not in EXPECTED_ROUTES:
-            errors.append(
-                f"{kind}: unsupported apply_route {entry['apply_route']!r}"
-            )
+        _validate_enum(errors, kind, "apply_route", entry["apply_route"], EXPECTED_ROUTES)
+        _validate_enum(
+            errors,
+            kind,
+            "lookup_namespace",
+            entry["lookup_namespace"],
+            EXPECTED_LOOKUP_NAMESPACES,
+        )
+        _validate_enum(
+            errors,
+            kind,
+            "list_namespace",
+            entry["list_namespace"],
+            EXPECTED_LIST_NAMESPACES,
+        )
+        _validate_enum(
+            errors, kind, "name_policy", entry["name_policy"], EXPECTED_NAME_POLICIES
+        )
         if entry["user_authorable"] and entry["apply_route"] == "internal":
             errors.append(f"{kind}: user_authorable resources cannot be internal")
         if not isinstance(entry["aliases"], list):
@@ -116,7 +151,7 @@ def registry_kinds(registry_text: str) -> tuple[dict[str, dict], list[str]]:
 
 def validate(proto_text: str, registry_text: str) -> list[str]:
     try:
-        proto_kinds = protobuf_resource_kinds(proto_text)
+        spec_kinds, status_kinds = protobuf_resource_kinds(proto_text)
     except ValueError as error:
         return [f"protobuf resource envelope: {error}"]
     try:
@@ -124,10 +159,20 @@ def validate(proto_text: str, registry_text: str) -> list[str]:
     except Exception as error:  # TOML parser errors should be actionable in CI.
         return [f"resource registry is invalid: {error}"]
 
+    if spec_kinds != status_kinds:
+        for kind in sorted(spec_kinds - status_kinds):
+            errors.append(f"{kind}: ResourceSpec arm is missing from ResourceStatus")
+        for kind in sorted(status_kinds - spec_kinds):
+            errors.append(f"{kind}: ResourceStatus arm is missing from ResourceSpec")
+
     registered = set(entries)
-    for kind in sorted(proto_kinds - registered):
-        errors.append(f"{kind}: missing from proto/resources.toml")
-    for kind in sorted(registered - proto_kinds):
+    for envelope, proto_kinds in (
+        ("ResourceSpec", spec_kinds),
+        ("ResourceStatus", status_kinds),
+    ):
+        for kind in sorted(proto_kinds - registered):
+            errors.append(f"{kind}: missing from proto/resources.toml ({envelope})")
+    for kind in sorted(registered - (spec_kinds | status_kinds)):
         errors.append(f"{kind}: registry entry has no ResourceSpec/ResourceStatus arm")
     for kind, entry in sorted(entries.items()):
         if entry.get("user_authorable") and entry.get("apply_route") not in EXPECTED_ROUTES:
