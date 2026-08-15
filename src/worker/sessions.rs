@@ -386,10 +386,10 @@ async fn prepare_context_for_claimed_submission(
                 (phase, None) if phase == SessionExecutionPhase::ToolResult as i32 => {
                     return Err(anyhow!("TOOL_RESULT entry is missing payload"));
                 }
-                (phase, Some(session_journal_entry_payload::Payload::SteerInput(_)))
+                (phase, Some(session_journal_entry_payload::Payload::SteerInput(payload)))
                     if phase == SessionExecutionPhase::SteerInput as i32 =>
                 {
-                    steer_boundary_seen = true;
+                    steer_boundary_seen |= !payload.next_assistant_message_id.is_empty();
                     steering_entries.push(entry.clone());
                 }
                 _ => {}
@@ -687,10 +687,9 @@ impl WorkerEventHandler {
                     _ => current,
                 }
             });
-        if let Some(recovered_reply_msg_id) = recovered_reply_msg_id {
-            if recovered_reply_msg_id != reply_msg_id {
-                sink.rotate_reply_message(recovered_reply_msg_id);
-            }
+        let effective_reply_msg_id = recovered_reply_msg_id.unwrap_or_else(|| reply_msg_id.clone());
+        if effective_reply_msg_id != reply_msg_id {
+            sink.rotate_reply_message(effective_reply_msg_id.clone());
         }
         sink.seed_latest_journal_entry_id(
             journal_entries
@@ -917,7 +916,7 @@ impl WorkerEventHandler {
                 ns,
                 &event.agent,
                 &event.session_id,
-                &reply_msg_id,
+                &effective_reply_msg_id,
                 &submission.submission_id,
                 &submission.attempt_id,
                 &journal_entries,
@@ -4782,6 +4781,162 @@ mod tests {
         assert_eq!(
             runtime.context.history[0].text_content(),
             "# Compacted context\n\nThe user asked for a lookup."
+        );
+    }
+
+    #[tokio::test]
+    async fn prepare_context_preserves_projection_parts_for_legacy_steer_input() {
+        use crate::control::cas::CasStore;
+        use crate::gateway::rpc::data_proto::{
+            SessionExecutionPhase as DataPhase, SessionSubmissionStatus,
+        };
+        use crate::harness::executor::{AgentExecutor, ContextAssembler, ExecutionContext};
+        use crate::harness::llm::{ChatResponse, MockLlmProvider, ToolCall, ToolOutput};
+        use crate::harness::skills::registry::ToolRegistry;
+
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(
+            kv.clone(),
+            Arc::new(crate::test_support::RecordingPubSub::default()),
+        )
+        .build();
+        let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
+        submission.status = SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        sessions::create_submission_if_absent(&*kv, "ns", "agent", "session-1", &submission)
+            .await
+            .unwrap();
+
+        kv.set_msg(
+            &crate::control::keys::session_message("ns", "agent", "session-1", "user-steer"),
+            &data_proto::SessionMessage {
+                id: "user-steer".to_string(),
+                role: data_proto::MessageRole::RoleUser as i32,
+                created_at: 15,
+                labels: HashMap::new(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "continue with this extra request".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 15,
+                    object: None,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut runtime = super::AgentRuntime {
+            executor: AgentExecutor::new_with_session(
+                Arc::new(MockLlmProvider),
+                "test-provider".to_string(),
+                "test-model".to_string(),
+                ContextAssembler::new("."),
+                registry,
+                Arc::new(Config::default()),
+                "ns".to_string(),
+                "agent".to_string(),
+                "session-1".to_string(),
+                None,
+                cp.clone(),
+                manifests::AgentSpec::default(),
+                HashMap::new(),
+            ),
+            context: ExecutionContext::new("agent"),
+        };
+        let response = ChatResponse {
+            content: "I will look that up.".to_string(),
+            tool_calls: vec![ToolCall {
+                id: "tool-1".to_string(),
+                name: "lookup".to_string(),
+                arguments: "{\"query\":\"value\"}".to_string(),
+            }],
+            usage: None,
+        };
+        sessions::append_llm_response(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            "reply-1",
+            &response,
+            20,
+        )
+        .await
+        .unwrap();
+        sessions::append_tool_result(
+            kv.as_ref(),
+            &CasStore::new(cp.objects.clone()),
+            "ns",
+            "agent",
+            "session-1",
+            "reply-1",
+            "part-1",
+            "submission-1",
+            "attempt-1",
+            "tool-1",
+            "lookup",
+            &ToolOutput::text("lookup result"),
+            30,
+        )
+        .await
+        .unwrap();
+        sessions::append_steer_input(
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session-1",
+            "submission-1",
+            "attempt-1",
+            &["user-steer".to_string()],
+            "",
+            "",
+            40,
+        )
+        .await
+        .unwrap();
+
+        let entries =
+            sessions::list_journal_entries(&*kv, "ns", "agent", "session-1", "submission-1")
+                .await
+                .unwrap();
+        assert_eq!(entries[2].phase, DataPhase::SteerInput as i32);
+
+        let prepared = super::prepare_context_for_claimed_submission(
+            &cp,
+            "ns",
+            "agent",
+            "session-1",
+            "reply-1",
+            "submission-1",
+            "attempt-1",
+            &entries,
+            &mut runtime,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(prepared.projection_parts.len(), 3);
+        assert!(matches!(
+            prepared.projection_parts[0],
+            super::RecoveredProjectionPart::Text { .. }
+        ));
+        assert!(matches!(
+            prepared.projection_parts[1],
+            super::RecoveredProjectionPart::ToolCall { .. }
+        ));
+        assert!(matches!(
+            prepared.projection_parts[2],
+            super::RecoveredProjectionPart::ToolResult { .. }
+        ));
+        assert_eq!(
+            runtime.context.history.last().unwrap().text_content(),
+            "continue with this extra request"
         );
     }
 }

@@ -621,7 +621,8 @@ def journal_payload_dict(entry: SessionJournalEntry) -> dict[str, Any] | None:
         return None
     payload_kind = entry.payload.WhichOneof("payload")
     if payload_kind == "llm_response":
-        response = entry.payload.llm_response.response
+        llm_response = entry.payload.llm_response
+        response = llm_response.response
         return {
             "llmResponse": {
                 "content": response.content,
@@ -633,7 +634,7 @@ def journal_payload_dict(entry: SessionJournalEntry) -> dict[str, Any] | None:
                     }
                     for tool in response.tool_calls
                 ],
-                "assistantMessageId": getattr(response, "assistant_message_id", ""),
+                "assistantMessageId": llm_response.assistant_message_id,
             }
         }
     if payload_kind == "tool_result":
@@ -643,6 +644,11 @@ def journal_payload_dict(entry: SessionJournalEntry) -> dict[str, Any] | None:
                 "toolCallId": result.tool_call_id,
                 "name": result.name,
                 "output": result.output,
+                "objectKeys": [
+                    part.object_ref.key
+                    for part in result.tool_output.content_parts
+                    if part.HasField("object_ref")
+                ],
             }
         }
     if payload_kind == "commit":
@@ -1104,6 +1110,19 @@ def test_tool_call_recorded_worker_kill_restart_recovers_from_journal(
     assert final_submission is not None
     final_entries = infra.kv.read_journal_entries(namespace, agent, session_id, submission_id)
     final_mock_state = mock_control("GET", "/__control/state")
+    llm_entries = entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_LLM_RESPONSE)
+    assert len(llm_entries) == 2
+    assert all(
+        entry["payload"]["llmResponse"]["assistantMessageId"] == assistants[0].id
+        for entry in llm_entries
+    )
+    tool_result_entries = entries_with_phase(
+        final_entries, SESSION_EXECUTION_PHASE_TOOL_RESULT
+    )
+    assert len(tool_result_entries) == 1
+    object_keys = tool_result_entries[0]["payload"]["toolResult"]["objectKeys"]
+    assert len(object_keys) == 1
+    assert f"/messages/{assistants[0].id}/" in object_keys[0]
 
     assert final_submission["status"] == SESSION_SUBMISSION_STATUS_COMMITTED
     assert final_submission["currentPhase"] == SESSION_EXECUTION_PHASE_COMMITTED
@@ -1230,6 +1249,11 @@ def test_steer_boundary_worker_restart_recovers_ordered_assistant_segments(
         final_entries = infra.kv.read_journal_entries(
             namespace, agent, session_id, submission_id
         )
+        llm_assistant_ids = {
+            entry["payload"]["llmResponse"]["assistantMessageId"]
+            for entry in entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_LLM_RESPONSE)
+        }
+        assert {assistants[0].id, assistants[1].id} <= llm_assistant_ids
         assert final_submission["attemptCount"] >= 2
         assert final_submission["committedMessageId"] == assistants[1].id
         assert len(entries_with_phase(final_entries, SESSION_EXECUTION_PHASE_STEER_INPUT)) == 1
