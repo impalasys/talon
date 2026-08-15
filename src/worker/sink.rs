@@ -383,6 +383,17 @@ pub struct PubSubSessionSink {
     usage_events: Mutex<u64>,
 }
 
+enum SteeringCheckpointMode {
+    Live,
+    RecoveryAfterUnfinalizedSegment,
+    RecoveryAfterFinalizedSegment {
+        previous_assistant_message_id: String,
+    },
+    ReplaceUnstartedContinuation {
+        previous_assistant_message_id: String,
+    },
+}
+
 impl PubSubSessionSink {
     pub fn new(
         kv: Arc<dyn KeyValueStore>,
@@ -1339,24 +1350,29 @@ impl PubSubSessionSink {
         &self,
         assistant_segment_already_finalized: bool,
     ) -> Result<Vec<crate::harness::executor::LoopMessage>> {
-        let finalized_assistant_message_id =
-            assistant_segment_already_finalized.then(|| self.current_reply_msg_id());
-        self.take_steering_messages_inner(finalized_assistant_message_id, false)
-            .await
+        let mode = if assistant_segment_already_finalized {
+            SteeringCheckpointMode::RecoveryAfterFinalizedSegment {
+                previous_assistant_message_id: self.current_reply_msg_id(),
+            }
+        } else {
+            SteeringCheckpointMode::RecoveryAfterUnfinalizedSegment
+        };
+        self.checkpoint_steering_batch(mode).await
     }
 
     pub(crate) async fn take_recovery_steering_messages_after_checkpoint(
         &self,
         previous_assistant_message_id: &str,
     ) -> Result<Vec<crate::harness::executor::LoopMessage>> {
-        self.take_steering_messages_inner(Some(previous_assistant_message_id.to_string()), true)
-            .await
+        self.checkpoint_steering_batch(SteeringCheckpointMode::ReplaceUnstartedContinuation {
+            previous_assistant_message_id: previous_assistant_message_id.to_string(),
+        })
+        .await
     }
 
-    async fn take_steering_messages_inner(
+    async fn checkpoint_steering_batch(
         &self,
-        finalized_assistant_message_id: Option<String>,
-        discard_replaced_projection: bool,
+        mode: SteeringCheckpointMode,
     ) -> Result<Vec<crate::harness::executor::LoopMessage>> {
         const MAX_STEER_DRAINS: u8 = 4;
         let drain_attempt = {
@@ -1398,17 +1414,25 @@ impl PubSubSessionSink {
             .iter()
             .map(|message| message.message_id.clone())
             .collect::<Vec<_>>();
-        let previous_assistant_message_id = match finalized_assistant_message_id {
-            Some(message_id) => message_id,
-            None => self.finalize_assistant_segment().await?,
+        let previous_assistant_message_id = match mode {
+            SteeringCheckpointMode::Live
+            | SteeringCheckpointMode::RecoveryAfterUnfinalizedSegment => {
+                self.finalize_assistant_segment().await?
+            }
+            SteeringCheckpointMode::RecoveryAfterFinalizedSegment {
+                previous_assistant_message_id,
+            } => previous_assistant_message_id,
+            SteeringCheckpointMode::ReplaceUnstartedContinuation {
+                previous_assistant_message_id,
+            } => {
+                // This projection has no completed LLM journal entry. Remove it
+                // before making the replacement checkpoint durable so every crash
+                // state is recoverable from the old checkpoint plus the queue, or
+                // from the new checkpoint without a stale visible assistant.
+                self.discard_current_uncommitted_projection().await?;
+                previous_assistant_message_id
+            }
         };
-        if discard_replaced_projection {
-            // This projection has no completed LLM journal entry. Remove it
-            // before making the replacement checkpoint durable so every crash
-            // state is recoverable from the old checkpoint plus the queue, or
-            // from the new checkpoint without a stale visible assistant.
-            self.discard_current_uncommitted_projection().await?;
-        }
         // The steer messages were assigned their UUID7 ids while preparing the
         // batch. Allocate the continuation only after them so session-key
         // ordering matches conversational ordering.
@@ -1636,7 +1660,8 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn take_steering_messages(&self) -> Result<Vec<crate::harness::executor::LoopMessage>> {
-        self.take_steering_messages_inner(None, false).await
+        self.checkpoint_steering_batch(SteeringCheckpointMode::Live)
+            .await
     }
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput) {
