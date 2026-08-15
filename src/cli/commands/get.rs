@@ -11,7 +11,7 @@ use talon_client::v1::{GetResourceRequest, ListNamespacesRequest, ListResourcesR
 
 #[derive(clap::Args)]
 pub(crate) struct GetCommand {
-    /// Type of resource to get: agent, template, mcp-server, worker, knowledge, file, task, secret, schedule, channel, channel-subscription
+    /// Type of resource to get, such as agent, skill, template, or workflow.
     #[arg(value_name = "KIND")]
     pub(crate) kind: String,
     /// Name of the resource. Omit to list resources of this kind.
@@ -87,103 +87,25 @@ fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<Resour
         "namespace" | "namespaces" => Ok(ResourceListTarget::Namespaces {
             parent: namespace.cloned(),
         }),
-        "agent" | "agents" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Agent".to_string()),
-        }),
-        "agenttemplate" | "templates" | "template" => Ok(ResourceListTarget::Resources {
-            ns: namespace.cloned().unwrap_or_else(system_ns),
-            kind: Some("Template".to_string()),
-        }),
-        "mcpserver" | "mcpservers" | "mcp" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("McpServer".to_string()),
-        }),
-        "worker" | "workers" => Ok(ResourceListTarget::Resources {
-            ns: system_ns(),
-            kind: Some("Worker".to_string()),
-        }),
-        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
+        _ => {
+            let resource = crate::cli::resource_kind(kind)
+                .with_context(|| format!("Unsupported resource kind '{}'", kind))?;
+            if !resource.cli_list {
+                anyhow::bail!("Unsupported resource kind '{}'", kind);
+            }
+            let ns = match resource.list_namespace.as_str() {
+                "default" => ns_or_default(),
+                "system" => system_ns(),
+                policy => anyhow::bail!(
+                    "Unsupported list namespace policy '{}'; check resource registry",
+                    policy
+                ),
+            };
             Ok(ResourceListTarget::Resources {
-                ns: ns_or_default(),
-                kind: Some("Knowledge".to_string()),
+                ns,
+                kind: Some(resource.kind.clone()),
             })
         }
-        "file" | "files" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("File".to_string()),
-        }),
-        "task" | "tasks" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Task".to_string()),
-        }),
-        "secret" | "secrets" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Secret".to_string()),
-        }),
-        "schedule" | "schedules" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Schedule".to_string()),
-        }),
-        "channel" | "channels" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Channel".to_string()),
-        }),
-        "channelsubscription"
-        | "channelsubscriptions"
-        | "channel-subscription"
-        | "channel-subscriptions" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("ChannelSubscription".to_string()),
-        }),
-        "workflow" | "workflows" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Workflow".to_string()),
-        }),
-        "deployment" | "deployments" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Deployment".to_string()),
-        }),
-        "deploymentreplica"
-        | "deploymentreplicas"
-        | "deployment-replica"
-        | "deployment-replicas" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("DeploymentReplica".to_string()),
-        }),
-        "sandboxclass" | "sandboxclasses" | "sandbox-class" | "sandbox-classes" => {
-            Ok(ResourceListTarget::Resources {
-                ns: ns_or_default(),
-                kind: Some("SandboxClass".to_string()),
-            })
-        }
-        "sandboxpolicy" | "sandboxpolicies" | "sandbox-policy" | "sandbox-policies" => {
-            Ok(ResourceListTarget::Resources {
-                ns: ns_or_default(),
-                kind: Some("SandboxPolicy".to_string()),
-            })
-        }
-        "sandbox" | "sandboxes" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Sandbox".to_string()),
-        }),
-        "usagepolicy" | "usagepolicies" | "usage-policy" | "usage-policies" => {
-            Ok(ResourceListTarget::Resources {
-                ns: ns_or_default(),
-                kind: Some("UsagePolicy".to_string()),
-            })
-        }
-        "connectorclass" | "connectorclasses" | "connector-class" | "connector-classes" => {
-            Ok(ResourceListTarget::Resources {
-                ns: ns_or_default(),
-                kind: Some("ConnectorClass".to_string()),
-            })
-        }
-        "connector" | "connectors" => Ok(ResourceListTarget::Resources {
-            ns: ns_or_default(),
-            kind: Some("Connector".to_string()),
-        }),
-        other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }
 
@@ -586,6 +508,13 @@ mod tests {
             ResourceListTarget::Resources {
                 ns: "customers:acme".to_string(),
                 kind: Some("SandboxClass".to_string()),
+            }
+        );
+        assert_eq!(
+            resource_list_target("skills", Some(&namespace)).unwrap(),
+            ResourceListTarget::Resources {
+                ns: "customers:acme".to_string(),
+                kind: Some("Skill".to_string()),
             }
         );
         assert_eq!(

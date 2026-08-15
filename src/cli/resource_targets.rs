@@ -21,112 +21,37 @@ pub(super) fn resource_lookup_target(
     name: &str,
     namespace: Option<&String>,
 ) -> Result<(String, String, String)> {
-    match kind.to_lowercase().as_str() {
-        "agent" | "agents" => {
-            let (ns, agent_name) = agent_lookup_target(name, namespace);
-            Ok((ns, "Agent".to_string(), agent_name))
-        }
-        "agenttemplate" | "templates" | "template" => Ok((
-            namespace
-                .cloned()
-                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
-            "Template".to_string(),
-            name.to_string(),
-        )),
-        "mcpserver" | "mcpservers" | "mcp" => Ok((
-            namespace.cloned().context("McpServer requires --namespace")?,
-            "McpServer".to_string(),
-            name.to_string(),
-        )),
-        "worker" | "workers" => Ok((
-            crate::control::ns::TALON_SYSTEM.to_string(),
-            "Worker".to_string(),
-            name.to_string(),
-        )),
-        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-            let ns = namespace.cloned().context("Knowledge requires --namespace")?;
-            Ok((ns, "Knowledge".to_string(), name.to_string()))
-        }
-        "file" | "files" => {
-            let ns = namespace.cloned().context("File requires --namespace")?;
-            Ok((ns, "File".to_string(), name.to_string()))
-        }
-        "task" | "tasks" => {
-            let ns = namespace.cloned().context("Task requires --namespace")?;
-            Ok((ns, "Task".to_string(), name.to_string()))
-        }
-        "secret" | "secrets" => {
-            let ns = namespace.cloned().context("Secret requires --namespace")?;
-            Ok((ns, "Secret".to_string(), name.to_string()))
-        }
-        "schedule" | "schedules" => {
-            let ns = namespace.cloned().context("Schedule requires --namespace")?;
-            Ok((ns, "Schedule".to_string(), name.to_string()))
-        }
-        "channel" | "channels" => {
-            let ns = namespace.cloned().context("Channel requires --namespace")?;
-            Ok((ns, "Channel".to_string(), name.to_string()))
-        }
-        "channelsubscription"
-        | "channelsubscriptions"
-        | "channel-subscription"
-        | "channel-subscriptions" => {
-            let ns = namespace
-                .cloned()
-                .context("ChannelSubscription requires --namespace")?;
-            let subscription = name
-                .split_once('/')
-                .map(|(_, subscription)| subscription)
-                .unwrap_or(name);
-            Ok((
-                ns,
-                "ChannelSubscription".to_string(),
-                subscription.to_string(),
-            ))
-        }
-        "workflow" | "workflows" => {
-            let ns = namespace.cloned().context("Workflow requires --namespace")?;
-            Ok((ns, "Workflow".to_string(), name.to_string()))
-        }
-        "deployment" | "deployments" => {
-            let ns = namespace.cloned().context("Deployment requires --namespace")?;
-            Ok((ns, "Deployment".to_string(), name.to_string()))
-        }
-        "sandboxclass" | "sandboxclasses" | "sandbox-class" | "sandbox-classes" => Ok((
-            namespace
-                .cloned()
-                .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
-            "SandboxClass".to_string(),
-            name.to_string(),
-        )),
-        "sandboxpolicy" | "sandboxpolicies" | "sandbox-policy" | "sandbox-policies" => {
-            let ns = namespace
-                .cloned()
-                .context("SandboxPolicy requires --namespace")?;
-            Ok((ns, "SandboxPolicy".to_string(), name.to_string()))
-        }
-        "sandbox" | "sandboxes" => {
-            let ns = namespace.cloned().context("Sandbox requires --namespace")?;
-            Ok((ns, "Sandbox".to_string(), name.to_string()))
-        }
-        "usagepolicy" | "usagepolicies" | "usage-policy" | "usage-policies" => {
-            let ns = namespace
-                .cloned()
-                .context("UsagePolicy requires --namespace")?;
-            Ok((ns, "UsagePolicy".to_string(), name.to_string()))
-        }
-        "connectorclass" | "connectorclasses" | "connector-class" | "connector-classes" => {
-            let ns = namespace
-                .cloned()
-                .context("ConnectorClass requires --namespace")?;
-            Ok((ns, "ConnectorClass".to_string(), name.to_string()))
-        }
-        "connector" | "connectors" => {
-            let ns = namespace.cloned().context("Connector requires --namespace")?;
-            Ok((ns, "Connector".to_string(), name.to_string()))
-        }
-        other => anyhow::bail!("Unsupported resource kind '{}'", other),
+    let resource = crate::cli::resource_kind(kind)
+        .with_context(|| format!("Unsupported resource kind '{}'", kind))?;
+    if !resource.cli_lookup {
+        anyhow::bail!("Unsupported resource kind '{}'", kind);
     }
+
+    let final_namespace = match resource.lookup_namespace.as_str() {
+        "agent" => agent_lookup_target(name, namespace).0,
+        "default" => namespace.cloned().unwrap_or_else(|| "default".to_string()),
+        "required" => namespace
+            .cloned()
+            .with_context(|| format!("{} requires --namespace", resource.kind))?,
+        "system" => namespace
+            .cloned()
+            .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
+        "system_fixed" => crate::control::ns::TALON_SYSTEM.to_string(),
+        policy => anyhow::bail!("Unsupported lookup namespace policy '{}'; check resource registry", policy),
+    };
+
+    let final_name = match resource.name_policy.as_str() {
+        "agent" => agent_lookup_target(name, namespace).1,
+        "channel_subscription" => name
+            .split_once('/')
+            .map(|(_, subscription)| subscription)
+            .unwrap_or(name)
+            .to_string(),
+        "plain" => name.to_string(),
+        policy => anyhow::bail!("Unsupported name policy '{}'; check resource registry", policy),
+    };
+
+    Ok((final_namespace, resource.kind.clone(), final_name))
 }
 
 #[cfg(test)]
@@ -159,5 +84,20 @@ mod tests {
                 "docker-codex".to_string(),
             )
         );
+    }
+
+    #[test]
+    fn skill_lookup_requires_namespace_and_accepts_plural_alias() {
+        let namespace = "customers:source".to_string();
+
+        assert_eq!(
+            resource_lookup_target("skills", "review", Some(&namespace)).unwrap(),
+            (
+                "customers:source".to_string(),
+                "Skill".to_string(),
+                "review".to_string(),
+            )
+        );
+        assert!(resource_lookup_target("skill", "review", None).is_err());
     }
 }

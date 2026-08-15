@@ -79,40 +79,18 @@ fn is_yaml_file(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
-fn is_generic_resource_kind(kind: &str) -> bool {
-    matches!(
-        kind,
-        "Agent"
-            | "McpServer"
-            | "MCPServer"
-            | "Knowledge"
-            | "File"
-            | "Task"
-            | "Secret"
-            | "Channel"
-            | "ChannelSubscription"
-            | "Schedule"
-            | "Workflow"
-            | "Template"
-            | "Deployment"
-            | "DeploymentReplica"
-            | "SandboxClass"
-            | "SandboxPolicy"
-            | "Sandbox"
-            | "UsagePolicy"
-            | "ConnectorClass"
-            | "Connector"
-    )
-}
-
 fn resource_manifest_from_manifest(
     raw: &crate::control::manifest::RawManifest,
     content: &str,
 ) -> Result<(String, String, String, resources_proto::ResourceManifest)> {
     use resources_proto::resource_spec::Kind as SpecKind;
 
-    let mut manifest = match raw.kind.as_str() {
-        "MCPServer" | "McpServer" => {
+    let canonical_kind = crate::cli::canonical_resource_kind(&raw.kind)
+        .with_context(|| format!("Unsupported manifest kind '{}'", raw.kind))?;
+    let resource = crate::cli::resource_kind(canonical_kind).expect("canonical resource kind");
+
+    let mut manifest = match resource.apply_route.as_str() {
+        "legacy" if canonical_kind == "McpServer" => {
             let server = crate::control::manifest::parse_mcp_server(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
@@ -125,7 +103,7 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "Agent" => {
+        "legacy" if canonical_kind == "Agent" => {
             let agent = crate::control::manifest::parse_agent(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
@@ -138,7 +116,7 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "Knowledge" => {
+        "legacy" if canonical_kind == "Knowledge" => {
             let knowledge = crate::control::manifest::parse_knowledge(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
@@ -151,7 +129,7 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "File" => {
+        "legacy" if canonical_kind == "File" => {
             let file: resources_proto::File =
                 serde_yaml::from_str(content).context("Failed to parse File manifest")?;
             resources_proto::ResourceManifest {
@@ -165,7 +143,7 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "Task" => {
+        "legacy" if canonical_kind == "Task" => {
             let task: resources_proto::Task =
                 serde_yaml::from_str(content).context("Failed to parse Task manifest")?;
             resources_proto::ResourceManifest {
@@ -179,7 +157,7 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "Channel" => {
+        "legacy" if canonical_kind == "Channel" => {
             let channel = crate::control::manifest::parse_channel(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
@@ -192,7 +170,7 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "ChannelSubscription" => {
+        "legacy" if canonical_kind == "ChannelSubscription" => {
             let subscription = crate::control::manifest::parse_channel_subscription(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
@@ -208,7 +186,7 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "Workflow" => {
+        "legacy" if canonical_kind == "Workflow" => {
             let workflow = crate::control::manifest::parse_workflow(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
@@ -221,10 +199,12 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        kind if is_generic_resource_kind(kind) => {
+        "generic" => {
             crate::control::manifest::parse_resource_manifest(content)?
         }
-        other => anyhow::bail!("Unsupported manifest kind '{}'", other),
+        "namespace" => anyhow::bail!("Namespace manifests must be applied through the namespace path"),
+        "internal" => anyhow::bail!("Unsupported manifest kind '{}'", canonical_kind),
+        route => anyhow::bail!("Unsupported manifest route '{}' for kind '{}'", route, canonical_kind),
     };
     let meta = manifest
         .metadata
@@ -444,6 +424,37 @@ spec:
         assert_eq!(plans.len(), 2);
         assert!(matches!(plans[0], ApplyPlan::Namespace { .. }));
         assert!(matches!(plans[1], ApplyPlan::Resource { .. }));
+    }
+
+    #[test]
+    fn build_apply_plans_accepts_skill_manifests() {
+        let plans = build_apply_plans(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Skill
+metadata:
+  name: review
+  namespace: customers
+spec:
+  description: Review code
+"#,
+        )
+        .expect("Skill manifests should be accepted by apply");
+
+        let ApplyPlan::Resource {
+            ns, kind, name, manifest,
+        } = &plans[0]
+        else {
+            panic!("expected a resource apply plan");
+        };
+        assert_eq!(ns, "customers");
+        assert_eq!(kind, "Skill");
+        assert_eq!(name, "review");
+        assert!(matches!(
+            manifest.spec.as_ref().and_then(|spec| spec.kind.as_ref()),
+            Some(resources_proto::resource_spec::Kind::Skill(spec))
+                if spec.description == "Review code"
+        ));
     }
 
     #[test]

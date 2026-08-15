@@ -62,8 +62,10 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
     let raw = parse_raw_manifest(content)?;
     let manifest_value: serde_yaml::Value =
         serde_yaml::from_str(content).context("Failed to parse rendered manifest")?;
-    match raw.kind.as_str() {
-        "MCPServer" | "McpServer" => Ok(json!({ "server": manifest_value })),
+    let canonical_kind = crate::cli::canonical_resource_kind(&raw.kind)
+        .with_context(|| format!("Unsupported manifest kind '{}'", raw.kind))?;
+    match canonical_kind {
+        "McpServer" => Ok(json!({ "server": manifest_value })),
         "Agent" => Ok(json!({ "agent": manifest_value })),
         "Namespace" => {
             let namespace = crate::control::manifest::parse_namespace(content)?;
@@ -90,9 +92,9 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
             let workflow = crate::control::manifest::parse_workflow(content)?;
             Ok(json!({ "ns": workflow.namespace(), "workflow": workflow }))
         }
-        "Template" | "Deployment" | "DeploymentReplica" | "Schedule" | "SandboxClass"
-        | "SandboxPolicy" | "Sandbox" | "UsagePolicy" | "ConnectorClass" | "Connector"
-        | "Skill" | "File" | "Task" => Ok(json!({ "resource": manifest_value })),
+        kind if crate::cli::resource_kind(kind)
+            .map(|resource| resource.user_authorable)
+            .unwrap_or(false) => Ok(json!({ "resource": manifest_value })),
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
 }
