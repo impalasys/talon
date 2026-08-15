@@ -23,6 +23,7 @@ fn generated_data_types_can_reference_harness_types() {
             content: "ok".to_string(),
             ..Default::default()
         }),
+        assistant_message_id: "assistant-1".to_string(),
     };
     assert_eq!(payload.response.unwrap().content, "ok");
 }
