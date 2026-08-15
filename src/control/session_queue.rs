@@ -366,7 +366,12 @@ pub async fn dispatch_next_queued_message(
         {
             return Ok(None);
         }
-        if session.status != "IDLE" && session.status != "PROCESSING" {
+        // An errored session has no active worker, so a fresh interactive
+        // message in STEER should retain send_session_message's restart
+        // behavior. Keep NEXT/A2A entries blocked so a failed turn's backlog
+        // is not retried implicitly.
+        let can_restart_error = session.status == "ERROR" && queue == STEER_QUEUE;
+        if session.status != "IDLE" && session.status != "PROCESSING" && !can_restart_error {
             return Ok(None);
         }
         session.status = "PROCESSING".to_string();
@@ -1080,6 +1085,63 @@ mod tests {
             .unwrap()
             .len(),
             1
+        );
+    }
+
+    #[tokio::test]
+    async fn dispatch_restarts_error_session_from_steer_queue() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        put_session(&kv, "ERROR").await;
+        let queued = queue_text_message(
+            kv.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "recover from the failed turn",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+
+        let dispatched = dispatch_next_queued_message(
+            kv.as_ref(),
+            pubsub.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            Utc::now(),
+        )
+        .await
+        .unwrap()
+        .expect("interactive input should restart an errored session");
+
+        assert_eq!(dispatched.entry_id, queued.entry_id);
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                &queued.entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert_eq!(
+            kv.get_msg::<data_proto::Session>(&keys::session(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap()
+            .status,
+            "PROCESSING"
         );
     }
 }
