@@ -303,32 +303,6 @@ pub async fn queue_session_message(
     })
 }
 
-/// Route an interactive ingress message to the active turn when one is
-/// healthy; otherwise leave it in NEXT so it starts the next turn.
-pub async fn queue_interactive_session_message(
-    kv: &dyn KeyValueStore,
-    ns: &str,
-    agent: &str,
-    session_id: &str,
-    message: data_proto::SessionMessage,
-    now: DateTime<Utc>,
-) -> Result<QueuedSessionMessage> {
-    let queue = match kv
-        .get_msg::<data_proto::Session>(&keys::session(ns, agent, session_id))
-        .await?
-    {
-        Some(session)
-            if session.status == "PROCESSING"
-                && now.timestamp_micros().saturating_sub(session.last_active)
-                    <= scheduling::session_processing_timeout_micros() =>
-        {
-            STEER_QUEUE
-        }
-        _ => NEXT_QUEUE,
-    };
-    queue_session_message(kv, ns, agent, session_id, queue, message, now).await
-}
-
 /// Move steering entries to NEXT when the active attempt has failed. The
 /// destination is written before the source is deleted so a crash can leave a
 /// duplicate queue copy, but never lose the input.
@@ -978,6 +952,92 @@ mod tests {
             .await
             .iter()
             .any(|(topic, _)| topic == topics::SESSION_DISPATCH_TOPIC));
+    }
+
+    #[tokio::test]
+    async fn steer_queue_bootstraps_idle_session_and_preserves_later_entries() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        put_session(&kv, "IDLE").await;
+        let first = queue_text_message(
+            kv.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "first interactive message",
+            Default::default(),
+            DateTime::<Utc>::from_timestamp_micros(1_000_000).unwrap(),
+        )
+        .await
+        .unwrap();
+        let second = queue_text_message(
+            kv.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "second interactive message",
+            Default::default(),
+            DateTime::<Utc>::from_timestamp_micros(2_000_000).unwrap(),
+        )
+        .await
+        .unwrap();
+
+        let dispatched = dispatch_next_queued_message(
+            kv.as_ref(),
+            pubsub.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            DateTime::<Utc>::from_timestamp_micros(3_000_000).unwrap(),
+        )
+        .await
+        .unwrap()
+        .expect("oldest interactive message should bootstrap the session");
+
+        let message = kv
+            .get_msg::<data_proto::SessionMessage>(&keys::session_message(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                &dispatched.message_id,
+            ))
+            .await
+            .unwrap()
+            .expect("bootstrapped user message should be canonicalized");
+        assert_eq!(message.parts[0].content, "first interactive message");
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                &first.entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                &second.entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_some());
+        assert!(kv
+            .list_keys(
+                &keys::session_queue_prefix("Tenant:acme:Ops", "agent", "session-1", NEXT_QUEUE,),
+                None,
+            )
+            .await
+            .unwrap()
+            .is_empty());
     }
 
     #[tokio::test]

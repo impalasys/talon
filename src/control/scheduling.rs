@@ -617,6 +617,13 @@ pub async fn send_message(
     if message.trim().is_empty() {
         return Err(EmptyMessageError.into());
     }
+    if kv
+        .get(&keys::session(ns, agent, session_id))
+        .await?
+        .is_none()
+    {
+        return Err(SessionNotFoundError.into());
+    }
     let now_micros = now.timestamp_micros();
     let user_msg = data_proto::SessionMessage {
         id: crate::control::uuid::session_message_id(),
@@ -634,44 +641,43 @@ pub async fn send_message(
         }],
     };
 
-    // Interactive ingress is steerable while a healthy turn is running. The
-    // active worker will absorb this durable queue entry at its next tool
-    // boundary; idle sessions continue through the normal submission path.
-    if let Some(session) = kv
-        .get_msg::<data_proto::Session>(&keys::session(ns, agent, session_id))
-        .await?
+    // Interactive input uses STEER as its single durable inbox. When the
+    // session is idle, dispatch promotes the oldest entry into a new
+    // submission; while a worker is active, the worker drains it as steering.
+    let queued = crate::control::session_queue::queue_session_message(
+        kv,
+        ns,
+        agent,
+        session_id,
+        crate::control::session_queue::STEER_QUEUE,
+        user_msg,
+        now,
+    )
+    .await?;
+    match crate::control::session_queue::dispatch_next_queued_message(
+        kv,
+        pubsub,
+        ns,
+        agent,
+        session_id,
+        crate::control::session_queue::STEER_QUEUE,
+        now,
+    )
+    .await
     {
-        if session.status == "PROCESSING"
-            && now_micros.saturating_sub(session.last_active) <= session_processing_timeout_micros()
-        {
-            let queued = crate::control::session_queue::queue_interactive_session_message(
-                kv, ns, agent, session_id, user_msg, now,
-            )
-            .await?;
-            if let Err(err) = crate::control::session_queue::dispatch_next_queued_message(
-                kv,
-                pubsub,
-                ns,
-                agent,
-                session_id,
-                crate::control::session_queue::STEER_QUEUE,
-                now,
-            )
-            .await
-            {
-                tracing::warn!(
-                    namespace = %ns,
-                    agent = %agent,
-                    session = %session_id,
-                    error = %err,
-                    "failed to recheck queued interactive message after admission"
-                );
-            }
-            return Ok(queued.entry_id);
+        Ok(Some(dispatched)) => Ok(dispatched.submission_id),
+        Ok(None) => Ok(queued.entry_id),
+        Err(err) => {
+            tracing::warn!(
+                namespace = %ns,
+                agent = %agent,
+                session = %session_id,
+                error = %err,
+                "failed to recheck queued interactive message after admission"
+            );
+            Err(err)
         }
     }
-
-    send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now).await
 }
 
 pub async fn enqueue_message_without_dispatch(
@@ -1618,6 +1624,19 @@ mod tests {
             keys::session_message("conic:test", "assistant", "session-1", &dispatch.message_id)
                 .canonical()
         );
+        assert!(kv
+            .list_keys(
+                &keys::session_queue_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                    crate::control::session_queue::NEXT_QUEUE,
+                ),
+                None,
+            )
+            .await
+            .unwrap()
+            .is_empty());
         let submission = cp
             .kv
             .get_msg::<crate::harness::sessions::SessionSubmission>(&keys::session_submission(
