@@ -1269,60 +1269,6 @@ impl PubSubSessionSink {
         Ok(())
     }
 
-    fn has_active_assistant_output(&self) -> bool {
-        !self.durable_parts.lock().unwrap().is_empty()
-            || self
-                .active_stream_buffer
-                .lock()
-                .unwrap()
-                .as_ref()
-                .is_some_and(|buffer| !buffer.unclosed_content().is_empty())
-    }
-
-    /// Chooses the assistant side of a steering checkpoint without creating a
-    /// transcript gap. Real output is finalized, an already committed segment
-    /// is reused after recovery, and an owned partial projection is discarded
-    /// so pre-output steering can use an empty previous assistant ID.
-    async fn previous_assistant_message_id_for_steer(&self) -> Result<String> {
-        if self.has_active_assistant_output() {
-            return self.finalize_assistant_segment().await;
-        }
-
-        let key = self.current_reply_msg_key();
-        let Some(message) = self.kv.get_msg::<data_proto::SessionMessage>(&key).await? else {
-            return Ok(String::new());
-        };
-        let projection_state = message
-            .labels
-            .get(sessions::SESSION_LABEL_PROJECTION_STATE)
-            .map(String::as_str);
-        let projection_submission_id = message
-            .labels
-            .get(sessions::SESSION_LABEL_SUBMISSION_ID)
-            .map(String::as_str);
-        let belongs_to_submission = projection_submission_id
-            .is_none_or(|submission_id| submission_id == self.submission_id);
-
-        if message.role == data_proto::MessageRole::RoleAssistant as i32
-            && projection_state == Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
-            && belongs_to_submission
-        {
-            return Ok(message.id);
-        }
-
-        if projection_submission_id == Some(self.submission_id.as_str())
-            && matches!(
-                projection_state,
-                Some(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS)
-                    | Some(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED)
-            )
-        {
-            self.discard_current_uncommitted_projection().await?;
-        }
-
-        Ok(String::new())
-    }
-
     async fn publish_reply_index_event(&self) {
         if let Err(error) = crate::control::search::publish_index_event(
             self.pubsub.as_ref(),
@@ -1387,87 +1333,6 @@ impl PubSubSessionSink {
 
     pub async fn clear_provider_continuation(&self) -> Result<()> {
         sessions::clear_provider_request_id(self.kv.as_ref(), &self.claim).await
-    }
-
-    async fn checkpoint_steering_batch(
-        &self,
-    ) -> Result<Vec<crate::harness::executor::LoopMessage>> {
-        const MAX_STEER_DRAINS: u8 = 4;
-        let drain_attempt = {
-            let mut drains = self.steer_drains.lock().unwrap();
-            if *drains >= MAX_STEER_DRAINS {
-                return Ok(Vec::new());
-            }
-            *drains += 1;
-            *drains
-        };
-
-        let mut batch = session_queue::prepare_steer_batch(
-            self.kv.as_ref(),
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            session_queue::DEFAULT_STEER_BATCH_MAX_MESSAGES,
-            session_queue::DEFAULT_STEER_BATCH_MAX_CHARS,
-            chrono::Utc::now(),
-        )
-        .await?;
-        if batch.is_empty() && drain_attempt == 1 {
-            tokio::time::sleep(Duration::from_millis(50)).await;
-            batch = session_queue::prepare_steer_batch(
-                self.kv.as_ref(),
-                &self.ns,
-                &self.agent_id,
-                &self.session_id,
-                session_queue::DEFAULT_STEER_BATCH_MAX_MESSAGES,
-                session_queue::DEFAULT_STEER_BATCH_MAX_CHARS,
-                chrono::Utc::now(),
-            )
-            .await?;
-        }
-        if batch.is_empty() {
-            return Ok(Vec::new());
-        }
-        let message_ids = batch
-            .iter()
-            .map(|message| message.message_id.clone())
-            .collect::<Vec<_>>();
-        let previous_assistant_message_id = self.previous_assistant_message_id_for_steer().await?;
-        // The steer messages were assigned their UUID7 ids while preparing the
-        // batch. Allocate the continuation only after them so session-key
-        // ordering matches conversational ordering.
-        let next_assistant_message_id = crate::control::uuid::session_message_id();
-        sessions::append_steer_input(
-            self.kv.as_ref(),
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            &self.submission_id,
-            &self.attempt_id,
-            &message_ids,
-            &previous_assistant_message_id,
-            &next_assistant_message_id,
-            chrono::Utc::now().timestamp_micros(),
-        )
-        .await?;
-        session_queue::commit_steer_batch(
-            self.kv.as_ref(),
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            &batch,
-        )
-        .await?;
-        self.rotate_reply_message(next_assistant_message_id);
-        Ok(batch
-            .into_iter()
-            .map(|message| {
-                crate::harness::executor::LoopMessage::text(
-                    "user",
-                    crate::control::scheduling::session_message_text_projection(&message.message),
-                )
-            })
-            .collect())
     }
 }
 
@@ -1660,7 +1525,132 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn take_steering_messages(&self) -> Result<Vec<crate::harness::executor::LoopMessage>> {
-        self.checkpoint_steering_batch().await
+        const MAX_STEER_DRAINS: u8 = 4;
+        let drain_attempt = {
+            let mut drains = self.steer_drains.lock().unwrap();
+            if *drains >= MAX_STEER_DRAINS {
+                return Ok(Vec::new());
+            }
+            *drains += 1;
+            *drains
+        };
+
+        let mut batch = session_queue::prepare_steer_batch(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            session_queue::DEFAULT_STEER_BATCH_MAX_MESSAGES,
+            session_queue::DEFAULT_STEER_BATCH_MAX_CHARS,
+            chrono::Utc::now(),
+        )
+        .await?;
+        if batch.is_empty() && drain_attempt == 1 {
+            tokio::time::sleep(Duration::from_millis(50)).await;
+            batch = session_queue::prepare_steer_batch(
+                self.kv.as_ref(),
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+                session_queue::DEFAULT_STEER_BATCH_MAX_MESSAGES,
+                session_queue::DEFAULT_STEER_BATCH_MAX_CHARS,
+                chrono::Utc::now(),
+            )
+            .await?;
+        }
+        if batch.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let message_ids = batch
+            .iter()
+            .map(|message| message.message_id.clone())
+            .collect::<Vec<_>>();
+        // Choose the assistant side of the checkpoint without creating a
+        // transcript gap. Real output is finalized, an already committed
+        // segment is reused after recovery, and an owned partial projection is
+        // discarded so pre-output steering can leave the previous ID empty.
+        let has_active_assistant_output = !self.durable_parts.lock().unwrap().is_empty()
+            || self
+                .active_stream_buffer
+                .lock()
+                .unwrap()
+                .as_ref()
+                .is_some_and(|buffer| !buffer.unclosed_content().is_empty());
+        let previous_assistant_message_id = if has_active_assistant_output {
+            self.finalize_assistant_segment().await?
+        } else {
+            let key = self.current_reply_msg_key();
+            match self.kv.get_msg::<data_proto::SessionMessage>(&key).await? {
+                Some(message) => {
+                    let projection_state = message
+                        .labels
+                        .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                        .map(String::as_str);
+                    let projection_submission_id = message
+                        .labels
+                        .get(sessions::SESSION_LABEL_SUBMISSION_ID)
+                        .map(String::as_str);
+                    let belongs_to_submission = projection_submission_id
+                        .is_none_or(|submission_id| submission_id == self.submission_id);
+
+                    if message.role == data_proto::MessageRole::RoleAssistant as i32
+                        && projection_state == Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+                        && belongs_to_submission
+                    {
+                        message.id
+                    } else {
+                        if projection_submission_id == Some(self.submission_id.as_str())
+                            && matches!(
+                                projection_state,
+                                Some(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS)
+                                    | Some(sessions::SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED)
+                            )
+                        {
+                            self.discard_current_uncommitted_projection().await?;
+                        }
+                        String::new()
+                    }
+                }
+                None => String::new(),
+            }
+        };
+
+        // The steer messages were assigned their UUID7 ids while preparing the
+        // batch. Allocate the continuation only after them so session-key
+        // ordering matches conversational ordering.
+        let next_assistant_message_id = crate::control::uuid::session_message_id();
+        sessions::append_steer_input(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+            &self.attempt_id,
+            &message_ids,
+            &previous_assistant_message_id,
+            &next_assistant_message_id,
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .await?;
+        session_queue::commit_steer_batch(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &batch,
+        )
+        .await?;
+        self.rotate_reply_message(next_assistant_message_id);
+        Ok(batch
+            .into_iter()
+            .map(|message| {
+                crate::harness::executor::LoopMessage::text(
+                    "user",
+                    crate::control::scheduling::session_message_text_projection(&message.message),
+                )
+            })
+            .collect())
     }
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput) {
