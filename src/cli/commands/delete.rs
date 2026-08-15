@@ -9,7 +9,7 @@ use talon_client::v1::DeleteResourceRequest;
 
 #[derive(clap::Args)]
 pub(crate) struct DeleteCommand {
-    /// Type of resource to delete: template, mcp-server, knowledge, channel, channel-subscription
+    /// Type of resource to delete, such as agent, skill, template, or workflow.
     #[arg(value_name = "KIND")]
     kind: String,
     /// Name of the resource

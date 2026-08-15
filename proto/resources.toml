@@ -1,0 +1,252 @@
+[[resource]]
+kind = "Agent"
+aliases = ["agent", "agents"]
+apply_route = "legacy"
+lookup_namespace = "agent"
+list_namespace = "default"
+name_policy = "agent"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Template"
+aliases = ["agenttemplate", "templates", "template"]
+apply_route = "generic"
+lookup_namespace = "system"
+list_namespace = "system"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "McpServer"
+aliases = ["mcpserver", "mcpservers", "mcp"]
+apply_route = "legacy"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Worker"
+aliases = ["worker", "workers"]
+apply_route = "internal"
+lookup_namespace = "system_fixed"
+list_namespace = "system"
+name_policy = "plain"
+user_authorable = false
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Knowledge"
+aliases = ["knowledge", "knowledgeartifact", "knowledgeartifacts"]
+apply_route = "legacy"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "File"
+aliases = ["file", "files"]
+apply_route = "legacy"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Task"
+aliases = ["task", "tasks"]
+apply_route = "legacy"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Secret"
+aliases = ["secret", "secrets"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Schedule"
+aliases = ["schedule", "schedules"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Channel"
+aliases = ["channel", "channels"]
+apply_route = "legacy"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "ChannelSubscription"
+aliases = ["channelsubscription", "channelsubscriptions", "channel-subscription", "channel-subscriptions"]
+apply_route = "legacy"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "channel_subscription"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Workflow"
+aliases = ["workflow", "workflows"]
+apply_route = "legacy"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Deployment"
+aliases = ["deployment", "deployments"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "DeploymentReplica"
+aliases = ["deploymentreplica", "deploymentreplicas", "deployment-replica", "deployment-replicas"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "SandboxClass"
+aliases = ["sandboxclass", "sandboxclasses", "sandbox-class", "sandbox-classes"]
+apply_route = "generic"
+lookup_namespace = "system"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "SandboxPolicy"
+aliases = ["sandboxpolicy", "sandboxpolicies", "sandbox-policy", "sandbox-policies"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Sandbox"
+aliases = ["sandbox", "sandboxes"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "UsagePolicy"
+aliases = ["usagepolicy", "usagepolicies", "usage-policy", "usage-policies"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "ConnectorClass"
+aliases = ["connectorclass", "connectorclasses", "connector-class", "connector-classes"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Connector"
+aliases = ["connector", "connectors"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true
+
+[[resource]]
+kind = "Namespace"
+aliases = ["namespace", "namespaces"]
+apply_route = "namespace"
+lookup_namespace = "none"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = false
+cli_list = false
+
+[[resource]]
+kind = "Session"
+aliases = ["session", "sessions"]
+apply_route = "internal"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = false
+cli_lookup = false
+cli_list = false
+
+[[resource]]
+kind = "Skill"
+aliases = ["skill", "skills"]
+apply_route = "generic"
+lookup_namespace = "required"
+list_namespace = "default"
+name_policy = "plain"
+user_authorable = true
+cli_lookup = true
+cli_list = true

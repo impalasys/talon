@@ -29,6 +29,11 @@ jobs:
       - name: Reject oneof in resource-facing protos
         run: python3 scripts/check_resource_proto_oneofs.py
 
+      - name: Verify CLI resource support metadata
+        run: |
+          python3 scripts/check_resource_cli_support.py
+          python3 -m unittest discover -s scripts -p 'test_check_resource_cli_support.py'
+
   cargo:
     name: Cargo
     runs-on: ubuntu-latest

@@ -3,6 +3,7 @@
 
 include!("prelude.rs");
 include!("proto_bridge.rs");
+include!("resource_kinds.rs");
 include!("resource_targets.rs");
 include!("entry.rs");
 include!("manifest_render.rs");
