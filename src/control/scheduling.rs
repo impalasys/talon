@@ -1688,6 +1688,73 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn send_message_restarts_error_session_without_stranding_input() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(MockPubSub::default());
+        let session = data_proto::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "ERROR".to_string(),
+            created_at: 0,
+            last_active: 0,
+            metadata: HashMap::new(),
+            labels: HashMap::new(),
+            skill_state: None,
+            context_tokens: None,
+        };
+        kv.set_msg(
+            &keys::session("conic:test", "assistant", "session-1"),
+            &session,
+        )
+        .await
+        .unwrap();
+
+        let now = DateTime::parse_from_rfc3339("2026-05-02T12:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+        let submission_id = send_message(
+            kv.as_ref(),
+            pubsub.as_ref(),
+            "conic:test",
+            "assistant",
+            "session-1",
+            "recover the session",
+            HashMap::new(),
+            now,
+        )
+        .await
+        .unwrap();
+
+        assert!(!submission_id.is_empty());
+        assert_eq!(
+            kv.get_msg::<data_proto::Session>(&keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap()
+            .status,
+            "PROCESSING"
+        );
+        assert!(kv
+            .list_keys(
+                &keys::session_queue_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                    crate::control::session_queue::STEER_QUEUE,
+                ),
+                None,
+            )
+            .await
+            .unwrap()
+            .is_empty());
+    }
+
+    #[tokio::test]
     async fn send_message_rejects_empty_content() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(MockPubSub::default());
