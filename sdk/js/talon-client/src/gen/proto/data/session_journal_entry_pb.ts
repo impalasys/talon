@@ -50,6 +50,14 @@ export enum SessionExecutionPhase {
    * @generated from enum value: SESSION_EXECUTION_PHASE_COMPACTION = 4;
    */
   COMPACTION = 4,
+
+  /**
+   * Interactive user input was absorbed into the active execution after a
+   * completed tool-call batch.
+   *
+   * @generated from enum value: SESSION_EXECUTION_PHASE_STEER_INPUT = 5;
+   */
+  STEER_INPUT = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SessionExecutionPhase)
 proto3.util.setEnumType(SessionExecutionPhase, "talon.data.SessionExecutionPhase", [
@@ -58,6 +66,7 @@ proto3.util.setEnumType(SessionExecutionPhase, "talon.data.SessionExecutionPhase
   { no: 2, name: "SESSION_EXECUTION_PHASE_TOOL_RESULT" },
   { no: 3, name: "SESSION_EXECUTION_PHASE_COMMITTED" },
   { no: 4, name: "SESSION_EXECUTION_PHASE_COMPACTION" },
+  { no: 5, name: "SESSION_EXECUTION_PHASE_STEER_INPUT" },
 ]);
 
 /**
@@ -235,6 +244,46 @@ export class SessionJournalEntryPayloadCompaction extends Message<SessionJournal
 }
 
 /**
+ * @generated from message talon.data.SessionJournalEntryPayloadSteerInput
+ */
+export class SessionJournalEntryPayloadSteerInput extends Message<SessionJournalEntryPayloadSteerInput> {
+  /**
+   * Canonical user SessionMessage ids appended to the active execution
+   * context, in admission order.
+   *
+   * @generated from field: repeated string message_ids = 1;
+   */
+  messageIds: string[] = [];
+
+  constructor(data?: PartialMessage<SessionJournalEntryPayloadSteerInput>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.data.SessionJournalEntryPayloadSteerInput";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayloadSteerInput {
+    return new SessionJournalEntryPayloadSteerInput().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SessionJournalEntryPayloadSteerInput {
+    return new SessionJournalEntryPayloadSteerInput().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SessionJournalEntryPayloadSteerInput {
+    return new SessionJournalEntryPayloadSteerInput().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SessionJournalEntryPayloadSteerInput | PlainMessage<SessionJournalEntryPayloadSteerInput> | undefined, b: SessionJournalEntryPayloadSteerInput | PlainMessage<SessionJournalEntryPayloadSteerInput> | undefined): boolean {
+    return proto3.util.equals(SessionJournalEntryPayloadSteerInput, a, b);
+  }
+}
+
+/**
  * @generated from message talon.data.SessionJournalEntryPayload
  */
 export class SessionJournalEntryPayload extends Message<SessionJournalEntryPayload> {
@@ -265,6 +314,12 @@ export class SessionJournalEntryPayload extends Message<SessionJournalEntryPaylo
      */
     value: SessionJournalEntryPayloadCompaction;
     case: "compaction";
+  } | {
+    /**
+     * @generated from field: talon.data.SessionJournalEntryPayloadSteerInput steer_input = 6;
+     */
+    value: SessionJournalEntryPayloadSteerInput;
+    case: "steerInput";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<SessionJournalEntryPayload>) {
@@ -279,6 +334,7 @@ export class SessionJournalEntryPayload extends Message<SessionJournalEntryPaylo
     { no: 2, name: "tool_result", kind: "message", T: SessionJournalEntryPayloadToolResult, oneof: "payload" },
     { no: 3, name: "commit", kind: "message", T: SessionJournalEntryPayloadCommit, oneof: "payload" },
     { no: 5, name: "compaction", kind: "message", T: SessionJournalEntryPayloadCompaction, oneof: "payload" },
+    { no: 6, name: "steer_input", kind: "message", T: SessionJournalEntryPayloadSteerInput, oneof: "payload" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionJournalEntryPayload {

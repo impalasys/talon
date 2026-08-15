@@ -12,7 +12,8 @@ use crate::control::{keys, KeyValueStore, ListOptions};
 use crate::gateway::rpc::data_proto::{
     session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
     SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadCompaction,
-    SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadToolResult,
+    SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadSteerInput,
+    SessionJournalEntryPayloadToolResult,
 };
 use crate::harness::llm::ChatResponse;
 use crate::harness::llm::ToolOutput;
@@ -187,6 +188,39 @@ pub async fn append_tool_result(
                     output: String::new(),
                     object: None,
                     tool_output: Some(result),
+                },
+            )),
+        }),
+        None,
+        now_micros,
+    )
+    .await
+}
+
+pub async fn append_steer_input(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent_id: &str,
+    session_id: &str,
+    submission_id: &str,
+    attempt_id: &str,
+    message_ids: &[String],
+    now_micros: i64,
+) -> Result<SessionJournalEntry> {
+    ensure_submission_attempt_current(kv, ns, agent_id, session_id, submission_id, attempt_id)
+        .await?;
+    append_journal_entry(
+        kv,
+        ns,
+        agent_id,
+        session_id,
+        submission_id,
+        attempt_id,
+        SessionExecutionPhase::SteerInput as i32,
+        Some(SessionJournalEntryPayload {
+            payload: Some(session_journal_entry_payload::Payload::SteerInput(
+                SessionJournalEntryPayloadSteerInput {
+                    message_ids: message_ids.to_vec(),
                 },
             )),
         }),

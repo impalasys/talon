@@ -760,8 +760,15 @@ pub struct SessionJournalEntryPayloadCompaction {
     pub summary: ::core::option::Option<ObjectRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SessionJournalEntryPayloadSteerInput {
+    /// Canonical user SessionMessage ids appended to the active execution
+    /// context, in admission order.
+    #[prost(string, repeated, tag = "1")]
+    pub message_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionJournalEntryPayload {
-    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3, 5")]
+    #[prost(oneof = "session_journal_entry_payload::Payload", tags = "1, 2, 3, 5, 6")]
     pub payload: ::core::option::Option<session_journal_entry_payload::Payload>,
 }
 /// Nested message and enum types in `SessionJournalEntryPayload`.
@@ -776,6 +783,8 @@ pub mod session_journal_entry_payload {
         Commit(super::SessionJournalEntryPayloadCommit),
         #[prost(message, tag = "5")]
         Compaction(super::SessionJournalEntryPayloadCompaction),
+        #[prost(message, tag = "6")]
+        SteerInput(super::SessionJournalEntryPayloadSteerInput),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -819,6 +828,9 @@ pub enum SessionExecutionPhase {
     /// Durable model context compaction completed. The journal entry references
     /// an immutable summary object without storing a provider transcript snapshot.
     Compaction = 4,
+    /// Interactive user input was absorbed into the active execution after a
+    /// completed tool-call batch.
+    SteerInput = 5,
 }
 impl SessionExecutionPhase {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -832,6 +844,7 @@ impl SessionExecutionPhase {
             Self::ToolResult => "SESSION_EXECUTION_PHASE_TOOL_RESULT",
             Self::Committed => "SESSION_EXECUTION_PHASE_COMMITTED",
             Self::Compaction => "SESSION_EXECUTION_PHASE_COMPACTION",
+            Self::SteerInput => "SESSION_EXECUTION_PHASE_STEER_INPUT",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -842,6 +855,7 @@ impl SessionExecutionPhase {
             "SESSION_EXECUTION_PHASE_TOOL_RESULT" => Some(Self::ToolResult),
             "SESSION_EXECUTION_PHASE_COMMITTED" => Some(Self::Committed),
             "SESSION_EXECUTION_PHASE_COMPACTION" => Some(Self::Compaction),
+            "SESSION_EXECUTION_PHASE_STEER_INPUT" => Some(Self::SteerInput),
             _ => None,
         }
     }

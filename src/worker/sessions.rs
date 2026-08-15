@@ -187,6 +187,36 @@ async fn prepare_context_for_claimed_submission(
     journal_entries: &[sessions::SessionJournalEntry],
     runtime: &mut AgentRuntime,
 ) -> Result<PreparedSubmission> {
+    async fn hydrate_steering_input(
+        cp: &ControlPlane,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        entry: &sessions::SessionJournalEntry,
+        runtime: &mut AgentRuntime,
+    ) -> Result<()> {
+        let Some(session_journal_entry_payload::Payload::SteerInput(payload)) = entry
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+        else {
+            return Err(anyhow!("STEER_INPUT entry is missing payload"));
+        };
+        for message_id in &payload.message_ids {
+            let key = crate::control::keys::session_message(ns, agent, session_id, message_id);
+            let bytes =
+                cp.kv.get(&key).await?.ok_or_else(|| {
+                    anyhow!("STEER_INPUT references missing message '{message_id}'")
+                })?;
+            let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
+            runtime.context.push(LoopMessage::text(
+                "user",
+                crate::control::scheduling::session_message_text_projection(&message),
+            ));
+        }
+        Ok(())
+    }
+
     let mut latest_final_response = None;
     let mut projection_parts = Vec::new();
     let mut next_projection_part_index = 0usize;
@@ -230,6 +260,12 @@ async fn prepare_context_for_claimed_submission(
                 return Err(anyhow!("COMPACTION entry is missing payload"));
             }
 
+            index += 1;
+            continue;
+        }
+
+        if entry.phase == SessionExecutionPhase::SteerInput as i32 {
+            hydrate_steering_input(cp, ns, agent, session_id, entry, runtime).await?;
             index += 1;
             continue;
         }
@@ -301,6 +337,7 @@ async fn prepare_context_for_claimed_submission(
         index += 1;
         let mut stop_after_tool_results = false;
         let mut results_by_call_id = BTreeMap::new();
+        let mut steering_entries = Vec::new();
         while index < journal_entries.len() {
             let entry = &journal_entries[index];
             if entry.phase == SessionExecutionPhase::LlmResponse as i32
@@ -334,6 +371,11 @@ async fn prepare_context_for_claimed_submission(
                 }
                 (phase, None) if phase == SessionExecutionPhase::ToolResult as i32 => {
                     return Err(anyhow!("TOOL_RESULT entry is missing payload"));
+                }
+                (phase, Some(session_journal_entry_payload::Payload::SteerInput(_)))
+                    if phase == SessionExecutionPhase::SteerInput as i32 =>
+                {
+                    steering_entries.push(entry.clone());
                 }
                 _ => {}
             }
@@ -403,6 +445,9 @@ async fn prepare_context_for_claimed_submission(
                 .push(tool_output_loop_message(&tool.id, &result_output));
             stop_after_tool_results |=
                 crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
+        }
+        for entry in steering_entries {
+            hydrate_steering_input(cp, ns, agent, session_id, &entry, runtime).await?;
         }
         if stop_after_tool_results {
             return Ok(PreparedSubmission {
@@ -1208,6 +1253,24 @@ impl WorkerEventHandler {
                 "failed to dispatch workflow from completed child session"
             );
         }
+        if session.status == "ERROR" {
+            if let Err(err) = crate::control::session_queue::reclassify_steer_queue_to_next(
+                self.cp.kv.as_ref(),
+                ns,
+                agent_id,
+                session_id,
+            )
+            .await
+            {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent_id,
+                    session = %session_id,
+                    error = %err,
+                    "failed to recover steering queue after session error"
+                );
+            }
+        }
         if completion_status != SessionCompletionStatus::Waiting {
             let delegated_completion = match completion_status {
                 SessionCompletionStatus::Completed => {
@@ -1234,24 +1297,46 @@ impl WorkerEventHandler {
                 );
             }
         }
-        if let Err(err) = crate::control::session_queue::dispatch_next_queued_message(
+        let dispatched_steer = crate::control::session_queue::dispatch_next_queued_message(
             self.cp.kv.as_ref(),
             self.cp.pubsub.as_ref(),
             ns,
             agent_id,
             session_id,
-            crate::control::session_queue::NEXT_QUEUE,
+            crate::control::session_queue::STEER_QUEUE,
             chrono::Utc::now(),
         )
-        .await
-        {
-            tracing::warn!(
+        .await;
+        match dispatched_steer {
+            Ok(Some(_)) => {}
+            Ok(None) => {
+                if let Err(err) = crate::control::session_queue::dispatch_next_queued_message(
+                    self.cp.kv.as_ref(),
+                    self.cp.pubsub.as_ref(),
+                    ns,
+                    agent_id,
+                    session_id,
+                    crate::control::session_queue::NEXT_QUEUE,
+                    chrono::Utc::now(),
+                )
+                .await
+                {
+                    tracing::warn!(
+                        namespace = %ns,
+                        agent = %agent_id,
+                        session = %session_id,
+                        error = %err,
+                        "failed to dispatch NEXT queued session message after session release"
+                    );
+                }
+            }
+            Err(err) => tracing::warn!(
                 namespace = %ns,
                 agent = %agent_id,
                 session = %session_id,
                 error = %err,
-                "failed to dispatch next queued session message after session release"
-            );
+                "failed to dispatch queued session message after session release"
+            ),
         }
     }
 }

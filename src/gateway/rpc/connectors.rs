@@ -1231,24 +1231,24 @@ async fn dispatch_to_session(
         elapsed_ms = started.elapsed().as_millis(),
         "connector message dispatching to session"
     );
-    crate::control::session_queue::queue_session_message(
+    let queued = crate::control::session_queue::queue_interactive_session_message(
         cp.kv.as_ref(),
         &agent_namespace,
         agent_name,
         &session_id,
-        crate::control::session_queue::NEXT_QUEUE,
         message,
         chrono::Utc::now(),
     )
     .await
     .map_err(map_dispatch_error)?;
+    let dispatch_queue = queued.queue.as_str();
     crate::control::session_queue::dispatch_next_queued_message(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
         &agent_namespace,
         agent_name,
         &session_id,
-        crate::control::session_queue::NEXT_QUEUE,
+        dispatch_queue,
         chrono::Utc::now(),
     )
     .await
@@ -2083,7 +2083,7 @@ mod tests {
                     TEST_NAMESPACE,
                     TEST_AGENT,
                     TEST_SESSION,
-                    crate::control::session_queue::NEXT_QUEUE,
+                    crate::control::session_queue::STEER_QUEUE,
                 ),
                 None,
             )

@@ -634,6 +634,43 @@ pub async fn send_message(
         }],
     };
 
+    // Interactive ingress is steerable while a healthy turn is running. The
+    // active worker will absorb this durable queue entry at its next tool
+    // boundary; idle sessions continue through the normal submission path.
+    if let Some(session) = kv
+        .get_msg::<data_proto::Session>(&keys::session(ns, agent, session_id))
+        .await?
+    {
+        if session.status == "PROCESSING"
+            && now_micros.saturating_sub(session.last_active) <= session_processing_timeout_micros()
+        {
+            let queued = crate::control::session_queue::queue_interactive_session_message(
+                kv, ns, agent, session_id, user_msg, now,
+            )
+            .await?;
+            if let Err(err) = crate::control::session_queue::dispatch_next_queued_message(
+                kv,
+                pubsub,
+                ns,
+                agent,
+                session_id,
+                crate::control::session_queue::STEER_QUEUE,
+                now,
+            )
+            .await
+            {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent,
+                    session = %session_id,
+                    error = %err,
+                    "failed to recheck queued interactive message after admission"
+                );
+            }
+            return Ok(queued.entry_id);
+        }
+    }
+
     send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now).await
 }
 
@@ -902,6 +939,50 @@ pub async fn send_session_message(
         "Queued scheduled message for session dispatch"
     );
     Ok(submission_id)
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum A2aSessionMessageDisposition {
+    Submitted,
+    Queued,
+}
+
+/// A2A requests are serialized turns. If a session is already busy, retain
+/// the request in NEXT and let the normal release path dispatch it later.
+pub async fn send_or_queue_a2a_session_message(
+    kv: &dyn KeyValueStore,
+    pubsub: &dyn MessagePublisher,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    user_msg: data_proto::SessionMessage,
+    now: DateTime<Utc>,
+) -> Result<(String, A2aSessionMessageDisposition)> {
+    match send_session_message(kv, pubsub, ns, agent, session_id, user_msg.clone(), now).await {
+        Ok(submission_id) => Ok((submission_id, A2aSessionMessageDisposition::Submitted)),
+        Err(err)
+            if err
+                .downcast_ref::<SessionCurrentlyProcessingError>()
+                .is_some() =>
+        {
+            let mut queued = user_msg;
+            if queued.id.is_empty() {
+                queued.id = crate::control::uuid::session_message_id();
+            }
+            crate::control::session_queue::queue_session_message(
+                kv,
+                ns,
+                agent,
+                session_id,
+                crate::control::session_queue::NEXT_QUEUE,
+                queued.clone(),
+                now,
+            )
+            .await?;
+            Ok((queued.id, A2aSessionMessageDisposition::Queued))
+        }
+        Err(err) => Err(err),
+    }
 }
 
 /// Queue a maintenance compaction without creating a synthetic user message.
@@ -1557,7 +1638,7 @@ mod tests {
         assert_eq!(submission.completed_at, None);
         assert_eq!(submission.committed_message_id, None);
 
-        let err = send_message(
+        let queued_entry_id = send_message(
             cp.kv.as_ref(),
             cp.pubsub.as_ref(),
             "conic:test",
@@ -1568,10 +1649,23 @@ mod tests {
             now,
         )
         .await
-        .unwrap_err();
-        assert!(err
-            .downcast_ref::<SessionCurrentlyProcessingError>()
-            .is_some());
+        .unwrap();
+        assert!(!queued_entry_id.is_empty());
+        assert_eq!(
+            kv.list_keys(
+                &keys::session_queue_prefix(
+                    "conic:test",
+                    "assistant",
+                    "session-1",
+                    crate::control::session_queue::STEER_QUEUE,
+                ),
+                None,
+            )
+            .await
+            .unwrap()
+            .len(),
+            1
+        );
     }
 
     #[tokio::test]

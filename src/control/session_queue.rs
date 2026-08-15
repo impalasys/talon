@@ -16,6 +16,8 @@ pub const A2A_QUEUE: &str = "a2a";
 pub const NEXT_QUEUE: &str = "next";
 pub const STEER_QUEUE: &str = "steer";
 const MAX_QUEUE_DISPATCH_CAS_RETRIES: usize = 8;
+pub const DEFAULT_STEER_BATCH_MAX_MESSAGES: usize = 8;
+pub const DEFAULT_STEER_BATCH_MAX_CHARS: usize = 16_000;
 
 fn validate_queue_name(queue: &str) -> Result<()> {
     match queue {
@@ -43,6 +45,134 @@ pub struct DispatchedQueuedSessionMessage {
     pub entry_id: String,
     pub message_id: String,
     pub submission_id: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct SteeredQueuedSessionMessage {
+    pub entry_id: String,
+    pub message_id: String,
+    pub message: data_proto::SessionMessage,
+}
+
+/// Materialize a bounded, ordered batch of interactive messages for the
+/// active worker. Queue entries remain present until the caller has written
+/// the steering journal boundary, so a crash cannot lose an input between
+/// canonicalization and durable execution state.
+pub async fn prepare_steer_batch(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    max_messages: usize,
+    max_chars: usize,
+    now: DateTime<Utc>,
+) -> Result<Vec<SteeredQueuedSessionMessage>> {
+    validate_queue_name(STEER_QUEUE)?;
+    if max_messages == 0 || max_chars == 0 {
+        return Ok(Vec::new());
+    }
+    let prefix = keys::session_queue_prefix(ns, agent, session_id, STEER_QUEUE);
+    let entries = kv
+        .list_entries(&prefix, Some(ListOptions::default().limit(max_messages)))
+        .await?;
+    let mut total_chars = 0usize;
+    let mut prepared = Vec::with_capacity(entries.len());
+    for (entry_key, bytes) in entries {
+        let Some(entry_id) = keys::direct_child_name(&prefix, &entry_key) else {
+            continue;
+        };
+        let original_bytes = bytes.clone();
+        let mut message = match data_proto::SessionMessage::decode(bytes.as_slice()) {
+            Ok(message) => message,
+            Err(error) => {
+                tracing::warn!(
+                    %entry_id,
+                    error = %error,
+                    "dropping undecodable steer queue entry"
+                );
+                kv.delete(&keys::session_queue_entry(
+                    ns,
+                    agent,
+                    session_id,
+                    STEER_QUEUE,
+                    &entry_id,
+                ))
+                .await?;
+                continue;
+            }
+        };
+        let text_chars = message
+            .parts
+            .iter()
+            .map(|part| part.content.chars().count())
+            .sum::<usize>();
+        if !prepared.is_empty() && total_chars.saturating_add(text_chars) > max_chars {
+            break;
+        }
+        let message_id = if message.id.is_empty() {
+            let message_id = crate::control::uuid::session_message_id();
+            message.id = message_id.clone();
+            if message.created_at == 0 {
+                message.created_at = now.timestamp_micros();
+            }
+            for (index, part) in message.parts.iter_mut().enumerate() {
+                if part.id.is_empty() {
+                    part.id = format!("{index:06}");
+                }
+                if part.created_at == 0 {
+                    part.created_at = message.created_at;
+                }
+            }
+            kv.set_msg(
+                &keys::session_message(ns, agent, session_id, &message_id),
+                &message,
+            )
+            .await?;
+            if !kv
+                .compare_and_swap(
+                    &keys::session_queue_entry(ns, agent, session_id, STEER_QUEUE, &entry_id),
+                    Some(original_bytes.as_slice()),
+                    &message.encode_to_vec(),
+                )
+                .await?
+            {
+                // Another worker claimed and canonicalized this entry. It will
+                // either commit it or make it visible on the next attempt.
+                // Stop here so the batch stays contiguous in admission order.
+                break;
+            }
+            message_id
+        } else {
+            message.id.clone()
+        };
+        total_chars = total_chars.saturating_add(text_chars);
+        prepared.push(SteeredQueuedSessionMessage {
+            entry_id,
+            message_id,
+            message,
+        });
+    }
+    Ok(prepared)
+}
+
+pub async fn commit_steer_batch(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    batch: &[SteeredQueuedSessionMessage],
+) -> Result<()> {
+    for item in batch {
+        kv.delete(&keys::session_queue_entry(
+            ns,
+            agent,
+            session_id,
+            STEER_QUEUE,
+            &item.entry_id,
+        ))
+        .await?;
+    }
+    Ok(())
 }
 
 pub async fn queue_text_message(
@@ -126,6 +256,53 @@ pub async fn queue_session_message(
         entry_id,
         message_id: String::new(),
     })
+}
+
+/// Route an interactive ingress message to the active turn when one is
+/// healthy; otherwise leave it in NEXT so it starts the next turn.
+pub async fn queue_interactive_session_message(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    message: data_proto::SessionMessage,
+    now: DateTime<Utc>,
+) -> Result<QueuedSessionMessage> {
+    let queue = match kv
+        .get_msg::<data_proto::Session>(&keys::session(ns, agent, session_id))
+        .await?
+    {
+        Some(session)
+            if session.status == "PROCESSING"
+                && now.timestamp_micros().saturating_sub(session.last_active)
+                    <= scheduling::session_processing_timeout_micros() =>
+        {
+            STEER_QUEUE
+        }
+        _ => NEXT_QUEUE,
+    };
+    queue_session_message(kv, ns, agent, session_id, queue, message, now).await
+}
+
+/// Move steering entries to NEXT when the active attempt has failed. The
+/// destination is written before the source is deleted so a crash can leave a
+/// duplicate queue copy, but never lose the input.
+pub async fn reclassify_steer_queue_to_next(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+) -> Result<()> {
+    let steer_prefix = keys::session_queue_prefix(ns, agent, session_id, STEER_QUEUE);
+    for (entry_key, bytes) in kv.list_entries(&steer_prefix, None).await? {
+        let Some(entry_id) = keys::direct_child_name(&steer_prefix, &entry_key) else {
+            continue;
+        };
+        let next_key = keys::session_queue_entry(ns, agent, session_id, NEXT_QUEUE, &entry_id);
+        kv.compare_and_swap(&next_key, None, &bytes).await?;
+        kv.delete(&entry_key).await?;
+    }
+    Ok(())
 }
 
 pub async fn dispatch_next_queued_message(
@@ -442,6 +619,171 @@ mod tests {
             .unwrap()
             .expect("queued message should be stored");
         assert!(stored.id.is_empty());
+    }
+
+    #[tokio::test]
+    async fn steer_batch_is_bounded_canonicalized_and_committed() {
+        let kv = MockKvStore::new();
+        put_session(&kv, "PROCESSING").await;
+        for text in ["one", "two", "three"] {
+            queue_text_message(
+                &kv,
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                text,
+                Default::default(),
+                Utc::now(),
+            )
+            .await
+            .unwrap();
+        }
+
+        let batch = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            2,
+            100,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(batch.len(), 2);
+        assert_eq!(batch[0].message.parts[0].content, "one");
+        assert_eq!(batch[1].message.parts[0].content, "two");
+        assert!(batch.iter().all(|item| !item.message_id.is_empty()));
+
+        let raw = kv
+            .get_msg::<data_proto::SessionMessage>(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                &batch[0].entry_id,
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(raw.id, batch[0].message_id);
+
+        commit_steer_batch(&kv, "Tenant:acme:Ops", "agent", "session-1", &batch)
+            .await
+            .unwrap();
+        assert_eq!(
+            kv.list_keys(
+                &keys::session_queue_prefix("Tenant:acme:Ops", "agent", "session-1", STEER_QUEUE),
+                None,
+            )
+            .await
+            .unwrap()
+            .len(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn steer_batch_drops_malformed_entries_and_keeps_valid_entries() {
+        let kv = MockKvStore::new();
+        put_session(&kv, "PROCESSING").await;
+        let malformed_id = "00000000000000000001-malformed";
+        kv.set(
+            &keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                malformed_id,
+            ),
+            b"not-a-session-message",
+        )
+        .await
+        .unwrap();
+        queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "valid",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+
+        let batch = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            8,
+            100,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(batch.len(), 1);
+        assert_eq!(batch[0].message.parts[0].content, "valid");
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                malformed_id,
+            ))
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn reclassify_steer_entries_to_next_preserves_entries() {
+        let kv = MockKvStore::new();
+        put_session(&kv, "ERROR").await;
+        let queued = queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "recover me",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+
+        reclassify_steer_queue_to_next(&kv, "Tenant:acme:Ops", "agent", "session-1")
+            .await
+            .unwrap();
+
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                &queued.entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                NEXT_QUEUE,
+                &queued.entry_id,
+            ))
+            .await
+            .unwrap()
+            .is_some());
     }
 
     #[tokio::test]

@@ -166,6 +166,7 @@ fn main() -> std::io::Result<()> {
         ".talon.data.WorkflowRunEvent",
         ".talon.data.WorkflowStepRun",
         ".talon.data.SessionJournalEntryPayloadCompaction",
+        ".talon.data.SessionJournalEntryPayloadSteerInput",
         ".talon.events.WorkflowDispatchEvent",
         ".talon.external.ConnectorActivityRequest",
         ".talon.external.ConnectorAckResponse",

@@ -262,6 +262,11 @@ pub trait ExecutionSink: Send + Sync {
     async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
         Ok(())
     }
+    /// Claim and return interactive inputs that should be incorporated before
+    /// the next LLM request in the active execution.
+    async fn take_steering_messages(&self) -> Result<Vec<LoopMessage>> {
+        Ok(Vec::new())
+    }
     /// The agent requested permission from the user/client.
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     /// The permission request was answered or cancelled.
@@ -1297,6 +1302,8 @@ impl AgentExecutor {
                     sink.on_done().await;
                     return Ok(result);
                 }
+                let steering = sink.take_steering_messages().await?;
+                context.push_many(steering);
                 continue;
             }
 

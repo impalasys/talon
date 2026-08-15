@@ -24,6 +24,10 @@ enum SessionExecutionPhase {
   // Durable model context compaction completed. The journal entry references
   // an immutable summary object without storing a provider transcript snapshot.
   SESSION_EXECUTION_PHASE_COMPACTION = 4;
+
+  // Interactive user input was absorbed into the active execution after a
+  // completed tool-call batch.
+  SESSION_EXECUTION_PHASE_STEER_INPUT = 5;
 }
 
 message SessionJournalEntryPayloadLlmResponse {
@@ -47,12 +51,19 @@ message SessionJournalEntryPayloadCompaction {
   ObjectRef summary = 1;
 }
 
+message SessionJournalEntryPayloadSteerInput {
+  // Canonical user SessionMessage ids appended to the active execution
+  // context, in admission order.
+  repeated string message_ids = 1;
+}
+
 message SessionJournalEntryPayload {
   oneof payload {
     SessionJournalEntryPayloadLlmResponse llm_response = 1;
     SessionJournalEntryPayloadToolResult tool_result = 2;
     SessionJournalEntryPayloadCommit commit = 3;
     SessionJournalEntryPayloadCompaction compaction = 5;
+    SessionJournalEntryPayloadSteerInput steer_input = 6;
   }
 }
 

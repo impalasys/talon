@@ -424,6 +424,114 @@ def test_stop_generation_cancels_an_inflight_mcp_tool_call(
         mock_control("POST", "/__control/reset")
 
 
+def test_interactive_messages_are_steered_and_batched_after_tool_result(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    """A burst received during a tool call becomes one follow-up model turn."""
+    namespace = f"talon-steer-{stack.name}-{uuid.uuid4().hex[:8]}"
+    agent = "steering-agent"
+    mcp_server = "durable-slow"
+    ensure_namespace(client, namespace)
+    create_resource(
+        client,
+        namespace,
+        "McpServer",
+        mcp_server,
+        ResourceSpec(
+            mcp_server=McpServerSpec(
+                transport="http",
+                target=f"http://127.0.0.1:{MOCK_LLM_PORT}/mcp",
+            )
+        ),
+    )
+    create_agent_resource(
+        client,
+        namespace,
+        agent,
+        AgentSpec(
+            mcp_server_refs=[mcp_server],
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="mock",
+                            name="minimax-m2.7",
+                            temperature=0.0,
+                        ),
+                    }
+                ]
+            },
+            system_prompt="Use the MCP lookup tool when asked.",
+        ),
+    )
+    session_id = client.sessions.Create(
+        CreateSessionRequest(agent=agent, ns=namespace)
+    ).session_id
+
+    mock_control("POST", "/__control/reset")
+    mock_control("POST", "/__control/block_mcp_tool")
+    try:
+        client.sessions.SendMessage(
+            SendMessageRequest(
+                agent=agent,
+                session_id=session_id,
+                ns=namespace,
+                message="Please run a blocking lookup docs.example.com.",
+            )
+        )
+        wait_for_mock_mcp_tool_blocked()
+
+        for text in (
+            "first steering message",
+            "second steering message",
+            "third steering message",
+        ):
+            client.sessions.SendMessage(
+                SendMessageRequest(
+                    agent=agent,
+                    session_id=session_id,
+                    ns=namespace,
+                    message=text,
+                )
+            )
+
+        mock_control("POST", "/__control/unblock_mcp_tool")
+
+        for _ in range(100):
+            session = client.sessions.Get(
+                GetSessionRequest(agent=agent, session_id=session_id, ns=namespace)
+            )
+            assistant = last_assistant_message(session.messages)
+            if (
+                session.state == "IDLE"
+                and assistant is not None
+                and "third steering message" in message_text(assistant)
+            ):
+                break
+            time.sleep(0.1)
+        else:
+            raise AssertionError("steered session did not complete with the latest input")
+
+        state = mock_control("GET", "/__control/state")
+        requests_seen = state["chat_requests"]
+        assert len(requests_seen) == 2, "steering burst should trigger one follow-up model request"
+        follow_up_users = [
+            message.get("content", "")
+            for message in requests_seen[-1]["messages"]
+            if message.get("role") == "user"
+        ]
+        assert follow_up_users[-3:] == [
+            "first steering message",
+            "second steering message",
+            "third steering message",
+        ]
+    finally:
+        mock_control("POST", "/__control/unblock_mcp_tool")
+        mock_control("POST", "/__control/reset")
+
+
 def test_streaming_chat(
     stack: E2EStack,
     client: TalonClient,
