@@ -6,9 +6,10 @@ use prost::Message;
 use std::collections::{HashMap, HashSet};
 
 use super::{
-    SessionJournalEntry, SESSION_LABEL_LATEST_JOURNAL_ENTRY_ID, SESSION_LABEL_PROJECTION_STATE,
-    SESSION_LABEL_SUBMISSION_ID, SESSION_PROJECTION_STATE_COMMITTED,
-    SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED, SESSION_PROJECTION_STATE_IN_PROGRESS,
+    SessionJournalEntry, SessionJournalEntryExt, SESSION_LABEL_LATEST_JOURNAL_ENTRY_ID,
+    SESSION_LABEL_PROJECTION_STATE, SESSION_LABEL_SUBMISSION_ID,
+    SESSION_PROJECTION_STATE_COMMITTED, SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED,
+    SESSION_PROJECTION_STATE_IN_PROGRESS,
 };
 use crate::control::{ControlPlane, ListOptions, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::data_proto::{self, session_journal_entry_payload, SessionExecutionPhase};
@@ -21,45 +22,13 @@ pub(crate) struct JournalRecoveryPlan {
     pub(crate) unstarted_checkpoint_previous_assistant_message_id: Option<String>,
 }
 
-pub(crate) fn steer_payload(
-    entry: &SessionJournalEntry,
-) -> Option<&data_proto::SessionJournalEntryPayloadSteerInput> {
-    if entry.phase != SessionExecutionPhase::SteerInput as i32 {
-        return None;
-    }
-    match entry
-        .payload
-        .as_ref()
-        .and_then(|payload| payload.payload.as_ref())
-    {
-        Some(session_journal_entry_payload::Payload::SteerInput(payload)) => Some(payload),
-        _ => None,
-    }
-}
-
-fn llm_response_payload(
-    entry: &SessionJournalEntry,
-) -> Option<&data_proto::SessionJournalEntryPayloadLlmResponse> {
-    if entry.phase != SessionExecutionPhase::LlmResponse as i32 {
-        return None;
-    }
-    match entry
-        .payload
-        .as_ref()
-        .and_then(|payload| payload.payload.as_ref())
-    {
-        Some(session_journal_entry_payload::Payload::LlmResponse(payload)) => Some(payload),
-        _ => None,
-    }
-}
-
 fn journal_prefix_ends_after_complete_tool_results(
     journal_entries: &[SessionJournalEntry],
 ) -> bool {
     let mut pending_tool_call_ids = HashSet::new();
     let mut ends_after_tool_results = false;
     for entry in journal_entries {
-        if let Some(payload) = llm_response_payload(entry) {
+        if let Some(payload) = entry.as_llm_response() {
             let Some(response) = payload.response.as_ref() else {
                 pending_tool_call_ids.clear();
                 ends_after_tool_results = false;
@@ -180,7 +149,7 @@ pub(crate) async fn plan_journal_recovery(
         .enumerate()
         .rev()
         .find_map(|(index, entry)| {
-            let payload = steer_payload(entry)?;
+            let payload = entry.as_steer_input()?;
             (!payload.previous_assistant_message_id.is_empty()
                 && !payload.next_assistant_message_id.is_empty())
             .then_some((
@@ -211,7 +180,7 @@ pub(crate) async fn plan_journal_recovery(
     // records must continue through the full replay path.
     let pending_slice_contains_steer = journal_entries[replay_start_index..]
         .iter()
-        .any(|entry| steer_payload(entry).is_some());
+        .any(|entry| entry.as_steer_input().is_some());
     if !pending_slice_contains_steer {
         while replay_start_index < journal_entries.len() {
             let entry = &journal_entries[replay_start_index];
@@ -220,7 +189,7 @@ pub(crate) async fn plan_journal_recovery(
             {
                 break;
             }
-            if let Some(payload) = llm_response_payload(entry) {
+            if let Some(payload) = entry.as_llm_response() {
                 if !payload.assistant_message_id.is_empty() {
                     active_assistant_message_id = Some(payload.assistant_message_id.clone());
                 }
@@ -260,7 +229,7 @@ pub(crate) async fn plan_journal_recovery(
         );
     let mut excluded_history_message_ids = journal_entries[replay_start_index..]
         .iter()
-        .filter_map(steer_payload)
+        .filter_map(|entry| entry.as_steer_input())
         .flat_map(|payload| payload.message_ids.iter().cloned())
         .collect::<HashSet<_>>();
     if pending_slice_contains_steer {
@@ -270,7 +239,7 @@ pub(crate) async fn plan_journal_recovery(
         excluded_history_message_ids.extend(
             journal_entries[replay_start_index..]
                 .iter()
-                .filter_map(llm_response_payload)
+                .filter_map(|entry| entry.as_llm_response())
                 .map(|payload| payload.assistant_message_id.clone())
                 .filter(|message_id| !message_id.is_empty()),
         );
@@ -484,7 +453,8 @@ mod tests {
             None
         );
         assert_eq!(
-            llm_response_payload(&entries[plan.replay_start_index])
+            entries[plan.replay_start_index]
+                .as_llm_response()
                 .unwrap()
                 .assistant_message_id,
             "assistant-3"

@@ -18,6 +18,46 @@ use crate::gateway::rpc::data_proto::{
 use crate::harness::llm::ChatResponse;
 use crate::harness::llm::ToolOutput;
 
+// Typed payload accessors
+
+pub(crate) trait SessionJournalEntryExt {
+    fn as_steer_input(&self) -> Option<&SessionJournalEntryPayloadSteerInput>;
+
+    fn as_llm_response(&self) -> Option<&SessionJournalEntryPayloadLlmResponse>;
+}
+
+impl SessionJournalEntryExt for SessionJournalEntry {
+    fn as_steer_input(&self) -> Option<&SessionJournalEntryPayloadSteerInput> {
+        if self.phase != SessionExecutionPhase::SteerInput as i32 {
+            return None;
+        }
+        match self
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+        {
+            Some(session_journal_entry_payload::Payload::SteerInput(payload)) => Some(payload),
+            _ => None,
+        }
+    }
+
+    fn as_llm_response(&self) -> Option<&SessionJournalEntryPayloadLlmResponse> {
+        if self.phase != SessionExecutionPhase::LlmResponse as i32 {
+            return None;
+        }
+        match self
+            .payload
+            .as_ref()
+            .and_then(|payload| payload.payload.as_ref())
+        {
+            Some(session_journal_entry_payload::Payload::LlmResponse(payload)) => Some(payload),
+            _ => None,
+        }
+    }
+}
+
+// Journal append operations
+
 pub async fn append_compaction(
     kv: &dyn KeyValueStore,
     cas: &CasStore,

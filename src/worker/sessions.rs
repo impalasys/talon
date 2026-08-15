@@ -22,8 +22,8 @@ use crate::gateway::rpc::data_proto::{
 use crate::harness::executor::{tool_output_loop_message, ExecutionSink, LoopMessage};
 use crate::harness::llm::ToolOutput;
 use crate::harness::sessions::{
-    self, latest_submission_projection_message_id, plan_journal_recovery, steer_payload,
-    ClaimOutcome,
+    self, latest_submission_projection_message_id, plan_journal_recovery, ClaimOutcome,
+    SessionJournalEntryExt,
 };
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
@@ -925,7 +925,7 @@ impl WorkerEventHandler {
             .await?;
             let journaled_steer_message_ids = journal_entries
                 .iter()
-                .filter_map(steer_payload)
+                .filter_map(|entry| entry.as_steer_input())
                 .flat_map(|payload| payload.message_ids.iter().cloned())
                 .collect::<HashSet<_>>();
             crate::control::session_queue::commit_journaled_steer_queue_entries(
