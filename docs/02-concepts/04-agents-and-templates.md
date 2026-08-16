@@ -31,6 +31,28 @@ The effective agent spec is what ultimately drives runtime behavior.
 
 That effective spec is what the worker sees when it executes a turn.
 
+## File and memory capabilities
+
+Native File tools use the `files` capability and File-backed memory tools use
+the `memory` capability. Their actions are `read`, `create`, `update`, and
+`delete`. File and memory access is restricted to the agent's current namespace
+unless `fileNamespaces` explicitly lists another exact namespace.
+
+```yaml
+capabilities:
+  files: [read, create, update, delete]
+  memory: [read, create, update, delete]
+  fileNamespaces:
+    - current
+    - Tenant:example:shared
+```
+
+Omitting a namespace in a tool call always selects the current namespace.
+Cross-namespace File URIs are checked against the same allowlist. `delete_file`
+and `delete_memory` are two-step operations: the first call returns an exact
+confirmation reply, and deletion is allowed only after that reply arrives as a
+later user message in the same session.
+
 ## Template deltas
 
 When an agent is templated, it can still override parts of the base template:

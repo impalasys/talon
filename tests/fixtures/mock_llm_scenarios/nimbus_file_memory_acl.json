@@ -1,0 +1,309 @@
+{
+  "rules": [
+    {
+      "id": "carlson_file_create",
+      "system_contains": "carlson nimbus local file acl test",
+      "last_message_contains": "local file create",
+      "tool_name": "create_file",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_carlson_file_create",
+        "tool_name": "create_file",
+        "content": "Creating the Carlson test File. ",
+        "arguments": {
+          "path": "/local-tests/carlson-file.md",
+          "content": "Carlson local File version 1"
+        }
+      }
+    },
+    {
+      "id": "carlson_file_read",
+      "system_contains": "carlson nimbus local file acl test",
+      "last_message_contains": "local file read",
+      "tool_name": "read_file",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_carlson_file_read",
+        "tool_name": "read_file",
+        "content": "Reading the Carlson test File. ",
+        "arguments": {
+          "path": "/local-tests/carlson-file.md"
+        }
+      }
+    },
+    {
+      "id": "carlson_file_update",
+      "system_contains": "carlson nimbus local file acl test",
+      "last_message_contains": "local file update",
+      "tool_name": "update_file",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_carlson_file_update",
+        "tool_name": "update_file",
+        "content": "Updating the Carlson test File. ",
+        "arguments": {
+          "path": "/local-tests/carlson-file.md",
+          "content": "Carlson local File version 2"
+        }
+      }
+    },
+    {
+      "id": "carlson_file_list",
+      "system_contains": "carlson nimbus local file acl test",
+      "last_message_contains": "local file list",
+      "tool_name": "list_files",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_carlson_file_list",
+        "tool_name": "list_files",
+        "content": "Listing Carlson test Files. ",
+        "arguments": {
+          "prefix": "/local-tests"
+        }
+      }
+    },
+    {
+      "id": "carlson_file_delete_request",
+      "system_contains": "carlson nimbus local file acl test",
+      "last_message_contains": "local file delete",
+      "tool_name": "delete_file",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_carlson_file_delete_request",
+        "tool_name": "delete_file",
+        "content": "Preparing the Carlson File deletion request. ",
+        "arguments": {
+          "path": "/local-tests/carlson-file.md"
+        }
+      }
+    },
+    {
+      "id": "carlson_file_delete_confirm",
+      "system_contains": "carlson nimbus local file acl test",
+      "last_message_contains": "confirm delete file file://tenant:nimbus-local:carlson/local-tests/carlson-file.md",
+      "tool_name": "delete_file",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_carlson_file_delete_confirm",
+        "tool_name": "delete_file",
+        "content": "Using the separate exact confirmation. ",
+        "arguments": {
+          "path": "/local-tests/carlson-file.md",
+          "confirmation_id": "{{confirmation_id}}"
+        }
+      }
+    },
+    {
+      "id": "carlson_kevin_file_create",
+      "system_contains": "carlson nimbus local file acl test",
+      "last_message_contains": "local kevin file create",
+      "tool_name": "create_file",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_carlson_kevin_file_create",
+        "tool_name": "create_file",
+        "content": "Creating a File in the explicitly requested Kevin test namespace. ",
+        "arguments": {
+          "namespace": "Tenant:nimbus-local:kevin",
+          "path": "/local-tests/from-carlson.md",
+          "content": "Created by Carlson Nimbus through the explicit Kevin allowlist"
+        }
+      }
+    },
+    {
+      "id": "kevin_file_create",
+      "system_contains": "kevin nimbus local file acl test",
+      "last_message_contains": "local file create",
+      "tool_name": "create_file",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_kevin_file_create",
+        "tool_name": "create_file",
+        "content": "Creating the Kevin test File. ",
+        "arguments": {
+          "path": "/local-tests/kevin-file.md",
+          "content": "Kevin local File version 1"
+        }
+      }
+    },
+    {
+      "id": "kevin_carlson_read_denied",
+      "system_contains": "kevin nimbus local file acl test",
+      "last_message_contains": "local carlson read attempt",
+      "tool_name": "read_file",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_kevin_carlson_read_denied",
+        "tool_name": "read_file",
+        "content": "Attempting the prohibited Carlson namespace read. ",
+        "arguments": {
+          "namespace": "Tenant:nimbus-local:carlson",
+          "path": "/local-tests/carlson-file.md"
+        }
+      }
+    },
+    {
+      "id": "kevin_memory_create",
+      "system_contains": "kevin nimbus local file acl test",
+      "last_message_contains": "local memory create",
+      "tool_name": "create_memory",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_kevin_memory_create",
+        "tool_name": "create_memory",
+        "content": "Creating the Kevin test memory. ",
+        "arguments": {
+          "path": "/memory/local-tests/kevin-memory.md",
+          "content": "Kevin local memory version 1"
+        }
+      }
+    },
+    {
+      "id": "kevin_memory_read",
+      "system_contains": "kevin nimbus local file acl test",
+      "last_message_contains": "local memory read",
+      "tool_name": "read_memory",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_kevin_memory_read",
+        "tool_name": "read_memory",
+        "content": "Reading the Kevin test memory. ",
+        "arguments": {
+          "path": "/memory/local-tests/kevin-memory.md"
+        }
+      }
+    },
+    {
+      "id": "kevin_memory_update",
+      "system_contains": "kevin nimbus local file acl test",
+      "last_message_contains": "local memory update",
+      "tool_name": "update_memory",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_kevin_memory_update",
+        "tool_name": "update_memory",
+        "content": "Updating the Kevin test memory. ",
+        "arguments": {
+          "path": "/memory/local-tests/kevin-memory.md",
+          "content": "Kevin local memory version 2"
+        }
+      }
+    },
+    {
+      "id": "kevin_memory_list",
+      "system_contains": "kevin nimbus local file acl test",
+      "last_message_contains": "local memory list",
+      "tool_name": "list_memory",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_kevin_memory_list",
+        "tool_name": "list_memory",
+        "content": "Listing Kevin test memory. ",
+        "arguments": {
+          "prefix": "/memory/local-tests"
+        }
+      }
+    },
+    {
+      "id": "kevin_memory_delete_request",
+      "system_contains": "kevin nimbus local file acl test",
+      "last_message_contains": "local memory delete",
+      "tool_name": "delete_memory",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_kevin_memory_delete_request",
+        "tool_name": "delete_memory",
+        "content": "Preparing the Kevin memory deletion request. ",
+        "arguments": {
+          "path": "/memory/local-tests/kevin-memory.md"
+        }
+      }
+    },
+    {
+      "id": "kevin_memory_delete_confirm",
+      "system_contains": "kevin nimbus local file acl test",
+      "last_message_contains": "confirm delete memory file://tenant:nimbus-local:kevin/memory/local-tests/kevin-memory.md",
+      "tool_name": "delete_memory",
+      "response": {
+        "type": "tool_call",
+        "tool_call_id": "call_kevin_memory_delete_confirm",
+        "tool_name": "delete_memory",
+        "content": "Using the separate exact confirmation. ",
+        "arguments": {
+          "path": "/memory/local-tests/kevin-memory.md",
+          "confirmation_id": "{{confirmation_id}}"
+        }
+      }
+    },
+    {
+      "id": "local_tool_followups",
+      "tool_call_id": "call_carlson_file_create",
+      "response": {"type": "text", "content": "Carlson test File created."}
+    },
+    {
+      "id": "local_tool_followups_2",
+      "tool_call_id": "call_carlson_file_read",
+      "response": {"type": "text", "content": "Carlson test File read; inspect the tool result in Sightline."}
+    },
+    {
+      "id": "local_tool_followups_3",
+      "tool_call_id": "call_carlson_file_update",
+      "response": {"type": "text", "content": "Carlson test File updated."}
+    },
+    {
+      "id": "local_tool_followups_4",
+      "tool_call_id": "call_carlson_file_list",
+      "response": {"type": "text", "content": "Carlson test Files listed; inspect the tool result in Sightline."}
+    },
+    {
+      "id": "local_tool_followups_5",
+      "tool_call_id": "call_carlson_file_delete_request",
+      "response": {"type": "text", "content": "Reply exactly: CONFIRM DELETE FILE file://Tenant:nimbus-local:carlson/local-tests/carlson-file.md"}
+    },
+    {
+      "id": "local_tool_followups_6",
+      "tool_call_id": "call_carlson_file_delete_confirm",
+      "response": {"type": "text", "content": "Carlson test File deleted after exact confirmation."}
+    },
+    {
+      "id": "local_tool_followups_7",
+      "tool_call_id": "call_carlson_kevin_file_create",
+      "response": {"type": "text", "content": "Kevin-namespace test File created by Carlson Nimbus."}
+    },
+    {
+      "id": "local_tool_followups_8",
+      "tool_call_id": "call_kevin_file_create",
+      "response": {"type": "text", "content": "Kevin test File created."}
+    },
+    {
+      "id": "local_tool_followups_9",
+      "tool_call_id": "call_kevin_memory_create",
+      "response": {"type": "text", "content": "Kevin test memory created."}
+    },
+    {
+      "id": "local_tool_followups_10",
+      "tool_call_id": "call_kevin_memory_read",
+      "response": {"type": "text", "content": "Kevin test memory read; inspect the tool result in Sightline."}
+    },
+    {
+      "id": "local_tool_followups_11",
+      "tool_call_id": "call_kevin_memory_update",
+      "response": {"type": "text", "content": "Kevin test memory updated."}
+    },
+    {
+      "id": "local_tool_followups_12",
+      "tool_call_id": "call_kevin_memory_list",
+      "response": {"type": "text", "content": "Kevin test memory listed; inspect the tool result in Sightline."}
+    },
+    {
+      "id": "local_tool_followups_13",
+      "tool_call_id": "call_kevin_memory_delete_request",
+      "response": {"type": "text", "content": "Reply exactly: CONFIRM DELETE MEMORY file://Tenant:nimbus-local:kevin/memory/local-tests/kevin-memory.md"}
+    },
+    {
+      "id": "local_tool_followups_14",
+      "tool_call_id": "call_kevin_memory_delete_confirm",
+      "response": {"type": "text", "content": "Kevin test memory deleted after exact confirmation."}
+    }
+  ]
+}

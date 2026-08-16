@@ -66,6 +66,7 @@ pub const READ_MEMORY_TOOL: &str = "read_memory";
 pub const LIST_MEMORY_TOOL: &str = "list_memory";
 pub const CREATE_MEMORY_TOOL: &str = "create_memory";
 pub const UPDATE_MEMORY_TOOL: &str = "update_memory";
+pub const DELETE_MEMORY_TOOL: &str = "delete_memory";
 pub const LIST_FILES_TOOL: &str = "list_files";
 pub const READ_FILE_TOOL: &str = "read_file";
 pub const GET_FILE_METADATA_TOOL: &str = "get_file_metadata";
@@ -77,6 +78,19 @@ pub(super) const OP_READ: &str = "read";
 pub(super) const OP_METADATA: &str = "metadata";
 pub(super) const OP_PROMOTE: &str = "promote";
 const MAX_ACCESS_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
+const DELETE_CONFIRMATION_TTL_MICROS: i64 = 60 * 60 * 1_000_000;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+struct PendingFileDelete {
+    delete_kind: String,
+    target_namespace: String,
+    path: String,
+    resource_name: String,
+    object_sha256: String,
+    requested_at: i64,
+    expires_at: i64,
+    required_reply: String,
+}
 
 pub fn tool_requests_worker_stop(name: &str) -> bool {
     name == AGENT_WAIT_FOR_MESSAGE_TOOL
@@ -194,6 +208,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         && !has_capability_action(spec, "memory", "read")
         && !has_capability_action(spec, "memory", "create")
         && !has_capability_action(spec, "memory", "update")
+        && !has_capability_action(spec, "memory", "delete")
         && !has_capability_action(spec, "files", "inspect")
         && !has_capability_action(spec, "files", "read")
         && !has_capability_action(spec, "files", "create")
@@ -337,6 +352,13 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
             memory_write_schema(),
         );
     }
+    if has_capability_action(spec, "memory", "delete") {
+        registry.register_builtin(
+            DELETE_MEMORY_TOOL,
+            "Prepare or execute deletion of a durable workspace memory File. The first call never deletes; it returns the exact confirmation the user must send in a later message.",
+            memory_delete_schema(),
+        );
+    }
 
     if has_capability_action(spec, "files", "inspect")
         || has_capability_action(spec, "files", "read")
@@ -398,15 +420,8 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
     if has_capability_action(spec, "files", "delete") {
         registry.register_builtin(
             DELETE_FILE_TOOL,
-            "Delete a namespace File resource by file:// URI or logical path.",
-            json!({
-                "type": "object",
-                "properties": {
-                    "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI returned by Talon or Conic." },
-                    "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
-                    "path": { "type": "string", "description": "Logical File path." }
-                }
-            }),
+            "Prepare or execute deletion of a namespace File resource. The first call never deletes; it returns the exact confirmation the user must send in a later message.",
+            file_delete_schema(),
         );
     }
 
@@ -610,6 +625,30 @@ fn file_write_schema() -> Value {
     })
 }
 
+fn file_delete_schema() -> Value {
+    json!({
+        "type": "object",
+        "properties": {
+            "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI returned by Talon or Conic." },
+            "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
+            "path": { "type": "string", "description": "Logical File path." },
+            "confirmation_id": { "type": "string", "description": "Opaque confirmation ID from the first call. Supply it only after the user sends the exact required reply in a later message." }
+        }
+    })
+}
+
+fn memory_delete_schema() -> Value {
+    json!({
+        "type": "object",
+        "properties": {
+            "namespace": { "type": "string", "description": "Memory namespace. Defaults to current namespace." },
+            "path": { "type": "string", "description": "Logical path of a File whose purpose is MEMORY." },
+            "confirmation_id": { "type": "string", "description": "Opaque confirmation ID from the first call. Supply it only after the user sends the exact required reply in a later message." }
+        },
+        "required": ["path"]
+    })
+}
+
 pub async fn execute_tool(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -701,6 +740,7 @@ pub async fn execute_tool_for_session_output(
         }
         SEARCH_MEMORY_TOOL => {
             require_memory_read(spec)?;
+            require_namespace_arg_access(spec, current_namespace, args)?;
             search_memory(cp, current_namespace, args)
                 .await
                 .map(ToolOutput::text)
@@ -708,10 +748,12 @@ pub async fn execute_tool_for_session_output(
         }
         READ_MEMORY_TOOL => {
             require_memory_read(spec)?;
+            require_namespace_arg_access(spec, current_namespace, args)?;
             read_memory(cp, current_namespace, args).await.map(Some)
         }
         LIST_MEMORY_TOOL => {
             require_memory_read(spec)?;
+            require_namespace_arg_access(spec, current_namespace, args)?;
             list_memory(cp, current_namespace, args)
                 .await
                 .map(ToolOutput::text)
@@ -719,6 +761,7 @@ pub async fn execute_tool_for_session_output(
         }
         CREATE_MEMORY_TOOL => {
             require_capability(spec, "memory", "create")?;
+            require_namespace_arg_access(spec, current_namespace, args)?;
             put_memory(cp, current_namespace, args)
                 .await
                 .map(ToolOutput::text)
@@ -726,13 +769,23 @@ pub async fn execute_tool_for_session_output(
         }
         UPDATE_MEMORY_TOOL => {
             require_capability(spec, "memory", "update")?;
+            require_namespace_arg_access(spec, current_namespace, args)?;
             put_memory(cp, current_namespace, args)
+                .await
+                .map(ToolOutput::text)
+                .map(Some)
+        }
+        DELETE_MEMORY_TOOL => {
+            require_capability(spec, "memory", "delete")?;
+            require_namespace_arg_access(spec, current_namespace, args)?;
+            delete_memory_tool(cp, current_namespace, current_agent, current_session, args)
                 .await
                 .map(ToolOutput::text)
                 .map(Some)
         }
         LIST_FILES_TOOL => {
             require_file_read(spec)?;
+            require_file_namespace_access_from_args(spec, current_namespace, args)?;
             list_files_tool(cp, current_namespace, args)
                 .await
                 .map(ToolOutput::text)
@@ -740,10 +793,12 @@ pub async fn execute_tool_for_session_output(
         }
         READ_FILE_TOOL => {
             require_file_read(spec)?;
+            require_file_namespace_access_from_args(spec, current_namespace, args)?;
             read_file_tool(cp, current_namespace, args).await.map(Some)
         }
         GET_FILE_METADATA_TOOL => {
             require_file_read(spec)?;
+            require_file_namespace_access_from_args(spec, current_namespace, args)?;
             get_file_metadata_tool(cp, current_namespace, args)
                 .await
                 .map(ToolOutput::text)
@@ -751,6 +806,7 @@ pub async fn execute_tool_for_session_output(
         }
         CREATE_FILE_TOOL => {
             require_capability(spec, "files", "create")?;
+            require_file_namespace_access_from_args(spec, current_namespace, args)?;
             create_file_tool(cp, current_namespace, args)
                 .await
                 .map(ToolOutput::text)
@@ -758,6 +814,7 @@ pub async fn execute_tool_for_session_output(
         }
         UPDATE_FILE_TOOL => {
             require_capability(spec, "files", "update")?;
+            require_file_namespace_access_from_args(spec, current_namespace, args)?;
             update_file_tool(cp, current_namespace, args)
                 .await
                 .map(ToolOutput::text)
@@ -765,7 +822,8 @@ pub async fn execute_tool_for_session_output(
         }
         DELETE_FILE_TOOL => {
             require_capability(spec, "files", "delete")?;
-            delete_file_tool(cp, current_namespace, args)
+            require_file_namespace_access_from_args(spec, current_namespace, args)?;
+            delete_file_tool(cp, current_namespace, current_agent, current_session, args)
                 .await
                 .map(ToolOutput::text)
                 .map(Some)
@@ -1335,12 +1393,234 @@ async fn update_file_tool(
 async fn delete_file_tool(
     cp: &ControlPlane,
     current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
     args: &Value,
 ) -> Result<String> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
+    if let Some(response) = require_delete_confirmation(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        args,
+        "FILE",
+        &namespace,
+        &path,
+        &file,
+    )
+    .await?
+    {
+        return Ok(response);
+    }
+    delete_file_resource(cp, &namespace, &path, file).await
+}
+
+async fn delete_memory_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+) -> Result<String> {
+    let namespace = namespace_arg(current_namespace, args);
+    let path = normalize_logical_path(req_str(args, "path")?)?;
+    let file = find_memory_file_by_path(cp, &namespace, &path)
+        .await?
+        .ok_or_else(|| anyhow!("memory file '{}' not found", path))?;
+    if let Some(response) = require_delete_confirmation(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        args,
+        "MEMORY",
+        &namespace,
+        &path,
+        &file,
+    )
+    .await?
+    {
+        return Ok(response);
+    }
+    delete_file_resource(cp, &namespace, &path, file).await
+}
+
+async fn require_delete_confirmation(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+    delete_kind: &str,
+    target_namespace: &str,
+    path: &str,
+    file: &resources_proto::File,
+) -> Result<Option<String>> {
+    if current_session.trim().is_empty() {
+        return Err(anyhow!(
+            "file deletion requires a session so Talon can verify a later user confirmation"
+        ));
+    }
+    let resource_name = file_name_from_file(file);
+    let object_sha256 = file
+        .status
+        .as_ref()
+        .and_then(|status| status.object_ref.as_ref())
+        .map(|object| object.sha256.clone())
+        .unwrap_or_default();
+
+    let Some(confirmation_id) = opt_str(args, "confirmation_id") else {
+        let now = chrono::Utc::now().timestamp_micros();
+        let confirmation_id = crate::control::uuid::session_message_id();
+        let required_reply = format!(
+            "CONFIRM DELETE {} {}",
+            delete_kind,
+            file_uri(target_namespace, path)
+        );
+        let pending = PendingFileDelete {
+            delete_kind: delete_kind.to_string(),
+            target_namespace: target_namespace.to_string(),
+            path: path.to_string(),
+            resource_name,
+            object_sha256,
+            requested_at: now,
+            expires_at: now + DELETE_CONFIRMATION_TTL_MICROS,
+            required_reply: required_reply.clone(),
+        };
+        cp.kv
+            .set(
+                &delete_confirmation_key(
+                    current_namespace,
+                    current_agent,
+                    current_session,
+                    &confirmation_id,
+                ),
+                &serde_json::to_vec(&pending)?,
+            )
+            .await?;
+        return Ok(Some(serde_json::to_string_pretty(&json!({
+            "status": "confirmation_required",
+            "confirmationId": confirmation_id,
+            "namespace": target_namespace,
+            "path": path,
+            "requiredReply": required_reply,
+            "instruction": "Ask the user to send requiredReply exactly in a separate message. Do not call this delete tool again until that reply arrives."
+        }))?));
+    };
+
+    let key = delete_confirmation_key(
+        current_namespace,
+        current_agent,
+        current_session,
+        confirmation_id,
+    );
+    let pending_bytes = cp.kv.get(&key).await?.ok_or_else(|| {
+        anyhow!(
+            "delete confirmation '{}' is missing or already used",
+            confirmation_id
+        )
+    })?;
+    let pending: PendingFileDelete = serde_json::from_slice(&pending_bytes)?;
+    let now = chrono::Utc::now().timestamp_micros();
+    if now > pending.expires_at {
+        cp.kv.delete(&key).await?;
+        return Err(anyhow!(
+            "delete confirmation '{}' expired; start a new delete request",
+            confirmation_id
+        ));
+    }
+    if pending.delete_kind != delete_kind
+        || pending.target_namespace != target_namespace
+        || pending.path != path
+        || pending.resource_name != resource_name
+        || pending.object_sha256 != object_sha256
+    {
+        return Err(anyhow!(
+            "delete confirmation '{}' does not match the exact current namespace, path, or File version",
+            confirmation_id
+        ));
+    }
+
+    let latest_user = latest_user_message(cp, current_namespace, current_agent, current_session)
+        .await?
+        .ok_or_else(|| {
+            anyhow!(
+                "delete requires a separate user message exactly: {}",
+                pending.required_reply
+            )
+        })?;
+    let latest_text = latest_user
+        .parts
+        .iter()
+        .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+        .map(|part| part.content.as_str())
+        .collect::<String>();
+    if latest_user.created_at <= pending.requested_at
+        || latest_text.trim() != pending.required_reply
+    {
+        return Err(anyhow!(
+            "delete requires a separate user message exactly: {}",
+            pending.required_reply
+        ));
+    }
+    if !cp
+        .kv
+        .compare_and_swap(&key, Some(&pending_bytes), b"consumed")
+        .await?
+    {
+        return Err(anyhow!(
+            "delete confirmation '{}' was already used",
+            confirmation_id
+        ));
+    }
+    cp.kv.delete(&key).await?;
+    Ok(None)
+}
+
+fn delete_confirmation_key(
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    confirmation_id: &str,
+) -> keys::ResourceKey {
+    keys::ResourceKey::new(
+        current_namespace,
+        &[("Agent", current_agent), ("Session", current_session)],
+        "DeleteConfirmation",
+        confirmation_id,
+    )
+}
+
+async fn latest_user_message(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+) -> Result<Option<data_proto::SessionMessage>> {
+    let entries = cp
+        .kv
+        .list_entries(
+            &keys::session_message_prefix(current_namespace, current_agent, current_session),
+            Some(ListOptions::desc().limit(100)),
+        )
+        .await?;
+    Ok(entries
+        .into_iter()
+        .filter_map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).ok())
+        .filter(|message| message.role == data_proto::MessageRole::RoleUser as i32)
+        .max_by_key(|message| message.created_at))
+}
+
+async fn delete_file_resource(
+    cp: &ControlPlane,
+    namespace: &str,
+    path: &str,
+    file: resources_proto::File,
+) -> Result<String> {
     let name = file_name_from_file(&file);
     let latest_key = crate::control::cas::latest_file_object_key(&namespace, &path);
     let object_key = file
@@ -1735,6 +2015,47 @@ fn namespace_arg(current_namespace: &str, args: &Value) -> String {
         }
         Some(namespace) => namespace.to_string(),
     }
+}
+
+fn require_namespace_arg_access(
+    spec: &manifests::AgentSpec,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<()> {
+    require_file_namespace_access(
+        spec,
+        current_namespace,
+        &namespace_arg(current_namespace, args),
+    )
+}
+
+fn require_file_namespace_access_from_args(
+    spec: &manifests::AgentSpec,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<()> {
+    let namespace = match opt_str(args, "uri") {
+        Some(uri) => parse_file_uri(uri)?.0,
+        None => namespace_arg(current_namespace, args),
+    };
+    require_file_namespace_access(spec, current_namespace, &namespace)
+}
+
+fn require_file_namespace_access(
+    spec: &manifests::AgentSpec,
+    current_namespace: &str,
+    target_namespace: &str,
+) -> Result<()> {
+    if target_namespace == current_namespace
+        || has_capability_action(spec, "fileNamespaces", target_namespace)
+    {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "file namespace access denied: agent namespace '{}' cannot access '{}'",
+        current_namespace,
+        target_namespace
+    ))
 }
 
 fn parse_file_uri(uri: &str) -> Result<(String, String)> {
@@ -3827,6 +4148,29 @@ mod tests {
         }
     }
 
+    fn file_memory_spec(
+        file_actions: &[&str],
+        memory_actions: &[&str],
+        file_namespaces: &[&str],
+    ) -> manifests::AgentSpec {
+        let list = |values: &[&str]| crate::gateway::rpc::protobuf_value::ListValue {
+            values: values
+                .iter()
+                .map(|value| crate::gateway::rpc::protobuf_value::Value {
+                    kind: Some(ProtoValueKind::StringValue((*value).to_string())),
+                })
+                .collect(),
+        };
+        manifests::AgentSpec {
+            capabilities: HashMap::from([
+                ("files".to_string(), list(file_actions)),
+                ("memory".to_string(), list(memory_actions)),
+                ("fileNamespaces".to_string(), list(file_namespaces)),
+            ]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
     fn task_spec(capabilities: &[&str]) -> manifests::AgentSpec {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
@@ -3936,6 +4280,37 @@ mod tests {
                 labels: HashMap::new(),
                 skill_state: None,
                 context_tokens: None,
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    async fn append_user_text(
+        kv: &MockKvStore,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        id: &str,
+        content: &str,
+        created_at: i64,
+    ) {
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, id),
+            &data_proto::SessionMessage {
+                id: id.to_string(),
+                role: data_proto::MessageRole::RoleUser as i32,
+                created_at,
+                labels: HashMap::new(),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: format!("{id}-part"),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: content.to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at,
+                    object: None,
+                }],
             },
         )
         .await
@@ -4101,6 +4476,373 @@ mod tests {
     }
 
     #[test]
+    fn register_memory_delete_requires_delete_capability() {
+        let mut read_registry = ToolRegistry::new();
+        register_tools(
+            &mut read_registry,
+            &file_memory_spec(&[], &["read", "create", "update"], &["current"]),
+        );
+        assert!(read_registry.get_tool(DELETE_MEMORY_TOOL).is_none());
+
+        let mut delete_registry = ToolRegistry::new();
+        register_tools(
+            &mut delete_registry,
+            &file_memory_spec(&[], &["delete"], &["current"]),
+        );
+        assert!(delete_registry.get_tool(DELETE_MEMORY_TOOL).is_some());
+    }
+
+    #[tokio::test]
+    async fn kevin_cannot_use_any_file_or_memory_tool_against_carlson_namespace() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let spec = file_memory_spec(
+            &["read", "create", "update", "delete"],
+            &["read", "create", "update", "delete"],
+            &["current"],
+        );
+        let kevin = "Tenant:nimbus:kevin";
+        let carlson = "Tenant:nimbus:carlson";
+
+        let attempts = [
+            (LIST_FILES_TOOL, json!({"namespace": carlson})),
+            (
+                READ_FILE_TOOL,
+                json!({"namespace": carlson, "path": "/notes/a.md"}),
+            ),
+            (
+                GET_FILE_METADATA_TOOL,
+                json!({"namespace": carlson, "path": "/notes/a.md"}),
+            ),
+            (
+                CREATE_FILE_TOOL,
+                json!({"namespace": carlson, "path": "/notes/a.md", "content": "a"}),
+            ),
+            (
+                UPDATE_FILE_TOOL,
+                json!({"namespace": carlson, "path": "/notes/a.md", "content": "b"}),
+            ),
+            (
+                DELETE_FILE_TOOL,
+                json!({"namespace": carlson, "path": "/notes/a.md"}),
+            ),
+            (
+                SEARCH_MEMORY_TOOL,
+                json!({"namespace": carlson, "query": "a"}),
+            ),
+            (
+                READ_MEMORY_TOOL,
+                json!({"namespace": carlson, "path": "/memory/a.md"}),
+            ),
+            (LIST_MEMORY_TOOL, json!({"namespace": carlson})),
+            (
+                CREATE_MEMORY_TOOL,
+                json!({"namespace": carlson, "path": "/memory/a.md", "content": "a"}),
+            ),
+            (
+                UPDATE_MEMORY_TOOL,
+                json!({"namespace": carlson, "path": "/memory/a.md", "content": "b"}),
+            ),
+            (
+                DELETE_MEMORY_TOOL,
+                json!({"namespace": carlson, "path": "/memory/a.md"}),
+            ),
+        ];
+
+        for (tool, args) in attempts {
+            let error =
+                execute_tool_for_session(&cp, kevin, "nimbus", "session-1", &spec, tool, &args)
+                    .await
+                    .expect_err("Kevin cross-namespace access must fail");
+            assert!(
+                error.to_string().contains("namespace access denied"),
+                "{tool} returned unexpected error: {error}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn carlson_defaults_to_own_files_and_can_explicitly_target_kevin() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let carlson = "Tenant:nimbus:carlson";
+        let kevin = "Tenant:nimbus:kevin";
+        let spec = file_memory_spec(&["read", "create"], &[], &["current", kevin]);
+
+        execute_tool_for_session(
+            &cp,
+            carlson,
+            "nimbus",
+            "session-1",
+            &spec,
+            CREATE_FILE_TOOL,
+            &json!({"path": "/notes/default.md", "content": "Carlson default"}),
+        )
+        .await
+        .unwrap();
+        execute_tool_for_session(
+            &cp,
+            carlson,
+            "nimbus",
+            "session-1",
+            &spec,
+            CREATE_FILE_TOOL,
+            &json!({"namespace": kevin, "path": "/notes/explicit.md", "content": "Kevin explicit"}),
+        )
+        .await
+        .unwrap();
+
+        let own = execute_tool_for_session(
+            &cp,
+            carlson,
+            "nimbus",
+            "session-1",
+            &spec,
+            READ_FILE_TOOL,
+            &json!({"path": "/notes/default.md"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let cross = execute_tool_for_session(
+            &cp,
+            carlson,
+            "nimbus",
+            "session-1",
+            &spec,
+            READ_FILE_TOOL,
+            &json!({"namespace": kevin, "path": "/notes/explicit.md"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(own, "Carlson default");
+        assert_eq!(cross, "Kevin explicit");
+    }
+
+    #[tokio::test]
+    async fn file_delete_requires_a_later_exact_user_confirmation() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        let namespace = "Tenant:nimbus:carlson";
+        let path = "/notes/delete-me.md";
+        let spec = file_memory_spec(&["read", "create", "delete"], &[], &["current"]);
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            CREATE_FILE_TOOL,
+            &json!({"path": path, "content": "keep until confirmed"}),
+        )
+        .await
+        .unwrap();
+
+        let requested = execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            DELETE_FILE_TOOL,
+            &json!({"path": path}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let requested: Value = serde_json::from_str(&requested).unwrap();
+        assert_eq!(requested["status"], "confirmation_required");
+        let confirmation_id = requested["confirmationId"].as_str().unwrap();
+        let required_reply = requested["requiredReply"].as_str().unwrap();
+        assert_eq!(
+            required_reply,
+            "CONFIRM DELETE FILE file://Tenant:nimbus:carlson/notes/delete-me.md"
+        );
+
+        let same_turn = execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            DELETE_FILE_TOOL,
+            &json!({"path": path, "confirmation_id": confirmation_id}),
+        )
+        .await
+        .expect_err("same-turn confirmation must fail");
+        assert!(same_turn.to_string().contains("separate user message"));
+
+        append_user_text(
+            kv.as_ref(),
+            namespace,
+            "nimbus",
+            "session-1",
+            "user-ambiguous",
+            "yes, delete it",
+            chrono::Utc::now().timestamp_micros() + 500_000,
+        )
+        .await;
+        let ambiguous = execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            DELETE_FILE_TOOL,
+            &json!({"path": path, "confirmation_id": confirmation_id}),
+        )
+        .await
+        .expect_err("ambiguous confirmation must fail");
+        assert!(ambiguous.to_string().contains(required_reply));
+
+        append_user_text(
+            kv.as_ref(),
+            namespace,
+            "nimbus",
+            "session-1",
+            "user-confirmation",
+            required_reply,
+            chrono::Utc::now().timestamp_micros() + 1_000_000,
+        )
+        .await;
+        let deleted = execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            DELETE_FILE_TOOL,
+            &json!({"path": path, "confirmation_id": confirmation_id}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let deleted: Value = serde_json::from_str(&deleted).unwrap();
+        assert_eq!(deleted["deleted"], true);
+    }
+
+    #[tokio::test]
+    async fn memory_tools_create_read_update_list_and_delete_with_confirmation() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        let namespace = "Tenant:nimbus:kevin";
+        let path = "/memory/issues/test.md";
+        let spec = file_memory_spec(&[], &["read", "create", "update", "delete"], &["current"]);
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            CREATE_MEMORY_TOOL,
+            &json!({"path": path, "content": "first issue"}),
+        )
+        .await
+        .unwrap();
+        let first = execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            READ_MEMORY_TOOL,
+            &json!({"path": path}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(first, "first issue");
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            UPDATE_MEMORY_TOOL,
+            &json!({"path": path, "content": "revised issue"}),
+        )
+        .await
+        .unwrap();
+        let listed = execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            LIST_MEMORY_TOOL,
+            &json!({"prefix": "/memory/issues"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let listed: Value = serde_json::from_str(&listed).unwrap();
+        assert_eq!(listed["entries"].as_array().unwrap().len(), 1);
+
+        let requested = execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            DELETE_MEMORY_TOOL,
+            &json!({"path": path}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let requested: Value = serde_json::from_str(&requested).unwrap();
+        let confirmation_id = requested["confirmationId"].as_str().unwrap();
+        let required_reply = requested["requiredReply"].as_str().unwrap();
+        assert_eq!(
+            required_reply,
+            "CONFIRM DELETE MEMORY file://Tenant:nimbus:kevin/memory/issues/test.md"
+        );
+
+        append_user_text(
+            kv.as_ref(),
+            namespace,
+            "nimbus",
+            "session-1",
+            "user-memory-confirmation",
+            required_reply,
+            chrono::Utc::now().timestamp_micros() + 1_000_000,
+        )
+        .await;
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            DELETE_MEMORY_TOOL,
+            &json!({"path": path, "confirmation_id": confirmation_id}),
+        )
+        .await
+        .unwrap();
+
+        let error = execute_tool_for_session(
+            &cp,
+            namespace,
+            "nimbus",
+            "session-1",
+            &spec,
+            READ_MEMORY_TOOL,
+            &json!({"path": path}),
+        )
+        .await
+        .expect_err("deleted memory must not read");
+        assert!(error.to_string().contains("not found"));
+    }
+
+    #[test]
     fn file_uri_parsing_preserves_namespace_and_path() {
         let (namespace, path) = parse_file_uri(
             "file://Tenant:conic:Customers:13/content/pages/cGFnZToxNjY=/content.md",
@@ -4112,11 +4854,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn file_tools_create_read_update_list_and_delete() {
+    async fn file_tools_create_read_update_and_list() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
         let cp = control_plane(kv, scheduler);
-        let spec = file_spec(&["inspect", "read", "create", "update", "delete"]);
+        let spec = file_spec(&["inspect", "read", "create", "update"]);
         let namespace = "Tenant:conic:Customers:13";
         let path = "/content/pages/cGFnZToxNjY=/content.md";
         let uri = file_uri(namespace, path);
@@ -4187,32 +4929,6 @@ mod tests {
         let list: Value = serde_json::from_str(&list).unwrap();
         assert_eq!(list["entries"].as_array().unwrap().len(), 1);
         assert_eq!(list["entries"][0]["uri"], uri);
-
-        execute_tool_for_session(
-            &cp,
-            namespace,
-            "cmo",
-            "session-1",
-            &spec,
-            DELETE_FILE_TOOL,
-            &json!({ "uri": uri }),
-        )
-        .await
-        .expect("delete should execute")
-        .expect("delete should return output");
-
-        let error = execute_tool_for_session(
-            &cp,
-            namespace,
-            "cmo",
-            "session-1",
-            &spec,
-            READ_FILE_TOOL,
-            &json!({ "uri": uri }),
-        )
-        .await
-        .expect_err("deleted file should not read");
-        assert!(error.to_string().contains("not found"));
     }
 
     #[test]
