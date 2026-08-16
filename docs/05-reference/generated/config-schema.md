@@ -17,6 +17,13 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | `controllers` | `map<string, ControllerConfig>` | - |
 | `trust` | `TrustConfig` | - |
 | `models` | `map<string, ModelConfig>` | - |
+| `capabilities` | `map<string, CapabilityGate>` | Deployment-wide action gates; missing actions are allowed by default. |
+
+## `CapabilityGate`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `actions` | `map<string, bool>` | Explicit `false` disables the action globally; `true` does not grant agent access. |
 
 ## `ModelConfig`
 

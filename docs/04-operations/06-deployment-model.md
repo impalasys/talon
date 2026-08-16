@@ -38,12 +38,15 @@ Cloud Run Worker Pool requirements:
 - Worker Pool addresses are ephemeral and can change whenever an instance restarts. Each new instance registers its current address; heartbeat TTL expiry removes stale registrations.
 
 When code execution is enabled on ordinary workers, start with `1 vCPU` and
-`512 MiB` per instance, one active code execution per instance, and the
+`512 MiB` per instance, one admitted code execution per instance, and the
 `TALON_CODE_*` admission values documented in Configuration. Keep a finite
-maximum instance count: code throughput is one active run per worker at this
-profile. Monitor code-admission queue timeouts, Monty failures, container
-restarts, and memory utilization before increasing code concurrency or the
-per-run heap maximum.
+maximum instance count: code throughput is one admitted run per worker at this
+profile. Because cancelled children may finish exiting after admission is
+released, monitor code-admission queue timeouts and occupancy together with
+Monty worker-process count, worker RSS, cancellation and timeout rates,
+container restarts, and OOM kills before increasing code concurrency or the
+per-run heap maximum. Strict serverless isolation remains dependent on the
+upstream Monty pool abort-and-reap follow-up.
 
 Minimal worker configuration:
 

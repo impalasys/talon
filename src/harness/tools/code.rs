@@ -5,25 +5,27 @@ use super::*;
 use base64::engine::general_purpose;
 use serde_json::Number;
 use std::collections::HashSet;
-use std::io::Read;
+use std::io::{self, Read, Write};
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
     OnceLock,
 };
 use std::time::Instant;
 
-pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
-    if has_capability_action(spec, "code", "run") {
+pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, config: &Config) {
+    if has_capability_action(spec, "code", "run")
+        && global_capability_allowed(config, "code", "run")
+    {
         registry.register_builtin(
             super::RUN_PYTHON_CODE_TOOL,
             "Run Python code in Monty, a restricted interpreter for agent-written code. Monty runs in an isolated subprocess of the current Talon binary; set TALON_MONTY_BIN to use an external runtime instead. Host filesystem, environment, and network access are not available; declared Talon files/artifacts may be mounted under /talon/input and outputs written under /talon/output are persisted as session artifacts. Code may call Talon native tools with talon_tool(name, args), except run_python_code itself.",
             json!({
                 "type": "object",
                 "properties": {
-                    "code": { "type": "string", "description": "Python code to execute. The value of the final expression is returned when present." },
+                    "code": { "type": "string", "description": "Python code to execute. The value of the final expression is returned when present. The combined code and inputs payload is capped at 1 MiB." },
                     "inputs": {
                         "type": "object",
-                        "description": "Optional JSON object exposed as Python globals before execution.",
+                        "description": "Optional JSON object exposed as Python globals before execution. Inputs are limited to 64 levels and 100,000 values.",
                         "additionalProperties": true
                     },
                     "mounts": {
@@ -52,6 +54,7 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec)
 }
 
 pub(super) async fn execute(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -62,6 +65,11 @@ pub(super) async fn execute(
 ) -> Result<Option<ToolOutput>> {
     if name != super::RUN_PYTHON_CODE_TOOL {
         return Ok(None);
+    }
+    if !global_capability_allowed(config, "code", "run") {
+        return Err(anyhow!(
+            "capability 'code:run' is disabled by deployment configuration"
+        ));
     }
     require_capability(spec, "code", "run")?;
     run_python_code_tool(
@@ -88,6 +96,10 @@ const MAX_CODE_OUTPUT_ENTRIES: usize = 100;
 const MAX_CODE_STDOUT_BYTES: usize = 1024 * 1024;
 const MAX_CODE_STDERR_BYTES: usize = 1024 * 1024;
 const CODE_CAPTURE_OVERHEAD_BYTES: usize = MAX_CODE_STDOUT_BYTES + MAX_CODE_STDERR_BYTES;
+const MAX_CODE_INLINE_REQUEST_BYTES: usize = 1024 * 1024;
+const MAX_CODE_INPUT_DEPTH: usize = 64;
+const MAX_CODE_INPUT_NODES: usize = 100_000;
+const CODE_INLINE_REQUEST_JSON_OVERHEAD_BYTES: usize = 64;
 const DEFAULT_CODE_MAX_CONCURRENT_RUNS: usize = 1;
 const DEFAULT_CODE_MEMORY_BUDGET_BYTES: usize = 256 * 1024 * 1024;
 const DEFAULT_CODE_QUEUE_TIMEOUT_MS: u64 = 30_000;
@@ -276,6 +288,7 @@ impl CodeExecutionLimiter {
             .map_err(|_| {
                 tracing::warn!(
                     max_occupancy,
+                    queued_or_active = self.queued_or_active.load(Ordering::Acquire),
                     "rejected Monty code execution because the worker queue is full"
                 );
                 anyhow!("code execution capacity unavailable: worker queue is full; retry later")
@@ -294,6 +307,7 @@ impl CodeExecutionLimiter {
             Ok(Err(_)) | Err(_) => {
                 tracing::warn!(
                     queue_timeout_ms = self.config.queue_timeout.as_millis() as u64,
+                    queued_or_active = self.queued_or_active.load(Ordering::Acquire),
                     "timed out waiting for a Monty code execution slot"
                 );
                 return Err(anyhow!(
@@ -316,6 +330,7 @@ impl CodeExecutionLimiter {
                 drop(cpu_slot);
                 tracing::warn!(
                     queue_timeout_ms = self.config.queue_timeout.as_millis() as u64,
+                    queued_or_active = self.queued_or_active.load(Ordering::Acquire),
                     "timed out waiting for a Monty code execution memory reservation"
                 );
                 return Err(anyhow!(
@@ -494,7 +509,9 @@ async fn run_python_code_tool(
     spec: &manifests::AgentSpec,
     args: &Value,
 ) -> Result<String> {
-    let code = req_str(args, "code")?.to_string();
+    let code_value = req_str(args, "code")?;
+    validate_code_inline_request(args, code_value)?;
+    let code = code_value.to_string();
     let mut inputs = monty_inputs_from_args(args)?;
     if inputs.iter().any(|(name, _)| name == TALON_TOOL_FUNCTION) {
         return Err(anyhow!(
@@ -1340,6 +1357,113 @@ fn monty_object_to_json(value: &monty_types::MontyObject) -> Result<Value> {
     })
 }
 
+struct CodeInputSizeWriter {
+    written: usize,
+    limit: usize,
+    exceeded: bool,
+}
+
+impl CodeInputSizeWriter {
+    fn new(limit: usize) -> Self {
+        Self {
+            written: 0,
+            limit,
+            exceeded: false,
+        }
+    }
+}
+
+impl Write for CodeInputSizeWriter {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        let Some(next) = self.written.checked_add(bytes.len()) else {
+            self.exceeded = true;
+            return Err(io::Error::new(
+                io::ErrorKind::WriteZero,
+                "code input size overflowed",
+            ));
+        };
+        if next > self.limit {
+            self.exceeded = true;
+            return Err(io::Error::new(
+                io::ErrorKind::WriteZero,
+                "code inputs exceed the inline request limit",
+            ));
+        }
+        self.written = next;
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+fn validate_code_inline_request(args: &Value, code: &str) -> Result<()> {
+    if code.len() > MAX_CODE_INLINE_REQUEST_BYTES {
+        return Err(anyhow!(
+            "code exceeds the {} byte inline request limit",
+            MAX_CODE_INLINE_REQUEST_BYTES
+        ));
+    }
+
+    let Some(inputs) = args.get("inputs") else {
+        return Ok(());
+    };
+    if !inputs.is_object() {
+        return Err(anyhow!("inputs must be a JSON object"));
+    }
+
+    let mut nodes = 0;
+    validate_code_input_tree(inputs, 0, &mut nodes)?;
+
+    let remaining = MAX_CODE_INLINE_REQUEST_BYTES
+        .saturating_sub(code.len())
+        .saturating_sub(CODE_INLINE_REQUEST_JSON_OVERHEAD_BYTES);
+    let mut writer = CodeInputSizeWriter::new(remaining);
+    if let Err(error) = serde_json::to_writer(&mut writer, inputs) {
+        if writer.exceeded {
+            return Err(anyhow!(
+                "code and inputs exceed the {} byte inline request limit",
+                MAX_CODE_INLINE_REQUEST_BYTES
+            ));
+        }
+        return Err(anyhow!("failed to serialize code inputs: {error}"));
+    }
+    Ok(())
+}
+
+fn validate_code_input_tree(value: &Value, depth: usize, nodes: &mut usize) -> Result<()> {
+    if depth > MAX_CODE_INPUT_DEPTH {
+        return Err(anyhow!(
+            "inputs exceed the maximum nesting depth of {}",
+            MAX_CODE_INPUT_DEPTH
+        ));
+    }
+    *nodes = nodes
+        .checked_add(1)
+        .ok_or_else(|| anyhow!("input node count overflowed"))?;
+    if *nodes > MAX_CODE_INPUT_NODES {
+        return Err(anyhow!(
+            "inputs exceed the maximum of {} values",
+            MAX_CODE_INPUT_NODES
+        ));
+    }
+    match value {
+        Value::Array(values) => {
+            for value in values {
+                validate_code_input_tree(value, depth + 1, nodes)?;
+            }
+        }
+        Value::Object(values) => {
+            for value in values.values() {
+                validate_code_input_tree(value, depth + 1, nodes)?;
+            }
+        }
+        Value::Null | Value::Bool(_) | Value::Number(_) | Value::String(_) => {}
+    }
+    Ok(())
+}
+
 fn monty_inputs_from_args(args: &Value) -> Result<Vec<(String, monty_types::MontyObject)>> {
     let Some(inputs) = args.get("inputs") else {
         return Ok(Vec::new());
@@ -1414,6 +1538,7 @@ fn is_python_identifier(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::config::CapabilityGate;
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use crate::control::scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
     use crate::test_support::{EmptyPubSub, MockKvStore};
@@ -1514,6 +1639,51 @@ mod tests {
         assert_eq!(config.queue_timeout, Duration::from_secs(30));
         assert_eq!(config.max_queued_runs, 3);
         assert_eq!(config.max_tool_calls, 2);
+    }
+
+    #[test]
+    fn code_inline_request_rejects_oversized_code_before_conversion() {
+        let code = "x".repeat(MAX_CODE_INLINE_REQUEST_BYTES + 1);
+        let error = validate_code_inline_request(&json!({ "inputs": {} }), &code)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("inline request limit"), "{error}");
+    }
+
+    #[test]
+    fn code_inline_request_rejects_oversized_inputs_before_conversion() {
+        let inputs = json!({
+            "payload": "x".repeat(MAX_CODE_INLINE_REQUEST_BYTES)
+        });
+        let error = validate_code_inline_request(&json!({ "inputs": inputs }), "1")
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("inline request limit"), "{error}");
+    }
+
+    #[test]
+    fn code_inline_request_rejects_deep_inputs() {
+        let mut inputs = Value::Null;
+        for _ in 0..=MAX_CODE_INPUT_DEPTH {
+            inputs = json!({ "nested": inputs });
+        }
+        let error = validate_code_inline_request(&json!({ "inputs": inputs }), "1")
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("nesting depth"), "{error}");
+    }
+
+    #[test]
+    fn code_inline_request_rejects_excessive_input_nodes() {
+        let inputs = Value::Object(
+            (0..=MAX_CODE_INPUT_NODES)
+                .map(|index| (format!("value-{index}"), Value::Null))
+                .collect(),
+        );
+        let error = validate_code_inline_request(&json!({ "inputs": inputs }), "1")
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("values"), "{error}");
     }
 
     #[tokio::test]
@@ -1653,7 +1823,7 @@ mod tests {
     #[test]
     fn code_tool_schema_is_openai_compatible() {
         let mut registry = ToolRegistry::new();
-        register(&mut registry, &code_spec(&["run"]));
+        register(&mut registry, &code_spec(&["run"]), &Config::default());
         let tool = registry
             .get_tool(RUN_PYTHON_CODE_TOOL)
             .expect("run_python_code should be registered");
@@ -1814,6 +1984,37 @@ mod tests {
         .unwrap_err()
         .to_string();
         assert!(err.contains("code:run"));
+    }
+
+    #[tokio::test]
+    async fn run_python_code_respects_global_capability_gate() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let mut config = Config::default();
+        config.capabilities.insert(
+            "code".to_string(),
+            CapabilityGate {
+                actions: HashMap::from([(String::from("run"), false)]),
+            },
+        );
+        let err = execute(
+            &config,
+            &cp,
+            "Tenant:test:Workspace:main",
+            "analyst",
+            "session-1",
+            &code_spec(&["run"]),
+            RUN_PYTHON_CODE_TOOL,
+            &json!({ "code": "1 + 1" }),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(
+            err.contains("disabled by deployment configuration"),
+            "{err}"
+        );
     }
 
     #[tokio::test]

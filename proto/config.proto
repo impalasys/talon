@@ -12,6 +12,14 @@ message TalonConfig {
   map<string, ControllerConfig> controllers = 7;
   TrustConfig trust = 8;
   map<string, ModelConfig> models = 9;
+  map<string, CapabilityGate> capabilities = 10;
+}
+
+// Deployment-wide capability policy. A missing action is allowed by default;
+// an explicit false disables that action for every agent, while true does not
+// grant it without the agent-level capability.
+message CapabilityGate {
+  map<string, bool> actions = 1;
 }
 
 // Static metadata for a model configured in the model catalog. Costs are in

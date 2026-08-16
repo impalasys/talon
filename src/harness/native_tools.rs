@@ -12,6 +12,7 @@ use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::control::config::{global_capability_allowed, Config};
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
@@ -184,6 +185,14 @@ pub fn register_channel_tools(registry: &mut ToolRegistry) {
 }
 
 pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
+    register_tools_with_config(registry, spec, &Config::default());
+}
+
+pub fn register_tools_with_config(
+    registry: &mut ToolRegistry,
+    spec: &manifests::AgentSpec,
+    config: &Config,
+) {
     artifact_tools::register(registry);
     a2a_tools::register(registry, spec);
     register_research_tools(registry, spec);
@@ -417,7 +426,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         );
     }
 
-    code_tools::register(registry, spec);
+    code_tools::register(registry, spec, config);
 
     task_tools::register(registry, spec);
 
@@ -639,7 +648,31 @@ pub async fn execute_tool_for_session(
     name: &str,
     args: &Value,
 ) -> Result<Option<String>> {
-    Ok(execute_tool_for_session_output(
+    execute_tool_for_session_with_config(
+        &Config::default(),
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        name,
+        args,
+    )
+    .await
+}
+
+pub async fn execute_tool_for_session_with_config(
+    config: &Config,
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    name: &str,
+    args: &Value,
+) -> Result<Option<String>> {
+    Ok(execute_tool_for_session_output_with_config(
+        config,
         cp,
         current_namespace,
         current_agent,
@@ -653,6 +686,29 @@ pub async fn execute_tool_for_session(
 }
 
 pub async fn execute_tool_for_session_output(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    name: &str,
+    args: &Value,
+) -> Result<Option<ToolOutput>> {
+    execute_tool_for_session_output_with_config(
+        &Config::default(),
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        name,
+        args,
+    )
+    .await
+}
+
+pub async fn execute_tool_for_session_output_with_config(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -700,6 +756,7 @@ pub async fn execute_tool_for_session_output(
         return Ok(Some(ToolOutput::text(result)));
     }
     if let Some(result) = code_tools::execute(
+        config,
         cp,
         current_namespace,
         current_agent,
@@ -3819,6 +3876,23 @@ mod tests {
         }
     }
 
+    fn code_spec(capabilities: &[&str]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            capabilities: HashMap::from([(
+                "code".to_string(),
+                crate::gateway::rpc::protobuf_value::ListValue {
+                    values: capabilities
+                        .iter()
+                        .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                        })
+                        .collect(),
+                },
+            )]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
     fn research_spec(capabilities: &[&str]) -> manifests::AgentSpec {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
@@ -4091,6 +4165,35 @@ mod tests {
         assert!(registry.get_tool(CREATE_SCHEDULE_TOOL).is_some());
         assert!(registry.get_tool(UPDATE_SCHEDULE_TOOL).is_none());
         assert!(registry.get_tool(DELETE_SCHEDULE_TOOL).is_none());
+    }
+
+    #[test]
+    fn global_capability_gate_hides_code_tool_without_granting_it() {
+        let mut disabled = Config::default();
+        disabled.capabilities.insert(
+            "code".to_string(),
+            crate::control::config::CapabilityGate {
+                actions: HashMap::from([(String::from("run"), false)]),
+            },
+        );
+        let mut registry = ToolRegistry::new();
+        register_tools_with_config(&mut registry, &code_spec(&["run"]), &disabled);
+        assert!(registry.get_tool(RUN_PYTHON_CODE_TOOL).is_none());
+
+        let mut enabled = Config::default();
+        enabled.capabilities.insert(
+            "code".to_string(),
+            crate::control::config::CapabilityGate {
+                actions: HashMap::from([(String::from("run"), true)]),
+            },
+        );
+        let mut enabled_registry = ToolRegistry::new();
+        register_tools_with_config(&mut enabled_registry, &code_spec(&["run"]), &enabled);
+        assert!(enabled_registry.get_tool(RUN_PYTHON_CODE_TOOL).is_some());
+
+        let mut ungranted_registry = ToolRegistry::new();
+        register_tools_with_config(&mut ungranted_registry, &code_spec(&[]), &enabled);
+        assert!(ungranted_registry.get_tool(RUN_PYTHON_CODE_TOOL).is_none());
     }
 
     #[test]

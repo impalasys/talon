@@ -1364,16 +1364,18 @@ impl AgentExecutor {
                 .await
                 .map(ToolOutput::text);
         }
-        if let Some(result) = crate::harness::native_tools::execute_tool_for_session_output(
-            &self.control_plane,
-            &self.namespace,
-            &self.agent_id,
-            &self.session_id,
-            &self.agent_spec,
-            name,
-            &args,
-        )
-        .await?
+        if let Some(result) =
+            crate::harness::native_tools::execute_tool_for_session_output_with_config(
+                &self.config,
+                &self.control_plane,
+                &self.namespace,
+                &self.agent_id,
+                &self.session_id,
+                &self.agent_spec,
+                name,
+                &args,
+            )
+            .await?
         {
             return Ok(result);
         }

@@ -90,6 +90,10 @@ models:
     longContextInputCostPerMillionTokens: 0.60
     longContextOutputCostPerMillionTokens: 1.80
 
+capabilities:
+  code:
+    run: false
+
 database:
   data_dir: "./test-data"
 
@@ -133,6 +137,12 @@ server:
             model.long_context_output_cost_per_million_tokens,
             Some(1.80)
         );
+        assert!(!crate::control::config::global_capability_allowed(
+            &config, "code", "run"
+        ));
+        assert!(crate::control::config::global_capability_allowed(
+            &config, "files", "read"
+        ));
     }
 
     #[test]
@@ -1199,6 +1209,7 @@ control_plane:
                 ),
             ]),
             llm_providers: std::collections::HashMap::new(),
+            capabilities: std::collections::HashMap::new(),
             database: Some(crate::control::config::DatabaseConfigWrapper {
                 data_dir: Some("./data".to_string()),
                 driver: Some("sqlite".to_string()),

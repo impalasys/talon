@@ -23,8 +23,8 @@ pub mod proto {
 }
 
 pub use proto::{
-    DatabaseConfig, LlmProviderConfig as ProviderConfig, ObjectStoreConfig, SchedulerConfig,
-    SecretRef, ServerConfig, TalonConfig as Config,
+    CapabilityGate, DatabaseConfig, LlmProviderConfig as ProviderConfig, ObjectStoreConfig,
+    SchedulerConfig, SecretRef, ServerConfig, TalonConfig as Config,
 };
 pub use secrets::{Secret, SecretExt};
 
@@ -47,6 +47,8 @@ pub struct SerdeConfig {
     pub trust: Option<TrustConfigWrapper>,
     #[serde(default, alias = "llmModels", alias = "modelLimits")]
     pub models: HashMap<String, ModelConfigWrapper>,
+    #[serde(default)]
+    pub capabilities: HashMap<String, HashMap<String, bool>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -427,8 +429,25 @@ impl From<SerdeConfig> for Config {
                     )
                 })
                 .collect(),
+            capabilities: s
+                .capabilities
+                .into_iter()
+                .map(|(name, actions)| (name, proto::CapabilityGate { actions }))
+                .collect(),
         }
     }
+}
+
+/// Returns whether a deployment-wide capability action is enabled.
+/// Missing gates remain allowed for backwards compatibility; an explicit
+/// `true` only permits the action globally and never grants an agent access.
+pub fn global_capability_allowed(config: &Config, capability: &str, action: &str) -> bool {
+    config
+        .capabilities
+        .get(capability)
+        .and_then(|gate| gate.actions.get(action))
+        .copied()
+        .unwrap_or(true)
 }
 
 fn normalize_path(path: PathBuf) -> PathBuf {

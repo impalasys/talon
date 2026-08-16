@@ -20,6 +20,12 @@ server:
   host: "0.0.0.0"
   port: 50051
 
+# Optional deployment-wide capability gates. A false value disables the
+# action for every agent; true still requires the agent manifest grant.
+# capabilities:
+#   code:
+#     run: false
+
 storage:
   control:
     driver: postgres
