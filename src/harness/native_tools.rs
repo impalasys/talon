@@ -1304,6 +1304,7 @@ async fn read_file_tool(
     args: &Value,
 ) -> Result<ToolOutput> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    ensure_file_read_namespace(current_namespace, &namespace)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
@@ -1316,6 +1317,7 @@ async fn get_file_metadata_tool(
     args: &Value,
 ) -> Result<String> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    ensure_file_read_namespace(current_namespace, &namespace)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
@@ -1828,6 +1830,28 @@ fn parse_file_uri(uri: &str) -> Result<(String, String)> {
     }
     let path = normalize_logical_path(&rest[split..])?;
     Ok((namespace.to_string(), path))
+}
+
+pub(super) fn ensure_file_read_namespace(
+    current_namespace: &str,
+    requested_namespace: &str,
+) -> Result<()> {
+    let requested_namespace = if requested_namespace == "current" {
+        current_namespace
+    } else {
+        requested_namespace
+    };
+    if crate::control::ns::ancestry(current_namespace)
+        .iter()
+        .any(|namespace| namespace == requested_namespace)
+    {
+        Ok(())
+    } else {
+        Err(anyhow!(
+            "file access to namespace '{}' is outside the current namespace ancestry",
+            requested_namespace
+        ))
+    }
 }
 
 fn normalize_memory_path(path: &str) -> Result<String> {

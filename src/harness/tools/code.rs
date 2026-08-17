@@ -5,6 +5,8 @@ use super::*;
 use base64::engine::general_purpose;
 use serde_json::Number;
 use std::collections::HashSet;
+use std::fmt;
+use std::future::Future;
 use std::io::{self, Read, Write};
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
@@ -22,7 +24,7 @@ pub(super) fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec,
             json!({
                 "type": "object",
                 "properties": {
-                    "code": { "type": "string", "description": "Python code to execute. The value of the final expression is returned when present. The combined code and inputs payload is capped at 1 MiB." },
+                    "code": { "type": "string", "description": "Python code to execute. The value of the final expression is returned when present. The combined code and inputs payload is capped at 1 MiB, and the serialized result is capped at 1 MiB." },
                     "inputs": {
                         "type": "object",
                         "description": "Optional JSON object exposed as Python globals before execution. Inputs are limited to 64 levels and 100,000 values.",
@@ -96,7 +98,9 @@ const MAX_CODE_OUTPUT_BYTES: u64 = 25 * 1024 * 1024;
 const MAX_CODE_OUTPUT_ENTRIES: usize = 100;
 const MAX_CODE_STDOUT_BYTES: usize = 1024 * 1024;
 const MAX_CODE_STDERR_BYTES: usize = 1024 * 1024;
-const CODE_CAPTURE_OVERHEAD_BYTES: usize = MAX_CODE_STDOUT_BYTES + MAX_CODE_STDERR_BYTES;
+const MAX_CODE_RESULT_BYTES: usize = 1024 * 1024;
+const CODE_CAPTURE_OVERHEAD_BYTES: usize =
+    MAX_CODE_STDOUT_BYTES + MAX_CODE_STDERR_BYTES + (MAX_CODE_RESULT_BYTES * 2);
 const MAX_CODE_INLINE_REQUEST_BYTES: usize = 1024 * 1024;
 const MAX_CODE_INPUT_DEPTH: usize = 64;
 const MAX_CODE_INPUT_NODES: usize = 100_000;
@@ -124,6 +128,24 @@ struct CodeRunContext {
     deadline: Instant,
     tool_calls: Arc<AtomicUsize>,
     max_tool_calls: usize,
+}
+
+async fn run_code_phase<T, F>(deadline: Instant, phase: &'static str, future: F) -> Result<T>
+where
+    F: Future<Output = Result<T>>,
+{
+    tokio::time::timeout_at(tokio::time::Instant::from_std(deadline), future)
+        .await
+        .map_err(|_| {
+            anyhow::Error::new(CodeDeadlineExceeded).context(format!("{phase} timed out"))
+        })?
+}
+
+fn check_code_deadline(deadline: Instant, phase: &'static str) -> Result<()> {
+    if Instant::now() >= deadline {
+        return Err(anyhow::Error::new(CodeDeadlineExceeded).context(format!("{phase} timed out")));
+    }
+    Ok(())
 }
 
 #[derive(Clone)]
@@ -550,7 +572,6 @@ async fn run_python_code_tool(
     telemetry.queue_wait_ms = Some(reservation.queue_wait_ms);
     telemetry.reserved_memory_bytes = Some(reservation.reservation_bytes);
     let deadline = Instant::now() + Duration::from_millis(timeout_ms);
-    let timeout_duration = Duration::from_millis(timeout_ms);
 
     let run = async {
         let CodeMountBundle {
@@ -558,13 +579,17 @@ async fn run_python_code_tool(
             output_dir,
             mounts,
             mounted_inputs,
-        } = prepare_code_mounts(
-            cp,
-            current_namespace,
-            current_agent,
-            current_session,
-            spec,
-            args,
+        } = run_code_phase(
+            deadline,
+            "Monty mount preparation",
+            prepare_code_mounts(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                spec,
+                args,
+            ),
         )
         .await
         .map_err(|error| anyhow!("Monty mount preparation failed: {error}"))?;
@@ -577,37 +602,48 @@ async fn run_python_code_tool(
             tool_calls: Arc::new(AtomicUsize::new(0)),
             max_tool_calls: limiter.config.max_tool_calls,
         };
-        let mut result = run_monty_python(
-            config,
-            cp,
-            current_namespace,
-            current_agent,
-            current_session,
-            spec,
-            code,
-            inputs,
-            mounts,
-            &output_dir,
-            context,
-            timeout_ms,
-            memory_bytes,
-        )
-        .await
-        .map_err(|error| anyhow!("Monty execution failed: {error}"))?;
-        let (output_bytes, output_files) = code_output_stats(&output_dir)?;
-        let outputs = if persist_outputs {
-            persist_code_outputs(
+        let mut result = run_code_phase(
+            deadline,
+            "Monty execution",
+            run_monty_python(
+                config,
                 cp,
                 current_namespace,
                 current_agent,
                 current_session,
+                spec,
+                code,
+                inputs,
+                mounts,
                 &output_dir,
+                context,
+                timeout_ms,
+                memory_bytes,
+            ),
+        )
+        .await
+        .map_err(|error| anyhow!("Monty execution failed: {error}"))?;
+        check_code_deadline(deadline, "Monty output statistics")?;
+        let (output_bytes, output_files) = code_output_stats(&output_dir)?;
+        check_code_deadline(deadline, "Monty output statistics")?;
+        let outputs = if persist_outputs {
+            run_code_phase(
+                deadline,
+                "Monty output persistence",
+                persist_code_outputs(
+                    cp,
+                    current_namespace,
+                    current_agent,
+                    current_session,
+                    &output_dir,
+                ),
             )
             .await
             .map_err(|error| anyhow!("output persistence failed: {error}"))?
         } else {
             Vec::new()
         };
+        check_code_deadline(deadline, "Monty output serialization")?;
         telemetry.output_bytes = output_bytes;
         telemetry.output_files = output_files;
         if let Some(object) = result.as_object_mut() {
@@ -615,10 +651,13 @@ async fn run_python_code_tool(
             object.insert("outputMount".to_string(), json!(CODE_OUTPUT_MOUNT));
             object.insert("outputs".to_string(), json!(outputs));
         }
-        Ok::<_, anyhow::Error>(serde_json::to_string_pretty(&result)?)
+        let serialized = serde_json::to_string_pretty(&result)?;
+        check_code_deadline(deadline, "Monty output serialization")?;
+        Ok::<_, anyhow::Error>(serialized)
     };
 
-    let result = match tokio::time::timeout(timeout_duration, run).await {
+    let result = match tokio::time::timeout_at(tokio::time::Instant::from_std(deadline), run).await
+    {
         Ok(Ok(result)) => {
             telemetry.finish("success");
             Ok(result)
@@ -693,12 +732,12 @@ async fn run_monty_python(
                 )
             })
         })?;
+    let remaining = context.remaining()?;
     let mut pool_config = monty_pool::PoolConfig::subprocess(monty_binary);
     pool_config.min_processes = 0;
     pool_config.max_processes = 1;
-    pool_config.request_timeout =
-        Some(Duration::from_millis(timeout_ms).saturating_add(Duration::from_secs(1)));
-    pool_config.checkout_timeout = Some(Duration::from_secs(5));
+    pool_config.request_timeout = Some(remaining.saturating_add(Duration::from_secs(1)));
+    pool_config.checkout_timeout = Some(remaining.min(Duration::from_secs(5)));
     let pool = monty_pool::Pool::new(pool_config).await.map_err(|err| {
         anyhow!(
             "failed to start Monty runtime: {err}. The current Talon binary contains the embedded worker; set TALON_MONTY_BIN to an external monty runtime to override it"
@@ -709,7 +748,10 @@ async fn run_monty_python(
         limits: Some(limits),
         ..Default::default()
     };
-    let mut session = pool.checkout(&repl).await?;
+    let mut session = run_code_phase(context.deadline, "Monty checkout", async {
+        pool.checkout(&repl).await.map_err(anyhow::Error::from)
+    })
+    .await?;
     let capture = Arc::new(std::sync::Mutex::new(CodeOutputCapture::new()));
     let capture_for_print = Arc::clone(&capture);
     let mut on_print = monty_pool::on_print_sync(move |stream, text| {
@@ -817,14 +859,16 @@ async fn run_monty_python(
         .clone()
         .finish();
     session.finish().await?;
+    let result_text = bounded_monty_display(&result)?;
+    let result_value = bounded_monty_json(&result)?;
     Ok(json!({
         "ok": true,
         "runtime": "monty",
         "language": "python",
         "stdout": stdout,
         "stderr": stderr,
-        "result": result.to_string(),
-        "value": serde_json::to_value(&result)?,
+        "result": result_text,
+        "value": result_value,
         "inputMount": CODE_INPUT_MOUNT,
     }))
 }
@@ -951,6 +995,7 @@ async fn read_code_mount_source(
     if uri.starts_with("file://") {
         require_file_read(spec)?;
         let (namespace, path) = parse_file_uri(uri)?;
+        ensure_file_read_namespace(current_namespace, &namespace)?;
         let namespace = if namespace == "current" {
             current_namespace.to_string()
         } else {
@@ -1294,9 +1339,9 @@ async fn call_talon_tool(
             "{TALON_TOOL_FUNCTION} second argument must be a dict/object"
         ));
     }
-    let remaining = context.remaining()?;
-    let output = tokio::time::timeout(
-        remaining,
+    let output = run_code_phase(
+        context.deadline,
+        "Talon tool bridge",
         Box::pin(execute_tool_for_session(
             cp,
             current_namespace,
@@ -1309,7 +1354,6 @@ async fn call_talon_tool(
         )),
     )
     .await
-    .map_err(|_| anyhow::Error::new(CodeDeadlineExceeded))?
     .map_err(|error| {
         if error.downcast_ref::<CodeDeadlineExceeded>().is_some() {
             error
@@ -1324,7 +1368,121 @@ async fn call_talon_tool(
     }
 }
 
+fn bounded_monty_display(value: &monty_types::MontyObject) -> Result<String> {
+    let mut writer = BoundedDisplayWriter::new(MAX_CODE_RESULT_BYTES);
+    if fmt::Write::write_fmt(&mut writer, format_args!("{value}")).is_err() {
+        if writer.exceeded {
+            return Err(anyhow!(
+                "Monty result exceeds the {} byte result limit",
+                MAX_CODE_RESULT_BYTES
+            ));
+        }
+        return Err(anyhow!("failed to serialize Monty result"));
+    }
+    Ok(writer.output)
+}
+
+fn bounded_monty_json(value: &monty_types::MontyObject) -> Result<Value> {
+    let mut writer = BoundedByteWriter::new(MAX_CODE_RESULT_BYTES);
+    if let Err(error) = serde_json::to_writer(&mut writer, value) {
+        if writer.exceeded {
+            return Err(anyhow!(
+                "Monty result exceeds the {} byte result limit",
+                MAX_CODE_RESULT_BYTES
+            ));
+        }
+        return Err(anyhow!("failed to serialize Monty result: {error}"));
+    }
+    serde_json::from_slice(&writer.bytes)
+        .map_err(|error| anyhow!("failed to decode serialized Monty result: {error}"))
+}
+
+struct BoundedDisplayWriter {
+    output: String,
+    written: usize,
+    limit: usize,
+    exceeded: bool,
+}
+
+impl BoundedDisplayWriter {
+    fn new(limit: usize) -> Self {
+        Self {
+            output: String::new(),
+            written: 0,
+            limit,
+            exceeded: false,
+        }
+    }
+}
+
+impl fmt::Write for BoundedDisplayWriter {
+    fn write_str(&mut self, value: &str) -> fmt::Result {
+        let remaining = self.limit.saturating_sub(self.written);
+        if value.len() > remaining {
+            self.exceeded = true;
+            return Err(fmt::Error);
+        }
+        self.output.push_str(value);
+        self.written += value.len();
+        Ok(())
+    }
+}
+
+struct BoundedByteWriter {
+    bytes: Vec<u8>,
+    limit: usize,
+    exceeded: bool,
+}
+
+impl BoundedByteWriter {
+    fn new(limit: usize) -> Self {
+        Self {
+            bytes: Vec::with_capacity(limit.min(8 * 1024)),
+            limit,
+            exceeded: false,
+        }
+    }
+}
+
+impl Write for BoundedByteWriter {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        let Some(next) = self.bytes.len().checked_add(bytes.len()) else {
+            self.exceeded = true;
+            return Err(io::Error::new(
+                io::ErrorKind::WriteZero,
+                "Monty result size overflowed",
+            ));
+        };
+        if next > self.limit {
+            self.exceeded = true;
+            return Err(io::Error::new(
+                io::ErrorKind::WriteZero,
+                "Monty result exceeds the configured size limit",
+            ));
+        }
+        self.bytes.extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 fn monty_object_to_json(value: &monty_types::MontyObject) -> Result<Value> {
+    monty_object_to_json_at_depth(value, 0)
+}
+
+fn monty_object_to_json_at_depth(value: &monty_types::MontyObject, depth: usize) -> Result<Value> {
+    if depth > MAX_CODE_INPUT_DEPTH {
+        return Err(anyhow!(
+            "talon_tool args exceed the maximum nesting depth of {}",
+            MAX_CODE_INPUT_DEPTH
+        ));
+    }
+    let next_depth = depth
+        .checked_add(1)
+        .ok_or_else(|| anyhow!("talon_tool argument nesting depth overflowed"))?;
     Ok(match value {
         monty_types::MontyObject::None => Value::Null,
         monty_types::MontyObject::Bool(value) => Value::Bool(*value),
@@ -1341,7 +1499,7 @@ fn monty_object_to_json(value: &monty_types::MontyObject) -> Result<Value> {
         | monty_types::MontyObject::Tuple(values)
         | monty_types::MontyObject::Set(values) => values
             .iter()
-            .map(monty_object_to_json)
+            .map(|value| monty_object_to_json_at_depth(value, next_depth))
             .collect::<Result<Vec<_>>>()
             .map(Value::Array)?,
         monty_types::MontyObject::Dict(pairs) => {
@@ -1349,9 +1507,9 @@ fn monty_object_to_json(value: &monty_types::MontyObject) -> Result<Value> {
             for (key, value) in pairs {
                 let key = match key {
                     monty_types::MontyObject::String(value) => value.clone(),
-                    other => other.to_string(),
+                    other => bounded_monty_display(other)?,
                 };
-                map.insert(key, monty_object_to_json(value)?);
+                map.insert(key, monty_object_to_json_at_depth(value, next_depth)?);
             }
             Value::Object(map)
         }
@@ -1813,7 +1971,7 @@ mod tests {
     fn code_memory_reservation_covers_runtime_and_mount_bounds() {
         assert_eq!(
             code_memory_reservation_bytes(128 * 1024 * 1024).unwrap(),
-            244 * 1024 * 1024
+            246 * 1024 * 1024
         );
     }
     #[test]
@@ -2190,6 +2348,122 @@ mod tests {
             "{error}"
         );
         assert!(monty_object_to_json(&monty_types::MontyObject::Float(f64::INFINITY)).is_err());
+    }
+
+    #[tokio::test]
+    async fn code_phase_timeout_uses_absolute_deadline() {
+        for phase in [
+            "Monty mount preparation",
+            "Monty checkout",
+            "Monty execution",
+            "Talon tool bridge",
+            "Monty output persistence",
+        ] {
+            let deadline = Instant::now() + Duration::from_millis(10);
+            let error = run_code_phase(deadline, phase, async {
+                tokio::time::sleep(Duration::from_millis(50)).await;
+                Ok::<_, anyhow::Error>(())
+            })
+            .await
+            .unwrap_err()
+            .to_string();
+            assert!(error.contains("timed out"), "{error}");
+        }
+    }
+
+    #[test]
+    fn monty_result_serialization_is_bounded() {
+        let small = monty_types::MontyObject::String("ok".to_string());
+        assert_eq!(bounded_monty_display(&small).unwrap(), "ok");
+        assert!(bounded_monty_json(&small).is_ok());
+
+        let near_limit = monty_types::MontyObject::String("x".repeat(MAX_CODE_RESULT_BYTES - 32));
+        assert!(bounded_monty_display(&near_limit).is_ok());
+        assert!(bounded_monty_json(&near_limit).is_ok());
+
+        let large = monty_types::MontyObject::String("x".repeat(MAX_CODE_RESULT_BYTES + 1));
+        assert!(bounded_monty_display(&large)
+            .unwrap_err()
+            .to_string()
+            .contains("result limit"));
+        assert!(bounded_monty_json(&large)
+            .unwrap_err()
+            .to_string()
+            .contains("result limit"));
+    }
+
+    #[test]
+    fn monty_object_to_json_rejects_excessive_nesting() {
+        let mut value = monty_types::MontyObject::Int(1);
+        for _ in 0..=MAX_CODE_INPUT_DEPTH {
+            value = monty_types::MontyObject::List(vec![value]);
+        }
+        let error = monty_object_to_json(&value).unwrap_err().to_string();
+        assert!(error.contains("maximum nesting depth"), "{error}");
+    }
+
+    #[test]
+    fn file_read_namespace_scope_allows_ancestors_only() {
+        let current = "Tenant:team:Workspace:main";
+        ensure_file_read_namespace(current, "current").unwrap();
+        for allowed in [current, "Tenant:team:Workspace", "Tenant:team", "Tenant"] {
+            ensure_file_read_namespace(current, allowed).unwrap();
+        }
+        for denied in [
+            "Tenant:team:Workspace:other",
+            "Tenant:other",
+            "Tenant:team:Workspace:main:child",
+        ] {
+            let error = ensure_file_read_namespace(current, denied)
+                .unwrap_err()
+                .to_string();
+            assert!(
+                error.contains("outside the current namespace ancestry"),
+                "{error}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn code_file_mount_rejects_non_ancestral_namespace_before_lookup() {
+        let cp = control_plane(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockScheduler::default()),
+        );
+        let error = read_code_mount_source(
+            &cp,
+            "Tenant:team:Workspace:main",
+            "analyst",
+            "session-1",
+            &code_and_file_spec(&["run"], &["read"]),
+            "file://Tenant:other/datasets/secret.txt",
+            MAX_CODE_INPUT_BYTES,
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(
+            error.contains("outside the current namespace ancestry"),
+            "{error}"
+        );
+
+        let error = execute_tool_for_session(
+            &cp,
+            "Tenant:team:Workspace:main",
+            "analyst",
+            "session-1",
+            &code_and_file_spec(&["run"], &["read"]),
+            READ_FILE_TOOL,
+            &json!({ "uri": "file://Tenant:other/datasets/secret.txt" }),
+            &Config::default(),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(
+            error.contains("outside the current namespace ancestry"),
+            "{error}"
+        );
     }
 
     #[tokio::test]
