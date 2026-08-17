@@ -97,6 +97,14 @@ export type TalonSessionTurnCompleteContext = {
   sessionId: string;
 };
 
+/**
+ * Maps a persisted message into its browser-safe presentation form without
+ * changing the message Talon stored or receives.
+ */
+export type TalonSessionMessageDisplayTransformer = (
+  message: CopilotMessage,
+) => CopilotMessage;
+
 export type TalonSessionMessageEditContext = {
   message: CopilotMessage;
   nextContent: string;
@@ -143,6 +151,7 @@ export type TalonSessionProps = {
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
   submissionTransformer?: TalonSessionSubmissionTransformer;
   onTurnComplete?: (context: TalonSessionTurnCompleteContext) => Promise<void> | void;
+  messageDisplayTransformer?: TalonSessionMessageDisplayTransformer;
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
   enableDebugMessageEditing?: boolean;

@@ -12,6 +12,7 @@ export {
   type TalonSessionSubmitContext,
 	  type TalonSessionSubmissionTransformer,
 	  type TalonSessionTurnCompleteContext,
+	  type TalonSessionMessageDisplayTransformer,
   type TalonCopilotProps,
   type TalonChatObjectRef,
   type TalonAttachmentUploadContext,

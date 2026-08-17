@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   hydrateMessagesWithSteps,
   normalizeMessageRole,
@@ -89,6 +89,7 @@ export function TalonSession({
   onSubmitMessage,
   submissionTransformer,
   onTurnComplete,
+  messageDisplayTransformer,
   allowMessageEditing = false,
   onMessageEdit,
   enableDebugMessageEditing = false,
@@ -125,6 +126,12 @@ export function TalonSession({
     activateTarget,
   } = sessionRuntime;
   const messages = sessionRuntimeState.messages;
+  const displayMessages = useMemo(
+    () => messageDisplayTransformer
+      ? messages.map((message) => messageDisplayTransformer(message))
+      : messages,
+    [messageDisplayTransformer, messages],
+  );
   const currentSession = sessionRuntimeState.target;
   const pendingMessages = useSessionPendingMessages(gatewayClient.sessions, currentSession);
   const isLoading = sessionRuntimeState.phase === "submitting";
@@ -318,7 +325,7 @@ export function TalonSession({
 
   const renderedMessages = (
     <SessionMessageList
-      messages={messages}
+      messages={displayMessages}
       messageProps={{
         isSessionLive,
         loadingStartedAt,

@@ -201,6 +201,8 @@ export type TalonSessionTurnCompleteContext = {
   sessionId: string;
 };
 
+export type TalonSessionMessageDisplayTransformer = (message: CopilotMessage) => CopilotMessage;
+
 export type TalonSessionMessageEditContext = {
   message: CopilotMessage;
   nextContent: string;
@@ -283,6 +285,7 @@ export type TalonSessionProps = {
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
   submissionTransformer?: TalonSessionSubmissionTransformer;
   onTurnComplete?: (context: TalonSessionTurnCompleteContext) => Promise<void> | void;
+  messageDisplayTransformer?: TalonSessionMessageDisplayTransformer;
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
   enableDebugMessageEditing?: boolean;

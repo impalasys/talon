@@ -1,6 +1,6 @@
 {
   "name": "@impalasys/talon-chat",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "React chat panels for Talon agent sessions and channels",
   "type": "module",
   "license": "AGPL-3.0-only",
@@ -50,7 +50,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@impalasys/talon-client": "^0.2.5",
+    "@impalasys/talon-client": "^0.2.6",
     "react": "^18.3.0 || ^19.0.0",
     "react-dom": "^18.3.0 || ^19.0.0"
   },
@@ -60,7 +60,7 @@
     "streamdown": "^2.5.0"
   },
   "devDependencies": {
-    "@impalasys/talon-client": "workspace:0.2.5",
+    "@impalasys/talon-client": "workspace:0.2.6",
     "@playwright/test": "^1.60.0",
     "@storybook/addon-docs": "^10.4.2",
     "@storybook/react-vite": "^10.4.2",
