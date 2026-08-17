@@ -55,6 +55,11 @@ export class TalonConfig extends Message<TalonConfig> {
    */
   models: { [key: string]: ModelConfig } = {};
 
+  /**
+   * @generated from field: map<string, talon.config.CapabilityGate> capabilities = 10;
+   */
+  capabilities: { [key: string]: CapabilityGate } = {};
+
   constructor(data?: PartialMessage<TalonConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -72,6 +77,7 @@ export class TalonConfig extends Message<TalonConfig> {
     { no: 7, name: "controllers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ControllerConfig} },
     { no: 8, name: "trust", kind: "message", T: TrustConfig },
     { no: 9, name: "models", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ModelConfig} },
+    { no: 10, name: "capabilities", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: CapabilityGate} },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TalonConfig {
@@ -88,6 +94,47 @@ export class TalonConfig extends Message<TalonConfig> {
 
   static equals(a: TalonConfig | PlainMessage<TalonConfig> | undefined, b: TalonConfig | PlainMessage<TalonConfig> | undefined): boolean {
     return proto3.util.equals(TalonConfig, a, b);
+  }
+}
+
+/**
+ * Deployment-wide capability policy. A missing action is allowed by default;
+ * an explicit false disables that action for every agent, while true does not
+ * grant it without the agent-level capability.
+ *
+ * @generated from message talon.config.CapabilityGate
+ */
+export class CapabilityGate extends Message<CapabilityGate> {
+  /**
+   * @generated from field: map<string, bool> actions = 1;
+   */
+  actions: { [key: string]: boolean } = {};
+
+  constructor(data?: PartialMessage<CapabilityGate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.CapabilityGate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "actions", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 8 /* ScalarType.BOOL */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CapabilityGate {
+    return new CapabilityGate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CapabilityGate {
+    return new CapabilityGate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CapabilityGate {
+    return new CapabilityGate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CapabilityGate | PlainMessage<CapabilityGate> | undefined, b: CapabilityGate | PlainMessage<CapabilityGate> | undefined): boolean {
+    return proto3.util.equals(CapabilityGate, a, b);
   }
 }
 

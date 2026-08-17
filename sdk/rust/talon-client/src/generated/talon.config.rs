@@ -28,6 +28,19 @@ pub struct TalonConfig {
     pub trust: ::core::option::Option<TrustConfig>,
     #[prost(map = "string, message", tag = "9")]
     pub models: ::std::collections::HashMap<::prost::alloc::string::String, ModelConfig>,
+    #[prost(map = "string, message", tag = "10")]
+    pub capabilities: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        CapabilityGate,
+    >,
+}
+/// Deployment-wide capability policy. A missing action is allowed by default;
+/// an explicit false disables that action for every agent, while true does not
+/// grant it without the agent-level capability.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CapabilityGate {
+    #[prost(map = "string, bool", tag = "1")]
+    pub actions: ::std::collections::HashMap<::prost::alloc::string::String, bool>,
 }
 /// Static metadata for a model configured in the model catalog. Costs are in
 /// USD per one million tokens. The context window includes generated output;

@@ -8,7 +8,7 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class TalonConfig(_message.Message):
-    __slots__ = ("providers", "database", "server", "default_provider", "workspace_dir", "control_plane", "controllers", "trust", "models")
+    __slots__ = ("providers", "database", "server", "default_provider", "workspace_dir", "control_plane", "controllers", "trust", "models", "capabilities")
     class ProvidersEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -30,6 +30,13 @@ class TalonConfig(_message.Message):
         key: str
         value: ModelConfig
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ModelConfig, _Mapping]] = ...) -> None: ...
+    class CapabilitiesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: CapabilityGate
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[CapabilityGate, _Mapping]] = ...) -> None: ...
     PROVIDERS_FIELD_NUMBER: _ClassVar[int]
     DATABASE_FIELD_NUMBER: _ClassVar[int]
     SERVER_FIELD_NUMBER: _ClassVar[int]
@@ -39,6 +46,7 @@ class TalonConfig(_message.Message):
     CONTROLLERS_FIELD_NUMBER: _ClassVar[int]
     TRUST_FIELD_NUMBER: _ClassVar[int]
     MODELS_FIELD_NUMBER: _ClassVar[int]
+    CAPABILITIES_FIELD_NUMBER: _ClassVar[int]
     providers: _containers.MessageMap[str, LlmProviderConfig]
     database: DatabaseConfig
     server: ServerConfig
@@ -48,7 +56,21 @@ class TalonConfig(_message.Message):
     controllers: _containers.MessageMap[str, ControllerConfig]
     trust: TrustConfig
     models: _containers.MessageMap[str, ModelConfig]
-    def __init__(self, providers: _Optional[_Mapping[str, LlmProviderConfig]] = ..., database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., server: _Optional[_Union[ServerConfig, _Mapping]] = ..., default_provider: _Optional[str] = ..., workspace_dir: _Optional[str] = ..., control_plane: _Optional[_Union[ControlPlaneConfig, _Mapping]] = ..., controllers: _Optional[_Mapping[str, ControllerConfig]] = ..., trust: _Optional[_Union[TrustConfig, _Mapping]] = ..., models: _Optional[_Mapping[str, ModelConfig]] = ...) -> None: ...
+    capabilities: _containers.MessageMap[str, CapabilityGate]
+    def __init__(self, providers: _Optional[_Mapping[str, LlmProviderConfig]] = ..., database: _Optional[_Union[DatabaseConfig, _Mapping]] = ..., server: _Optional[_Union[ServerConfig, _Mapping]] = ..., default_provider: _Optional[str] = ..., workspace_dir: _Optional[str] = ..., control_plane: _Optional[_Union[ControlPlaneConfig, _Mapping]] = ..., controllers: _Optional[_Mapping[str, ControllerConfig]] = ..., trust: _Optional[_Union[TrustConfig, _Mapping]] = ..., models: _Optional[_Mapping[str, ModelConfig]] = ..., capabilities: _Optional[_Mapping[str, CapabilityGate]] = ...) -> None: ...
+
+class CapabilityGate(_message.Message):
+    __slots__ = ("actions",)
+    class ActionsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: bool
+        def __init__(self, key: _Optional[str] = ..., value: bool = ...) -> None: ...
+    ACTIONS_FIELD_NUMBER: _ClassVar[int]
+    actions: _containers.ScalarMap[str, bool]
+    def __init__(self, actions: _Optional[_Mapping[str, bool]] = ...) -> None: ...
 
 class ModelConfig(_message.Message):
     __slots__ = ("provider", "context_window_tokens", "max_output_tokens", "input_cost_per_million_tokens", "output_cost_per_million_tokens", "cache_read_cost_per_million_tokens", "cache_write_cost_per_million_tokens", "long_context_tokens", "long_context_input_cost_per_million_tokens", "long_context_output_cost_per_million_tokens", "long_context_cache_read_cost_per_million_tokens", "long_context_cache_write_cost_per_million_tokens")
