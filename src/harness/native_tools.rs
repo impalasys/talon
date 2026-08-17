@@ -718,7 +718,11 @@ pub async fn execute_tool_for_session_output(
     {
         return Ok(Some(ToolOutput::text(result)));
     }
-    if let Some(result) = code_tools::execute(
+    // Keep the Monty execution future off the Tokio worker stack.  Its
+    // subprocess/lifecycle state is substantially larger than the generic
+    // native-tool dispatch future, and this branch is also evaluated for
+    // unrelated tools.
+    if let Some(result) = Box::pin(code_tools::execute(
         config,
         cp,
         current_namespace,
@@ -727,7 +731,7 @@ pub async fn execute_tool_for_session_output(
         spec,
         name,
         args,
-    )
+    ))
     .await?
     {
         return Ok(Some(result));
