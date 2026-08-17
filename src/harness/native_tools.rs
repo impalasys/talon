@@ -676,29 +676,6 @@ pub async fn execute_tool_for_session_output(
     args: &Value,
     config: &Config,
 ) -> Result<Option<ToolOutput>> {
-    execute_tool_for_session_output_inner(
-        config,
-        cp,
-        current_namespace,
-        current_agent,
-        current_session,
-        spec,
-        name,
-        args,
-    )
-    .await
-}
-
-async fn execute_tool_for_session_output_inner(
-    config: &Config,
-    cp: &ControlPlane,
-    current_namespace: &str,
-    current_agent: &str,
-    current_session: &str,
-    spec: &manifests::AgentSpec,
-    name: &str,
-    args: &Value,
-) -> Result<Option<ToolOutput>> {
     if let Some((capability, action)) = global_capability_for_tool(name) {
         require_global_capability(config, capability, action)?;
     }
