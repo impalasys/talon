@@ -51,7 +51,17 @@ PACKAGES = {
     "sdk/js/talon-server/package.json": package_json_version,
     "sdk/js/talon-node-darwin-arm64/package.json": package_json_version,
     "sdk/js/talon-node-linux-x64/package.json": package_json_version,
+    "packages/talon-chat/package.json": package_json_version,
 }
+
+
+def check_dependency(path: str, section: str, name: str, expected: str) -> bool:
+    package = json.loads((ROOT / path).read_text(encoding="utf-8"))
+    actual = package.get(section, {}).get(name)
+    if actual != expected:
+        print(f"{path} {section}.{name} is {actual}, expected {expected}", file=sys.stderr)
+        return False
+    return True
 
 
 def main() -> int:
@@ -65,6 +75,36 @@ def main() -> int:
         except Exception as error:
             print(f"error parsing {path}: {error}", file=sys.stderr)
             ok = False
+    ok &= check_dependency(
+        "packages/talon-chat/package.json",
+        "peerDependencies",
+        "@impalasys/talon-client",
+        f"^{SDK_VERSION}",
+    )
+    ok &= check_dependency(
+        "packages/talon-chat/package.json",
+        "devDependencies",
+        "@impalasys/talon-client",
+        f"workspace:{SDK_VERSION}",
+    )
+    ok &= check_dependency(
+        "sdk/js/talon-server/package.json",
+        "optionalDependencies",
+        "@impalasys/talon-node-darwin-arm64",
+        f"workspace:{SDK_VERSION}",
+    )
+    ok &= check_dependency(
+        "sdk/js/talon-server/package.json",
+        "optionalDependencies",
+        "@impalasys/talon-node-linux-x64",
+        f"workspace:{SDK_VERSION}",
+    )
+    ok &= check_dependency(
+        "ui/package.json",
+        "dependencies",
+        "@impalasys/talon-client",
+        f"workspace:{SDK_VERSION}",
+    )
     return 0 if ok else 1
 
 
