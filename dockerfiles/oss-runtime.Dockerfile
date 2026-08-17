@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM rust:1.91.1-slim AS chef
+FROM rust:1.95.0-slim AS chef
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang \
@@ -91,6 +91,11 @@ COPY tests/requirements.txt /tmp/talon-e2e-requirements.txt
 RUN python3 -m venv /opt/talon-e2e-venv && \
     /opt/talon-e2e-venv/bin/pip install --no-cache-dir -r /tmp/talon-e2e-requirements.txt && \
     rm -f /tmp/talon-e2e-requirements.txt
+
+RUN python3 -m venv /opt/talon-monty-venv && \
+    /opt/talon-monty-venv/bin/pip install --no-cache-dir pydantic-monty-runtime==0.0.21 && \
+    ln -s /opt/talon-monty-venv/bin/monty /usr/local/bin/monty && \
+    monty --version
 
 COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
 COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker

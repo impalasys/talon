@@ -138,7 +138,7 @@ impl AgentRuntime {
         // 4. Build tool registry (builtins + future MCP servers)
         let mut mcp_tools = std::collections::HashMap::new();
         let mut reg = ToolRegistry::new();
-        crate::harness::native_tools::register_tools(&mut reg, &spec);
+        crate::harness::native_tools::register_tools(&mut reg, &spec, config);
         if allow_channel_reply_tools {
             crate::harness::native_tools::register_channel_tools(&mut reg);
         }
@@ -403,6 +403,7 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::LIST_MEMORY_TOOL,
         crate::harness::native_tools::CREATE_MEMORY_TOOL,
         crate::harness::native_tools::UPDATE_MEMORY_TOOL,
+        crate::harness::native_tools::RUN_PYTHON_CODE_TOOL,
     ]
 }
 

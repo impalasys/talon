@@ -67,7 +67,7 @@ func (x OidcTrustGrant_Kind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use OidcTrustGrant_Kind.Descriptor instead.
 func (OidcTrustGrant_Kind) EnumDescriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{4, 0}
+	return file_proto_config_proto_rawDescGZIP(), []int{5, 0}
 }
 
 type SecretRef_Source int32
@@ -122,7 +122,7 @@ func (x SecretRef_Source) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SecretRef_Source.Descriptor instead.
 func (SecretRef_Source) EnumDescriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{12, 0}
+	return file_proto_config_proto_rawDescGZIP(), []int{13, 0}
 }
 
 type TalonConfig struct {
@@ -136,6 +136,7 @@ type TalonConfig struct {
 	Controllers     map[string]*ControllerConfig  `protobuf:"bytes,7,rep,name=controllers,proto3" json:"controllers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Trust           *TrustConfig                  `protobuf:"bytes,8,opt,name=trust,proto3" json:"trust,omitempty"`
 	Models          map[string]*ModelConfig       `protobuf:"bytes,9,rep,name=models,proto3" json:"models,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Capabilities    map[string]*CapabilityGate    `protobuf:"bytes,10,rep,name=capabilities,proto3" json:"capabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -233,6 +234,60 @@ func (x *TalonConfig) GetModels() map[string]*ModelConfig {
 	return nil
 }
 
+func (x *TalonConfig) GetCapabilities() map[string]*CapabilityGate {
+	if x != nil {
+		return x.Capabilities
+	}
+	return nil
+}
+
+// Deployment-wide capability policy. A missing action is allowed by default;
+// an explicit false disables that action for every agent, while true does not
+// grant it without the agent-level capability.
+type CapabilityGate struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actions       map[string]bool        `protobuf:"bytes,1,rep,name=actions,proto3" json:"actions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CapabilityGate) Reset() {
+	*x = CapabilityGate{}
+	mi := &file_proto_config_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CapabilityGate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CapabilityGate) ProtoMessage() {}
+
+func (x *CapabilityGate) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_config_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CapabilityGate.ProtoReflect.Descriptor instead.
+func (*CapabilityGate) Descriptor() ([]byte, []int) {
+	return file_proto_config_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CapabilityGate) GetActions() map[string]bool {
+	if x != nil {
+		return x.Actions
+	}
+	return nil
+}
+
 // Static metadata for a model configured in the model catalog. Costs are in
 // USD per one million tokens. The context window includes generated output;
 // compaction reserves max_output_tokens from it when both are configured.
@@ -259,7 +314,7 @@ type ModelConfig struct {
 
 func (x *ModelConfig) Reset() {
 	*x = ModelConfig{}
-	mi := &file_proto_config_proto_msgTypes[1]
+	mi := &file_proto_config_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -271,7 +326,7 @@ func (x *ModelConfig) String() string {
 func (*ModelConfig) ProtoMessage() {}
 
 func (x *ModelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[1]
+	mi := &file_proto_config_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -284,7 +339,7 @@ func (x *ModelConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModelConfig.ProtoReflect.Descriptor instead.
 func (*ModelConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{1}
+	return file_proto_config_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ModelConfig) GetProvider() string {
@@ -380,7 +435,7 @@ type TrustConfig struct {
 
 func (x *TrustConfig) Reset() {
 	*x = TrustConfig{}
-	mi := &file_proto_config_proto_msgTypes[2]
+	mi := &file_proto_config_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -392,7 +447,7 @@ func (x *TrustConfig) String() string {
 func (*TrustConfig) ProtoMessage() {}
 
 func (x *TrustConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[2]
+	mi := &file_proto_config_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -405,7 +460,7 @@ func (x *TrustConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TrustConfig.ProtoReflect.Descriptor instead.
 func (*TrustConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{2}
+	return file_proto_config_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *TrustConfig) GetOidc() []*OidcTrustEntry {
@@ -431,7 +486,7 @@ type OidcTrustEntry struct {
 
 func (x *OidcTrustEntry) Reset() {
 	*x = OidcTrustEntry{}
-	mi := &file_proto_config_proto_msgTypes[3]
+	mi := &file_proto_config_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -443,7 +498,7 @@ func (x *OidcTrustEntry) String() string {
 func (*OidcTrustEntry) ProtoMessage() {}
 
 func (x *OidcTrustEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[3]
+	mi := &file_proto_config_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -456,7 +511,7 @@ func (x *OidcTrustEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OidcTrustEntry.ProtoReflect.Descriptor instead.
 func (*OidcTrustEntry) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{3}
+	return file_proto_config_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *OidcTrustEntry) GetName() string {
@@ -528,7 +583,7 @@ type OidcTrustGrant struct {
 
 func (x *OidcTrustGrant) Reset() {
 	*x = OidcTrustGrant{}
-	mi := &file_proto_config_proto_msgTypes[4]
+	mi := &file_proto_config_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -540,7 +595,7 @@ func (x *OidcTrustGrant) String() string {
 func (*OidcTrustGrant) ProtoMessage() {}
 
 func (x *OidcTrustGrant) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[4]
+	mi := &file_proto_config_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -553,7 +608,7 @@ func (x *OidcTrustGrant) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OidcTrustGrant.ProtoReflect.Descriptor instead.
 func (*OidcTrustGrant) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{4}
+	return file_proto_config_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *OidcTrustGrant) GetKind() OidcTrustGrant_Kind {
@@ -601,7 +656,7 @@ type ControllerConfig struct {
 
 func (x *ControllerConfig) Reset() {
 	*x = ControllerConfig{}
-	mi := &file_proto_config_proto_msgTypes[5]
+	mi := &file_proto_config_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -613,7 +668,7 @@ func (x *ControllerConfig) String() string {
 func (*ControllerConfig) ProtoMessage() {}
 
 func (x *ControllerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[5]
+	mi := &file_proto_config_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -626,7 +681,7 @@ func (x *ControllerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControllerConfig.ProtoReflect.Descriptor instead.
 func (*ControllerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{5}
+	return file_proto_config_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ControllerConfig) GetEnabled() bool {
@@ -658,7 +713,7 @@ type LlmProviderConfig struct {
 
 func (x *LlmProviderConfig) Reset() {
 	*x = LlmProviderConfig{}
-	mi := &file_proto_config_proto_msgTypes[6]
+	mi := &file_proto_config_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -670,7 +725,7 @@ func (x *LlmProviderConfig) String() string {
 func (*LlmProviderConfig) ProtoMessage() {}
 
 func (x *LlmProviderConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[6]
+	mi := &file_proto_config_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -683,7 +738,7 @@ func (x *LlmProviderConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LlmProviderConfig.ProtoReflect.Descriptor instead.
 func (*LlmProviderConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{6}
+	return file_proto_config_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *LlmProviderConfig) GetConfig() isLlmProviderConfig_Config {
@@ -769,7 +824,7 @@ type OpenAiConfig struct {
 
 func (x *OpenAiConfig) Reset() {
 	*x = OpenAiConfig{}
-	mi := &file_proto_config_proto_msgTypes[7]
+	mi := &file_proto_config_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -781,7 +836,7 @@ func (x *OpenAiConfig) String() string {
 func (*OpenAiConfig) ProtoMessage() {}
 
 func (x *OpenAiConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[7]
+	mi := &file_proto_config_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -794,7 +849,7 @@ func (x *OpenAiConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenAiConfig.ProtoReflect.Descriptor instead.
 func (*OpenAiConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{7}
+	return file_proto_config_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *OpenAiConfig) GetModel() string {
@@ -835,7 +890,7 @@ type AnthropicConfig struct {
 
 func (x *AnthropicConfig) Reset() {
 	*x = AnthropicConfig{}
-	mi := &file_proto_config_proto_msgTypes[8]
+	mi := &file_proto_config_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -847,7 +902,7 @@ func (x *AnthropicConfig) String() string {
 func (*AnthropicConfig) ProtoMessage() {}
 
 func (x *AnthropicConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[8]
+	mi := &file_proto_config_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -860,7 +915,7 @@ func (x *AnthropicConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnthropicConfig.ProtoReflect.Descriptor instead.
 func (*AnthropicConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{8}
+	return file_proto_config_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AnthropicConfig) GetModel() string {
@@ -887,7 +942,7 @@ type GoogleConfig struct {
 
 func (x *GoogleConfig) Reset() {
 	*x = GoogleConfig{}
-	mi := &file_proto_config_proto_msgTypes[9]
+	mi := &file_proto_config_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -899,7 +954,7 @@ func (x *GoogleConfig) String() string {
 func (*GoogleConfig) ProtoMessage() {}
 
 func (x *GoogleConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[9]
+	mi := &file_proto_config_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -912,7 +967,7 @@ func (x *GoogleConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoogleConfig.ProtoReflect.Descriptor instead.
 func (*GoogleConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{9}
+	return file_proto_config_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GoogleConfig) GetModel() string {
@@ -941,7 +996,7 @@ type GenericConfig struct {
 
 func (x *GenericConfig) Reset() {
 	*x = GenericConfig{}
-	mi := &file_proto_config_proto_msgTypes[10]
+	mi := &file_proto_config_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -953,7 +1008,7 @@ func (x *GenericConfig) String() string {
 func (*GenericConfig) ProtoMessage() {}
 
 func (x *GenericConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[10]
+	mi := &file_proto_config_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -966,7 +1021,7 @@ func (x *GenericConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenericConfig.ProtoReflect.Descriptor instead.
 func (*GenericConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{10}
+	return file_proto_config_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GenericConfig) GetName() string {
@@ -1010,7 +1065,7 @@ type Secret struct {
 
 func (x *Secret) Reset() {
 	*x = Secret{}
-	mi := &file_proto_config_proto_msgTypes[11]
+	mi := &file_proto_config_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1022,7 +1077,7 @@ func (x *Secret) String() string {
 func (*Secret) ProtoMessage() {}
 
 func (x *Secret) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[11]
+	mi := &file_proto_config_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1035,7 +1090,7 @@ func (x *Secret) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Secret.ProtoReflect.Descriptor instead.
 func (*Secret) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{11}
+	return file_proto_config_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Secret) GetSource() isSecret_Source {
@@ -1089,7 +1144,7 @@ type SecretRef struct {
 
 func (x *SecretRef) Reset() {
 	*x = SecretRef{}
-	mi := &file_proto_config_proto_msgTypes[12]
+	mi := &file_proto_config_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1101,7 +1156,7 @@ func (x *SecretRef) String() string {
 func (*SecretRef) ProtoMessage() {}
 
 func (x *SecretRef) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[12]
+	mi := &file_proto_config_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1114,7 +1169,7 @@ func (x *SecretRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecretRef.ProtoReflect.Descriptor instead.
 func (*SecretRef) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{12}
+	return file_proto_config_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SecretRef) GetSource() SecretRef_Source {
@@ -1142,7 +1197,7 @@ type DatabaseConfig struct {
 
 func (x *DatabaseConfig) Reset() {
 	*x = DatabaseConfig{}
-	mi := &file_proto_config_proto_msgTypes[13]
+	mi := &file_proto_config_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1154,7 +1209,7 @@ func (x *DatabaseConfig) String() string {
 func (*DatabaseConfig) ProtoMessage() {}
 
 func (x *DatabaseConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[13]
+	mi := &file_proto_config_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1167,7 +1222,7 @@ func (x *DatabaseConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DatabaseConfig.ProtoReflect.Descriptor instead.
 func (*DatabaseConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{13}
+	return file_proto_config_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DatabaseConfig) GetDataDir() string {
@@ -1200,7 +1255,7 @@ type MessageBrokerConfig struct {
 
 func (x *MessageBrokerConfig) Reset() {
 	*x = MessageBrokerConfig{}
-	mi := &file_proto_config_proto_msgTypes[14]
+	mi := &file_proto_config_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1212,7 +1267,7 @@ func (x *MessageBrokerConfig) String() string {
 func (*MessageBrokerConfig) ProtoMessage() {}
 
 func (x *MessageBrokerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[14]
+	mi := &file_proto_config_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1225,7 +1280,7 @@ func (x *MessageBrokerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MessageBrokerConfig.ProtoReflect.Descriptor instead.
 func (*MessageBrokerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{14}
+	return file_proto_config_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *MessageBrokerConfig) GetDriver() string {
@@ -1244,7 +1299,7 @@ type LocalObjectStoreConfig struct {
 
 func (x *LocalObjectStoreConfig) Reset() {
 	*x = LocalObjectStoreConfig{}
-	mi := &file_proto_config_proto_msgTypes[15]
+	mi := &file_proto_config_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1256,7 +1311,7 @@ func (x *LocalObjectStoreConfig) String() string {
 func (*LocalObjectStoreConfig) ProtoMessage() {}
 
 func (x *LocalObjectStoreConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[15]
+	mi := &file_proto_config_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1269,7 +1324,7 @@ func (x *LocalObjectStoreConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LocalObjectStoreConfig.ProtoReflect.Descriptor instead.
 func (*LocalObjectStoreConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{15}
+	return file_proto_config_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *LocalObjectStoreConfig) GetPath() string {
@@ -1290,7 +1345,7 @@ type GcsObjectStoreConfig struct {
 
 func (x *GcsObjectStoreConfig) Reset() {
 	*x = GcsObjectStoreConfig{}
-	mi := &file_proto_config_proto_msgTypes[16]
+	mi := &file_proto_config_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1302,7 +1357,7 @@ func (x *GcsObjectStoreConfig) String() string {
 func (*GcsObjectStoreConfig) ProtoMessage() {}
 
 func (x *GcsObjectStoreConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[16]
+	mi := &file_proto_config_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1315,7 +1370,7 @@ func (x *GcsObjectStoreConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GcsObjectStoreConfig.ProtoReflect.Descriptor instead.
 func (*GcsObjectStoreConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{16}
+	return file_proto_config_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GcsObjectStoreConfig) GetBucket() string {
@@ -1352,7 +1407,7 @@ type S3ObjectStoreConfig struct {
 
 func (x *S3ObjectStoreConfig) Reset() {
 	*x = S3ObjectStoreConfig{}
-	mi := &file_proto_config_proto_msgTypes[17]
+	mi := &file_proto_config_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1364,7 +1419,7 @@ func (x *S3ObjectStoreConfig) String() string {
 func (*S3ObjectStoreConfig) ProtoMessage() {}
 
 func (x *S3ObjectStoreConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[17]
+	mi := &file_proto_config_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1377,7 +1432,7 @@ func (x *S3ObjectStoreConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use S3ObjectStoreConfig.ProtoReflect.Descriptor instead.
 func (*S3ObjectStoreConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{17}
+	return file_proto_config_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *S3ObjectStoreConfig) GetBucket() string {
@@ -1429,7 +1484,7 @@ type ObjectStoreConfig struct {
 
 func (x *ObjectStoreConfig) Reset() {
 	*x = ObjectStoreConfig{}
-	mi := &file_proto_config_proto_msgTypes[18]
+	mi := &file_proto_config_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1441,7 +1496,7 @@ func (x *ObjectStoreConfig) String() string {
 func (*ObjectStoreConfig) ProtoMessage() {}
 
 func (x *ObjectStoreConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[18]
+	mi := &file_proto_config_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1454,7 +1509,7 @@ func (x *ObjectStoreConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ObjectStoreConfig.ProtoReflect.Descriptor instead.
 func (*ObjectStoreConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{18}
+	return file_proto_config_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ObjectStoreConfig) GetBackend() isObjectStoreConfig_Backend {
@@ -1526,7 +1581,7 @@ type SchedulerCallbackAuthConfig struct {
 
 func (x *SchedulerCallbackAuthConfig) Reset() {
 	*x = SchedulerCallbackAuthConfig{}
-	mi := &file_proto_config_proto_msgTypes[19]
+	mi := &file_proto_config_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1538,7 +1593,7 @@ func (x *SchedulerCallbackAuthConfig) String() string {
 func (*SchedulerCallbackAuthConfig) ProtoMessage() {}
 
 func (x *SchedulerCallbackAuthConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[19]
+	mi := &file_proto_config_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1551,7 +1606,7 @@ func (x *SchedulerCallbackAuthConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchedulerCallbackAuthConfig.ProtoReflect.Descriptor instead.
 func (*SchedulerCallbackAuthConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{19}
+	return file_proto_config_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SchedulerCallbackAuthConfig) GetAuth() isSchedulerCallbackAuthConfig_Auth {
@@ -1605,7 +1660,7 @@ type GoogleOidcAuthConfig struct {
 
 func (x *GoogleOidcAuthConfig) Reset() {
 	*x = GoogleOidcAuthConfig{}
-	mi := &file_proto_config_proto_msgTypes[20]
+	mi := &file_proto_config_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1617,7 +1672,7 @@ func (x *GoogleOidcAuthConfig) String() string {
 func (*GoogleOidcAuthConfig) ProtoMessage() {}
 
 func (x *GoogleOidcAuthConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[20]
+	mi := &file_proto_config_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1630,7 +1685,7 @@ func (x *GoogleOidcAuthConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoogleOidcAuthConfig.ProtoReflect.Descriptor instead.
 func (*GoogleOidcAuthConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{20}
+	return file_proto_config_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GoogleOidcAuthConfig) GetAudience() string {
@@ -1660,7 +1715,7 @@ type CloudTasksSchedulerConfig struct {
 
 func (x *CloudTasksSchedulerConfig) Reset() {
 	*x = CloudTasksSchedulerConfig{}
-	mi := &file_proto_config_proto_msgTypes[21]
+	mi := &file_proto_config_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1672,7 +1727,7 @@ func (x *CloudTasksSchedulerConfig) String() string {
 func (*CloudTasksSchedulerConfig) ProtoMessage() {}
 
 func (x *CloudTasksSchedulerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[21]
+	mi := &file_proto_config_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1685,7 +1740,7 @@ func (x *CloudTasksSchedulerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloudTasksSchedulerConfig.ProtoReflect.Descriptor instead.
 func (*CloudTasksSchedulerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{21}
+	return file_proto_config_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *CloudTasksSchedulerConfig) GetProjectId() string {
@@ -1739,7 +1794,7 @@ type AwsEventBridgeSchedulerConfig struct {
 
 func (x *AwsEventBridgeSchedulerConfig) Reset() {
 	*x = AwsEventBridgeSchedulerConfig{}
-	mi := &file_proto_config_proto_msgTypes[22]
+	mi := &file_proto_config_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1751,7 +1806,7 @@ func (x *AwsEventBridgeSchedulerConfig) String() string {
 func (*AwsEventBridgeSchedulerConfig) ProtoMessage() {}
 
 func (x *AwsEventBridgeSchedulerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[22]
+	mi := &file_proto_config_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1764,7 +1819,7 @@ func (x *AwsEventBridgeSchedulerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AwsEventBridgeSchedulerConfig.ProtoReflect.Descriptor instead.
 func (*AwsEventBridgeSchedulerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{22}
+	return file_proto_config_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *AwsEventBridgeSchedulerConfig) GetGroupName() string {
@@ -1836,7 +1891,7 @@ type SchedulerConfig struct {
 
 func (x *SchedulerConfig) Reset() {
 	*x = SchedulerConfig{}
-	mi := &file_proto_config_proto_msgTypes[23]
+	mi := &file_proto_config_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1848,7 +1903,7 @@ func (x *SchedulerConfig) String() string {
 func (*SchedulerConfig) ProtoMessage() {}
 
 func (x *SchedulerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[23]
+	mi := &file_proto_config_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1861,7 +1916,7 @@ func (x *SchedulerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchedulerConfig.ProtoReflect.Descriptor instead.
 func (*SchedulerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{23}
+	return file_proto_config_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SchedulerConfig) GetBackend() isSchedulerConfig_Backend {
@@ -1918,7 +1973,7 @@ type ControlPlaneConfig struct {
 
 func (x *ControlPlaneConfig) Reset() {
 	*x = ControlPlaneConfig{}
-	mi := &file_proto_config_proto_msgTypes[24]
+	mi := &file_proto_config_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1930,7 +1985,7 @@ func (x *ControlPlaneConfig) String() string {
 func (*ControlPlaneConfig) ProtoMessage() {}
 
 func (x *ControlPlaneConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[24]
+	mi := &file_proto_config_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1943,7 +1998,7 @@ func (x *ControlPlaneConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControlPlaneConfig.ProtoReflect.Descriptor instead.
 func (*ControlPlaneConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{24}
+	return file_proto_config_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ControlPlaneConfig) GetDatabase() *DatabaseConfig {
@@ -1991,7 +2046,7 @@ type ServerConfig struct {
 
 func (x *ServerConfig) Reset() {
 	*x = ServerConfig{}
-	mi := &file_proto_config_proto_msgTypes[25]
+	mi := &file_proto_config_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2003,7 +2058,7 @@ func (x *ServerConfig) String() string {
 func (*ServerConfig) ProtoMessage() {}
 
 func (x *ServerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[25]
+	mi := &file_proto_config_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2016,7 +2071,7 @@ func (x *ServerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerConfig.ProtoReflect.Descriptor instead.
 func (*ServerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{25}
+	return file_proto_config_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ServerConfig) GetHost() string {
@@ -2037,7 +2092,7 @@ var File_proto_config_proto protoreflect.FileDescriptor
 
 const file_proto_config_proto_rawDesc = "" +
 	"\n" +
-	"\x12proto/config.proto\x12\ftalon.config\"\xad\x06\n" +
+	"\x12proto/config.proto\x12\ftalon.config\"\xdd\a\n" +
 	"\vTalonConfig\x12F\n" +
 	"\tproviders\x18\x01 \x03(\v2(.talon.config.TalonConfig.ProvidersEntryR\tproviders\x128\n" +
 	"\bdatabase\x18\x02 \x01(\v2\x1c.talon.config.DatabaseConfigR\bdatabase\x122\n" +
@@ -2047,7 +2102,9 @@ const file_proto_config_proto_rawDesc = "" +
 	"\rcontrol_plane\x18\x06 \x01(\v2 .talon.config.ControlPlaneConfigR\fcontrolPlane\x12L\n" +
 	"\vcontrollers\x18\a \x03(\v2*.talon.config.TalonConfig.ControllersEntryR\vcontrollers\x12/\n" +
 	"\x05trust\x18\b \x01(\v2\x19.talon.config.TrustConfigR\x05trust\x12=\n" +
-	"\x06models\x18\t \x03(\v2%.talon.config.TalonConfig.ModelsEntryR\x06models\x1a]\n" +
+	"\x06models\x18\t \x03(\v2%.talon.config.TalonConfig.ModelsEntryR\x06models\x12O\n" +
+	"\fcapabilities\x18\n" +
+	" \x03(\v2+.talon.config.TalonConfig.CapabilitiesEntryR\fcapabilities\x1a]\n" +
 	"\x0eProvidersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x125\n" +
 	"\x05value\x18\x02 \x01(\v2\x1f.talon.config.LlmProviderConfigR\x05value:\x028\x01\x1a^\n" +
@@ -2056,7 +2113,15 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2\x1e.talon.config.ControllerConfigR\x05value:\x028\x01\x1aT\n" +
 	"\vModelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.talon.config.ModelConfigR\x05value:\x028\x01\"\xb0\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.talon.config.ModelConfigR\x05value:\x028\x01\x1a]\n" +
+	"\x11CapabilitiesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x122\n" +
+	"\x05value\x18\x02 \x01(\v2\x1c.talon.config.CapabilityGateR\x05value:\x028\x01\"\x91\x01\n" +
+	"\x0eCapabilityGate\x12C\n" +
+	"\aactions\x18\x01 \x03(\v2).talon.config.CapabilityGate.ActionsEntryR\aactions\x1a:\n" +
+	"\fActionsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"\xb0\n" +
 	"\n" +
 	"\vModelConfig\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x127\n" +
@@ -2222,83 +2287,89 @@ func file_proto_config_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_config_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_config_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_proto_config_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_proto_config_proto_goTypes = []any{
 	(OidcTrustGrant_Kind)(0),              // 0: talon.config.OidcTrustGrant.Kind
 	(SecretRef_Source)(0),                 // 1: talon.config.SecretRef.Source
 	(*TalonConfig)(nil),                   // 2: talon.config.TalonConfig
-	(*ModelConfig)(nil),                   // 3: talon.config.ModelConfig
-	(*TrustConfig)(nil),                   // 4: talon.config.TrustConfig
-	(*OidcTrustEntry)(nil),                // 5: talon.config.OidcTrustEntry
-	(*OidcTrustGrant)(nil),                // 6: talon.config.OidcTrustGrant
-	(*ControllerConfig)(nil),              // 7: talon.config.ControllerConfig
-	(*LlmProviderConfig)(nil),             // 8: talon.config.LlmProviderConfig
-	(*OpenAiConfig)(nil),                  // 9: talon.config.OpenAiConfig
-	(*AnthropicConfig)(nil),               // 10: talon.config.AnthropicConfig
-	(*GoogleConfig)(nil),                  // 11: talon.config.GoogleConfig
-	(*GenericConfig)(nil),                 // 12: talon.config.GenericConfig
-	(*Secret)(nil),                        // 13: talon.config.Secret
-	(*SecretRef)(nil),                     // 14: talon.config.SecretRef
-	(*DatabaseConfig)(nil),                // 15: talon.config.DatabaseConfig
-	(*MessageBrokerConfig)(nil),           // 16: talon.config.MessageBrokerConfig
-	(*LocalObjectStoreConfig)(nil),        // 17: talon.config.LocalObjectStoreConfig
-	(*GcsObjectStoreConfig)(nil),          // 18: talon.config.GcsObjectStoreConfig
-	(*S3ObjectStoreConfig)(nil),           // 19: talon.config.S3ObjectStoreConfig
-	(*ObjectStoreConfig)(nil),             // 20: talon.config.ObjectStoreConfig
-	(*SchedulerCallbackAuthConfig)(nil),   // 21: talon.config.SchedulerCallbackAuthConfig
-	(*GoogleOidcAuthConfig)(nil),          // 22: talon.config.GoogleOidcAuthConfig
-	(*CloudTasksSchedulerConfig)(nil),     // 23: talon.config.CloudTasksSchedulerConfig
-	(*AwsEventBridgeSchedulerConfig)(nil), // 24: talon.config.AwsEventBridgeSchedulerConfig
-	(*SchedulerConfig)(nil),               // 25: talon.config.SchedulerConfig
-	(*ControlPlaneConfig)(nil),            // 26: talon.config.ControlPlaneConfig
-	(*ServerConfig)(nil),                  // 27: talon.config.ServerConfig
-	nil,                                   // 28: talon.config.TalonConfig.ProvidersEntry
-	nil,                                   // 29: talon.config.TalonConfig.ControllersEntry
-	nil,                                   // 30: talon.config.TalonConfig.ModelsEntry
+	(*CapabilityGate)(nil),                // 3: talon.config.CapabilityGate
+	(*ModelConfig)(nil),                   // 4: talon.config.ModelConfig
+	(*TrustConfig)(nil),                   // 5: talon.config.TrustConfig
+	(*OidcTrustEntry)(nil),                // 6: talon.config.OidcTrustEntry
+	(*OidcTrustGrant)(nil),                // 7: talon.config.OidcTrustGrant
+	(*ControllerConfig)(nil),              // 8: talon.config.ControllerConfig
+	(*LlmProviderConfig)(nil),             // 9: talon.config.LlmProviderConfig
+	(*OpenAiConfig)(nil),                  // 10: talon.config.OpenAiConfig
+	(*AnthropicConfig)(nil),               // 11: talon.config.AnthropicConfig
+	(*GoogleConfig)(nil),                  // 12: talon.config.GoogleConfig
+	(*GenericConfig)(nil),                 // 13: talon.config.GenericConfig
+	(*Secret)(nil),                        // 14: talon.config.Secret
+	(*SecretRef)(nil),                     // 15: talon.config.SecretRef
+	(*DatabaseConfig)(nil),                // 16: talon.config.DatabaseConfig
+	(*MessageBrokerConfig)(nil),           // 17: talon.config.MessageBrokerConfig
+	(*LocalObjectStoreConfig)(nil),        // 18: talon.config.LocalObjectStoreConfig
+	(*GcsObjectStoreConfig)(nil),          // 19: talon.config.GcsObjectStoreConfig
+	(*S3ObjectStoreConfig)(nil),           // 20: talon.config.S3ObjectStoreConfig
+	(*ObjectStoreConfig)(nil),             // 21: talon.config.ObjectStoreConfig
+	(*SchedulerCallbackAuthConfig)(nil),   // 22: talon.config.SchedulerCallbackAuthConfig
+	(*GoogleOidcAuthConfig)(nil),          // 23: talon.config.GoogleOidcAuthConfig
+	(*CloudTasksSchedulerConfig)(nil),     // 24: talon.config.CloudTasksSchedulerConfig
+	(*AwsEventBridgeSchedulerConfig)(nil), // 25: talon.config.AwsEventBridgeSchedulerConfig
+	(*SchedulerConfig)(nil),               // 26: talon.config.SchedulerConfig
+	(*ControlPlaneConfig)(nil),            // 27: talon.config.ControlPlaneConfig
+	(*ServerConfig)(nil),                  // 28: talon.config.ServerConfig
+	nil,                                   // 29: talon.config.TalonConfig.ProvidersEntry
+	nil,                                   // 30: talon.config.TalonConfig.ControllersEntry
+	nil,                                   // 31: talon.config.TalonConfig.ModelsEntry
+	nil,                                   // 32: talon.config.TalonConfig.CapabilitiesEntry
+	nil,                                   // 33: talon.config.CapabilityGate.ActionsEntry
 }
 var file_proto_config_proto_depIdxs = []int32{
-	28, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
-	15, // 1: talon.config.TalonConfig.database:type_name -> talon.config.DatabaseConfig
-	27, // 2: talon.config.TalonConfig.server:type_name -> talon.config.ServerConfig
-	26, // 3: talon.config.TalonConfig.control_plane:type_name -> talon.config.ControlPlaneConfig
-	29, // 4: talon.config.TalonConfig.controllers:type_name -> talon.config.TalonConfig.ControllersEntry
-	4,  // 5: talon.config.TalonConfig.trust:type_name -> talon.config.TrustConfig
-	30, // 6: talon.config.TalonConfig.models:type_name -> talon.config.TalonConfig.ModelsEntry
-	5,  // 7: talon.config.TrustConfig.oidc:type_name -> talon.config.OidcTrustEntry
-	6,  // 8: talon.config.OidcTrustEntry.grants:type_name -> talon.config.OidcTrustGrant
-	0,  // 9: talon.config.OidcTrustGrant.kind:type_name -> talon.config.OidcTrustGrant.Kind
-	9,  // 10: talon.config.LlmProviderConfig.openai:type_name -> talon.config.OpenAiConfig
-	10, // 11: talon.config.LlmProviderConfig.anthropic:type_name -> talon.config.AnthropicConfig
-	11, // 12: talon.config.LlmProviderConfig.google:type_name -> talon.config.GoogleConfig
-	12, // 13: talon.config.LlmProviderConfig.openai_compatible:type_name -> talon.config.GenericConfig
-	13, // 14: talon.config.OpenAiConfig.api_key:type_name -> talon.config.Secret
-	13, // 15: talon.config.AnthropicConfig.api_key:type_name -> talon.config.Secret
-	13, // 16: talon.config.GoogleConfig.api_key:type_name -> talon.config.Secret
-	13, // 17: talon.config.GenericConfig.api_key:type_name -> talon.config.Secret
-	14, // 18: talon.config.Secret.ref:type_name -> talon.config.SecretRef
-	1,  // 19: talon.config.SecretRef.source:type_name -> talon.config.SecretRef.Source
-	13, // 20: talon.config.DatabaseConfig.url:type_name -> talon.config.Secret
-	17, // 21: talon.config.ObjectStoreConfig.local:type_name -> talon.config.LocalObjectStoreConfig
-	18, // 22: talon.config.ObjectStoreConfig.gcs:type_name -> talon.config.GcsObjectStoreConfig
-	19, // 23: talon.config.ObjectStoreConfig.s3:type_name -> talon.config.S3ObjectStoreConfig
-	13, // 24: talon.config.SchedulerCallbackAuthConfig.shared_secret:type_name -> talon.config.Secret
-	22, // 25: talon.config.SchedulerCallbackAuthConfig.google_oidc:type_name -> talon.config.GoogleOidcAuthConfig
-	21, // 26: talon.config.CloudTasksSchedulerConfig.callback_auth:type_name -> talon.config.SchedulerCallbackAuthConfig
-	23, // 27: talon.config.SchedulerConfig.cloud_tasks:type_name -> talon.config.CloudTasksSchedulerConfig
-	24, // 28: talon.config.SchedulerConfig.aws_eventbridge_scheduler:type_name -> talon.config.AwsEventBridgeSchedulerConfig
-	15, // 29: talon.config.ControlPlaneConfig.database:type_name -> talon.config.DatabaseConfig
-	16, // 30: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
-	25, // 31: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
-	20, // 32: talon.config.ControlPlaneConfig.object_store:type_name -> talon.config.ObjectStoreConfig
-	15, // 33: talon.config.ControlPlaneConfig.documents:type_name -> talon.config.DatabaseConfig
-	8,  // 34: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
-	7,  // 35: talon.config.TalonConfig.ControllersEntry.value:type_name -> talon.config.ControllerConfig
-	3,  // 36: talon.config.TalonConfig.ModelsEntry.value:type_name -> talon.config.ModelConfig
-	37, // [37:37] is the sub-list for method output_type
-	37, // [37:37] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	29, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
+	16, // 1: talon.config.TalonConfig.database:type_name -> talon.config.DatabaseConfig
+	28, // 2: talon.config.TalonConfig.server:type_name -> talon.config.ServerConfig
+	27, // 3: talon.config.TalonConfig.control_plane:type_name -> talon.config.ControlPlaneConfig
+	30, // 4: talon.config.TalonConfig.controllers:type_name -> talon.config.TalonConfig.ControllersEntry
+	5,  // 5: talon.config.TalonConfig.trust:type_name -> talon.config.TrustConfig
+	31, // 6: talon.config.TalonConfig.models:type_name -> talon.config.TalonConfig.ModelsEntry
+	32, // 7: talon.config.TalonConfig.capabilities:type_name -> talon.config.TalonConfig.CapabilitiesEntry
+	33, // 8: talon.config.CapabilityGate.actions:type_name -> talon.config.CapabilityGate.ActionsEntry
+	6,  // 9: talon.config.TrustConfig.oidc:type_name -> talon.config.OidcTrustEntry
+	7,  // 10: talon.config.OidcTrustEntry.grants:type_name -> talon.config.OidcTrustGrant
+	0,  // 11: talon.config.OidcTrustGrant.kind:type_name -> talon.config.OidcTrustGrant.Kind
+	10, // 12: talon.config.LlmProviderConfig.openai:type_name -> talon.config.OpenAiConfig
+	11, // 13: talon.config.LlmProviderConfig.anthropic:type_name -> talon.config.AnthropicConfig
+	12, // 14: talon.config.LlmProviderConfig.google:type_name -> talon.config.GoogleConfig
+	13, // 15: talon.config.LlmProviderConfig.openai_compatible:type_name -> talon.config.GenericConfig
+	14, // 16: talon.config.OpenAiConfig.api_key:type_name -> talon.config.Secret
+	14, // 17: talon.config.AnthropicConfig.api_key:type_name -> talon.config.Secret
+	14, // 18: talon.config.GoogleConfig.api_key:type_name -> talon.config.Secret
+	14, // 19: talon.config.GenericConfig.api_key:type_name -> talon.config.Secret
+	15, // 20: talon.config.Secret.ref:type_name -> talon.config.SecretRef
+	1,  // 21: talon.config.SecretRef.source:type_name -> talon.config.SecretRef.Source
+	14, // 22: talon.config.DatabaseConfig.url:type_name -> talon.config.Secret
+	18, // 23: talon.config.ObjectStoreConfig.local:type_name -> talon.config.LocalObjectStoreConfig
+	19, // 24: talon.config.ObjectStoreConfig.gcs:type_name -> talon.config.GcsObjectStoreConfig
+	20, // 25: talon.config.ObjectStoreConfig.s3:type_name -> talon.config.S3ObjectStoreConfig
+	14, // 26: talon.config.SchedulerCallbackAuthConfig.shared_secret:type_name -> talon.config.Secret
+	23, // 27: talon.config.SchedulerCallbackAuthConfig.google_oidc:type_name -> talon.config.GoogleOidcAuthConfig
+	22, // 28: talon.config.CloudTasksSchedulerConfig.callback_auth:type_name -> talon.config.SchedulerCallbackAuthConfig
+	24, // 29: talon.config.SchedulerConfig.cloud_tasks:type_name -> talon.config.CloudTasksSchedulerConfig
+	25, // 30: talon.config.SchedulerConfig.aws_eventbridge_scheduler:type_name -> talon.config.AwsEventBridgeSchedulerConfig
+	16, // 31: talon.config.ControlPlaneConfig.database:type_name -> talon.config.DatabaseConfig
+	17, // 32: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
+	26, // 33: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
+	21, // 34: talon.config.ControlPlaneConfig.object_store:type_name -> talon.config.ObjectStoreConfig
+	16, // 35: talon.config.ControlPlaneConfig.documents:type_name -> talon.config.DatabaseConfig
+	9,  // 36: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
+	8,  // 37: talon.config.TalonConfig.ControllersEntry.value:type_name -> talon.config.ControllerConfig
+	4,  // 38: talon.config.TalonConfig.ModelsEntry.value:type_name -> talon.config.ModelConfig
+	3,  // 39: talon.config.TalonConfig.CapabilitiesEntry.value:type_name -> talon.config.CapabilityGate
+	40, // [40:40] is the sub-list for method output_type
+	40, // [40:40] is the sub-list for method input_type
+	40, // [40:40] is the sub-list for extension type_name
+	40, // [40:40] is the sub-list for extension extendee
+	0,  // [0:40] is the sub-list for field type_name
 }
 
 func init() { file_proto_config_proto_init() }
@@ -2306,28 +2377,28 @@ func file_proto_config_proto_init() {
 	if File_proto_config_proto != nil {
 		return
 	}
-	file_proto_config_proto_msgTypes[1].OneofWrappers = []any{}
-	file_proto_config_proto_msgTypes[6].OneofWrappers = []any{
+	file_proto_config_proto_msgTypes[2].OneofWrappers = []any{}
+	file_proto_config_proto_msgTypes[7].OneofWrappers = []any{
 		(*LlmProviderConfig_Openai)(nil),
 		(*LlmProviderConfig_Anthropic)(nil),
 		(*LlmProviderConfig_Google)(nil),
 		(*LlmProviderConfig_OpenaiCompatible)(nil),
 	}
-	file_proto_config_proto_msgTypes[11].OneofWrappers = []any{
+	file_proto_config_proto_msgTypes[12].OneofWrappers = []any{
 		(*Secret_Plain)(nil),
 		(*Secret_Ref)(nil),
 	}
-	file_proto_config_proto_msgTypes[18].OneofWrappers = []any{
+	file_proto_config_proto_msgTypes[19].OneofWrappers = []any{
 		(*ObjectStoreConfig_Local)(nil),
 		(*ObjectStoreConfig_Gcs)(nil),
 		(*ObjectStoreConfig_S3)(nil),
 	}
-	file_proto_config_proto_msgTypes[19].OneofWrappers = []any{
+	file_proto_config_proto_msgTypes[20].OneofWrappers = []any{
 		(*SchedulerCallbackAuthConfig_SharedSecret)(nil),
 		(*SchedulerCallbackAuthConfig_GoogleOidc)(nil),
 	}
-	file_proto_config_proto_msgTypes[22].OneofWrappers = []any{}
-	file_proto_config_proto_msgTypes[23].OneofWrappers = []any{
+	file_proto_config_proto_msgTypes[23].OneofWrappers = []any{}
+	file_proto_config_proto_msgTypes[24].OneofWrappers = []any{
 		(*SchedulerConfig_CloudTasks)(nil),
 		(*SchedulerConfig_AwsEventbridgeScheduler)(nil),
 	}
@@ -2337,7 +2408,7 @@ func file_proto_config_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_config_proto_rawDesc), len(file_proto_config_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   29,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

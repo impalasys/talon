@@ -366,8 +366,17 @@ async fn run() -> Result<()> {
     result
 }
 
+fn main() -> Result<()> {
+    // The Monty pool invokes this binary with `subprocess`; handle that mode
+    // before Tokio, telemetry, profiling, or Talon configuration initialize.
+    if let Some(status) = talon::monty_subprocess::run_if_requested() {
+        std::process::exit(status);
+    }
+    talon_node_main()
+}
+
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn talon_node_main() -> Result<()> {
     talon::control::security::install_jwt_crypto_provider();
     let _telemetry_guard = talon::control::telemetry::init_from_env("talon-node")?;
     talon::control::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;

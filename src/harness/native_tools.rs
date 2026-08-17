@@ -6,9 +6,13 @@ use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use std::fs;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::path::{Component, Path, PathBuf};
+use std::sync::Arc;
 use std::time::Duration;
 
+use crate::control::config::{global_capability_allowed, Config};
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
@@ -26,6 +30,8 @@ use crate::harness::skills::render::format_active_skill_context;
 mod a2a_tools;
 #[path = "tools/artifacts.rs"]
 mod artifact_tools;
+#[path = "tools/code.rs"]
+mod code_tools;
 #[path = "tools/tasks.rs"]
 mod task_tools;
 
@@ -72,6 +78,7 @@ pub const GET_FILE_METADATA_TOOL: &str = "get_file_metadata";
 pub const CREATE_FILE_TOOL: &str = "create_file";
 pub const UPDATE_FILE_TOOL: &str = "update_file";
 pub const DELETE_FILE_TOOL: &str = "delete_file";
+pub const RUN_PYTHON_CODE_TOOL: &str = "run_python_code";
 
 pub(super) const OP_READ: &str = "read";
 pub(super) const OP_METADATA: &str = "metadata";
@@ -177,7 +184,7 @@ pub fn register_channel_tools(registry: &mut ToolRegistry) {
     );
 }
 
-pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
+pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, config: &Config) {
     artifact_tools::register(registry);
     a2a_tools::register(registry, spec);
     register_research_tools(registry, spec);
@@ -199,6 +206,7 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         && !has_capability_action(spec, "files", "create")
         && !has_capability_action(spec, "files", "update")
         && !has_capability_action(spec, "files", "delete")
+        && !has_capability_action(spec, "code", "run")
         && !has_capability_action(spec, "goals", "inspect")
         && !has_capability_action(spec, "goals", "create")
         && !has_capability_action(spec, "goals", "update")
@@ -410,6 +418,8 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) 
         );
     }
 
+    code_tools::register(registry, spec, config);
+
     task_tools::register(registry, spec);
 
     if has_capability_action(spec, "goals", "inspect") {
@@ -617,8 +627,19 @@ pub async fn execute_tool(
     spec: &manifests::AgentSpec,
     name: &str,
     args: &Value,
+    config: &Config,
 ) -> Result<Option<String>> {
-    execute_tool_for_session(cp, current_namespace, current_agent, "", spec, name, args).await
+    execute_tool_for_session(
+        cp,
+        current_namespace,
+        current_agent,
+        "",
+        spec,
+        name,
+        args,
+        config,
+    )
+    .await
 }
 
 pub async fn execute_tool_for_session(
@@ -629,6 +650,7 @@ pub async fn execute_tool_for_session(
     spec: &manifests::AgentSpec,
     name: &str,
     args: &Value,
+    config: &Config,
 ) -> Result<Option<String>> {
     Ok(execute_tool_for_session_output(
         cp,
@@ -638,6 +660,7 @@ pub async fn execute_tool_for_session(
         spec,
         name,
         args,
+        config,
     )
     .await?
     .map(|output| output.summary()))
@@ -651,7 +674,12 @@ pub async fn execute_tool_for_session_output(
     spec: &manifests::AgentSpec,
     name: &str,
     args: &Value,
+    config: &Config,
 ) -> Result<Option<ToolOutput>> {
+    if let Some((capability, action)) = global_capability_for_tool(name) {
+        require_global_capability(config, capability, action)?;
+    }
+
     if let Some(result) = artifact_tools::execute_output(
         cp,
         current_namespace,
@@ -689,6 +717,24 @@ pub async fn execute_tool_for_session_output(
     .await?
     {
         return Ok(Some(ToolOutput::text(result)));
+    }
+    // Keep the Monty execution future off the Tokio worker stack.  Its
+    // subprocess/lifecycle state is substantially larger than the generic
+    // native-tool dispatch future, and this branch is also evaluated for
+    // unrelated tools.
+    if let Some(result) = Box::pin(code_tools::execute(
+        config,
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        spec,
+        name,
+        args,
+    ))
+    .await?
+    {
+        return Ok(Some(result));
     }
 
     match name {
@@ -1053,6 +1099,41 @@ pub async fn execute_tool_for_session_output(
     }
 }
 
+fn require_global_capability(config: &Config, capability: &str, action: &str) -> Result<()> {
+    if global_capability_allowed(config, capability, action) {
+        Ok(())
+    } else {
+        Err(anyhow!(
+            "capability '{}:{}' is disabled by deployment configuration",
+            capability,
+            action
+        ))
+    }
+}
+
+fn global_capability_for_tool(name: &str) -> Option<(&'static str, &'static str)> {
+    match name {
+        READ_SESSION_MESSAGES_TOOL => Some(("sessions", "read:messages")),
+        SEARCH_MEMORY_TOOL | READ_MEMORY_TOOL | LIST_MEMORY_TOOL => Some(("memory", "read")),
+        CREATE_MEMORY_TOOL => Some(("memory", "create")),
+        UPDATE_MEMORY_TOOL => Some(("memory", "update")),
+        LIST_FILES_TOOL | READ_FILE_TOOL | GET_FILE_METADATA_TOOL => Some(("files", "read")),
+        CREATE_FILE_TOOL => Some(("files", "create")),
+        UPDATE_FILE_TOOL => Some(("files", "update")),
+        DELETE_FILE_TOOL => Some(("files", "delete")),
+        FETCH_URL_TOOL => Some(("research", "fetch_url")),
+        WEB_SEARCH_TOOL => Some(("research", "web_search")),
+        LIST_SCHEDULES_TOOL | GET_SCHEDULE_TOOL => Some(("schedules", "inspect")),
+        CREATE_SCHEDULE_TOOL => Some(("schedules", "create")),
+        UPDATE_SCHEDULE_TOOL => Some(("schedules", "update")),
+        DELETE_SCHEDULE_TOOL => Some(("schedules", "delete")),
+        GET_GOAL_TOOL | LIST_GOALS_TOOL => Some(("goals", "inspect")),
+        CREATE_GOAL_TOOL => Some(("goals", "create")),
+        UPDATE_GOAL_TOOL | COMPLETE_GOAL_TOOL | BLOCK_GOAL_TOOL => Some(("goals", "update")),
+        _ => None,
+    }
+}
+
 async fn read_session_messages(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -1227,6 +1308,7 @@ async fn read_file_tool(
     args: &Value,
 ) -> Result<ToolOutput> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    ensure_file_read_namespace(current_namespace, &namespace)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
@@ -1239,6 +1321,7 @@ async fn get_file_metadata_tool(
     args: &Value,
 ) -> Result<String> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
+    ensure_file_read_namespace(current_namespace, &namespace)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
@@ -1751,6 +1834,28 @@ fn parse_file_uri(uri: &str) -> Result<(String, String)> {
     }
     let path = normalize_logical_path(&rest[split..])?;
     Ok((namespace.to_string(), path))
+}
+
+pub(super) fn ensure_file_read_namespace(
+    current_namespace: &str,
+    requested_namespace: &str,
+) -> Result<()> {
+    let requested_namespace = if requested_namespace == "current" {
+        current_namespace
+    } else {
+        requested_namespace
+    };
+    if crate::control::ns::ancestry(current_namespace)
+        .iter()
+        .any(|namespace| namespace == requested_namespace)
+    {
+        Ok(())
+    } else {
+        Err(anyhow!(
+            "file access to namespace '{}' is outside the current namespace ancestry",
+            requested_namespace
+        ))
+    }
 }
 
 fn normalize_memory_path(path: &str) -> Result<String> {
@@ -3250,6 +3355,10 @@ fn opt_usize(args: &Value, key: &str) -> Option<usize> {
         .map(|value| value as usize)
 }
 
+fn opt_u64(args: &Value, key: &str) -> Option<u64> {
+    args.get(key).and_then(Value::as_u64)
+}
+
 fn string_map(value: Option<&Value>) -> HashMap<String, String> {
     value
         .and_then(Value::as_object)
@@ -3793,6 +3902,23 @@ mod tests {
         }
     }
 
+    fn code_spec(capabilities: &[&str]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            capabilities: HashMap::from([(
+                "code".to_string(),
+                crate::gateway::rpc::protobuf_value::ListValue {
+                    values: capabilities
+                        .iter()
+                        .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                        })
+                        .collect(),
+                },
+            )]),
+            ..manifests::AgentSpec::default()
+        }
+    }
+
     fn research_spec(capabilities: &[&str]) -> manifests::AgentSpec {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
@@ -4058,7 +4184,11 @@ mod tests {
     #[test]
     fn register_tools_respects_capabilities() {
         let mut registry = ToolRegistry::new();
-        register_tools(&mut registry, &spec(&["inspect", "create"]));
+        register_tools(
+            &mut registry,
+            &spec(&["inspect", "create"]),
+            &Config::default(),
+        );
 
         assert!(registry.get_tool(LIST_SCHEDULES_TOOL).is_some());
         assert!(registry.get_tool(GET_SCHEDULE_TOOL).is_some());
@@ -4068,9 +4198,42 @@ mod tests {
     }
 
     #[test]
+    fn global_capability_gate_hides_code_tool_without_granting_it() {
+        let mut disabled = Config::default();
+        disabled.capabilities.insert(
+            "code".to_string(),
+            crate::control::config::CapabilityGate {
+                actions: HashMap::from([(String::from("run"), false)]),
+            },
+        );
+        let mut registry = ToolRegistry::new();
+        register_tools(&mut registry, &code_spec(&["run"]), &disabled);
+        assert!(registry.get_tool(RUN_PYTHON_CODE_TOOL).is_none());
+
+        let mut enabled = Config::default();
+        enabled.capabilities.insert(
+            "code".to_string(),
+            crate::control::config::CapabilityGate {
+                actions: HashMap::from([(String::from("run"), true)]),
+            },
+        );
+        let mut enabled_registry = ToolRegistry::new();
+        register_tools(&mut enabled_registry, &code_spec(&["run"]), &enabled);
+        assert!(enabled_registry.get_tool(RUN_PYTHON_CODE_TOOL).is_some());
+
+        let mut ungranted_registry = ToolRegistry::new();
+        register_tools(&mut ungranted_registry, &code_spec(&[]), &enabled);
+        assert!(ungranted_registry.get_tool(RUN_PYTHON_CODE_TOOL).is_none());
+    }
+
+    #[test]
     fn register_research_tools_respects_capabilities() {
         let mut registry = ToolRegistry::new();
-        register_tools(&mut registry, &research_spec(&["fetch_url"]));
+        register_tools(
+            &mut registry,
+            &research_spec(&["fetch_url"]),
+            &Config::default(),
+        );
 
         assert!(registry.get_tool(FETCH_URL_TOOL).is_some());
         assert!(registry.get_tool(WEB_SEARCH_TOOL).is_none());
@@ -4079,7 +4242,11 @@ mod tests {
     #[test]
     fn register_file_tools_respects_capabilities() {
         let mut read_registry = ToolRegistry::new();
-        register_tools(&mut read_registry, &file_spec(&["read"]));
+        register_tools(
+            &mut read_registry,
+            &file_spec(&["read"]),
+            &Config::default(),
+        );
 
         assert!(read_registry.get_tool(LIST_FILES_TOOL).is_some());
         assert!(read_registry.get_tool(READ_FILE_TOOL).is_some());
@@ -4092,6 +4259,7 @@ mod tests {
         register_tools(
             &mut write_registry,
             &file_spec(&["create", "update", "delete"]),
+            &Config::default(),
         );
 
         assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_some());
@@ -4132,6 +4300,7 @@ mod tests {
                 "path": path,
                 "content": "# First draft",
             }),
+            &Config::default(),
         )
         .await
         .expect("create should execute")
@@ -4145,6 +4314,7 @@ mod tests {
             &spec,
             READ_FILE_TOOL,
             &json!({ "uri": uri }),
+            &Config::default(),
         )
         .await
         .expect("read should execute")
@@ -4167,6 +4337,7 @@ mod tests {
                 "uri": uri,
                 "content": "# Revised draft",
             }),
+            &Config::default(),
         )
         .await
         .expect("update should execute")
@@ -4180,6 +4351,7 @@ mod tests {
             &spec,
             LIST_FILES_TOOL,
             &json!({ "namespace": "current", "prefix": "/content/pages" }),
+            &Config::default(),
         )
         .await
         .expect("list should execute")
@@ -4196,6 +4368,7 @@ mod tests {
             &spec,
             DELETE_FILE_TOOL,
             &json!({ "uri": uri }),
+            &Config::default(),
         )
         .await
         .expect("delete should execute")
@@ -4209,6 +4382,7 @@ mod tests {
             &spec,
             READ_FILE_TOOL,
             &json!({ "uri": uri }),
+            &Config::default(),
         )
         .await
         .expect_err("deleted file should not read");
@@ -4226,6 +4400,7 @@ mod tests {
                 "Tenant:acme:Operations",
                 "support-agent",
             ),
+            &Config::default(),
         );
 
         let tool = registry
@@ -4250,7 +4425,11 @@ mod tests {
     #[test]
     fn delegate_task_not_registered_without_internal_a2a_connection() {
         let mut no_connection_registry = ToolRegistry::new();
-        register_tools(&mut no_connection_registry, &task_spec(&["create"]));
+        register_tools(
+            &mut no_connection_registry,
+            &task_spec(&["create"]),
+            &Config::default(),
+        );
         assert!(no_connection_registry
             .get_tool(DELEGATE_TASK_TOOL)
             .is_none());
@@ -4259,6 +4438,7 @@ mod tests {
         register_tools(
             &mut external_registry,
             &task_spec_with_external_connection(&["create"], "remote"),
+            &Config::default(),
         );
         assert!(external_registry.get_tool(DELEGATE_TASK_TOOL).is_none());
     }
@@ -4282,7 +4462,7 @@ mod tests {
             agent_card: None,
         });
 
-        register_tools(&mut registry, &spec);
+        register_tools(&mut registry, &spec, &Config::default());
 
         let tool = registry
             .get_tool(AGENT_OPEN_TOOL)
@@ -4302,6 +4482,7 @@ mod tests {
         register_tools(
             &mut no_connection_registry,
             &manifests::AgentSpec::default(),
+            &Config::default(),
         );
         assert!(no_connection_registry.get_tool(AGENT_OPEN_TOOL).is_none());
         assert!(no_connection_registry.get_tool(AGENT_SEND_TOOL).is_some());
@@ -4313,6 +4494,7 @@ mod tests {
         register_tools(
             &mut external_registry,
             &task_spec_with_external_connection(&["create"], "remote"),
+            &Config::default(),
         );
         assert!(external_registry.get_tool(AGENT_OPEN_TOOL).is_none());
         assert!(external_registry.get_tool(AGENT_SEND_TOOL).is_some());
@@ -4448,6 +4630,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             LIST_SCHEDULES_TOOL,
             &json!({}),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -4467,6 +4650,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             DEACTIVATE_SKILL_TOOL,
             &json!({"name": "review"}),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -4492,6 +4676,7 @@ mod tests {
                 "media_type": "text/markdown",
                 "metadata": {"source": "tool"}
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4538,6 +4723,7 @@ mod tests {
             &json!({
                 "title": "Missing content",
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -4555,6 +4741,7 @@ mod tests {
             &json!({
                 "artifact_uri": artifact_uri,
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4572,6 +4759,7 @@ mod tests {
                 "artifact_uri": artifact_uri,
                 "content": "revised body",
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4598,6 +4786,7 @@ mod tests {
             &json!({
                 "artifact_uri": artifact_uri,
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4614,6 +4803,7 @@ mod tests {
             &json!({
                 "artifact_uri": artifact_uri,
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -4634,6 +4824,7 @@ mod tests {
                 "target_session_id": "session-2",
                 "operations": ["read", "metadata"],
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4665,6 +4856,7 @@ mod tests {
                 "artifact_uri": artifact_uri,
                 "content": "critic overwrite",
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -4681,6 +4873,7 @@ mod tests {
                 "artifact_uri": artifact_uri,
                 "content": "cross-tenant overwrite",
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -4707,6 +4900,7 @@ mod tests {
                 "content_base64": general_purpose::STANDARD.encode(png_bytes),
                 "media_type": "image/png"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4722,6 +4916,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             READ_ARTIFACT_TOOL,
             &json!({ "artifact_uri": artifact_uri }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4788,6 +4983,7 @@ mod tests {
             },
             READ_MEMORY_TOOL,
             &json!({"path": "/memory/screenshot.png"}),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4854,6 +5050,7 @@ mod tests {
             },
             READ_MEMORY_TOOL,
             &json!({"path": "/memory/notes.txt"}),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4962,6 +5159,7 @@ mod tests {
             &writer_spec,
             AGENT_OPEN_TOOL,
             &json!({"connection": "critic"}),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -4991,6 +5189,7 @@ mod tests {
                 "content": "# Draft\n\nPlease review.",
                 "media_type": "text/markdown"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5007,6 +5206,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             READ_ARTIFACT_TOOL,
             &json!({ "artifact_uri": artifact_uri }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -5024,6 +5224,7 @@ mod tests {
                 "message": "Please review the draft.",
                 "artifact_uri": artifact_uri
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5063,6 +5264,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             READ_ARTIFACT_TOOL,
             &json!({ "artifact_uri": artifact_uri }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5105,6 +5307,7 @@ mod tests {
                 "content": large_content,
                 "media_type": "text/markdown"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5122,6 +5325,7 @@ mod tests {
             &json!({
                 "artifact_uri": artifact_uri,
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5155,6 +5359,7 @@ mod tests {
                 "artifact_uri": artifact_uri,
                 "content": large_revision,
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5170,6 +5375,7 @@ mod tests {
             &json!({
                 "artifact_uri": artifact_uri,
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5221,6 +5427,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             ACTIVATE_SKILL_TOOL,
             &json!({"name":"review"}),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -5250,6 +5457,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             ACTIVATE_SKILL_TOOL,
             &json!({"name":"review"}),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -5270,6 +5478,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             ACTIVATE_SKILL_TOOL,
             &json!({}),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -5282,6 +5491,7 @@ mod tests {
             &manifests::AgentSpec::default(),
             ACTIVATE_SKILL_TOOL,
             &json!({"name":"review"}),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -5312,6 +5522,7 @@ mod tests {
                 "labels": {"tier":"prod"},
                 "enabled": true
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5327,6 +5538,7 @@ mod tests {
             &schedule_spec,
             GET_SCHEDULE_TOOL,
             &json!({"name":"nightly"}),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5341,6 +5553,7 @@ mod tests {
             &schedule_spec,
             LIST_SCHEDULES_TOOL,
             &json!({"agent":"assistant","enabled":true}),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5360,6 +5573,7 @@ mod tests {
                 "session_mode": "reuse",
                 "session_id": "session-1"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5377,6 +5591,7 @@ mod tests {
             &schedule_spec,
             DELETE_SCHEDULE_TOOL,
             &json!({"name":"nightly"}),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5411,6 +5626,7 @@ mod tests {
                     "interval_seconds": 600,
                     "input_message": "run report"
                 }),
+                &Config::default(),
             )
             .await
             .unwrap();
@@ -5423,6 +5639,7 @@ mod tests {
             &spec(&["inspect"]),
             LIST_SCHEDULES_TOOL,
             &json!({"namespace":"conic:other","limit":1}),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5451,6 +5668,7 @@ mod tests {
                 "delegate_namespace": "Tenant:acme:Operations",
                 "delegate_name": "support-agent"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5477,6 +5695,7 @@ mod tests {
                 "execution_name": "support-agent",
                 "execution_session_id": "support-session-1"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5500,6 +5719,7 @@ mod tests {
                 "status_group": "active",
                 "owner_name": "ops-lead"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5533,6 +5753,7 @@ mod tests {
                 "title": "Prepare checklist",
                 "description": "Create a reviewed checklist."
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -5551,6 +5772,7 @@ mod tests {
                 "description": "Create a reviewed checklist.",
                 "connection": "support"
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -5590,6 +5812,7 @@ mod tests {
                 "type": "OPERATIONS",
                 "connection": "support"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5707,6 +5930,7 @@ mod tests {
                 "status_group": "active",
                 "owner_name": "ops-lead"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5747,6 +5971,7 @@ mod tests {
                 "description": "Create the first checklist.",
                 "connection": "support"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5767,6 +5992,7 @@ mod tests {
                 "description": "Create the second checklist.",
                 "connection": "support"
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -5780,6 +6006,7 @@ mod tests {
             &spec,
             LIST_TASKS_TOOL,
             &json!({"owner_name": "ops-lead"}),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5800,6 +6027,7 @@ mod tests {
                 "phase": "NEEDS_REVIEW",
                 "progress_summary": "Ready for review."
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5817,6 +6045,7 @@ mod tests {
                 "description": "Create the second checklist.",
                 "connection": "support"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5863,6 +6092,7 @@ mod tests {
                 "description": "Create a reviewed checklist.",
                 "connection": "support"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -5944,6 +6174,7 @@ mod tests {
                 "description": "Create a reviewed checklist.",
                 "connection": "support"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6030,6 +6261,7 @@ mod tests {
                 "title": "Prepare checklist",
                 "description": "Create a reviewed checklist."
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -6048,6 +6280,7 @@ mod tests {
                 "description": "Create a reviewed checklist.",
                 "delegate_name": "support-agent"
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -6066,6 +6299,7 @@ mod tests {
                 "title": "Prepare checklist",
                 "description": "Create a reviewed checklist."
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -6095,7 +6329,7 @@ mod tests {
                 "title": "Review legal memo",
                 "description": "Route the memo to a writing delegate and return the final artifact.",
                 "connection": "router"
-            }),
+            }), &Config::default(),
         )
         .await
         .unwrap()
@@ -6124,6 +6358,7 @@ mod tests {
                 "description": "Prepare the final legal memo artifact.",
                 "connection": "writer"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6144,6 +6379,7 @@ mod tests {
                 "content": "# Final Memo\n\nThe agreement should be revised.",
                 "media_type": "text/markdown"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6165,6 +6401,7 @@ mod tests {
                 "progress_summary": "Final memo is ready.",
                 "output_artifact_uri": artifact_uri
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6184,6 +6421,7 @@ mod tests {
                 "phase": "NEEDS_REVIEW",
                 "progress_summary": "Writer should not be able to update the parent task."
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -6214,6 +6452,7 @@ mod tests {
                 "phase": "NEEDS_REVIEW",
                 "progress_summary": "Stale writer session should not be active."
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -6266,6 +6505,7 @@ mod tests {
                 "target": "owner",
                 "message": "Final memo is ready for router review."
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6283,6 +6523,7 @@ mod tests {
                 "content": "This should not be propagated.",
                 "media_type": "text/plain"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6303,6 +6544,7 @@ mod tests {
                 "progress_summary": "Final memo is ready for owner review.",
                 "output_artifact_uris": [artifact_uri]
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6352,6 +6594,7 @@ mod tests {
                 "target": "owner",
                 "message": "Final memo is ready for owner review."
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6433,6 +6676,7 @@ mod tests {
                 "description": "Create an announcement artifact and attach it to this task.",
                 "connection": "copywriter"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6453,6 +6697,7 @@ mod tests {
                 "content": "# Announcement\n\nThe draft is ready.",
                 "media_type": "text/markdown"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6474,6 +6719,7 @@ mod tests {
                 "progress_summary": "Draft announcement is ready.",
                 "output_artifact_uri": artifact_uri
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6494,6 +6740,7 @@ mod tests {
                 "progress_summary": "Draft announcement is still ready.",
                 "output_artifact_uri": artifact_uri
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6516,6 +6763,7 @@ mod tests {
                 "name": "different-task",
                 "phase": "NEEDS_REVIEW"
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err();
@@ -6544,6 +6792,7 @@ mod tests {
                 ],
                 "max_iterations": 4
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6572,6 +6821,7 @@ mod tests {
                 "agent": "ops-lead",
                 "session_id": "session-1"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -6606,7 +6856,7 @@ mod tests {
                 "phase": "NEEDS_REVIEW",
                 "iteration": 2,
                 "progress_summary": "Support task produced the revised checklist; draft is ready for critic review."
-            }),
+            }), &Config::default(),
         )
         .await
         .unwrap()
@@ -6630,6 +6880,7 @@ mod tests {
                 "goal_id": goal_id,
                 "progress_summary": "Reviewer approved the final checklist."
             }),
+            &Config::default(),
         )
         .await
         .unwrap()

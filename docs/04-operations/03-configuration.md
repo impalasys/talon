@@ -125,6 +125,23 @@ future provider integrations. Compaction consumes only the context and output
 limits; if no matching model entry exists, it keeps the existing
 environment/default character budget.
 
+## Deployment-wide capability gates
+
+Use the top-level `capabilities` map to disable a native capability action for
+every agent in a deployment:
+
+```yaml
+capabilities:
+  code:
+    run: false
+```
+
+An explicit `false` is a global deny. An explicit `true`, or an omitted gate,
+does not grant access by itself: the agent still needs the matching action in
+its manifest, such as `spec.capabilities.code: [run]`. Missing gates remain
+allowed for backwards compatibility, so this setting is suitable for an
+operator-controlled emergency shutoff without changing agent manifests.
+
 ## Secret sources
 
 Secrets can be sourced from:
@@ -325,6 +342,57 @@ Common runtime environment variables include:
 - `TALON_LOCAL_SCHEDULER_RUNNER`
 - `TALON_JWT_PRIVATE_KEY_PEM`
 - `TALON_JWT_ISSUER`
+
+### Serverless code execution
+
+`run_python_code` uses Monty's per-invocation resource limits and a separate,
+process-local admission budget. Configure this budget on every worker that can
+run agents with the `code:run` capability. The limiter is intentionally local:
+it prevents one Cloud Run container from being overcommitted, but it is not a
+cross-instance tenant quota.
+
+For a `1 vCPU` / `512 MiB` Cloud Run Worker Pool instance, use these initial
+values:
+
+```bash
+TALON_CODE_MAX_CONCURRENT_RUNS=1
+TALON_CODE_MEMORY_BUDGET_BYTES=268435456
+TALON_CODE_QUEUE_TIMEOUT_MS=30000
+TALON_CODE_MAX_QUEUED_RUNS=8
+TALON_CODE_MAX_TOOL_CALLS=16
+```
+
+The reservation for a run includes its requested Monty heap limit, `64 MiB` of
+runtime and artifact-serialization overhead, bounded `1 MiB` stdout/stderr
+capture buffers, and the maximum `25 MiB` input and `25 MiB` output staging
+budgets. A request which cannot fit is rejected before file hydration or a
+Monty subprocess is started. The `timeout_ms` value is a hard wall-clock
+deadline covering hydration, execution, tool bridges, and output persistence.
+Calls wait for capacity for at most the configured queue timeout; a full queue
+or elapsed timeout returns a retryable capacity error. Inline `code` plus
+`inputs` are capped at `1 MiB`; inputs are also limited to 64 nesting levels and
+100,000 values before they are converted for Monty. These limits protect host
+side argument conversion, but they do not yet bound every allocation made while
+the Monty protocol returns a large value.
+
+Cancellation and timeout cleanup currently relies on `monty-pool`'s
+kill-on-drop behavior. The Talon reservation is released when the execution
+future is dropped, which can be before the child process has finished exiting.
+This is an accepted availability risk for this release and is tracked for an
+upstream `monty-pool` abort-and-reap API. Deployments requiring strict
+serverless isolation should keep code execution restricted until that upstream
+fix is available.
+
+The Talon host binary embeds the Monty worker. Set `TALON_MONTY_BIN` only when
+an external runtime is intentionally required. Keep the worker listener private
+and avoid granting the worker network egress solely for code execution; Monty
+code does not receive host networking, environment variables, or unrestricted
+host filesystem access.
+
+Monitor Monty execution outcomes, queue occupancy and capacity rejections,
+worker-process count and RSS, cancellation and timeout rates, and container
+restarts or OOM kills. A one-run admission limit does not guarantee that a
+recently cancelled child has already disappeared.
 
 ### Cloud Run Worker Pool endpoint discovery
 

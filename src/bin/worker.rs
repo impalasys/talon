@@ -1372,6 +1372,11 @@ async fn schedule_fire(
 }
 
 fn main() -> Result<()> {
+    // The Monty pool invokes this binary with `subprocess`; handle that mode
+    // before Tokio, telemetry, profiling, or Talon configuration initialize.
+    if let Some(status) = talon::monty_subprocess::run_if_requested() {
+        std::process::exit(status);
+    }
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .thread_stack_size(worker_thread_stack_size(|name| std::env::var(name).ok()))

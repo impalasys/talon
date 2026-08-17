@@ -98,6 +98,12 @@ jobs:
           cache-from: type=gha,scope=talon-runtime
           cache-to: type=gha,mode=max,scope=talon-runtime
 
+      - name: Smoke test packaged Monty runtime
+        run: |
+          docker build --file dockerfiles/oss-runtime.Dockerfile --tag talon-runtime:smoke .
+          docker run --rm --entrypoint /usr/local/bin/monty talon-runtime:smoke --version
+          docker run --rm --entrypoint /usr/local/bin/talon-node talon-runtime:smoke subprocess </dev/null
+
   acp_harness_image:
     name: ACP Harness Sandbox Image
     runs-on: ubuntu-latest

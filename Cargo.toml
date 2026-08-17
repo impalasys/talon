@@ -57,6 +57,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
 sse-stream = "0.2"
+tempfile = "3.0"
 urlencoding = "2.1"
 tokio = { version = "1.0", features = ["full"] }
 tokio-tungstenite = "0.20"
@@ -73,6 +74,9 @@ toml = "0.8"
 serde_yaml = "0.9"
 minijinja = { version = "=2.19.0", features = ["unstable_machinery"] }
 mime_guess = "2"
+monty-pool = "0.0.21"
+monty-proto = { version = "0.0.21", features = ["worker"] }
+monty-types = "0.0.21"
 url = "2"
 google-cloud-secretmanager-v1 = "1.7"
 google-cloud-auth = "1.8"
@@ -103,7 +107,6 @@ protoc-gen-tonic = "0.4.0"
 [dev-dependencies]
 aws-smithy-runtime-api = "1.11"
 aws-smithy-types = "1.4"
-tempfile = "3.0"
 tokio = { version = "1.0", features = ["test-util"] }
 
 [[bin]]
