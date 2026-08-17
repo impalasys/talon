@@ -83,6 +83,10 @@ def main() -> int:
     }
     outputs: dict[str, str] = {}
     outputs["sdk_version"] = version_file(current_text("sdk/VERSION") or "")
+    sdk_before = git_show(base, "sdk/VERSION")
+    outputs["sdk_version_changed"] = str(
+        sdk_before is None or version_file(sdk_before) != outputs["sdk_version"]
+    ).lower()
     for key, (path, parser) in packages.items():
         did_change, version = changed(path, parser, base)
         outputs[f"{key}_changed"] = "true" if did_change else "false"

@@ -359,6 +359,11 @@ jobs:
           pnpm --dir sdk/js typecheck
           pnpm --dir sdk/js test
 
+      - name: Test Talon chat package
+        run: |
+          pnpm --filter @impalasys/talon-chat build
+          pnpm --filter @impalasys/talon-chat test
+
   python_e2e:
     name: Python E2E
     runs-on: ubuntu-latest

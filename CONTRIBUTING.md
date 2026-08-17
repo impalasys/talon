@@ -85,6 +85,22 @@ docker build -f dockerfiles/oss-runtime.Dockerfile .
 docker build -f dockerfiles/oss-ui.Dockerfile .
 ```
 
+## SDK releases
+
+Public SDK artifacts and `@impalasys/talon-chat` share one release version.
+To prepare a release, run the coordinated bump command from the repository
+root, then commit the manifest and lockfile changes together:
+
+```bash
+python3 scripts/sdk/bump_version.py 0.2.3
+python3 scripts/sdk/check_versions.py
+pnpm --dir sdk/js check:packages
+```
+
+Keep private applications, examples, and code-generation tools on their own
+versions. The publish workflow uses `sdk/VERSION` as the release source of
+truth and publishes the public npm packages together.
+
 ## Documentation
 
 Docs are organized numerically so GitHub renders them in reading order. Start
