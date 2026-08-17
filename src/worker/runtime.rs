@@ -138,7 +138,7 @@ impl AgentRuntime {
         // 4. Build tool registry (builtins + future MCP servers)
         let mut mcp_tools = std::collections::HashMap::new();
         let mut reg = ToolRegistry::new();
-        crate::harness::native_tools::register_tools_with_config(&mut reg, &spec, config);
+        crate::harness::native_tools::register_tools(&mut reg, &spec, config);
         if allow_channel_reply_tools {
             crate::harness::native_tools::register_channel_tools(&mut reg);
         }

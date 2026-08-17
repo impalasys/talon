@@ -6,6 +6,7 @@ pub mod control;
 pub mod gateway;
 pub mod harness;
 #[doc(hidden)]
+#[path = "bin/monty_subprocess/mod.rs"]
 pub mod monty_subprocess;
 pub mod worker;
 pub use crate::control::security::encryption::SecurityProvider;

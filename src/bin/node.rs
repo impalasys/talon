@@ -367,6 +367,8 @@ async fn run() -> Result<()> {
 }
 
 fn main() -> Result<()> {
+    // The Monty pool invokes this binary with `subprocess`; handle that mode
+    // before Tokio, telemetry, profiling, or Talon configuration initialize.
     if let Some(status) = talon::monty_subprocess::run_if_requested() {
         std::process::exit(status);
     }

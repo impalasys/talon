@@ -73,6 +73,7 @@ pub(super) async fn execute(
     }
     require_capability(spec, "code", "run")?;
     run_python_code_tool(
+        config,
         cp,
         current_namespace,
         current_agent,
@@ -502,6 +503,7 @@ fn code_error_outcome(error: &anyhow::Error) -> &'static str {
 }
 
 async fn run_python_code_tool(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -576,6 +578,7 @@ async fn run_python_code_tool(
             max_tool_calls: limiter.config.max_tool_calls,
         };
         let mut result = run_monty_python(
+            config,
             cp,
             current_namespace,
             current_agent,
@@ -659,6 +662,7 @@ impl CodeRunContext {
 }
 
 async fn run_monty_python(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -689,13 +693,13 @@ async fn run_monty_python(
                 )
             })
         })?;
-    let mut config = monty_pool::PoolConfig::subprocess(monty_binary);
-    config.min_processes = 0;
-    config.max_processes = 1;
-    config.request_timeout =
+    let mut pool_config = monty_pool::PoolConfig::subprocess(monty_binary);
+    pool_config.min_processes = 0;
+    pool_config.max_processes = 1;
+    pool_config.request_timeout =
         Some(Duration::from_millis(timeout_ms).saturating_add(Duration::from_secs(1)));
-    config.checkout_timeout = Some(Duration::from_secs(5));
-    let pool = monty_pool::Pool::new(config).await.map_err(|err| {
+    pool_config.checkout_timeout = Some(Duration::from_secs(5));
+    let pool = monty_pool::Pool::new(pool_config).await.map_err(|err| {
         anyhow!(
             "failed to start Monty runtime: {err}. The current Talon binary contains the embedded worker; set TALON_MONTY_BIN to an external monty runtime to override it"
         )
@@ -736,6 +740,7 @@ async fn run_monty_python(
                 ..
             } => {
                 let value = match call_talon_tool(
+                    config,
                     cp,
                     current_namespace,
                     current_agent,
@@ -1247,6 +1252,7 @@ fn enforce_code_output_entry_limit(output_dir: &Path) -> Result<()> {
 }
 
 async fn call_talon_tool(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -1299,6 +1305,7 @@ async fn call_talon_tool(
             spec,
             &tool_name,
             &tool_args,
+            config,
         )),
     )
     .await
@@ -1812,11 +1819,11 @@ mod tests {
     #[test]
     fn register_code_tools_respects_capabilities() {
         let mut registry = ToolRegistry::new();
-        register_tools(&mut registry, &code_spec(&["run"]));
+        register_tools(&mut registry, &code_spec(&["run"]), &Config::default());
         assert!(registry.get_tool(RUN_PYTHON_CODE_TOOL).is_some());
 
         let mut empty_registry = ToolRegistry::new();
-        register_tools(&mut empty_registry, &code_spec(&[]));
+        register_tools(&mut empty_registry, &code_spec(&[]), &Config::default());
         assert!(empty_registry.get_tool(RUN_PYTHON_CODE_TOOL).is_none());
     }
 
@@ -1860,6 +1867,7 @@ mod tests {
                 "timeout_ms": 1000,
                 "memory_bytes": 1048576
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -1893,6 +1901,7 @@ mod tests {
                 "memory_bytes": 1048576,
                 "persist_outputs": false
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err()
@@ -1924,7 +1933,7 @@ mod tests {
                 "timeout_ms": 3000,
                 "memory_bytes": 128 * 1024 * 1024,
                 "persist_outputs": false
-            }),
+            }), &Config::default(),
         )
         .await
         .unwrap_err()
@@ -1955,7 +1964,7 @@ mod tests {
                 "timeout_ms": 3000,
                 "memory_bytes": 1048576,
                 "persist_outputs": false
-            }),
+            }), &Config::default(),
         )
         .await
         .unwrap_err()
@@ -1979,6 +1988,7 @@ mod tests {
             &code_spec(&[]),
             RUN_PYTHON_CODE_TOOL,
             &json!({ "code": "1 + 1" }),
+            &Config::default(),
         )
         .await
         .unwrap_err()
@@ -2039,6 +2049,7 @@ mod tests {
                 "content": "hello mount",
                 "media_type": "text/plain"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -2060,7 +2071,7 @@ mod tests {
                     }
                 ],
                 "timeout_ms": 1000
-            }),
+            }), &Config::default(),
         )
         .await
         .unwrap()
@@ -2080,6 +2091,7 @@ mod tests {
             &spec,
             READ_ARTIFACT_TOOL,
             &json!({ "artifact_uri": artifact_uri }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -2107,6 +2119,7 @@ mod tests {
                 "content": "one",
                 "media_type": "text/plain"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -2131,6 +2144,7 @@ mod tests {
                     }
                 ]
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err()
@@ -2200,6 +2214,7 @@ mod tests {
                 "media_type": "text/plain",
                 "content": "artifact contents"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -2233,6 +2248,7 @@ mod tests {
                 "target_session_id": reader_session,
                 "operations": ["read"]
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -2324,6 +2340,7 @@ mod tests {
                 "content": "hello tool",
                 "media_type": "text/plain"
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
@@ -2340,12 +2357,41 @@ mod tests {
                 "code": "talon_tool('read_file', {'path': '/datasets/tool.txt'})['content']",
                 "timeout_ms": 1000
             }),
+            &Config::default(),
         )
         .await
         .unwrap()
         .unwrap();
         let value: Value = serde_json::from_str(&output).unwrap();
         assert_eq!(value["value"], "hello tool");
+
+        let mut files_disabled = Config::default();
+        files_disabled.capabilities.insert(
+            "files".to_string(),
+            CapabilityGate {
+                actions: HashMap::from([(String::from("read"), false)]),
+            },
+        );
+        let gate_error = execute_tool_for_session(
+            &cp,
+            namespace,
+            "analyst",
+            "session-1",
+            &spec,
+            RUN_PYTHON_CODE_TOOL,
+            &json!({
+                "code": "talon_tool('read_file', {'path': '/datasets/tool.txt'})",
+                "timeout_ms": 1000
+            }),
+            &files_disabled,
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(
+            gate_error.contains("capability 'files:read' is disabled by deployment configuration"),
+            "{gate_error}"
+        );
 
         let error = execute_tool_for_session(
             &cp,
@@ -2358,6 +2404,7 @@ mod tests {
                 "code": "talon_tool('run_python_code', {'code': '1 + 1'})",
                 "timeout_ms": 1000
             }),
+            &Config::default(),
         )
         .await
         .unwrap_err()

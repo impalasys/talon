@@ -1364,18 +1364,17 @@ impl AgentExecutor {
                 .await
                 .map(ToolOutput::text);
         }
-        if let Some(result) =
-            crate::harness::native_tools::execute_tool_for_session_output_with_config(
-                &self.config,
-                &self.control_plane,
-                &self.namespace,
-                &self.agent_id,
-                &self.session_id,
-                &self.agent_spec,
-                name,
-                &args,
-            )
-            .await?
+        if let Some(result) = crate::harness::native_tools::execute_tool_for_session_output(
+            &self.control_plane,
+            &self.namespace,
+            &self.agent_id,
+            &self.session_id,
+            &self.agent_spec,
+            name,
+            &args,
+            &self.config,
+        )
+        .await?
         {
             return Ok(result);
         }
@@ -2497,7 +2496,7 @@ mod tests {
         );
         {
             let mut reg = registry.write().await;
-            crate::harness::native_tools::register_tools(&mut reg, &spec);
+            crate::harness::native_tools::register_tools(&mut reg, &spec, &Config::default());
         }
 
         let mut context = ExecutionContext::new("cmo");
@@ -2557,7 +2556,7 @@ mod tests {
         );
         {
             let mut reg = registry.write().await;
-            crate::harness::native_tools::register_tools(&mut reg, &spec);
+            crate::harness::native_tools::register_tools(&mut reg, &spec, &Config::default());
         }
 
         let mut context = ExecutionContext::new("writer");
@@ -2604,7 +2603,7 @@ mod tests {
         );
         {
             let mut reg = registry.write().await;
-            crate::harness::native_tools::register_tools(&mut reg, &spec);
+            crate::harness::native_tools::register_tools(&mut reg, &spec, &Config::default());
         }
 
         let mut context = ExecutionContext::new("writer");
@@ -2639,7 +2638,7 @@ mod tests {
         );
         {
             let mut reg = registry.write().await;
-            crate::harness::native_tools::register_tools(&mut reg, &spec);
+            crate::harness::native_tools::register_tools(&mut reg, &spec, &Config::default());
         }
 
         let mut context = ExecutionContext::new("writer");
@@ -2885,7 +2884,7 @@ mod tests {
         );
         {
             let mut reg = registry.write().await;
-            crate::harness::native_tools::register_tools(&mut reg, &spec);
+            crate::harness::native_tools::register_tools(&mut reg, &spec, &Config::default());
         }
 
         // Build history that exceeds the model-aware default context budget.
@@ -3086,7 +3085,7 @@ mod tests {
         );
         {
             let mut reg = registry.write().await;
-            crate::harness::native_tools::register_tools(&mut reg, &spec);
+            crate::harness::native_tools::register_tools(&mut reg, &spec, &Config::default());
         }
 
         // Only 2 messages -- well under threshold.
@@ -3123,7 +3122,7 @@ mod tests {
         );
         {
             let mut reg = registry.write().await;
-            crate::harness::native_tools::register_tools(&mut reg, &spec);
+            crate::harness::native_tools::register_tools(&mut reg, &spec, &Config::default());
         }
 
         let mut context = ExecutionContext::new("cmo");
@@ -3163,7 +3162,7 @@ mod tests {
         );
         {
             let mut reg = registry.write().await;
-            crate::harness::native_tools::register_tools(&mut reg, &spec);
+            crate::harness::native_tools::register_tools(&mut reg, &spec, &Config::default());
         }
 
         let mut context = ExecutionContext::new("cmo");
