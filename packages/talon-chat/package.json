@@ -1,6 +1,6 @@
 {
   "name": "@impalasys/talon-chat",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "React chat panels for Talon agent sessions and channels",
   "type": "module",
   "license": "AGPL-3.0-only",
@@ -51,8 +51,8 @@
   },
   "peerDependencies": {
     "@impalasys/talon-client": "^0.2.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^18.3.0 || ^19.0.0",
+    "react-dom": "^18.3.0 || ^19.0.0"
   },
   "dependencies": {
     "fzstd": "^0.1.1",

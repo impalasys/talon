@@ -10,6 +10,8 @@ export {
   type TalonSessionProps,
   type TalonSessionMessageEditContext,
   type TalonSessionSubmitContext,
+	  type TalonSessionSubmissionTransformer,
+	  type TalonSessionTurnCompleteContext,
   type TalonCopilotProps,
   type TalonChatObjectRef,
   type TalonAttachmentUploadContext,

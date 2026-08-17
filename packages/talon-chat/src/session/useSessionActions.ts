@@ -15,6 +15,8 @@ import type {
   TalonSessionCommand,
   TalonSessionPendingImageAttachment,
   TalonSessionSubmitContext,
+  TalonSessionSubmissionTransformer,
+  TalonSessionTurnCompleteContext,
 } from "./TalonSessionTypes";
 
 type SessionActionsClient = Pick<TalonClient["sessions"], "create" | "submitTurn">;
@@ -31,6 +33,8 @@ type UseSessionActionsOptions = {
   commands: TalonSessionCommand[];
   onSessionChange?: (sessionId: string) => void;
   onSubmitMessage?: (context: TalonSessionSubmitContext) => Promise<boolean | void> | boolean | void;
+  submissionTransformer?: TalonSessionSubmissionTransformer;
+  onTurnComplete?: (context: TalonSessionTurnCompleteContext) => Promise<void> | void;
   currentSessionRef: MutableRefObject<SessionTarget | null>;
   messagesRef: MutableRefObject<CopilotMessage[]>;
   imageAttachmentsRef: MutableRefObject<TalonSessionPendingImageAttachment[]>;
@@ -107,6 +111,8 @@ export function useSessionActions({
   commands,
   onSessionChange,
   onSubmitMessage,
+  submissionTransformer,
+  onTurnComplete,
   currentSessionRef,
   messagesRef,
   imageAttachmentsRef,
@@ -237,9 +243,25 @@ export function useSessionActions({
     let controller: AbortController | null = null;
     let removeRuntimeAbort = () => undefined;
     try {
-      const baselineSignature = assistantSignature(messagesRef.current.slice(-resolvedHistoryPageSize));
       const session = await ensureSession();
       submittedSession = session;
+      const transformed = submissionTransformer
+        ? await submissionTransformer({
+          text,
+          namespace,
+          agent,
+          sessionId: session.sessionId,
+          attachments: imageAttachmentsRef.current,
+          imageAttachments: imageAttachmentsRef.current,
+          ensureSession,
+          clearInput: () => setInput(""),
+          refreshSession: async () => { await refreshNewestSessionPage(session); },
+        })
+        : { message: text };
+      const messageText = transformed.message.trim();
+      if (!messageText) throw new Error("TalonSession submissionTransformer must return a non-empty message.");
+      const displayText = transformed.displayText ?? text;
+      const baselineSignature = assistantSignature(messagesRef.current.slice(-resolvedHistoryPageSize));
       controller = new AbortController();
       const abortFromRuntime = () => controller?.abort();
       if (runtimeSignal) {
@@ -266,8 +288,8 @@ export function useSessionActions({
       const userMessage: CopilotMessage = {
         id: createLocalMessageId(),
         role: "user",
-        content: text,
-        parts: [...(text ? [{ type: "text", text }] : []), ...imageParts],
+        content: displayText,
+        parts: [...(messageText ? [{ type: "text", text: messageText }] : []), ...imageParts],
         createdAt: String(Date.now() * 1000),
       };
       optimisticMessageId = userMessage.id;
@@ -295,6 +317,7 @@ export function useSessionActions({
       });
       if (!hasAssistantEvent) await waitForCanonicalAssistantUpdate(session, baselineSignature, controller.signal);
       else await refreshNewestSessionPage(session, controller.signal);
+      await onTurnComplete?.({ namespace: session.ns, agent: session.agent, sessionId: session.sessionId });
     } catch (err) {
       const nextError = err instanceof Error ? err : new Error(String(err));
       const session = submittedSession && sameSession(currentSessionRef.current, submittedSession) ? submittedSession : null;
@@ -335,7 +358,7 @@ export function useSessionActions({
         if (!resumedAfterBusyFailure) setLoadingStartedAt(null);
       }
     }
-  }, [agent, cancelResume, clearSession, client, commands, currentSessionRef, disabled, enabledGoalCommand, ensureSession, imageAttachmentsRef, isSessionLive, isStoppingRef, markAutoScrollPinned, messagesRef, namespace, onSubmitMessage, refreshNewestSessionPage, resolvedHistoryPageSize, sessionId, setError, setImageAttachments, setInput, setIsLoading, setIsResuming, setLoadingNow, setLoadingStartedAt, setMessages, setStreamEvents, startResume, submissionAbortControllerRef, submittedPreviewUrlsRef, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
+  }, [agent, cancelResume, clearSession, client, commands, currentSessionRef, disabled, enabledGoalCommand, ensureSession, imageAttachmentsRef, isSessionLive, isStoppingRef, markAutoScrollPinned, messagesRef, namespace, onSubmitMessage, onTurnComplete, refreshNewestSessionPage, resolvedHistoryPageSize, sessionId, setError, setImageAttachments, setInput, setIsLoading, setIsResuming, setLoadingNow, setLoadingStartedAt, setMessages, setStreamEvents, startResume, submissionAbortControllerRef, submissionTransformer, submittedPreviewUrlsRef, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
 
   return { submitMessage };
 }

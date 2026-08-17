@@ -1,3 +1,4 @@
+import React from "react";
 import { TalonChatComposer, type TalonChatComposerProps } from "../lib/TalonChatComposer";
 import { SessionPendingMessagesQueue } from "./SessionPendingMessagesQueue";
 import type { PendingSessionMessage } from "./useSessionPendingMessages";
