@@ -1,20 +1,30 @@
 name: Talon CLA
 
-# This workflow intentionally never checks out pull-request code. It runs with
-# pull_request_target so it can create a check run on pull requests from forks.
+# This workflow intentionally never checks out pull-request code. The validation
+# job runs with pull_request_target so it can create checks for fork pull requests,
+# and only checks out the trusted base/default branch to load the CLA helper.
 on:
+  pull_request:
+    paths:
+      - ".github/scripts/cla.js"
+      - ".github/scripts/cla.test.js"
+      - ".github/workflows/cla.yml"
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
   issue_comment:
     types: [created, edited]
 
-permissions:
-  checks: write
-  contents: read
-  issues: read
-  pull-requests: read
-
 jobs:
+  test:
+    if: github.event_name == 'pull_request'
+    name: Test CLA policy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - run: node --test .github/scripts/cla.test.js
+
   validate:
     # issue_comment also fires for issues; only process comments on pull requests.
     if: >-
@@ -22,11 +32,24 @@ jobs:
       github.event.issue.pull_request != null
     name: Validate CLA signature
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      issues: read
+      pull-requests: read
     steps:
+      # pull_request_target checks out the base commit; issue_comment checks out
+      # the default branch. Neither path executes contributor-controlled code.
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Publish CLA status
         uses: actions/github-script@v8
         with:
           script: |
+            const {
+              isTrustedRepositoryContributor,
+            } = require("./.github/scripts/cla");
             const { owner, repo } = context.repo;
             const signature = "I have read and agree to the Talon CLA.";
             const checkName = "Talon CLA Agreement";
@@ -38,18 +61,9 @@ jobs:
               repo,
               pull_number: pullRequestNumber,
             });
-            let pullRequest = (await getPullRequest()).data;
-            const isImpalasysMember = () =>
-              pullRequest.author_association === "MEMBER" ||
-              pullRequest.author_association === "OWNER";
-
-            // GitHub can briefly return a stale author association immediately
-            // after creating an internal pull request. Re-fetch before asking an
-            // organization member to sign the CLA.
-            for (let attempt = 0; attempt < 3 && !isImpalasysMember(); attempt++) {
-              await new Promise((resolve) => setTimeout(resolve, 5_000));
-              pullRequest = (await getPullRequest()).data;
-            }
+            const pullRequest = (await getPullRequest()).data;
+            const trustedRepositoryContributor =
+              isTrustedRepositoryContributor(pullRequest);
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner,
@@ -57,17 +71,20 @@ jobs:
               issue_number: pullRequest.number,
               per_page: 100,
             });
-            const signed = isImpalasysMember() || comments.some((comment) =>
+            const acceptedByComment = comments.some((comment) =>
               comment.user?.id === pullRequest.user.id &&
               comment.body
                 ?.replace(/\r/g, "")
                 .split("\n")
                 .some((line) => line.trim() === signature)
             );
+            const satisfied = trustedRepositoryContributor || acceptedByComment;
 
             const detailsUrl = `https://github.com/${owner}/${repo}/blob/${pullRequest.base.ref}/CLA.md`;
-            const summary = signed
-              ? `The pull request author accepted the [Talon CLA](${detailsUrl}).`
+            const summary = trustedRepositoryContributor
+              ? "The CLA requirement is satisfied for this trusted repository contributor."
+              : acceptedByComment
+                ? `The pull request author accepted the [Talon CLA](${detailsUrl}).`
               : [
                   `Before this pull request can be merged, its author must accept the [Talon CLA](${detailsUrl}).`,
                   "",
@@ -82,9 +99,9 @@ jobs:
               head_sha: pullRequest.head.sha,
               external_id: `talon-cla:${pullRequest.number}`,
               status: "completed",
-              conclusion: signed ? "success" : "action_required",
+              conclusion: satisfied ? "success" : "action_required",
               output: {
-                title: signed ? "CLA accepted" : "CLA signature required",
+                title: satisfied ? "CLA requirement satisfied" : "CLA signature required",
                 summary,
               },
             };

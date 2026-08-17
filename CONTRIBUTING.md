@@ -36,9 +36,12 @@ tests/                Python end-to-end tests
 
 ## Contributor License Agreement
 
-Before a pull request can be merged, its author must accept the
-[Talon Contributor License Agreement](./CLA.md). Post the following exact
-sentence in a comment on each pull request you open:
+Before a pull request can be merged, its author must satisfy the
+[Talon Contributor License Agreement](./CLA.md). Pull requests from branches
+in this repository, and pull requests whose authors GitHub identifies as
+organization members or owners, are recognized automatically.
+
+For other pull requests, post the following exact sentence in a comment:
 
 ```text
 I have read and agree to the Talon CLA.
