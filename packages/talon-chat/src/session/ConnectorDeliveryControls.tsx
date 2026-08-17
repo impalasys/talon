@@ -1,3 +1,4 @@
+import React from "react";
 import type { CopilotMessage } from "../lib/chatTimeline";
 
 export type ConnectorDeliveryControlsProps = {

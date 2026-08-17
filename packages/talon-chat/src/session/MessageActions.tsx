@@ -1,3 +1,4 @@
+import React from "react";
 import { Copy, Pencil } from "lucide-react";
 import type { CopilotMessage } from "../lib/chatTimeline";
 import { historyMessageTimestamp } from "./history";

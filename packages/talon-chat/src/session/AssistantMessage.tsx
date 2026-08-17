@@ -1,3 +1,4 @@
+import React from "react";
 import { MarkdownMessage } from "../lib/MarkdownMessage";
 import type { AssistantTimelineItem, CopilotMessage } from "../lib/chatTimeline";
 

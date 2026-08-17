@@ -1,3 +1,5 @@
+import React from "react";
+
 export function SessionStyles() {
   return <style>{`
     .talon-session-tool-chevron { opacity: 0; transition: opacity 120ms ease, transform 160ms ease; }

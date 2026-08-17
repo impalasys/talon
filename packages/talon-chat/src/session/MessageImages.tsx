@@ -1,3 +1,5 @@
+import React from "react";
+
 export type MessageImage = { id: string; src?: string; label: string };
 
 export function MessageImages({ images, hasContent }: { images: MessageImage[]; hasContent: boolean }) {
