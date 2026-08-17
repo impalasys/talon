@@ -21,9 +21,6 @@ use std::{
     task::{Context, Poll},
 };
 
-const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
-const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
-
 fn object_ref_text(object_ref: &crate::gateway::rpc::data_proto::ObjectRef) -> serde_json::Value {
     serde_json::json!({
         "type": "text",
@@ -560,12 +557,6 @@ impl OpenAiCompatibleProvider {
                 if !thinking.effort.trim().is_empty() {
                     payload["reasoning_effort"] = serde_json::json!(thinking.effort);
                 }
-                let budget_tokens = thinking
-                    .budget_tokens
-                    .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS);
-                let max_completion_tokens =
-                    budget_tokens.saturating_add(THINKING_COMPLETION_BUFFER_TOKENS);
-                payload["max_completion_tokens"] = serde_json::json!(max_completion_tokens);
             }
 
             payload
@@ -858,10 +849,6 @@ impl OpenAiCompatibleProvider {
                     reasoning["effort"] = serde_json::json!(thinking.effort);
                 }
                 payload["reasoning"] = reasoning;
-                payload["max_output_tokens"] = serde_json::json!(thinking
-                    .budget_tokens
-                    .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS)
-                    .saturating_add(THINKING_COMPLETION_BUFFER_TOKENS));
             }
             payload
         };
@@ -2242,12 +2229,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn send_chat_request_uses_reasoning_effort_field() {
+    async fn send_chat_request_uses_reasoning_effort_without_implicit_output_cap() {
         let app = Router::new().route(
             "/chat/completions",
             post(|Json(payload): Json<serde_json::Value>| async move {
                 assert_eq!(payload["reasoning_effort"], "high");
-                assert_eq!(payload["max_completion_tokens"], 6144);
+                assert!(payload.get("max_completion_tokens").is_none());
                 assert!(payload.get("reasoning").is_none());
                 Json(serde_json::json!({
                     "choices": [{
@@ -2290,17 +2277,17 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn send_chat_request_defaults_completion_budget_for_thinking() {
+    async fn send_responses_request_uses_reasoning_without_implicit_output_cap() {
         let app = Router::new().route(
-            "/chat/completions",
+            "/responses",
             post(|Json(payload): Json<serde_json::Value>| async move {
-                assert_eq!(payload["reasoning_effort"], "medium");
-                assert_eq!(payload["max_completion_tokens"], 5120);
+                assert_eq!(payload["reasoning"]["summary"], "auto");
+                assert_eq!(payload["reasoning"]["effort"], "medium");
+                assert!(payload.get("max_output_tokens").is_none());
                 Json(serde_json::json!({
-                    "choices": [{
-                        "message": {
-                            "content": "ok"
-                        }
+                    "output": [{
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "ok"}]
                     }]
                 }))
             }),
@@ -2312,11 +2299,12 @@ mod tests {
             axum::serve(listener, app).await.unwrap();
         });
 
-        let provider = OpenAiCompatibleProvider::new(
+        let provider = OpenAiCompatibleProvider::with_api(
             "key".to_string(),
             format!("http://{addr}"),
             "model".to_string(),
             test_cas_store(),
+            "responses",
         );
 
         provider
