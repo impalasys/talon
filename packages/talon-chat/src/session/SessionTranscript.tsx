@@ -8,6 +8,7 @@ export type SessionTranscriptProps = {
   isLive: boolean;
   hasTrailingUserMessage: boolean;
   workingLabel?: string | null;
+  loadingIndicator?: React.ReactNode;
   error: Error | null;
   incident?: string | null;
   notice?: string | null;
@@ -26,6 +27,7 @@ export function SessionTranscript({
   isLive,
   hasTrailingUserMessage,
   workingLabel,
+  loadingIndicator,
   error,
   incident,
   notice,
@@ -45,7 +47,9 @@ export function SessionTranscript({
       >
         <div style={{ maxWidth: 896, margin: "0 auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
           {children}
-          {isLive && hasTrailingUserMessage ? (
+          {isLive && loadingIndicator ? (
+            <div style={{ width: "100%" }}>{loadingIndicator}</div>
+          ) : isLive && hasTrailingUserMessage && workingLabel ? (
             <div style={{ width: "100%" }}>
               <div style={{ fontSize: 13, fontWeight: 500, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>
                 {workingLabel}

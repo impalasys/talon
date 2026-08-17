@@ -103,6 +103,7 @@ export type SessionMessageProps = {
   isSessionLive: boolean;
   loadingStartedAt: string | number | null;
   loadingNow: number;
+  showWorkDetails: boolean;
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
   allowEditing: boolean;
   enableDebugEditing: boolean;
@@ -412,6 +413,7 @@ function MessageActionRow({
 function SessionMessagePresentation(props: SessionMessageProps) {
   const {
     message, messageIndex, messages, isSessionLive, loadingStartedAt, loadingNow, objectUrlForRef,
+    showWorkDetails,
     editingMessageValue, expandedThinkingMessages, expandedToolItems, hydrationState, resultFor,
     onToggleThinking, onToggleTool, onHydrateTool, onResourceClick, onEditingValueChange,
     onSaveEdit, onCancelEdit, onStartEdit, onCopy, onUpdateConnectorDelivery,
@@ -434,11 +436,13 @@ function SessionMessagePresentation(props: SessionMessageProps) {
     <div data-session-message-id={message.id} className="talon-session-message-row" style={messageRowStyle(state.isUser)}>
       <div style={messageWidthStyle(state.isUser)}>
         <div style={messageBubbleStyle(state.isUser)}>
-          <MessageWorkDetails {...{
-            message, messageIndex, messages, isSessionLive, loadingStartedAt, loadingNow,
-            expandedThinkingMessages, expandedToolItems, hydrationState, resultFor, onToggleThinking,
-            onToggleTool, onHydrateTool, onResourceClick,
-          }} />
+          {showWorkDetails ? (
+            <MessageWorkDetails {...{
+              message, messageIndex, messages, isSessionLive, loadingStartedAt, loadingNow,
+              expandedThinkingMessages, expandedToolItems, hydrationState, resultFor, onToggleThinking,
+              onToggleTool, onHydrateTool, onResourceClick,
+            }} />
+          ) : null}
           <PendingConnectorDelivery message={message} pending={state.isPendingConnectorDelivery} disabled={state.isReviewActionPending || state.isEditing} onUpdate={onUpdateConnectorDelivery} />
           <MessageEditor message={message} isEditing={state.isEditing} value={editingMessageValue} onChange={onEditingValueChange} onSave={onSaveEdit} onCancel={onCancelEdit} contentProps={contentProps} />
           <MessageImages images={messageImages(message, objectUrlForRef)} hasContent={Boolean(content)} />

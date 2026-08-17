@@ -152,6 +152,10 @@ export type TalonSessionProps = {
   submissionTransformer?: TalonSessionSubmissionTransformer;
   onTurnComplete?: (context: TalonSessionTurnCompleteContext) => Promise<void> | void;
   messageDisplayTransformer?: TalonSessionMessageDisplayTransformer;
+  /** Show elapsed-time, reasoning, tool, and usage details for assistant messages. */
+  showWorkDetails?: boolean;
+  /** Rendered while the agent is processing a turn, instead of elapsed time. */
+  loadingIndicator?: React.ReactNode;
   allowMessageEditing?: boolean;
   onMessageEdit?: (context: TalonSessionMessageEditContext) => Promise<boolean | void> | boolean | void;
   enableDebugMessageEditing?: boolean;

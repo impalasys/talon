@@ -90,6 +90,8 @@ export function TalonSession({
   submissionTransformer,
   onTurnComplete,
   messageDisplayTransformer,
+  showWorkDetails = true,
+  loadingIndicator,
   allowMessageEditing = false,
   onMessageEdit,
   enableDebugMessageEditing = false,
@@ -330,6 +332,7 @@ export function TalonSession({
         isSessionLive,
         loadingStartedAt,
         loadingNow,
+        showWorkDetails,
         objectUrlForRef,
         allowEditing: allowMessageEditing,
         enableDebugEditing: enableDebugMessageEditing,
@@ -543,7 +546,8 @@ export function TalonSession({
           <SessionTranscript
             isLive={isSessionLive}
             hasTrailingUserMessage={messages[messages.length - 1]?.role === "user"}
-            workingLabel={formatWorkingDuration(loadingStartedAt, loadingNow)}
+            workingLabel={showWorkDetails ? formatWorkingDuration(loadingStartedAt, loadingNow) : undefined}
+            loadingIndicator={loadingIndicator}
             error={error}
             incident={sessionState === "ERROR" && !error
               ? "This session previously encountered an error. You can continue, but any unavailable historical output will be marked in the transcript."
