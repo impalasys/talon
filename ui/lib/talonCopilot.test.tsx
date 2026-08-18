@@ -359,6 +359,44 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
   });
 
+  it('renders browser-only display content supplied by the message transformer', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-1',
+        state: 'IDLE',
+        items: [{
+          message: {
+            id: 'user-1',
+            role: 'ROLE_USER',
+            parts: [{ partType: 1, content: 'Agent-only instructions' }],
+            createdAt: String(Date.now() * 1000),
+          },
+          steps: [],
+        }],
+        hasMore: false,
+      }),
+      getSession: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-1"
+        messageDisplayTransformer={(message) => ({
+          ...message,
+          renderNode: <details data-testid="custom-message"><summary>Conic instructions</summary></details>,
+        })}
+      />,
+    );
+
+    expect(await screen.findByTestId('custom-message')).toBeInTheDocument();
+    expect(screen.queryByText('Agent-only instructions')).not.toBeInTheDocument();
+  });
+
   it('shows pending messages from the session NEXT queue above the composer', async () => {
     const listQueuedSessionMessages = jest.fn().mockResolvedValue({
       entries: [

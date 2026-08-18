@@ -1,3 +1,5 @@
+import type React from "react";
+
 export type ToolInvocationItem = {
   toolCallId: string;
   toolName: string;
@@ -36,6 +38,8 @@ export type CopilotMessage = {
   timeline?: AssistantTimelineItem[];
   usage?: UsageSummary;
   toolInvocations?: ToolInvocationItem[];
+  /** Browser-only presentation content; never persisted or sent to Talon. */
+  renderNode?: React.ReactNode;
 };
 
 function isActionStep(stepType: unknown): boolean {
@@ -729,3 +733,4 @@ export function formatUsageSummary(usage: UsageSummary | null) {
   const total = typeof usage.totalTokens === "number" ? `${usage.totalTokens} total` : "";
   return [parts.join(" • "), total].filter(Boolean).join(" • ");
 }
+import type React from "react";

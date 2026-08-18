@@ -283,12 +283,14 @@ type MessageContentProps = Pick<
 > & {
   isLiveAssistantMessage: boolean;
   content: string;
+  renderNode?: React.ReactNode;
 };
 
 function MessageContent({
   message,
   isLiveAssistantMessage,
   content,
+  renderNode,
   expandedToolItems,
   hydrationState,
   resultFor,
@@ -296,6 +298,16 @@ function MessageContent({
   onHydrateTool,
   onResourceClick,
 }: MessageContentProps) {
+  if (renderNode !== undefined) {
+    return (
+      <div
+        className={classNames(message.role === "system" && "copilot-system-message")}
+        style={{ minWidth: 0, overflow: "hidden", overflowWrap: "anywhere", whiteSpace: "normal", fontSize: message.role === "system" ? 12 : messageFontSize, lineHeight: 1.65, opacity: message.role === "system" ? 0.72 : 0.94, fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined }}
+      >
+        {renderNode}
+      </div>
+    );
+  }
   const timeline = splitAssistantMessageTimeline(
     coalesceAssistantMessageTimelineForDisplay(getMessageAssistantTimeline(message)),
   ).finalTimeline;
@@ -424,6 +436,7 @@ function SessionMessagePresentation(props: SessionMessageProps) {
     isSessionLive,
     isLiveAssistantMessage: state.isLiveAssistant,
     content,
+    renderNode: message.renderNode,
     expandedToolItems,
     hydrationState,
     resultFor,

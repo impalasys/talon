@@ -100,6 +100,8 @@ export type CopilotMessage = {
   timeline?: AssistantTimelineItem[];
   usage?: UsageSummary;
   toolInvocations?: ToolInvocationItem[];
+  /** Browser-only presentation content; never persisted or sent to Talon. */
+  renderNode?: React.ReactNode;
 };
 
 export type TalonBuiltInCommandName = "clear" | "goal" | "compact" | "doctor";

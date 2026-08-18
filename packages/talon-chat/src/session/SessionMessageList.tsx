@@ -1,6 +1,6 @@
 import React from "react";
-import type { CopilotMessage } from "../lib/chatTimeline";
 import { SessionMessage, type SessionMessageProps } from "./SessionMessage";
+import type { CopilotMessage } from "../lib/chatTimeline";
 
 type SessionMessageListProps = {
   messages: CopilotMessage[];
