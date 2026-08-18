@@ -4,13 +4,14 @@ sidebar:
   order: 0
 ---
 
-Core ideas behind Talon's runtime, resource model, and agent execution flow.
+Talon is a durable control plane for agent systems. These chapters explain the models Talon owns: system state, execution, context and capability, coordination, and the boundaries around them.
 
-- [How Talon Works](./how-talon-works)
-- [Agents and Templates](./agents-and-templates)
-- [Runtime Topology](./runtime-topology)
-- [Sessions and Execution](./sessions-and-streaming)
-- [Resource Model](./resource-model)
-- [Namespaces, Knowledge, and MCP](./namespaces-knowledge-and-mcp)
-- [Using Sightline](./using-sightline)
+## The five models
 
+- [System Model](/talon/docs/concepts/system-model) explains runtime roles, resources, namespaces, and reconciliation.
+- [Execution Model](/talon/docs/concepts/execution-model) explains agents, sessions, and durable execution.
+- [Context and Capability Model](/talon/docs/concepts/context-and-capability-model) explains memory, files, skills, tools, and sandboxes.
+- [Coordination Model](/talon/docs/concepts/coordination-model) explains time-based, conversational, workflow, and delegated work.
+- [Boundary and Policy Model](/talon/docs/concepts/boundary-and-policy-model) explains clients, connectors, access, and usage limits.
+
+Start with System Model for a complete mental model, or open the chapter that matches the question you need to answer.

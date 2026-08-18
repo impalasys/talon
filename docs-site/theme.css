@@ -1,0 +1,26 @@
+/* Long-form reference material should be comfortable to read, not UI-sized. */
+.prose {
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+
+.prose :where(h2) {
+  font-size: 2rem;
+  margin-top: 3.5rem;
+}
+
+.prose :where(h3) {
+  font-size: 1.375rem;
+}
+
+@media (min-width: 768px) {
+  .prose {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+
+  .prose :where(p, ul, ol) {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+}

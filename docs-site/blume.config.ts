@@ -8,6 +8,7 @@ export default defineConfig({
     text: "Talon",
   },
   basePath: "/talon/docs",
+  redirects: [{ from: "/", to: "/build", status: 308 }],
   content: {
     root: "../docs",
     exclude: ["**/_*", "**/.*", "wiki/**", "99-drafts/**"],
@@ -20,12 +21,10 @@ export default defineConfig({
   },
   navigation: {
     tabs: [
-      { label: "Getting Started", path: "/getting-started", icon: "rocket" },
+      { label: "Build", path: "/build", icon: "rocket" },
       { label: "Concepts", path: "/concepts", icon: "book-open" },
-      { label: "Tutorials", path: "/tutorials", icon: "graduation-cap" },
+      { label: "Operate", path: "/operate", icon: "settings" },
       { label: "Reference", path: "/reference", icon: "braces" },
-      { label: "Operations", path: "/operations", icon: "settings" },
-      { label: "Contributing", path: "/contributing/docs-system", icon: "git-pull-request" },
     ],
     featured: [
       { label: "Product site", href: "https://talon.impalasys.com", icon: "globe" },
