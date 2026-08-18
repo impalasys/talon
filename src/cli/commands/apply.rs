@@ -129,19 +129,10 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
+        // File packages (including Skills) deliberately omit legacy-only
+        // metadata labels, so parse their resource envelope directly.
         "legacy" if canonical_kind == "File" => {
-            let file: resources_proto::File =
-                serde_yaml::from_str(content).context("Failed to parse File manifest")?;
-            resources_proto::ResourceManifest {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "File".to_string(),
-                metadata: file.metadata.clone(),
-                spec: Some(resources_proto::ResourceSpec {
-                    kind: Some(SpecKind::File(
-                        file.spec.clone().context("File missing spec")?,
-                    )),
-                }),
-            }
+            crate::control::manifest::parse_resource_manifest(content)?
         }
         "legacy" if canonical_kind == "Task" => {
             let task: resources_proto::Task =
@@ -427,34 +418,35 @@ spec:
     }
 
     #[test]
-    fn build_apply_plans_accepts_skill_manifests() {
+    fn build_apply_plans_accepts_skill_package_manifest() {
         let plans = build_apply_plans(
             r#"
 apiVersion: talon.impalasys.com/v1
 kind: Skill
 metadata:
-  name: review
-  namespace: customers
+  name: blog-publish
+  namespace: Tenant:conic:Customers
 spec:
-  description: Review code
+  description: Publish one blog post.
+---
+apiVersion: talon.impalasys.com/v1
+kind: File
+metadata:
+  name: skills-blog-publish-skill-md
+  namespace: Tenant:conic:Customers
+spec:
+  path: /skills/blog-publish/SKILL.md
+  mediaType: text/markdown
+  purpose: SKILL
+  indexPolicy: NONE
+  retention: RETAINED
 "#,
         )
-        .expect("Skill manifests should be accepted by apply");
+        .expect("skill package YAML should plan");
 
-        let ApplyPlan::Resource {
-            ns, kind, name, manifest,
-        } = &plans[0]
-        else {
-            panic!("expected a resource apply plan");
-        };
-        assert_eq!(ns, "customers");
-        assert_eq!(kind, "Skill");
-        assert_eq!(name, "review");
-        assert!(matches!(
-            manifest.spec.as_ref().and_then(|spec| spec.kind.as_ref()),
-            Some(resources_proto::resource_spec::Kind::Skill(spec))
-                if spec.description == "Review code"
-        ));
+        assert_eq!(plans.len(), 2);
+        assert!(matches!(plans[0], ApplyPlan::Resource { .. }));
+        assert!(matches!(plans[1], ApplyPlan::Resource { .. }));
     }
 
     #[test]

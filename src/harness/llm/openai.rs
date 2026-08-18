@@ -1660,7 +1660,7 @@ mod tests {
     #[tokio::test]
     async fn serialize_messages_preserves_tool_protocol_fields() {
         let messages = vec![
-            assistant_tool_call_message("mcp_conic_create_github_pr", "{\"title\":\"x\"}"),
+            assistant_tool_call_message("mcp_conic_execute_blog_post_publish", "{\"blogPostId\":\"page_1\"}"),
             tool_result_message("{\"url\":\"https://github.com/example/repo/pull/2\"}"),
         ];
 
@@ -1668,7 +1668,7 @@ mod tests {
 
         assert_eq!(
             serialized[0]["tool_calls"][0]["function"]["name"],
-            "mcp_conic_create_github_pr"
+            "mcp_conic_execute_blog_post_publish"
         );
         assert_eq!(serialized[1]["tool_call_id"], "call_1");
     }
@@ -1963,7 +1963,7 @@ mod tests {
             test_cas_store(),
         );
         let messages = vec![
-            assistant_tool_call_message("mcp_conic_create_github_pr", "{\"title\":\"x\"}"),
+            assistant_tool_call_message("mcp_conic_execute_blog_post_publish", "{\"blogPostId\":\"page_1\"}"),
             tool_result_message("{\"url\":\"https://github.com/example/repo/pull/2\"}"),
         ];
 
