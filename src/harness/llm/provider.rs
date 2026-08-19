@@ -12,8 +12,8 @@ use crate::gateway::rpc::data_proto;
 pub use crate::gateway::rpc::data_proto::TokenCounter;
 pub use crate::gateway::rpc::harness_proto::{
     chat_content_part, chat_stream_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
-    ChatStreamEvent, Tool, ToolCall, ToolCallDelta, ToolOutput, ToolOutputContentDescriptor,
-    ToolOutputLineSelection,
+    ChatStreamEvent, Tool, ToolCall, ToolCallDelta, ToolOutput, ToolOutputByteRange,
+    ToolOutputContentDescriptor, ToolOutputLineSelection,
 };
 
 #[derive(Debug)]

@@ -1409,20 +1409,38 @@ impl AgentExecutor {
         let Some(descriptor) = result.content_descriptor.as_ref() else {
             return tool_output_loop_message(tool_call_id, result);
         };
-        let Some(selection) = descriptor.selection.as_ref() else {
+        let selection = descriptor.selection.as_ref();
+        let byte_range = descriptor.byte_range.as_ref();
+        if selection.is_none() && byte_range.is_none() {
             return tool_result_loop_message(tool_call_id, &result.summary());
-        };
+        }
         let Some(object) = result.object_ref() else {
             return tool_result_loop_message(tool_call_id, &result.summary());
         };
-        let text = CasStore::new(self.control_plane.objects.clone())
-            .get_object_decoded(&object.key)
-            .await
-            .ok()
-            .flatten()
-            .map(|object| String::from_utf8_lossy(&object.bytes).into_owned())
-            .map(|text| bounded_line_selection(&text, selection.start_line, selection.end_line))
-            .unwrap_or_else(|| result.summary());
+        let cas = CasStore::new(self.control_plane.objects.clone());
+        let text = match (byte_range, selection) {
+            (Some(range), _) => cas
+                .get_text_range_decoded(&object.key, range.start, range.end)
+                .await
+                .ok()
+                .flatten()
+                .and_then(|bytes| String::from_utf8(bytes).ok())
+                .unwrap_or_else(|| result.summary()),
+            (_, Some(selection)) => cas
+                .get_object_decoded(&object.key)
+                .await
+                .ok()
+                .flatten()
+                .map(|object| {
+                    bounded_line_selection(
+                        &String::from_utf8_lossy(&object.bytes),
+                        selection.start_line,
+                        selection.end_line,
+                    )
+                })
+                .unwrap_or_else(|| result.summary()),
+            _ => result.summary(),
+        };
         tool_result_loop_message(tool_call_id, &text)
     }
 }
@@ -1461,9 +1479,26 @@ pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> Loop
     if result.content_descriptor.is_some() {
         return tool_result_loop_message(tool_call_id, &result.summary());
     }
+    let content_parts = result
+        .content_parts()
+        .into_iter()
+        .enumerate()
+        .map(|(index, part)| match part.content.as_ref() {
+            Some(crate::harness::llm::chat_content_part::Content::ObjectRef(object))
+                if tool_output::is_tool_result_object_ref(object)
+                    && tool_output::is_text_object_media_type(&object.media_type) =>
+            {
+                crate::harness::llm::text_part(format!(
+                    "Large text is available at {}.",
+                    tool_output::tool_result_part_handle(tool_call_id, index)
+                ))
+            }
+            _ => part,
+        })
+        .collect();
     LoopMessage {
         role: "tool".to_string(),
-        content_parts: result.content_parts(),
+        content_parts,
         tool_calls: None,
         tool_call_id: Some(tool_call_id.to_string()),
     }

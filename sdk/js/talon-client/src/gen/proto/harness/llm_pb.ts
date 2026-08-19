@@ -157,6 +157,59 @@ export class ToolOutputLineSelection extends Message<ToolOutputLineSelection> {
 }
 
 /**
+ * A zero-based, half-open byte range in a UTF-8 text object.  `end` is the
+ * actual end returned to the caller; `next_byte` is set for bounded reads
+ * when more logical bytes remain.
+ *
+ * @generated from message talon.harness.ToolOutputByteRange
+ */
+export class ToolOutputByteRange extends Message<ToolOutputByteRange> {
+  /**
+   * @generated from field: uint64 start = 1;
+   */
+  start = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 end = 2;
+   */
+  end = protoInt64.zero;
+
+  /**
+   * @generated from field: optional uint64 next_byte = 3;
+   */
+  nextByte?: bigint;
+
+  constructor(data?: PartialMessage<ToolOutputByteRange>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.harness.ToolOutputByteRange";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "end", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "next_byte", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolOutputByteRange | PlainMessage<ToolOutputByteRange> | undefined, b: ToolOutputByteRange | PlainMessage<ToolOutputByteRange> | undefined): boolean {
+    return proto3.util.equals(ToolOutputByteRange, a, b);
+  }
+}
+
+/**
  * @generated from message talon.harness.ToolOutputContentDescriptor
  */
 export class ToolOutputContentDescriptor extends Message<ToolOutputContentDescriptor> {
@@ -197,6 +250,14 @@ export class ToolOutputContentDescriptor extends Message<ToolOutputContentDescri
    */
   selection?: ToolOutputLineSelection;
 
+  /**
+   * New selections use bytes. Keep `selection` above for journals written by
+   * older Talon releases.
+   *
+   * @generated from field: optional talon.harness.ToolOutputByteRange byte_range = 6;
+   */
+  byteRange?: ToolOutputByteRange;
+
   constructor(data?: PartialMessage<ToolOutputContentDescriptor>) {
     super();
     proto3.util.initPartial(data, this);
@@ -210,6 +271,7 @@ export class ToolOutputContentDescriptor extends Message<ToolOutputContentDescri
     { no: 3, name: "line_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 4, name: "capture_truncated", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 5, name: "selection", kind: "message", T: ToolOutputLineSelection, opt: true },
+    { no: 6, name: "byte_range", kind: "message", T: ToolOutputByteRange, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutputContentDescriptor {
