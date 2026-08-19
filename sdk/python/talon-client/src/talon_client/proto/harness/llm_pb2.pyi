@@ -17,12 +17,36 @@ class ChatContentPart(_message.Message):
     def __init__(self, text: _Optional[str] = ..., object_ref: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class ToolOutput(_message.Message):
-    __slots__ = ("content_parts", "summary")
+    __slots__ = ("content_parts", "summary", "content_descriptor")
     CONTENT_PARTS_FIELD_NUMBER: _ClassVar[int]
     SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_DESCRIPTOR_FIELD_NUMBER: _ClassVar[int]
     content_parts: _containers.RepeatedCompositeFieldContainer[ChatContentPart]
     summary: str
-    def __init__(self, content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., summary: _Optional[str] = ...) -> None: ...
+    content_descriptor: ToolOutputContentDescriptor
+    def __init__(self, content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., summary: _Optional[str] = ..., content_descriptor: _Optional[_Union[ToolOutputContentDescriptor, _Mapping]] = ...) -> None: ...
+
+class ToolOutputLineSelection(_message.Message):
+    __slots__ = ("start_line", "end_line")
+    START_LINE_FIELD_NUMBER: _ClassVar[int]
+    END_LINE_FIELD_NUMBER: _ClassVar[int]
+    start_line: int
+    end_line: int
+    def __init__(self, start_line: _Optional[int] = ..., end_line: _Optional[int] = ...) -> None: ...
+
+class ToolOutputContentDescriptor(_message.Message):
+    __slots__ = ("section_readable", "captured_size_bytes", "line_count", "capture_truncated", "selection")
+    SECTION_READABLE_FIELD_NUMBER: _ClassVar[int]
+    CAPTURED_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    LINE_COUNT_FIELD_NUMBER: _ClassVar[int]
+    CAPTURE_TRUNCATED_FIELD_NUMBER: _ClassVar[int]
+    SELECTION_FIELD_NUMBER: _ClassVar[int]
+    section_readable: bool
+    captured_size_bytes: int
+    line_count: int
+    capture_truncated: bool
+    selection: ToolOutputLineSelection
+    def __init__(self, section_readable: bool = ..., captured_size_bytes: _Optional[int] = ..., line_count: _Optional[int] = ..., capture_truncated: bool = ..., selection: _Optional[_Union[ToolOutputLineSelection, _Mapping]] = ...) -> None: ...
 
 class ToolCall(_message.Message):
     __slots__ = ("id", "name", "arguments")

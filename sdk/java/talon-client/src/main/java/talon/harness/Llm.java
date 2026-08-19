@@ -913,6 +913,39 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getSummaryBytes();
+
+    /**
+     * <pre>
+     * Compact durable metadata for an object-backed result. This is deliberately
+     * separate from summary: callers render summary for people, while runtimes
+     * use this structure to reproduce a bounded view without copying bytes.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+     * @return Whether the contentDescriptor field is set.
+     */
+    boolean hasContentDescriptor();
+    /**
+     * <pre>
+     * Compact durable metadata for an object-backed result. This is deliberately
+     * separate from summary: callers render summary for people, while runtimes
+     * use this structure to reproduce a bounded view without copying bytes.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+     * @return The contentDescriptor.
+     */
+    talon.harness.Llm.ToolOutputContentDescriptor getContentDescriptor();
+    /**
+     * <pre>
+     * Compact durable metadata for an object-backed result. This is deliberately
+     * separate from summary: callers render summary for people, while runtimes
+     * use this structure to reproduce a bounded view without copying bytes.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+     */
+    talon.harness.Llm.ToolOutputContentDescriptorOrBuilder getContentDescriptorOrBuilder();
   }
   /**
    * Protobuf type {@code talon.harness.ToolOutput}
@@ -958,6 +991,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
               talon.harness.Llm.ToolOutput.class, talon.harness.Llm.ToolOutput.Builder.class);
     }
 
+    private int bitField0_;
     public static final int CONTENT_PARTS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
     private java.util.List<talon.harness.Llm.ChatContentPart> contentParts_;
@@ -1038,6 +1072,50 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int CONTENT_DESCRIPTOR_FIELD_NUMBER = 3;
+    private talon.harness.Llm.ToolOutputContentDescriptor contentDescriptor_;
+    /**
+     * <pre>
+     * Compact durable metadata for an object-backed result. This is deliberately
+     * separate from summary: callers render summary for people, while runtimes
+     * use this structure to reproduce a bounded view without copying bytes.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+     * @return Whether the contentDescriptor field is set.
+     */
+    @java.lang.Override
+    public boolean hasContentDescriptor() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Compact durable metadata for an object-backed result. This is deliberately
+     * separate from summary: callers render summary for people, while runtimes
+     * use this structure to reproduce a bounded view without copying bytes.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+     * @return The contentDescriptor.
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputContentDescriptor getContentDescriptor() {
+      return contentDescriptor_ == null ? talon.harness.Llm.ToolOutputContentDescriptor.getDefaultInstance() : contentDescriptor_;
+    }
+    /**
+     * <pre>
+     * Compact durable metadata for an object-backed result. This is deliberately
+     * separate from summary: callers render summary for people, while runtimes
+     * use this structure to reproduce a bounded view without copying bytes.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputContentDescriptorOrBuilder getContentDescriptorOrBuilder() {
+      return contentDescriptor_ == null ? talon.harness.Llm.ToolOutputContentDescriptor.getDefaultInstance() : contentDescriptor_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1057,6 +1135,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, summary_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(3, getContentDescriptor());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1079,6 +1160,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, summary_);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getContentDescriptor());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -1098,6 +1183,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           .equals(other.getContentPartsList())) return false;
       if (!getSummary()
           .equals(other.getSummary())) return false;
+      if (hasContentDescriptor() != other.hasContentDescriptor()) return false;
+      if (hasContentDescriptor()) {
+        if (!getContentDescriptor()
+            .equals(other.getContentDescriptor())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1115,6 +1205,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       hash = (37 * hash) + SUMMARY_FIELD_NUMBER;
       hash = (53 * hash) + getSummary().hashCode();
+      if (hasContentDescriptor()) {
+        hash = (37 * hash) + CONTENT_DESCRIPTOR_FIELD_NUMBER;
+        hash = (53 * hash) + getContentDescriptor().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1234,13 +1328,20 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       // Construct using talon.harness.Llm.ToolOutput.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetContentPartsFieldBuilder();
+          internalGetContentDescriptorFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -1254,6 +1355,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
         bitField0_ = (bitField0_ & ~0x00000001);
         summary_ = "";
+        contentDescriptor_ = null;
+        if (contentDescriptorBuilder_ != null) {
+          contentDescriptorBuilder_.dispose();
+          contentDescriptorBuilder_ = null;
+        }
         return this;
       }
 
@@ -1303,6 +1409,14 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000002) != 0)) {
           result.summary_ = summary_;
         }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.contentDescriptor_ = contentDescriptorBuilder_ == null
+              ? contentDescriptor_
+              : contentDescriptorBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -1348,6 +1462,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000002;
           onChanged();
         }
+        if (other.hasContentDescriptor()) {
+          mergeContentDescriptor(other.getContentDescriptor());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -1392,6 +1509,13 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetContentDescriptorFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1721,6 +1845,181 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
+      private talon.harness.Llm.ToolOutputContentDescriptor contentDescriptor_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutputContentDescriptor, talon.harness.Llm.ToolOutputContentDescriptor.Builder, talon.harness.Llm.ToolOutputContentDescriptorOrBuilder> contentDescriptorBuilder_;
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       * @return Whether the contentDescriptor field is set.
+       */
+      public boolean hasContentDescriptor() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       * @return The contentDescriptor.
+       */
+      public talon.harness.Llm.ToolOutputContentDescriptor getContentDescriptor() {
+        if (contentDescriptorBuilder_ == null) {
+          return contentDescriptor_ == null ? talon.harness.Llm.ToolOutputContentDescriptor.getDefaultInstance() : contentDescriptor_;
+        } else {
+          return contentDescriptorBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       */
+      public Builder setContentDescriptor(talon.harness.Llm.ToolOutputContentDescriptor value) {
+        if (contentDescriptorBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          contentDescriptor_ = value;
+        } else {
+          contentDescriptorBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       */
+      public Builder setContentDescriptor(
+          talon.harness.Llm.ToolOutputContentDescriptor.Builder builderForValue) {
+        if (contentDescriptorBuilder_ == null) {
+          contentDescriptor_ = builderForValue.build();
+        } else {
+          contentDescriptorBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       */
+      public Builder mergeContentDescriptor(talon.harness.Llm.ToolOutputContentDescriptor value) {
+        if (contentDescriptorBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            contentDescriptor_ != null &&
+            contentDescriptor_ != talon.harness.Llm.ToolOutputContentDescriptor.getDefaultInstance()) {
+            getContentDescriptorBuilder().mergeFrom(value);
+          } else {
+            contentDescriptor_ = value;
+          }
+        } else {
+          contentDescriptorBuilder_.mergeFrom(value);
+        }
+        if (contentDescriptor_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       */
+      public Builder clearContentDescriptor() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        contentDescriptor_ = null;
+        if (contentDescriptorBuilder_ != null) {
+          contentDescriptorBuilder_.dispose();
+          contentDescriptorBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       */
+      public talon.harness.Llm.ToolOutputContentDescriptor.Builder getContentDescriptorBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetContentDescriptorFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       */
+      public talon.harness.Llm.ToolOutputContentDescriptorOrBuilder getContentDescriptorOrBuilder() {
+        if (contentDescriptorBuilder_ != null) {
+          return contentDescriptorBuilder_.getMessageOrBuilder();
+        } else {
+          return contentDescriptor_ == null ?
+              talon.harness.Llm.ToolOutputContentDescriptor.getDefaultInstance() : contentDescriptor_;
+        }
+      }
+      /**
+       * <pre>
+       * Compact durable metadata for an object-backed result. This is deliberately
+       * separate from summary: callers render summary for people, while runtimes
+       * use this structure to reproduce a bounded view without copying bytes.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputContentDescriptor content_descriptor = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutputContentDescriptor, talon.harness.Llm.ToolOutputContentDescriptor.Builder, talon.harness.Llm.ToolOutputContentDescriptorOrBuilder>
+          internalGetContentDescriptorFieldBuilder() {
+        if (contentDescriptorBuilder_ == null) {
+          contentDescriptorBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.harness.Llm.ToolOutputContentDescriptor, talon.harness.Llm.ToolOutputContentDescriptor.Builder, talon.harness.Llm.ToolOutputContentDescriptorOrBuilder>(
+                  getContentDescriptor(),
+                  getParentForChildren(),
+                  isClean());
+          contentDescriptor_ = null;
+        }
+        return contentDescriptorBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.harness.ToolOutput)
     }
 
@@ -1767,6 +2066,1566 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
     @java.lang.Override
     public talon.harness.Llm.ToolOutput getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ToolOutputLineSelectionOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.harness.ToolOutputLineSelection)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * One-based, inclusive line bounds in the referenced text object.
+     * </pre>
+     *
+     * <code>uint64 start_line = 1;</code>
+     * @return The startLine.
+     */
+    long getStartLine();
+
+    /**
+     * <code>uint64 end_line = 2;</code>
+     * @return The endLine.
+     */
+    long getEndLine();
+  }
+  /**
+   * Protobuf type {@code talon.harness.ToolOutputLineSelection}
+   */
+  public static final class ToolOutputLineSelection extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.harness.ToolOutputLineSelection)
+      ToolOutputLineSelectionOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ToolOutputLineSelection");
+    }
+    // Use ToolOutputLineSelection.newBuilder() to construct.
+    private ToolOutputLineSelection(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ToolOutputLineSelection() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputLineSelection_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputLineSelection_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputLineSelection_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.harness.Llm.ToolOutputLineSelection.class, talon.harness.Llm.ToolOutputLineSelection.Builder.class);
+    }
+
+    public static final int START_LINE_FIELD_NUMBER = 1;
+    private long startLine_ = 0L;
+    /**
+     * <pre>
+     * One-based, inclusive line bounds in the referenced text object.
+     * </pre>
+     *
+     * <code>uint64 start_line = 1;</code>
+     * @return The startLine.
+     */
+    @java.lang.Override
+    public long getStartLine() {
+      return startLine_;
+    }
+
+    public static final int END_LINE_FIELD_NUMBER = 2;
+    private long endLine_ = 0L;
+    /**
+     * <code>uint64 end_line = 2;</code>
+     * @return The endLine.
+     */
+    @java.lang.Override
+    public long getEndLine() {
+      return endLine_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (startLine_ != 0L) {
+        output.writeUInt64(1, startLine_);
+      }
+      if (endLine_ != 0L) {
+        output.writeUInt64(2, endLine_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (startLine_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(1, startLine_);
+      }
+      if (endLine_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, endLine_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.harness.Llm.ToolOutputLineSelection)) {
+        return super.equals(obj);
+      }
+      talon.harness.Llm.ToolOutputLineSelection other = (talon.harness.Llm.ToolOutputLineSelection) obj;
+
+      if (getStartLine()
+          != other.getStartLine()) return false;
+      if (getEndLine()
+          != other.getEndLine()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + START_LINE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStartLine());
+      hash = (37 * hash) + END_LINE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getEndLine());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.harness.Llm.ToolOutputLineSelection parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.harness.Llm.ToolOutputLineSelection parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ToolOutputLineSelection parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.harness.Llm.ToolOutputLineSelection prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.harness.ToolOutputLineSelection}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.harness.ToolOutputLineSelection)
+        talon.harness.Llm.ToolOutputLineSelectionOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputLineSelection_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputLineSelection_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.harness.Llm.ToolOutputLineSelection.class, talon.harness.Llm.ToolOutputLineSelection.Builder.class);
+      }
+
+      // Construct using talon.harness.Llm.ToolOutputLineSelection.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        startLine_ = 0L;
+        endLine_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputLineSelection_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputLineSelection getDefaultInstanceForType() {
+        return talon.harness.Llm.ToolOutputLineSelection.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputLineSelection build() {
+        talon.harness.Llm.ToolOutputLineSelection result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputLineSelection buildPartial() {
+        talon.harness.Llm.ToolOutputLineSelection result = new talon.harness.Llm.ToolOutputLineSelection(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.harness.Llm.ToolOutputLineSelection result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.startLine_ = startLine_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.endLine_ = endLine_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.harness.Llm.ToolOutputLineSelection) {
+          return mergeFrom((talon.harness.Llm.ToolOutputLineSelection)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.harness.Llm.ToolOutputLineSelection other) {
+        if (other == talon.harness.Llm.ToolOutputLineSelection.getDefaultInstance()) return this;
+        if (other.getStartLine() != 0L) {
+          setStartLine(other.getStartLine());
+        }
+        if (other.getEndLine() != 0L) {
+          setEndLine(other.getEndLine());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                startLine_ = input.readUInt64();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                endLine_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private long startLine_ ;
+      /**
+       * <pre>
+       * One-based, inclusive line bounds in the referenced text object.
+       * </pre>
+       *
+       * <code>uint64 start_line = 1;</code>
+       * @return The startLine.
+       */
+      @java.lang.Override
+      public long getStartLine() {
+        return startLine_;
+      }
+      /**
+       * <pre>
+       * One-based, inclusive line bounds in the referenced text object.
+       * </pre>
+       *
+       * <code>uint64 start_line = 1;</code>
+       * @param value The startLine to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStartLine(long value) {
+
+        startLine_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * One-based, inclusive line bounds in the referenced text object.
+       * </pre>
+       *
+       * <code>uint64 start_line = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStartLine() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        startLine_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long endLine_ ;
+      /**
+       * <code>uint64 end_line = 2;</code>
+       * @return The endLine.
+       */
+      @java.lang.Override
+      public long getEndLine() {
+        return endLine_;
+      }
+      /**
+       * <code>uint64 end_line = 2;</code>
+       * @param value The endLine to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEndLine(long value) {
+
+        endLine_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 end_line = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEndLine() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        endLine_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.harness.ToolOutputLineSelection)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.harness.ToolOutputLineSelection)
+    private static final talon.harness.Llm.ToolOutputLineSelection DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.harness.Llm.ToolOutputLineSelection();
+    }
+
+    public static talon.harness.Llm.ToolOutputLineSelection getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ToolOutputLineSelection>
+        PARSER = new com.google.protobuf.AbstractParser<ToolOutputLineSelection>() {
+      @java.lang.Override
+      public ToolOutputLineSelection parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ToolOutputLineSelection> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ToolOutputLineSelection> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputLineSelection getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ToolOutputContentDescriptorOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.harness.ToolOutputContentDescriptor)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * The referenced object can be reread in bounded sections.
+     * </pre>
+     *
+     * <code>bool section_readable = 1;</code>
+     * @return The sectionReadable.
+     */
+    boolean getSectionReadable();
+
+    /**
+     * <pre>
+     * Logical bytes retained in the referenced object, before CAS compression.
+     * </pre>
+     *
+     * <code>uint64 captured_size_bytes = 2;</code>
+     * @return The capturedSizeBytes.
+     */
+    long getCapturedSizeBytes();
+
+    /**
+     * <pre>
+     * Number of logical text lines retained in the referenced object.
+     * </pre>
+     *
+     * <code>uint64 line_count = 3;</code>
+     * @return The lineCount.
+     */
+    long getLineCount();
+
+    /**
+     * <pre>
+     * Source output exceeded the capture ceiling, so bytes after the retained
+     * object are unavailable.
+     * </pre>
+     *
+     * <code>bool capture_truncated = 4;</code>
+     * @return The captureTruncated.
+     */
+    boolean getCaptureTruncated();
+
+    /**
+     * <pre>
+     * Present when this output is a view over a selected section of another
+     * immutable object rather than a new copied result.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+     * @return Whether the selection field is set.
+     */
+    boolean hasSelection();
+    /**
+     * <pre>
+     * Present when this output is a view over a selected section of another
+     * immutable object rather than a new copied result.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+     * @return The selection.
+     */
+    talon.harness.Llm.ToolOutputLineSelection getSelection();
+    /**
+     * <pre>
+     * Present when this output is a view over a selected section of another
+     * immutable object rather than a new copied result.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+     */
+    talon.harness.Llm.ToolOutputLineSelectionOrBuilder getSelectionOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.harness.ToolOutputContentDescriptor}
+   */
+  public static final class ToolOutputContentDescriptor extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.harness.ToolOutputContentDescriptor)
+      ToolOutputContentDescriptorOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ToolOutputContentDescriptor");
+    }
+    // Use ToolOutputContentDescriptor.newBuilder() to construct.
+    private ToolOutputContentDescriptor(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ToolOutputContentDescriptor() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputContentDescriptor_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputContentDescriptor_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputContentDescriptor_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.harness.Llm.ToolOutputContentDescriptor.class, talon.harness.Llm.ToolOutputContentDescriptor.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int SECTION_READABLE_FIELD_NUMBER = 1;
+    private boolean sectionReadable_ = false;
+    /**
+     * <pre>
+     * The referenced object can be reread in bounded sections.
+     * </pre>
+     *
+     * <code>bool section_readable = 1;</code>
+     * @return The sectionReadable.
+     */
+    @java.lang.Override
+    public boolean getSectionReadable() {
+      return sectionReadable_;
+    }
+
+    public static final int CAPTURED_SIZE_BYTES_FIELD_NUMBER = 2;
+    private long capturedSizeBytes_ = 0L;
+    /**
+     * <pre>
+     * Logical bytes retained in the referenced object, before CAS compression.
+     * </pre>
+     *
+     * <code>uint64 captured_size_bytes = 2;</code>
+     * @return The capturedSizeBytes.
+     */
+    @java.lang.Override
+    public long getCapturedSizeBytes() {
+      return capturedSizeBytes_;
+    }
+
+    public static final int LINE_COUNT_FIELD_NUMBER = 3;
+    private long lineCount_ = 0L;
+    /**
+     * <pre>
+     * Number of logical text lines retained in the referenced object.
+     * </pre>
+     *
+     * <code>uint64 line_count = 3;</code>
+     * @return The lineCount.
+     */
+    @java.lang.Override
+    public long getLineCount() {
+      return lineCount_;
+    }
+
+    public static final int CAPTURE_TRUNCATED_FIELD_NUMBER = 4;
+    private boolean captureTruncated_ = false;
+    /**
+     * <pre>
+     * Source output exceeded the capture ceiling, so bytes after the retained
+     * object are unavailable.
+     * </pre>
+     *
+     * <code>bool capture_truncated = 4;</code>
+     * @return The captureTruncated.
+     */
+    @java.lang.Override
+    public boolean getCaptureTruncated() {
+      return captureTruncated_;
+    }
+
+    public static final int SELECTION_FIELD_NUMBER = 5;
+    private talon.harness.Llm.ToolOutputLineSelection selection_;
+    /**
+     * <pre>
+     * Present when this output is a view over a selected section of another
+     * immutable object rather than a new copied result.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+     * @return Whether the selection field is set.
+     */
+    @java.lang.Override
+    public boolean hasSelection() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Present when this output is a view over a selected section of another
+     * immutable object rather than a new copied result.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+     * @return The selection.
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputLineSelection getSelection() {
+      return selection_ == null ? talon.harness.Llm.ToolOutputLineSelection.getDefaultInstance() : selection_;
+    }
+    /**
+     * <pre>
+     * Present when this output is a view over a selected section of another
+     * immutable object rather than a new copied result.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputLineSelectionOrBuilder getSelectionOrBuilder() {
+      return selection_ == null ? talon.harness.Llm.ToolOutputLineSelection.getDefaultInstance() : selection_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (sectionReadable_ != false) {
+        output.writeBool(1, sectionReadable_);
+      }
+      if (capturedSizeBytes_ != 0L) {
+        output.writeUInt64(2, capturedSizeBytes_);
+      }
+      if (lineCount_ != 0L) {
+        output.writeUInt64(3, lineCount_);
+      }
+      if (captureTruncated_ != false) {
+        output.writeBool(4, captureTruncated_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(5, getSelection());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (sectionReadable_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, sectionReadable_);
+      }
+      if (capturedSizeBytes_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, capturedSizeBytes_);
+      }
+      if (lineCount_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, lineCount_);
+      }
+      if (captureTruncated_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, captureTruncated_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getSelection());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.harness.Llm.ToolOutputContentDescriptor)) {
+        return super.equals(obj);
+      }
+      talon.harness.Llm.ToolOutputContentDescriptor other = (talon.harness.Llm.ToolOutputContentDescriptor) obj;
+
+      if (getSectionReadable()
+          != other.getSectionReadable()) return false;
+      if (getCapturedSizeBytes()
+          != other.getCapturedSizeBytes()) return false;
+      if (getLineCount()
+          != other.getLineCount()) return false;
+      if (getCaptureTruncated()
+          != other.getCaptureTruncated()) return false;
+      if (hasSelection() != other.hasSelection()) return false;
+      if (hasSelection()) {
+        if (!getSelection()
+            .equals(other.getSelection())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + SECTION_READABLE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getSectionReadable());
+      hash = (37 * hash) + CAPTURED_SIZE_BYTES_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCapturedSizeBytes());
+      hash = (37 * hash) + LINE_COUNT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getLineCount());
+      hash = (37 * hash) + CAPTURE_TRUNCATED_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getCaptureTruncated());
+      if (hasSelection()) {
+        hash = (37 * hash) + SELECTION_FIELD_NUMBER;
+        hash = (53 * hash) + getSelection().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ToolOutputContentDescriptor parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.harness.Llm.ToolOutputContentDescriptor prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.harness.ToolOutputContentDescriptor}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.harness.ToolOutputContentDescriptor)
+        talon.harness.Llm.ToolOutputContentDescriptorOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputContentDescriptor_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputContentDescriptor_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.harness.Llm.ToolOutputContentDescriptor.class, talon.harness.Llm.ToolOutputContentDescriptor.Builder.class);
+      }
+
+      // Construct using talon.harness.Llm.ToolOutputContentDescriptor.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetSelectionFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        sectionReadable_ = false;
+        capturedSizeBytes_ = 0L;
+        lineCount_ = 0L;
+        captureTruncated_ = false;
+        selection_ = null;
+        if (selectionBuilder_ != null) {
+          selectionBuilder_.dispose();
+          selectionBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputContentDescriptor_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputContentDescriptor getDefaultInstanceForType() {
+        return talon.harness.Llm.ToolOutputContentDescriptor.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputContentDescriptor build() {
+        talon.harness.Llm.ToolOutputContentDescriptor result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputContentDescriptor buildPartial() {
+        talon.harness.Llm.ToolOutputContentDescriptor result = new talon.harness.Llm.ToolOutputContentDescriptor(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.harness.Llm.ToolOutputContentDescriptor result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.sectionReadable_ = sectionReadable_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.capturedSizeBytes_ = capturedSizeBytes_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.lineCount_ = lineCount_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.captureTruncated_ = captureTruncated_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.selection_ = selectionBuilder_ == null
+              ? selection_
+              : selectionBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.harness.Llm.ToolOutputContentDescriptor) {
+          return mergeFrom((talon.harness.Llm.ToolOutputContentDescriptor)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.harness.Llm.ToolOutputContentDescriptor other) {
+        if (other == talon.harness.Llm.ToolOutputContentDescriptor.getDefaultInstance()) return this;
+        if (other.getSectionReadable() != false) {
+          setSectionReadable(other.getSectionReadable());
+        }
+        if (other.getCapturedSizeBytes() != 0L) {
+          setCapturedSizeBytes(other.getCapturedSizeBytes());
+        }
+        if (other.getLineCount() != 0L) {
+          setLineCount(other.getLineCount());
+        }
+        if (other.getCaptureTruncated() != false) {
+          setCaptureTruncated(other.getCaptureTruncated());
+        }
+        if (other.hasSelection()) {
+          mergeSelection(other.getSelection());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                sectionReadable_ = input.readBool();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                capturedSizeBytes_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                lineCount_ = input.readUInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 32: {
+                captureTruncated_ = input.readBool();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 42: {
+                input.readMessage(
+                    internalGetSelectionFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private boolean sectionReadable_ ;
+      /**
+       * <pre>
+       * The referenced object can be reread in bounded sections.
+       * </pre>
+       *
+       * <code>bool section_readable = 1;</code>
+       * @return The sectionReadable.
+       */
+      @java.lang.Override
+      public boolean getSectionReadable() {
+        return sectionReadable_;
+      }
+      /**
+       * <pre>
+       * The referenced object can be reread in bounded sections.
+       * </pre>
+       *
+       * <code>bool section_readable = 1;</code>
+       * @param value The sectionReadable to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSectionReadable(boolean value) {
+
+        sectionReadable_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * The referenced object can be reread in bounded sections.
+       * </pre>
+       *
+       * <code>bool section_readable = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSectionReadable() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        sectionReadable_ = false;
+        onChanged();
+        return this;
+      }
+
+      private long capturedSizeBytes_ ;
+      /**
+       * <pre>
+       * Logical bytes retained in the referenced object, before CAS compression.
+       * </pre>
+       *
+       * <code>uint64 captured_size_bytes = 2;</code>
+       * @return The capturedSizeBytes.
+       */
+      @java.lang.Override
+      public long getCapturedSizeBytes() {
+        return capturedSizeBytes_;
+      }
+      /**
+       * <pre>
+       * Logical bytes retained in the referenced object, before CAS compression.
+       * </pre>
+       *
+       * <code>uint64 captured_size_bytes = 2;</code>
+       * @param value The capturedSizeBytes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCapturedSizeBytes(long value) {
+
+        capturedSizeBytes_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Logical bytes retained in the referenced object, before CAS compression.
+       * </pre>
+       *
+       * <code>uint64 captured_size_bytes = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCapturedSizeBytes() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        capturedSizeBytes_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long lineCount_ ;
+      /**
+       * <pre>
+       * Number of logical text lines retained in the referenced object.
+       * </pre>
+       *
+       * <code>uint64 line_count = 3;</code>
+       * @return The lineCount.
+       */
+      @java.lang.Override
+      public long getLineCount() {
+        return lineCount_;
+      }
+      /**
+       * <pre>
+       * Number of logical text lines retained in the referenced object.
+       * </pre>
+       *
+       * <code>uint64 line_count = 3;</code>
+       * @param value The lineCount to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLineCount(long value) {
+
+        lineCount_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Number of logical text lines retained in the referenced object.
+       * </pre>
+       *
+       * <code>uint64 line_count = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLineCount() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        lineCount_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean captureTruncated_ ;
+      /**
+       * <pre>
+       * Source output exceeded the capture ceiling, so bytes after the retained
+       * object are unavailable.
+       * </pre>
+       *
+       * <code>bool capture_truncated = 4;</code>
+       * @return The captureTruncated.
+       */
+      @java.lang.Override
+      public boolean getCaptureTruncated() {
+        return captureTruncated_;
+      }
+      /**
+       * <pre>
+       * Source output exceeded the capture ceiling, so bytes after the retained
+       * object are unavailable.
+       * </pre>
+       *
+       * <code>bool capture_truncated = 4;</code>
+       * @param value The captureTruncated to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCaptureTruncated(boolean value) {
+
+        captureTruncated_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Source output exceeded the capture ceiling, so bytes after the retained
+       * object are unavailable.
+       * </pre>
+       *
+       * <code>bool capture_truncated = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCaptureTruncated() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        captureTruncated_ = false;
+        onChanged();
+        return this;
+      }
+
+      private talon.harness.Llm.ToolOutputLineSelection selection_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutputLineSelection, talon.harness.Llm.ToolOutputLineSelection.Builder, talon.harness.Llm.ToolOutputLineSelectionOrBuilder> selectionBuilder_;
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       * @return Whether the selection field is set.
+       */
+      public boolean hasSelection() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       * @return The selection.
+       */
+      public talon.harness.Llm.ToolOutputLineSelection getSelection() {
+        if (selectionBuilder_ == null) {
+          return selection_ == null ? talon.harness.Llm.ToolOutputLineSelection.getDefaultInstance() : selection_;
+        } else {
+          return selectionBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       */
+      public Builder setSelection(talon.harness.Llm.ToolOutputLineSelection value) {
+        if (selectionBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          selection_ = value;
+        } else {
+          selectionBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       */
+      public Builder setSelection(
+          talon.harness.Llm.ToolOutputLineSelection.Builder builderForValue) {
+        if (selectionBuilder_ == null) {
+          selection_ = builderForValue.build();
+        } else {
+          selectionBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       */
+      public Builder mergeSelection(talon.harness.Llm.ToolOutputLineSelection value) {
+        if (selectionBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+            selection_ != null &&
+            selection_ != talon.harness.Llm.ToolOutputLineSelection.getDefaultInstance()) {
+            getSelectionBuilder().mergeFrom(value);
+          } else {
+            selection_ = value;
+          }
+        } else {
+          selectionBuilder_.mergeFrom(value);
+        }
+        if (selection_ != null) {
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       */
+      public Builder clearSelection() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        selection_ = null;
+        if (selectionBuilder_ != null) {
+          selectionBuilder_.dispose();
+          selectionBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       */
+      public talon.harness.Llm.ToolOutputLineSelection.Builder getSelectionBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return internalGetSelectionFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       */
+      public talon.harness.Llm.ToolOutputLineSelectionOrBuilder getSelectionOrBuilder() {
+        if (selectionBuilder_ != null) {
+          return selectionBuilder_.getMessageOrBuilder();
+        } else {
+          return selection_ == null ?
+              talon.harness.Llm.ToolOutputLineSelection.getDefaultInstance() : selection_;
+        }
+      }
+      /**
+       * <pre>
+       * Present when this output is a view over a selected section of another
+       * immutable object rather than a new copied result.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputLineSelection selection = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutputLineSelection, talon.harness.Llm.ToolOutputLineSelection.Builder, talon.harness.Llm.ToolOutputLineSelectionOrBuilder>
+          internalGetSelectionFieldBuilder() {
+        if (selectionBuilder_ == null) {
+          selectionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.harness.Llm.ToolOutputLineSelection, talon.harness.Llm.ToolOutputLineSelection.Builder, talon.harness.Llm.ToolOutputLineSelectionOrBuilder>(
+                  getSelection(),
+                  getParentForChildren(),
+                  isClean());
+          selection_ = null;
+        }
+        return selectionBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.harness.ToolOutputContentDescriptor)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.harness.ToolOutputContentDescriptor)
+    private static final talon.harness.Llm.ToolOutputContentDescriptor DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.harness.Llm.ToolOutputContentDescriptor();
+    }
+
+    public static talon.harness.Llm.ToolOutputContentDescriptor getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ToolOutputContentDescriptor>
+        PARSER = new com.google.protobuf.AbstractParser<ToolOutputContentDescriptor>() {
+      @java.lang.Override
+      public ToolOutputContentDescriptor parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ToolOutputContentDescriptor> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ToolOutputContentDescriptor> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputContentDescriptor getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -9767,6 +11626,16 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_harness_ToolOutput_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_harness_ToolOutputLineSelection_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_harness_ToolOutputLineSelection_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_harness_ToolOutputContentDescriptor_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_harness_ToolOutputContentDescriptor_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_harness_ToolCall_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -9814,34 +11683,43 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       "\032\025proto/data/data.proto\032\034proto/resources" +
       "/agents.proto\"e\n\017ChatContentPart\022\016\n\004text" +
       "\030\001 \001(\tH\000\022+\n\nobject_ref\030\004 \001(\0132\025.talon.dat" +
-      "a.ObjectRefH\000B\t\n\007contentJ\004\010\002\020\003J\004\010\003\020\004\"T\n\n" +
-      "ToolOutput\0225\n\rcontent_parts\030\001 \003(\0132\036.talo" +
-      "n.harness.ChatContentPart\022\017\n\007summary\030\002 \001" +
-      "(\t\"7\n\010ToolCall\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t" +
-      "\022\021\n\targuments\030\003 \001(\t\"x\n\rToolCallDelta\022\r\n\005" +
-      "index\030\001 \001(\r\022\017\n\002id\030\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001" +
-      "(\tH\001\210\001\001\022\026\n\targuments\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007" +
-      "\n\005_nameB\014\n\n_arguments\"\253\001\n\013ChatMessage\022\014\n" +
-      "\004role\030\001 \001(\t\0225\n\rcontent_parts\030\002 \003(\0132\036.tal" +
-      "on.harness.ChatContentPart\022+\n\ntool_calls" +
-      "\030\003 \003(\0132\027.talon.harness.ToolCall\022\031\n\014tool_" +
-      "call_id\030\004 \001(\tH\000\210\001\001B\017\n\r_tool_call_id\"\204\001\n\014" +
-      "ChatResponse\022\017\n\007content\030\001 \001(\t\022+\n\ntool_ca" +
-      "lls\030\002 \003(\0132\027.talon.harness.ToolCall\022,\n\005us" +
-      "age\030\003 \001(\0132\030.talon.data.TokenCounterH\000\210\001\001" +
-      "B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013desc" +
-      "ription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t" +
-      "\"\340\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
-      "on.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023." +
-      "talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.t" +
-      "alon.resources.ThinkingConfigH\000\210\001\001\022!\n\024pr" +
-      "evious_response_id\030\004 \001(\tH\001\210\001\001B\013\n\t_thinki" +
-      "ngB\027\n\025_previous_response_id\"\257\001\n\017ChatStre" +
-      "amEvent\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017reasoni" +
-      "ng_delta\030\002 \001(\tH\000\0227\n\017tool_call_delta\030\003 \001(" +
-      "\0132\034.talon.harness.ToolCallDeltaH\000\022)\n\005usa" +
-      "ge\030\004 \001(\0132\030.talon.data.TokenCounterH\000B\007\n\005" +
-      "eventb\006proto3"
+      "a.ObjectRefH\000B\t\n\007contentJ\004\010\002\020\003J\004\010\003\020\004\"\270\001\n" +
+      "\nToolOutput\0225\n\rcontent_parts\030\001 \003(\0132\036.tal" +
+      "on.harness.ChatContentPart\022\017\n\007summary\030\002 " +
+      "\001(\t\022K\n\022content_descriptor\030\003 \001(\0132*.talon." +
+      "harness.ToolOutputContentDescriptorH\000\210\001\001" +
+      "B\025\n\023_content_descriptor\"?\n\027ToolOutputLin" +
+      "eSelection\022\022\n\nstart_line\030\001 \001(\004\022\020\n\010end_li" +
+      "ne\030\002 \001(\004\"\321\001\n\033ToolOutputContentDescriptor" +
+      "\022\030\n\020section_readable\030\001 \001(\010\022\033\n\023captured_s" +
+      "ize_bytes\030\002 \001(\004\022\022\n\nline_count\030\003 \001(\004\022\031\n\021c" +
+      "apture_truncated\030\004 \001(\010\022>\n\tselection\030\005 \001(" +
+      "\0132&.talon.harness.ToolOutputLineSelectio" +
+      "nH\000\210\001\001B\014\n\n_selection\"7\n\010ToolCall\022\n\n\002id\030\001" +
+      " \001(\t\022\014\n\004name\030\002 \001(\t\022\021\n\targuments\030\003 \001(\t\"x\n" +
+      "\rToolCallDelta\022\r\n\005index\030\001 \001(\r\022\017\n\002id\030\002 \001(" +
+      "\tH\000\210\001\001\022\021\n\004name\030\003 \001(\tH\001\210\001\001\022\026\n\targuments\030\004" +
+      " \001(\tH\002\210\001\001B\005\n\003_idB\007\n\005_nameB\014\n\n_arguments\"" +
+      "\253\001\n\013ChatMessage\022\014\n\004role\030\001 \001(\t\0225\n\rcontent" +
+      "_parts\030\002 \003(\0132\036.talon.harness.ChatContent" +
+      "Part\022+\n\ntool_calls\030\003 \003(\0132\027.talon.harness" +
+      ".ToolCall\022\031\n\014tool_call_id\030\004 \001(\tH\000\210\001\001B\017\n\r" +
+      "_tool_call_id\"\204\001\n\014ChatResponse\022\017\n\007conten" +
+      "t\030\001 \001(\t\022+\n\ntool_calls\030\002 \003(\0132\027.talon.harn" +
+      "ess.ToolCall\022,\n\005usage\030\003 \001(\0132\030.talon.data" +
+      ".TokenCounterH\000\210\001\001B\010\n\006_usage\"D\n\004Tool\022\014\n\004" +
+      "name\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022\031\n\021input" +
+      "_schema_json\030\003 \001(\t\"\340\001\n\013ChatRequest\022,\n\010me" +
+      "ssages\030\001 \003(\0132\032.talon.harness.ChatMessage" +
+      "\022\"\n\005tools\030\002 \003(\0132\023.talon.harness.Tool\0226\n\010" +
+      "thinking\030\003 \001(\0132\037.talon.resources.Thinkin" +
+      "gConfigH\000\210\001\001\022!\n\024previous_response_id\030\004 \001" +
+      "(\tH\001\210\001\001B\013\n\t_thinkingB\027\n\025_previous_respon" +
+      "se_id\"\257\001\n\017ChatStreamEvent\022\024\n\ntext_delta\030" +
+      "\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 \001(\tH\000\0227\n\017to" +
+      "ol_call_delta\030\003 \001(\0132\034.talon.harness.Tool" +
+      "CallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030.talon.data." +
+      "TokenCounterH\000B\007\n\005eventb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9860,45 +11738,57 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     internal_static_talon_harness_ToolOutput_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolOutput_descriptor,
-        new java.lang.String[] { "ContentParts", "Summary", });
-    internal_static_talon_harness_ToolCall_descriptor =
+        new java.lang.String[] { "ContentParts", "Summary", "ContentDescriptor", });
+    internal_static_talon_harness_ToolOutputLineSelection_descriptor =
       getDescriptor().getMessageType(2);
+    internal_static_talon_harness_ToolOutputLineSelection_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_harness_ToolOutputLineSelection_descriptor,
+        new java.lang.String[] { "StartLine", "EndLine", });
+    internal_static_talon_harness_ToolOutputContentDescriptor_descriptor =
+      getDescriptor().getMessageType(3);
+    internal_static_talon_harness_ToolOutputContentDescriptor_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_harness_ToolOutputContentDescriptor_descriptor,
+        new java.lang.String[] { "SectionReadable", "CapturedSizeBytes", "LineCount", "CaptureTruncated", "Selection", });
+    internal_static_talon_harness_ToolCall_descriptor =
+      getDescriptor().getMessageType(4);
     internal_static_talon_harness_ToolCall_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolCall_descriptor,
         new java.lang.String[] { "Id", "Name", "Arguments", });
     internal_static_talon_harness_ToolCallDelta_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(5);
     internal_static_talon_harness_ToolCallDelta_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolCallDelta_descriptor,
         new java.lang.String[] { "Index", "Id", "Name", "Arguments", });
     internal_static_talon_harness_ChatMessage_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(6);
     internal_static_talon_harness_ChatMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatMessage_descriptor,
         new java.lang.String[] { "Role", "ContentParts", "ToolCalls", "ToolCallId", });
     internal_static_talon_harness_ChatResponse_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(7);
     internal_static_talon_harness_ChatResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatResponse_descriptor,
         new java.lang.String[] { "Content", "ToolCalls", "Usage", });
     internal_static_talon_harness_Tool_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(8);
     internal_static_talon_harness_Tool_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_Tool_descriptor,
         new java.lang.String[] { "Name", "Description", "InputSchemaJson", });
     internal_static_talon_harness_ChatRequest_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(9);
     internal_static_talon_harness_ChatRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatRequest_descriptor,
         new java.lang.String[] { "Messages", "Tools", "Thinking", "PreviousResponseId", });
     internal_static_talon_harness_ChatStreamEvent_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(10);
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatStreamEvent_descriptor,
