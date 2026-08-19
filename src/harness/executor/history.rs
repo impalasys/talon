@@ -468,6 +468,29 @@ async fn tool_result_message_from_part(
         else {
             return Ok(None);
         };
+        if let Some(descriptor) = parsed.tool_output.content_descriptor.as_ref() {
+            let content = if let Some(selection) = descriptor.selection.as_ref() {
+                if let Some(object_ref) = tool_output::first_object_ref(&parsed.tool_output) {
+                    if let Some(stored) = objects.get(&object_ref.key).await? {
+                        let bytes = decode_stored_object_bytes(&stored, &object_ref.key)?;
+                        bounded_line_selection(
+                            &String::from_utf8_lossy(&bytes),
+                            selection.start_line,
+                            selection.end_line,
+                        )
+                    } else {
+                        unavailable_historical_tool_output()
+                    }
+                } else {
+                    parsed.tool_output.summary()
+                }
+            } else {
+                parsed.tool_output.summary()
+            };
+            let mut message = LoopMessage::text("tool", content);
+            message.tool_call_id = Some(parsed.tool_call_id);
+            return Ok(Some(message));
+        }
         return Ok(Some(LoopMessage {
             role: "tool".to_string(),
             content_parts: materialize_tool_output_content_parts(
@@ -565,6 +588,30 @@ async fn tool_result_message_from_part(
     let mut message = LoopMessage::text("tool", output);
     message.tool_call_id = Some(tool_call_id.to_string());
     Ok(Some(message))
+}
+
+fn bounded_line_selection(text: &str, start_line: u64, end_line: u64) -> String {
+    const MAX_CONTEXT_SECTION_BYTES: usize = tool_output::TOOL_RESULT_INLINE_CONTEXT_BYTES;
+    let mut output = text
+        .lines()
+        .enumerate()
+        .filter(|(index, _)| {
+            let line = *index as u64 + 1;
+            line >= start_line && line <= end_line
+        })
+        .map(|(_, line)| line)
+        .collect::<Vec<_>>()
+        .join("\n");
+    if output.len() <= MAX_CONTEXT_SECTION_BYTES {
+        return output;
+    }
+    let mut end = MAX_CONTEXT_SECTION_BYTES.saturating_sub(3);
+    while end > 0 && !output.is_char_boundary(end) {
+        end -= 1;
+    }
+    output.truncate(end);
+    output.push_str("...");
+    output
 }
 
 /// Converts text objects in a persisted typed tool result back into text before

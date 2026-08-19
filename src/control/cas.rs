@@ -34,7 +34,7 @@ pub const CONTENT_ENCODING_ZSTD: &str = "zstd";
 
 const MIN_COMPRESSION_SAVINGS_PERCENT: usize = 10;
 const MAX_LOGICAL_OBJECT_BYTES: u64 = 50 * 1024 * 1024;
-const MAX_TOOL_RESULT_LOGICAL_BYTES: usize = 8 * 1024 * 1024;
+pub const MAX_TOOL_RESULT_LOGICAL_BYTES: usize = 8 * 1024 * 1024;
 const TOOL_RESULT_TRUNCATION_MARKER: &[u8] =
     b"\n\n...[CONTENT TRUNCATED DUE TO TOOL RESULT SIZE LIMIT]";
 
@@ -758,7 +758,7 @@ fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static
     Ok((raw_bytes.to_vec(), None))
 }
 
-fn tool_result_logical_bytes(raw_bytes: &[u8]) -> Cow<'_, [u8]> {
+pub fn tool_result_logical_bytes(raw_bytes: &[u8]) -> Cow<'_, [u8]> {
     if raw_bytes.len() <= MAX_TOOL_RESULT_LOGICAL_BYTES {
         return Cow::Borrowed(raw_bytes);
     }
