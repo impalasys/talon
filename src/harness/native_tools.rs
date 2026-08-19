@@ -793,6 +793,7 @@ pub async fn execute_tool_for_session_output(
             current_agent,
             current_session,
             spec,
+            config,
             args,
         )
         .await
@@ -803,6 +804,7 @@ pub async fn execute_tool_for_session_output(
             current_agent,
             current_session,
             spec,
+            config,
             args,
         )
         .await
@@ -1347,6 +1349,7 @@ async fn read_resource_tool(
     current_agent: &str,
     current_session: &str,
     spec: &manifests::AgentSpec,
+    config: &Config,
     args: &Value,
 ) -> Result<ToolOutput> {
     let selection = read_selection(args)?;
@@ -1373,6 +1376,7 @@ async fn read_resource_tool(
             )
             .await?
         } else if reference.starts_with("file://") {
+            require_global_capability(config, "files", "read")?;
             require_file_read(spec)?;
             let file_args = args_with_string(args, "uri", reference)?;
             read_file_tool(cp, current_namespace, &file_args).await?
@@ -1382,6 +1386,7 @@ async fn read_resource_tool(
             ));
         }
     } else {
+        require_global_capability(config, "files", "read")?;
         require_file_read(spec)?;
         read_file_tool(cp, current_namespace, args).await?
     };
@@ -1394,6 +1399,7 @@ async fn write_resource_tool(
     current_agent: &str,
     current_session: &str,
     spec: &manifests::AgentSpec,
+    config: &Config,
     args: &Value,
 ) -> Result<String> {
     let reference = opt_str(args, "ref");
@@ -1413,6 +1419,7 @@ async fn write_resource_tool(
             .await
         }
         Some(reference) if reference.starts_with("file://") => {
+            require_global_capability(config, "files", "update")?;
             require_capability(spec, "files", "update")?;
             let file_args = args_with_string(args, "uri", reference)?;
             update_file_tool(cp, current_namespace, &file_args).await
@@ -1423,6 +1430,7 @@ async fn write_resource_tool(
                 create_artifact(cp, current_namespace, current_agent, current_session, args).await
             }
             "file" => {
+                require_global_capability(config, "files", "create")?;
                 require_capability(spec, "files", "create")?;
                 create_file_tool(cp, current_namespace, args).await
             }
@@ -1470,9 +1478,11 @@ fn selected_resource_output(
         return Ok(output);
     };
     let Some(object_ref) = output.object_ref().cloned() else {
-        // Small source objects remain inline; copying this bounded content into
-        // the session row is cheaper than manufacturing another CAS object.
-        return Ok(output);
+        let text = tool_output::plain_text(&output)
+            .ok_or_else(|| anyhow!("resource is not line-readable"))?;
+        return Ok(ToolOutput::text(select_resource_lines(
+            &text, start_line, end_line,
+        )));
     };
     Ok(tool_output::selected_object_output(
         object_ref,
@@ -1480,6 +1490,18 @@ fn selected_resource_output(
         end_line,
         format!("Read lines {start_line}-{end_line}."),
     ))
+}
+
+fn select_resource_lines(text: &str, start_line: u64, end_line: u64) -> String {
+    text.lines()
+        .enumerate()
+        .filter(|(index, _)| {
+            let line = *index as u64 + 1;
+            line >= start_line && line <= end_line
+        })
+        .map(|(_, line)| line)
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 async fn read_session_tool_result(
@@ -2389,6 +2411,10 @@ async fn update_artifact(
         ))
         .await?
         .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
+    let previous_object_key = artifact
+        .object_ref
+        .as_ref()
+        .map(|object_ref| object_ref.key.clone());
     let media_type = opt_str(args, "media_type").unwrap_or(&artifact.media_type);
     if args.get("content").and_then(Value::as_str).is_none()
         && opt_str(args, "content_base64").is_none()
@@ -2434,9 +2460,21 @@ async fn update_artifact(
         }
         return Err(error);
     }
-    // Prior `read` results retain their original ObjectRef in session history.
-    // Keep superseded revisions available until session cleanup so those reads
-    // stay valid after a later artifact update.
+    if let Some(previous_object_key) = previous_object_key {
+        if artifact
+            .object_ref
+            .as_ref()
+            .is_none_or(|object_ref| object_ref.key != previous_object_key)
+        {
+            if let Err(error) = cas.delete_object(&previous_object_key).await {
+                tracing::warn!(
+                    error = %error,
+                    object_key = %previous_object_key,
+                    "failed to delete superseded artifact CAS object"
+                );
+            }
+        }
+    }
     Ok(serde_json::to_string_pretty(&json!({
         "artifact": artifact_json(&artifact),
         "artifactUri": uri.encode()
@@ -5141,15 +5179,11 @@ mod tests {
             .as_str()
             .unwrap();
         assert_ne!(updated_object_key, object_key);
-        assert_eq!(
-            crate::control::cas::CasStore::new(cp.objects.clone())
-                .get_object_decoded(object_key)
-                .await
-                .unwrap()
-                .unwrap()
-                .bytes,
-            b"draft body"
-        );
+        assert!(crate::control::cas::CasStore::new(cp.objects.clone())
+            .get_object_decoded(object_key)
+            .await
+            .unwrap()
+            .is_none());
 
         let read_updated_output = execute_tool_for_session(
             &cp,

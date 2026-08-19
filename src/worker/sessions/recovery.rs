@@ -488,7 +488,8 @@ async fn replay_claimed_submission_journal(
                     ToolOutput::text(recorded.output.clone())
                 }
             } else {
-                let (_input, result) = runtime.executor.execute_tool_call(tool).await;
+                let executed = runtime.executor.execute_tool_call_result(tool).await;
+                let result_output = executed.result;
                 let cas = CasStore::new(cp.objects.clone());
                 let entry = sessions::append_tool_result(
                     cp.kv.as_ref(),
@@ -502,7 +503,7 @@ async fn replay_claimed_submission_journal(
                     attempt_id,
                     &tool.id,
                     &tool.name,
-                    &ToolOutput::text(result.clone()),
+                    &result_output,
                     chrono::Utc::now().timestamp_micros(),
                 )
                 .await?;
@@ -517,7 +518,7 @@ async fn replay_claimed_submission_journal(
                         }
                         _ => None,
                     })
-                    .unwrap_or_else(|| ToolOutput::text(result.clone()))
+                    .unwrap_or(result_output)
             };
             let result = result_output.summary();
 

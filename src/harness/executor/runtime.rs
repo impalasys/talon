@@ -68,9 +68,9 @@ pub struct LoopMessage {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-struct ExecutedToolCall {
-    result: ToolOutput,
-    stop_after_result: bool,
+pub(crate) struct ExecutedToolCall {
+    pub(crate) result: ToolOutput,
+    pub(crate) stop_after_result: bool,
 }
 
 impl LoopMessage {
@@ -1417,7 +1417,7 @@ impl AgentExecutor {
         }
     }
 
-    async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
+    pub(crate) async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
         match self.execute_tool(&tool.name, &tool.arguments).await {
             Ok(result) => ExecutedToolCall {
                 result,

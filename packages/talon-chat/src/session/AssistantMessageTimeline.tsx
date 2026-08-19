@@ -151,6 +151,11 @@ function ToolInvocationCard({
         <span style={{ minWidth: 0, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           Called <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
         </span>
+        {typeof toolResult === "string" && toolResult.length > 0 ? (
+          <span style={{ minWidth: 0, flex: 1, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {toolResult}
+          </span>
+        ) : null}
         {isRunning ? <span style={{ flexShrink: 0, borderRadius: 999, background: "var(--talon-chat-tool-running-bg, rgba(14,165,233,0.12))", color: "var(--talon-chat-tool-running-fg, #0369a1)", padding: "0.1rem 0.45rem", fontSize: 11, fontWeight: 700 }}>Running</span> : null}
         <ChevronRight className="talon-session-tool-chevron" size="14" style={{ flexShrink: 0, transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
       </button>
