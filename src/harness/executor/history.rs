@@ -484,6 +484,21 @@ async fn tool_result_message_from_part(
                 } else {
                     parsed.tool_output.summary()
                 }
+            } else if let Some(range) = descriptor.byte_range.as_ref() {
+                if let Some(object_ref) = tool_output::first_object_ref(&parsed.tool_output) {
+                    if let Some(stored) = objects.get(&object_ref.key).await? {
+                        let bytes = decode_stored_object_bytes(&stored, &object_ref.key)?;
+                        bounded_byte_selection(
+                            &String::from_utf8_lossy(&bytes),
+                            range.start,
+                            range.end,
+                        )
+                    } else {
+                        unavailable_historical_tool_output()
+                    }
+                } else {
+                    parsed.tool_output.summary()
+                }
             } else {
                 parsed.tool_output.summary()
             };
@@ -491,13 +506,15 @@ async fn tool_result_message_from_part(
             message.tool_call_id = Some(parsed.tool_call_id);
             return Ok(Some(message));
         }
+        let content_parts = project_tool_output_parts(
+            &parsed.tool_call_id,
+            parsed.tool_output.content_parts(),
+            objects,
+        )
+        .await?;
         return Ok(Some(LoopMessage {
             role: "tool".to_string(),
-            content_parts: materialize_tool_output_content_parts(
-                parsed.tool_output.content_parts(),
-                objects,
-            )
-            .await?,
+            content_parts,
             tool_calls: None,
             tool_call_id: Some(parsed.tool_call_id),
             encrypted_reasoning: None,
@@ -590,6 +607,52 @@ async fn tool_result_message_from_part(
     Ok(Some(message))
 }
 
+async fn project_tool_output_parts(
+    tool_call_id: &str,
+    parts: Vec<ChatContentPart>,
+    objects: &(dyn ObjectStore + Send + Sync),
+) -> Result<Vec<ChatContentPart>> {
+    let mut projected = Vec::with_capacity(parts.len());
+    for (index, part) in parts.into_iter().enumerate() {
+        let Some(object) = content_part_object_ref(&part).cloned() else {
+            projected.push(part);
+            continue;
+        };
+        if tool_output::is_tool_result_object_ref(&object)
+            && tool_output::is_text_object_media_type(&object.media_type)
+        {
+            projected.push(text_part(format!(
+                "Large text is available at {}.",
+                tool_output::tool_result_part_handle(tool_call_id, index)
+            )));
+            continue;
+        }
+        if tool_output::is_text_object_media_type(&object.media_type) {
+            let Some(stored) = objects.get(&object.key).await? else {
+                projected.push(text_part(unavailable_historical_tool_output()));
+                continue;
+            };
+            let bytes = decode_stored_object_bytes(&stored, &object.key)?;
+            projected.push(text_part(String::from_utf8_lossy(&bytes).into_owned()));
+        } else {
+            projected.push(part);
+        }
+    }
+    Ok(projected)
+}
+
+fn bounded_byte_selection(text: &str, start: u64, end: u64) -> String {
+    let start = usize::try_from(start).unwrap_or(usize::MAX);
+    let mut end = usize::try_from(end).unwrap_or(usize::MAX).min(text.len());
+    if start > end || start > text.len() || !text.is_char_boundary(start) {
+        return String::new();
+    }
+    while end > start && !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    text[start..end].to_string()
+}
+
 fn bounded_line_selection(text: &str, start_line: u64, end_line: u64) -> String {
     const MAX_CONTEXT_SECTION_BYTES: usize = tool_output::TOOL_RESULT_INLINE_CONTEXT_BYTES;
     let mut output = text
@@ -612,42 +675,6 @@ fn bounded_line_selection(text: &str, start_line: u64, end_line: u64) -> String 
     output.truncate(end);
     output.push_str("...");
     output
-}
-
-/// Converts text objects in a persisted typed tool result back into text before
-/// the result is replayed into model context. Non-text objects remain references
-/// so provider adapters can hydrate them in their native representation. A
-/// missing historical object is represented explicitly so one deleted File
-/// revision cannot prevent the entire session from replaying.
-async fn materialize_tool_output_content_parts(
-    parts: Vec<ChatContentPart>,
-    objects: &(dyn ObjectStore + Send + Sync),
-) -> Result<Vec<ChatContentPart>> {
-    let mut materialized = Vec::with_capacity(parts.len());
-    for content_part in parts {
-        let Some(mut object_ref) = content_part_object_ref(&content_part).cloned() else {
-            materialized.push(content_part);
-            continue;
-        };
-        let Some(metadata) = objects.head(&object_ref.key).await? else {
-            materialized.push(text_part(unavailable_historical_tool_output()));
-            continue;
-        };
-        if object_ref.media_type.trim().is_empty() {
-            object_ref = object_ref_from_metadata(&object_ref.key, &metadata);
-        }
-        if tool_output::is_text_object_media_type(&object_ref.media_type) {
-            let Some(stored) = objects.get(&object_ref.key).await? else {
-                materialized.push(text_part(unavailable_historical_tool_output()));
-                continue;
-            };
-            let bytes = decode_stored_object_bytes(&stored, &object_ref.key)?;
-            materialized.push(text_part(String::from_utf8_lossy(&bytes).into_owned()));
-        } else {
-            materialized.push(object_ref_part(object_ref));
-        }
-    }
-    Ok(materialized)
 }
 
 fn unavailable_historical_tool_output() -> String {

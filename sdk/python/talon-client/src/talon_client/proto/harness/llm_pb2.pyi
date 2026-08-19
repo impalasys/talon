@@ -34,19 +34,31 @@ class ToolOutputLineSelection(_message.Message):
     end_line: int
     def __init__(self, start_line: _Optional[int] = ..., end_line: _Optional[int] = ...) -> None: ...
 
+class ToolOutputByteRange(_message.Message):
+    __slots__ = ("start", "end", "next_byte")
+    START_FIELD_NUMBER: _ClassVar[int]
+    END_FIELD_NUMBER: _ClassVar[int]
+    NEXT_BYTE_FIELD_NUMBER: _ClassVar[int]
+    start: int
+    end: int
+    next_byte: int
+    def __init__(self, start: _Optional[int] = ..., end: _Optional[int] = ..., next_byte: _Optional[int] = ...) -> None: ...
+
 class ToolOutputContentDescriptor(_message.Message):
-    __slots__ = ("section_readable", "captured_size_bytes", "line_count", "capture_truncated", "selection")
+    __slots__ = ("section_readable", "captured_size_bytes", "line_count", "capture_truncated", "selection", "byte_range")
     SECTION_READABLE_FIELD_NUMBER: _ClassVar[int]
     CAPTURED_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
     LINE_COUNT_FIELD_NUMBER: _ClassVar[int]
     CAPTURE_TRUNCATED_FIELD_NUMBER: _ClassVar[int]
     SELECTION_FIELD_NUMBER: _ClassVar[int]
+    BYTE_RANGE_FIELD_NUMBER: _ClassVar[int]
     section_readable: bool
     captured_size_bytes: int
     line_count: int
     capture_truncated: bool
     selection: ToolOutputLineSelection
-    def __init__(self, section_readable: bool = ..., captured_size_bytes: _Optional[int] = ..., line_count: _Optional[int] = ..., capture_truncated: bool = ..., selection: _Optional[_Union[ToolOutputLineSelection, _Mapping]] = ...) -> None: ...
+    byte_range: ToolOutputByteRange
+    def __init__(self, section_readable: bool = ..., captured_size_bytes: _Optional[int] = ..., line_count: _Optional[int] = ..., capture_truncated: bool = ..., selection: _Optional[_Union[ToolOutputLineSelection, _Mapping]] = ..., byte_range: _Optional[_Union[ToolOutputByteRange, _Mapping]] = ...) -> None: ...
 
 class ToolCall(_message.Message):
     __slots__ = ("id", "name", "arguments")

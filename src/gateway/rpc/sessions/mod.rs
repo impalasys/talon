@@ -2253,6 +2253,14 @@ mod tests {
             self.inner.get(key).await
         }
 
+        async fn get_range(
+            &self,
+            key: &str,
+            range: std::ops::Range<u64>,
+        ) -> Result<Option<Vec<u8>>> {
+            self.inner.get_range(key, range).await
+        }
+
         async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
             self.inner.head(key).await
         }

@@ -28,6 +28,15 @@ message ToolOutputLineSelection {
   uint64 end_line = 2;
 }
 
+// A zero-based, half-open byte range in a UTF-8 text object.  `end` is the
+// actual end returned to the caller; `next_byte` is set for bounded reads
+// when more logical bytes remain.
+message ToolOutputByteRange {
+  uint64 start = 1;
+  uint64 end = 2;
+  optional uint64 next_byte = 3;
+}
+
 message ToolOutputContentDescriptor {
   // The referenced object can be reread in bounded sections.
   bool section_readable = 1;
@@ -41,6 +50,9 @@ message ToolOutputContentDescriptor {
   // Present when this output is a view over a selected section of another
   // immutable object rather than a new copied result.
   optional ToolOutputLineSelection selection = 5;
+  // New selections use bytes. Keep `selection` above for journals written by
+  // older Talon releases.
+  optional ToolOutputByteRange byte_range = 6;
 }
 
 message ToolCall {

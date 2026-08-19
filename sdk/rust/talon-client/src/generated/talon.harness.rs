@@ -37,6 +37,18 @@ pub struct ToolOutputLineSelection {
     #[prost(uint64, tag = "2")]
     pub end_line: u64,
 }
+/// A zero-based, half-open byte range in a UTF-8 text object.  `end` is the
+/// actual end returned to the caller; `next_byte` is set for bounded reads
+/// when more logical bytes remain.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ToolOutputByteRange {
+    #[prost(uint64, tag = "1")]
+    pub start: u64,
+    #[prost(uint64, tag = "2")]
+    pub end: u64,
+    #[prost(uint64, optional, tag = "3")]
+    pub next_byte: ::core::option::Option<u64>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ToolOutputContentDescriptor {
     /// The referenced object can be reread in bounded sections.
@@ -56,6 +68,10 @@ pub struct ToolOutputContentDescriptor {
     /// immutable object rather than a new copied result.
     #[prost(message, optional, tag = "5")]
     pub selection: ::core::option::Option<ToolOutputLineSelection>,
+    /// New selections use bytes. Keep `selection` above for journals written by
+    /// older Talon releases.
+    #[prost(message, optional, tag = "6")]
+    pub byte_range: ::core::option::Option<ToolOutputByteRange>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ToolCall {

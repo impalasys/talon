@@ -12,6 +12,7 @@ use google_cloud_auth::credentials::{AccessTokenCredentials, Builder as Credenti
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::ops::Range;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -52,6 +53,9 @@ pub trait ObjectStore: Send + Sync {
         metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef>;
     async fn get(&self, key: &str) -> Result<Option<StoredObject>>;
+    /// Fetch raw stored bytes in a half-open range. Implementations must not
+    /// decode content encodings here.
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>>;
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>>;
     async fn delete(&self, key: &str) -> Result<()>;
     async fn signed_get_url(
@@ -122,6 +126,24 @@ impl ObjectStore for InMemoryObjectStore {
     async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
         validate_key(key)?;
         Ok(self.objects.read().await.get(key).cloned())
+    }
+
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        validate_key(key)?;
+        if range.start > range.end {
+            return Err(anyhow!("object range start exceeds end"));
+        }
+        let objects = self.objects.read().await;
+        let Some(object) = objects.get(key) else {
+            return Ok(None);
+        };
+        let start =
+            usize::try_from(range.start).map_err(|_| anyhow!("object range is too large"))?;
+        let end = usize::try_from(range.end).map_err(|_| anyhow!("object range is too large"))?;
+        if end > object.bytes.len() {
+            return Err(anyhow!("object range exceeds stored object size"));
+        }
+        Ok(Some(object.bytes[start..end].to_vec()))
     }
 
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
@@ -217,6 +239,28 @@ impl ObjectStore for LocalFsObjectStore {
         metadata.size_bytes = bytes.len() as u64;
         let metadata = normalize_object_metadata(metadata);
         Ok(Some(StoredObject { bytes, metadata }))
+    }
+
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        validate_key(key)?;
+        if range.start > range.end {
+            return Err(anyhow!("object range start exceeds end"));
+        }
+        let path = self.data_path(key)?;
+        let mut file = match tokio::fs::File::open(path).await {
+            Ok(file) => file,
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(err) => return Err(err.into()),
+        };
+        use tokio::io::{AsyncReadExt, AsyncSeekExt};
+        let size = file.metadata().await?.len();
+        if range.end > size {
+            return Err(anyhow!("object range exceeds stored object size"));
+        }
+        file.seek(std::io::SeekFrom::Start(range.start)).await?;
+        let mut bytes = vec![0; (range.end - range.start) as usize];
+        file.read_exact(&mut bytes).await?;
+        Ok(Some(bytes))
     }
 
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
@@ -365,6 +409,39 @@ impl ObjectStore for GcsObjectStore {
         }))
     }
 
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        if range.start > range.end {
+            return Err(anyhow!("object range start exceeds end"));
+        }
+        let object_key = self.object_key(key)?;
+        let url = format!(
+            "{}/storage/v1/b/{}/o/{}?alt=media",
+            self.api_base.trim_end_matches('/'),
+            urlencoding::encode(&self.bucket),
+            urlencoding::encode(&object_key)
+        );
+        let response = self
+            .client
+            .get(url)
+            .bearer_auth(self.bearer_token().await?)
+            .header(
+                reqwest::header::RANGE,
+                format!("bytes={}-{}", range.start, range.end.saturating_sub(1)),
+            )
+            .send()
+            .await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        Ok(Some(
+            ensure_success(response, "GCS object range download")
+                .await?
+                .bytes()
+                .await?
+                .to_vec(),
+        ))
+    }
+
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
         let object_key = self.object_key(key)?;
         let url = format!(
@@ -509,6 +586,29 @@ impl ObjectStore for S3ObjectStore {
             },
             bytes,
         }))
+    }
+
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        if range.start > range.end {
+            return Err(anyhow!("object range start exceeds end"));
+        }
+        let response = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(self.object_key(key)?)
+            .range(format!(
+                "bytes={}-{}",
+                range.start,
+                range.end.saturating_sub(1)
+            ))
+            .send()
+            .await;
+        match response {
+            Ok(response) => Ok(Some(response.body.collect().await?.into_bytes().to_vec())),
+            Err(err) if is_s3_not_found(&err) => Ok(None),
+            Err(err) => Err(err.into()),
+        }
     }
 
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {

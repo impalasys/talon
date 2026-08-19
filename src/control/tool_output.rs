@@ -5,7 +5,7 @@ use crate::control::cas::CasStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
     chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput,
-    ToolOutputContentDescriptor, ToolOutputLineSelection,
+    ToolOutputByteRange, ToolOutputContentDescriptor, ToolOutputLineSelection,
 };
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -187,7 +187,11 @@ pub fn display_text(output: &ToolOutput) -> String {
 }
 
 pub fn tool_result_handle(tool_call_id: &str) -> String {
-    format!("tr://{tool_call_id}")
+    format!("tr://{}", urlencoding::encode(tool_call_id))
+}
+
+pub fn tool_result_part_handle(tool_call_id: &str, index: usize) -> String {
+    format!("{}/parts/{index}", tool_result_handle(tool_call_id))
 }
 
 pub fn is_tool_result_object_ref(object_ref: &data_proto::ObjectRef) -> bool {
@@ -204,9 +208,9 @@ pub fn compact_tool_result_summary(
     preview: &str,
 ) -> String {
     let mut summary = format!(
-        "Large result from '{}' is available as {} ({} bytes, {} lines). Preview:\n{}\nUse read with ref '{}' and start_line/end_line to inspect a section.",
+        "Large result from '{}' is available as {}. Part 0 is text/plain ({} bytes, {} lines). Preview:\n{}\nUse read with ref '{}'.",
         tool_name,
-        tool_result_handle(tool_call_id),
+        tool_result_part_handle(tool_call_id, 0),
         descriptor.captured_size_bytes,
         descriptor.line_count,
         preview,
@@ -238,6 +242,7 @@ fn text_descriptor(text: &str, capture_truncated: bool) -> ToolOutputContentDesc
         line_count: text.lines().count().max(1) as u64,
         capture_truncated,
         selection: None,
+        byte_range: None,
     }
 }
 
@@ -258,6 +263,32 @@ pub fn selected_object_output(
             selection: Some(ToolOutputLineSelection {
                 start_line,
                 end_line,
+            }),
+            byte_range: None,
+        }),
+    }
+}
+
+pub fn selected_object_byte_range_output(
+    object_ref: data_proto::ObjectRef,
+    start: u64,
+    end: u64,
+    next_byte: Option<u64>,
+    summary: impl Into<String>,
+) -> ToolOutput {
+    ToolOutput {
+        content_parts: vec![object_ref_part(object_ref)],
+        summary: summary.into(),
+        content_descriptor: Some(ToolOutputContentDescriptor {
+            section_readable: true,
+            captured_size_bytes: 0,
+            line_count: 0,
+            capture_truncated: false,
+            selection: None,
+            byte_range: Some(ToolOutputByteRange {
+                start,
+                end,
+                next_byte,
             }),
         }),
     }
@@ -332,11 +363,7 @@ pub async fn normalize_for_session_storage(
     }
     let descriptor = output.content_descriptor.clone();
     let summary = if stored_large_text {
-        summary(&ToolOutput {
-            content_parts: content_parts.clone(),
-            summary: String::new(),
-            content_descriptor: None,
-        })
+        compact_mixed_tool_result_catalog(ctx.tool_call_id, &content_parts)
     } else {
         output.summary.clone()
     };
@@ -345,6 +372,30 @@ pub async fn normalize_for_session_storage(
         summary,
         content_descriptor: descriptor,
     })
+}
+
+pub fn compact_mixed_tool_result_catalog(tool_call_id: &str, parts: &[ChatContentPart]) -> String {
+    let mut entries = Vec::new();
+    for (index, part) in parts.iter().enumerate() {
+        match part.content.as_ref() {
+            Some(chat_content_part::Content::Text(text)) => {
+                entries.push(format!("parts/{index}: text/plain ({} bytes)", text.len()))
+            }
+            Some(chat_content_part::Content::ObjectRef(object)) => entries.push(format!(
+                "parts/{index}: {} ({} bytes)",
+                object.media_type, object.size_bytes
+            )),
+            None => entries.push(format!("parts/{index}: empty")),
+        }
+    }
+    let mut summary = format!(
+        "Tool result catalog {}: {}. Use read with ref '{} /parts/N' (without the space) to inspect a part.",
+        tool_result_handle(tool_call_id),
+        entries.join(", "),
+        tool_result_handle(tool_call_id),
+    );
+    truncate_utf8(&mut summary, TOOL_RESULT_DURABLE_SUMMARY_BYTES);
+    summary
 }
 
 fn preview_text(text: &str, max_bytes: usize) -> String {
@@ -440,6 +491,11 @@ fn content_descriptor_json(value: &ToolOutputContentDescriptor) -> Value {
             "start_line": selection.start_line,
             "end_line": selection.end_line,
         })),
+        "byte_range": value.byte_range.as_ref().map(|range| json!({
+            "start": range.start,
+            "end": range.end,
+            "next_byte": range.next_byte,
+        })),
     })
 }
 
@@ -458,6 +514,21 @@ fn parse_content_descriptor_json(value: &Value) -> Result<ToolOutputContentDescr
                 .or_else(|| selection.get("endLine"))
                 .and_then(Value::as_u64)
                 .unwrap_or_default(),
+        });
+    let byte_range = value
+        .get("byte_range")
+        .or_else(|| value.get("byteRange"))
+        .and_then(Value::as_object)
+        .map(|range| ToolOutputByteRange {
+            start: range
+                .get("start")
+                .and_then(Value::as_u64)
+                .unwrap_or_default(),
+            end: range.get("end").and_then(Value::as_u64).unwrap_or_default(),
+            next_byte: range
+                .get("next_byte")
+                .or_else(|| range.get("nextByte"))
+                .and_then(Value::as_u64),
         });
     Ok(ToolOutputContentDescriptor {
         section_readable: value
@@ -480,6 +551,7 @@ fn parse_content_descriptor_json(value: &Value) -> Result<ToolOutputContentDescr
             .or_else(|| value.get("captureTruncated"))
             .and_then(Value::as_bool)
             .unwrap_or(false),
+        byte_range,
         selection,
     })
 }
