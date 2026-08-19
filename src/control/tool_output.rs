@@ -201,13 +201,15 @@ pub fn compact_tool_result_summary(
     tool_name: &str,
     tool_call_id: &str,
     descriptor: &ToolOutputContentDescriptor,
+    preview: &str,
 ) -> String {
     let mut summary = format!(
-        "Large result from '{}' is available as {} ({} bytes, {} lines). Use read with ref '{}' and start_line/end_line to inspect a section.",
+        "Large result from '{}' is available as {} ({} bytes, {} lines). Preview:\n{}\nUse read with ref '{}' and start_line/end_line to inspect a section.",
         tool_name,
         tool_result_handle(tool_call_id),
         descriptor.captured_size_bytes,
         descriptor.line_count,
+        preview,
         tool_result_handle(tool_call_id),
     );
     if descriptor.capture_truncated {
@@ -266,6 +268,37 @@ pub async fn normalize_for_session_storage(
     ctx: ToolOutputStorageContext<'_>,
     output: &ToolOutput,
 ) -> Result<ToolOutput> {
+    if let Some(text) = plain_text(output)
+        .filter(|text| text.as_bytes().len() >= TOOL_RESULT_OBJECT_THRESHOLD_BYTES)
+    {
+        let object_ref = cas
+            .put_tool_result(
+                ctx.ns,
+                ctx.agent,
+                ctx.session_id,
+                ctx.message_id,
+                ctx.part_id,
+                ctx.tool_call_id,
+                ctx.tool_name,
+                text.as_bytes(),
+            )
+            .await?;
+        let captured = crate::control::cas::tool_result_logical_bytes(text.as_bytes());
+        let captured_text = String::from_utf8_lossy(&captured);
+        let computed = text_descriptor(&captured_text, captured.len() < text.len());
+        let preview = preview_text(&captured_text, 160);
+        return Ok(ToolOutput {
+            content_parts: vec![object_ref_part(object_ref)],
+            summary: compact_tool_result_summary(
+                ctx.tool_name,
+                ctx.tool_call_id,
+                &computed,
+                &preview,
+            ),
+            content_descriptor: Some(computed),
+        });
+    }
+
     let mut content_parts = Vec::with_capacity(output.content_parts.len());
     let mut stored_large_text = false;
     for (index, part) in output.content_parts.iter().enumerate() {
@@ -297,23 +330,13 @@ pub async fn normalize_for_session_storage(
         content_parts.push(object_ref_part(object_ref));
         stored_large_text = true;
     }
-    let mut descriptor = output.content_descriptor.clone();
+    let descriptor = output.content_descriptor.clone();
     let summary = if stored_large_text {
-        let text = output
-            .content_parts
-            .iter()
-            .filter_map(|part| match part.content.as_ref()? {
-                chat_content_part::Content::Text(text) => Some(text.as_str()),
-                _ => None,
-            })
-            .collect::<String>();
-        // Describe exactly the logical bytes CAS retains, rather than the
-        // potentially unbounded process output supplied by the tool.
-        let captured = crate::control::cas::tool_result_logical_bytes(text.as_bytes());
-        let captured_text = String::from_utf8_lossy(&captured);
-        let computed = text_descriptor(&captured_text, captured.len() < text.len());
-        descriptor = Some(computed.clone());
-        compact_tool_result_summary(ctx.tool_name, ctx.tool_call_id, &computed)
+        summary(&ToolOutput {
+            content_parts: content_parts.clone(),
+            summary: String::new(),
+            content_descriptor: None,
+        })
     } else {
         output.summary.clone()
     };
@@ -322,6 +345,12 @@ pub async fn normalize_for_session_storage(
         summary,
         content_descriptor: descriptor,
     })
+}
+
+fn preview_text(text: &str, max_bytes: usize) -> String {
+    let mut preview = text.to_string();
+    truncate_utf8(&mut preview, max_bytes);
+    preview
 }
 
 pub fn tool_result_payload_json(tool_call_id: &str, output: &ToolOutput) -> Result<String> {
@@ -784,7 +813,7 @@ mod tests {
         assert_eq!(descriptor.line_count, 1);
         let payload = tool_result_payload_json("call", &normalized).unwrap();
         assert!(payload.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
-        assert!(!payload.contains(&"x".repeat(128)));
+        assert!(payload.contains(&"x".repeat(128)));
     }
 
     #[tokio::test]
