@@ -81,6 +81,23 @@ function replaceObjectInOutput(part: unknown, fallback: unknown, objectKey: stri
   return replaced ? output : fallback;
 }
 
+function selectedLines(part: unknown, output: string): string {
+  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
+  const toolOutput = payload.tool_output ?? payload.toolOutput;
+  const descriptor = toolOutput && typeof toolOutput === "object"
+    ? (toolOutput as Record<string, unknown>).content_descriptor ?? (toolOutput as Record<string, unknown>).contentDescriptor
+    : undefined;
+  const selection = descriptor && typeof descriptor === "object"
+    ? (descriptor as Record<string, unknown>).selection
+    : undefined;
+  if (!selection || typeof selection !== "object") return output;
+  const values = selection as Record<string, unknown>;
+  const start = Number(values.start_line ?? values.startLine);
+  const end = Number(values.end_line ?? values.endLine);
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start) return output;
+  return output.split("\n").slice(start - 1, end).join("\n");
+}
+
 async function decompress(data: Uint8Array, encoding: string): Promise<Uint8Array> {
   if (typeof DecompressionStream === "undefined") {
     throw new Error(`${encoding} CAS object requires DecompressionStream support`);
@@ -170,7 +187,10 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
     setState((current) => ({ ...current, [toolRowKey]: "loading" }));
     try {
       const response = await cas.getObject({ key: match.key });
-      const output = new TextDecoder().decode(await decodeObject(response, match.object));
+      const output = selectedLines(
+        match.part,
+        new TextDecoder().decode(await decodeObject(response, match.object)),
+      );
       if (generation.current !== currentGeneration) return;
       setOutputs((current) => ({ ...current, [outputKey]: output }));
       setState((current) => {

@@ -5,6 +5,7 @@ use crate::control::cas::CasStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
     chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput,
+    ToolOutputContentDescriptor, ToolOutputLineSelection,
 };
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -12,6 +13,8 @@ use serde_json::{json, Value};
 use std::collections::HashMap;
 
 pub const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
+pub const TOOL_RESULT_INLINE_CONTEXT_BYTES: usize = 8 * 1024;
+pub const TOOL_RESULT_DURABLE_SUMMARY_BYTES: usize = 512;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolResultPayload {
@@ -42,6 +45,7 @@ pub trait ToolOutputExt {
     fn summary(&self) -> String;
     fn content_parts(&self) -> Vec<ChatContentPart>;
     fn object_ref(&self) -> Option<&data_proto::ObjectRef>;
+    fn content_descriptor(&self) -> Option<&ToolOutputContentDescriptor>;
 }
 
 impl ToolOutputExt for ToolOutput {
@@ -50,6 +54,7 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![text_part(text.clone())],
             summary: text,
+            content_descriptor: None,
         }
     }
 
@@ -77,6 +82,7 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![object_ref_part(object_ref)],
             summary,
+            content_descriptor: None,
         }
     }
 
@@ -84,6 +90,7 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts,
             summary: summary.into(),
+            content_descriptor: None,
         }
     }
 
@@ -97,6 +104,10 @@ impl ToolOutputExt for ToolOutput {
 
     fn object_ref(&self) -> Option<&data_proto::ObjectRef> {
         first_object_ref(self)
+    }
+
+    fn content_descriptor(&self) -> Option<&ToolOutputContentDescriptor> {
+        self.content_descriptor.as_ref()
     }
 }
 
@@ -172,9 +183,82 @@ pub fn summary(output: &ToolOutput) -> String {
 }
 
 pub fn display_text(output: &ToolOutput) -> String {
-    plain_text(output).unwrap_or_else(|| {
-        serde_json::to_string(&tool_output_json(output)).unwrap_or_else(|_| summary(output))
-    })
+    plain_text(output).unwrap_or_else(|| summary(output))
+}
+
+pub fn tool_result_handle(tool_call_id: &str) -> String {
+    format!("tr://{tool_call_id}")
+}
+
+pub fn is_tool_result_object_ref(object_ref: &data_proto::ObjectRef) -> bool {
+    object_ref
+        .metadata
+        .get(crate::control::cas::METADATA_KIND)
+        .is_some_and(|kind| kind == crate::control::cas::METADATA_KIND_TOOL_RESULT)
+}
+
+pub fn compact_tool_result_summary(
+    tool_name: &str,
+    tool_call_id: &str,
+    descriptor: &ToolOutputContentDescriptor,
+) -> String {
+    let mut summary = format!(
+        "Large result from '{}' is available as {} ({} bytes, {} lines). Use read with ref '{}' and start_line/end_line to inspect a section.",
+        tool_name,
+        tool_result_handle(tool_call_id),
+        descriptor.captured_size_bytes,
+        descriptor.line_count,
+        tool_result_handle(tool_call_id),
+    );
+    if descriptor.capture_truncated {
+        summary.push_str(" Source output exceeded the capture limit; later bytes are unavailable.");
+    }
+    truncate_utf8(&mut summary, TOOL_RESULT_DURABLE_SUMMARY_BYTES);
+    summary
+}
+
+fn truncate_utf8(value: &mut String, max_bytes: usize) {
+    if value.len() <= max_bytes {
+        return;
+    }
+    let mut end = max_bytes.saturating_sub(3);
+    while end > 0 && !value.is_char_boundary(end) {
+        end -= 1;
+    }
+    value.truncate(end);
+    value.push_str("...");
+}
+
+fn text_descriptor(text: &str, capture_truncated: bool) -> ToolOutputContentDescriptor {
+    ToolOutputContentDescriptor {
+        section_readable: true,
+        captured_size_bytes: text.len() as u64,
+        line_count: text.lines().count().max(1) as u64,
+        capture_truncated,
+        selection: None,
+    }
+}
+
+pub fn selected_object_output(
+    object_ref: data_proto::ObjectRef,
+    start_line: u64,
+    end_line: u64,
+    summary: impl Into<String>,
+) -> ToolOutput {
+    ToolOutput {
+        content_parts: vec![object_ref_part(object_ref)],
+        summary: summary.into(),
+        content_descriptor: Some(ToolOutputContentDescriptor {
+            section_readable: true,
+            captured_size_bytes: 0,
+            line_count: 0,
+            capture_truncated: false,
+            selection: Some(ToolOutputLineSelection {
+                start_line,
+                end_line,
+            }),
+        }),
+    }
 }
 
 pub async fn normalize_for_session_storage(
@@ -213,19 +297,30 @@ pub async fn normalize_for_session_storage(
         content_parts.push(object_ref_part(object_ref));
         stored_large_text = true;
     }
-    let summary = if stored_large_text
-        && output.summary.as_bytes().len() >= TOOL_RESULT_OBJECT_THRESHOLD_BYTES
-    {
-        summary(&ToolOutput {
-            content_parts: content_parts.clone(),
-            summary: String::new(),
-        })
+    let mut descriptor = output.content_descriptor.clone();
+    let summary = if stored_large_text {
+        let text = output
+            .content_parts
+            .iter()
+            .filter_map(|part| match part.content.as_ref()? {
+                chat_content_part::Content::Text(text) => Some(text.as_str()),
+                _ => None,
+            })
+            .collect::<String>();
+        // Describe exactly the logical bytes CAS retains, rather than the
+        // potentially unbounded process output supplied by the tool.
+        let captured = crate::control::cas::tool_result_logical_bytes(text.as_bytes());
+        let captured_text = String::from_utf8_lossy(&captured);
+        let computed = text_descriptor(&captured_text, captured.len() < text.len());
+        descriptor = Some(computed.clone());
+        compact_tool_result_summary(ctx.tool_name, ctx.tool_call_id, &computed)
     } else {
         output.summary.clone()
     };
     Ok(ToolOutput {
         content_parts,
         summary,
+        content_descriptor: descriptor,
     })
 }
 
@@ -265,6 +360,7 @@ pub fn tool_output_json(output: &ToolOutput) -> Value {
     json!({
         "summary": output.summary,
         "content_parts": output.content_parts.iter().map(content_part_json).collect::<Vec<_>>(),
+        "content_descriptor": output.content_descriptor.as_ref().map(content_descriptor_json),
     })
 }
 
@@ -296,6 +392,66 @@ fn parse_tool_output_json(value: &Value) -> Result<ToolOutput> {
     Ok(ToolOutput {
         content_parts,
         summary,
+        content_descriptor: value
+            .get("content_descriptor")
+            .or_else(|| value.get("contentDescriptor"))
+            .filter(|value| value.is_object())
+            .map(parse_content_descriptor_json)
+            .transpose()?,
+    })
+}
+
+fn content_descriptor_json(value: &ToolOutputContentDescriptor) -> Value {
+    json!({
+        "section_readable": value.section_readable,
+        "captured_size_bytes": value.captured_size_bytes,
+        "line_count": value.line_count,
+        "capture_truncated": value.capture_truncated,
+        "selection": value.selection.as_ref().map(|selection| json!({
+            "start_line": selection.start_line,
+            "end_line": selection.end_line,
+        })),
+    })
+}
+
+fn parse_content_descriptor_json(value: &Value) -> Result<ToolOutputContentDescriptor> {
+    let selection = value
+        .get("selection")
+        .and_then(Value::as_object)
+        .map(|selection| ToolOutputLineSelection {
+            start_line: selection
+                .get("start_line")
+                .or_else(|| selection.get("startLine"))
+                .and_then(Value::as_u64)
+                .unwrap_or_default(),
+            end_line: selection
+                .get("end_line")
+                .or_else(|| selection.get("endLine"))
+                .and_then(Value::as_u64)
+                .unwrap_or_default(),
+        });
+    Ok(ToolOutputContentDescriptor {
+        section_readable: value
+            .get("section_readable")
+            .or_else(|| value.get("sectionReadable"))
+            .and_then(Value::as_bool)
+            .unwrap_or(false),
+        captured_size_bytes: value
+            .get("captured_size_bytes")
+            .or_else(|| value.get("capturedSizeBytes"))
+            .and_then(Value::as_u64)
+            .unwrap_or_default(),
+        line_count: value
+            .get("line_count")
+            .or_else(|| value.get("lineCount"))
+            .and_then(Value::as_u64)
+            .unwrap_or_default(),
+        capture_truncated: value
+            .get("capture_truncated")
+            .or_else(|| value.get("captureTruncated"))
+            .and_then(Value::as_bool)
+            .unwrap_or(false),
+        selection,
     })
 }
 
@@ -318,6 +474,7 @@ fn legacy_tool_output(
         return Ok(ToolOutput {
             content_parts,
             summary: inline_output.to_string(),
+            content_descriptor: None,
         });
     }
     Ok(ToolOutput::text(inline_output.to_string()))
@@ -601,7 +758,7 @@ mod tests {
         let store = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(store);
         let content = "x".repeat(TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
-        let output = ToolOutput::text(content);
+        let output = ToolOutput::text(&content);
         let normalized = normalize_for_session_storage(
             &cas,
             ToolOutputStorageContext {
@@ -619,7 +776,12 @@ mod tests {
         .unwrap();
 
         assert!(normalized.summary.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
-        assert!(normalized.summary.starts_with("[Object: call.txt ("));
+        assert!(normalized.summary.contains("tr://call"));
+        assert!(normalized.summary.contains("Use read with ref"));
+        let descriptor = normalized.content_descriptor().unwrap();
+        assert!(descriptor.section_readable);
+        assert_eq!(descriptor.captured_size_bytes, content.len() as u64);
+        assert_eq!(descriptor.line_count, 1);
         let payload = tool_result_payload_json("call", &normalized).unwrap();
         assert!(payload.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
         assert!(!payload.contains(&"x".repeat(128)));
