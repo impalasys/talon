@@ -47,16 +47,18 @@ class ToolCallDelta(_message.Message):
     def __init__(self, index: _Optional[int] = ..., id: _Optional[str] = ..., name: _Optional[str] = ..., arguments: _Optional[str] = ...) -> None: ...
 
 class ChatMessage(_message.Message):
-    __slots__ = ("role", "content_parts", "tool_calls", "tool_call_id")
+    __slots__ = ("role", "content_parts", "tool_calls", "tool_call_id", "encrypted_reasoning")
     ROLE_FIELD_NUMBER: _ClassVar[int]
     CONTENT_PARTS_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALLS_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALL_ID_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTED_REASONING_FIELD_NUMBER: _ClassVar[int]
     role: str
     content_parts: _containers.RepeatedCompositeFieldContainer[ChatContentPart]
     tool_calls: _containers.RepeatedCompositeFieldContainer[ToolCall]
     tool_call_id: str
-    def __init__(self, role: _Optional[str] = ..., content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., tool_call_id: _Optional[str] = ...) -> None: ...
+    encrypted_reasoning: _data_pb2.ObjectRef
+    def __init__(self, role: _Optional[str] = ..., content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., tool_call_id: _Optional[str] = ..., encrypted_reasoning: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class ChatResponse(_message.Message):
     __slots__ = ("content", "tool_calls", "usage", "encrypted_reasoning")

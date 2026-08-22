@@ -186,6 +186,7 @@ async fn session_message_to_loop_messages(
         content_parts: message_content_parts(message, objects).await?,
         tool_calls: None,
         tool_call_id: None,
+        encrypted_reasoning: None,
     }])
 }
 
@@ -280,6 +281,7 @@ async fn assistant_session_message_to_loop_messages(
     let mut tool_calls = Vec::new();
     let mut tool_results = Vec::new();
     let mut seen_result_ids = std::collections::HashSet::new();
+    let mut encrypted_reasoning = None;
 
     for part in &message.parts {
         if part.part_type == data_proto::SessionMessagePartType::Text as i32
@@ -291,6 +293,7 @@ async fn assistant_session_message_to_loop_messages(
                 &mut tool_calls,
                 &mut tool_results,
                 &mut seen_result_ids,
+                &mut encrypted_reasoning,
             );
             content_parts.extend(message_part_content_parts(part, objects).await?);
             continue;
@@ -300,6 +303,11 @@ async fn assistant_session_message_to_loop_messages(
             if let Some(tool_call) = tool_call_from_part(part) {
                 tool_calls.push(tool_call);
             }
+            continue;
+        }
+
+        if part.part_type == data_proto::SessionMessagePartType::EncryptedReasoning as i32 {
+            encrypted_reasoning = part.object.clone();
             continue;
         }
 
@@ -325,16 +333,18 @@ async fn assistant_session_message_to_loop_messages(
         &mut tool_calls,
         &mut tool_results,
         &mut seen_result_ids,
+        &mut encrypted_reasoning,
     );
-    flush_assistant_content(&mut history, &mut content_parts);
+    flush_assistant_content(&mut history, &mut content_parts, &mut encrypted_reasoning);
     Ok(history)
 }
 
 fn flush_assistant_content(
     history: &mut Vec<LoopMessage>,
     content_parts: &mut Vec<ChatContentPart>,
+    encrypted_reasoning: &mut Option<data_proto::ObjectRef>,
 ) {
-    if content_parts.is_empty() {
+    if content_parts.is_empty() && encrypted_reasoning.is_none() {
         return;
     }
     history.push(LoopMessage {
@@ -342,6 +352,7 @@ fn flush_assistant_content(
         content_parts: std::mem::take(content_parts),
         tool_calls: None,
         tool_call_id: None,
+        encrypted_reasoning: encrypted_reasoning.take(),
     });
 }
 
@@ -351,6 +362,7 @@ fn flush_tool_batch(
     tool_calls: &mut Vec<ToolCall>,
     tool_results: &mut Vec<LoopMessage>,
     seen_result_ids: &mut std::collections::HashSet<String>,
+    encrypted_reasoning: &mut Option<data_proto::ObjectRef>,
 ) {
     if tool_calls.is_empty() {
         return;
@@ -380,9 +392,10 @@ fn flush_tool_batch(
         })
         .collect::<Vec<_>>();
 
-    if matched_calls.is_empty() {
+    if matched_calls.len() != tool_calls.len() {
         tool_calls.clear();
         seen_result_ids.clear();
+        *encrypted_reasoning = None;
         return;
     }
 
@@ -391,6 +404,7 @@ fn flush_tool_batch(
         content_parts: std::mem::take(content_parts),
         tool_calls: Some(matched_calls),
         tool_call_id: None,
+        encrypted_reasoning: encrypted_reasoning.take(),
     });
     history.extend(matched_results);
     tool_calls.clear();
@@ -451,6 +465,7 @@ async fn tool_result_message_from_part(
             .await?,
             tool_calls: None,
             tool_call_id: Some(parsed.tool_call_id),
+            encrypted_reasoning: None,
         }));
     }
     let inline_output = payload
@@ -482,6 +497,7 @@ async fn tool_result_message_from_part(
                 content_parts: vec![object_ref_part(object_ref)],
                 tool_calls: None,
                 tool_call_id: Some(tool_call_id.to_string()),
+                encrypted_reasoning: None,
             };
             if !inline_output.is_empty() {
                 message.content_parts.insert(0, text_part(inline_output));
@@ -616,6 +632,21 @@ mod tests {
             payload_json: String::new(),
             created_at: 0,
             object: None,
+        }
+    }
+
+    fn encrypted_reasoning_part(
+        id: &str,
+        object: data_proto::ObjectRef,
+    ) -> data_proto::SessionMessagePart {
+        data_proto::SessionMessagePart {
+            id: id.to_string(),
+            part_type: data_proto::SessionMessagePartType::EncryptedReasoning as i32,
+            content: String::new(),
+            name: String::new(),
+            payload_json: String::new(),
+            created_at: 0,
+            object: Some(object),
         }
     }
 
@@ -1281,7 +1312,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn assistant_session_message_keeps_only_matched_calls_in_partial_batch() {
+    async fn assistant_session_message_drops_partial_tool_batch() {
         let store = InMemoryObjectStore::default();
         let message = assistant_message(vec![
             session_text_part("000001", "checking. "),
@@ -1298,15 +1329,33 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(history.len(), 2);
+        assert_eq!(history.len(), 1);
         assert_eq!(history[0].role, "assistant");
         assert_eq!(history[0].text_content(), "checking. ");
-        let calls = history[0].tool_calls.as_ref().unwrap();
-        assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0].id, "call-ok");
-        assert_eq!(history[1].role, "tool");
-        assert_eq!(history[1].tool_call_id.as_deref(), Some("call-ok"));
-        assert_eq!(history[1].text_content(), "result-ok");
+        assert!(history[0].tool_calls.is_none());
+    }
+
+    #[tokio::test]
+    async fn assistant_history_associates_encrypted_reasoning_part_with_assistant_output() {
+        let store = InMemoryObjectStore::default();
+        let reasoning = data_proto::ObjectRef {
+            key: "cas/ns/agent/session/encrypted-reasoning.bin".to_string(),
+            media_type: "application/octet-stream".to_string(),
+            size_bytes: 42,
+            ..Default::default()
+        };
+        let message = assistant_message(vec![
+            session_text_part("000001", "answer"),
+            encrypted_reasoning_part("000002", reasoning.clone()),
+        ]);
+
+        let history = session_message_to_loop_messages(&message, &store)
+            .await
+            .unwrap();
+
+        assert_eq!(history.len(), 1);
+        assert_eq!(history[0].text_content(), "answer");
+        assert_eq!(history[0].encrypted_reasoning.as_ref(), Some(&reasoning));
     }
 
     #[tokio::test]

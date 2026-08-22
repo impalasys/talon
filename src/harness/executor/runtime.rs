@@ -63,6 +63,8 @@ pub struct LoopMessage {
     pub content_parts: Vec<ChatContentPart>,
     pub tool_calls: Option<Vec<ToolCall>>,
     pub tool_call_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub encrypted_reasoning: Option<crate::gateway::rpc::data_proto::ObjectRef>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -83,6 +85,7 @@ impl LoopMessage {
             },
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         }
     }
 
@@ -687,6 +690,7 @@ impl AgentExecutor {
                 content_parts: m.content_parts.clone(),
                 tool_calls: m.tool_calls.clone().unwrap_or_default(),
                 tool_call_id: m.tool_call_id.clone(),
+                encrypted_reasoning: m.encrypted_reasoning.clone(),
             })
             .collect::<Vec<_>>();
         for message in &mut messages {
@@ -1240,7 +1244,7 @@ impl AgentExecutor {
                     final_usage
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
-                encrypted_reasoning: encrypted_reasoning,
+                encrypted_reasoning: encrypted_reasoning.clone(),
             };
             context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
@@ -1280,6 +1284,7 @@ impl AgentExecutor {
             } else {
                 Some(tool_calls.clone())
             };
+            assistant_message.encrypted_reasoning = encrypted_reasoning;
             context.push(assistant_message);
 
             if !tool_calls.is_empty() {
@@ -1443,6 +1448,7 @@ pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> Loop
         content_parts: result.content_parts(),
         tool_calls: None,
         tool_call_id: Some(tool_call_id.to_string()),
+        encrypted_reasoning: None,
     }
 }
 
@@ -2123,6 +2129,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
         let original_user_message = context.history[0].clone();
 
@@ -2183,6 +2190,7 @@ mod tests {
             content_parts: vec![object_ref_part(object.clone())],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor
@@ -2237,6 +2245,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor
@@ -2292,6 +2301,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor
@@ -2331,6 +2341,7 @@ mod tests {
             })],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor
@@ -2374,6 +2385,7 @@ mod tests {
             })],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor

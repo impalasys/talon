@@ -509,6 +509,7 @@ fn compact_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopMes
         content_parts,
         tool_calls,
         tool_call_id: message.tool_call_id.clone(),
+        encrypted_reasoning: None,
     }
 }
 

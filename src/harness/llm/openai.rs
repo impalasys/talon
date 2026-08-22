@@ -1627,6 +1627,7 @@ mod tests {
                 arguments: arguments.to_string(),
             }],
             tool_call_id: None,
+            encrypted_reasoning: None,
         }
     }
 
@@ -1636,6 +1637,7 @@ mod tests {
             content_parts: vec![text_part(content.to_string())],
             tool_calls: Vec::new(),
             tool_call_id: Some("call_1".to_string()),
+            encrypted_reasoning: None,
         }
     }
 
@@ -1754,6 +1756,7 @@ mod tests {
                 content_parts: vec![text_part("look at this"), object_ref_part(object)],
                 tool_calls: Vec::new(),
                 tool_call_id: None,
+                encrypted_reasoning: None,
             }])
             .await
             .unwrap();
@@ -1796,6 +1799,7 @@ mod tests {
                 content_parts: vec![object_ref_part(object)],
                 tool_calls: Vec::new(),
                 tool_call_id: Some("call_1".to_string()),
+                encrypted_reasoning: None,
             }])
             .await
             .unwrap();
@@ -1850,6 +1854,7 @@ mod tests {
                     content_parts: vec![object_ref_part(object)],
                     tool_calls: Vec::new(),
                     tool_call_id: Some("call_1".to_string()),
+                    encrypted_reasoning: None,
                 }],
                 None,
             )
@@ -1914,12 +1919,14 @@ mod tests {
                     content_parts: vec![object_ref_part(object)],
                     tool_calls: Vec::new(),
                     tool_call_id: Some("call_1".to_string()),
+                    encrypted_reasoning: None,
                 },
                 ChatMessage {
                     role: "tool".to_string(),
                     content_parts: vec![text_part("plain result".to_string())],
                     tool_calls: Vec::new(),
                     tool_call_id: Some("call_2".to_string()),
+                    encrypted_reasoning: None,
                 },
             ])
             .await
@@ -1954,6 +1961,7 @@ mod tests {
                 )],
                 tool_calls: Vec::new(),
                 tool_call_id: Some("call_1".to_string()),
+                encrypted_reasoning: None,
             }])
             .await
             .unwrap();
@@ -2082,6 +2090,7 @@ mod tests {
                 content_parts: Vec::new(),
                 tool_calls: Vec::new(),
                 tool_call_id: None,
+                encrypted_reasoning: None,
             }])
             .await
             .unwrap();

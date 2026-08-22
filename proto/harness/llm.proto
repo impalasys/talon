@@ -37,6 +37,8 @@ message ChatMessage {
   repeated ChatContentPart content_parts = 2;
   repeated ToolCall tool_calls = 3;
   optional string tool_call_id = 4;
+  // Opaque provider continuation state associated with this assistant message.
+  optional talon.data.ObjectRef encrypted_reasoning = 5;
 }
 
 message ChatResponse {
