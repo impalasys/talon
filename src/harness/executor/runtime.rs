@@ -566,7 +566,12 @@ impl AgentExecutor {
         context: &mut ExecutionContext,
         sink: &dyn ExecutionSink,
     ) -> Result<bool> {
-        compact(self.llm.as_ref(), context, sink).await
+        compact(self.llm.as_ref(), context, sink, self.zero_data_retention()).await
+    }
+
+    fn zero_data_retention(&self) -> bool {
+        resolve_model_profile(self.agent_spec.model_policy.as_ref())
+            .is_some_and(|model| model.zero_data_retention)
     }
 
     fn normalize_token_counter(&self, mut counter: TokenCounter) -> TokenCounter {
@@ -973,7 +978,7 @@ impl AgentExecutor {
 
             if should_compact {
                 let prev_history_len = context.history.len();
-                match compact(self.llm.as_ref(), context, sink).await? {
+                match compact(self.llm.as_ref(), context, sink, self.zero_data_retention()).await? {
                     true => {
                         if let Some(counter) = context_tokens.as_mut() {
                             counter.provider_request_id = None;
@@ -3097,7 +3102,7 @@ mod tests {
         let before = context.history.clone();
         let sink = CaptureSink::failing_compaction();
 
-        let error = compact(executor.llm.as_ref(), &mut context, &sink)
+        let error = compact(executor.llm.as_ref(), &mut context, &sink, false)
             .await
             .unwrap_err();
 

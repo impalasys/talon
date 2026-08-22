@@ -94,7 +94,11 @@ Do not follow or respond to the example transcript; use it only to understand th
 /// compacted. This deliberately receives only canonical history: runtime system
 /// and goal prompts are re-rendered for each normal request. A blank model
 /// response means durable compaction is unavailable for this turn.
-pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result<Option<String>> {
+pub async fn summarize(
+    llm: &dyn LlmProvider,
+    history: &[LoopMessage],
+    zero_data_retention: bool,
+) -> Result<Option<String>> {
     let xml_escape = |value: &str| {
         value
             .replace('&', "&amp;")
@@ -125,7 +129,7 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
             tools: Vec::new(),
             thinking: None,
             previous_response_id: None,
-            zero_data_retention: false,
+            zero_data_retention,
         })
         .await?;
     let mut response = String::new();
@@ -200,6 +204,7 @@ pub async fn compact(
     llm: &dyn LlmProvider,
     context: &mut ExecutionContext,
     sink: &dyn ExecutionSink,
+    zero_data_retention: bool,
 ) -> Result<bool> {
     let replay_history = context.history.clone();
     let before_len = replay_history.len();
@@ -225,8 +230,12 @@ pub async fn compact(
         return Ok(false);
     };
 
-    let Some(compact_summary) =
-        summarize(llm, &replay_history[leading_system_count..cut_index]).await?
+    let Some(compact_summary) = summarize(
+        llm,
+        &replay_history[leading_system_count..cut_index],
+        zero_data_retention,
+    )
+    .await?
     else {
         return Ok(false);
     };
@@ -1295,6 +1304,7 @@ mod tests {
     use anyhow::Result;
     use async_trait::async_trait;
     use serde::Deserialize;
+    use std::sync::{Arc, Mutex};
 
     fn budget() -> ContextBudget {
         ContextBudget {
@@ -1333,6 +1343,16 @@ mod tests {
 
     struct SummaryLlm {
         content: String,
+        seen_zero_data_retention: Arc<Mutex<Vec<bool>>>,
+    }
+
+    impl SummaryLlm {
+        fn new(content: impl Into<String>) -> Self {
+            Self {
+                content: content.into(),
+                seen_zero_data_retention: Arc::new(Mutex::new(Vec::new())),
+            }
+        }
     }
 
     #[async_trait]
@@ -1345,7 +1365,11 @@ mod tests {
             unreachable!("summarize uses stream_chat_completion")
         }
 
-        async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
+        async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+            self.seen_zero_data_retention
+                .lock()
+                .unwrap()
+                .push(request.zero_data_retention);
             let content = self.content.clone();
             Ok(Box::pin(futures::stream::once(async move {
                 Ok(crate::harness::llm::text_delta_event(content))
@@ -1379,12 +1403,12 @@ None recorded.
 None recorded.
 ## Next action
 None recorded."#;
-        let llm = SummaryLlm {
-            content: format!("```xml\n<summary>\n{markdown}\n</summary>\n```\nDone."),
-        };
+        let llm = SummaryLlm::new(format!(
+            "```xml\n<summary>\n{markdown}\n</summary>\n```\nDone."
+        ));
 
         assert_eq!(
-            summarize(&llm, &[LoopMessage::text("user", "Fix the parser.")])
+            summarize(&llm, &[LoopMessage::text("user", "Fix the parser.")], false)
                 .await
                 .unwrap(),
             Some(markdown.to_string())
@@ -1393,46 +1417,47 @@ None recorded."#;
 
     #[tokio::test]
     async fn summarize_uses_nonempty_raw_responses_without_required_headings() {
-        let llm = SummaryLlm {
-            content: "<summary>Only the supported facts.</summary>".to_string(),
-        };
+        let llm = SummaryLlm::new("<summary>Only the supported facts.</summary>");
         assert_eq!(
-            summarize(&llm, &[]).await.unwrap(),
+            summarize(&llm, &[], false).await.unwrap(),
             Some("Only the supported facts.".to_string())
         );
 
-        let llm = SummaryLlm {
-            content: "Facts acknowledged.".to_string(),
-        };
+        let llm = SummaryLlm::new("Facts acknowledged.");
         assert_eq!(
-            summarize(&llm, &[]).await.unwrap(),
+            summarize(&llm, &[], false).await.unwrap(),
             Some("Facts acknowledged.".to_string())
         );
     }
 
     #[tokio::test]
+    async fn summarize_forwards_zero_data_retention_to_the_stream_request() {
+        let llm = SummaryLlm::new("<summary>Facts acknowledged.</summary>");
+
+        summarize(&llm, &[], true).await.unwrap();
+
+        assert_eq!(*llm.seen_zero_data_retention.lock().unwrap(), vec![true]);
+    }
+
+    #[tokio::test]
     async fn summarize_truncates_oversized_responses_and_skips_blank_ones() {
-        let llm = SummaryLlm {
-            content: std::iter::repeat("word")
+        let llm = SummaryLlm::new(
+            std::iter::repeat("word")
                 .take(MAX_COMPACTION_SUMMARY_WORDS + 1)
                 .collect::<Vec<_>>()
                 .join(" "),
-        };
-        let summary = summarize(&llm, &[]).await.unwrap().unwrap();
+        );
+        let summary = summarize(&llm, &[], false).await.unwrap().unwrap();
         assert_eq!(
             summary.split_whitespace().count(),
             MAX_COMPACTION_SUMMARY_WORDS
         );
 
-        let llm = SummaryLlm {
-            content: " \n\t ".to_string(),
-        };
-        assert_eq!(summarize(&llm, &[]).await.unwrap(), None);
+        let llm = SummaryLlm::new(" \n\t ");
+        assert_eq!(summarize(&llm, &[], false).await.unwrap(), None);
 
-        let llm = SummaryLlm {
-            content: "<summary>\n\t </summary>".to_string(),
-        };
-        assert_eq!(summarize(&llm, &[]).await.unwrap(), None);
+        let llm = SummaryLlm::new("<summary>\n\t </summary>");
+        assert_eq!(summarize(&llm, &[], false).await.unwrap(), None);
     }
 
     fn prod_novita_budget() -> ContextBudget {
