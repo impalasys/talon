@@ -110,16 +110,18 @@ class Feature(_message.Message):
     def __init__(self, name: _Optional[str] = ..., type: _Optional[str] = ..., required: bool = ...) -> None: ...
 
 class Model(_message.Message):
-    __slots__ = ("provider", "name", "temperature", "thinking")
+    __slots__ = ("provider", "name", "temperature", "thinking", "zero_data_retention")
     PROVIDER_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     TEMPERATURE_FIELD_NUMBER: _ClassVar[int]
     THINKING_FIELD_NUMBER: _ClassVar[int]
+    ZERO_DATA_RETENTION_FIELD_NUMBER: _ClassVar[int]
     provider: str
     name: str
     temperature: float
     thinking: ThinkingConfig
-    def __init__(self, provider: _Optional[str] = ..., name: _Optional[str] = ..., temperature: _Optional[float] = ..., thinking: _Optional[_Union[ThinkingConfig, _Mapping]] = ...) -> None: ...
+    zero_data_retention: bool
+    def __init__(self, provider: _Optional[str] = ..., name: _Optional[str] = ..., temperature: _Optional[float] = ..., thinking: _Optional[_Union[ThinkingConfig, _Mapping]] = ..., zero_data_retention: bool = ...) -> None: ...
 
 class ThinkingConfig(_message.Message):
     __slots__ = ("enabled", "budget_tokens", "effort")

@@ -185,6 +185,7 @@ impl ModelManifest {
                 budget_tokens: thinking.budget_tokens,
                 effort: thinking.effort,
             }),
+            zero_data_retention: self.zero_data_retention,
         }
     }
 
@@ -201,6 +202,7 @@ impl ModelManifest {
                     budget_tokens: thinking.budget_tokens,
                     effort: thinking.effort.clone(),
                 }),
+            zero_data_retention: model.zero_data_retention,
         }
     }
 }
@@ -225,6 +227,7 @@ impl ModelProfileManifest {
                     name: String::new(),
                     temperature: 0.0,
                     thinking: None,
+                    zero_data_retention: false,
                 }),
         }
     }

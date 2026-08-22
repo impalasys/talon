@@ -1682,6 +1682,7 @@ mod tests {
                                 name: "gpt-5".to_string(),
                                 temperature: 0.0,
                                 thinking: None,
+                                zero_data_retention: false,
                             }),
                         }],
                     }),

@@ -419,6 +419,7 @@ mod tests {
                         name: name.to_string(),
                         temperature: 0.0,
                         thinking: None,
+                        zero_data_retention: false,
                     }),
                 }],
             }),
@@ -479,6 +480,7 @@ mod tests {
                         name: "fallback-model".to_string(),
                         temperature: 0.0,
                         thinking: None,
+                        zero_data_retention: false,
                     }),
                 },
                 manifests::ModelProfile {

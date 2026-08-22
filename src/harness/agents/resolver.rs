@@ -332,6 +332,7 @@ mod tests {
                 name: model_name.to_string(),
                 temperature: 0.2,
                 thinking: None,
+                zero_data_retention: false,
             }),
         }
     }
