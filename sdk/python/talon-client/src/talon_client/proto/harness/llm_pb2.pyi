@@ -47,26 +47,30 @@ class ToolCallDelta(_message.Message):
     def __init__(self, index: _Optional[int] = ..., id: _Optional[str] = ..., name: _Optional[str] = ..., arguments: _Optional[str] = ...) -> None: ...
 
 class ChatMessage(_message.Message):
-    __slots__ = ("role", "content_parts", "tool_calls", "tool_call_id")
+    __slots__ = ("role", "content_parts", "tool_calls", "tool_call_id", "encrypted_reasoning")
     ROLE_FIELD_NUMBER: _ClassVar[int]
     CONTENT_PARTS_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALLS_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALL_ID_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTED_REASONING_FIELD_NUMBER: _ClassVar[int]
     role: str
     content_parts: _containers.RepeatedCompositeFieldContainer[ChatContentPart]
     tool_calls: _containers.RepeatedCompositeFieldContainer[ToolCall]
     tool_call_id: str
-    def __init__(self, role: _Optional[str] = ..., content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., tool_call_id: _Optional[str] = ...) -> None: ...
+    encrypted_reasoning: _data_pb2.ObjectRef
+    def __init__(self, role: _Optional[str] = ..., content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., tool_call_id: _Optional[str] = ..., encrypted_reasoning: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class ChatResponse(_message.Message):
-    __slots__ = ("content", "tool_calls", "usage")
+    __slots__ = ("content", "tool_calls", "usage", "encrypted_reasoning")
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALLS_FIELD_NUMBER: _ClassVar[int]
     USAGE_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTED_REASONING_FIELD_NUMBER: _ClassVar[int]
     content: str
     tool_calls: _containers.RepeatedCompositeFieldContainer[ToolCall]
     usage: _data_pb2.TokenCounter
-    def __init__(self, content: _Optional[str] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ...) -> None: ...
+    encrypted_reasoning: _data_pb2.ObjectRef
+    def __init__(self, content: _Optional[str] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ..., encrypted_reasoning: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class Tool(_message.Message):
     __slots__ = ("name", "description", "input_schema_json")
@@ -79,25 +83,29 @@ class Tool(_message.Message):
     def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ..., input_schema_json: _Optional[str] = ...) -> None: ...
 
 class ChatRequest(_message.Message):
-    __slots__ = ("messages", "tools", "thinking", "previous_response_id")
+    __slots__ = ("messages", "tools", "thinking", "previous_response_id", "zero_data_retention")
     MESSAGES_FIELD_NUMBER: _ClassVar[int]
     TOOLS_FIELD_NUMBER: _ClassVar[int]
     THINKING_FIELD_NUMBER: _ClassVar[int]
     PREVIOUS_RESPONSE_ID_FIELD_NUMBER: _ClassVar[int]
+    ZERO_DATA_RETENTION_FIELD_NUMBER: _ClassVar[int]
     messages: _containers.RepeatedCompositeFieldContainer[ChatMessage]
     tools: _containers.RepeatedCompositeFieldContainer[Tool]
     thinking: _agents_pb2.ThinkingConfig
     previous_response_id: str
-    def __init__(self, messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., tools: _Optional[_Iterable[_Union[Tool, _Mapping]]] = ..., thinking: _Optional[_Union[_agents_pb2.ThinkingConfig, _Mapping]] = ..., previous_response_id: _Optional[str] = ...) -> None: ...
+    zero_data_retention: bool
+    def __init__(self, messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., tools: _Optional[_Iterable[_Union[Tool, _Mapping]]] = ..., thinking: _Optional[_Union[_agents_pb2.ThinkingConfig, _Mapping]] = ..., previous_response_id: _Optional[str] = ..., zero_data_retention: bool = ...) -> None: ...
 
 class ChatStreamEvent(_message.Message):
-    __slots__ = ("text_delta", "reasoning_delta", "tool_call_delta", "usage")
+    __slots__ = ("text_delta", "reasoning_delta", "tool_call_delta", "usage", "encrypted_reasoning")
     TEXT_DELTA_FIELD_NUMBER: _ClassVar[int]
     REASONING_DELTA_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALL_DELTA_FIELD_NUMBER: _ClassVar[int]
     USAGE_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTED_REASONING_FIELD_NUMBER: _ClassVar[int]
     text_delta: str
     reasoning_delta: str
     tool_call_delta: ToolCallDelta
     usage: _data_pb2.TokenCounter
-    def __init__(self, text_delta: _Optional[str] = ..., reasoning_delta: _Optional[str] = ..., tool_call_delta: _Optional[_Union[ToolCallDelta, _Mapping]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ...) -> None: ...
+    encrypted_reasoning: str
+    def __init__(self, text_delta: _Optional[str] = ..., reasoning_delta: _Optional[str] = ..., tool_call_delta: _Optional[_Union[ToolCallDelta, _Mapping]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ..., encrypted_reasoning: _Optional[str] = ...) -> None: ...

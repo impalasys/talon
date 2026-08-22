@@ -390,6 +390,13 @@ export class Model extends Message<Model> {
    */
   thinking?: ThinkingConfig;
 
+  /**
+   * Use provider stateless/zero-data-retention continuation semantics.
+   *
+   * @generated from field: bool zero_data_retention = 5;
+   */
+  zeroDataRetention = false;
+
   constructor(data?: PartialMessage<Model>) {
     super();
     proto3.util.initPartial(data, this);
@@ -402,6 +409,7 @@ export class Model extends Message<Model> {
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "temperature", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 4, name: "thinking", kind: "message", T: ThinkingConfig },
+    { no: 5, name: "zero_data_retention", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Model {

@@ -59,6 +59,8 @@ message Model {
   string name = 2;
   float temperature = 3;
   ThinkingConfig thinking = 4;
+  // Use provider stateless/zero-data-retention continuation semantics.
+  bool zero_data_retention = 5;
 }
 
 message ThinkingConfig {

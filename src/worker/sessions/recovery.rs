@@ -19,11 +19,14 @@ use crate::harness::sessions::{
     SessionJournalEntryExt,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub(super) enum PreparedSubmissionState {
     ContinueExecution,
     StopAfterToolResult,
-    FinalResponseReady { content: String },
+    FinalResponseReady {
+        content: String,
+        encrypted_reasoning: Option<data_proto::ObjectRef>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -43,6 +46,10 @@ enum RecoveredProjectionPart {
         id: String,
         name: String,
         result: String,
+    },
+    EncryptedReasoning {
+        part_id: String,
+        object: data_proto::ObjectRef,
     },
 }
 
@@ -179,10 +186,21 @@ pub(super) async fn recover_claimed_submission(
                     .await?;
                 sink.advance_next_part_id_past(part_id);
             }
+            RecoveredProjectionPart::EncryptedReasoning { part_id, object } => {
+                sink.seed_recovered_encrypted_reasoning_part(part_id, object.clone());
+                sink.advance_next_part_id_past(part_id);
+            }
         }
     }
-    if let PreparedSubmissionState::FinalResponseReady { content } = &prepared.state {
+    if let PreparedSubmissionState::FinalResponseReady {
+        content,
+        encrypted_reasoning,
+    } = &prepared.state
+    {
         sink.seed_recovered_final_text_part(content);
+        if let Some(object) = encrypted_reasoning {
+            sink.seed_recovered_final_encrypted_reasoning_part(object.clone());
+        }
     }
 
     Ok(prepared.state)
@@ -386,12 +404,19 @@ async fn replay_claimed_submission_journal(
         let tool_calls = response.tool_calls.clone();
         let mut assistant_message = LoopMessage::text("assistant", response.content.clone());
         assistant_message.tool_calls = Some(tool_calls.clone());
+        assistant_message.encrypted_reasoning = response.encrypted_reasoning.clone();
         runtime.context.push(assistant_message);
         if !response.content.is_empty() {
             let part_id = next_recovered_part_id(&mut next_projection_part_index);
             projection_parts.push(RecoveredProjectionPart::Text {
                 part_id,
                 content: response.content.clone(),
+            });
+        }
+        if let Some(object) = response.encrypted_reasoning.clone() {
+            projection_parts.push(RecoveredProjectionPart::EncryptedReasoning {
+                part_id: next_recovered_part_id(&mut next_projection_part_index),
+                object,
             });
         }
 
@@ -533,6 +558,7 @@ async fn replay_claimed_submission_journal(
         return Ok(PreparedSubmission {
             state: PreparedSubmissionState::FinalResponseReady {
                 content: response.content,
+                encrypted_reasoning: response.encrypted_reasoning,
             },
             projection_parts,
             latest_appended_journal_entry_id,
@@ -861,6 +887,7 @@ mod tests {
                 arguments: "{\"query\":\"value\"}".to_string(),
             }],
             usage: None,
+            encrypted_reasoning: None,
         };
         sessions::append_llm_response(
             kv.as_ref(),
@@ -917,6 +944,7 @@ mod tests {
                 content: "continued after recovery".to_string(),
                 tool_calls: Vec::new(),
                 usage: None,
+                encrypted_reasoning: None,
             },
             50,
         )
@@ -959,6 +987,7 @@ mod tests {
             prepared.state,
             PreparedSubmissionState::FinalResponseReady {
                 content: "continued after recovery".to_string(),
+                encrypted_reasoning: None,
             }
         );
         assert_eq!(runtime.context.history.len(), 1);
@@ -1038,6 +1067,7 @@ mod tests {
                 arguments: "{\"query\":\"value\"}".to_string(),
             }],
             usage: None,
+            encrypted_reasoning: None,
         };
         sessions::append_llm_response(
             kv.as_ref(),
@@ -1156,6 +1186,7 @@ mod tests {
                     arguments: "{}".to_string(),
                 }],
                 usage: None,
+                encrypted_reasoning: None,
             },
             10,
         )

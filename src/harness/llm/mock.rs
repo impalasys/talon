@@ -21,6 +21,7 @@ impl LlmProvider for MockLlmProvider {
             content: format!("Mock response to {} messages", request.messages.len()),
             tool_calls: vec![],
             usage: None,
+            encrypted_reasoning: None,
         })
     }
 
@@ -56,6 +57,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .expect("chat completion should succeed");
@@ -69,6 +71,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .expect("streaming should succeed");

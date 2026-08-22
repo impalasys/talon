@@ -124,6 +124,7 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
             tools: Vec::new(),
             thinking: None,
             previous_response_id: None,
+            zero_data_retention: false,
         })
         .await?;
     let response = response.content.trim();
@@ -494,11 +495,15 @@ fn compact_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopMes
             .collect::<Vec<_>>()
     });
 
+    let altered = content_parts != message.content_parts || tool_calls != message.tool_calls;
     LoopMessage {
         role: message.role.clone(),
         content_parts,
         tool_calls,
         tool_call_id: message.tool_call_id.clone(),
+        encrypted_reasoning: (!altered)
+            .then(|| message.encrypted_reasoning.clone())
+            .flatten(),
     }
 }
 
@@ -525,6 +530,9 @@ fn force_fit_message(message: &LoopMessage, budget: ContextBudget) -> LoopMessag
         .saturating_sub(metadata_weight)
         .min(budget.max_message_chars.max(512));
     compacted.content_parts = fit_content_parts_to_weight(&compacted.content_parts, allowed_chars);
+    if compacted.content_parts != message.content_parts {
+        compacted.encrypted_reasoning = None;
+    }
     compacted
 }
 
@@ -1337,6 +1345,7 @@ mod tests {
                 content: self.content.clone(),
                 tool_calls: Vec::new(),
                 usage: None,
+                encrypted_reasoning: None,
             })
         }
 

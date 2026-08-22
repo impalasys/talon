@@ -99,6 +99,7 @@ pub fn chat_message_text(role: impl Into<String>, content: impl Into<String>) ->
         },
         tool_calls: Vec::new(),
         tool_call_id: None,
+        encrypted_reasoning: None,
     }
 }
 
@@ -144,6 +145,14 @@ pub fn tool_call_delta_event(delta: ToolCallDelta) -> ChatStreamEvent {
 pub fn usage_event(usage: TokenCounter) -> ChatStreamEvent {
     ChatStreamEvent {
         event: Some(chat_stream_event::Event::Usage(usage)),
+    }
+}
+
+pub fn encrypted_reasoning_event(reasoning: impl Into<String>) -> ChatStreamEvent {
+    ChatStreamEvent {
+        event: Some(chat_stream_event::Event::EncryptedReasoning(
+            reasoning.into(),
+        )),
     }
 }
 

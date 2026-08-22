@@ -63,6 +63,8 @@ pub struct LoopMessage {
     pub content_parts: Vec<ChatContentPart>,
     pub tool_calls: Option<Vec<ToolCall>>,
     pub tool_call_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub encrypted_reasoning: Option<crate::gateway::rpc::data_proto::ObjectRef>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -83,6 +85,7 @@ impl LoopMessage {
             },
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         }
     }
 
@@ -682,6 +685,7 @@ impl AgentExecutor {
                 content_parts: m.content_parts.clone(),
                 tool_calls: m.tool_calls.clone().unwrap_or_default(),
                 tool_call_id: m.tool_call_id.clone(),
+                encrypted_reasoning: m.encrypted_reasoning.clone(),
             })
             .collect::<Vec<_>>();
         for message in &mut messages {
@@ -1011,9 +1015,11 @@ impl AgentExecutor {
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
             let mut final_usage: Option<TokenCounter> = None;
+            let mut encrypted_reasoning_items = Vec::new();
             let mut saw_tool_call_delta = false;
-            let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
-                .and_then(|model| model.thinking.clone());
+            let model = resolve_model_profile(self.agent_spec.model_policy.as_ref());
+            let thinking = model.and_then(|model| model.thinking.clone());
+            let zero_data_retention = model.is_some_and(|model| model.zero_data_retention);
             let usage_subject = self.usage_subject();
             crate::control::usage::check_namespace_usage(
                 self.control_plane.kv.as_ref(),
@@ -1026,7 +1032,10 @@ impl AgentExecutor {
                 messages,
                 tools,
                 thinking,
-                previous_response_id: self.previous_response_id(context_tokens.as_ref()),
+                previous_response_id: (!zero_data_retention)
+                    .then(|| self.previous_response_id(context_tokens.as_ref()))
+                    .flatten(),
+                zero_data_retention,
             };
             prior_request_history_len = Some(context.history.len());
             let reasoning_level = request
@@ -1176,6 +1185,9 @@ impl AgentExecutor {
                     } => {
                         final_usage = Some(self.normalize_token_counter(usage));
                     }
+                    ChatStreamEvent {
+                        event: Some(chat_stream_event::Event::EncryptedReasoning(reasoning)),
+                    } => encrypted_reasoning_items.push(reasoning),
                     ChatStreamEvent { event: None } => {}
                 }
             }
@@ -1185,6 +1197,41 @@ impl AgentExecutor {
                 .filter(|tool| !tool.name.is_empty())
                 .collect();
 
+            let encrypted_reasoning = match encrypted_reasoning_items.len() {
+                0 => None,
+                1 => match CasStore::new(self.control_plane.objects.clone())
+                    .put_encrypted_reasoning(
+                        &self.namespace,
+                        &self.agent_id,
+                        &self.session_id,
+                        &self.llm_model,
+                        &encrypted_reasoning_items[0],
+                    )
+                    .await
+                {
+                    Ok(object_ref) => Some(object_ref),
+                    Err(error) => {
+                        tracing::warn!(
+                            namespace = %self.namespace,
+                            agent = %self.agent_id,
+                            session = %self.session_id,
+                            %error,
+                            "Failed to persist encrypted reasoning; omitting continuation state"
+                        );
+                        None
+                    }
+                },
+                count => {
+                    tracing::warn!(
+                        provider = %self.llm_provider_key,
+                        model = %self.llm_model,
+                        encrypted_reasoning_items = count,
+                        "Response contained multiple encrypted reasoning items; omitting continuation state"
+                    );
+                    None
+                }
+            };
+
             let llm_response = ChatResponse {
                 content: final_reply.clone(),
                 tool_calls: tool_calls.clone(),
@@ -1192,6 +1239,7 @@ impl AgentExecutor {
                     final_usage
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
+                encrypted_reasoning: encrypted_reasoning.clone(),
             };
             context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
@@ -1231,6 +1279,7 @@ impl AgentExecutor {
             } else {
                 Some(tool_calls.clone())
             };
+            assistant_message.encrypted_reasoning = encrypted_reasoning;
             context.push(assistant_message);
 
             if !tool_calls.is_empty() {
@@ -1394,6 +1443,7 @@ pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> Loop
         content_parts: result.content_parts(),
         tool_calls: None,
         tool_call_id: Some(tool_call_id.to_string()),
+        encrypted_reasoning: None,
     }
 }
 
@@ -1469,6 +1519,7 @@ mod tests {
                 },
                 tool_calls: Vec::new(),
                 usage: None,
+                encrypted_reasoning: None,
             })
         }
 
@@ -2073,6 +2124,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
         let original_user_message = context.history[0].clone();
 
@@ -2133,6 +2185,7 @@ mod tests {
             content_parts: vec![object_ref_part(object.clone())],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor
@@ -2187,6 +2240,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor
@@ -2242,6 +2296,7 @@ mod tests {
             content_parts: vec![object_ref_part(object)],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor
@@ -2281,6 +2336,7 @@ mod tests {
             })],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor
@@ -2324,6 +2380,7 @@ mod tests {
             })],
             tool_calls: None,
             tool_call_id: None,
+            encrypted_reasoning: None,
         });
 
         executor

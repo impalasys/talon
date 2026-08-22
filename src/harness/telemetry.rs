@@ -462,6 +462,7 @@ mod tests {
                 arguments: r#"{"query":"plan"}"#.to_string(),
             }],
             tool_call_id: None,
+            encrypted_reasoning: None,
         };
 
         let json = serialize_messages_json(&[message]);

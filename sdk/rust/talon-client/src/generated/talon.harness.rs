@@ -55,6 +55,9 @@ pub struct ChatMessage {
     pub tool_calls: ::prost::alloc::vec::Vec<ToolCall>,
     #[prost(string, optional, tag = "4")]
     pub tool_call_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// Opaque provider continuation state associated with this assistant output.
+    #[prost(message, optional, tag = "5")]
+    pub encrypted_reasoning: ::core::option::Option<super::data::ObjectRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChatResponse {
@@ -64,6 +67,9 @@ pub struct ChatResponse {
     pub tool_calls: ::prost::alloc::vec::Vec<ToolCall>,
     #[prost(message, optional, tag = "3")]
     pub usage: ::core::option::Option<super::data::TokenCounter>,
+    /// Opaque provider continuation state stored in CAS.
+    #[prost(message, optional, tag = "4")]
+    pub encrypted_reasoning: ::core::option::Option<super::data::ObjectRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Tool {
@@ -85,10 +91,12 @@ pub struct ChatRequest {
     pub thinking: ::core::option::Option<super::resources::ThinkingConfig>,
     #[prost(string, optional, tag = "4")]
     pub previous_response_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, tag = "5")]
+    pub zero_data_retention: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChatStreamEvent {
-    #[prost(oneof = "chat_stream_event::Event", tags = "1, 2, 3, 4")]
+    #[prost(oneof = "chat_stream_event::Event", tags = "1, 2, 3, 4, 5")]
     pub event: ::core::option::Option<chat_stream_event::Event>,
 }
 /// Nested message and enum types in `ChatStreamEvent`.
@@ -103,5 +111,9 @@ pub mod chat_stream_event {
         ToolCallDelta(super::ToolCallDelta),
         #[prost(message, tag = "4")]
         Usage(super::super::data::TokenCounter),
+        /// Raw opaque provider state. The executor writes it to CAS before it is
+        /// persisted in a ChatResponse or SessionMessage.
+        #[prost(string, tag = "5")]
+        EncryptedReasoning(::prost::alloc::string::String),
     }
 }

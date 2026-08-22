@@ -37,12 +37,16 @@ message ChatMessage {
   repeated ChatContentPart content_parts = 2;
   repeated ToolCall tool_calls = 3;
   optional string tool_call_id = 4;
+  // Opaque provider continuation state associated with this assistant output.
+  optional talon.data.ObjectRef encrypted_reasoning = 5;
 }
 
 message ChatResponse {
   string content = 1;
   repeated ToolCall tool_calls = 2;
   optional talon.data.TokenCounter usage = 3;
+  // Opaque provider continuation state stored in CAS.
+  optional talon.data.ObjectRef encrypted_reasoning = 4;
 }
 
 message Tool {
@@ -57,6 +61,7 @@ message ChatRequest {
   repeated Tool tools = 2;
   optional talon.resources.ThinkingConfig thinking = 3;
   optional string previous_response_id = 4;
+  bool zero_data_retention = 5;
 }
 
 message ChatStreamEvent {
@@ -65,5 +70,8 @@ message ChatStreamEvent {
     string reasoning_delta = 2;
     ToolCallDelta tool_call_delta = 3;
     talon.data.TokenCounter usage = 4;
+    // Raw opaque provider state. The executor writes it to CAS before it is
+    // persisted in a ChatResponse or SessionMessage.
+    string encrypted_reasoning = 5;
   }
 }

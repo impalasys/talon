@@ -383,6 +383,7 @@ spec:
           provider: openai
           name: gpt-5.6-luna
           temperature: 0.2
+          zeroDataRetention: true
           thinking:
             enabled: true
             budgetTokens: 2048
@@ -397,6 +398,7 @@ spec:
         };
         let policy = spec.model_policy.unwrap();
         let model = policy.profiles[0].model.as_ref().unwrap();
+        assert!(model.zero_data_retention);
         let thinking = model.thinking.as_ref().expect("thinking policy");
         assert!(thinking.enabled);
         assert_eq!(thinking.budget_tokens, Some(2048));

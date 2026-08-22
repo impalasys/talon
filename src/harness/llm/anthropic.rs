@@ -257,6 +257,7 @@ impl LlmProvider for AnthropicProvider {
             content,
             tool_calls: vec![],
             usage,
+            encrypted_reasoning: None,
         })
     }
 
@@ -400,6 +401,7 @@ impl LlmProvider for AnthropicProvider {
             tools: vec![],
             thinking: None,
             previous_response_id: None,
+            zero_data_retention: false,
         })
         .await
         .map(|r| r.content)
@@ -598,6 +600,7 @@ mod tests {
                 content_parts: Vec::new(),
                 tool_calls: Vec::new(),
                 tool_call_id: None,
+                encrypted_reasoning: None,
             })
             .await
             .unwrap();
@@ -820,6 +823,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -832,6 +836,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap_err();
@@ -843,6 +848,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap_err();
@@ -905,6 +911,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -928,6 +935,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
         {

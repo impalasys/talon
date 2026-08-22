@@ -669,6 +669,28 @@ impl PubSubSessionSink {
         );
     }
 
+    pub(crate) fn seed_recovered_encrypted_reasoning_part(
+        &self,
+        part_id: &str,
+        object: data_proto::ObjectRef,
+    ) {
+        self.record_part_with_id_and_object(
+            part_id.to_string(),
+            data_proto::SessionMessagePartType::EncryptedReasoning,
+            String::new(),
+            String::new(),
+            String::new(),
+            Some(object),
+        );
+    }
+
+    pub(crate) fn seed_recovered_final_encrypted_reasoning_part(
+        &self,
+        object: data_proto::ObjectRef,
+    ) {
+        self.seed_recovered_encrypted_reasoning_part(&self.next_part_id(), object);
+    }
+
     pub(crate) fn seed_recovered_tool_call_part(
         &self,
         part_id: &str,
@@ -1337,6 +1359,16 @@ impl ExecutionSink for PubSubSessionSink {
         )
         .await?;
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        if let Some(object) = response.encrypted_reasoning.clone() {
+            self.record_part_with_id_and_object(
+                self.next_part_id(),
+                data_proto::SessionMessagePartType::EncryptedReasoning,
+                String::new(),
+                String::new(),
+                String::new(),
+                Some(object),
+            );
+        }
         if let Some(counter) = response.usage.as_ref() {
             // A Responses API response containing function calls is not a
             // durable continuation point until every call has been answered.
@@ -3033,6 +3065,7 @@ mod tests {
             content: "first".to_string(),
             tool_calls: tool_calls.clone(),
             usage: None,
+            encrypted_reasoning: None,
         })
         .await
         .unwrap();
@@ -3043,6 +3076,7 @@ mod tests {
             content: "final".to_string(),
             tool_calls: Vec::new(),
             usage: None,
+            encrypted_reasoning: None,
         })
         .await
         .unwrap();
@@ -3609,6 +3643,7 @@ mod tests {
                 content: String::new(),
                 tool_calls: Vec::new(),
                 usage: Some(counter.clone()),
+                encrypted_reasoning: None,
             })
             .await
             .unwrap();
@@ -3693,6 +3728,7 @@ mod tests {
                 model: "gpt-test".to_string(),
                 ..Default::default()
             }),
+            encrypted_reasoning: None,
         })
         .await
         .unwrap();

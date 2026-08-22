@@ -167,6 +167,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -208,6 +209,7 @@ mod tests {
                     content: "chat ok".to_string(),
                     tool_calls: vec![],
                     usage: None,
+                    encrypted_reasoning: None,
                 })
             }
         }
@@ -255,6 +257,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -267,6 +270,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
