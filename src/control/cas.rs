@@ -314,10 +314,10 @@ impl CasStore {
         let bytes = value.as_bytes();
         self.objects
             .put(
-                &self.session_object_key(&scope, &identity),
+                &session_object_key_with_extension(&scope, &identity, "bin"),
                 bytes,
                 ObjectMetadata {
-                    media_type: "application/vnd.openai.responses-reasoning+json".to_string(),
+                    media_type: "application/octet-stream".to_string(),
                     size_bytes: bytes.len() as u64,
                     sha256: sha256_hex(bytes),
                     filename: String::new(),
@@ -487,12 +487,21 @@ impl CasStore {
 }
 
 pub fn session_object_key(scope: &SessionCasScope, identity: &SessionObjectIdentity) -> String {
+    session_object_key_with_extension(scope, identity, "txt")
+}
+
+fn session_object_key_with_extension(
+    scope: &SessionCasScope,
+    identity: &SessionObjectIdentity,
+    extension: &str,
+) -> String {
     format!(
-        "cas/{}/sessions/{}/messages/{}/{}.txt",
+        "cas/{}/sessions/{}/messages/{}/{}.{}",
         encoded_object_key_segment(&scope.ns),
         object_key_segment(&scope.session_id),
         object_key_segment(&identity.message_id),
-        object_key_segment(&identity.part_id)
+        object_key_segment(&identity.part_id),
+        extension,
     )
 }
 
