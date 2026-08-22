@@ -1,4 +1,7 @@
+import { rmSync } from "node:fs";
 import { defineConfig, type Options } from "tsup";
+
+rmSync("dist", { recursive: true, force: true });
 
 const common: Options = {
   entry: ["src/index.ts"],
@@ -16,7 +19,7 @@ export default defineConfig([
   {
     ...common,
     format: ["esm"],
-    clean: true,
+    clean: false,
     external: [...external, "streamdown"],
   },
   {
