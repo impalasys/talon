@@ -416,7 +416,8 @@ metadata:
 spec:
   modelPolicy:
     profiles:
-      - model:
+      - name: default
+        model:
           provider: openai
           name: gpt-5.6-luna
           temperature: 0.2
