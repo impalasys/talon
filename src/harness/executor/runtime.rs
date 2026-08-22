@@ -1011,6 +1011,7 @@ impl AgentExecutor {
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
             let mut final_usage: Option<TokenCounter> = None;
+            let mut encrypted_reasoning_items = Vec::new();
             let mut saw_tool_call_delta = false;
             let model = resolve_model_profile(self.agent_spec.model_policy.as_ref());
             let thinking = model.and_then(|model| model.thinking.clone());
@@ -1181,8 +1182,8 @@ impl AgentExecutor {
                         final_usage = Some(self.normalize_token_counter(usage));
                     }
                     ChatStreamEvent {
-                        event: Some(chat_stream_event::Event::EncryptedReasoning(_)),
-                    } => {}
+                        event: Some(chat_stream_event::Event::EncryptedReasoning(reasoning)),
+                    } => encrypted_reasoning_items.push(reasoning),
                     ChatStreamEvent { event: None } => {}
                 }
             }
@@ -1192,6 +1193,41 @@ impl AgentExecutor {
                 .filter(|tool| !tool.name.is_empty())
                 .collect();
 
+            let encrypted_reasoning = match encrypted_reasoning_items.len() {
+                0 => None,
+                1 => match CasStore::new(self.control_plane.objects.clone())
+                    .put_encrypted_reasoning(
+                        &self.namespace,
+                        &self.agent_id,
+                        &self.session_id,
+                        &self.llm_model,
+                        &encrypted_reasoning_items[0],
+                    )
+                    .await
+                {
+                    Ok(object_ref) => Some(object_ref),
+                    Err(error) => {
+                        tracing::warn!(
+                            namespace = %self.namespace,
+                            agent = %self.agent_id,
+                            session = %self.session_id,
+                            %error,
+                            "Failed to persist encrypted reasoning; omitting continuation state"
+                        );
+                        None
+                    }
+                },
+                count => {
+                    tracing::warn!(
+                        provider = %self.llm_provider_key,
+                        model = %self.llm_model,
+                        encrypted_reasoning_items = count,
+                        "Response contained multiple encrypted reasoning items; omitting continuation state"
+                    );
+                    None
+                }
+            };
+
             let llm_response = ChatResponse {
                 content: final_reply.clone(),
                 tool_calls: tool_calls.clone(),
@@ -1199,7 +1235,7 @@ impl AgentExecutor {
                     final_usage
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
-                encrypted_reasoning: None,
+                encrypted_reasoning: encrypted_reasoning,
             };
             context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
