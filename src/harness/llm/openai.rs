@@ -1051,11 +1051,6 @@ impl LlmProvider for OpenAiCompatibleProvider {
         use crate::harness::llm::provider::ToolCall;
 
         if self.uses_responses_api() {
-            if request.zero_data_retention {
-                return Err(anyhow!(
-                    "zeroDataRetention requires streamed OpenAI Responses execution"
-                ));
-            }
             let resp = self.send_responses_request(request, false).await?;
             let result: serde_json::Value = resp.json().await?;
             return parse_responses_response(&result);
@@ -2932,6 +2927,70 @@ mod tests {
         assert_eq!(response.content, "done");
         assert_eq!(response.tool_calls[0].id, "call_1");
         assert_eq!(response.usage.unwrap().reasoning_output_tokens, 3);
+    }
+
+    #[tokio::test]
+    async fn nonstreaming_responses_zdr_request_is_stateless() {
+        let payloads = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let app = Router::new().route(
+            "/responses",
+            post({
+                let payloads = payloads.clone();
+                move |Json(payload): Json<serde_json::Value>| {
+                    let payloads = payloads.clone();
+                    async move {
+                        payloads.lock().unwrap().push(payload);
+                        Json(serde_json::json!({
+                            "id": "resp_zdr",
+                            "output": [
+                                {"type": "reasoning", "encrypted_content": "opaque-state"},
+                                {"type": "message", "content": [{"type": "output_text", "text": "summary"}]}
+                            ]
+                        }))
+                    }
+                }
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+            test_cas_store(),
+            "responses",
+        );
+
+        let response = provider
+            .chat_completion(ChatRequest {
+                messages: vec![
+                    chat_message_text("system", "summarize faithfully"),
+                    chat_message_text("user", "old context"),
+                    chat_message_text("user", "new context"),
+                ],
+                tools: Vec::new(),
+                thinking: None,
+                previous_response_id: Some("resp_previous".to_string()),
+                zero_data_retention: true,
+            })
+            .await
+            .unwrap();
+
+        let payload = payloads.lock().unwrap().pop().unwrap();
+        assert_eq!(payload["stream"], false);
+        assert_eq!(payload["store"], false);
+        assert_eq!(
+            payload["include"],
+            serde_json::json!(["reasoning.encrypted_content"])
+        );
+        assert!(payload.get("previous_response_id").is_none());
+        assert!(payload["input"].to_string().contains("old context"));
+        assert_eq!(response.content, "summary");
+        assert!(response.encrypted_reasoning.is_none());
+        server.abort();
     }
 
     #[tokio::test]
