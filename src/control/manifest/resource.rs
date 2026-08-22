@@ -365,9 +365,7 @@ pub fn resource_spec_status_from_json(
             )?)),
         },
         "Secret" => resources_proto::ResourceStatus {
-            kind: Some(StatusKind::Secret(common_status_from_value(
-                status_value,
-            )?)),
+            kind: Some(StatusKind::Secret(common_status_from_value(status_value)?)),
         },
         "SandboxClass" => resources_proto::ResourceStatus {
             kind: Some(StatusKind::SandboxClass(common_status_from_value(
@@ -671,15 +669,17 @@ fn file_spec_from_value(value: serde_json::Value) -> Result<resources_proto::Fil
 }
 
 fn file_status_from_value(value: serde_json::Value) -> Result<resources_proto::FileStatus> {
-    if value.as_object().map(|object| object.is_empty()).unwrap_or(false) {
+    if value
+        .as_object()
+        .map(|object| object.is_empty())
+        .unwrap_or(false)
+    {
         return Ok(resources_proto::FileStatus::default());
     }
     serde_json::from_value(value).context("Failed to parse File status")
 }
 
-fn secret_spec_from_value(
-    mut value: serde_json::Value,
-) -> Result<resources_proto::SecretSpec> {
+fn secret_spec_from_value(mut value: serde_json::Value) -> Result<resources_proto::SecretSpec> {
     if let serde_json::Value::Object(object) = &mut value {
         object
             .entry("data")
@@ -743,7 +743,11 @@ impl TaskStatusManifest {
 }
 
 fn task_status_from_value(value: serde_json::Value) -> Result<resources_proto::TaskStatus> {
-    if value.as_object().map(|object| object.is_empty()).unwrap_or(false) {
+    if value
+        .as_object()
+        .map(|object| object.is_empty())
+        .unwrap_or(false)
+    {
         return Ok(resources_proto::TaskStatus::default());
     }
     Ok(serde_json::from_value::<TaskStatusManifest>(value)

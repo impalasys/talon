@@ -737,8 +737,8 @@ mod tests {
     use super::{
         api_key_cache_hash, gateway_http_base, gateway_http_base_from_endpoint,
         google_token_request_form, mint_local_platform_access_jwt, parse_ttl_seconds,
-        resolve_token_ttl_seconds, StoredGatewayAuth, DEFAULT_GOOGLE_CLI_CLIENT_SECRET,
-        LocalPlatformTokenScope, DEFAULT_TOKEN_TTL,
+        resolve_token_ttl_seconds, LocalPlatformTokenScope, StoredGatewayAuth,
+        DEFAULT_GOOGLE_CLI_CLIENT_SECRET, DEFAULT_TOKEN_TTL,
     };
     use crate::cli::commands::Cli;
     use crate::control::security::platform_jwt;

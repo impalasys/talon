@@ -193,13 +193,14 @@ impl ModelManifest {
             provider: model.provider.clone(),
             name: model.name.clone(),
             temperature: model.temperature,
-            thinking: model.thinking.as_ref().map(|thinking| {
-                ThinkingConfigManifest {
+            thinking: model
+                .thinking
+                .as_ref()
+                .map(|thinking| ThinkingConfigManifest {
                     enabled: thinking.enabled,
                     budget_tokens: thinking.budget_tokens,
                     effort: thinking.effort.clone(),
-                }
-            }),
+                }),
         }
     }
 }

@@ -51,7 +51,10 @@ spec:
         else {
             panic!("expected McpServer spec");
         };
-        assert_eq!(spec.policy.unwrap().tools.unwrap().allowlist, vec!["search"]);
+        assert_eq!(
+            spec.policy.unwrap().tools.unwrap().allowlist,
+            vec!["search"]
+        );
     }
 
     #[test]
@@ -69,7 +72,9 @@ spec:
         )
         .expect_err("McpServerBinding should be unsupported");
 
-        assert!(error.to_string().contains("McpServerBinding manifests are unsupported"));
+        assert!(error
+            .to_string()
+            .contains("McpServerBinding manifests are unsupported"));
     }
 
     #[test]
@@ -166,7 +171,10 @@ spec:
             panic!("expected ConnectorClass spec");
         };
         let api_key = spec.auth.unwrap().api_key.unwrap();
-        assert_eq!(api_key.env.as_deref(), Some("TALON_SLACK_CONNECTOR_API_KEY"));
+        assert_eq!(
+            api_key.env.as_deref(),
+            Some("TALON_SLACK_CONNECTOR_API_KEY")
+        );
         assert_eq!(api_key.plain, None);
 
         let rendered = render_resource_yaml(&resources_proto::Resource {
@@ -656,13 +664,16 @@ spec:
         assert_eq!(spec.post_history_prompt, "Current time: {{ talon.now }}");
 
         let rendered = serde_json::to_value(&spec).expect("serialize AgentSpec postHistoryPrompt");
-        assert_eq!(rendered["postHistoryPrompt"], "Current time: {{ talon.now }}");
+        assert_eq!(
+            rendered["postHistoryPrompt"],
+            "Current time: {{ talon.now }}"
+        );
     }
 
     #[test]
     fn agent_spec_serde_defaults_post_history_prompt_to_empty() {
-        let spec: resources_proto::AgentSpec = serde_json::from_value(serde_json::json!({}))
-            .expect("deserialize empty AgentSpec");
+        let spec: resources_proto::AgentSpec =
+            serde_json::from_value(serde_json::json!({})).expect("deserialize empty AgentSpec");
 
         assert_eq!(spec.post_history_prompt, "");
     }
@@ -833,12 +844,10 @@ spec:
             metadata: manifest.metadata,
             spec: manifest.spec,
             status: Some(resources_proto::ResourceStatus {
-                kind: Some(resource_status::Kind::Task(
-                    resources_proto::TaskStatus {
-                        phase: resources_proto::TaskPhase::NeedsReview as i32,
-                        ..Default::default()
-                    },
-                )),
+                kind: Some(resource_status::Kind::Task(resources_proto::TaskStatus {
+                    phase: resources_proto::TaskPhase::NeedsReview as i32,
+                    ..Default::default()
+                })),
             }),
         })
         .expect("task resource should render");

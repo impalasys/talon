@@ -190,12 +190,16 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "generic" => {
-            crate::control::manifest::parse_resource_manifest(content)?
+        "generic" => crate::control::manifest::parse_resource_manifest(content)?,
+        "namespace" => {
+            anyhow::bail!("Namespace manifests must be applied through the namespace path")
         }
-        "namespace" => anyhow::bail!("Namespace manifests must be applied through the namespace path"),
         "internal" => anyhow::bail!("Unsupported manifest kind '{}'", canonical_kind),
-        route => anyhow::bail!("Unsupported manifest route '{}' for kind '{}'", route, canonical_kind),
+        route => anyhow::bail!(
+            "Unsupported manifest route '{}' for kind '{}'",
+            route,
+            canonical_kind
+        ),
     };
     let meta = manifest
         .metadata

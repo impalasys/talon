@@ -94,7 +94,10 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
         }
         kind if crate::cli::resource_kind(kind)
             .map(|resource| resource.user_authorable)
-            .unwrap_or(false) => Ok(json!({ "resource": manifest_value })),
+            .unwrap_or(false) =>
+        {
+            Ok(json!({ "resource": manifest_value }))
+        }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
 }

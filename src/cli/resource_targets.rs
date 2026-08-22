@@ -37,7 +37,10 @@ pub(super) fn resource_lookup_target(
             .cloned()
             .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
         "system_fixed" => crate::control::ns::TALON_SYSTEM.to_string(),
-        policy => anyhow::bail!("Unsupported lookup namespace policy '{}'; check resource registry", policy),
+        policy => anyhow::bail!(
+            "Unsupported lookup namespace policy '{}'; check resource registry",
+            policy
+        ),
     };
 
     let final_name = match resource.name_policy.as_str() {
@@ -48,7 +51,10 @@ pub(super) fn resource_lookup_target(
             .unwrap_or(name)
             .to_string(),
         "plain" => name.to_string(),
-        policy => anyhow::bail!("Unsupported name policy '{}'; check resource registry", policy),
+        policy => anyhow::bail!(
+            "Unsupported name policy '{}'; check resource registry",
+            policy
+        ),
     };
 
     Ok((final_namespace, resource.kind.clone(), final_name))

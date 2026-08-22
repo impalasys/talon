@@ -422,14 +422,16 @@ fn resource_status_phase(resource: &resources_proto::Resource) -> Option<String>
         | StatusKind::SandboxClass(status)
         | StatusKind::SandboxPolicy(status) => Some(status.phase.clone()),
         StatusKind::File(status) => Some(status.phase.clone()),
-        StatusKind::Task(status) => resources_proto::TaskPhase::try_from(status.phase)
-            .ok()
-            .map(|phase| {
-                phase
-                    .as_str_name()
-                    .trim_start_matches("TASK_PHASE_")
-                    .to_string()
-            }),
+        StatusKind::Task(status) => {
+            resources_proto::TaskPhase::try_from(status.phase)
+                .ok()
+                .map(|phase| {
+                    phase
+                        .as_str_name()
+                        .trim_start_matches("TASK_PHASE_")
+                        .to_string()
+                })
+        }
         StatusKind::ConnectorClass(status) => Some(status.phase.clone()),
         StatusKind::Connector(status) => Some(status.phase.clone()),
         StatusKind::Worker(status) => Some(status.phase.clone()),

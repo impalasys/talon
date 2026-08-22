@@ -310,7 +310,9 @@ fn file_ref(
     })
 }
 
-async fn read_file_response_content(response: talon_client::v1::ReadFileResponse) -> Result<Vec<u8>> {
+async fn read_file_response_content(
+    response: talon_client::v1::ReadFileResponse,
+) -> Result<Vec<u8>> {
     if !response.signed_url.trim().is_empty() {
         return download_signed_url(&response.signed_url).await;
     }
@@ -365,7 +367,12 @@ async fn signed_upload_create(
         })
         .await?
         .into_inner();
-    upload_to_signed_url(&response.signed_upload_url, &response.required_headers, bytes).await?;
+    upload_to_signed_url(
+        &response.signed_upload_url,
+        &response.required_headers,
+        bytes,
+    )
+    .await?;
     Ok(client
         .complete_file_upload(CompleteFileUploadRequest {
             upload_token: response.upload_token,
@@ -394,7 +401,12 @@ async fn signed_upload_update(
         })
         .await?
         .into_inner();
-    upload_to_signed_url(&response.signed_upload_url, &response.required_headers, bytes).await?;
+    upload_to_signed_url(
+        &response.signed_upload_url,
+        &response.required_headers,
+        bytes,
+    )
+    .await?;
     Ok(client
         .complete_file_upload(CompleteFileUploadRequest {
             upload_token: response.upload_token,
