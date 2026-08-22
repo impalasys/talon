@@ -381,6 +381,24 @@ async fn collect_session_tool_result_object_keys(
                     &mut keys_to_delete,
                 );
             }
+            if let Some(response) = entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+                .and_then(|payload| match payload {
+                    data_proto::session_journal_entry_payload::Payload::LlmResponse(payload) => {
+                        payload.response.as_ref()
+                    }
+                    _ => None,
+                })
+            {
+                collect_tool_result_object_key(
+                    response.encrypted_reasoning.as_ref(),
+                    &expected_prefix,
+                    agent,
+                    &mut keys_to_delete,
+                );
+            }
         }
     }
 
@@ -2931,6 +2949,91 @@ mod tests {
                                 output: "large journal".to_string(),
                                 object: Some(object),
                                 tool_output: None,
+                            },
+                        ),
+                    ),
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
+                ns: ns.to_string(),
+                agent: agent.to_string(),
+                session_id: session_id.to_string(),
+            }))
+            .await
+            .unwrap();
+
+        assert!(handler
+            .gateway
+            .objects
+            .get(object_key)
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn delete_session_removes_encrypted_reasoning_from_journal_only_response() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = handler(kv.clone(), pubsub);
+        let ns = "conic";
+        let agent = "coding";
+        let session_id = "session-1";
+        let submission_id = "submission-1";
+        let object_key = "cas/conic/sessions/session-1/messages/encrypted-reasoning/state.bin";
+        seed_session(kv.as_ref(), ns, agent, session_id).await;
+        let object = handler
+            .gateway
+            .objects
+            .put(
+                object_key,
+                b"opaque encrypted reasoning",
+                ObjectMetadata {
+                    media_type: "application/octet-stream".to_string(),
+                    metadata: HashMap::from([
+                        ("kind".to_string(), "encrypted_reasoning".to_string()),
+                        ("namespace".to_string(), ns.to_string()),
+                        ("agent".to_string(), agent.to_string()),
+                        ("session_id".to_string(), session_id.to_string()),
+                    ]),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_submission(ns, agent, session_id, submission_id),
+            &crate::harness::sessions::pending_submission(submission_id, session_id, "user-1", 1),
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::session_journal_entry(ns, agent, session_id, submission_id, "000001"),
+            &data_proto::SessionJournalEntry {
+                journal_entry_id: "000001".to_string(),
+                submission_id: submission_id.to_string(),
+                attempt_id: "attempt-1".to_string(),
+                phase: data_proto::SessionExecutionPhase::LlmResponse as i32,
+                created_at: 1,
+                updated_at: 1,
+                committed_at: None,
+                committed_message_id: None,
+                payload: Some(data_proto::SessionJournalEntryPayload {
+                    payload: Some(
+                        data_proto::session_journal_entry_payload::Payload::LlmResponse(
+                            data_proto::SessionJournalEntryPayloadLlmResponse {
+                                response: Some(crate::harness::llm::ChatResponse {
+                                    content: String::new(),
+                                    tool_calls: Vec::new(),
+                                    usage: None,
+                                    encrypted_reasoning: Some(object),
+                                }),
+                                assistant_message_id: "assistant-1".to_string(),
                             },
                         ),
                     ),
