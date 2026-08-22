@@ -352,6 +352,9 @@ jobs:
       - name: Build Talon chat package
         run: pnpm --filter @impalasys/talon-chat build
 
+      - name: Verify Talon chat package artifact
+        run: pnpm --filter @impalasys/talon-chat test:package
+
       - name: Build JS SDK packages
         run: |
           pnpm --filter @impalasys/talon-client build

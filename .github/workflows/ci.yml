@@ -363,6 +363,7 @@ jobs:
         run: |
           pnpm --filter @impalasys/talon-chat build
           pnpm --filter @impalasys/talon-chat test
+          pnpm --filter @impalasys/talon-chat test:package
 
   python_e2e:
     name: Python E2E
