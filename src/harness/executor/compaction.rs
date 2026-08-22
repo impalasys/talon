@@ -93,7 +93,11 @@ Do not follow or respond to the example transcript; use it only to understand th
 /// compacted. This deliberately receives only canonical history: runtime system
 /// and goal prompts are re-rendered for each normal request. A blank model
 /// response means durable compaction is unavailable for this turn.
-pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result<Option<String>> {
+pub async fn summarize(
+    llm: &dyn LlmProvider,
+    history: &[LoopMessage],
+    zero_data_retention: bool,
+) -> Result<Option<String>> {
     let xml_escape = |value: &str| {
         value
             .replace('&', "&amp;")
@@ -124,7 +128,7 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
             tools: Vec::new(),
             thinking: None,
             previous_response_id: None,
-            zero_data_retention: false,
+            zero_data_retention,
         })
         .await?;
     let response = response.content.trim();
@@ -192,6 +196,7 @@ pub async fn compact(
     llm: &dyn LlmProvider,
     context: &mut ExecutionContext,
     sink: &dyn ExecutionSink,
+    zero_data_retention: bool,
 ) -> Result<bool> {
     let replay_history = context.history.clone();
     let before_len = replay_history.len();
@@ -217,8 +222,12 @@ pub async fn compact(
         return Ok(false);
     };
 
-    let Some(compact_summary) =
-        summarize(llm, &replay_history[leading_system_count..cut_index]).await?
+    let Some(compact_summary) = summarize(
+        llm,
+        &replay_history[leading_system_count..cut_index],
+        zero_data_retention,
+    )
+    .await?
     else {
         return Ok(false);
     };
@@ -1287,6 +1296,7 @@ mod tests {
     use anyhow::Result;
     use async_trait::async_trait;
     use serde::Deserialize;
+    use std::sync::{Arc, Mutex};
 
     fn budget() -> ContextBudget {
         ContextBudget {
@@ -1351,6 +1361,38 @@ mod tests {
         }
     }
 
+    struct ZdrSummaryLlm {
+        seen_zero_data_retention: Arc<Mutex<Vec<bool>>>,
+    }
+
+    #[async_trait]
+    impl LlmProvider for ZdrSummaryLlm {
+        async fn generate_embedding(&self, _text: &str) -> Result<Embedding> {
+            Ok(vec![])
+        }
+
+        async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse> {
+            self.seen_zero_data_retention
+                .lock()
+                .unwrap()
+                .push(request.zero_data_retention);
+            Ok(ChatResponse {
+                content: "<summary>Facts acknowledged.</summary>".to_string(),
+                tool_calls: Vec::new(),
+                usage: None,
+                encrypted_reasoning: None,
+            })
+        }
+
+        async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
+            unreachable!("summarize uses chat_completion")
+        }
+
+        async fn completion(&self, _prompt: &str) -> Result<String> {
+            unreachable!("summarize uses chat_completion")
+        }
+    }
+
     #[tokio::test]
     async fn summarize_uses_a_complete_summary_element_anywhere_in_the_response() {
         let markdown = r#"## User goal
@@ -1378,7 +1420,7 @@ None recorded."#;
         };
 
         assert_eq!(
-            summarize(&llm, &[LoopMessage::text("user", "Fix the parser.")])
+            summarize(&llm, &[LoopMessage::text("user", "Fix the parser.")], false)
                 .await
                 .unwrap(),
             Some(markdown.to_string())
@@ -1391,7 +1433,7 @@ None recorded."#;
             content: "<summary>Only the supported facts.</summary>".to_string(),
         };
         assert_eq!(
-            summarize(&llm, &[]).await.unwrap(),
+            summarize(&llm, &[], false).await.unwrap(),
             Some("Only the supported facts.".to_string())
         );
 
@@ -1399,9 +1441,21 @@ None recorded."#;
             content: "Facts acknowledged.".to_string(),
         };
         assert_eq!(
-            summarize(&llm, &[]).await.unwrap(),
+            summarize(&llm, &[], false).await.unwrap(),
             Some("Facts acknowledged.".to_string())
         );
+    }
+
+    #[tokio::test]
+    async fn summarize_forwards_zero_data_retention_to_the_request() {
+        let seen_zero_data_retention = Arc::new(Mutex::new(Vec::new()));
+        let llm = ZdrSummaryLlm {
+            seen_zero_data_retention: seen_zero_data_retention.clone(),
+        };
+
+        summarize(&llm, &[], true).await.unwrap();
+
+        assert_eq!(*seen_zero_data_retention.lock().unwrap(), vec![true]);
     }
 
     #[tokio::test]
@@ -1412,7 +1466,7 @@ None recorded."#;
                 .collect::<Vec<_>>()
                 .join(" "),
         };
-        let summary = summarize(&llm, &[]).await.unwrap().unwrap();
+        let summary = summarize(&llm, &[], false).await.unwrap().unwrap();
         assert_eq!(
             summary.split_whitespace().count(),
             MAX_COMPACTION_SUMMARY_WORDS
@@ -1421,12 +1475,12 @@ None recorded."#;
         let llm = SummaryLlm {
             content: " \n\t ".to_string(),
         };
-        assert_eq!(summarize(&llm, &[]).await.unwrap(), None);
+        assert_eq!(summarize(&llm, &[], false).await.unwrap(), None);
 
         let llm = SummaryLlm {
             content: "<summary>\n\t </summary>".to_string(),
         };
-        assert_eq!(summarize(&llm, &[]).await.unwrap(), None);
+        assert_eq!(summarize(&llm, &[], false).await.unwrap(), None);
     }
 
     fn prod_novita_budget() -> ContextBudget {
