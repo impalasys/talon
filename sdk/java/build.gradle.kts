@@ -10,7 +10,7 @@ subprojects {
     apply(plugin = "maven-publish")
 
     group = "systems.impala"
-    version = "0.2.9"
+    version = "0.2.10"
 
     java {
         sourceCompatibility = JavaVersion.VERSION_17
