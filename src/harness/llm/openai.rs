@@ -512,6 +512,11 @@ impl OpenAiCompatibleProvider {
         request: ChatRequest,
         stream: bool,
     ) -> Result<reqwest::Response> {
+        if request.zero_data_retention {
+            return Err(anyhow!(
+                "zeroDataRetention requires the OpenAI Responses API, not Chat Completions"
+            ));
+        }
         let url = format!("{}/chat/completions", self.base_url.trim_end_matches('/'));
         let serialized_messages = self.serialize_messages(request.messages.clone()).await?;
 
@@ -816,7 +821,9 @@ impl OpenAiCompatibleProvider {
     ) -> Result<reqwest::Response> {
         let url = format!("{}/responses", self.base_url.trim_end_matches('/'));
         let messages = request.messages;
-        let previous_response_id = request.previous_response_id.clone();
+        let previous_response_id = (!request.zero_data_retention)
+            .then(|| request.previous_response_id.clone())
+            .flatten();
         let build_payload = |input: Vec<serde_json::Value>, previous_response_id: Option<&str>| {
             let mut payload = serde_json::json!({
                 "model": self.model,
@@ -825,6 +832,10 @@ impl OpenAiCompatibleProvider {
             });
             if let Some(previous_response_id) = previous_response_id {
                 payload["previous_response_id"] = serde_json::json!(previous_response_id);
+            }
+            if request.zero_data_retention {
+                payload["store"] = serde_json::json!(false);
+                payload["include"] = serde_json::json!(["reasoning.encrypted_content"]);
             }
             if !request.tools.is_empty() {
                 payload["tools"] = serde_json::json!(request
@@ -1040,6 +1051,11 @@ impl LlmProvider for OpenAiCompatibleProvider {
         use crate::harness::llm::provider::ToolCall;
 
         if self.uses_responses_api() {
+            if request.zero_data_retention {
+                return Err(anyhow!(
+                    "zeroDataRetention requires streamed OpenAI Responses execution"
+                ));
+            }
             let resp = self.send_responses_request(request, false).await?;
             let result: serde_json::Value = resp.json().await?;
             return parse_responses_response(&result);

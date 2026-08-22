@@ -1012,8 +1012,9 @@ impl AgentExecutor {
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
             let mut final_usage: Option<TokenCounter> = None;
             let mut saw_tool_call_delta = false;
-            let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
-                .and_then(|model| model.thinking.clone());
+            let model = resolve_model_profile(self.agent_spec.model_policy.as_ref());
+            let thinking = model.and_then(|model| model.thinking.clone());
+            let zero_data_retention = model.is_some_and(|model| model.zero_data_retention);
             let usage_subject = self.usage_subject();
             crate::control::usage::check_namespace_usage(
                 self.control_plane.kv.as_ref(),
@@ -1026,8 +1027,10 @@ impl AgentExecutor {
                 messages,
                 tools,
                 thinking,
-                previous_response_id: self.previous_response_id(context_tokens.as_ref()),
-                zero_data_retention: false,
+                previous_response_id: (!zero_data_retention)
+                    .then(|| self.previous_response_id(context_tokens.as_ref()))
+                    .flatten(),
+                zero_data_retention,
             };
             prior_request_history_len = Some(context.history.len());
             let reasoning_level = request
