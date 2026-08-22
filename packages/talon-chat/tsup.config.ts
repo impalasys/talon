@@ -1,15 +1,29 @@
-import { defineConfig } from "tsup";
+import { defineConfig, type Options } from "tsup";
 
-export default defineConfig({
+const common: Options = {
   entry: ["src/index.ts"],
-  format: ["esm", "cjs"],
   outDir: "dist",
   sourcemap: true,
-  clean: true,
   splitting: false,
   bundle: true,
   minify: false,
   target: "es2020",
-  external: ["@impalasys/talon-client", "react", "react-dom", "lucide-react"],
-  noExternal: ["streamdown"],
-});
+};
+
+const external = ["@impalasys/talon-client", "react", "react-dom", "lucide-react"];
+
+export default defineConfig([
+  {
+    ...common,
+    format: ["esm"],
+    clean: true,
+    external: [...external, "streamdown"],
+  },
+  {
+    ...common,
+    format: ["cjs"],
+    clean: false,
+    external,
+    noExternal: ["streamdown"],
+  },
+]);
