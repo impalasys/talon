@@ -1203,6 +1203,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
             tools: vec![],
             thinking: None,
             previous_response_id: None,
+            zero_data_retention: false,
         })
         .await
         .map(|r| r.content)
@@ -2150,6 +2151,7 @@ mod tests {
                     tools,
                     thinking: None,
                     previous_response_id: None,
+                    zero_data_retention: false,
                 },
                 false,
             )
@@ -2275,6 +2277,7 @@ mod tests {
                     effort: "high".to_string(),
                 }),
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -2323,6 +2326,7 @@ mod tests {
                     effort: "medium".to_string(),
                 }),
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -2370,6 +2374,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -2422,6 +2427,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -2473,6 +2479,7 @@ mod tests {
                     tools: vec![],
                     thinking: None,
                     previous_response_id: None,
+                    zero_data_retention: false,
                 },
                 false,
             )
@@ -2545,6 +2552,7 @@ mod tests {
                     tools: vec![],
                     thinking: None,
                     previous_response_id: None,
+                    zero_data_retention: false,
                 },
                 true,
             )
@@ -2615,6 +2623,7 @@ mod tests {
                     }],
                     thinking: None,
                     previous_response_id: None,
+                    zero_data_retention: false,
                 },
                 false,
             )
@@ -2672,6 +2681,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -2737,6 +2747,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -2781,6 +2792,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -2946,6 +2958,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: Some("resp_poisoned".to_string()),
+                zero_data_retention: false,
             })
             .await
             .unwrap();

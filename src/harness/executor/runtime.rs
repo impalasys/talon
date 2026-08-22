@@ -1027,6 +1027,7 @@ impl AgentExecutor {
                 tools,
                 thinking,
                 previous_response_id: self.previous_response_id(context_tokens.as_ref()),
+                zero_data_retention: false,
             };
             prior_request_history_len = Some(context.history.len());
             let reasoning_level = request
