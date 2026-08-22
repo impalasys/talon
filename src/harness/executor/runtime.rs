@@ -1180,6 +1180,9 @@ impl AgentExecutor {
                     } => {
                         final_usage = Some(self.normalize_token_counter(usage));
                     }
+                    ChatStreamEvent {
+                        event: Some(chat_stream_event::Event::EncryptedReasoning(_)),
+                    } => {}
                     ChatStreamEvent { event: None } => {}
                 }
             }

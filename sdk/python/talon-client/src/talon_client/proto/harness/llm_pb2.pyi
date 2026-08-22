@@ -93,13 +93,15 @@ class ChatRequest(_message.Message):
     def __init__(self, messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., tools: _Optional[_Iterable[_Union[Tool, _Mapping]]] = ..., thinking: _Optional[_Union[_agents_pb2.ThinkingConfig, _Mapping]] = ..., previous_response_id: _Optional[str] = ..., zero_data_retention: bool = ...) -> None: ...
 
 class ChatStreamEvent(_message.Message):
-    __slots__ = ("text_delta", "reasoning_delta", "tool_call_delta", "usage")
+    __slots__ = ("text_delta", "reasoning_delta", "tool_call_delta", "usage", "encrypted_reasoning")
     TEXT_DELTA_FIELD_NUMBER: _ClassVar[int]
     REASONING_DELTA_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALL_DELTA_FIELD_NUMBER: _ClassVar[int]
     USAGE_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTED_REASONING_FIELD_NUMBER: _ClassVar[int]
     text_delta: str
     reasoning_delta: str
     tool_call_delta: ToolCallDelta
     usage: _data_pb2.TokenCounter
-    def __init__(self, text_delta: _Optional[str] = ..., reasoning_delta: _Optional[str] = ..., tool_call_delta: _Optional[_Union[ToolCallDelta, _Mapping]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ...) -> None: ...
+    encrypted_reasoning: str
+    def __init__(self, text_delta: _Optional[str] = ..., reasoning_delta: _Optional[str] = ..., tool_call_delta: _Optional[_Union[ToolCallDelta, _Mapping]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ..., encrypted_reasoning: _Optional[str] = ...) -> None: ...

@@ -3,10 +3,10 @@
 
 use crate::control::cas::CasStore;
 use crate::harness::llm::provider::{
-    chat_content_part, chat_message_text, chat_stream_event, object_ref_fallback_text,
-    provider_request_error, reasoning_delta_event, text_delta_event, tool_call_delta_event,
-    usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream,
-    ChatStreamEvent, LlmProvider, TokenCounter, ToolCallDelta,
+    chat_content_part, chat_message_text, chat_stream_event, encrypted_reasoning_event,
+    object_ref_fallback_text, provider_request_error, reasoning_delta_event, text_delta_event,
+    tool_call_delta_event, usage_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
+    ChatStream, ChatStreamEvent, LlmProvider, TokenCounter, ToolCallDelta,
 };
 use crate::harness::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -1295,6 +1295,22 @@ fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
     })
 }
 
+fn encrypted_reasoning_items(value: &Value) -> Vec<String> {
+    value
+        .get("output")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter(|item| item.get("type").and_then(Value::as_str) == Some("reasoning"))
+        .filter(|item| {
+            item.get("encrypted_content")
+                .and_then(Value::as_str)
+                .is_some_and(|value| !value.is_empty())
+        })
+        .filter_map(|item| serde_json::to_string(item).ok())
+        .collect()
+}
+
 fn extract_responses_usage(value: &Value) -> Option<TokenCounter> {
     let usage = value.get("usage").cloned().unwrap_or(Value::Null);
     let input_tokens = usage
@@ -1487,8 +1503,16 @@ fn parse_responses_stream(response: reqwest::Response, parent_span: tracing::Spa
                             if let Some(usage) = extract_responses_usage(response) {
                                 items.push(Ok(usage_event(usage)));
                             }
-                        } else if let Some(usage) = extract_responses_usage(&value) {
-                            items.push(Ok(usage_event(usage)));
+                            for encrypted_reasoning in encrypted_reasoning_items(response) {
+                                items.push(Ok(encrypted_reasoning_event(encrypted_reasoning)));
+                            }
+                        } else {
+                            if let Some(usage) = extract_responses_usage(&value) {
+                                items.push(Ok(usage_event(usage)));
+                            }
+                            for encrypted_reasoning in encrypted_reasoning_items(&value) {
+                                items.push(Ok(encrypted_reasoning_event(encrypted_reasoning)));
+                            }
                         }
                     }
                     "error" | "response.failed" | "response.incomplete" => {

@@ -8645,6 +8645,38 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      */
     talon.data.Data.TokenCounterOrBuilder getUsageOrBuilder();
 
+    /**
+     * <pre>
+     * Raw opaque provider state. The executor writes it to CAS before it is
+     * persisted in a ChatResponse or SessionMessage.
+     * </pre>
+     *
+     * <code>string encrypted_reasoning = 5;</code>
+     * @return Whether the encryptedReasoning field is set.
+     */
+    boolean hasEncryptedReasoning();
+    /**
+     * <pre>
+     * Raw opaque provider state. The executor writes it to CAS before it is
+     * persisted in a ChatResponse or SessionMessage.
+     * </pre>
+     *
+     * <code>string encrypted_reasoning = 5;</code>
+     * @return The encryptedReasoning.
+     */
+    java.lang.String getEncryptedReasoning();
+    /**
+     * <pre>
+     * Raw opaque provider state. The executor writes it to CAS before it is
+     * persisted in a ChatResponse or SessionMessage.
+     * </pre>
+     *
+     * <code>string encrypted_reasoning = 5;</code>
+     * @return The bytes for encryptedReasoning.
+     */
+    com.google.protobuf.ByteString
+        getEncryptedReasoningBytes();
+
     talon.harness.Llm.ChatStreamEvent.EventCase getEventCase();
   }
   /**
@@ -8699,6 +8731,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       REASONING_DELTA(2),
       TOOL_CALL_DELTA(3),
       USAGE(4),
+      ENCRYPTED_REASONING(5),
       EVENT_NOT_SET(0);
       private final int value;
       private EventCase(int value) {
@@ -8720,6 +8753,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           case 2: return REASONING_DELTA;
           case 3: return TOOL_CALL_DELTA;
           case 4: return USAGE;
+          case 5: return ENCRYPTED_REASONING;
           case 0: return EVENT_NOT_SET;
           default: return null;
         }
@@ -8893,6 +8927,69 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       return talon.data.Data.TokenCounter.getDefaultInstance();
     }
 
+    public static final int ENCRYPTED_REASONING_FIELD_NUMBER = 5;
+    /**
+     * <pre>
+     * Raw opaque provider state. The executor writes it to CAS before it is
+     * persisted in a ChatResponse or SessionMessage.
+     * </pre>
+     *
+     * <code>string encrypted_reasoning = 5;</code>
+     * @return Whether the encryptedReasoning field is set.
+     */
+    public boolean hasEncryptedReasoning() {
+      return eventCase_ == 5;
+    }
+    /**
+     * <pre>
+     * Raw opaque provider state. The executor writes it to CAS before it is
+     * persisted in a ChatResponse or SessionMessage.
+     * </pre>
+     *
+     * <code>string encrypted_reasoning = 5;</code>
+     * @return The encryptedReasoning.
+     */
+    public java.lang.String getEncryptedReasoning() {
+      if (eventCase_ != 5) {
+        return "";
+      }
+      java.lang.Object ref = event_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        event_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Raw opaque provider state. The executor writes it to CAS before it is
+     * persisted in a ChatResponse or SessionMessage.
+     * </pre>
+     *
+     * <code>string encrypted_reasoning = 5;</code>
+     * @return The bytes for encryptedReasoning.
+     */
+    public com.google.protobuf.ByteString
+        getEncryptedReasoningBytes() {
+      if (eventCase_ != 5) {
+        return com.google.protobuf.ByteString.copyFromUtf8("");
+      }
+      java.lang.Object ref = event_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        event_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -8919,6 +9016,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (eventCase_ == 4) {
         output.writeMessage(4, (talon.data.Data.TokenCounter) event_);
       }
+      if (eventCase_ == 5) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, event_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -8941,6 +9041,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (eventCase_ == 4) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, (talon.data.Data.TokenCounter) event_);
+      }
+      if (eventCase_ == 5) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, event_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -8975,6 +9078,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           if (!getUsage()
               .equals(other.getUsage())) return false;
           break;
+        case 5:
+          if (!getEncryptedReasoning()
+              .equals(other.getEncryptedReasoning())) return false;
+          break;
         case 0:
         default:
       }
@@ -9005,6 +9112,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         case 4:
           hash = (37 * hash) + USAGE_FIELD_NUMBER;
           hash = (53 * hash) + getUsage().hashCode();
+          break;
+        case 5:
+          hash = (37 * hash) + ENCRYPTED_REASONING_FIELD_NUMBER;
+          hash = (53 * hash) + getEncryptedReasoning().hashCode();
           break;
         case 0:
         default:
@@ -9230,6 +9341,12 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
             mergeUsage(other.getUsage());
             break;
           }
+          case ENCRYPTED_REASONING: {
+            eventCase_ = 5;
+            event_ = other.event_;
+            onChanged();
+            break;
+          }
           case EVENT_NOT_SET: {
             break;
           }
@@ -9284,6 +9401,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 eventCase_ = 4;
                 break;
               } // case 34
+              case 42: {
+                eventCase_ = 5;
+                event_ = input.readStringRequireUtf8();
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -9778,6 +9900,125 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return usageBuilder_;
       }
 
+      /**
+       * <pre>
+       * Raw opaque provider state. The executor writes it to CAS before it is
+       * persisted in a ChatResponse or SessionMessage.
+       * </pre>
+       *
+       * <code>string encrypted_reasoning = 5;</code>
+       * @return Whether the encryptedReasoning field is set.
+       */
+      @java.lang.Override
+      public boolean hasEncryptedReasoning() {
+        return eventCase_ == 5;
+      }
+      /**
+       * <pre>
+       * Raw opaque provider state. The executor writes it to CAS before it is
+       * persisted in a ChatResponse or SessionMessage.
+       * </pre>
+       *
+       * <code>string encrypted_reasoning = 5;</code>
+       * @return The encryptedReasoning.
+       */
+      @java.lang.Override
+      public java.lang.String getEncryptedReasoning() {
+        if (eventCase_ != 5) {
+          return "";
+        }
+        java.lang.Object ref = event_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+            event_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Raw opaque provider state. The executor writes it to CAS before it is
+       * persisted in a ChatResponse or SessionMessage.
+       * </pre>
+       *
+       * <code>string encrypted_reasoning = 5;</code>
+       * @return The bytes for encryptedReasoning.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getEncryptedReasoningBytes() {
+        if (eventCase_ != 5) {
+          return com.google.protobuf.ByteString.copyFromUtf8(        "");
+        }
+        java.lang.Object ref = event_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          event_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Raw opaque provider state. The executor writes it to CAS before it is
+       * persisted in a ChatResponse or SessionMessage.
+       * </pre>
+       *
+       * <code>string encrypted_reasoning = 5;</code>
+       * @param value The encryptedReasoning to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEncryptedReasoning(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        eventCase_ = 5;
+        event_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Raw opaque provider state. The executor writes it to CAS before it is
+       * persisted in a ChatResponse or SessionMessage.
+       * </pre>
+       *
+       * <code>string encrypted_reasoning = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEncryptedReasoning() {
+        if (eventCase_ == 5) {
+          eventCase_ = 0;
+          event_ = null;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Raw opaque provider state. The executor writes it to CAS before it is
+       * persisted in a ChatResponse or SessionMessage.
+       * </pre>
+       *
+       * <code>string encrypted_reasoning = 5;</code>
+       * @param value The bytes for encryptedReasoning to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEncryptedReasoningBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        eventCase_ = 5;
+        event_ = value;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.harness.ChatStreamEvent)
     }
 
@@ -9910,12 +10151,12 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       "alon.resources.ThinkingConfigH\000\210\001\001\022!\n\024pr" +
       "evious_response_id\030\004 \001(\tH\001\210\001\001\022\033\n\023zero_da" +
       "ta_retention\030\005 \001(\010B\013\n\t_thinkingB\027\n\025_prev" +
-      "ious_response_id\"\257\001\n\017ChatStreamEvent\022\024\n\n" +
+      "ious_response_id\"\316\001\n\017ChatStreamEvent\022\024\n\n" +
       "text_delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 " +
       "\001(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon.h" +
       "arness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030." +
-      "talon.data.TokenCounterH\000B\007\n\005eventb\006prot" +
-      "o3"
+      "talon.data.TokenCounterH\000\022\035\n\023encrypted_r" +
+      "easoning\030\005 \001(\tH\000B\007\n\005eventb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9976,7 +10217,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatStreamEvent_descriptor,
-        new java.lang.String[] { "TextDelta", "ReasoningDelta", "ToolCallDelta", "Usage", "Event", });
+        new java.lang.String[] { "TextDelta", "ReasoningDelta", "ToolCallDelta", "Usage", "EncryptedReasoning", "Event", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
     talon.resources.Agents.getDescriptor();

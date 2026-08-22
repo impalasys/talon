@@ -454,6 +454,15 @@ export class ChatStreamEvent extends Message<ChatStreamEvent> {
      */
     value: TokenCounter;
     case: "usage";
+  } | {
+    /**
+     * Raw opaque provider state. The executor writes it to CAS before it is
+     * persisted in a ChatResponse or SessionMessage.
+     *
+     * @generated from field: string encrypted_reasoning = 5;
+     */
+    value: string;
+    case: "encryptedReasoning";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatStreamEvent>) {
@@ -468,6 +477,7 @@ export class ChatStreamEvent extends Message<ChatStreamEvent> {
     { no: 2, name: "reasoning_delta", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "event" },
     { no: 3, name: "tool_call_delta", kind: "message", T: ToolCallDelta, oneof: "event" },
     { no: 4, name: "usage", kind: "message", T: TokenCounter, oneof: "event" },
+    { no: 5, name: "encrypted_reasoning", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "event" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatStreamEvent {

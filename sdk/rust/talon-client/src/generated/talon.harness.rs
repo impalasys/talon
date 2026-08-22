@@ -90,7 +90,7 @@ pub struct ChatRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChatStreamEvent {
-    #[prost(oneof = "chat_stream_event::Event", tags = "1, 2, 3, 4")]
+    #[prost(oneof = "chat_stream_event::Event", tags = "1, 2, 3, 4, 5")]
     pub event: ::core::option::Option<chat_stream_event::Event>,
 }
 /// Nested message and enum types in `ChatStreamEvent`.
@@ -105,5 +105,9 @@ pub mod chat_stream_event {
         ToolCallDelta(super::ToolCallDelta),
         #[prost(message, tag = "4")]
         Usage(super::super::data::TokenCounter),
+        /// Raw opaque provider state. The executor writes it to CAS before it is
+        /// persisted in a ChatResponse or SessionMessage.
+        #[prost(string, tag = "5")]
+        EncryptedReasoning(::prost::alloc::string::String),
     }
 }
