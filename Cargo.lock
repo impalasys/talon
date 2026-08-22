@@ -6801,7 +6801,7 @@ dependencies = [
 
 [[package]]
 name = "talon-client"
-version = "0.2.8"
+version = "0.2.9"
 dependencies = [
  "futures",
  "http-body 1.0.1",
