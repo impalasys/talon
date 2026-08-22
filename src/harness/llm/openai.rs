@@ -797,6 +797,7 @@ impl OpenAiCompatibleProvider {
         &self,
         messages: Vec<ChatMessage>,
         previous_response_id: Option<&str>,
+        include_encrypted_reasoning: bool,
     ) -> Result<Vec<serde_json::Value>> {
         let messages = if previous_response_id.is_some() {
             let suffix_start = messages
@@ -845,7 +846,7 @@ impl OpenAiCompatibleProvider {
                 continue;
             }
 
-            if message.role == "assistant" {
+            if include_encrypted_reasoning && message.role == "assistant" {
                 if let Some(object_ref) = message.encrypted_reasoning.as_ref() {
                     if let Some(reasoning) =
                         openai_encrypted_reasoning_input(&self.cas, object_ref, &self.model).await
@@ -932,7 +933,11 @@ impl OpenAiCompatibleProvider {
             payload
         };
         let input = self
-            .serialize_responses_input(messages.clone(), previous_response_id.as_deref())
+            .serialize_responses_input(
+                messages.clone(),
+                previous_response_id.as_deref(),
+                request.zero_data_retention,
+            )
             .await?;
         let mut payload = build_payload(input, previous_response_id.as_deref());
 
@@ -985,7 +990,9 @@ impl OpenAiCompatibleProvider {
                     reason = recovery_reason,
                     "Retrying Responses request without previous_response_id"
                 );
-                let full_input = self.serialize_responses_input(messages, None).await?;
+                let full_input = self
+                    .serialize_responses_input(messages, None, false)
+                    .await?;
                 payload = build_payload(full_input, None);
                 let retry_response = self
                     .http_client
@@ -1930,6 +1937,7 @@ mod tests {
                     encrypted_reasoning: None,
                 }],
                 None,
+                false,
             )
             .await
             .unwrap();
@@ -3106,6 +3114,7 @@ mod tests {
                     chat_message_text("user", "new question"),
                 ],
                 None,
+                false,
             )
             .await
             .unwrap();
@@ -3132,7 +3141,7 @@ mod tests {
             chat_message_text("user", "new question"),
         ];
         let input = provider
-            .serialize_responses_input(messages, Some("resp_previous"))
+            .serialize_responses_input(messages, Some("resp_previous"), false)
             .await
             .unwrap();
 
@@ -3245,6 +3254,8 @@ mod tests {
                     payload["input"][0]["encrypted_content"],
                     "opaque-encrypted-reasoning"
                 );
+                assert_eq!(payload["input"][0]["id"], "rs_1");
+                assert_eq!(payload["input"][0]["summary"], serde_json::json!([]));
                 Json(serde_json::json!({
                     "id": "resp_zdr",
                     "output": [{
@@ -3290,6 +3301,52 @@ mod tests {
             .unwrap();
         assert!(response.status().is_success());
         server.abort();
+    }
+
+    #[tokio::test]
+    async fn responses_non_zdr_request_does_not_replay_encrypted_reasoning() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let reasoning = objects
+            .put(
+                "cas/ns/agents/agent/sessions/session/messages/reasoning/parts/non-zdr",
+                br#"{"id":"rs_1","type":"reasoning","encrypted_content":"opaque-encrypted-reasoning"}"#,
+                ObjectMetadata {
+                    media_type: "application/vnd.openai.responses-reasoning+json".to_string(),
+                    metadata: std::collections::HashMap::from([(
+                        "model".to_string(),
+                        "model".to_string(),
+                    )]),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+        let provider = OpenAiCompatibleProvider::with_api(
+            "key".to_string(),
+            "http://127.0.0.1:1".to_string(),
+            "model".to_string(),
+            CasStore::new(objects),
+            "responses",
+        );
+
+        let input = provider
+            .serialize_responses_input(
+                vec![ChatMessage {
+                    role: "assistant".to_string(),
+                    content_parts: vec![text_part("prior answer")],
+                    tool_calls: Vec::new(),
+                    tool_call_id: None,
+                    encrypted_reasoning: Some(reasoning),
+                }],
+                None,
+                false,
+            )
+            .await
+            .unwrap();
+
+        assert!(input
+            .iter()
+            .all(|item| item.get("type").and_then(Value::as_str) != Some("reasoning")));
     }
 
     #[tokio::test]
