@@ -159,12 +159,13 @@ async fn resolve_llm_with_credentials(
 
             Ok(ResolvedLlm {
                 provider: Arc::new(
-                    crate::harness::llm::openai::OpenAiCompatibleProvider::with_api(
+                    crate::harness::llm::openai::OpenAiCompatibleProvider::with_provider_key(
                         api_key,
                         base_url,
                         model.clone(),
                         cas,
                         api,
+                        provider_name,
                     ),
                 ),
                 provider_key: provider_name.to_string(),
@@ -211,12 +212,16 @@ async fn resolve_llm_with_credentials(
                 .to_string();
 
             Ok(ResolvedLlm {
-                provider: Arc::new(crate::harness::llm::openai::OpenAiCompatibleProvider::new(
-                    api_key,
-                    base_url,
-                    model.clone(),
-                    cas,
-                )),
+                provider: Arc::new(
+                    crate::harness::llm::openai::OpenAiCompatibleProvider::with_provider_key(
+                        api_key,
+                        base_url,
+                        model.clone(),
+                        cas,
+                        "chat_completions",
+                        provider_name,
+                    ),
+                ),
                 provider_key: provider_name.to_string(),
                 model,
             })
