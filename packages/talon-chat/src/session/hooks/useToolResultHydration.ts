@@ -54,7 +54,11 @@ function findObjectPart(parts: unknown, toolCallId: string): ToolResultPartMatch
 
 function findHydratableObjectPart(parts: unknown, toolCallId: string): ToolResultPartMatch | null {
   const match = findObjectPart(parts, toolCallId);
-  return match && !(typeof match.part.content === "string" && match.part.content.length > 0)
+  const mediaType = match?.object.mediaType ?? match?.object.media_type ?? "";
+  // Media stays as an attachment in the structured output. It is never safe
+  // to decode an image/video/octet-stream simply because it lives in CAS.
+  const text = typeof mediaType === "string" && (mediaType.toLowerCase().startsWith("text/") || mediaType.toLowerCase().includes("json") || mediaType.toLowerCase().includes("xml"));
+  return match && text && !(typeof match.part.content === "string" && match.part.content.length > 0)
     ? match
     : null;
 }
@@ -69,16 +73,46 @@ function replaceObjectInOutput(part: unknown, fallback: unknown, objectKey: stri
 
   let replaced = false;
   const output = contentParts.map((contentPart) => {
-    if (!contentPart || typeof contentPart !== "object") return "";
+    if (!contentPart || typeof contentPart !== "object") return contentPart;
     const value = contentPart as { type?: unknown; text?: unknown };
     if (value.type === "text" && typeof value.text === "string") return value.text;
     if (objectRefFromValue(contentPart)?.key === objectKey) {
       replaced = true;
       return hydratedOutput;
     }
-    return "";
-  }).join("");
+    return contentPart;
+  });
   return replaced ? output : fallback;
+}
+
+function selectedLines(part: unknown, output: string): string {
+  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
+  const toolOutput = payload.tool_output ?? payload.toolOutput;
+  const descriptor = toolOutput && typeof toolOutput === "object"
+    ? (toolOutput as Record<string, unknown>).content_descriptor ?? (toolOutput as Record<string, unknown>).contentDescriptor
+    : undefined;
+  const selection = descriptor && typeof descriptor === "object"
+    ? (descriptor as Record<string, unknown>).selection
+    : undefined;
+  const byteRange = descriptor && typeof descriptor === "object"
+    ? (descriptor as Record<string, unknown>).byte_range ?? (descriptor as Record<string, unknown>).byteRange
+    : undefined;
+  if (byteRange && typeof byteRange === "object") {
+    const values = byteRange as Record<string, unknown>;
+    const start = Number(values.start);
+    const end = Number(values.end);
+    const bytes = new TextEncoder().encode(output);
+    if (Number.isInteger(start) && Number.isInteger(end) && start >= 0 && end >= start && end <= bytes.length) {
+      try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes.slice(start, end)); } catch { return output; }
+    }
+    return output;
+  }
+  if (!selection || typeof selection !== "object") return output;
+  const values = selection as Record<string, unknown>;
+  const start = Number(values.start_line ?? values.startLine);
+  const end = Number(values.end_line ?? values.endLine);
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start) return output;
+  return output.split("\n").slice(start - 1, end).join("\n");
 }
 
 async function decompress(data: Uint8Array, encoding: string): Promise<Uint8Array> {
@@ -170,7 +204,10 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
     setState((current) => ({ ...current, [toolRowKey]: "loading" }));
     try {
       const response = await cas.getObject({ key: match.key });
-      const output = new TextDecoder().decode(await decodeObject(response, match.object));
+      const output = selectedLines(
+        match.part,
+        new TextDecoder().decode(await decodeObject(response, match.object)),
+      );
       if (generation.current !== currentGeneration) return;
       setOutputs((current) => ({ ...current, [outputKey]: output }));
       setState((current) => {

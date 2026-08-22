@@ -23,6 +23,55 @@ pub struct ToolOutput {
     pub content_parts: ::prost::alloc::vec::Vec<ChatContentPart>,
     #[prost(string, tag = "2")]
     pub summary: ::prost::alloc::string::String,
+    /// Compact durable metadata for an object-backed result. This is deliberately
+    /// separate from summary: callers render summary for people, while runtimes
+    /// use this structure to reproduce a bounded view without copying bytes.
+    #[prost(message, optional, tag = "3")]
+    pub content_descriptor: ::core::option::Option<ToolOutputContentDescriptor>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ToolOutputLineSelection {
+    /// One-based, inclusive line bounds in the referenced text object.
+    #[prost(uint64, tag = "1")]
+    pub start_line: u64,
+    #[prost(uint64, tag = "2")]
+    pub end_line: u64,
+}
+/// A zero-based, half-open byte range in a UTF-8 text object.  `end` is the
+/// actual end returned to the caller; `next_byte` is set for bounded reads
+/// when more logical bytes remain.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ToolOutputByteRange {
+    #[prost(uint64, tag = "1")]
+    pub start: u64,
+    #[prost(uint64, tag = "2")]
+    pub end: u64,
+    #[prost(uint64, optional, tag = "3")]
+    pub next_byte: ::core::option::Option<u64>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ToolOutputContentDescriptor {
+    /// The referenced object can be reread in bounded sections.
+    #[prost(bool, tag = "1")]
+    pub section_readable: bool,
+    /// Logical bytes retained in the referenced object, before CAS compression.
+    #[prost(uint64, tag = "2")]
+    pub captured_size_bytes: u64,
+    /// Number of logical text lines retained in the referenced object.
+    #[prost(uint64, tag = "3")]
+    pub line_count: u64,
+    /// Source output exceeded the capture ceiling, so bytes after the retained
+    /// object are unavailable.
+    #[prost(bool, tag = "4")]
+    pub capture_truncated: bool,
+    /// Present when this output is a view over a selected section of another
+    /// immutable object rather than a new copied result.
+    #[prost(message, optional, tag = "5")]
+    pub selection: ::core::option::Option<ToolOutputLineSelection>,
+    /// New selections use bytes. Keep `selection` above for journals written by
+    /// older Talon releases.
+    #[prost(message, optional, tag = "6")]
+    pub byte_range: ::core::option::Option<ToolOutputByteRange>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ToolCall {

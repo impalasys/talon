@@ -66,9 +66,9 @@ pub struct LoopMessage {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-struct ExecutedToolCall {
-    result: ToolOutput,
-    stop_after_result: bool,
+pub(crate) struct ExecutedToolCall {
+    pub(crate) result: ToolOutput,
+    pub(crate) stop_after_result: bool,
 }
 
 impl LoopMessage {
@@ -259,8 +259,13 @@ pub trait ExecutionSink: Send + Sync {
     /// The tool returned a result.
     async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput);
     /// A tool result has been durably recorded.
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
-        Ok(())
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
+        Ok(result.clone())
     }
     /// Claim and return interactive inputs that should be incorporated before
     /// the next LLM request in the active execution.
@@ -291,8 +296,13 @@ impl ExecutionSink for NullSink {
         Ok(())
     }
     async fn on_tool_result(&self, _: &str, _: &str, _: &ToolOutput) {}
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
-        Ok(())
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
+        Ok(result.clone())
     }
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     async fn on_permission_result(&self, _: &str, _: &Value) {}
@@ -369,8 +379,13 @@ impl ExecutionSink for CaptureSink {
             output: tool_output::display_text(result),
         });
     }
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
-        Ok(())
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
+        Ok(result.clone())
     }
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
         self.events
@@ -1279,7 +1294,8 @@ impl AgentExecutor {
                     let result = executed.result;
                     let result_text = result.summary();
                     telemetry::record_tool_result(&tool_span, &result_text);
-                    sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
+                    let recorded_result = sink
+                        .on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
                     crate::control::usage::charge_namespace_usage(
                         self.control_plane.kv.as_ref(),
@@ -1291,8 +1307,12 @@ impl AgentExecutor {
                         chrono::Utc::now().timestamp(),
                     )
                     .await?;
-                    sink.on_tool_result(&tool.id, &tool.name, &result).await;
-                    context.push(tool_output_loop_message(&tool.id, &result));
+                    sink.on_tool_result(&tool.id, &tool.name, &recorded_result)
+                        .await;
+                    context.push(
+                        self.tool_output_context_message(&tool.id, &recorded_result)
+                            .await,
+                    );
                     if stop_after_result {
                         stop_after_tool_result = Some(result_text);
                         break;
@@ -1342,7 +1362,7 @@ impl AgentExecutor {
         }
     }
 
-    async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
+    pub(crate) async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
         match self.execute_tool(&tool.name, &tool.arguments).await {
             Ok(result) => ExecutedToolCall {
                 result,
@@ -1380,6 +1400,73 @@ impl AgentExecutor {
         }
         Ok(ToolOutput::text(format!("Tool '{}' not found.", name)))
     }
+
+    async fn tool_output_context_message(
+        &self,
+        tool_call_id: &str,
+        result: &ToolOutput,
+    ) -> LoopMessage {
+        let Some(descriptor) = result.content_descriptor.as_ref() else {
+            return tool_output_loop_message(tool_call_id, result);
+        };
+        let selection = descriptor.selection.as_ref();
+        let byte_range = descriptor.byte_range.as_ref();
+        if selection.is_none() && byte_range.is_none() {
+            return tool_result_loop_message(tool_call_id, &result.summary());
+        }
+        let Some(object) = result.object_ref() else {
+            return tool_result_loop_message(tool_call_id, &result.summary());
+        };
+        let cas = CasStore::new(self.control_plane.objects.clone());
+        let text = match (byte_range, selection) {
+            (Some(range), _) => cas
+                .get_text_range_decoded(&object.key, range.start, range.end)
+                .await
+                .ok()
+                .flatten()
+                .and_then(|bytes| String::from_utf8(bytes).ok())
+                .unwrap_or_else(|| result.summary()),
+            (_, Some(selection)) => cas
+                .get_object_decoded(&object.key)
+                .await
+                .ok()
+                .flatten()
+                .map(|object| {
+                    bounded_line_selection(
+                        &String::from_utf8_lossy(&object.bytes),
+                        selection.start_line,
+                        selection.end_line,
+                    )
+                })
+                .unwrap_or_else(|| result.summary()),
+            _ => result.summary(),
+        };
+        tool_result_loop_message(tool_call_id, &text)
+    }
+}
+
+fn bounded_line_selection(text: &str, start_line: u64, end_line: u64) -> String {
+    const MAX_CONTEXT_SECTION_BYTES: usize = tool_output::TOOL_RESULT_INLINE_CONTEXT_BYTES;
+    let mut output = text
+        .lines()
+        .enumerate()
+        .filter(|(index, _)| {
+            let line = *index as u64 + 1;
+            line >= start_line && line <= end_line
+        })
+        .map(|(_, line)| line)
+        .collect::<Vec<_>>()
+        .join("\n");
+    if output.len() <= MAX_CONTEXT_SECTION_BYTES {
+        return output;
+    }
+    let mut end = MAX_CONTEXT_SECTION_BYTES.saturating_sub(3);
+    while end > 0 && !output.is_char_boundary(end) {
+        end -= 1;
+    }
+    output.truncate(end);
+    output.push_str("...");
+    output
 }
 
 pub fn tool_result_loop_message(tool_call_id: &str, result: &str) -> LoopMessage {
@@ -1389,9 +1476,29 @@ pub fn tool_result_loop_message(tool_call_id: &str, result: &str) -> LoopMessage
 }
 
 pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> LoopMessage {
+    if result.content_descriptor.is_some() {
+        return tool_result_loop_message(tool_call_id, &result.summary());
+    }
+    let content_parts = result
+        .content_parts()
+        .into_iter()
+        .enumerate()
+        .map(|(index, part)| match part.content.as_ref() {
+            Some(crate::harness::llm::chat_content_part::Content::ObjectRef(object))
+                if tool_output::is_tool_result_object_ref(object)
+                    && tool_output::is_text_object_media_type(&object.media_type) =>
+            {
+                crate::harness::llm::text_part(format!(
+                    "Large text is available at {}.",
+                    tool_output::tool_result_part_handle(tool_call_id, index)
+                ))
+            }
+            _ => part,
+        })
+        .collect();
     LoopMessage {
         role: "tool".to_string(),
-        content_parts: result.content_parts(),
+        content_parts,
         tool_calls: None,
         tool_call_id: Some(tool_call_id.to_string()),
     }

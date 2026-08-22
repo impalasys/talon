@@ -463,7 +463,8 @@ async fn replay_claimed_submission_journal(
                     ToolOutput::text(recorded.output.clone())
                 }
             } else {
-                let (_input, result) = runtime.executor.execute_tool_call(tool).await;
+                let executed = runtime.executor.execute_tool_call_result(tool).await;
+                let result_output = executed.result;
                 let cas = CasStore::new(cp.objects.clone());
                 let entry = sessions::append_tool_result(
                     cp.kv.as_ref(),
@@ -477,7 +478,7 @@ async fn replay_claimed_submission_journal(
                     attempt_id,
                     &tool.id,
                     &tool.name,
-                    &ToolOutput::text(result.clone()),
+                    &result_output,
                     chrono::Utc::now().timestamp_micros(),
                 )
                 .await?;
@@ -492,7 +493,7 @@ async fn replay_claimed_submission_journal(
                         }
                         _ => None,
                     })
-                    .unwrap_or_else(|| ToolOutput::text(result.clone()))
+                    .unwrap_or(result_output)
             };
             let result = result_output.summary();
 
@@ -504,7 +505,7 @@ async fn replay_claimed_submission_journal(
             });
             runtime
                 .context
-                .push(tool_output_loop_message(&tool.id, &result_output));
+                .push(recovered_tool_output_loop_message(cp, &tool.id, &result_output).await);
             stop_after_tool_results |=
                 crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
         }
@@ -544,6 +545,57 @@ async fn replay_claimed_submission_journal(
         projection_parts,
         latest_appended_journal_entry_id,
     })
+}
+
+async fn recovered_tool_output_loop_message(
+    cp: &ControlPlane,
+    tool_call_id: &str,
+    output: &ToolOutput,
+) -> LoopMessage {
+    let Some(descriptor) = output.content_descriptor.as_ref() else {
+        return tool_output_loop_message(tool_call_id, output);
+    };
+    let Some(selection) = descriptor.selection.as_ref() else {
+        return tool_output_loop_message(tool_call_id, output);
+    };
+    let Some(object_ref) = output.object_ref() else {
+        return tool_output_loop_message(tool_call_id, output);
+    };
+    let content = CasStore::new(cp.objects.clone())
+        .get_object_decoded(&object_ref.key)
+        .await
+        .ok()
+        .flatten()
+        .map(|object| String::from_utf8_lossy(&object.bytes).into_owned())
+        .map(|text| {
+            bounded_recovered_line_selection(&text, selection.start_line, selection.end_line)
+        })
+        .unwrap_or_else(|| output.summary());
+    let mut message = LoopMessage::text("tool", content);
+    message.tool_call_id = Some(tool_call_id.to_string());
+    message
+}
+
+fn bounded_recovered_line_selection(text: &str, start_line: u64, end_line: u64) -> String {
+    const MAX_BYTES: usize = crate::control::tool_output::TOOL_RESULT_INLINE_CONTEXT_BYTES;
+    let mut output = text
+        .lines()
+        .enumerate()
+        .filter(|(index, _)| {
+            let line = *index as u64 + 1;
+            line >= start_line && line <= end_line
+        })
+        .map(|(_, line)| line)
+        .collect::<Vec<_>>()
+        .join("\n");
+    if output.len() > MAX_BYTES {
+        output.truncate(MAX_BYTES);
+        while !output.is_char_boundary(output.len()) {
+            output.pop();
+        }
+        output.push_str("\n...[SECTION TRUNCATED]");
+    }
+    output
 }
 
 fn next_recovered_part_id(next_projection_part_index: &mut usize) -> String {

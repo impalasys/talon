@@ -159,6 +159,8 @@ fn main() -> std::io::Result<()> {
         ".talon.harness.ChatRequest",
         ".talon.harness.ChatResponse",
         ".talon.harness.ToolOutput",
+        ".talon.harness.ToolOutputContentDescriptor",
+        ".talon.harness.ToolOutputLineSelection",
         ".talon.harness.Tool",
         ".talon.harness.ToolCall",
         ".talon.harness.ToolCallDelta",
@@ -187,6 +189,7 @@ fn main() -> std::io::Result<()> {
         ".talon.data.SessionJournalEntryPayload",
         ".talon.harness.ChatContentPart",
         ".talon.harness.ChatContentPart.Content",
+        ".talon.harness.ToolOutputByteRange",
         ".talon.harness.ChatStreamEvent",
         ".talon.harness.ChatStreamEvent.Event",
     ];
