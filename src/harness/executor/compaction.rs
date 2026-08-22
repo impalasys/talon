@@ -20,6 +20,7 @@ use crate::harness::llm::{
     chat_content_part, chat_message_text, text_part, ChatContentPart, ChatRequest, LlmProvider,
 };
 use anyhow::Result;
+use futures::StreamExt;
 use serde_json::Value;
 
 const MAX_COMPACTION_SUMMARY_WORDS: usize = 10_000;
@@ -115,8 +116,8 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
         .join("\n");
     let transcript =
         format!("<transcript>{messages}</transcript>\n\nNow produce the required factual handoff.");
-    let response = llm
-        .chat_completion(ChatRequest {
+    let mut stream = llm
+        .stream_chat_completion(ChatRequest {
             messages: vec![
                 chat_message_text("system", COMPACTION_PROMPT),
                 chat_message_text("user", transcript),
@@ -127,7 +128,14 @@ pub async fn summarize(llm: &dyn LlmProvider, history: &[LoopMessage]) -> Result
             zero_data_retention: false,
         })
         .await?;
-    let response = response.content.trim();
+    let mut response = String::new();
+    while let Some(event) = stream.next().await {
+        if let Some(crate::harness::llm::chat_stream_event::Event::TextDelta(delta)) = event?.event
+        {
+            response.push_str(&delta);
+        }
+    }
+    let response = response.trim();
     if response.is_empty() {
         tracing::warn!("Compaction model returned an empty response; skipping durable compaction");
         return Ok(None);
@@ -1334,16 +1342,14 @@ mod tests {
         }
 
         async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
-            Ok(ChatResponse {
-                content: self.content.clone(),
-                tool_calls: Vec::new(),
-                usage: None,
-                encrypted_reasoning: None,
-            })
+            unreachable!("summarize uses stream_chat_completion")
         }
 
         async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
-            unreachable!("summarize uses chat_completion")
+            let content = self.content.clone();
+            Ok(Box::pin(futures::stream::once(async move {
+                Ok(crate::harness::llm::text_delta_event(content))
+            })))
         }
 
         async fn completion(&self, _prompt: &str) -> Result<String> {
