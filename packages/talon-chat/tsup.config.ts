@@ -10,5 +10,6 @@ export default defineConfig({
   bundle: true,
   minify: false,
   target: "es2020",
-  external: ["@impalasys/talon-client", "react", "react-dom", "lucide-react", "streamdown"],
+  external: ["@impalasys/talon-client", "react", "react-dom", "lucide-react"],
+  noExternal: ["streamdown"],
 });

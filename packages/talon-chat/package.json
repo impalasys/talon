@@ -41,7 +41,8 @@
     "prebuild-storybook": "pnpm --dir ../../sdk/js/talon-client build",
     "screenshots": "node scripts/capture-storybook-screenshots.mjs",
     "storybook": "storybook dev -p 6006",
-    "test": "node --experimental-strip-types --test \"src/**/*.test.{ts,tsx}\""
+    "test": "node --experimental-strip-types --test \"src/**/*.test.{ts,tsx}\"",
+    "test:package": "pnpm --dir ../../sdk/js/talon-client build && node scripts/check-package.mjs"
   },
   "engines": {
     "node": ">=22.6"
