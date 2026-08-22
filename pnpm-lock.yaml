@@ -57,7 +57,7 @@ importers:
         version: 2.5.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(supports-color@8.1.1)
     devDependencies:
       '@impalasys/talon-client':
-        specifier: workspace:0.2.10
+        specifier: workspace:0.2.11
         version: link:../../sdk/js/talon-client
       '@playwright/test':
         specifier: ^1.60.0
@@ -141,10 +141,10 @@ importers:
         version: 6.0.3
     optionalDependencies:
       '@impalasys/talon-node-darwin-arm64':
-        specifier: workspace:0.2.10
+        specifier: workspace:0.2.11
         version: link:../talon-node-darwin-arm64
       '@impalasys/talon-node-linux-x64':
-        specifier: workspace:0.2.10
+        specifier: workspace:0.2.11
         version: link:../talon-node-linux-x64
 
   ui:
@@ -168,7 +168,7 @@ importers:
         specifier: workspace:*
         version: link:../packages/talon-chat
       '@impalasys/talon-client':
-        specifier: workspace:0.2.10
+        specifier: workspace:0.2.11
         version: link:../sdk/js/talon-client
       '@phosphor-icons/react':
         specifier: ^2.1.10
