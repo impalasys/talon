@@ -1337,6 +1337,16 @@ impl ExecutionSink for PubSubSessionSink {
         )
         .await?;
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
+        if let Some(object) = response.encrypted_reasoning.clone() {
+            self.record_part_with_id_and_object(
+                self.next_part_id(),
+                data_proto::SessionMessagePartType::EncryptedReasoning,
+                String::new(),
+                String::new(),
+                String::new(),
+                Some(object),
+            );
+        }
         if let Some(counter) = response.usage.as_ref() {
             // A Responses API response containing function calls is not a
             // durable continuation point until every call has been answered.
@@ -3953,6 +3963,64 @@ mod tests {
         assert_eq!(token_publish_interval(), Duration::from_millis(250));
 
         std::env::remove_var("TALON_TOKEN_BATCH_MS");
+    }
+
+    #[tokio::test]
+    async fn llm_response_projects_encrypted_reasoning_as_object_only_part() {
+        use crate::harness::llm::ChatResponse;
+
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        crate::control::ProtoKeyValueStoreExt::set_msg(
+            kv.as_ref(),
+            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
+        let sink = PubSubSessionSink::new(
+            kv.clone(),
+            Arc::new(MockPubSub { events }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+        );
+        let reasoning = data_proto::ObjectRef {
+            key: "cas/conic/infra/session-1/encrypted-reasoning.bin".to_string(),
+            media_type: "application/octet-stream".to_string(),
+            size_bytes: 42,
+            ..Default::default()
+        };
+
+        sink.on_llm_response(&ChatResponse {
+            content: "answer".to_string(),
+            tool_calls: Vec::new(),
+            usage: None,
+            encrypted_reasoning: Some(reasoning.clone()),
+        })
+        .await
+        .unwrap();
+        sink.on_done().await;
+
+        let message = latest_reply_message(kv.as_ref()).await;
+        let part = message
+            .parts
+            .iter()
+            .find(|part| {
+                part.part_type == data_proto::SessionMessagePartType::EncryptedReasoning as i32
+            })
+            .expect("encrypted reasoning part");
+        assert_eq!(part.content, "");
+        assert_eq!(part.payload_json, "");
+        assert_eq!(part.object.as_ref(), Some(&reasoning));
     }
 
     #[test]
