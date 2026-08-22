@@ -257,6 +257,7 @@ impl LlmProvider for AnthropicProvider {
             content,
             tool_calls: vec![],
             usage,
+            encrypted_reasoning: None,
         })
     }
 

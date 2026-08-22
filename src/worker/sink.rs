@@ -3033,6 +3033,7 @@ mod tests {
             content: "first".to_string(),
             tool_calls: tool_calls.clone(),
             usage: None,
+            encrypted_reasoning: None,
         })
         .await
         .unwrap();
@@ -3043,6 +3044,7 @@ mod tests {
             content: "final".to_string(),
             tool_calls: Vec::new(),
             usage: None,
+            encrypted_reasoning: None,
         })
         .await
         .unwrap();
@@ -3609,6 +3611,7 @@ mod tests {
                 content: String::new(),
                 tool_calls: Vec::new(),
                 usage: Some(counter.clone()),
+                encrypted_reasoning: None,
             })
             .await
             .unwrap();
@@ -3693,6 +3696,7 @@ mod tests {
                 model: "gpt-test".to_string(),
                 ..Default::default()
             }),
+            encrypted_reasoning: None,
         })
         .await
         .unwrap();

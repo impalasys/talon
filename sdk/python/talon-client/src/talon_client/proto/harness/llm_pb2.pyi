@@ -59,14 +59,16 @@ class ChatMessage(_message.Message):
     def __init__(self, role: _Optional[str] = ..., content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., tool_call_id: _Optional[str] = ...) -> None: ...
 
 class ChatResponse(_message.Message):
-    __slots__ = ("content", "tool_calls", "usage")
+    __slots__ = ("content", "tool_calls", "usage", "encrypted_reasoning")
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     TOOL_CALLS_FIELD_NUMBER: _ClassVar[int]
     USAGE_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTED_REASONING_FIELD_NUMBER: _ClassVar[int]
     content: str
     tool_calls: _containers.RepeatedCompositeFieldContainer[ToolCall]
     usage: _data_pb2.TokenCounter
-    def __init__(self, content: _Optional[str] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ...) -> None: ...
+    encrypted_reasoning: _data_pb2.ObjectRef
+    def __init__(self, content: _Optional[str] = ..., tool_calls: _Optional[_Iterable[_Union[ToolCall, _Mapping]]] = ..., usage: _Optional[_Union[_data_pb2.TokenCounter, _Mapping]] = ..., encrypted_reasoning: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class Tool(_message.Message):
     __slots__ = ("name", "description", "input_schema_json")

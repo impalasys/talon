@@ -281,6 +281,13 @@ export class ChatResponse extends Message<ChatResponse> {
    */
   usage?: TokenCounter;
 
+  /**
+   * Opaque provider continuation state stored in CAS.
+   *
+   * @generated from field: optional talon.data.ObjectRef encrypted_reasoning = 4;
+   */
+  encryptedReasoning?: ObjectRef;
+
   constructor(data?: PartialMessage<ChatResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -292,6 +299,7 @@ export class ChatResponse extends Message<ChatResponse> {
     { no: 1, name: "content", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "tool_calls", kind: "message", T: ToolCall, repeated: true },
     { no: 3, name: "usage", kind: "message", T: TokenCounter, opt: true },
+    { no: 4, name: "encrypted_reasoning", kind: "message", T: ObjectRef, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatResponse {

@@ -324,6 +324,7 @@ mod tests {
                     arguments: "{}".to_string(),
                 }],
                 usage: None,
+                encrypted_reasoning: None,
             },
             10,
         )
@@ -359,6 +360,7 @@ mod tests {
                     arguments: "{}".to_string(),
                 }],
                 usage: None,
+                encrypted_reasoning: None,
             },
             30,
         )
@@ -390,6 +392,7 @@ mod tests {
                 content: "active continuation".to_string(),
                 tool_calls: Vec::new(),
                 usage: None,
+                encrypted_reasoning: None,
             },
             50,
         )
@@ -436,6 +439,7 @@ mod tests {
                     arguments: "{}".to_string(),
                 }],
                 usage: None,
+                encrypted_reasoning: None,
             },
             10,
         )
@@ -495,6 +499,7 @@ mod tests {
                 content: "not covered by the committed projection".to_string(),
                 tool_calls: Vec::new(),
                 usage: None,
+                encrypted_reasoning: None,
             },
             30,
         )
@@ -548,6 +553,7 @@ mod tests {
                     arguments: "{}".to_string(),
                 }],
                 usage: None,
+                encrypted_reasoning: None,
             },
             15,
         )
@@ -597,6 +603,7 @@ mod tests {
                     arguments: "{}".to_string(),
                 }],
                 usage: None,
+                encrypted_reasoning: None,
             },
             30,
         )

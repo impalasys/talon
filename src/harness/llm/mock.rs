@@ -21,6 +21,7 @@ impl LlmProvider for MockLlmProvider {
             content: format!("Mock response to {} messages", request.messages.len()),
             tool_calls: vec![],
             usage: None,
+            encrypted_reasoning: None,
         })
     }
 

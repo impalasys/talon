@@ -354,12 +354,14 @@ func (x *ChatMessage) GetToolCallId() string {
 }
 
 type ChatResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	ToolCalls     []*ToolCall            `protobuf:"bytes,2,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
-	Usage         *TokenCounter          `protobuf:"bytes,3,opt,name=usage,proto3,oneof" json:"usage,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Content   string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	ToolCalls []*ToolCall            `protobuf:"bytes,2,rep,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
+	Usage     *TokenCounter          `protobuf:"bytes,3,opt,name=usage,proto3,oneof" json:"usage,omitempty"`
+	// Opaque provider continuation state stored in CAS.
+	EncryptedReasoning *ObjectRef `protobuf:"bytes,4,opt,name=encrypted_reasoning,json=encryptedReasoning,proto3,oneof" json:"encrypted_reasoning,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ChatResponse) Reset() {
@@ -409,6 +411,13 @@ func (x *ChatResponse) GetToolCalls() []*ToolCall {
 func (x *ChatResponse) GetUsage() *TokenCounter {
 	if x != nil {
 		return x.Usage
+	}
+	return nil
+}
+
+func (x *ChatResponse) GetEncryptedReasoning() *ObjectRef {
+	if x != nil {
+		return x.EncryptedReasoning
 	}
 	return nil
 }
@@ -716,13 +725,15 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"tool_calls\x18\x03 \x03(\v2\x17.talon.harness.ToolCallR\ttoolCalls\x12%\n" +
 	"\ftool_call_id\x18\x04 \x01(\tH\x00R\n" +
 	"toolCallId\x88\x01\x01B\x0f\n" +
-	"\r_tool_call_id\"\x9f\x01\n" +
+	"\r_tool_call_id\"\x84\x02\n" +
 	"\fChatResponse\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x126\n" +
 	"\n" +
 	"tool_calls\x18\x02 \x03(\v2\x17.talon.harness.ToolCallR\ttoolCalls\x123\n" +
-	"\x05usage\x18\x03 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x88\x01\x01B\b\n" +
-	"\x06_usage\"h\n" +
+	"\x05usage\x18\x03 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x88\x01\x01\x12K\n" +
+	"\x13encrypted_reasoning\x18\x04 \x01(\v2\x15.talon.data.ObjectRefH\x01R\x12encryptedReasoning\x88\x01\x01B\b\n" +
+	"\x06_usageB\x16\n" +
+	"\x14_encrypted_reasoning\"h\n" +
 	"\x04Tool\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12*\n" +
@@ -778,16 +789,17 @@ var file_proto_harness_llm_proto_depIdxs = []int32{
 	2,  // 3: talon.harness.ChatMessage.tool_calls:type_name -> talon.harness.ToolCall
 	2,  // 4: talon.harness.ChatResponse.tool_calls:type_name -> talon.harness.ToolCall
 	10, // 5: talon.harness.ChatResponse.usage:type_name -> talon.data.TokenCounter
-	4,  // 6: talon.harness.ChatRequest.messages:type_name -> talon.harness.ChatMessage
-	6,  // 7: talon.harness.ChatRequest.tools:type_name -> talon.harness.Tool
-	11, // 8: talon.harness.ChatRequest.thinking:type_name -> talon.resources.ThinkingConfig
-	3,  // 9: talon.harness.ChatStreamEvent.tool_call_delta:type_name -> talon.harness.ToolCallDelta
-	10, // 10: talon.harness.ChatStreamEvent.usage:type_name -> talon.data.TokenCounter
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	9,  // 6: talon.harness.ChatResponse.encrypted_reasoning:type_name -> talon.data.ObjectRef
+	4,  // 7: talon.harness.ChatRequest.messages:type_name -> talon.harness.ChatMessage
+	6,  // 8: talon.harness.ChatRequest.tools:type_name -> talon.harness.Tool
+	11, // 9: talon.harness.ChatRequest.thinking:type_name -> talon.resources.ThinkingConfig
+	3,  // 10: talon.harness.ChatStreamEvent.tool_call_delta:type_name -> talon.harness.ToolCallDelta
+	10, // 11: talon.harness.ChatStreamEvent.usage:type_name -> talon.data.TokenCounter
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_proto_harness_llm_proto_init() }

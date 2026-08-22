@@ -588,6 +588,7 @@ mod tests {
             content: "hello".to_string(),
             tool_calls: Vec::new(),
             usage: None,
+            encrypted_reasoning: None,
         };
         let first = append_llm_response(
             &kv,
@@ -778,6 +779,7 @@ mod tests {
                 arguments: "{}".to_string(),
             }],
             usage: None,
+            encrypted_reasoning: None,
         };
 
         let err = append_llm_response(

@@ -1199,6 +1199,7 @@ impl AgentExecutor {
                     final_usage
                         .unwrap_or_else(|| self.normalize_token_counter(TokenCounter::default())),
                 ),
+                encrypted_reasoning: None,
             };
             context_tokens = llm_response.usage.clone();
             telemetry::record_chat_output(
@@ -1476,6 +1477,7 @@ mod tests {
                 },
                 tool_calls: Vec::new(),
                 usage: None,
+                encrypted_reasoning: None,
             })
         }
 
