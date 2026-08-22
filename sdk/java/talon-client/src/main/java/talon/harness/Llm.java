@@ -7074,6 +7074,12 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getPreviousResponseIdBytes();
+
+    /**
+     * <code>bool zero_data_retention = 5;</code>
+     * @return The zeroDataRetention.
+     */
+    boolean getZeroDataRetention();
   }
   /**
    * Protobuf type {@code talon.harness.ChatRequest}
@@ -7276,6 +7282,17 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int ZERO_DATA_RETENTION_FIELD_NUMBER = 5;
+    private boolean zeroDataRetention_ = false;
+    /**
+     * <code>bool zero_data_retention = 5;</code>
+     * @return The zeroDataRetention.
+     */
+    @java.lang.Override
+    public boolean getZeroDataRetention() {
+      return zeroDataRetention_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -7301,6 +7318,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 4, previousResponseId_);
+      }
+      if (zeroDataRetention_ != false) {
+        output.writeBool(5, zeroDataRetention_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -7336,6 +7356,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(4, previousResponseId_);
       }
+      if (zeroDataRetention_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, zeroDataRetention_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -7365,6 +7389,8 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (!getPreviousResponseId()
             .equals(other.getPreviousResponseId())) return false;
       }
+      if (getZeroDataRetention()
+          != other.getZeroDataRetention()) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -7392,6 +7418,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         hash = (37 * hash) + PREVIOUS_RESPONSE_ID_FIELD_NUMBER;
         hash = (53 * hash) + getPreviousResponseId().hashCode();
       }
+      hash = (37 * hash) + ZERO_DATA_RETENTION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getZeroDataRetention());
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -7551,6 +7580,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           thinkingBuilder_ = null;
         }
         previousResponseId_ = "";
+        zeroDataRetention_ = false;
         return this;
       }
 
@@ -7616,6 +7646,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000008) != 0)) {
           result.previousResponseId_ = previousResponseId_;
           to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.zeroDataRetention_ = zeroDataRetention_;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -7692,6 +7725,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000008;
           onChanged();
         }
+        if (other.getZeroDataRetention() != false) {
+          setZeroDataRetention(other.getZeroDataRetention());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -7756,6 +7792,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 40: {
+                zeroDataRetention_ = input.readBool();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -8449,6 +8490,38 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         checkByteStringIsUtf8(value);
         previousResponseId_ = value;
         bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private boolean zeroDataRetention_ ;
+      /**
+       * <code>bool zero_data_retention = 5;</code>
+       * @return The zeroDataRetention.
+       */
+      @java.lang.Override
+      public boolean getZeroDataRetention() {
+        return zeroDataRetention_;
+      }
+      /**
+       * <code>bool zero_data_retention = 5;</code>
+       * @param value The zeroDataRetention to set.
+       * @return This builder for chaining.
+       */
+      public Builder setZeroDataRetention(boolean value) {
+
+        zeroDataRetention_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool zero_data_retention = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearZeroDataRetention() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        zeroDataRetention_ = false;
         onChanged();
         return this;
       }
@@ -9831,17 +9904,18 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       "age\030\003 \001(\0132\030.talon.data.TokenCounterH\000\210\001\001" +
       "B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013desc" +
       "ription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t" +
-      "\"\340\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
+      "\"\375\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
       "on.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023." +
       "talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.t" +
       "alon.resources.ThinkingConfigH\000\210\001\001\022!\n\024pr" +
-      "evious_response_id\030\004 \001(\tH\001\210\001\001B\013\n\t_thinki" +
-      "ngB\027\n\025_previous_response_id\"\257\001\n\017ChatStre" +
-      "amEvent\022\024\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017reasoni" +
-      "ng_delta\030\002 \001(\tH\000\0227\n\017tool_call_delta\030\003 \001(" +
-      "\0132\034.talon.harness.ToolCallDeltaH\000\022)\n\005usa" +
-      "ge\030\004 \001(\0132\030.talon.data.TokenCounterH\000B\007\n\005" +
-      "eventb\006proto3"
+      "evious_response_id\030\004 \001(\tH\001\210\001\001\022\033\n\023zero_da" +
+      "ta_retention\030\005 \001(\010B\013\n\t_thinkingB\027\n\025_prev" +
+      "ious_response_id\"\257\001\n\017ChatStreamEvent\022\024\n\n" +
+      "text_delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 " +
+      "\001(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon.h" +
+      "arness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030." +
+      "talon.data.TokenCounterH\000B\007\n\005eventb\006prot" +
+      "o3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9896,7 +9970,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     internal_static_talon_harness_ChatRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatRequest_descriptor,
-        new java.lang.String[] { "Messages", "Tools", "Thinking", "PreviousResponseId", });
+        new java.lang.String[] { "Messages", "Tools", "Thinking", "PreviousResponseId", "ZeroDataRetention", });
     internal_static_talon_harness_ChatStreamEvent_descriptor =
       getDescriptor().getMessageType(8);
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new

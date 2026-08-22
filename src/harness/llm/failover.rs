@@ -167,6 +167,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -255,6 +256,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
@@ -267,6 +269,7 @@ mod tests {
                 tools: vec![],
                 thinking: None,
                 previous_response_id: None,
+                zero_data_retention: false,
             })
             .await
             .unwrap();
