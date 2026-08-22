@@ -51,6 +51,9 @@ func TestVerifyMCPJWT(t *testing.T) {
 	if claims.Agent != "cmo" {
 		t.Fatalf("unexpected agent %q", claims.Agent)
 	}
+	if claims.SessionID != "session-123" {
+		t.Fatalf("unexpected session ID %q", claims.SessionID)
+	}
 }
 
 func TestMCPJWTVerifierRejectsWrongAudience(t *testing.T) {
@@ -132,6 +135,7 @@ func signMCPToken(t *testing.T, key *rsa.PrivateKey, kid, issuer, audience strin
 		Namespace: "Tenant:conic:Customers:11",
 		MCPServer: "conic",
 		Agent:     "cmo",
+		SessionID: "session-123",
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token.Header["kid"] = kid

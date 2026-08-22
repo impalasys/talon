@@ -118,6 +118,8 @@ export type TalonSessionProps = {
   agent: string;
   gatewayClient: GatewayClientLike;
   sessionId?: string;
+  /** Labels passed when this component lazily creates a new session. Ignored when sessionId is supplied. */
+  sessionCreateLabels?: Record<string, string>;
   onSessionChange?: (sessionId: string) => void;
   className?: string;
   style?: React.CSSProperties;

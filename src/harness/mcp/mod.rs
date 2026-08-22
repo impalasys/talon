@@ -76,6 +76,7 @@ pub struct McpConnectionConfig {
     pub namespace: Option<String>,
     pub mcp_server_name: Option<String>,
     pub agent_name: Option<String>,
+    pub session_id: Option<String>,
     pub jwt_issuer: Option<String>,
     pub auth_broker: Option<McpAuthBrokerConfig>,
 }
@@ -457,6 +458,7 @@ impl TryFrom<&manifests::McpServer> for McpConnectionConfig {
             namespace: (!meta.namespace.is_empty()).then(|| meta.namespace.clone()),
             mcp_server_name: Some(meta.name.clone()),
             agent_name: None,
+            session_id: None,
             jwt_issuer: spec
                 .auth_broker
                 .as_ref()
@@ -688,10 +690,12 @@ async fn resolve_broker_bearer_token(
         .as_ref()
         .ok_or_else(|| anyhow!("MCP auth broker requires MCP server name"))?;
     let agent_name = config.agent_name.clone();
+    let session_id = config.session_id.clone();
     let key = AuthCacheKey {
         namespace: namespace.clone(),
         mcp_server_name: mcp_server_name.clone(),
         agent_name: agent_name.clone(),
+        session_id: session_id.clone(),
     };
 
     if let Some(cached) = get_cached_auth_entry(&key).await {
@@ -713,6 +717,7 @@ async fn resolve_broker_bearer_token(
             namespace: namespace.clone(),
             mcp_server_name: mcp_server_name.clone(),
             agent_name: agent_name.clone(),
+            session_id: session_id.clone(),
             audience: empty_to_none(auth_broker.audience.trim()),
         };
         let issuer = config
@@ -720,8 +725,13 @@ async fn resolve_broker_bearer_token(
             .as_deref()
             .filter(|value| !value.trim().is_empty())
             .ok_or_else(|| anyhow!("MCP auth broker requires platform JWT issuer"))?;
-        let token =
-            mint_auth_broker_jwt(issuer, namespace, mcp_server_name, agent_name.as_deref())?;
+        let token = mint_auth_broker_jwt(
+            issuer,
+            namespace,
+            mcp_server_name,
+            agent_name.as_deref(),
+            session_id.as_deref(),
+        )?;
         let mut response = auth_broker_client()
             .post(auth_broker.url.trim())
             .bearer_auth(token)
@@ -839,6 +849,7 @@ fn mint_auth_broker_jwt(
     namespace: &str,
     mcp_server_name: &str,
     agent_name: Option<&str>,
+    session_id: Option<&str>,
 ) -> Result<String> {
     crate::control::security::install_jwt_crypto_provider();
     let now = current_unix_timestamp();
@@ -851,6 +862,7 @@ fn mint_auth_broker_jwt(
         talon_ns: namespace.to_string(),
         talon_mcp_server: mcp_server_name.to_string(),
         talon_agent: agent_name.map(str::to_string),
+        talon_session_id: session_id.map(str::to_string),
     };
     let key = platform_jwt::load_key()?;
     key.sign(&claims)
@@ -966,6 +978,7 @@ struct AuthCacheKey {
     namespace: String,
     mcp_server_name: String,
     agent_name: Option<String>,
+    session_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -986,6 +999,8 @@ struct AuthBrokerRequest {
     mcp_server_name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     agent_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    session_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     audience: Option<String>,
 }
@@ -1013,4 +1028,6 @@ struct BrokerJwtClaims {
     talon_mcp_server: String,
     #[serde(rename = "talon:agent", skip_serializing_if = "Option::is_none")]
     talon_agent: Option<String>,
+    #[serde(rename = "talon:session_id", skip_serializing_if = "Option::is_none")]
+    talon_session_id: Option<String>,
 }

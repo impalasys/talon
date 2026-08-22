@@ -293,6 +293,7 @@ mod tests {
             namespace: Some("Tenant:conic:Customers".to_string()),
             mcp_server_name: Some("conic".to_string()),
             agent_name: None,
+            session_id: None,
             jwt_issuer: None,
             auth_broker: None,
         };
@@ -328,6 +329,7 @@ mod tests {
                         namespace: Some("conic".to_string()),
                         mcp_server_name: Some("github".to_string()),
                         agent_name: None,
+                        session_id: None,
                         jwt_issuer: None,
                         auth_broker: None,
                     },
@@ -355,6 +357,7 @@ mod tests {
                         namespace: Some("conic".to_string()),
                         mcp_server_name: Some("docs".to_string()),
                         agent_name: None,
+                        session_id: None,
                         jwt_issuer: None,
                         auth_broker: None,
                     },

@@ -27,6 +27,7 @@ type UseSessionActionsOptions = {
   namespace: string;
   agent: string;
   sessionId?: string;
+  sessionCreateLabels?: Record<string, string>;
   disabled: boolean;
   isSessionLive: boolean;
   enabledGoalCommand: boolean;
@@ -105,6 +106,7 @@ export function useSessionActions({
   namespace,
   agent,
   sessionId,
+  sessionCreateLabels,
   disabled,
   isSessionLive,
   enabledGoalCommand,
@@ -140,9 +142,13 @@ export function useSessionActions({
 }: UseSessionActionsOptions) {
   const createSession = useCallback(async (): Promise<SessionTarget> => {
     if (!client?.create) throw new Error("TalonSession requires a Talon clientset with sessions.create().");
-    const response = await client.create({ ns: namespace, agent });
+    const response = await client.create({
+      ns: namespace,
+      agent,
+      ...(sessionCreateLabels ? { labels: sessionCreateLabels } : {}),
+    });
     return { ns: namespace, agent, sessionId: response.sessionId };
-  }, [agent, client, namespace]);
+  }, [agent, client, namespace, sessionCreateLabels]);
 
   const ensureSession = useCallback(async (): Promise<SessionTarget> => {
     let session = currentSessionRef.current;

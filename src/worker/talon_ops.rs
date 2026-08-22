@@ -61,6 +61,8 @@ struct TalonOpsAccessClaims {
     mcp_server_name: String,
     #[serde(rename = "talon:agent")]
     agent_name: Option<String>,
+    #[serde(rename = "talon:session_id", skip_serializing_if = "Option::is_none")]
+    session_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -76,6 +78,8 @@ struct McpAuthBrokerClaims {
     mcp_server_name: String,
     #[serde(rename = "talon:agent")]
     agent_name: Option<String>,
+    #[serde(rename = "talon:session_id", skip_serializing_if = "Option::is_none")]
+    session_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -83,6 +87,7 @@ struct McpAuthBrokerRequest {
     namespace: String,
     mcp_server_name: String,
     agent_name: Option<String>,
+    session_id: Option<String>,
     audience: Option<String>,
 }
 
@@ -1143,6 +1148,9 @@ async fn talon_ops_auth_broker(
     if claims.agent_name != payload.agent_name {
         return (StatusCode::FORBIDDEN, "agent mismatch").into_response();
     }
+    if claims.session_id != payload.session_id {
+        return (StatusCode::FORBIDDEN, "session mismatch").into_response();
+    }
     if payload.mcp_server_name != TALON_OPS_SERVER_NAME {
         return (StatusCode::BAD_REQUEST, "unsupported talon-ops MCP server").into_response();
     }
@@ -1173,6 +1181,7 @@ async fn talon_ops_auth_broker(
         &access.namespace,
         &access.mcp_server_name,
         access.agent_name.as_deref(),
+        claims.session_id.as_deref(),
         expires_at_unix,
     ) {
         Ok(token) => token,
@@ -1411,6 +1420,7 @@ fn mint_talon_ops_access_token(
     namespace: &str,
     mcp_server_name: &str,
     agent_name: Option<&str>,
+    session_id: Option<&str>,
     expires_at_unix: i64,
 ) -> Result<String> {
     crate::control::security::install_jwt_crypto_provider();
@@ -1425,6 +1435,7 @@ fn mint_talon_ops_access_token(
         namespace: namespace.to_string(),
         mcp_server_name: mcp_server_name.to_string(),
         agent_name: agent_name.map(str::to_string),
+        session_id: session_id.map(str::to_string),
     };
     key.sign(&claims)
 }
@@ -1909,6 +1920,7 @@ mod tests {
             "conic",
             "talon-ops",
             Some("cmo"),
+            Some("session-123"),
             4_102_444_800,
         )
         .expect("access token should mint");
@@ -1920,6 +1932,7 @@ mod tests {
         assert_eq!(access_claims.namespace, "conic");
         assert_eq!(access_claims.mcp_server_name, "talon-ops");
         assert_eq!(access_claims.agent_name.as_deref(), Some("cmo"));
+        assert_eq!(access_claims.session_id.as_deref(), Some("session-123"));
 
         let broker_claims_token = sign_test_claims(&super::McpAuthBrokerClaims {
             iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
@@ -1930,6 +1943,7 @@ mod tests {
             namespace: "conic".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: None,
+            session_id: None,
         });
         let broker_claims = parse_mcp_auth_broker_claims(
             &format!("Bearer {broker_claims_token}"),
@@ -1959,6 +1973,7 @@ mod tests {
             namespace: " ".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: None,
+            session_id: None,
         });
         assert!(parse_talon_ops_access_claims(
             &format!("Bearer {access_token}"),
@@ -1976,6 +1991,7 @@ mod tests {
             namespace: "conic".to_string(),
             mcp_server_name: " ".to_string(),
             agent_name: None,
+            session_id: None,
         });
         assert!(parse_mcp_auth_broker_claims(
             &format!("Bearer {broker_token}"),
@@ -2165,6 +2181,7 @@ mod tests {
             "conic",
             "talon-ops",
             Some("ctl"),
+            Some("session-1"),
             4_102_444_800,
         )
         .expect("access token should mint");
@@ -2199,6 +2216,7 @@ mod tests {
             namespace: "conic".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: Some("ctl".to_string()),
+            session_id: Some("session-1".to_string()),
         });
         let mut headers = HeaderMap::new();
         headers.insert(
@@ -2213,12 +2231,28 @@ mod tests {
                 namespace: "other".to_string(),
                 mcp_server_name: "talon-ops".to_string(),
                 agent_name: Some("ctl".to_string()),
+                session_id: Some("session-1".to_string()),
                 audience: None,
             }),
         )
         .await
         .into_response();
         assert_eq!(mismatched.status(), StatusCode::FORBIDDEN);
+
+        let session_mismatch = talon_ops_auth_broker(
+            State(handler.clone()),
+            headers.clone(),
+            Json(McpAuthBrokerRequest {
+                namespace: "conic".to_string(),
+                mcp_server_name: "talon-ops".to_string(),
+                agent_name: Some("ctl".to_string()),
+                session_id: Some("session-2".to_string()),
+                audience: None,
+            }),
+        )
+        .await
+        .into_response();
+        assert_eq!(session_mismatch.status(), StatusCode::FORBIDDEN);
 
         let unsupported_server_claims_token = sign_test_claims(&McpAuthBrokerClaims {
             iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
@@ -2229,6 +2263,7 @@ mod tests {
             namespace: "conic".to_string(),
             mcp_server_name: "github".to_string(),
             agent_name: Some("ctl".to_string()),
+            session_id: Some("session-1".to_string()),
         });
         let mut unsupported_server_headers = HeaderMap::new();
         unsupported_server_headers.insert(
@@ -2242,6 +2277,7 @@ mod tests {
                 namespace: "conic".to_string(),
                 mcp_server_name: "github".to_string(),
                 agent_name: Some("ctl".to_string()),
+                session_id: Some("session-1".to_string()),
                 audience: None,
             }),
         )
@@ -2256,6 +2292,7 @@ mod tests {
                 namespace: "conic".to_string(),
                 mcp_server_name: "talon-ops".to_string(),
                 agent_name: Some("ctl".to_string()),
+                session_id: Some("session-1".to_string()),
                 audience: Some("talon-ops".to_string()),
             }),
         )

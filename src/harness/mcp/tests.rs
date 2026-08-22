@@ -55,6 +55,7 @@ mod tests {
             namespace: None,
             mcp_server_name: Some("github".to_string()),
             agent_name: None,
+            session_id: None,
             jwt_issuer: None,
             auth_broker: None,
         }
@@ -65,6 +66,7 @@ mod tests {
         namespace: &str,
         mcp_server_name: &str,
         agent_name: Option<&str>,
+        session_id: Option<&str>,
     ) {
         let auth = headers
             .get("authorization")
@@ -90,6 +92,11 @@ mod tests {
             assert_eq!(claims["talon:agent"], agent_name);
         } else {
             assert!(claims.get("talon:agent").is_none());
+        }
+        if let Some(session_id) = session_id {
+            assert_eq!(claims["talon:session_id"], session_id);
+        } else {
+            assert!(claims.get("talon:session_id").is_none());
         }
     }
 
@@ -537,6 +544,7 @@ mod tests {
             namespace: None,
             mcp_server_name: None,
             agent_name: None,
+            session_id: None,
             jwt_issuer: None,
             auth_broker: None,
         };
@@ -582,10 +590,17 @@ mod tests {
                           headers: HeaderMap,
                           Json(payload): Json<serde_json::Value>| async move {
                         hits.fetch_add(1, Ordering::SeqCst);
-                        assert_broker_assertion(&headers, "conic:wks:42", "github", Some("cmo"));
+                        assert_broker_assertion(
+                            &headers,
+                            "conic:wks:42",
+                            "github",
+                            Some("cmo"),
+                            Some("session-123"),
+                        );
                         assert_eq!(payload["namespace"], "conic:wks:42");
                         assert_eq!(payload["mcp_server_name"], "github");
                         assert_eq!(payload["agent_name"], "cmo");
+                        assert_eq!(payload["session_id"], "session-123");
                         Json(json!({
                             "authorization_bearer_token": "ghs_brokered_token",
                             "expires_at_unix": 4_102_444_800i64
@@ -612,6 +627,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            session_id: Some("session-123".to_string()),
             jwt_issuer: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
@@ -651,6 +667,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            session_id: None,
             jwt_issuer: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
@@ -704,6 +721,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            session_id: None,
             jwt_issuer: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "custom".to_string(),
@@ -749,7 +767,13 @@ mod tests {
                           headers: HeaderMap,
                           Json(payload): Json<serde_json::Value>| async move {
                         hits.fetch_add(1, Ordering::SeqCst);
-                        assert_broker_assertion(&headers, "conic:wks:42", "github", Some("cmo"));
+                        assert_broker_assertion(
+                            &headers,
+                            "conic:wks:42",
+                            "github",
+                            Some("cmo"),
+                            None,
+                        );
                         assert_eq!(payload["namespace"], "conic:wks:42");
                         assert_eq!(payload["mcp_server_name"], "github");
                         assert_eq!(payload["agent_name"], "cmo");
@@ -780,6 +804,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            session_id: None,
             jwt_issuer: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),
@@ -878,6 +903,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            session_id: None,
             jwt_issuer: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             auth_broker: None,
         };
@@ -1584,7 +1610,13 @@ mod tests {
                           Json(payload): Json<serde_json::Value>| async move {
                         hits.fetch_add(1, Ordering::SeqCst);
                         let server_name = payload["mcp_server_name"].as_str().unwrap_or("missing");
-                        assert_broker_assertion(&headers, "conic:wks:42", server_name, Some("cmo"));
+                        assert_broker_assertion(
+                            &headers,
+                            "conic:wks:42",
+                            server_name,
+                            Some("cmo"),
+                            None,
+                        );
                         Json(json!({
                             "authorization_bearer_token": format!("token-{server_name}"),
                             "expires_at_unix": 4_102_444_800i64
@@ -1611,6 +1643,7 @@ mod tests {
             namespace: Some("conic:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
+            session_id: None,
             jwt_issuer: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),
             auth_broker: Some(McpAuthBrokerConfig {
                 kind: "http_bearer".to_string(),

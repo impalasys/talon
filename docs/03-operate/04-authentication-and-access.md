@@ -64,7 +64,10 @@ scope, and grants.
 MCP auth broker assertions are separated by audience. They use
 `aud: "mcps.talon.impala.systems"` so brokers can verify that an assertion came
 from Talon without receiving a token that can authenticate back to the Talon
-gateway.
+gateway. The assertion includes `talon:ns` and `talon:mcp_server`, plus the
+optional `talon:agent` and `talon:session_id` claims when the MCP call is bound
+to an agent session. The broker request body carries the same coordinates as
+`namespace`, `mcp_server_name`, `agent_name`, and `session_id`.
 
 Talon-issued JWTs can also carry structured `grants`. New tokens use the
 `grants` claim, and Talon continues to accept legacy `talon:grants`. Grants

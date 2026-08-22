@@ -58,6 +58,7 @@ type MCPClaims struct {
 	Namespace string `json:"talon:ns"`
 	MCPServer string `json:"talon:mcp_server"`
 	Agent     string `json:"talon:agent,omitempty"`
+	SessionID string `json:"talon:session_id,omitempty"`
 }
 
 // NewJWTVerifier returns a verifier for a specific Talon platform JWT audience.

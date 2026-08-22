@@ -1,6 +1,6 @@
 {
   "name": "@impalasys/talon-node-linux-x64",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Linux x86_64 talon-node binary",
   "type": "module",
   "license": "AGPL-3.0-only",

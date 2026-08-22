@@ -159,6 +159,7 @@ impl AgentRuntime {
 
             let mut server_config = config_for_agent_namespace(&server.config, ns);
             server_config.agent_name = Some(agent_id.to_string());
+            server_config.session_id = Some(session_id.to_string());
 
             let mut accepted_tools = Vec::new();
             for tool in visible_tools_for_agent(&server_config, &server.tools, &spec) {
@@ -486,6 +487,7 @@ mod tests {
             namespace: None,
             mcp_server_name: mcp_server_name.map(str::to_string),
             agent_name: None,
+            session_id: None,
             jwt_issuer: None,
             auth_broker: None,
         }
