@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { build } from "vite";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const tempRoot = await mkdtemp(join(tmpdir(), "talon-chat-package-"));
@@ -65,6 +66,29 @@ try {
   );
   execFileSync(process.execPath, [esmSmoke], { stdio: "inherit" });
   execFileSync(process.execPath, [cjsSmoke], { stdio: "inherit" });
+
+  const browserRoot = join(tempRoot, "browser-consumer");
+  await mkdir(browserRoot);
+  const canonicalBrowserRoot = await realpath(browserRoot);
+  await writeFile(join(browserRoot, "index.html"), '<script type="module" src="/main.js"></script>\n');
+  await writeFile(
+    join(browserRoot, "main.js"),
+    `import { TalonSession } from ${JSON.stringify(manifest.name)};\n` +
+      `if (typeof TalonSession !== "function") throw new Error("browser TalonSession export is missing");\n`,
+  );
+  await build({
+    root: canonicalBrowserRoot,
+    logLevel: "warn",
+    resolve: {
+      alias: {
+        [manifest.name]: resolve(packedRoot, manifest.module),
+      },
+    },
+    build: {
+      outDir: "dist",
+      emptyOutDir: true,
+    },
+  });
 
   console.log(`Verified packed ${manifest.name}@${manifest.version} (${runtimeFiles.length} runtime files).`);
 } finally {
