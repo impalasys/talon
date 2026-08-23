@@ -861,6 +861,7 @@ mod tests {
                 arguments: "{\"query\":\"value\"}".to_string(),
             }],
             usage: None,
+            encrypted_reasoning: None,
         };
         sessions::append_llm_response(
             kv.as_ref(),
@@ -917,6 +918,7 @@ mod tests {
                 content: "continued after recovery".to_string(),
                 tool_calls: Vec::new(),
                 usage: None,
+                encrypted_reasoning: None,
             },
             50,
         )
@@ -1038,6 +1040,7 @@ mod tests {
                 arguments: "{\"query\":\"value\"}".to_string(),
             }],
             usage: None,
+            encrypted_reasoning: None,
         };
         sessions::append_llm_response(
             kv.as_ref(),
@@ -1156,6 +1159,7 @@ mod tests {
                     arguments: "{}".to_string(),
                 }],
                 usage: None,
+                encrypted_reasoning: None,
             },
             10,
         )

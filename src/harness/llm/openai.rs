@@ -1097,6 +1097,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
             content: content.clone(),
             tool_calls,
             usage,
+            encrypted_reasoning: None,
         })
     }
 
@@ -1292,6 +1293,7 @@ fn parse_responses_response(value: &Value) -> Result<ChatResponse> {
         content,
         tool_calls,
         usage: extract_responses_usage(value),
+        encrypted_reasoning: None,
     })
 }
 

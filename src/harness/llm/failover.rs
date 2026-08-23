@@ -209,6 +209,7 @@ mod tests {
                     content: "chat ok".to_string(),
                     tool_calls: vec![],
                     usage: None,
+                    encrypted_reasoning: None,
                 })
             }
         }

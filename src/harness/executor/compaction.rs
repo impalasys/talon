@@ -1338,6 +1338,7 @@ mod tests {
                 content: self.content.clone(),
                 tool_calls: Vec::new(),
                 usage: None,
+                encrypted_reasoning: None,
             })
         }
 

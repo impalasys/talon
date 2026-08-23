@@ -5091,6 +5091,33 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      * <code>optional .talon.data.TokenCounter usage = 3;</code>
      */
     talon.data.Data.TokenCounterOrBuilder getUsageOrBuilder();
+
+    /**
+     * <pre>
+     * Opaque provider continuation state stored in CAS.
+     * </pre>
+     *
+     * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+     * @return Whether the encryptedReasoning field is set.
+     */
+    boolean hasEncryptedReasoning();
+    /**
+     * <pre>
+     * Opaque provider continuation state stored in CAS.
+     * </pre>
+     *
+     * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+     * @return The encryptedReasoning.
+     */
+    talon.data.Data.ObjectRef getEncryptedReasoning();
+    /**
+     * <pre>
+     * Opaque provider continuation state stored in CAS.
+     * </pre>
+     *
+     * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+     */
+    talon.data.Data.ObjectRefOrBuilder getEncryptedReasoningOrBuilder();
   }
   /**
    * Protobuf type {@code talon.harness.ChatResponse}
@@ -5243,6 +5270,44 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       return usage_ == null ? talon.data.Data.TokenCounter.getDefaultInstance() : usage_;
     }
 
+    public static final int ENCRYPTED_REASONING_FIELD_NUMBER = 4;
+    private talon.data.Data.ObjectRef encryptedReasoning_;
+    /**
+     * <pre>
+     * Opaque provider continuation state stored in CAS.
+     * </pre>
+     *
+     * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+     * @return Whether the encryptedReasoning field is set.
+     */
+    @java.lang.Override
+    public boolean hasEncryptedReasoning() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <pre>
+     * Opaque provider continuation state stored in CAS.
+     * </pre>
+     *
+     * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+     * @return The encryptedReasoning.
+     */
+    @java.lang.Override
+    public talon.data.Data.ObjectRef getEncryptedReasoning() {
+      return encryptedReasoning_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : encryptedReasoning_;
+    }
+    /**
+     * <pre>
+     * Opaque provider continuation state stored in CAS.
+     * </pre>
+     *
+     * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+     */
+    @java.lang.Override
+    public talon.data.Data.ObjectRefOrBuilder getEncryptedReasoningOrBuilder() {
+      return encryptedReasoning_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : encryptedReasoning_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -5265,6 +5330,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(3, getUsage());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(4, getEncryptedReasoning());
       }
       getUnknownFields().writeTo(output);
     }
@@ -5291,6 +5359,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, getUsage());
       }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getEncryptedReasoning());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -5315,6 +5387,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (!getUsage()
             .equals(other.getUsage())) return false;
       }
+      if (hasEncryptedReasoning() != other.hasEncryptedReasoning()) return false;
+      if (hasEncryptedReasoning()) {
+        if (!getEncryptedReasoning()
+            .equals(other.getEncryptedReasoning())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -5335,6 +5412,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (hasUsage()) {
         hash = (37 * hash) + USAGE_FIELD_NUMBER;
         hash = (53 * hash) + getUsage().hashCode();
+      }
+      if (hasEncryptedReasoning()) {
+        hash = (37 * hash) + ENCRYPTED_REASONING_FIELD_NUMBER;
+        hash = (53 * hash) + getEncryptedReasoning().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -5468,6 +5549,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 .alwaysUseFieldBuilders) {
           internalGetToolCallsFieldBuilder();
           internalGetUsageFieldBuilder();
+          internalGetEncryptedReasoningFieldBuilder();
         }
       }
       @java.lang.Override
@@ -5486,6 +5568,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (usageBuilder_ != null) {
           usageBuilder_.dispose();
           usageBuilder_ = null;
+        }
+        encryptedReasoning_ = null;
+        if (encryptedReasoningBuilder_ != null) {
+          encryptedReasoningBuilder_.dispose();
+          encryptedReasoningBuilder_ = null;
         }
         return this;
       }
@@ -5543,6 +5630,12 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
               : usageBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.encryptedReasoning_ = encryptedReasoningBuilder_ == null
+              ? encryptedReasoning_
+              : encryptedReasoningBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -5591,6 +5684,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
         if (other.hasUsage()) {
           mergeUsage(other.getUsage());
+        }
+        if (other.hasEncryptedReasoning()) {
+          mergeEncryptedReasoning(other.getEncryptedReasoning());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -5643,6 +5739,13 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                input.readMessage(
+                    internalGetEncryptedReasoningFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -6091,6 +6194,163 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           usage_ = null;
         }
         return usageBuilder_;
+      }
+
+      private talon.data.Data.ObjectRef encryptedReasoning_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> encryptedReasoningBuilder_;
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       * @return Whether the encryptedReasoning field is set.
+       */
+      public boolean hasEncryptedReasoning() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       * @return The encryptedReasoning.
+       */
+      public talon.data.Data.ObjectRef getEncryptedReasoning() {
+        if (encryptedReasoningBuilder_ == null) {
+          return encryptedReasoning_ == null ? talon.data.Data.ObjectRef.getDefaultInstance() : encryptedReasoning_;
+        } else {
+          return encryptedReasoningBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       */
+      public Builder setEncryptedReasoning(talon.data.Data.ObjectRef value) {
+        if (encryptedReasoningBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          encryptedReasoning_ = value;
+        } else {
+          encryptedReasoningBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       */
+      public Builder setEncryptedReasoning(
+          talon.data.Data.ObjectRef.Builder builderForValue) {
+        if (encryptedReasoningBuilder_ == null) {
+          encryptedReasoning_ = builderForValue.build();
+        } else {
+          encryptedReasoningBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       */
+      public Builder mergeEncryptedReasoning(talon.data.Data.ObjectRef value) {
+        if (encryptedReasoningBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) != 0) &&
+            encryptedReasoning_ != null &&
+            encryptedReasoning_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
+            getEncryptedReasoningBuilder().mergeFrom(value);
+          } else {
+            encryptedReasoning_ = value;
+          }
+        } else {
+          encryptedReasoningBuilder_.mergeFrom(value);
+        }
+        if (encryptedReasoning_ != null) {
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       */
+      public Builder clearEncryptedReasoning() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        encryptedReasoning_ = null;
+        if (encryptedReasoningBuilder_ != null) {
+          encryptedReasoningBuilder_.dispose();
+          encryptedReasoningBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       */
+      public talon.data.Data.ObjectRef.Builder getEncryptedReasoningBuilder() {
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return internalGetEncryptedReasoningFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       */
+      public talon.data.Data.ObjectRefOrBuilder getEncryptedReasoningOrBuilder() {
+        if (encryptedReasoningBuilder_ != null) {
+          return encryptedReasoningBuilder_.getMessageOrBuilder();
+        } else {
+          return encryptedReasoning_ == null ?
+              talon.data.Data.ObjectRef.getDefaultInstance() : encryptedReasoning_;
+        }
+      }
+      /**
+       * <pre>
+       * Opaque provider continuation state stored in CAS.
+       * </pre>
+       *
+       * <code>optional .talon.data.ObjectRef encrypted_reasoning = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>
+          internalGetEncryptedReasoningFieldBuilder() {
+        if (encryptedReasoningBuilder_ == null) {
+          encryptedReasoningBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>(
+                  getEncryptedReasoning(),
+                  getParentForChildren(),
+                  isClean());
+          encryptedReasoning_ = null;
+        }
+        return encryptedReasoningBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.harness.ChatResponse)
@@ -10139,24 +10399,26 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       "\004role\030\001 \001(\t\0225\n\rcontent_parts\030\002 \003(\0132\036.tal" +
       "on.harness.ChatContentPart\022+\n\ntool_calls" +
       "\030\003 \003(\0132\027.talon.harness.ToolCall\022\031\n\014tool_" +
-      "call_id\030\004 \001(\tH\000\210\001\001B\017\n\r_tool_call_id\"\204\001\n\014" +
+      "call_id\030\004 \001(\tH\000\210\001\001B\017\n\r_tool_call_id\"\325\001\n\014" +
       "ChatResponse\022\017\n\007content\030\001 \001(\t\022+\n\ntool_ca" +
       "lls\030\002 \003(\0132\027.talon.harness.ToolCall\022,\n\005us" +
       "age\030\003 \001(\0132\030.talon.data.TokenCounterH\000\210\001\001" +
-      "B\010\n\006_usage\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013desc" +
-      "ription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t" +
-      "\"\375\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
-      "on.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023." +
-      "talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.t" +
-      "alon.resources.ThinkingConfigH\000\210\001\001\022!\n\024pr" +
-      "evious_response_id\030\004 \001(\tH\001\210\001\001\022\033\n\023zero_da" +
-      "ta_retention\030\005 \001(\010B\013\n\t_thinkingB\027\n\025_prev" +
-      "ious_response_id\"\316\001\n\017ChatStreamEvent\022\024\n\n" +
-      "text_delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 " +
-      "\001(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon.h" +
-      "arness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030." +
-      "talon.data.TokenCounterH\000\022\035\n\023encrypted_r" +
-      "easoning\030\005 \001(\tH\000B\007\n\005eventb\006proto3"
+      "\0227\n\023encrypted_reasoning\030\004 \001(\0132\025.talon.da" +
+      "ta.ObjectRefH\001\210\001\001B\010\n\006_usageB\026\n\024_encrypte" +
+      "d_reasoning\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013des" +
+      "cription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(" +
+      "\t\"\375\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.ta" +
+      "lon.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023" +
+      ".talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037." +
+      "talon.resources.ThinkingConfigH\000\210\001\001\022!\n\024p" +
+      "revious_response_id\030\004 \001(\tH\001\210\001\001\022\033\n\023zero_d" +
+      "ata_retention\030\005 \001(\010B\013\n\t_thinkingB\027\n\025_pre" +
+      "vious_response_id\"\316\001\n\017ChatStreamEvent\022\024\n" +
+      "\ntext_delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002" +
+      " \001(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon." +
+      "harness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030" +
+      ".talon.data.TokenCounterH\000\022\035\n\023encrypted_" +
+      "reasoning\030\005 \001(\tH\000B\007\n\005eventb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10199,7 +10461,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     internal_static_talon_harness_ChatResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatResponse_descriptor,
-        new java.lang.String[] { "Content", "ToolCalls", "Usage", });
+        new java.lang.String[] { "Content", "ToolCalls", "Usage", "EncryptedReasoning", });
     internal_static_talon_harness_Tool_descriptor =
       getDescriptor().getMessageType(6);
     internal_static_talon_harness_Tool_fieldAccessorTable = new

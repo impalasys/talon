@@ -43,6 +43,8 @@ message ChatResponse {
   string content = 1;
   repeated ToolCall tool_calls = 2;
   optional talon.data.TokenCounter usage = 3;
+  // Opaque provider continuation state stored in CAS.
+  optional talon.data.ObjectRef encrypted_reasoning = 4;
 }
 
 message Tool {

@@ -64,6 +64,9 @@ pub struct ChatResponse {
     pub tool_calls: ::prost::alloc::vec::Vec<ToolCall>,
     #[prost(message, optional, tag = "3")]
     pub usage: ::core::option::Option<super::data::TokenCounter>,
+    /// Opaque provider continuation state stored in CAS.
+    #[prost(message, optional, tag = "4")]
+    pub encrypted_reasoning: ::core::option::Option<super::data::ObjectRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Tool {
