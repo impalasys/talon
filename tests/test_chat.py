@@ -35,6 +35,7 @@ PART_TYPE_TEXT = 1
 PART_TYPE_REASONING = 2
 PART_TYPE_TOOL_RESULT = 4
 PART_TYPE_USAGE = 5
+PART_TYPE_ENCRYPTED_REASONING = 14
 STREAM_TIMEOUT_SECONDS = 30
 
 
@@ -241,6 +242,111 @@ def test_native_openai_responses_api_handles_reasoning_and_tools(
         part.part_type == PART_TYPE_REASONING and part.content
         for part in assistant.parts
     )
+
+
+def test_openai_responses_zdr_persists_and_replays_encrypted_reasoning(
+    stack: E2EStack,
+    client: TalonClient,
+) -> None:
+    namespace = f"talon-zdr-{stack.name}-{uuid.uuid4().hex[:8]}"
+    ensure_namespace(client, namespace)
+    agent_name = "responses-zdr-agent"
+    create_agent_resource(
+        client,
+        namespace,
+        agent_name,
+        AgentSpec(
+            model_policy={
+                "profiles": [
+                    {
+                        "name": "default",
+                        "model": Model(
+                            provider="openai",
+                            name="minimax/m2.7",
+                            temperature=0.0,
+                            zero_data_retention=True,
+                        ),
+                    }
+                ]
+            },
+            system_prompt="Answer concisely.",
+        ),
+    )
+    mock_control("POST", "/__control/reset")
+    session_id = client.sessions.Create(
+        CreateSessionRequest(agent=agent_name, ns=namespace)
+    ).session_id
+
+    client.sessions.SendMessage(
+        SendMessageRequest(
+            agent=agent_name,
+            session_id=session_id,
+            ns=namespace,
+            message="What is the square root of 144?",
+        )
+    )
+
+    for _ in range(30):
+        session = client.sessions.Get(
+            GetSessionRequest(agent=agent_name, session_id=session_id, ns=namespace)
+        )
+        first_assistant = last_assistant_message(session.messages)
+        if session.state == "IDLE" and first_assistant is not None:
+            break
+        time.sleep(1)
+    else:
+        raise AssertionError("ZDR Responses API agent did not complete its first turn")
+
+    assert first_assistant is not None
+    encrypted_parts = [
+        part
+        for part in first_assistant.parts
+        if part.part_type == PART_TYPE_ENCRYPTED_REASONING
+    ]
+    assert len(encrypted_parts) == 1
+    encrypted_part = encrypted_parts[0]
+    assert encrypted_part.content == ""
+    assert encrypted_part.payload_json == ""
+    assert encrypted_part.object.key.startswith(
+        f"cas/{namespace}/sessions/{session_id}/messages/encrypted-reasoning/"
+    )
+    assert encrypted_part.object.media_type == "application/octet-stream"
+    assert encrypted_part.object.metadata["kind"] == "encrypted_reasoning"
+    assert encrypted_part.object.metadata["provider"] == "openai"
+    assert encrypted_part.object.metadata["model"] == "minimax/m2.7"
+
+    client.sessions.SendMessage(
+        SendMessageRequest(
+            agent=agent_name,
+            session_id=session_id,
+            ns=namespace,
+            message="Repeat the answer.",
+        )
+    )
+    for _ in range(30):
+        session = client.sessions.Get(
+            GetSessionRequest(agent=agent_name, session_id=session_id, ns=namespace)
+        )
+        final_assistant = last_assistant_message(session.messages)
+        if session.state == "IDLE" and final_assistant is not None:
+            break
+        time.sleep(1)
+    else:
+        raise AssertionError("ZDR Responses API agent did not complete its second turn")
+
+    state = mock_control("GET", "/__control/state")
+    assert len(state["responses_requests"]) == 2
+    first_request, second_request = state["responses_requests"]
+    assert first_request["store"] is False
+    assert first_request["include"] == ["reasoning.encrypted_content"]
+    assert all(request["previousResponseId"] is None for request in state["responses_requests"])
+    replayed_items = [
+        item
+        for item in second_request["input"]
+        if item.get("type") == "reasoning"
+    ]
+    assert len(replayed_items) == 1
+    assert replayed_items[0]["encrypted_content"] == "mock-encrypted-reasoning-1"
 
 
 def test_stop_generation_cancels_an_inflight_worker_stream(

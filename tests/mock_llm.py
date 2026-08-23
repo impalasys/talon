@@ -870,12 +870,21 @@ def responses_tools_to_chat_tools(tools):
     ]
 
 
-def responses_payload(model, *, content="", tool_call=None, response_id):
+def responses_payload(
+    model,
+    *,
+    content="",
+    tool_call=None,
+    response_id,
+    encrypted_content=None,
+):
     output = [{
         "type": "reasoning",
         "id": "rs_mock_1",
         "summary": [{"type": "summary_text", "text": "Inspecting the request."}],
     }]
+    if encrypted_content is not None:
+        output[0]["encrypted_content"] = encrypted_content
     if content:
         output.append({
             "type": "message",
@@ -964,6 +973,8 @@ async def responses(request: Request):
         "input": data.get("input", []),
         "stream": bool(data.get("stream", False)),
         "previousResponseId": data.get("previous_response_id"),
+        "store": data.get("store"),
+        "include": data.get("include", []),
         "toolNames": [tool.get("function", {}).get("name") for tool in tools],
     })
 
@@ -1002,6 +1013,12 @@ async def responses(request: Request):
         content=reply,
         tool_call=tool_call,
         response_id=f"resp_mock_{CONTROL_STATE['response_sequence']}",
+        encrypted_content=(
+            f"mock-encrypted-reasoning-{CONTROL_STATE['response_sequence']}"
+            if data.get("store") is False
+            and "reasoning.encrypted_content" in data.get("include", [])
+            else None
+        ),
     )
     if data.get("stream", False):
         return StreamingResponse(
