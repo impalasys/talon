@@ -85,6 +85,8 @@ pub struct ChatRequest {
     pub thinking: ::core::option::Option<super::resources::ThinkingConfig>,
     #[prost(string, optional, tag = "4")]
     pub previous_response_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, tag = "5")]
+    pub zero_data_retention: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChatStreamEvent {

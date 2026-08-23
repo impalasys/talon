@@ -386,6 +386,11 @@ export class ChatRequest extends Message<ChatRequest> {
    */
   previousResponseId?: string;
 
+  /**
+   * @generated from field: bool zero_data_retention = 5;
+   */
+  zeroDataRetention = false;
+
   constructor(data?: PartialMessage<ChatRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -398,6 +403,7 @@ export class ChatRequest extends Message<ChatRequest> {
     { no: 2, name: "tools", kind: "message", T: Tool, repeated: true },
     { no: 3, name: "thinking", kind: "message", T: ThinkingConfig, opt: true },
     { no: 4, name: "previous_response_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "zero_data_retention", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatRequest {
