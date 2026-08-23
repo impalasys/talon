@@ -305,6 +305,7 @@ impl CasStore {
         ns: &str,
         agent: &str,
         session_id: &str,
+        provider: &str,
         model: &str,
         value: &str,
     ) -> Result<data_proto::ObjectRef> {
@@ -330,6 +331,7 @@ impl CasStore {
                         ("namespace".to_string(), ns.to_string()),
                         (METADATA_AGENT.to_string(), agent.to_string()),
                         ("session_id".to_string(), session_id.to_string()),
+                        ("provider".to_string(), provider.to_string()),
                         ("model".to_string(), model.to_string()),
                     ]),
                 },
@@ -868,7 +870,8 @@ mod tests {
         SessionObjectIdentity, CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD,
         MAX_LOGICAL_OBJECT_BYTES, MAX_TOOL_RESULT_LOGICAL_BYTES, METADATA_AGENT,
         METADATA_CONTENT_ENCODING, METADATA_KIND, METADATA_KIND_ARTIFACT, METADATA_KIND_COMPACTION,
-        METADATA_KIND_FILE, METADATA_UNCOMPRESSED_SIZE_BYTES, TOOL_RESULT_TRUNCATION_MARKER,
+        METADATA_KIND_ENCRYPTED_REASONING, METADATA_KIND_FILE, METADATA_UNCOMPRESSED_SIZE_BYTES,
+        TOOL_RESULT_TRUNCATION_MARKER,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use flate2::{write::GzEncoder, Compression};
@@ -1319,6 +1322,39 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(stored.bytes, raw);
+    }
+
+    #[tokio::test]
+    async fn encrypted_reasoning_records_provider_and_model_provenance() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects.clone());
+
+        let object = store
+            .put_encrypted_reasoning(
+                "acme",
+                "agent",
+                "session-1",
+                "openai",
+                "gpt-test",
+                r#"{\"type\":\"reasoning\",\"encrypted_content\":\"opaque\"}"#,
+            )
+            .await
+            .unwrap();
+
+        let metadata = objects.head(&object.key).await.unwrap().unwrap();
+        assert_eq!(metadata.media_type, "application/octet-stream");
+        assert_eq!(
+            metadata.metadata.get(METADATA_KIND),
+            Some(&METADATA_KIND_ENCRYPTED_REASONING.to_string())
+        );
+        assert_eq!(
+            metadata.metadata.get("provider"),
+            Some(&"openai".to_string())
+        );
+        assert_eq!(
+            metadata.metadata.get("model"),
+            Some(&"gpt-test".to_string())
+        );
     }
 
     #[tokio::test]

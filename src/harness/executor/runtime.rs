@@ -1209,6 +1209,7 @@ impl AgentExecutor {
                         &self.namespace,
                         &self.agent_id,
                         &self.session_id,
+                        &self.llm_provider_key,
                         &self.llm_model,
                         &encrypted_reasoning_items[0],
                     )
