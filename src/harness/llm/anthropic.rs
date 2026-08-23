@@ -600,6 +600,7 @@ mod tests {
                 content_parts: Vec::new(),
                 tool_calls: Vec::new(),
                 tool_call_id: None,
+                encrypted_reasoning: None,
             })
             .await
             .unwrap();

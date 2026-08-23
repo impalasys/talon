@@ -55,6 +55,9 @@ pub struct ChatMessage {
     pub tool_calls: ::prost::alloc::vec::Vec<ToolCall>,
     #[prost(string, optional, tag = "4")]
     pub tool_call_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// Opaque provider continuation state associated with this assistant message.
+    #[prost(message, optional, tag = "5")]
+    pub encrypted_reasoning: ::core::option::Option<super::data::ObjectRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChatResponse {

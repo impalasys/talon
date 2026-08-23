@@ -231,6 +231,13 @@ export class ChatMessage extends Message<ChatMessage> {
    */
   toolCallId?: string;
 
+  /**
+   * Opaque provider continuation state associated with this assistant message.
+   *
+   * @generated from field: optional talon.data.ObjectRef encrypted_reasoning = 5;
+   */
+  encryptedReasoning?: ObjectRef;
+
   constructor(data?: PartialMessage<ChatMessage>) {
     super();
     proto3.util.initPartial(data, this);
@@ -243,6 +250,7 @@ export class ChatMessage extends Message<ChatMessage> {
     { no: 2, name: "content_parts", kind: "message", T: ChatContentPart, repeated: true },
     { no: 3, name: "tool_calls", kind: "message", T: ToolCall, repeated: true },
     { no: 4, name: "tool_call_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "encrypted_reasoning", kind: "message", T: ObjectRef, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMessage {
