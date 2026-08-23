@@ -186,6 +186,9 @@ pub struct Model {
     pub temperature: f32,
     #[prost(message, optional, tag = "4")]
     pub thinking: ::core::option::Option<ThinkingConfig>,
+    /// Use provider stateless/zero-data-retention continuation semantics.
+    #[prost(bool, tag = "5")]
+    pub zero_data_retention: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ThinkingConfig {

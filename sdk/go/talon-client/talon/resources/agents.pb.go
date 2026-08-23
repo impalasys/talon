@@ -466,13 +466,15 @@ func (x *Feature) GetRequired() bool {
 }
 
 type Model struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Temperature   float32                `protobuf:"fixed32,3,opt,name=temperature,proto3" json:"temperature,omitempty"`
-	Thinking      *ThinkingConfig        `protobuf:"bytes,4,opt,name=thinking,proto3" json:"thinking,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Provider    string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Temperature float32                `protobuf:"fixed32,3,opt,name=temperature,proto3" json:"temperature,omitempty"`
+	Thinking    *ThinkingConfig        `protobuf:"bytes,4,opt,name=thinking,proto3" json:"thinking,omitempty"`
+	// Use provider stateless/zero-data-retention continuation semantics.
+	ZeroDataRetention bool `protobuf:"varint,5,opt,name=zero_data_retention,json=zeroDataRetention,proto3" json:"zero_data_retention,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Model) Reset() {
@@ -531,6 +533,13 @@ func (x *Model) GetThinking() *ThinkingConfig {
 		return x.Thinking
 	}
 	return nil
+}
+
+func (x *Model) GetZeroDataRetention() bool {
+	if x != nil {
+		return x.ZeroDataRetention
+	}
+	return false
 }
 
 type ThinkingConfig struct {
@@ -1339,12 +1348,13 @@ const file_proto_resources_agents_proto_rawDesc = "" +
 	"\aFeature\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x1a\n" +
-	"\brequired\x18\x03 \x01(\bR\brequired\"\x96\x01\n" +
+	"\brequired\x18\x03 \x01(\bR\brequired\"\xc6\x01\n" +
 	"\x05Model\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vtemperature\x18\x03 \x01(\x02R\vtemperature\x12;\n" +
-	"\bthinking\x18\x04 \x01(\v2\x1f.talon.resources.ThinkingConfigR\bthinking\"~\n" +
+	"\bthinking\x18\x04 \x01(\v2\x1f.talon.resources.ThinkingConfigR\bthinking\x12.\n" +
+	"\x13zero_data_retention\x18\x05 \x01(\bR\x11zeroDataRetention\"~\n" +
 	"\x0eThinkingConfig\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12(\n" +
 	"\rbudget_tokens\x18\x02 \x01(\rH\x00R\fbudgetTokens\x88\x01\x01\x12\x16\n" +

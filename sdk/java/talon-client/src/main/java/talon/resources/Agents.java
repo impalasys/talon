@@ -7823,6 +7823,16 @@ java.lang.String defaultValue) {
      * <code>.talon.resources.ThinkingConfig thinking = 4;</code>
      */
     talon.resources.Agents.ThinkingConfigOrBuilder getThinkingOrBuilder();
+
+    /**
+     * <pre>
+     * Use provider stateless/zero-data-retention continuation semantics.
+     * </pre>
+     *
+     * <code>bool zero_data_retention = 5;</code>
+     * @return The zeroDataRetention.
+     */
+    boolean getZeroDataRetention();
   }
   /**
    * Protobuf type {@code talon.resources.Model}
@@ -7984,6 +7994,21 @@ java.lang.String defaultValue) {
       return thinking_ == null ? talon.resources.Agents.ThinkingConfig.getDefaultInstance() : thinking_;
     }
 
+    public static final int ZERO_DATA_RETENTION_FIELD_NUMBER = 5;
+    private boolean zeroDataRetention_ = false;
+    /**
+     * <pre>
+     * Use provider stateless/zero-data-retention continuation semantics.
+     * </pre>
+     *
+     * <code>bool zero_data_retention = 5;</code>
+     * @return The zeroDataRetention.
+     */
+    @java.lang.Override
+    public boolean getZeroDataRetention() {
+      return zeroDataRetention_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -8010,6 +8035,9 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(4, getThinking());
       }
+      if (zeroDataRetention_ != false) {
+        output.writeBool(5, zeroDataRetention_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -8032,6 +8060,10 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, getThinking());
+      }
+      if (zeroDataRetention_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, zeroDataRetention_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -8060,6 +8092,8 @@ java.lang.String defaultValue) {
         if (!getThinking()
             .equals(other.getThinking())) return false;
       }
+      if (getZeroDataRetention()
+          != other.getZeroDataRetention()) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -8082,6 +8116,9 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + THINKING_FIELD_NUMBER;
         hash = (53 * hash) + getThinking().hashCode();
       }
+      hash = (37 * hash) + ZERO_DATA_RETENTION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getZeroDataRetention());
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -8227,6 +8264,7 @@ java.lang.String defaultValue) {
           thinkingBuilder_.dispose();
           thinkingBuilder_ = null;
         }
+        zeroDataRetention_ = false;
         return this;
       }
 
@@ -8276,6 +8314,9 @@ java.lang.String defaultValue) {
               : thinkingBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.zeroDataRetention_ = zeroDataRetention_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -8306,6 +8347,9 @@ java.lang.String defaultValue) {
         }
         if (other.hasThinking()) {
           mergeThinking(other.getThinking());
+        }
+        if (other.getZeroDataRetention() != false) {
+          setZeroDataRetention(other.getZeroDataRetention());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -8355,6 +8399,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 40: {
+                zeroDataRetention_ = input.readBool();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -8667,6 +8716,50 @@ java.lang.String defaultValue) {
           thinking_ = null;
         }
         return thinkingBuilder_;
+      }
+
+      private boolean zeroDataRetention_ ;
+      /**
+       * <pre>
+       * Use provider stateless/zero-data-retention continuation semantics.
+       * </pre>
+       *
+       * <code>bool zero_data_retention = 5;</code>
+       * @return The zeroDataRetention.
+       */
+      @java.lang.Override
+      public boolean getZeroDataRetention() {
+        return zeroDataRetention_;
+      }
+      /**
+       * <pre>
+       * Use provider stateless/zero-data-retention continuation semantics.
+       * </pre>
+       *
+       * <code>bool zero_data_retention = 5;</code>
+       * @param value The zeroDataRetention to set.
+       * @return This builder for chaining.
+       */
+      public Builder setZeroDataRetention(boolean value) {
+
+        zeroDataRetention_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Use provider stateless/zero-data-retention continuation semantics.
+       * </pre>
+       *
+       * <code>bool zero_data_retention = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearZeroDataRetention() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        zeroDataRetention_ = false;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.Model)
@@ -20449,44 +20542,45 @@ java.lang.String defaultValue) {
       "\n\005value\030\002 \001(\t:\0028\001\0327\n\025PermissionPolicyEnt" +
       "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"7\n\007Fe" +
       "ature\022\014\n\004name\030\001 \001(\t\022\014\n\004type\030\002 \001(\t\022\020\n\010req" +
-      "uired\030\003 \001(\010\"o\n\005Model\022\020\n\010provider\030\001 \001(\t\022\014" +
-      "\n\004name\030\002 \001(\t\022\023\n\013temperature\030\003 \001(\002\0221\n\010thi" +
-      "nking\030\004 \001(\0132\037.talon.resources.ThinkingCo" +
-      "nfig\"_\n\016ThinkingConfig\022\017\n\007enabled\030\001 \001(\010\022" +
-      "\032\n\rbudget_tokens\030\002 \001(\rH\000\210\001\001\022\016\n\006effort\030\003 " +
-      "\001(\tB\020\n\016_budget_tokens\"C\n\014ModelProfile\022\014\n" +
-      "\004name\030\001 \001(\t\022%\n\005model\030\002 \001(\0132\026.talon.resou" +
-      "rces.Model\">\n\013ModelPolicy\022/\n\010profiles\030\001 " +
-      "\003(\0132\035.talon.resources.ModelProfile\"g\n\003A2" +
-      "A\0220\n\013connections\030\001 \003(\0132\033.talon.resources" +
-      ".Connection\022.\n\nagent_card\030\002 \001(\0132\032.talon." +
-      "resources.AgentCard\"\345\001\n\nConnection\022\014\n\004na" +
-      "me\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022.\n\006target\030" +
-      "\003 \001(\0132\036.talon.resources.ConnectionRef\022\023\n" +
-      "\013input_modes\030\004 \003(\t\022\024\n\014output_modes\030\005 \003(\t" +
-      "\022\027\n\017timeout_seconds\030\006 \001(\r\022\021\n\tmax_depth\030\007" +
-      " \001(\r\022-\n\004auth\030\010 \001(\0132\037.talon.resources.Con" +
-      "nectionAuth\"\247\001\n\rConnectionRef\022=\n\010interna" +
-      "l\030\001 \001(\0132&.talon.resources.InternalConnec" +
-      "tionRefH\000\210\001\001\022=\n\010external\030\002 \001(\0132&.talon.r" +
-      "esources.ExternalConnectionRefH\001\210\001\001B\013\n\t_" +
-      "internalB\013\n\t_external\"9\n\025InternalConnect" +
-      "ionRef\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t" +
-      "\"/\n\025ExternalConnectionRef\022\026\n\016agent_card_" +
-      "url\030\001 \001(\t\"2\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(" +
-      "\t\022\022\n\nsecret_ref\030\002 \001(\t\"\351\001\n\tAgentCard\022\014\n\004n" +
-      "ame\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022\017\n\007versio" +
-      "n\030\003 \001(\t\022<\n\014capabilities\030\004 \001(\0132&.talon.re" +
-      "sources.AgentCardCapabilities\022\033\n\023default" +
-      "_input_modes\030\005 \003(\t\022\034\n\024default_output_mod" +
-      "es\030\006 \003(\t\022/\n\006skills\030\007 \003(\0132\037.talon.resourc" +
-      "es.AgentCardSkill\"c\n\025AgentCardCapabiliti" +
-      "es\022\021\n\tstreaming\030\001 \001(\010\022\032\n\022push_notificati" +
-      "ons\030\002 \001(\010\022\033\n\023extended_agent_card\030\003 \001(\010\"\212" +
-      "\001\n\016AgentCardSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 " +
-      "\001(\t\022\023\n\013description\030\003 \001(\t\022\014\n\004tags\030\004 \003(\t\022\020" +
-      "\n\010examples\030\005 \003(\t\022\023\n\013input_modes\030\006 \003(\t\022\024\n" +
-      "\014output_modes\030\007 \003(\tb\006proto3"
+      "uired\030\003 \001(\010\"\214\001\n\005Model\022\020\n\010provider\030\001 \001(\t\022" +
+      "\014\n\004name\030\002 \001(\t\022\023\n\013temperature\030\003 \001(\002\0221\n\010th" +
+      "inking\030\004 \001(\0132\037.talon.resources.ThinkingC" +
+      "onfig\022\033\n\023zero_data_retention\030\005 \001(\010\"_\n\016Th" +
+      "inkingConfig\022\017\n\007enabled\030\001 \001(\010\022\032\n\rbudget_" +
+      "tokens\030\002 \001(\rH\000\210\001\001\022\016\n\006effort\030\003 \001(\tB\020\n\016_bu" +
+      "dget_tokens\"C\n\014ModelProfile\022\014\n\004name\030\001 \001(" +
+      "\t\022%\n\005model\030\002 \001(\0132\026.talon.resources.Model" +
+      "\">\n\013ModelPolicy\022/\n\010profiles\030\001 \003(\0132\035.talo" +
+      "n.resources.ModelProfile\"g\n\003A2A\0220\n\013conne" +
+      "ctions\030\001 \003(\0132\033.talon.resources.Connectio" +
+      "n\022.\n\nagent_card\030\002 \001(\0132\032.talon.resources." +
+      "AgentCard\"\345\001\n\nConnection\022\014\n\004name\030\001 \001(\t\022\023" +
+      "\n\013description\030\002 \001(\t\022.\n\006target\030\003 \001(\0132\036.ta" +
+      "lon.resources.ConnectionRef\022\023\n\013input_mod" +
+      "es\030\004 \003(\t\022\024\n\014output_modes\030\005 \003(\t\022\027\n\017timeou" +
+      "t_seconds\030\006 \001(\r\022\021\n\tmax_depth\030\007 \001(\r\022-\n\004au" +
+      "th\030\010 \001(\0132\037.talon.resources.ConnectionAut" +
+      "h\"\247\001\n\rConnectionRef\022=\n\010internal\030\001 \001(\0132&." +
+      "talon.resources.InternalConnectionRefH\000\210" +
+      "\001\001\022=\n\010external\030\002 \001(\0132&.talon.resources.E" +
+      "xternalConnectionRefH\001\210\001\001B\013\n\t_internalB\013" +
+      "\n\t_external\"9\n\025InternalConnectionRef\022\021\n\t" +
+      "namespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"/\n\025Extern" +
+      "alConnectionRef\022\026\n\016agent_card_url\030\001 \001(\t\"" +
+      "2\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n\nsecre" +
+      "t_ref\030\002 \001(\t\"\351\001\n\tAgentCard\022\014\n\004name\030\001 \001(\t\022" +
+      "\023\n\013description\030\002 \001(\t\022\017\n\007version\030\003 \001(\t\022<\n" +
+      "\014capabilities\030\004 \001(\0132&.talon.resources.Ag" +
+      "entCardCapabilities\022\033\n\023default_input_mod" +
+      "es\030\005 \003(\t\022\034\n\024default_output_modes\030\006 \003(\t\022/" +
+      "\n\006skills\030\007 \003(\0132\037.talon.resources.AgentCa" +
+      "rdSkill\"c\n\025AgentCardCapabilities\022\021\n\tstre" +
+      "aming\030\001 \001(\010\022\032\n\022push_notifications\030\002 \001(\010\022" +
+      "\033\n\023extended_agent_card\030\003 \001(\010\"\212\001\n\016AgentCa" +
+      "rdSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013des" +
+      "cription\030\003 \001(\t\022\014\n\004tags\030\004 \003(\t\022\020\n\010examples" +
+      "\030\005 \003(\t\022\023\n\013input_modes\030\006 \003(\t\022\024\n\014output_mo" +
+      "des\030\007 \003(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -20553,7 +20647,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_Model_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_Model_descriptor,
-        new java.lang.String[] { "Provider", "Name", "Temperature", "Thinking", });
+        new java.lang.String[] { "Provider", "Name", "Temperature", "Thinking", "ZeroDataRetention", });
     internal_static_talon_resources_ThinkingConfig_descriptor =
       getDescriptor().getMessageType(7);
     internal_static_talon_resources_ThinkingConfig_fieldAccessorTable = new

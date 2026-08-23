@@ -53,6 +53,8 @@ struct ModelManifest {
     name: String,
     temperature: f32,
     thinking: Option<ThinkingConfigManifest>,
+    #[serde(default)]
+    zero_data_retention: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
