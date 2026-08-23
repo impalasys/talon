@@ -147,6 +147,14 @@ pub fn usage_event(usage: TokenCounter) -> ChatStreamEvent {
     }
 }
 
+pub fn encrypted_reasoning_event(reasoning: impl Into<String>) -> ChatStreamEvent {
+    ChatStreamEvent {
+        event: Some(chat_stream_event::Event::EncryptedReasoning(
+            reasoning.into(),
+        )),
+    }
+}
+
 pub type ChatStream = Pin<Box<dyn Stream<Item = Result<ChatStreamEvent>> + Send>>;
 
 #[async_trait]

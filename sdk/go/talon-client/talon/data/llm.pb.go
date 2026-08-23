@@ -558,6 +558,7 @@ type ChatStreamEvent struct {
 	//	*ChatStreamEvent_ReasoningDelta
 	//	*ChatStreamEvent_ToolCallDelta
 	//	*ChatStreamEvent_Usage
+	//	*ChatStreamEvent_EncryptedReasoning
 	Event         isChatStreamEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -636,6 +637,15 @@ func (x *ChatStreamEvent) GetUsage() *TokenCounter {
 	return nil
 }
 
+func (x *ChatStreamEvent) GetEncryptedReasoning() string {
+	if x != nil {
+		if x, ok := x.Event.(*ChatStreamEvent_EncryptedReasoning); ok {
+			return x.EncryptedReasoning
+		}
+	}
+	return ""
+}
+
 type isChatStreamEvent_Event interface {
 	isChatStreamEvent_Event()
 }
@@ -656,6 +666,12 @@ type ChatStreamEvent_Usage struct {
 	Usage *TokenCounter `protobuf:"bytes,4,opt,name=usage,proto3,oneof"`
 }
 
+type ChatStreamEvent_EncryptedReasoning struct {
+	// Raw opaque provider state. The executor writes it to CAS before it is
+	// persisted in a ChatResponse or SessionMessage.
+	EncryptedReasoning string `protobuf:"bytes,5,opt,name=encrypted_reasoning,json=encryptedReasoning,proto3,oneof"`
+}
+
 func (*ChatStreamEvent_TextDelta) isChatStreamEvent_Event() {}
 
 func (*ChatStreamEvent_ReasoningDelta) isChatStreamEvent_Event() {}
@@ -663,6 +679,8 @@ func (*ChatStreamEvent_ReasoningDelta) isChatStreamEvent_Event() {}
 func (*ChatStreamEvent_ToolCallDelta) isChatStreamEvent_Event() {}
 
 func (*ChatStreamEvent_Usage) isChatStreamEvent_Event() {}
+
+func (*ChatStreamEvent_EncryptedReasoning) isChatStreamEvent_Event() {}
 
 var File_proto_harness_llm_proto protoreflect.FileDescriptor
 
@@ -716,13 +734,14 @@ const file_proto_harness_llm_proto_rawDesc = "" +
 	"\x14previous_response_id\x18\x04 \x01(\tH\x01R\x12previousResponseId\x88\x01\x01\x12.\n" +
 	"\x13zero_data_retention\x18\x05 \x01(\bR\x11zeroDataRetentionB\v\n" +
 	"\t_thinkingB\x17\n" +
-	"\x15_previous_response_id\"\xe0\x01\n" +
+	"\x15_previous_response_id\"\x93\x02\n" +
 	"\x0fChatStreamEvent\x12\x1f\n" +
 	"\n" +
 	"text_delta\x18\x01 \x01(\tH\x00R\ttextDelta\x12)\n" +
 	"\x0freasoning_delta\x18\x02 \x01(\tH\x00R\x0ereasoningDelta\x12F\n" +
 	"\x0ftool_call_delta\x18\x03 \x01(\v2\x1c.talon.harness.ToolCallDeltaH\x00R\rtoolCallDelta\x120\n" +
-	"\x05usage\x18\x04 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usageB\a\n" +
+	"\x05usage\x18\x04 \x01(\v2\x18.talon.data.TokenCounterH\x00R\x05usage\x121\n" +
+	"\x13encrypted_reasoning\x18\x05 \x01(\tH\x00R\x12encryptedReasoningB\a\n" +
 	"\x05eventb\x06proto3"
 
 var (
@@ -790,6 +809,7 @@ func file_proto_harness_llm_proto_init() {
 		(*ChatStreamEvent_ReasoningDelta)(nil),
 		(*ChatStreamEvent_ToolCallDelta)(nil),
 		(*ChatStreamEvent_Usage)(nil),
+		(*ChatStreamEvent_EncryptedReasoning)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

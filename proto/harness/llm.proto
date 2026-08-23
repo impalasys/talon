@@ -66,5 +66,8 @@ message ChatStreamEvent {
     string reasoning_delta = 2;
     ToolCallDelta tool_call_delta = 3;
     talon.data.TokenCounter usage = 4;
+    // Raw opaque provider state. The executor writes it to CAS before it is
+    // persisted in a ChatResponse or SessionMessage.
+    string encrypted_reasoning = 5;
   }
 }
