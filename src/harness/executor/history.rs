@@ -307,6 +307,18 @@ async fn assistant_session_message_to_loop_messages(
         }
 
         if part.part_type == data_proto::SessionMessagePartType::EncryptedReasoning as i32 {
+            // A reply may contain a complete tool pass followed by a later
+            // assistant pass. Keep each response's continuation state with
+            // its own assistant message even if an encrypted-reasoning part
+            // arrives before the later text part.
+            flush_tool_batch(
+                &mut history,
+                &mut content_parts,
+                &mut tool_calls,
+                &mut tool_results,
+                &mut seen_result_ids,
+                &mut encrypted_reasoning,
+            );
             encrypted_reasoning = part.object.clone();
             continue;
         }
@@ -1356,6 +1368,50 @@ mod tests {
         assert_eq!(history.len(), 1);
         assert_eq!(history[0].text_content(), "answer");
         assert_eq!(history[0].encrypted_reasoning.as_ref(), Some(&reasoning));
+    }
+
+    #[tokio::test]
+    async fn assistant_history_keeps_reasoning_with_its_tool_or_final_pass() {
+        let store = InMemoryObjectStore::default();
+        let first_reasoning = data_proto::ObjectRef {
+            key: "cas/ns/agent/session/reasoning-1.bin".to_string(),
+            media_type: "application/octet-stream".to_string(),
+            size_bytes: 42,
+            ..Default::default()
+        };
+        let second_reasoning = data_proto::ObjectRef {
+            key: "cas/ns/agent/session/reasoning-2.bin".to_string(),
+            media_type: "application/octet-stream".to_string(),
+            size_bytes: 43,
+            ..Default::default()
+        };
+        let message = assistant_message(vec![
+            session_text_part("000001", "checking"),
+            encrypted_reasoning_part("000002", first_reasoning.clone()),
+            tool_call_part("call-1", "search", serde_json::json!({ "q": "talon" })),
+            tool_result_part_for_call("call-1", "search", "found it"),
+            encrypted_reasoning_part("000005", second_reasoning.clone()),
+            session_text_part("000006", "done"),
+        ]);
+
+        let history = session_message_to_loop_messages(&message, &store)
+            .await
+            .unwrap();
+
+        assert_eq!(history.len(), 3);
+        assert_eq!(history[0].role, "assistant");
+        assert_eq!(history[0].text_content(), "checking");
+        assert_eq!(
+            history[0].encrypted_reasoning.as_ref(),
+            Some(&first_reasoning)
+        );
+        assert_eq!(history[1].tool_call_id.as_deref(), Some("call-1"));
+        assert_eq!(history[2].role, "assistant");
+        assert_eq!(history[2].text_content(), "done");
+        assert_eq!(
+            history[2].encrypted_reasoning.as_ref(),
+            Some(&second_reasoning)
+        );
     }
 
     #[tokio::test]
