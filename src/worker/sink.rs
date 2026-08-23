@@ -669,6 +669,28 @@ impl PubSubSessionSink {
         );
     }
 
+    pub(crate) fn seed_recovered_encrypted_reasoning_part(
+        &self,
+        part_id: &str,
+        object: data_proto::ObjectRef,
+    ) {
+        self.record_part_with_id_and_object(
+            part_id.to_string(),
+            data_proto::SessionMessagePartType::EncryptedReasoning,
+            String::new(),
+            String::new(),
+            String::new(),
+            Some(object),
+        );
+    }
+
+    pub(crate) fn seed_recovered_final_encrypted_reasoning_part(
+        &self,
+        object: data_proto::ObjectRef,
+    ) {
+        self.seed_recovered_encrypted_reasoning_part(&self.next_part_id(), object);
+    }
+
     pub(crate) fn seed_recovered_tool_call_part(
         &self,
         part_id: &str,
