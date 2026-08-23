@@ -22,6 +22,7 @@ pub const METADATA_KIND_TOOL_RESULT: &str = "tool_result";
 pub const METADATA_KIND_ARTIFACT: &str = "artifact";
 pub const METADATA_KIND_FILE: &str = "file";
 pub const METADATA_KIND_COMPACTION: &str = "compaction";
+pub const METADATA_KIND_ENCRYPTED_REASONING: &str = "encrypted_reasoning";
 pub const METADATA_AGENT: &str = "agent";
 pub const METADATA_TOOL_CALL_ID: &str = "tool_call_id";
 pub const METADATA_TOOL_NAME: &str = "tool_name";
@@ -297,6 +298,45 @@ impl CasStore {
             .await
     }
 
+    /// Store opaque provider continuation state under the session CAS scope.
+    /// The value is intentionally never decoded or logged by Talon.
+    pub async fn put_encrypted_reasoning(
+        &self,
+        ns: &str,
+        agent: &str,
+        session_id: &str,
+        model: &str,
+        value: &str,
+    ) -> Result<data_proto::ObjectRef> {
+        let scope = SessionCasScope::new(ns, agent, session_id);
+        let identity =
+            SessionObjectIdentity::new("encrypted-reasoning", &uuid::Uuid::now_v7().to_string());
+        let bytes = value.as_bytes();
+        self.objects
+            .put(
+                &session_object_key_with_extension(&scope, &identity, "bin"),
+                bytes,
+                ObjectMetadata {
+                    media_type: "application/octet-stream".to_string(),
+                    size_bytes: bytes.len() as u64,
+                    sha256: sha256_hex(bytes),
+                    filename: String::new(),
+                    content_encoding: String::new(),
+                    metadata: HashMap::from([
+                        (
+                            METADATA_KIND.to_string(),
+                            METADATA_KIND_ENCRYPTED_REASONING.to_string(),
+                        ),
+                        ("namespace".to_string(), ns.to_string()),
+                        (METADATA_AGENT.to_string(), agent.to_string()),
+                        ("session_id".to_string(), session_id.to_string()),
+                        ("model".to_string(), model.to_string()),
+                    ]),
+                },
+            )
+            .await
+    }
+
     /// Store the immutable Markdown summary for a durable context compaction.
     /// The key intentionally uses the journal entry id so the journal and
     /// internal message marker can share one authoritative object reference.
@@ -447,12 +487,21 @@ impl CasStore {
 }
 
 pub fn session_object_key(scope: &SessionCasScope, identity: &SessionObjectIdentity) -> String {
+    session_object_key_with_extension(scope, identity, "txt")
+}
+
+fn session_object_key_with_extension(
+    scope: &SessionCasScope,
+    identity: &SessionObjectIdentity,
+    extension: &str,
+) -> String {
     format!(
-        "cas/{}/sessions/{}/messages/{}/{}.txt",
+        "cas/{}/sessions/{}/messages/{}/{}.{}",
         encoded_object_key_segment(&scope.ns),
         object_key_segment(&scope.session_id),
         object_key_segment(&identity.message_id),
-        object_key_segment(&identity.part_id)
+        object_key_segment(&identity.part_id),
+        extension,
     )
 }
 
