@@ -758,6 +758,7 @@ fn part_type_name(part_type: i32) -> &'static str {
         Some(data_proto::SessionMessagePartType::File) => "file",
         Some(data_proto::SessionMessagePartType::RequestPermission) => "request_permission",
         Some(data_proto::SessionMessagePartType::PermissionResult) => "permission_result",
+        Some(data_proto::SessionMessagePartType::EncryptedReasoning) => "encrypted_reasoning",
         _ => "unspecified",
     }
 }
@@ -791,15 +792,26 @@ mod tests {
             role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: 123,
             labels: HashMap::new(),
-            parts: vec![data_proto::SessionMessagePart {
-                id: "p1".to_string(),
-                part_type: data_proto::SessionMessagePartType::Text as i32,
-                content: "hello".to_string(),
-                name: String::new(),
-                payload_json: String::new(),
-                created_at: 123,
-                object: None,
-            }],
+            parts: vec![
+                data_proto::SessionMessagePart {
+                    id: "p1".to_string(),
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: "hello".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 123,
+                    object: None,
+                },
+                data_proto::SessionMessagePart {
+                    id: "p2".to_string(),
+                    part_type: data_proto::SessionMessagePartType::EncryptedReasoning as i32,
+                    content: String::new(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 123,
+                    object: None,
+                },
+            ],
         };
 
         let value = session_message_json(&message);
@@ -807,5 +819,6 @@ mod tests {
         assert_eq!(value["role"], "assistant");
         assert_eq!(value["parts"][0]["type"], "text");
         assert_eq!(value["parts"][0]["content"], "hello");
+        assert_eq!(value["parts"][1]["type"], "encrypted_reasoning");
     }
 }
