@@ -392,6 +392,8 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::ACTIVATE_SKILL_TOOL,
         crate::harness::native_tools::DEACTIVATE_SKILL_TOOL,
         crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL,
+        crate::harness::native_tools::READ_TOOL,
+        crate::harness::native_tools::WRITE_TOOL,
         crate::harness::native_tools::CREATE_ARTIFACT_TOOL,
         crate::harness::native_tools::UPDATE_ARTIFACT_TOOL,
         crate::harness::native_tools::READ_ARTIFACT_TOOL,
@@ -707,6 +709,8 @@ mod tests {
         let names = builtin_tool_names();
         assert!(names.contains(&crate::harness::native_tools::CREATE_SCHEDULE_TOOL));
         assert!(names.contains(&crate::harness::native_tools::DELETE_SCHEDULE_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::READ_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::WRITE_TOOL));
         assert!(names.contains(&crate::harness::native_tools::CREATE_GOAL_TOOL));
         assert!(names.contains(&crate::harness::native_tools::LIST_GOALS_TOOL));
         assert!(names.contains(&crate::harness::native_tools::CREATE_ARTIFACT_TOOL));
