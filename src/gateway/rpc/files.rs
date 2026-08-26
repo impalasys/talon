@@ -1921,6 +1921,14 @@ mod tests {
             panic!("signed URL reads should not fetch bytes")
         }
 
+        async fn get_range(
+            &self,
+            _key: &str,
+            _range: std::ops::Range<u64>,
+        ) -> Result<Option<Vec<u8>>> {
+            panic!("signed URL reads should not fetch bytes")
+        }
+
         async fn head(&self, _key: &str) -> Result<Option<ObjectMetadata>> {
             Ok(None)
         }
@@ -1965,6 +1973,14 @@ mod tests {
 
         async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
             self.inner.get(key).await
+        }
+
+        async fn get_range(
+            &self,
+            key: &str,
+            range: std::ops::Range<u64>,
+        ) -> Result<Option<Vec<u8>>> {
+            self.inner.get_range(key, range).await
         }
 
         async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
