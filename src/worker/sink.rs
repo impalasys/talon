@@ -825,7 +825,10 @@ impl PubSubSessionSink {
             &self.agent_id,
             &self.session_id,
             &artifact_id,
-            artifact.object_ref.as_ref().expect("inline artifact object ref"),
+            artifact
+                .object_ref
+                .as_ref()
+                .expect("inline artifact object ref"),
         )
         .await?;
         self.kv
@@ -2254,16 +2257,19 @@ mod tests {
             .unwrap()
             .expect("artifact object");
         assert_eq!(object.bytes, b"# Redline\n\n- edit");
-        assert_eq!(
-            kv.list_keys(
-                &keys::artifact_revision_prefix("conic", "infra", "session-1"),
-                None,
-            )
+        let revision_key = keys::artifact_revision(
+            "conic",
+            "infra",
+            "session-1",
+            &format!("{}-{}", artifact.id, object_ref.sha256),
+        )
+        .to_string();
+        assert!(kv
+            .entries
+            .lock()
             .await
-            .unwrap()
-            .len(),
-            1
-        );
+            .iter()
+            .any(|(key, _)| key == &revision_key));
     }
 
     #[tokio::test]
