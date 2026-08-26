@@ -337,7 +337,10 @@ fn parse_tool_output_json(value: &Value) -> Result<ToolOutput> {
             .or_else(|| value.get("byteRange"))
             .and_then(Value::as_object)
             .map(|range| ToolOutputByteRange {
-                start: range.get("start").and_then(Value::as_u64).unwrap_or_default(),
+                start: range
+                    .get("start")
+                    .and_then(Value::as_u64)
+                    .unwrap_or_default(),
                 end: range.get("end").and_then(Value::as_u64).unwrap_or_default(),
                 next_byte: range
                     .get("next_byte")
