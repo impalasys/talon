@@ -187,6 +187,8 @@ pub fn register_channel_tools(registry: &mut ToolRegistry) {
 }
 
 pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, config: &Config) {
+    // Only metadata/grant artifact operations remain model-visible. Artifact
+    // content flows through the generic read/write resource tools.
     artifact_tools::register(registry);
     registry.register_builtin(
         READ_TOOL,
@@ -376,18 +378,6 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, 
             }),
         );
         registry.register_builtin(
-            READ_FILE_TOOL,
-            "Read a namespace File by file:// URI or logical path.",
-            json!({
-                "type": "object",
-                "properties": {
-                    "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI returned by Talon or Conic." },
-                    "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
-                    "path": { "type": "string", "description": "Logical File path, for example /content/pages/<id>/content.md." }
-                }
-            }),
-        );
-        registry.register_builtin(
             GET_FILE_METADATA_TOOL,
             "Get File metadata by file:// URI or logical path without reading content.",
             json!({
@@ -401,20 +391,6 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, 
         );
     }
 
-    if has_capability_action(spec, "files", "create") {
-        registry.register_builtin(
-            CREATE_FILE_TOOL,
-            "Create a namespace File. Defaults to purpose=ARTIFACT, index_policy=SEARCH, and retention=RETAINED.",
-            file_write_schema(),
-        );
-    }
-    if has_capability_action(spec, "files", "update") {
-        registry.register_builtin(
-            UPDATE_FILE_TOOL,
-            "Update an existing namespace File by file:// URI or logical path.",
-            file_write_schema(),
-        );
-    }
     if has_capability_action(spec, "files", "delete") {
         registry.register_builtin(
             DELETE_FILE_TOOL,
@@ -612,23 +588,6 @@ fn memory_write_schema() -> Value {
             "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." }
         },
         "required": ["path", "content"]
-    })
-}
-
-fn file_write_schema() -> Value {
-    json!({
-        "type": "object",
-        "properties": {
-            "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI for updates." },
-            "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
-            "path": { "type": "string", "description": "Logical File path, for example /content/pages/<id>/content.md." },
-            "content": { "type": "string", "description": "Markdown, HTML, or text content to store." },
-            "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
-            "purpose": { "type": "string", "description": "File purpose: ARTIFACT, MEMORY, or SKILL. Defaults to ARTIFACT." },
-            "index_policy": { "type": "string", "description": "Index policy: NONE, SEARCH, or RETRIEVAL. Defaults to SEARCH." },
-            "retention": { "type": "string", "description": "Retention policy: RETAINED. Defaults to RETAINED." }
-        },
-        "required": ["content"]
     })
 }
 
@@ -4815,7 +4774,7 @@ mod tests {
         assert!(read_registry.get_tool(LIST_FILES_TOOL).is_some());
         assert!(read_registry.get_tool(READ_TOOL).is_some());
         assert!(read_registry.get_tool(WRITE_TOOL).is_some());
-        assert!(read_registry.get_tool(READ_FILE_TOOL).is_some());
+        assert!(read_registry.get_tool(READ_FILE_TOOL).is_none());
         assert!(read_registry.get_tool(GET_FILE_METADATA_TOOL).is_some());
         assert!(read_registry.get_tool(CREATE_FILE_TOOL).is_none());
         assert!(read_registry.get_tool(UPDATE_FILE_TOOL).is_none());
@@ -4828,10 +4787,10 @@ mod tests {
             &Config::default(),
         );
 
-        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_some());
+        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_none());
         assert!(write_registry.get_tool(READ_TOOL).is_some());
         assert!(write_registry.get_tool(WRITE_TOOL).is_some());
-        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_some());
+        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_none());
         assert!(write_registry.get_tool(DELETE_FILE_TOOL).is_some());
         assert!(write_registry.get_tool(READ_FILE_TOOL).is_none());
     }
