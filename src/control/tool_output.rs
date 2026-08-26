@@ -206,7 +206,10 @@ pub fn compact_tool_result_catalog(tool_call_id: &str, parts: &[ChatContentPart]
                 format!("parts/{index}: text/plain ({} bytes)", text.len())
             }
             Some(chat_content_part::Content::ObjectRef(object)) => {
-                format!("parts/{index}: {} ({} bytes)", object.media_type, object.size_bytes)
+                format!(
+                    "parts/{index}: {} ({} bytes)",
+                    object.media_type, object.size_bytes
+                )
             }
             None => format!("parts/{index}: empty"),
         })
@@ -215,16 +218,22 @@ pub fn compact_tool_result_catalog(tool_call_id: &str, parts: &[ChatContentPart]
     truncate_utf8(
         &format!(
             "Tool result catalog {}: {}. Use read with ref '{}' to inspect a part.",
-            tool_result_handle(tool_call_id), entries, tool_result_handle(tool_call_id)
+            tool_result_handle(tool_call_id),
+            entries,
+            tool_result_handle(tool_call_id)
         ),
         TOOL_RESULT_DURABLE_SUMMARY_BYTES,
     )
 }
 
 fn truncate_utf8(value: &str, max_bytes: usize) -> String {
-    if value.len() <= max_bytes { return value.to_string(); }
+    if value.len() <= max_bytes {
+        return value.to_string();
+    }
     let mut end = max_bytes.saturating_sub(3);
-    while end > 0 && !value.is_char_boundary(end) { end -= 1; }
+    while end > 0 && !value.is_char_boundary(end) {
+        end -= 1;
+    }
     format!("{}...", &value[..end])
 }
 
@@ -715,7 +724,9 @@ mod tests {
         .unwrap();
 
         assert!(normalized.summary.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
-        assert!(normalized.summary.starts_with("Tool result catalog tr://call:"));
+        assert!(normalized
+            .summary
+            .starts_with("Tool result catalog tr://call:"));
         assert!(normalized.summary.contains("parts/0: text/plain"));
         let payload = tool_result_payload_json("call", &normalized).unwrap();
         assert!(payload.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);

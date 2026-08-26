@@ -262,7 +262,12 @@ pub trait ExecutionSink: Send + Sync {
     /// The tool returned a result.
     async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput);
     /// A tool result has been durably recorded.
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, result: &ToolOutput) -> Result<ToolOutput> {
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
         Ok(result.clone())
     }
     /// Claim and return interactive inputs that should be incorporated before
@@ -294,7 +299,12 @@ impl ExecutionSink for NullSink {
         Ok(())
     }
     async fn on_tool_result(&self, _: &str, _: &str, _: &ToolOutput) {}
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, result: &ToolOutput) -> Result<ToolOutput> {
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
         Ok(result.clone())
     }
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
@@ -372,7 +382,12 @@ impl ExecutionSink for CaptureSink {
             output: tool_output::display_text(result),
         });
     }
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, result: &ToolOutput) -> Result<ToolOutput> {
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
         Ok(result.clone())
     }
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
@@ -1334,7 +1349,8 @@ impl AgentExecutor {
                     let result = executed.result;
                     let result_text = result.summary();
                     telemetry::record_tool_result(&tool_span, &result_text);
-                    let recorded_result = sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
+                    let recorded_result = sink
+                        .on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
                     crate::control::usage::charge_namespace_usage(
                         self.control_plane.kv.as_ref(),
@@ -1346,7 +1362,8 @@ impl AgentExecutor {
                         chrono::Utc::now().timestamp(),
                     )
                     .await?;
-                    sink.on_tool_result(&tool.id, &tool.name, &recorded_result).await;
+                    sink.on_tool_result(&tool.id, &tool.name, &recorded_result)
+                        .await;
                     context.push(tool_output_loop_message(&tool.id, &recorded_result));
                     if stop_after_result {
                         stop_after_tool_result = Some(result_text);
@@ -1453,7 +1470,9 @@ pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> Loop
             .map(|(index, part)| match part.content.as_ref() {
                 Some(crate::harness::llm::chat_content_part::Content::ObjectRef(object))
                     if crate::control::tool_output::is_tool_result_object_ref(object)
-                        && crate::control::tool_output::is_text_object_media_type(&object.media_type) =>
+                        && crate::control::tool_output::is_text_object_media_type(
+                            &object.media_type,
+                        ) =>
                 {
                     crate::harness::llm::text_part(format!(
                         "Large text is available at {}.",
