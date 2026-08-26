@@ -1409,7 +1409,12 @@ async fn read_resource_tool(
     if reference.starts_with("file://") {
         require_global_capability(config, "files", "read")?;
         require_file_read(spec)?;
-        return read_file_tool(cp, current_namespace, &args_with_string(args, "uri", reference)?).await;
+        return read_file_tool(
+            cp,
+            current_namespace,
+            &args_with_string(args, "uri", reference)?,
+        )
+        .await;
     }
     Err(anyhow!("read.ref must start with file:// or artifact://"))
 }
@@ -1424,28 +1429,39 @@ async fn write_resource_tool(
     args: &Value,
 ) -> Result<String> {
     match opt_str(args, "ref") {
-        Some(reference) if reference.starts_with("artifact://") => update_artifact(
-            cp,
-            current_namespace,
-            current_agent,
-            current_session,
-            &args_with_string(args, "artifact_uri", reference)?,
-        )
-        .await,
+        Some(reference) if reference.starts_with("artifact://") => {
+            update_artifact(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                &args_with_string(args, "artifact_uri", reference)?,
+            )
+            .await
+        }
         Some(reference) if reference.starts_with("file://") => {
             require_global_capability(config, "files", "update")?;
             require_capability(spec, "files", "update")?;
-            update_file_tool(cp, current_namespace, &args_with_string(args, "uri", reference)?).await
+            update_file_tool(
+                cp,
+                current_namespace,
+                &args_with_string(args, "uri", reference)?,
+            )
+            .await
         }
         Some(_) => Err(anyhow!("write.ref must start with file:// or artifact://")),
         None => match req_str(args, "kind")? {
-            "artifact" => create_artifact(cp, current_namespace, current_agent, current_session, args).await,
+            "artifact" => {
+                create_artifact(cp, current_namespace, current_agent, current_session, args).await
+            }
             "file" => {
                 require_global_capability(config, "files", "create")?;
                 require_capability(spec, "files", "create")?;
                 create_file_tool(cp, current_namespace, args).await
             }
-            kind => Err(anyhow!("unsupported write.kind '{kind}'; expected file or artifact")),
+            kind => Err(anyhow!(
+                "unsupported write.kind '{kind}'; expected file or artifact"
+            )),
         },
     }
 }
