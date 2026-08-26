@@ -3,14 +3,26 @@
 
 use super::dispatch::require_global_capability;
 use super::*;
+use crate::control::tool_output;
+use crate::harness::llm::chat_content_part;
 
 pub(crate) fn resource_read_schema() -> Value {
     json!({
         "type": "object",
         "properties": {
-            "ref": { "type": "string", "description": "file:// or artifact:// URI." },
+            "ref": { "type": "string", "description": "file://, artifact://, or session-local tr:// URI." },
             "namespace": { "type": "string", "description": "File namespace when reading by path. Defaults to the current namespace." },
-            "path": { "type": "string", "description": "Logical File path when ref is omitted." }
+            "path": { "type": "string", "description": "Logical File path when ref is omitted." },
+            "byte_range": {
+                "type": "object",
+                "description": "UTF-8 byte range for a text resource. start is zero-based; end is exclusive. Supply exactly one of end or max_size.",
+                "properties": {
+                    "start": { "type": "integer", "minimum": 0 },
+                    "end": { "type": "integer", "minimum": 0 },
+                    "max_size": { "type": "integer", "minimum": 1, "maximum": 8192 }
+                },
+                "required": ["start"]
+            }
         }
     })
 }
@@ -45,10 +57,16 @@ pub(crate) async fn read_resource_tool(
     config: &Config,
     args: &Value,
 ) -> Result<ToolOutput> {
+    let selection = read_selection(args)?;
     let Some(reference) = opt_str(args, "ref") else {
         require_global_capability(config, "files", "read")?;
         require_file_read(spec)?;
-        return read_file_tool(cp, current_namespace, args).await;
+        return selected_resource_output(
+            cp,
+            read_file_tool(cp, current_namespace, args).await?,
+            selection,
+        )
+        .await;
     };
     if reference.starts_with("tr://") {
         return read_session_tool_result(
@@ -57,31 +75,168 @@ pub(crate) async fn read_resource_tool(
             current_agent,
             current_session,
             reference,
+            selection,
         )
         .await;
     }
     if reference.starts_with("artifact://") {
-        return read_artifact(
+        return selected_resource_output(
             cp,
-            current_namespace,
-            current_agent,
-            current_session,
-            &args_with_string(args, "artifact_uri", reference)?,
+            read_artifact(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                &args_with_string(args, "artifact_uri", reference)?,
+            )
+            .await?,
+            selection,
         )
         .await;
     }
     if reference.starts_with("file://") {
         require_global_capability(config, "files", "read")?;
         require_file_read(spec)?;
-        return read_file_tool(
+        return selected_resource_output(
             cp,
-            current_namespace,
-            &args_with_string(args, "uri", reference)?,
+            read_file_tool(
+                cp,
+                current_namespace,
+                &args_with_string(args, "uri", reference)?,
+            )
+            .await?,
+            selection,
         )
         .await;
     }
     Err(anyhow!(
         "read.ref must start with file://, artifact://, or tr://"
+    ))
+}
+
+const MAX_RESOURCE_READ_BYTES: u64 = tool_output::TOOL_RESULT_INLINE_CONTEXT_BYTES as u64;
+
+#[derive(Debug, Clone, Copy)]
+enum ResourceSelection {
+    Exact { start: u64, end: u64 },
+    Bounded { start: u64, max_size: u64 },
+}
+
+fn read_selection(args: &Value) -> Result<Option<ResourceSelection>> {
+    let Some(range) = args.get("byte_range") else {
+        return Ok(None);
+    };
+    let range = range
+        .as_object()
+        .ok_or_else(|| anyhow!("byte_range must be an object"))?;
+    let start = range
+        .get("start")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| anyhow!("byte_range.start is required"))?;
+    let end = range.get("end").and_then(Value::as_u64);
+    let max_size = range.get("max_size").and_then(Value::as_u64);
+    match (end, max_size) {
+        (Some(end), None) if end >= start && end - start <= MAX_RESOURCE_READ_BYTES => {
+            Ok(Some(ResourceSelection::Exact { start, end }))
+        }
+        (None, Some(max_size)) if max_size > 0 && max_size <= MAX_RESOURCE_READ_BYTES => {
+            Ok(Some(ResourceSelection::Bounded { start, max_size }))
+        }
+        (Some(_), Some(_)) | (None, None) => Err(anyhow!(
+            "byte_range requires exactly one of end or max_size"
+        )),
+        (Some(_), None) => Err(anyhow!(
+            "byte_range.end must not precede start and must be within the 8 KiB limit"
+        )),
+        _ => Err(anyhow!(
+            "byte_range.max_size must be within the 8 KiB limit"
+        )),
+    }
+}
+
+async fn selected_resource_output(
+    cp: &ControlPlane,
+    output: ToolOutput,
+    selection: Option<ResourceSelection>,
+) -> Result<ToolOutput> {
+    let Some(selection) = selection else {
+        return Ok(output);
+    };
+    let Some(object) = output.object_ref().cloned() else {
+        let text = tool_output::plain_text(&output)
+            .ok_or_else(|| anyhow!("byte_range is only valid for text resources"))?;
+        let (text, start, end, next_byte) = select_resource_bytes(&text, selection)?;
+        return Ok(ToolOutput::text(format!(
+            "{text}\n[bytes {start}..{end}){}",
+            next_byte
+                .map(|n| format!("; next_byte={n}"))
+                .unwrap_or_default()
+        )));
+    };
+    if !tool_output::is_text_object_media_type(&object.media_type) {
+        return Err(anyhow!("byte_range is only valid for text resources"));
+    }
+    let (start, end, next_byte) = checked_object_byte_range(cp, &object, selection).await?;
+    Ok(tool_output::selected_object_byte_range_output(
+        object,
+        start,
+        end,
+        next_byte,
+        format!("Read bytes {start}..{end}."),
+    ))
+}
+
+fn object_byte_range(
+    object: &data_proto::ObjectRef,
+    selection: ResourceSelection,
+) -> Result<(u64, u64, Option<u64>)> {
+    let size = object
+        .metadata
+        .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(object.size_bytes);
+    match selection {
+        ResourceSelection::Exact { start, end } if end <= size => Ok((start, end, None)),
+        ResourceSelection::Exact { .. } => Err(anyhow!("byte_range exceeds resource size")),
+        ResourceSelection::Bounded { start, max_size } if start <= size => {
+            let end = start.saturating_add(max_size).min(size);
+            Ok((start, end, (end < size).then_some(end)))
+        }
+        ResourceSelection::Bounded { .. } => Err(anyhow!("byte_range.start exceeds resource size")),
+    }
+}
+
+fn select_resource_bytes(
+    text: &str,
+    selection: ResourceSelection,
+) -> Result<(String, u64, u64, Option<u64>)> {
+    let bytes = text.as_bytes();
+    let (start, requested_end, bounded) = match selection {
+        ResourceSelection::Exact { start, end } => (start as usize, end as usize, false),
+        ResourceSelection::Bounded { start, max_size } => (
+            start as usize,
+            start.saturating_add(max_size).min(bytes.len() as u64) as usize,
+            true,
+        ),
+    };
+    if start > bytes.len() || requested_end > bytes.len() || !text.is_char_boundary(start) {
+        return Err(anyhow!(
+            "byte_range is outside the resource or not on a UTF-8 boundary"
+        ));
+    }
+    let mut end = requested_end;
+    if bounded {
+        while end > start && !text.is_char_boundary(end) {
+            end -= 1;
+        }
+    } else if !text.is_char_boundary(end) {
+        return Err(anyhow!("byte_range.end must be on a UTF-8 boundary"));
+    }
+    Ok((
+        text[start..end].to_string(),
+        start as u64,
+        end as u64,
+        (bounded && end < bytes.len()).then_some(end as u64),
     ))
 }
 
@@ -91,6 +246,7 @@ async fn read_session_tool_result(
     agent: &str,
     session_id: &str,
     reference: &str,
+    selection: Option<ResourceSelection>,
 ) -> Result<ToolOutput> {
     if session_id.is_empty() {
         return Err(anyhow!("tr:// references require an active session"));
@@ -174,22 +330,104 @@ async fn read_session_tool_result(
             tool_call_id
         )
     })?;
-    match index {
-        None => Ok(ToolOutput::text(
-            crate::control::tool_output::compact_tool_result_catalog(
-                &tool_call_id,
-                &output.content_parts,
-            ),
-        )),
-        Some(index) => output
-            .content_parts
-            .get(index)
-            .cloned()
-            .map(|part| {
-                ToolOutput::from_content_parts(vec![part], format!("Tool result part {index}."))
-            })
-            .ok_or_else(|| anyhow!("tool result part {index} does not exist")),
+    let Some(index) = index else {
+        if selection.is_some() {
+            return Err(anyhow!(
+                "byte_range requires a tr://.../parts/<index> reference"
+            ));
+        }
+        return Ok(ToolOutput::text(if output.summary.is_empty() {
+            tool_output::compact_tool_result_catalog(&tool_call_id, &output.content_parts)
+        } else {
+            output.summary
+        }));
+    };
+    let part = output
+        .content_parts
+        .get(index)
+        .ok_or_else(|| anyhow!("tool result part {index} does not exist"))?;
+    match part.content.as_ref() {
+        Some(chat_content_part::Content::Text(text)) => {
+            let selection = selection.unwrap_or(ResourceSelection::Bounded {
+                start: 0,
+                max_size: MAX_RESOURCE_READ_BYTES,
+            });
+            let (text, start, end, next_byte) = select_resource_bytes(text, selection)?;
+            Ok(ToolOutput::text(format!(
+                "{text}\n[bytes {start}..{end}){}",
+                next_byte
+                    .map(|n| format!("; next_byte={n}"))
+                    .unwrap_or_default()
+            )))
+        }
+        Some(chat_content_part::Content::ObjectRef(object))
+            if tool_output::is_text_object_media_type(&object.media_type) =>
+        {
+            let selection = selection.unwrap_or(ResourceSelection::Bounded {
+                start: 0,
+                max_size: MAX_RESOURCE_READ_BYTES,
+            });
+            let (start, end, next_byte) = checked_object_byte_range(cp, object, selection).await?;
+            Ok(tool_output::selected_object_byte_range_output(
+                object.clone(),
+                start,
+                end,
+                next_byte,
+                format!(
+                    "Read bytes {start}..{end} from {}.",
+                    tool_output::tool_result_part_handle(&tool_call_id, index)
+                ),
+            ))
+        }
+        Some(chat_content_part::Content::ObjectRef(object)) => {
+            if selection.is_some() {
+                return Err(anyhow!(
+                    "byte_range is only valid for text tool-result parts"
+                ));
+            }
+            Ok(ToolOutput::from_content_parts(
+                vec![part.clone()],
+                format!("Tool result part {index}: {}", object.media_type),
+            ))
+        }
+        None => Err(anyhow!("tool result part {index} is empty")),
     }
+}
+
+async fn checked_object_byte_range(
+    cp: &ControlPlane,
+    object: &data_proto::ObjectRef,
+    selection: ResourceSelection,
+) -> Result<(u64, u64, Option<u64>)> {
+    let (start, mut end, mut next_byte) = object_byte_range(object, selection)?;
+    let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+    let bytes = cas
+        .get_text_range_decoded(&object.key, start, end)
+        .await?
+        .ok_or_else(|| anyhow!("text object is unavailable"))?;
+    match selection {
+        ResourceSelection::Exact { .. } => {
+            std::str::from_utf8(&bytes)
+                .map_err(|_| anyhow!("byte_range start and end must be UTF-8 boundaries"))?;
+        }
+        ResourceSelection::Bounded { .. } => {
+            let mut actual = bytes.len();
+            while actual > 0 && std::str::from_utf8(&bytes[..actual]).is_err() {
+                actual -= 1;
+            }
+            if actual == 0 && !bytes.is_empty() {
+                return Err(anyhow!("byte_range.start must be a UTF-8 boundary"));
+            }
+            end = start + actual as u64;
+            let size = object
+                .metadata
+                .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(object.size_bytes);
+            next_byte = (end < size).then_some(end);
+        }
+    }
+    Ok((start, end, next_byte))
 }
 
 pub(crate) async fn write_resource_tool(
