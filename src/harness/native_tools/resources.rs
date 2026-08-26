@@ -125,7 +125,10 @@ async fn read_session_tool_result(
     let mut found = None;
     for submission in cp
         .kv
-        .list_keys(&keys::session_submission_prefix(namespace, agent, session_id), None)
+        .list_keys(
+            &keys::session_submission_prefix(namespace, agent, session_id),
+            None,
+        )
         .await?
     {
         for (_, bytes) in cp
@@ -182,7 +185,9 @@ async fn read_session_tool_result(
             .content_parts
             .get(index)
             .cloned()
-            .map(|part| ToolOutput::from_content_parts(vec![part], format!("Tool result part {index}.")))
+            .map(|part| {
+                ToolOutput::from_content_parts(vec![part], format!("Tool result part {index}."))
+            })
             .ok_or_else(|| anyhow!("tool result part {index} does not exist")),
     }
 }
