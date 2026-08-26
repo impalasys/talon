@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{connectors as connector_rpc, data_proto, proto, GrpcGatewayHandler};
-use crate::control::cas::{session_object_key_prefix, SessionCasScope, METADATA_AGENT};
+use crate::control::cas::{
+    session_object_key_prefix, SessionCasScope, METADATA_AGENT, METADATA_KIND,
+    METADATA_KIND_ARTIFACT, METADATA_KIND_COMPACTION, METADATA_KIND_ENCRYPTED_REASONING,
+    METADATA_KIND_TOOL_RESULT,
+};
 use crate::control::scheduling;
 use crate::control::session_queue;
 use crate::control::tool_output;
@@ -247,7 +251,32 @@ async fn collect_session_tool_result_object_keys(
     session_id: &str,
 ) -> anyhow::Result<Vec<String>> {
     let expected_prefix = session_object_key_prefix(&SessionCasScope::new(ns, agent, session_id));
+    let artifact_prefix = crate::control::cas::artifact_object_key_prefix(ns);
     let mut keys_to_delete = HashSet::new();
+    for artifact_key in kv
+        .list_keys(&keys::artifact_prefix(ns, agent, session_id), None)
+        .await?
+    {
+        match kv.get_msg::<data_proto::Artifact>(&artifact_key).await {
+            Ok(Some(artifact)) => collect_session_owned_object_key(
+                artifact.object_ref.as_ref(),
+                &expected_prefix,
+                &artifact_prefix,
+                agent,
+                session_id,
+                &mut keys_to_delete,
+            ),
+            Ok(None) => {}
+            Err(error) => tracing::warn!(
+                error = %error,
+                namespace = %ns,
+                agent = %agent,
+                session_id = %session_id,
+                key = %artifact_key,
+                "failed to fetch or decode session artifact while collecting objects for deletion"
+            ),
+        }
+    }
     for key in kv
         .list_keys(&keys::session_message_prefix(ns, agent, session_id), None)
         .await?
@@ -269,18 +298,22 @@ async fn collect_session_tool_result_object_keys(
         };
         for part in &message.parts {
             if part.part_type == data_proto::SessionMessagePartType::Compaction as i32 {
-                collect_tool_result_object_key(
+                collect_session_owned_object_key(
                     part.object.as_ref(),
                     &expected_prefix,
+                    &artifact_prefix,
                     agent,
+                    session_id,
                     &mut keys_to_delete,
                 );
             }
             if part.part_type == data_proto::SessionMessagePartType::ToolResult as i32 {
-                collect_tool_result_object_key(
+                collect_session_owned_object_key(
                     part.object.as_ref(),
                     &expected_prefix,
+                    &artifact_prefix,
                     agent,
+                    session_id,
                     &mut keys_to_delete,
                 );
                 match tool_output::parse_tool_result_payload_json(
@@ -291,7 +324,9 @@ async fn collect_session_tool_result_object_keys(
                     Ok(Some(payload)) => collect_tool_output_object_keys(
                         &payload.tool_output,
                         &expected_prefix,
+                        &artifact_prefix,
                         agent,
+                        session_id,
                         &mut keys_to_delete,
                     ),
                     Ok(None) => {}
@@ -348,17 +383,21 @@ async fn collect_session_tool_result_object_keys(
                     _ => None,
                 })
             {
-                collect_tool_result_object_key(
+                collect_session_owned_object_key(
                     tool_result.object.as_ref(),
                     &expected_prefix,
+                    &artifact_prefix,
                     agent,
+                    session_id,
                     &mut keys_to_delete,
                 );
                 if let Some(tool_output) = tool_result.tool_output.as_ref() {
                     collect_tool_output_object_keys(
                         tool_output,
                         &expected_prefix,
+                        &artifact_prefix,
                         agent,
+                        session_id,
                         &mut keys_to_delete,
                     );
                 }
@@ -374,10 +413,12 @@ async fn collect_session_tool_result_object_keys(
                     _ => None,
                 })
             {
-                collect_tool_result_object_key(
+                collect_session_owned_object_key(
                     Some(compaction),
                     &expected_prefix,
+                    &artifact_prefix,
                     agent,
+                    session_id,
                     &mut keys_to_delete,
                 );
             }
@@ -392,7 +433,7 @@ async fn collect_session_tool_result_object_keys(
                     _ => None,
                 })
             {
-                collect_tool_result_object_key(
+                collect_encrypted_reasoning_object_key(
                     response.encrypted_reasoning.as_ref(),
                     &expected_prefix,
                     agent,
@@ -408,22 +449,59 @@ async fn collect_session_tool_result_object_keys(
 fn collect_tool_output_object_keys(
     output: &ToolOutput,
     expected_prefix: &str,
+    artifact_prefix: &str,
     expected_agent: &str,
+    expected_session_id: &str,
     keys_to_delete: &mut HashSet<String>,
 ) {
     for part in &output.content_parts {
         if let Some(chat_content_part::Content::ObjectRef(object_ref)) = part.content.as_ref() {
-            collect_tool_result_object_key(
+            collect_session_owned_object_key(
                 Some(object_ref),
                 expected_prefix,
+                artifact_prefix,
                 expected_agent,
+                expected_session_id,
                 keys_to_delete,
             );
         }
     }
 }
 
-fn collect_tool_result_object_key(
+fn collect_session_owned_object_key(
+    object: Option<&data_proto::ObjectRef>,
+    expected_prefix: &str,
+    artifact_prefix: &str,
+    expected_agent: &str,
+    expected_session_id: &str,
+    keys_to_delete: &mut HashSet<String>,
+) {
+    let Some(object) = object else {
+        return;
+    };
+    let kind = object.metadata.get(METADATA_KIND).map(String::as_str);
+    let agent_matches = object
+        .metadata
+        .get(METADATA_AGENT)
+        .is_some_and(|agent| agent == expected_agent);
+    let is_session_object = (kind == Some(METADATA_KIND_TOOL_RESULT)
+        || kind == Some(METADATA_KIND_COMPACTION)
+        || kind == Some(METADATA_KIND_ENCRYPTED_REASONING)
+        || object.key.contains("/tool-results/")
+        || object.key.contains("/compactions/"))
+        && object.key.starts_with(expected_prefix);
+    let is_artifact = kind == Some(METADATA_KIND_ARTIFACT)
+        && object.key.starts_with(artifact_prefix)
+        && object
+            .metadata
+            .get("session_id")
+            .is_some_and(|session_id| session_id == expected_session_id);
+    if agent_matches && (is_session_object || is_artifact) && !object.key.trim().is_empty() {
+        keys_to_delete.insert(object.key.clone());
+    }
+}
+
+fn collect_encrypted_reasoning_object_key(
     object: Option<&data_proto::ObjectRef>,
     expected_prefix: &str,
     expected_agent: &str,
@@ -432,20 +510,15 @@ fn collect_tool_result_object_key(
     let Some(object) = object else {
         return;
     };
-    let is_tool_result = object
-        .metadata
-        .get("kind")
-        .is_some_and(|kind| kind == "tool_result")
-        || object.key.contains("/tool-results/")
-        || object.key.starts_with("cas/");
-    let agent_matches = object
-        .metadata
-        .get(METADATA_AGENT)
-        .is_some_and(|agent| agent == expected_agent);
-    if is_tool_result
-        && agent_matches
-        && object.key.starts_with(expected_prefix)
-        && !object.key.trim().is_empty()
+    if object.key.starts_with(expected_prefix)
+        && object
+            .metadata
+            .get(METADATA_KIND)
+            .is_some_and(|kind| kind == METADATA_KIND_ENCRYPTED_REASONING)
+        && object
+            .metadata
+            .get(METADATA_AGENT)
+            .is_some_and(|agent| agent == expected_agent)
     {
         keys_to_delete.insert(object.key.clone());
     }
@@ -2212,6 +2285,14 @@ mod tests {
 
         async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
             self.inner.get(key).await
+        }
+
+        async fn get_range(
+            &self,
+            key: &str,
+            range: std::ops::Range<u64>,
+        ) -> Result<Option<Vec<u8>>> {
+            self.inner.get_range(key, range).await
         }
 
         async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {

@@ -999,7 +999,9 @@ fn session_message_artifact_uris(
         if part.part_type != data_proto::SessionMessagePartType::ToolResult as i32 {
             continue;
         }
-        if part.name != crate::harness::native_tools::CREATE_ARTIFACT_TOOL {
+        if part.name != crate::harness::native_tools::WRITE_TOOL
+            && part.name != crate::harness::native_tools::CREATE_ARTIFACT_TOOL
+        {
             continue;
         }
         if let Some(output) = tool_result_output(&part.payload_json) {
@@ -2422,7 +2424,7 @@ mod tests {
         let message = assistant_message(vec![
             message_part_with_payload(
                 data_proto::SessionMessagePartType::ToolResult,
-                crate::harness::native_tools::CREATE_ARTIFACT_TOOL,
+                crate::harness::native_tools::WRITE_TOOL,
                 "",
                 r#"{"tool_call_id":"call-1","output":"{\"artifactUri\":\"artifact://Tenant:acme:Copywriter/writer/child-session/draft\"}"}"#,
             ),
@@ -2439,6 +2441,18 @@ mod tests {
             ),
             vec!["artifact://Tenant:acme:Copywriter/writer/child-session/draft"]
         );
+    }
+
+    #[test]
+    fn session_message_artifact_uris_preserves_legacy_create_artifact_results() {
+        let uri = "artifact://Tenant:acme:Copywriter/writer/child-session/draft";
+        let message = assistant_message(vec![message_part_with_payload(
+            data_proto::SessionMessagePartType::ToolResult,
+            crate::harness::native_tools::CREATE_ARTIFACT_TOOL,
+            "",
+            &format!(r#"{{"tool_call_id":"call-1","output":"{{\"artifactUri\":\"{uri}\"}}"}}"#),
+        )]);
+        assert_eq!(session_message_artifact_uris(&message, "Done."), vec![uri]);
     }
 
     #[tokio::test]

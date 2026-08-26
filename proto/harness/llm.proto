@@ -16,6 +16,43 @@ message ChatContentPart {
 message ToolOutput {
   repeated ChatContentPart content_parts = 1;
   string summary = 2;
+  // Compact durable metadata for an object-backed result. This is deliberately
+  // separate from summary: callers render summary for people, while runtimes
+  // use this structure to reproduce a bounded view without copying bytes.
+  optional ToolOutputContentDescriptor content_descriptor = 3;
+}
+
+message ToolOutputLineSelection {
+  // One-based, inclusive line bounds in the referenced text object.
+  uint64 start_line = 1;
+  uint64 end_line = 2;
+}
+
+// A zero-based, half-open byte range in a UTF-8 text object.  `end` is the
+// actual end returned to the caller; `next_byte` is set for bounded reads
+// when more logical bytes remain.
+message ToolOutputByteRange {
+  uint64 start = 1;
+  uint64 end = 2;
+  optional uint64 next_byte = 3;
+}
+
+message ToolOutputContentDescriptor {
+  // The referenced object can be reread in bounded sections.
+  bool section_readable = 1;
+  // Logical bytes retained in the referenced object, before CAS compression.
+  uint64 captured_size_bytes = 2;
+  // Number of logical text lines retained in the referenced object.
+  uint64 line_count = 3;
+  // Source output exceeded the capture ceiling, so bytes after the retained
+  // object are unavailable.
+  bool capture_truncated = 4;
+  // Present when this output is a view over a selected section of another
+  // immutable object rather than a new copied result.
+  optional ToolOutputLineSelection selection = 5;
+  // New selections use bytes. Keep `selection` above for journals written by
+  // older Talon releases.
+  optional ToolOutputByteRange byte_range = 6;
 }
 
 message ToolCall {

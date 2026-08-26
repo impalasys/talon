@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { ObjectRef, TokenCounter } from "../data/data_pb.js";
 import { ThinkingConfig } from "../resources/agents_pb.js";
 
@@ -72,6 +72,15 @@ export class ToolOutput extends Message<ToolOutput> {
    */
   summary = "";
 
+  /**
+   * Compact durable metadata for an object-backed result. This is deliberately
+   * separate from summary: callers render summary for people, while runtimes
+   * use this structure to reproduce a bounded view without copying bytes.
+   *
+   * @generated from field: optional talon.harness.ToolOutputContentDescriptor content_descriptor = 3;
+   */
+  contentDescriptor?: ToolOutputContentDescriptor;
+
   constructor(data?: PartialMessage<ToolOutput>) {
     super();
     proto3.util.initPartial(data, this);
@@ -82,6 +91,7 @@ export class ToolOutput extends Message<ToolOutput> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "content_parts", kind: "message", T: ChatContentPart, repeated: true },
     { no: 2, name: "summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "content_descriptor", kind: "message", T: ToolOutputContentDescriptor, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutput {
@@ -98,6 +108,186 @@ export class ToolOutput extends Message<ToolOutput> {
 
   static equals(a: ToolOutput | PlainMessage<ToolOutput> | undefined, b: ToolOutput | PlainMessage<ToolOutput> | undefined): boolean {
     return proto3.util.equals(ToolOutput, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.harness.ToolOutputLineSelection
+ */
+export class ToolOutputLineSelection extends Message<ToolOutputLineSelection> {
+  /**
+   * One-based, inclusive line bounds in the referenced text object.
+   *
+   * @generated from field: uint64 start_line = 1;
+   */
+  startLine = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 end_line = 2;
+   */
+  endLine = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ToolOutputLineSelection>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.harness.ToolOutputLineSelection";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start_line", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "end_line", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutputLineSelection {
+    return new ToolOutputLineSelection().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolOutputLineSelection {
+    return new ToolOutputLineSelection().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolOutputLineSelection {
+    return new ToolOutputLineSelection().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolOutputLineSelection | PlainMessage<ToolOutputLineSelection> | undefined, b: ToolOutputLineSelection | PlainMessage<ToolOutputLineSelection> | undefined): boolean {
+    return proto3.util.equals(ToolOutputLineSelection, a, b);
+  }
+}
+
+/**
+ * A zero-based, half-open byte range in a UTF-8 text object.  `end` is the
+ * actual end returned to the caller; `next_byte` is set for bounded reads
+ * when more logical bytes remain.
+ *
+ * @generated from message talon.harness.ToolOutputByteRange
+ */
+export class ToolOutputByteRange extends Message<ToolOutputByteRange> {
+  /**
+   * @generated from field: uint64 start = 1;
+   */
+  start = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 end = 2;
+   */
+  end = protoInt64.zero;
+
+  /**
+   * @generated from field: optional uint64 next_byte = 3;
+   */
+  nextByte?: bigint;
+
+  constructor(data?: PartialMessage<ToolOutputByteRange>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.harness.ToolOutputByteRange";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "end", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "next_byte", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolOutputByteRange | PlainMessage<ToolOutputByteRange> | undefined, b: ToolOutputByteRange | PlainMessage<ToolOutputByteRange> | undefined): boolean {
+    return proto3.util.equals(ToolOutputByteRange, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.harness.ToolOutputContentDescriptor
+ */
+export class ToolOutputContentDescriptor extends Message<ToolOutputContentDescriptor> {
+  /**
+   * The referenced object can be reread in bounded sections.
+   *
+   * @generated from field: bool section_readable = 1;
+   */
+  sectionReadable = false;
+
+  /**
+   * Logical bytes retained in the referenced object, before CAS compression.
+   *
+   * @generated from field: uint64 captured_size_bytes = 2;
+   */
+  capturedSizeBytes = protoInt64.zero;
+
+  /**
+   * Number of logical text lines retained in the referenced object.
+   *
+   * @generated from field: uint64 line_count = 3;
+   */
+  lineCount = protoInt64.zero;
+
+  /**
+   * Source output exceeded the capture ceiling, so bytes after the retained
+   * object are unavailable.
+   *
+   * @generated from field: bool capture_truncated = 4;
+   */
+  captureTruncated = false;
+
+  /**
+   * Present when this output is a view over a selected section of another
+   * immutable object rather than a new copied result.
+   *
+   * @generated from field: optional talon.harness.ToolOutputLineSelection selection = 5;
+   */
+  selection?: ToolOutputLineSelection;
+
+  /**
+   * New selections use bytes. Keep `selection` above for journals written by
+   * older Talon releases.
+   *
+   * @generated from field: optional talon.harness.ToolOutputByteRange byte_range = 6;
+   */
+  byteRange?: ToolOutputByteRange;
+
+  constructor(data?: PartialMessage<ToolOutputContentDescriptor>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.harness.ToolOutputContentDescriptor";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "section_readable", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "captured_size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "line_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "capture_truncated", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "selection", kind: "message", T: ToolOutputLineSelection, opt: true },
+    { no: 6, name: "byte_range", kind: "message", T: ToolOutputByteRange, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutputContentDescriptor {
+    return new ToolOutputContentDescriptor().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolOutputContentDescriptor {
+    return new ToolOutputContentDescriptor().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolOutputContentDescriptor {
+    return new ToolOutputContentDescriptor().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolOutputContentDescriptor | PlainMessage<ToolOutputContentDescriptor> | undefined, b: ToolOutputContentDescriptor | PlainMessage<ToolOutputContentDescriptor> | undefined): boolean {
+    return proto3.util.equals(ToolOutputContentDescriptor, a, b);
   }
 }
 

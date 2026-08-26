@@ -16,12 +16,12 @@ use crate::control::config::{global_capability_allowed, Config};
 use crate::control::resource_model::{self, TypedResource};
 use crate::control::resources::ResourceStore;
 use crate::control::scheduling;
-use crate::control::tool_output::ToolOutputExt;
+use crate::control::tool_output::{self, ToolOutputExt};
 use crate::control::{delegation, keys, ControlPlane, ListOptions, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{
     data_proto, manifests, protobuf_value::value::Kind as ProtoValueKind, resources_proto,
 };
-use crate::harness::llm::ToolOutput;
+use crate::harness::llm::{chat_content_part, ToolOutput};
 use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::skills::render::format_active_skill_context;
@@ -63,6 +63,8 @@ pub const DEACTIVATE_SKILL_TOOL: &str = "deactivate_skill";
 pub const CREATE_ARTIFACT_TOOL: &str = "create_artifact";
 pub const UPDATE_ARTIFACT_TOOL: &str = "update_artifact";
 pub const READ_ARTIFACT_TOOL: &str = "read_artifact";
+pub const READ_TOOL: &str = "read";
+pub const WRITE_TOOL: &str = "write";
 pub const GET_ARTIFACT_METADATA_TOOL: &str = "get_artifact_metadata";
 pub const GRANT_ARTIFACT_TOOL: &str = "grant_artifact";
 pub const FETCH_URL_TOOL: &str = "fetch_url";
@@ -188,6 +190,16 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, 
     artifact_tools::register(registry);
     a2a_tools::register(registry, spec);
     register_research_tools(registry, spec);
+    registry.register_builtin(
+        READ_TOOL,
+        "Read a File, session Artifact, or a section of an earlier large tool result. Use file:// or artifact:// URIs, tr://<tool-call-id> for the current session, or namespace/path for a File.",
+        resource_read_schema(),
+    );
+    registry.register_builtin(
+        WRITE_TOOL,
+        "Create or update a namespace File or session Artifact. Use ref to update; omit ref and choose kind=file or kind=artifact to create.",
+        resource_write_schema(),
+    );
 
     if !has_capability_action(spec, "schedules", "inspect")
         && !has_capability_action(spec, "schedules", "create")
@@ -364,18 +376,6 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, 
             }),
         );
         registry.register_builtin(
-            READ_FILE_TOOL,
-            "Read a namespace File by file:// URI or logical path.",
-            json!({
-                "type": "object",
-                "properties": {
-                    "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI returned by Talon or Conic." },
-                    "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
-                    "path": { "type": "string", "description": "Logical File path, for example /content/pages/<id>/content.md." }
-                }
-            }),
-        );
-        registry.register_builtin(
             GET_FILE_METADATA_TOOL,
             "Get File metadata by file:// URI or logical path without reading content.",
             json!({
@@ -389,20 +389,6 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, 
         );
     }
 
-    if has_capability_action(spec, "files", "create") {
-        registry.register_builtin(
-            CREATE_FILE_TOOL,
-            "Create a namespace File. Defaults to purpose=ARTIFACT, index_policy=SEARCH, and retention=RETAINED.",
-            file_write_schema(),
-        );
-    }
-    if has_capability_action(spec, "files", "update") {
-        registry.register_builtin(
-            UPDATE_FILE_TOOL,
-            "Update an existing namespace File by file:// URI or logical path.",
-            file_write_schema(),
-        );
-    }
     if has_capability_action(spec, "files", "delete") {
         registry.register_builtin(
             DELETE_FILE_TOOL,
@@ -603,20 +589,45 @@ fn memory_write_schema() -> Value {
     })
 }
 
-fn file_write_schema() -> Value {
+fn resource_read_schema() -> Value {
     json!({
         "type": "object",
         "properties": {
-            "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI for updates." },
+            "ref": { "type": "string", "description": "file:// URI, artifact:// URI, or session-relative tr://<encoded-tool-call-id>[/parts/<zero-based-index>]." },
+            "namespace": { "type": "string", "description": "File namespace when reading by path. Defaults to the current namespace." },
+            "path": { "type": "string", "description": "Logical File path when ref is omitted." },
+            "byte_range": {
+                "type": "object",
+                "description": "Optional zero-based UTF-8 byte range. end is exclusive; exactly one of end or max_size is required. max_size reads at most that many bytes and reports next_byte.",
+                "properties": {
+                    "start": { "type": "integer", "minimum": 0 },
+                    "end": { "type": "integer", "minimum": 0 },
+                    "max_size": { "type": "integer", "minimum": 1 }
+                },
+                "required": ["start"]
+            }
+        }
+    })
+}
+
+fn resource_write_schema() -> Value {
+    json!({
+        "type": "object",
+        "properties": {
+            "ref": { "type": "string", "description": "Existing file:// or artifact:// URI to update." },
+            "kind": { "type": "string", "enum": ["file", "artifact"], "description": "Required when ref is omitted to create a resource." },
             "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
-            "path": { "type": "string", "description": "Logical File path, for example /content/pages/<id>/content.md." },
-            "content": { "type": "string", "description": "Markdown, HTML, or text content to store." },
-            "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
-            "purpose": { "type": "string", "description": "File purpose: ARTIFACT, MEMORY, or SKILL. Defaults to ARTIFACT." },
-            "index_policy": { "type": "string", "description": "Index policy: NONE, SEARCH, or RETRIEVAL. Defaults to SEARCH." },
-            "retention": { "type": "string", "description": "Retention policy: RETAINED. Defaults to RETAINED." }
-        },
-        "required": ["content"]
+            "path": { "type": "string", "description": "Required to create a File." },
+            "title": { "type": "string", "description": "Required to create an Artifact." },
+            "content": { "type": "string", "description": "Text content. Required unless content_base64 is provided." },
+            "content_base64": { "type": "string", "description": "Base64 content for an Artifact." },
+            "media_type": { "type": "string", "description": "Media type. Defaults to the existing or resource-specific default." },
+            "purpose": { "type": "string", "description": "File purpose when creating or updating a File." },
+            "index_policy": { "type": "string", "description": "File indexing policy when creating or updating a File." },
+            "retention": { "type": "string", "description": "File retention when creating or updating a File." },
+            "labels": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Artifact labels when creating an Artifact." },
+            "metadata": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Artifact metadata when creating an Artifact." }
+        }
     })
 }
 
@@ -784,6 +795,29 @@ pub async fn execute_tool_for_session_output(
                 .map(ToolOutput::text)
                 .map(Some)
         }
+        READ_TOOL => read_resource_tool(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            config,
+            args,
+        )
+        .await
+        .map(Some),
+        WRITE_TOOL => write_resource_tool(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            config,
+            args,
+        )
+        .await
+        .map(ToolOutput::text)
+        .map(Some),
         READ_FILE_TOOL => {
             require_file_read(spec)?;
             read_file_tool(cp, current_namespace, args).await.map(Some)
@@ -1313,6 +1347,452 @@ async fn read_file_tool(
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
     read_file_output(cp, &file).await
+}
+
+const MAX_RESOURCE_READ_BYTES: u64 = tool_output::TOOL_RESULT_INLINE_CONTEXT_BYTES as u64;
+
+#[derive(Debug, Clone, Copy)]
+enum ResourceSelection {
+    Exact { start: u64, end: u64 },
+    Bounded { start: u64, max_size: u64 },
+}
+
+async fn read_resource_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    config: &Config,
+    args: &Value,
+) -> Result<ToolOutput> {
+    let selection = read_selection(args)?;
+    let output = if let Some(reference) = opt_str(args, "ref") {
+        if reference.starts_with("tr://") {
+            return read_session_tool_result(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                reference,
+                selection,
+            )
+            .await;
+        }
+        if reference.starts_with("artifact://") {
+            let artifact_args = args_with_string(args, "artifact_uri", reference)?;
+            read_artifact(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                &artifact_args,
+            )
+            .await?
+        } else if reference.starts_with("file://") {
+            require_global_capability(config, "files", "read")?;
+            require_file_read(spec)?;
+            let file_args = args_with_string(args, "uri", reference)?;
+            read_file_tool(cp, current_namespace, &file_args).await?
+        } else {
+            return Err(anyhow!(
+                "read.ref must start with file://, artifact://, or tr://"
+            ));
+        }
+    } else {
+        require_global_capability(config, "files", "read")?;
+        require_file_read(spec)?;
+        read_file_tool(cp, current_namespace, args).await?
+    };
+    selected_resource_output(cp, output, selection).await
+}
+
+async fn write_resource_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    config: &Config,
+    args: &Value,
+) -> Result<String> {
+    let reference = opt_str(args, "ref");
+    match reference {
+        Some(reference) if reference.starts_with("tr://") => {
+            Err(anyhow!("tool-result references are read-only"))
+        }
+        Some(reference) if reference.starts_with("artifact://") => {
+            let artifact_args = args_with_string(args, "artifact_uri", reference)?;
+            update_artifact(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                &artifact_args,
+            )
+            .await
+        }
+        Some(reference) if reference.starts_with("file://") => {
+            require_global_capability(config, "files", "update")?;
+            require_capability(spec, "files", "update")?;
+            let file_args = args_with_string(args, "uri", reference)?;
+            update_file_tool(cp, current_namespace, &file_args).await
+        }
+        Some(_) => Err(anyhow!("write.ref must start with file:// or artifact://")),
+        None => match req_str(args, "kind")? {
+            "artifact" => {
+                create_artifact(cp, current_namespace, current_agent, current_session, args).await
+            }
+            "file" => {
+                require_global_capability(config, "files", "create")?;
+                require_capability(spec, "files", "create")?;
+                create_file_tool(cp, current_namespace, args).await
+            }
+            kind => Err(anyhow!(
+                "unsupported write.kind '{kind}'; expected file or artifact"
+            )),
+        },
+    }
+}
+
+fn args_with_string(args: &Value, key: &str, value: &str) -> Result<Value> {
+    let mut args = args.clone();
+    let object = args
+        .as_object_mut()
+        .ok_or_else(|| anyhow!("tool arguments must be an object"))?;
+    object.insert(key.to_string(), Value::String(value.to_string()));
+    Ok(args)
+}
+
+fn read_selection(args: &Value) -> Result<Option<ResourceSelection>> {
+    let Some(range) = args.get("byte_range") else {
+        return Ok(None);
+    };
+    let range = range
+        .as_object()
+        .ok_or_else(|| anyhow!("byte_range must be an object"))?;
+    let start = range
+        .get("start")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| anyhow!("byte_range.start is required"))?;
+    let end = range.get("end").and_then(Value::as_u64);
+    let max_size = range.get("max_size").and_then(Value::as_u64);
+    match (end, max_size) {
+        (Some(end), None) if end >= start && end - start <= MAX_RESOURCE_READ_BYTES => {
+            Ok(Some(ResourceSelection::Exact { start, end }))
+        }
+        (None, Some(max_size)) if max_size > 0 && max_size <= MAX_RESOURCE_READ_BYTES => {
+            Ok(Some(ResourceSelection::Bounded { start, max_size }))
+        }
+        (Some(_), Some(_)) | (None, None) => Err(anyhow!(
+            "byte_range requires exactly one of end or max_size"
+        )),
+        (Some(end), None) if end < start => Err(anyhow!(
+            "byte_range.end must be greater than or equal to start"
+        )),
+        _ => Err(anyhow!(
+            "byte_range must be within the {} byte limit",
+            MAX_RESOURCE_READ_BYTES
+        )),
+    }
+}
+
+async fn selected_resource_output(
+    cp: &ControlPlane,
+    output: ToolOutput,
+    selection: Option<ResourceSelection>,
+) -> Result<ToolOutput> {
+    let Some(selection) = selection else {
+        return Ok(output);
+    };
+    let Some(object_ref) = output.object_ref().cloned() else {
+        let text = tool_output::plain_text(&output)
+            .ok_or_else(|| anyhow!("resource is not text-readable"))?;
+        let (text, start, end, next_byte) = select_resource_bytes(&text, selection)?;
+        return Ok(ToolOutput::text(format!(
+            "{}\n[bytes {start}..{end}){}",
+            text,
+            next_byte
+                .map(|next| format!("; next_byte={next}"))
+                .unwrap_or_default()
+        )));
+    };
+    if !tool_output::is_text_object_media_type(&object_ref.media_type) {
+        return Err(anyhow!("byte_range is only valid for text resources"));
+    }
+    let (start, end, next_byte) = checked_object_byte_range(cp, &object_ref, selection).await?;
+    Ok(tool_output::selected_object_byte_range_output(
+        object_ref,
+        start,
+        end,
+        next_byte,
+        format!("Read bytes {start}..{end}."),
+    ))
+}
+
+fn object_byte_range(
+    object: &data_proto::ObjectRef,
+    selection: ResourceSelection,
+) -> Result<(u64, u64, Option<u64>)> {
+    let size = object
+        .metadata
+        .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(object.size_bytes);
+    match selection {
+        ResourceSelection::Exact { start, end } if end <= size => Ok((start, end, None)),
+        ResourceSelection::Exact { .. } => Err(anyhow!("byte_range exceeds resource size")),
+        ResourceSelection::Bounded { start, max_size } if start <= size => {
+            let end = start.saturating_add(max_size).min(size);
+            Ok((start, end, (end < size).then_some(end)))
+        }
+        ResourceSelection::Bounded { .. } => Err(anyhow!("byte_range.start exceeds resource size")),
+    }
+}
+
+fn select_resource_bytes(
+    text: &str,
+    selection: ResourceSelection,
+) -> Result<(String, u64, u64, Option<u64>)> {
+    let bytes = text.as_bytes();
+    let (start, requested_end, bounded) = match selection {
+        ResourceSelection::Exact { start, end } => (start as usize, end as usize, false),
+        ResourceSelection::Bounded { start, max_size } => (
+            start as usize,
+            start.saturating_add(max_size).min(bytes.len() as u64) as usize,
+            true,
+        ),
+    };
+    if start > bytes.len() || requested_end > bytes.len() || !text.is_char_boundary(start) {
+        return Err(anyhow!(
+            "byte_range is outside the resource or not on a UTF-8 boundary"
+        ));
+    }
+    let mut end = requested_end;
+    if bounded {
+        while end > start && !text.is_char_boundary(end) {
+            end -= 1;
+        }
+    } else if !text.is_char_boundary(end) {
+        return Err(anyhow!("byte_range.end must be on a UTF-8 boundary"));
+    }
+    Ok((
+        text[start..end].to_string(),
+        start as u64,
+        end as u64,
+        (bounded && end < bytes.len()).then_some(end as u64),
+    ))
+}
+
+async fn read_session_tool_result(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    reference: &str,
+    selection: Option<ResourceSelection>,
+) -> Result<ToolOutput> {
+    if session_id.is_empty() {
+        return Err(anyhow!("tr:// references require an active session"));
+    }
+    let (tool_call_id, part_index) = parse_tool_result_reference(reference)?;
+    let source = find_session_tool_result(cp, namespace, agent, session_id, &tool_call_id).await?;
+    let Some(part_index) = part_index else {
+        if selection.is_some() {
+            return Err(anyhow!(
+                "byte_range requires a tr://.../parts/<index> reference"
+            ));
+        }
+        return Ok(ToolOutput::text(tool_result_catalog(
+            &tool_call_id,
+            &source,
+        )));
+    };
+    let part = source
+        .content_parts
+        .get(part_index)
+        .ok_or_else(|| anyhow!("tool result part {part_index} does not exist"))?;
+    match part.content.as_ref() {
+        Some(chat_content_part::Content::Text(text)) => {
+            let selection = selection.unwrap_or(ResourceSelection::Bounded {
+                start: 0,
+                max_size: MAX_RESOURCE_READ_BYTES,
+            });
+            let (text, start, end, next_byte) = select_resource_bytes(text, selection)?;
+            Ok(ToolOutput::text(format!(
+                "{}\n[bytes {start}..{end}){}",
+                text,
+                next_byte
+                    .map(|next| format!("; next_byte={next}"))
+                    .unwrap_or_default()
+            )))
+        }
+        Some(chat_content_part::Content::ObjectRef(object_ref))
+            if tool_output::is_text_object_media_type(&object_ref.media_type) =>
+        {
+            let selection = selection.unwrap_or(ResourceSelection::Bounded {
+                start: 0,
+                max_size: MAX_RESOURCE_READ_BYTES,
+            });
+            let (start, end, next_byte) =
+                checked_object_byte_range(cp, object_ref, selection).await?;
+            Ok(tool_output::selected_object_byte_range_output(
+                object_ref.clone(),
+                start,
+                end,
+                next_byte,
+                format!(
+                    "Read bytes {start}..{end} from {}.",
+                    tool_output::tool_result_part_handle(&tool_call_id, part_index)
+                ),
+            ))
+        }
+        Some(chat_content_part::Content::ObjectRef(object_ref)) => {
+            if selection.is_some() {
+                return Err(anyhow!(
+                    "byte_range is only valid for text tool-result parts"
+                ));
+            }
+            Ok(ToolOutput::from_content_parts(
+                vec![part.clone()],
+                format!("Tool result part {part_index}: {}", object_ref.media_type),
+            ))
+        }
+        None => Err(anyhow!("tool result part {part_index} is empty")),
+    }
+}
+
+async fn checked_object_byte_range(
+    cp: &ControlPlane,
+    object: &data_proto::ObjectRef,
+    selection: ResourceSelection,
+) -> Result<(u64, u64, Option<u64>)> {
+    let (start, mut end, mut next_byte) = object_byte_range(object, selection)?;
+    let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+    let bytes = cas
+        .get_text_range_decoded(&object.key, start, end)
+        .await?
+        .ok_or_else(|| anyhow!("tool result object is unavailable"))?;
+    match selection {
+        ResourceSelection::Exact { .. } => {
+            std::str::from_utf8(&bytes)
+                .map_err(|_| anyhow!("byte_range start and end must be UTF-8 boundaries"))?;
+        }
+        ResourceSelection::Bounded { .. } => {
+            let mut actual = bytes.len();
+            while actual > 0 && std::str::from_utf8(&bytes[..actual]).is_err() {
+                actual -= 1;
+            }
+            if actual == 0 && !bytes.is_empty() {
+                return Err(anyhow!("byte_range.start must be a UTF-8 boundary"));
+            }
+            end = start + actual as u64;
+            let logical_size = object
+                .metadata
+                .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
+                .and_then(|value| value.parse::<u64>().ok())
+                .unwrap_or(object.size_bytes);
+            next_byte = (end < logical_size).then_some(end);
+        }
+    }
+    Ok((start, end, next_byte))
+}
+
+fn parse_tool_result_reference(reference: &str) -> Result<(String, Option<usize>)> {
+    let raw = reference
+        .strip_prefix("tr://")
+        .ok_or_else(|| anyhow!("invalid tr:// reference"))?;
+    let (encoded_id, part) = match raw.rsplit_once("/parts/") {
+        Some((id, index)) => (id, Some(index)),
+        None => (raw, None),
+    };
+    if encoded_id.is_empty() || encoded_id.contains('/') {
+        return Err(anyhow!(
+            "tr:// reference must include one encoded tool call id"
+        ));
+    }
+    let id = urlencoding::decode(encoded_id)
+        .map_err(|_| anyhow!("tool call id is not valid percent-encoding"))?
+        .into_owned();
+    if id.is_empty() || tool_output::tool_result_handle(&id) != format!("tr://{encoded_id}") {
+        return Err(anyhow!("tool call id is not canonically encoded"));
+    }
+    let part = part
+        .map(|value| {
+            value
+                .parse::<usize>()
+                .map_err(|_| anyhow!("tool result part index must be a zero-based integer"))
+        })
+        .transpose()?;
+    Ok((id, part))
+}
+
+fn tool_result_catalog(tool_call_id: &str, output: &ToolOutput) -> String {
+    if !output.summary.is_empty() {
+        return output.summary.clone();
+    }
+    tool_output::compact_mixed_tool_result_catalog(tool_call_id, &output.content_parts)
+}
+
+async fn find_session_tool_result(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    tool_call_id: &str,
+) -> Result<ToolOutput> {
+    let mut found = None;
+    for submission in cp
+        .kv
+        .list_keys(
+            &keys::session_submission_prefix(namespace, agent, session_id),
+            None,
+        )
+        .await?
+    {
+        for (_, bytes) in cp
+            .kv
+            .list_entries(
+                &keys::session_journal_entry_prefix(namespace, agent, session_id, &submission.name),
+                None,
+            )
+            .await?
+        {
+            let entry = data_proto::SessionJournalEntry::decode(bytes.as_slice())?;
+            let Some(result) = entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+                .and_then(|payload| match payload {
+                    data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
+                        Some(result)
+                    }
+                    _ => None,
+                })
+            else {
+                continue;
+            };
+            if result.tool_call_id != tool_call_id {
+                continue;
+            }
+            let output = result
+                .tool_output
+                .clone()
+                .unwrap_or_else(|| ToolOutput::text(result.output.clone()));
+            if found.replace(output).is_some() {
+                return Err(anyhow!(
+                    "tool result reference '{}' is ambiguous in this session",
+                    tool_call_id
+                ));
+            }
+        }
+    }
+    found.ok_or_else(|| {
+        anyhow!(
+            "tool result '{}' was not found in the current session",
+            tool_call_id
+        )
+    })
 }
 
 async fn get_file_metadata_tool(
@@ -2123,10 +2603,6 @@ async fn update_artifact(
         ))
         .await?
         .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
-    let previous_object_key = artifact
-        .object_ref
-        .as_ref()
-        .map(|object_ref| object_ref.key.clone());
     let media_type = opt_str(args, "media_type").unwrap_or(&artifact.media_type);
     if args.get("content").and_then(Value::as_str).is_none()
         && opt_str(args, "content_base64").is_none()
@@ -2172,21 +2648,8 @@ async fn update_artifact(
         }
         return Err(error);
     }
-    if let Some(previous_object_key) = previous_object_key {
-        if artifact
-            .object_ref
-            .as_ref()
-            .is_none_or(|object_ref| object_ref.key != previous_object_key)
-        {
-            if let Err(error) = cas.delete_object(&previous_object_key).await {
-                tracing::warn!(
-                    error = %error,
-                    object_key = %previous_object_key,
-                    "failed to delete superseded artifact CAS object"
-                );
-            }
-        }
-    }
+    // Superseded immutable revisions may still be referenced from durable
+    // session history. Session cleanup reclaims owned revisions safely.
     Ok(serde_json::to_string_pretty(&json!({
         "artifact": artifact_json(&artifact),
         "artifactUri": uri.encode()
@@ -4240,7 +4703,7 @@ mod tests {
     }
 
     #[test]
-    fn register_file_tools_respects_capabilities() {
+    fn register_resource_io_uses_generic_read_and_write_tools() {
         let mut read_registry = ToolRegistry::new();
         register_tools(
             &mut read_registry,
@@ -4249,10 +4712,12 @@ mod tests {
         );
 
         assert!(read_registry.get_tool(LIST_FILES_TOOL).is_some());
-        assert!(read_registry.get_tool(READ_FILE_TOOL).is_some());
+        assert!(read_registry.get_tool(READ_TOOL).is_some());
         assert!(read_registry.get_tool(GET_FILE_METADATA_TOOL).is_some());
         assert!(read_registry.get_tool(CREATE_FILE_TOOL).is_none());
         assert!(read_registry.get_tool(UPDATE_FILE_TOOL).is_none());
+        assert!(read_registry.get_tool(READ_FILE_TOOL).is_none());
+        assert!(read_registry.get_tool(WRITE_TOOL).is_some());
         assert!(read_registry.get_tool(DELETE_FILE_TOOL).is_none());
 
         let mut write_registry = ToolRegistry::new();
@@ -4262,10 +4727,127 @@ mod tests {
             &Config::default(),
         );
 
-        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_some());
-        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_some());
+        assert!(write_registry.get_tool(READ_TOOL).is_some());
+        assert!(write_registry.get_tool(WRITE_TOOL).is_some());
+        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_none());
+        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_none());
         assert!(write_registry.get_tool(DELETE_FILE_TOOL).is_some());
         assert!(write_registry.get_tool(READ_FILE_TOOL).is_none());
+    }
+
+    #[tokio::test]
+    async fn generic_resource_io_creates_and_reads_artifacts_without_copying_content() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let namespace = "Tenant:acme:Workspace:main";
+
+        let created = execute_tool_for_session(
+            &cp,
+            namespace,
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            WRITE_TOOL,
+            &json!({
+                "kind": "artifact",
+                "title": "Draft",
+                "content": "first line\nsecond line",
+            }),
+            &Config::default(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let artifact_uri = serde_json::from_str::<Value>(&created).unwrap()["artifactUri"]
+            .as_str()
+            .unwrap()
+            .to_string();
+
+        let read = execute_tool_for_session_output(
+            &cp,
+            namespace,
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_TOOL,
+            &json!({
+                "ref": artifact_uri,
+                "byte_range": { "start": 11, "end": 22 },
+            }),
+            &Config::default(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(read.summary(), "Read bytes 11..22.");
+        assert_eq!(
+            read.content_descriptor()
+                .and_then(|descriptor| descriptor.byte_range.as_ref())
+                .map(|selection| (selection.start, selection.end)),
+            Some((11, 22))
+        );
+        let object = read.object_ref().unwrap();
+        assert_eq!(
+            crate::control::cas::CasStore::new(cp.objects.clone())
+                .get_object_decoded(&object.key)
+                .await
+                .unwrap()
+                .unwrap()
+                .bytes,
+            b"first line\nsecond line"
+        );
+    }
+
+    #[tokio::test]
+    async fn generic_read_resolves_session_relative_tool_result_without_new_cas_object() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        let namespace = "Tenant:acme:Workspace:main";
+        let original = append_test_tool_result(
+            kv.as_ref(),
+            &cp,
+            namespace,
+            "writer",
+            "session-1",
+            "search",
+            &ToolOutput::text(
+                (1..=300)
+                    .map(|line| format!("line {line}\n"))
+                    .collect::<String>(),
+            ),
+        )
+        .await;
+
+        let read = execute_tool_for_session_output(
+            &cp,
+            namespace,
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            READ_TOOL,
+            &json!({
+                "ref": "tr://call-1/parts/0",
+                "byte_range": { "start": 0, "max_size": 64 },
+            }),
+            &Config::default(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(
+            read.object_ref().map(|object| object.key.as_str()),
+            Some(original.key.as_str())
+        );
+        assert_eq!(
+            read.content_descriptor()
+                .and_then(|descriptor| descriptor.byte_range.as_ref())
+                .map(|selection| (selection.start, selection.end)),
+            Some((0, 64))
+        );
     }
 
     #[test]
@@ -4770,11 +5352,15 @@ mod tests {
             .as_str()
             .unwrap();
         assert_ne!(updated_object_key, object_key);
-        assert!(crate::control::cas::CasStore::new(cp.objects.clone())
-            .get_object_decoded(object_key)
-            .await
-            .unwrap()
-            .is_none());
+        assert_eq!(
+            crate::control::cas::CasStore::new(cp.objects.clone())
+                .get_object_decoded(object_key)
+                .await
+                .unwrap()
+                .unwrap()
+                .bytes,
+            b"draft body"
+        );
 
         let read_updated_output = execute_tool_for_session(
             &cp,
