@@ -118,6 +118,29 @@ pub async fn execute_tool_for_session_output(
     }
 
     match name {
+        READ_TOOL => read_resource_tool(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            config,
+            args,
+        )
+        .await
+        .map(Some),
+        WRITE_TOOL => write_resource_tool(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            config,
+            args,
+        )
+        .await
+        .map(ToolOutput::text)
+        .map(Some),
         READ_SESSION_MESSAGES_TOOL => {
             require_capability(spec, "sessions", "read:messages")?;
             crate::harness::native_tools::sessions::read_session_messages(
@@ -508,7 +531,11 @@ pub async fn execute_tool_for_session_output(
     }
 }
 
-fn require_global_capability(config: &Config, capability: &str, action: &str) -> Result<()> {
+pub(crate) fn require_global_capability(
+    config: &Config,
+    capability: &str,
+    action: &str,
+) -> Result<()> {
     if global_capability_allowed(config, capability, action) {
         Ok(())
     } else {
