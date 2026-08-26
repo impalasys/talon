@@ -259,9 +259,18 @@ async fn collect_session_tool_result_object_keys(
         match kv.get_msg::<data_proto::ObjectRef>(&key).await {
             Ok(Some(object))
                 if object.key.starts_with(&artifact_prefix)
-                    && object.metadata.get(METADATA_KIND).is_some_and(|kind| kind == METADATA_KIND_ARTIFACT)
-                    && object.metadata.get(METADATA_AGENT).is_some_and(|owner| owner == agent)
-                    && object.metadata.get("session_id").is_some_and(|owner_session| owner_session == session_id) =>
+                    && object
+                        .metadata
+                        .get(METADATA_KIND)
+                        .is_some_and(|kind| kind == METADATA_KIND_ARTIFACT)
+                    && object
+                        .metadata
+                        .get(METADATA_AGENT)
+                        .is_some_and(|owner| owner == agent)
+                    && object
+                        .metadata
+                        .get("session_id")
+                        .is_some_and(|owner_session| owner_session == session_id) =>
             {
                 keys_to_delete.insert(object.key);
             }
