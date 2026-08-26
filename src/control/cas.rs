@@ -4,12 +4,12 @@
 use crate::control::object_store::{ObjectMetadata, ObjectStore, StoredObject};
 use crate::gateway::rpc::data_proto;
 use anyhow::{anyhow, Result};
-use flate2::{read::GzDecoder, write::GzEncoder, Compression};
+use flate2::read::GzDecoder;
 use sha2::{Digest, Sha256};
 use std::borrow::Cow;
-use std::collections::HashMap;
-use std::io::{Cursor, Read, Write};
-use std::sync::Arc;
+use std::collections::{HashMap, VecDeque};
+use std::io::{Cursor, Read};
+use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 pub const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
@@ -32,11 +32,30 @@ pub const METADATA_UNCOMPRESSED_SHA256: &str = "uncompressed_sha256";
 pub const CONTENT_ENCODING_GZIP: &str = "gzip";
 pub const CONTENT_ENCODING_ZSTD: &str = "zstd";
 
-const MIN_COMPRESSION_SAVINGS_PERCENT: usize = 10;
 const MAX_LOGICAL_OBJECT_BYTES: u64 = 50 * 1024 * 1024;
-const MAX_TOOL_RESULT_LOGICAL_BYTES: usize = 8 * 1024 * 1024;
+pub const MAX_TOOL_RESULT_LOGICAL_BYTES: usize = 8 * 1024 * 1024;
 const TOOL_RESULT_TRUNCATION_MARKER: &[u8] =
     b"\n\n...[CONTENT TRUNCATED DUE TO TOOL RESULT SIZE LIMIT]";
+const SEEKABLE_ZSTD_FRAME_BYTES: usize = 256 * 1024;
+const ZSTD_SEEKABLE_SKIPPABLE_MAGIC: u32 = 0x184D2A5E;
+const ZSTD_SEEKABLE_FOOTER_MAGIC: u32 = 0x8F92EAB1;
+const SEEK_TABLE_CACHE_CAPACITY: usize = 64;
+static SEEK_TABLE_CACHE: OnceLock<Arc<tokio::sync::Mutex<VecDeque<(String, SeekableTable)>>>> =
+    OnceLock::new();
+
+#[derive(Debug, Clone)]
+struct SeekableFrame {
+    compressed_start: u64,
+    logical_start: u64,
+    compressed_size: u64,
+    logical_size: u64,
+}
+
+#[derive(Debug, Clone)]
+struct SeekableTable {
+    table_start: u64,
+    frames: Vec<SeekableFrame>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SessionCasScope {
@@ -79,11 +98,17 @@ pub struct SessionObjectKey {
 #[derive(Clone)]
 pub struct CasStore {
     objects: Arc<dyn ObjectStore + Send + Sync>,
+    seek_tables: Arc<tokio::sync::Mutex<VecDeque<(String, SeekableTable)>>>,
 }
 
 impl CasStore {
     pub fn new(objects: Arc<dyn ObjectStore + Send + Sync>) -> Self {
-        Self { objects }
+        Self {
+            objects,
+            seek_tables: SEEK_TABLE_CACHE
+                .get_or_init(|| Arc::new(tokio::sync::Mutex::new(VecDeque::new())))
+                .clone(),
+        }
     }
 
     pub fn object_store(&self) -> &(dyn ObjectStore + Send + Sync) {
@@ -279,7 +304,10 @@ impl CasStore {
         let scope = SessionCasScope::new(ns, agent, session_id);
         let identity = SessionObjectIdentity::new(message_id, part_id);
         let logical_bytes = tool_result_logical_bytes(uncompressed_bytes);
-        let (stored_bytes, content_encoding) = compressed_object_bytes(&logical_bytes)?;
+        // Tool results are deliberately seekable even when compression would
+        // not save space. The footer is the only seekability marker; callers
+        // still see normal text/plain + zstd metadata.
+        let stored_bytes = seekable_zstd(&logical_bytes)?;
         let metadata = tool_result_metadata(&scope, tool_call_id, tool_name, &logical_bytes);
 
         self.objects
@@ -291,7 +319,7 @@ impl CasStore {
                     size_bytes: stored_bytes.len() as u64,
                     sha256: sha256_hex(&stored_bytes),
                     filename: format!("{}.txt", object_key_segment(tool_call_id)),
-                    content_encoding: content_encoding.unwrap_or_default().to_string(),
+                    content_encoding: CONTENT_ENCODING_ZSTD.to_string(),
                     metadata,
                 },
             )
@@ -486,6 +514,197 @@ impl CasStore {
     ) -> Result<Option<crate::control::object_store::SignedObjectUrl>> {
         self.objects.signed_get_url(key, expires_in).await
     }
+
+    /// Read a logical UTF-8 range. Seekable zstd objects fetch only their
+    /// footer/table and the frames that overlap the requested logical bytes;
+    /// old zstd/gzip objects keep the conservative full-decode fallback.
+    pub async fn get_text_range_decoded(
+        &self,
+        key: &str,
+        start: u64,
+        end: u64,
+    ) -> Result<Option<Vec<u8>>> {
+        let Some(metadata) = self.objects.head(key).await? else {
+            return Ok(None);
+        };
+        if start > end {
+            return Err(anyhow!("logical range start exceeds end"));
+        }
+        let logical_size = metadata
+            .metadata
+            .get(METADATA_UNCOMPRESSED_SIZE_BYTES)
+            .and_then(|value| value.parse::<u64>().ok())
+            .unwrap_or(metadata.size_bytes);
+        if end > logical_size {
+            return Err(anyhow!("logical range exceeds object size"));
+        }
+        if metadata
+            .content_encoding
+            .eq_ignore_ascii_case(CONTENT_ENCODING_ZSTD)
+        {
+            if let Some(bytes) = self
+                .seekable_zstd_range(key, &metadata.sha256, metadata.size_bytes, start, end)
+                .await?
+            {
+                return Ok(Some(bytes));
+            }
+        }
+        let Some(object) = self.objects.get(key).await? else {
+            return Ok(None);
+        };
+        let bytes = decode_stored_object_bytes(&object, key)?;
+        let start = usize::try_from(start).map_err(|_| anyhow!("logical range is too large"))?;
+        let end = usize::try_from(end).map_err(|_| anyhow!("logical range is too large"))?;
+        let slice = bytes.get(start..end).ok_or_else(|| {
+            anyhow!("CAS object '{key}' is smaller than its recorded logical size")
+        })?;
+        Ok(Some(slice.to_vec()))
+    }
+
+    async fn seekable_zstd_range(
+        &self,
+        key: &str,
+        digest: &str,
+        stored_size: u64,
+        start: u64,
+        end: u64,
+    ) -> Result<Option<Vec<u8>>> {
+        let cache_key = format!("{key}\0{digest}");
+        let cached = {
+            let mut cache = self.seek_tables.lock().await;
+            cache
+                .iter()
+                .position(|(cached_key, _)| cached_key == &cache_key)
+                .map(|index| {
+                    let entry = cache.remove(index).expect("seek-table cache entry exists");
+                    let table = entry.1.clone();
+                    cache.push_front(entry);
+                    table
+                })
+        };
+        let table = match cached {
+            Some(table) => table,
+            None => match self.load_seekable_table(key, stored_size).await? {
+                Some(table) => {
+                    let mut cache = self.seek_tables.lock().await;
+                    cache.push_front((cache_key, table.clone()));
+                    if cache.len() > SEEK_TABLE_CACHE_CAPACITY {
+                        cache.pop_back();
+                    }
+                    table
+                }
+                None => return Ok(None),
+            },
+        };
+        let mut first = None;
+        let mut last = None;
+        for frame in &table.frames {
+            if start < frame.logical_start + frame.logical_size && end > frame.logical_start {
+                first.get_or_insert((frame.compressed_start, frame.logical_start));
+                last = Some((
+                    frame.compressed_start + frame.compressed_size,
+                    frame.logical_start + frame.logical_size,
+                ));
+            }
+        }
+        let Some((compressed_start, logical_start)) = first else {
+            return Ok(Some(Vec::new()));
+        };
+        let (compressed_end, _) = last.expect("last selected seekable frame exists");
+        if compressed_end > table.table_start {
+            return Err(anyhow!("CAS object '{key}' seek frames overlap table"));
+        }
+        let frames = self
+            .objects
+            .get_range(key, compressed_start..compressed_end)
+            .await?
+            .ok_or_else(|| anyhow!("CAS object '{key}' disappeared during range read"))?;
+        let decoded = unzstd(&frames, key)?;
+        let offset_start = (start - logical_start) as usize;
+        let offset_end = (end - logical_start) as usize;
+        if offset_end > decoded.len() {
+            return Err(anyhow!(
+                "CAS object '{key}' seek table does not match frames"
+            ));
+        }
+        Ok(Some(decoded[offset_start..offset_end].to_vec()))
+    }
+
+    async fn load_seekable_table(
+        &self,
+        key: &str,
+        stored_size: u64,
+    ) -> Result<Option<SeekableTable>> {
+        if stored_size < 17 {
+            return Ok(None);
+        }
+        let Some(footer) = self
+            .objects
+            .get_range(key, stored_size - 9..stored_size)
+            .await?
+        else {
+            return Ok(None);
+        };
+        if footer.len() != 9
+            || u32::from_le_bytes(footer[5..9].try_into().unwrap()) != ZSTD_SEEKABLE_FOOTER_MAGIC
+        {
+            return Ok(None);
+        }
+        let num_frames = u32::from_le_bytes(footer[0..4].try_into().unwrap()) as usize;
+        let descriptor = footer[4];
+        if descriptor & 0x7c != 0 {
+            return Err(anyhow!(
+                "CAS object '{key}' has an unsupported zstd seek table"
+            ));
+        }
+        let entry_bytes = if descriptor & 0x80 != 0 {
+            12usize
+        } else {
+            8usize
+        };
+        let payload_size = num_frames
+            .checked_mul(entry_bytes)
+            .and_then(|value| value.checked_add(9))
+            .ok_or_else(|| anyhow!("zstd seek table overflows"))?;
+        let table_start = stored_size
+            .checked_sub(payload_size as u64 + 8)
+            .ok_or_else(|| anyhow!("zstd seek table is out of bounds"))?;
+        let Some(table) = self
+            .objects
+            .get_range(key, table_start..stored_size)
+            .await?
+        else {
+            return Ok(None);
+        };
+        if table.len() != payload_size + 8
+            || u32::from_le_bytes(table[0..4].try_into().unwrap()) != ZSTD_SEEKABLE_SKIPPABLE_MAGIC
+            || u32::from_le_bytes(table[4..8].try_into().unwrap()) as usize != payload_size
+        {
+            return Err(anyhow!("CAS object '{key}' has an invalid zstd seek table"));
+        }
+        let mut compressed = 0u64;
+        let mut logical = 0u64;
+        let mut frames = Vec::with_capacity(num_frames);
+        for index in 0..num_frames {
+            let offset = 8 + index * entry_bytes;
+            let compressed_size =
+                u32::from_le_bytes(table[offset..offset + 4].try_into().unwrap()) as u64;
+            let logical_size =
+                u32::from_le_bytes(table[offset + 4..offset + 8].try_into().unwrap()) as u64;
+            frames.push(SeekableFrame {
+                compressed_start: compressed,
+                logical_start: logical,
+                compressed_size,
+                logical_size,
+            });
+            compressed += compressed_size;
+            logical += logical_size;
+        }
+        Ok(Some(SeekableTable {
+            table_start,
+            frames,
+        }))
+    }
 }
 
 pub fn session_object_key(scope: &SessionCasScope, identity: &SessionObjectIdentity) -> String {
@@ -546,6 +765,10 @@ pub fn artifact_object_key(namespace: &str, artifact_uid: &str, sha: &str) -> St
         object_key_segment(artifact_uid),
         object_key_segment(sha)
     )
+}
+
+pub fn artifact_object_key_prefix(namespace: &str) -> String {
+    format!("cas/{}/artifacts/", encoded_object_key_segment(namespace))
 }
 
 pub fn latest_file_object_key(namespace: &str, path: &str) -> String {
@@ -746,19 +969,7 @@ fn tool_result_metadata(
     metadata
 }
 
-fn compressed_object_bytes(raw_bytes: &[u8]) -> Result<(Vec<u8>, Option<&'static str>)> {
-    let zstd = zstd(raw_bytes)?;
-    if compression_saves_meaningfully(raw_bytes.len(), zstd.len()) {
-        return Ok((zstd, Some(CONTENT_ENCODING_ZSTD)));
-    }
-    let gzipped = gzip(raw_bytes)?;
-    if compression_saves_meaningfully(raw_bytes.len(), gzipped.len()) {
-        return Ok((gzipped, Some(CONTENT_ENCODING_GZIP)));
-    }
-    Ok((raw_bytes.to_vec(), None))
-}
-
-fn tool_result_logical_bytes(raw_bytes: &[u8]) -> Cow<'_, [u8]> {
+pub fn tool_result_logical_bytes(raw_bytes: &[u8]) -> Cow<'_, [u8]> {
     if raw_bytes.len() <= MAX_TOOL_RESULT_LOGICAL_BYTES {
         return Cow::Borrowed(raw_bytes);
     }
@@ -777,19 +988,34 @@ fn tool_result_logical_bytes(raw_bytes: &[u8]) -> Cow<'_, [u8]> {
     Cow::Owned(out)
 }
 
-fn compression_saves_meaningfully(raw_len: usize, compressed_len: usize) -> bool {
-    (compressed_len as u64) * 100
-        < (raw_len as u64) * (100 - MIN_COMPRESSION_SAVINGS_PERCENT) as u64
-}
-
 fn zstd(raw_bytes: &[u8]) -> Result<Vec<u8>> {
     Ok(zstd::stream::encode_all(Cursor::new(raw_bytes), 0)?)
 }
 
-fn gzip(raw_bytes: &[u8]) -> Result<Vec<u8>> {
-    let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-    encoder.write_all(raw_bytes)?;
-    Ok(encoder.finish()?)
+fn seekable_zstd(raw_bytes: &[u8]) -> Result<Vec<u8>> {
+    let mut out = Vec::new();
+    let mut sizes = Vec::new();
+    for chunk in raw_bytes.chunks(SEEKABLE_ZSTD_FRAME_BYTES) {
+        let frame = zstd(chunk)?;
+        sizes.push((frame.len() as u32, chunk.len() as u32));
+        out.extend_from_slice(&frame);
+    }
+    let payload_size = sizes
+        .len()
+        .checked_mul(8)
+        .and_then(|value| value.checked_add(9))
+        .ok_or_else(|| anyhow!("zstd seek table is too large"))?;
+    let frame_count = sizes.len() as u32;
+    out.extend_from_slice(&ZSTD_SEEKABLE_SKIPPABLE_MAGIC.to_le_bytes());
+    out.extend_from_slice(&(payload_size as u32).to_le_bytes());
+    for (compressed, logical) in sizes {
+        out.extend_from_slice(&compressed.to_le_bytes());
+        out.extend_from_slice(&logical.to_le_bytes());
+    }
+    out.extend_from_slice(&frame_count.to_le_bytes());
+    out.push(0);
+    out.extend_from_slice(&ZSTD_SEEKABLE_FOOTER_MAGIC.to_le_bytes());
+    Ok(out)
 }
 
 fn unzstd(bytes: &[u8], key: &str) -> Result<Vec<u8>> {
@@ -866,12 +1092,13 @@ fn sha256_hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        compaction_summary_object_key, parse_session_object_key, CasStore, SessionCasScope,
-        SessionObjectIdentity, CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD,
-        MAX_LOGICAL_OBJECT_BYTES, MAX_TOOL_RESULT_LOGICAL_BYTES, METADATA_AGENT,
-        METADATA_CONTENT_ENCODING, METADATA_KIND, METADATA_KIND_ARTIFACT, METADATA_KIND_COMPACTION,
-        METADATA_KIND_ENCRYPTED_REASONING, METADATA_KIND_FILE, METADATA_UNCOMPRESSED_SIZE_BYTES,
-        TOOL_RESULT_TRUNCATION_MARKER,
+        compaction_summary_object_key, decode_stored_object_bytes, parse_session_object_key,
+        CasStore, SessionCasScope, SessionObjectIdentity, CONTENT_ENCODING_GZIP,
+        CONTENT_ENCODING_ZSTD, MAX_LOGICAL_OBJECT_BYTES, MAX_TOOL_RESULT_LOGICAL_BYTES,
+        METADATA_AGENT, METADATA_CONTENT_ENCODING, METADATA_KIND, METADATA_KIND_ARTIFACT,
+        METADATA_KIND_COMPACTION, METADATA_KIND_ENCRYPTED_REASONING, METADATA_KIND_FILE,
+        METADATA_UNCOMPRESSED_SIZE_BYTES, SEEKABLE_ZSTD_FRAME_BYTES, TOOL_RESULT_TRUNCATION_MARKER,
+        ZSTD_SEEKABLE_FOOTER_MAGIC,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use flate2::{write::GzEncoder, Compression};
@@ -1092,7 +1319,10 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(scope, writer);
-        assert_eq!(stored.bytes, b"hello");
+        assert_eq!(
+            decode_stored_object_bytes(&stored, &object.key).unwrap(),
+            b"hello"
+        );
     }
 
     #[tokio::test]
@@ -1201,7 +1431,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn keeps_incompressible_tool_result_raw() {
+    async fn stores_incompressible_tool_result_as_seekable_zstd() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
         let mut rng = rand::rngs::StdRng::seed_from_u64(42);
@@ -1224,9 +1454,47 @@ mod tests {
             .unwrap();
         let stored = objects.get(&object.key).await.unwrap().unwrap();
 
-        assert_eq!(stored.bytes, raw);
-        assert!(stored.metadata.content_encoding.is_empty());
-        assert!(!object.metadata.contains_key(METADATA_CONTENT_ENCODING));
+        assert_eq!(stored.metadata.content_encoding, CONTENT_ENCODING_ZSTD);
+        assert_eq!(
+            decode_stored_object_bytes(&stored, &object.key).unwrap(),
+            raw
+        );
+        assert_eq!(
+            &stored.bytes[stored.bytes.len() - 4..],
+            &ZSTD_SEEKABLE_FOOTER_MAGIC.to_le_bytes()
+        );
+    }
+
+    #[tokio::test]
+    async fn seekable_tool_result_reads_only_requested_logical_range() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects);
+        let raw = (0..(SEEKABLE_ZSTD_FRAME_BYTES * 2 + 64))
+            .map(|index| b'a' + (index % 26) as u8)
+            .collect::<Vec<_>>();
+        let object = store
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                &raw,
+            )
+            .await
+            .unwrap();
+        let start = SEEKABLE_ZSTD_FRAME_BYTES as u64 - 10;
+        let end = start + 32;
+        assert_eq!(
+            store
+                .get_text_range_decoded(&object.key, start, end)
+                .await
+                .unwrap()
+                .unwrap(),
+            raw[start as usize..end as usize]
+        );
     }
 
     #[tokio::test]
