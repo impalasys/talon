@@ -581,22 +581,31 @@ async fn recovered_tool_output_loop_message(
     let Some(descriptor) = output.content_descriptor.as_ref() else {
         return tool_output_loop_message(tool_call_id, output);
     };
-    let Some(selection) = descriptor.selection.as_ref() else {
+    let selection = descriptor.selection.as_ref();
+    let byte_range = descriptor.byte_range.as_ref();
+    if selection.is_none() && byte_range.is_none() {
         return tool_output_loop_message(tool_call_id, output);
-    };
+    }
     let Some(object_ref) = output.object_ref() else {
         return tool_output_loop_message(tool_call_id, output);
     };
-    let content = CasStore::new(cp.objects.clone())
-        .get_object_decoded(&object_ref.key)
-        .await
-        .ok()
-        .flatten()
-        .map(|object| String::from_utf8_lossy(&object.bytes).into_owned())
-        .map(|text| {
-            bounded_recovered_line_selection(&text, selection.start_line, selection.end_line)
-        })
-        .unwrap_or_else(|| output.summary());
+    let cas = CasStore::new(cp.objects.clone());
+    let content = match (byte_range, selection) {
+        (Some(range), _) => match cas.get_text_range_decoded(&object_ref.key, range.start, range.end).await {
+            Ok(Some(bytes)) => String::from_utf8(bytes).unwrap_or_else(|error| {
+                tracing::warn!(%error, object_key = %object_ref.key, tool_call_id, "recovered tool result range was not valid UTF-8; replaying summary only");
+                output.summary()
+            }),
+            Ok(None) => { tracing::warn!(object_key = %object_ref.key, tool_call_id, "recovered tool result object is missing; replaying summary only"); output.summary() }
+            Err(error) => { tracing::warn!(%error, object_key = %object_ref.key, tool_call_id, "failed to read recovered tool result object; replaying summary only"); output.summary() }
+        },
+        (_, Some(selection)) => match cas.get_object_decoded(&object_ref.key).await {
+            Ok(Some(object)) => bounded_recovered_line_selection(&String::from_utf8_lossy(&object.bytes), selection.start_line, selection.end_line),
+            Ok(None) => { tracing::warn!(object_key = %object_ref.key, tool_call_id, "recovered tool result object is missing; replaying summary only"); output.summary() }
+            Err(error) => { tracing::warn!(%error, object_key = %object_ref.key, tool_call_id, "failed to read recovered tool result object; replaying summary only"); output.summary() }
+        },
+        _ => output.summary(),
+    };
     let mut message = LoopMessage::text("tool", content);
     message.tool_call_id = Some(tool_call_id.to_string());
     message
@@ -615,10 +624,11 @@ fn bounded_recovered_line_selection(text: &str, start_line: u64, end_line: u64) 
         .collect::<Vec<_>>()
         .join("\n");
     if output.len() > MAX_BYTES {
-        output.truncate(MAX_BYTES);
-        while !output.is_char_boundary(output.len()) {
-            output.pop();
+        let mut end = MAX_BYTES;
+        while end > 0 && !output.is_char_boundary(end) {
+            end -= 1;
         }
+        output.truncate(end);
         output.push_str("\n...[SECTION TRUNCATED]");
     }
     output

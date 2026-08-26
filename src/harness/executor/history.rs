@@ -493,6 +493,7 @@ async fn tool_result_message_from_part(
                             range.start,
                             range.end,
                         )
+                        .unwrap_or_else(|| parsed.tool_output.summary())
                     } else {
                         unavailable_historical_tool_output()
                     }
@@ -641,16 +642,16 @@ async fn project_tool_output_parts(
     Ok(projected)
 }
 
-fn bounded_byte_selection(text: &str, start: u64, end: u64) -> String {
-    let start = usize::try_from(start).unwrap_or(usize::MAX);
-    let mut end = usize::try_from(end).unwrap_or(usize::MAX).min(text.len());
+fn bounded_byte_selection(text: &str, start: u64, end: u64) -> Option<String> {
+    let start = usize::try_from(start).ok()?;
+    let mut end = usize::try_from(end).ok()?.min(text.len());
     if start > end || start > text.len() || !text.is_char_boundary(start) {
-        return String::new();
+        return None;
     }
     while end > start && !text.is_char_boundary(end) {
         end -= 1;
     }
-    text[start..end].to_string()
+    Some(text[start..end].to_string())
 }
 
 fn bounded_line_selection(text: &str, start_line: u64, end_line: u64) -> String {

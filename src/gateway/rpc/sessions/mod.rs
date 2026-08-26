@@ -4,7 +4,8 @@
 use super::{connectors as connector_rpc, data_proto, proto, GrpcGatewayHandler};
 use crate::control::cas::{
     session_object_key_prefix, SessionCasScope, METADATA_AGENT, METADATA_KIND,
-    METADATA_KIND_ARTIFACT, METADATA_KIND_COMPACTION, METADATA_KIND_TOOL_RESULT,
+    METADATA_KIND_ARTIFACT, METADATA_KIND_COMPACTION, METADATA_KIND_ENCRYPTED_REASONING,
+    METADATA_KIND_TOOL_RESULT,
 };
 use crate::control::scheduling;
 use crate::control::session_queue;
@@ -250,21 +251,30 @@ async fn collect_session_tool_result_object_keys(
     session_id: &str,
 ) -> anyhow::Result<Vec<String>> {
     let expected_prefix = session_object_key_prefix(&SessionCasScope::new(ns, agent, session_id));
-    let artifact_prefix = format!("cas/{}/artifacts/", urlencoding::encode(ns));
+    let artifact_prefix = crate::control::cas::artifact_object_key_prefix(ns);
     let mut keys_to_delete = HashSet::new();
     for artifact_key in kv
         .list_keys(&keys::artifact_prefix(ns, agent, session_id), None)
         .await?
     {
-        if let Some(artifact) = kv.get_msg::<data_proto::Artifact>(&artifact_key).await? {
-            collect_session_owned_object_key(
+        match kv.get_msg::<data_proto::Artifact>(&artifact_key).await {
+            Ok(Some(artifact)) => collect_session_owned_object_key(
                 artifact.object_ref.as_ref(),
                 &expected_prefix,
                 &artifact_prefix,
                 agent,
                 session_id,
                 &mut keys_to_delete,
-            );
+            ),
+            Ok(None) => {}
+            Err(error) => tracing::warn!(
+                error = %error,
+                namespace = %ns,
+                agent = %agent,
+                session_id = %session_id,
+                key = %artifact_key,
+                "failed to fetch or decode session artifact while collecting objects for deletion"
+            ),
         }
     }
     for key in kv
@@ -423,7 +433,7 @@ async fn collect_session_tool_result_object_keys(
                     _ => None,
                 })
             {
-                collect_tool_result_object_key(
+                collect_encrypted_reasoning_object_key(
                     response.encrypted_reasoning.as_ref(),
                     &expected_prefix,
                     agent,
@@ -476,6 +486,7 @@ fn collect_session_owned_object_key(
         .is_some_and(|agent| agent == expected_agent);
     let is_session_object = (kind == Some(METADATA_KIND_TOOL_RESULT)
         || kind == Some(METADATA_KIND_COMPACTION)
+        || kind == Some(METADATA_KIND_ENCRYPTED_REASONING)
         || object.key.contains("/tool-results/")
         || object.key.contains("/compactions/"))
         && object.key.starts_with(expected_prefix);
@@ -486,6 +497,29 @@ fn collect_session_owned_object_key(
             .get("session_id")
             .is_some_and(|session_id| session_id == expected_session_id);
     if agent_matches && (is_session_object || is_artifact) && !object.key.trim().is_empty() {
+        keys_to_delete.insert(object.key.clone());
+    }
+}
+
+fn collect_encrypted_reasoning_object_key(
+    object: Option<&data_proto::ObjectRef>,
+    expected_prefix: &str,
+    expected_agent: &str,
+    keys_to_delete: &mut HashSet<String>,
+) {
+    let Some(object) = object else {
+        return;
+    };
+    if object.key.starts_with(expected_prefix)
+        && object
+            .metadata
+            .get(METADATA_KIND)
+            .is_some_and(|kind| kind == METADATA_KIND_ENCRYPTED_REASONING)
+        && object
+            .metadata
+            .get(METADATA_AGENT)
+            .is_some_and(|agent| agent == expected_agent)
+    {
         keys_to_delete.insert(object.key.clone());
     }
 }

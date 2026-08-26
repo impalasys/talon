@@ -413,6 +413,9 @@ impl ObjectStore for GcsObjectStore {
         if range.start > range.end {
             return Err(anyhow!("object range start exceeds end"));
         }
+        if range.start == range.end {
+            return Ok(Some(Vec::new()));
+        }
         let object_key = self.object_key(key)?;
         let url = format!(
             "{}/storage/v1/b/{}/o/{}?alt=media",
@@ -433,13 +436,17 @@ impl ObjectStore for GcsObjectStore {
         if response.status() == StatusCode::NOT_FOUND {
             return Ok(None);
         }
-        Ok(Some(
-            ensure_success(response, "GCS object range download")
-                .await?
-                .bytes()
-                .await?
-                .to_vec(),
-        ))
+        let bytes = ensure_success(response, "GCS object range download")
+            .await?
+            .bytes()
+            .await?
+            .to_vec();
+        if bytes.len() != (range.end - range.start) as usize {
+            return Err(anyhow!(
+                "GCS object range response length does not match requested range"
+            ));
+        }
+        Ok(Some(bytes))
     }
 
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
@@ -592,6 +599,9 @@ impl ObjectStore for S3ObjectStore {
         if range.start > range.end {
             return Err(anyhow!("object range start exceeds end"));
         }
+        if range.start == range.end {
+            return Ok(Some(Vec::new()));
+        }
         let response = self
             .client
             .get_object()
@@ -605,7 +615,15 @@ impl ObjectStore for S3ObjectStore {
             .send()
             .await;
         match response {
-            Ok(response) => Ok(Some(response.body.collect().await?.into_bytes().to_vec())),
+            Ok(response) => {
+                let bytes = response.body.collect().await?.into_bytes().to_vec();
+                if bytes.len() != (range.end - range.start) as usize {
+                    return Err(anyhow!(
+                        "S3 object range response length does not match requested range"
+                    ));
+                }
+                Ok(Some(bytes))
+            }
             Err(err) if is_s3_not_found(&err) => Ok(None),
             Err(err) => Err(err.into()),
         }

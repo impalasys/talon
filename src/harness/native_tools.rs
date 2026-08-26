@@ -1484,8 +1484,11 @@ fn read_selection(args: &Value) -> Result<Option<ResourceSelection>> {
         (None, Some(max_size)) if max_size > 0 && max_size <= MAX_RESOURCE_READ_BYTES => {
             Ok(Some(ResourceSelection::Bounded { start, max_size }))
         }
-        (Some(_), Some(_)) => Err(anyhow!(
+        (Some(_), Some(_)) | (None, None) => Err(anyhow!(
             "byte_range requires exactly one of end or max_size"
+        )),
+        (Some(end), None) if end < start => Err(anyhow!(
+            "byte_range.end must be greater than or equal to start"
         )),
         _ => Err(anyhow!(
             "byte_range must be within the {} byte limit",
@@ -2600,10 +2603,6 @@ async fn update_artifact(
         ))
         .await?
         .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
-    let previous_object_key = artifact
-        .object_ref
-        .as_ref()
-        .map(|object_ref| object_ref.key.clone());
     let media_type = opt_str(args, "media_type").unwrap_or(&artifact.media_type);
     if args.get("content").and_then(Value::as_str).is_none()
         && opt_str(args, "content_base64").is_none()
@@ -2649,21 +2648,8 @@ async fn update_artifact(
         }
         return Err(error);
     }
-    if let Some(previous_object_key) = previous_object_key {
-        if artifact
-            .object_ref
-            .as_ref()
-            .is_none_or(|object_ref| object_ref.key != previous_object_key)
-        {
-            if let Err(error) = cas.delete_object(&previous_object_key).await {
-                tracing::warn!(
-                    error = %error,
-                    object_key = %previous_object_key,
-                    "failed to delete superseded artifact CAS object"
-                );
-            }
-        }
-    }
+    // Superseded immutable revisions may still be referenced from durable
+    // session history. Session cleanup reclaims owned revisions safely.
     Ok(serde_json::to_string_pretty(&json!({
         "artifact": artifact_json(&artifact),
         "artifactUri": uri.encode()
@@ -5366,11 +5352,15 @@ mod tests {
             .as_str()
             .unwrap();
         assert_ne!(updated_object_key, object_key);
-        assert!(crate::control::cas::CasStore::new(cp.objects.clone())
-            .get_object_decoded(object_key)
-            .await
-            .unwrap()
-            .is_none());
+        assert_eq!(
+            crate::control::cas::CasStore::new(cp.objects.clone())
+                .get_object_decoded(object_key)
+                .await
+                .unwrap()
+                .unwrap()
+                .bytes,
+            b"draft body"
+        );
 
         let read_updated_output = execute_tool_for_session(
             &cp,

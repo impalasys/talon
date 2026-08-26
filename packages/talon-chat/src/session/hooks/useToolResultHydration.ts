@@ -22,6 +22,25 @@ type ToolResultPartMatch = {
   object: TalonChatObjectRef;
 };
 
+const TEXT_MEDIA_TYPES = new Set([
+  "application/json",
+  "application/yaml",
+  "application/x-yaml",
+  "application/toml",
+  "application/xml",
+  "application/javascript",
+  "application/x-javascript",
+]);
+
+function isTextMediaType(mediaType: unknown): boolean {
+  if (typeof mediaType !== "string") return false;
+  const normalized = mediaType.split(";", 1)[0]?.trim().toLowerCase() ?? "";
+  return normalized.startsWith("text/")
+    || TEXT_MEDIA_TYPES.has(normalized)
+    || normalized.endsWith("+json")
+    || normalized.endsWith("+xml");
+}
+
 function isToolResultPart(part: any) {
   const type = part?.type ?? part?.partType ?? part?.part_type;
   return type === 4 || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
@@ -57,8 +76,7 @@ function findHydratableObjectPart(parts: unknown, toolCallId: string): ToolResul
   const mediaType = match?.object.mediaType ?? match?.object.media_type ?? "";
   // Media stays as an attachment in the structured output. It is never safe
   // to decode an image/video/octet-stream simply because it lives in CAS.
-  const text = typeof mediaType === "string" && (mediaType.toLowerCase().startsWith("text/") || mediaType.toLowerCase().includes("json") || mediaType.toLowerCase().includes("xml"));
-  return match && text && !(typeof match.part.content === "string" && match.part.content.length > 0)
+  return match && isTextMediaType(mediaType) && !(typeof match.part.content === "string" && match.part.content.length > 0)
     ? match
     : null;
 }

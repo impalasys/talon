@@ -1474,26 +1474,31 @@ impl AgentExecutor {
         };
         let cas = CasStore::new(self.control_plane.objects.clone());
         let text = match (byte_range, selection) {
-            (Some(range), _) => cas
-                .get_text_range_decoded(&object.key, range.start, range.end)
-                .await
-                .ok()
-                .flatten()
-                .and_then(|bytes| String::from_utf8(bytes).ok())
-                .unwrap_or_else(|| result.summary()),
-            (_, Some(selection)) => cas
-                .get_object_decoded(&object.key)
-                .await
-                .ok()
-                .flatten()
-                .map(|object| {
-                    bounded_line_selection(
-                        &String::from_utf8_lossy(&object.bytes),
-                        selection.start_line,
-                        selection.end_line,
-                    )
-                })
-                .unwrap_or_else(|| result.summary()),
+            (Some(range), _) => match cas.get_text_range_decoded(&object.key, range.start, range.end).await {
+                Ok(Some(bytes)) => String::from_utf8(bytes).unwrap_or_else(|error| {
+                    tracing::warn!(%error, object_key = %object.key, tool_call_id, "tool result range was not valid UTF-8; replaying summary only");
+                    result.summary()
+                }),
+                Ok(None) => {
+                    tracing::warn!(object_key = %object.key, tool_call_id, "tool result object is missing; replaying summary only");
+                    result.summary()
+                }
+                Err(error) => {
+                    tracing::warn!(%error, object_key = %object.key, tool_call_id, "failed to read tool result object; replaying summary only");
+                    result.summary()
+                }
+            },
+            (_, Some(selection)) => match cas.get_object_decoded(&object.key).await {
+                Ok(Some(object)) => bounded_line_selection(&String::from_utf8_lossy(&object.bytes), selection.start_line, selection.end_line),
+                Ok(None) => {
+                    tracing::warn!(object_key = %object.key, tool_call_id, "tool result object is missing; replaying summary only");
+                    result.summary()
+                }
+                Err(error) => {
+                    tracing::warn!(%error, object_key = %object.key, tool_call_id, "failed to read tool result object; replaying summary only");
+                    result.summary()
+                }
+            },
             _ => result.summary(),
         };
         tool_result_loop_message(tool_call_id, &text)

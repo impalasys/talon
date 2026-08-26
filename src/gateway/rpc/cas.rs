@@ -226,7 +226,10 @@ mod tests {
             .into_inner();
 
         assert_eq!(response.content_encoding, CONTENT_ENCODING_ZSTD);
-        assert_ne!(response.data, b"hello");
+        assert_eq!(
+            zstd::stream::decode_all(response.data.as_slice()).unwrap(),
+            b"hello"
+        );
         assert_eq!(response.media_type, object.media_type);
         assert_eq!(response.size_bytes, object.size_bytes);
     }

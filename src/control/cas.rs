@@ -9,7 +9,7 @@ use sha2::{Digest, Sha256};
 use std::borrow::Cow;
 use std::collections::{HashMap, VecDeque};
 use std::io::{Cursor, Read};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 pub const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
@@ -40,6 +40,8 @@ const SEEKABLE_ZSTD_FRAME_BYTES: usize = 256 * 1024;
 const ZSTD_SEEKABLE_SKIPPABLE_MAGIC: u32 = 0x184D2A5E;
 const ZSTD_SEEKABLE_FOOTER_MAGIC: u32 = 0x8F92EAB1;
 const SEEK_TABLE_CACHE_CAPACITY: usize = 64;
+static SEEK_TABLE_CACHE: OnceLock<Arc<tokio::sync::Mutex<VecDeque<(String, SeekableTable)>>>> =
+    OnceLock::new();
 
 #[derive(Debug, Clone)]
 struct SeekableFrame {
@@ -103,7 +105,9 @@ impl CasStore {
     pub fn new(objects: Arc<dyn ObjectStore + Send + Sync>) -> Self {
         Self {
             objects,
-            seek_tables: Arc::new(tokio::sync::Mutex::new(VecDeque::new())),
+            seek_tables: SEEK_TABLE_CACHE
+                .get_or_init(|| Arc::new(tokio::sync::Mutex::new(VecDeque::new())))
+                .clone(),
         }
     }
 
@@ -549,7 +553,12 @@ impl CasStore {
             return Ok(None);
         };
         let bytes = decode_stored_object_bytes(&object, key)?;
-        Ok(Some(bytes[start as usize..end as usize].to_vec()))
+        let start = usize::try_from(start).map_err(|_| anyhow!("logical range is too large"))?;
+        let end = usize::try_from(end).map_err(|_| anyhow!("logical range is too large"))?;
+        let slice = bytes.get(start..end).ok_or_else(|| {
+            anyhow!("CAS object '{key}' is smaller than its recorded logical size")
+        })?;
+        Ok(Some(slice.to_vec()))
     }
 
     async fn seekable_zstd_range(
@@ -667,7 +676,7 @@ impl CasStore {
         else {
             return Ok(None);
         };
-        if table.len() < 17
+        if table.len() != payload_size + 8
             || u32::from_le_bytes(table[0..4].try_into().unwrap()) != ZSTD_SEEKABLE_SKIPPABLE_MAGIC
             || u32::from_le_bytes(table[4..8].try_into().unwrap()) as usize != payload_size
         {
@@ -756,6 +765,10 @@ pub fn artifact_object_key(namespace: &str, artifact_uid: &str, sha: &str) -> St
         object_key_segment(artifact_uid),
         object_key_segment(sha)
     )
+}
+
+pub fn artifact_object_key_prefix(namespace: &str) -> String {
+    format!("cas/{}/artifacts/", encoded_object_key_segment(namespace))
 }
 
 pub fn latest_file_object_key(namespace: &str, path: &str) -> String {
@@ -992,15 +1005,14 @@ fn seekable_zstd(raw_bytes: &[u8]) -> Result<Vec<u8>> {
         .checked_mul(8)
         .and_then(|value| value.checked_add(9))
         .ok_or_else(|| anyhow!("zstd seek table is too large"))?;
+    let frame_count = sizes.len() as u32;
     out.extend_from_slice(&ZSTD_SEEKABLE_SKIPPABLE_MAGIC.to_le_bytes());
     out.extend_from_slice(&(payload_size as u32).to_le_bytes());
     for (compressed, logical) in sizes {
         out.extend_from_slice(&compressed.to_le_bytes());
         out.extend_from_slice(&logical.to_le_bytes());
     }
-    out.extend_from_slice(
-        &((raw_bytes.len().div_ceil(SEEKABLE_ZSTD_FRAME_BYTES)) as u32).to_le_bytes(),
-    );
+    out.extend_from_slice(&frame_count.to_le_bytes());
     out.push(0);
     out.extend_from_slice(&ZSTD_SEEKABLE_FOOTER_MAGIC.to_le_bytes());
     Ok(out)
@@ -1085,8 +1097,8 @@ mod tests {
         CONTENT_ENCODING_ZSTD, MAX_LOGICAL_OBJECT_BYTES, MAX_TOOL_RESULT_LOGICAL_BYTES,
         METADATA_AGENT, METADATA_CONTENT_ENCODING, METADATA_KIND, METADATA_KIND_ARTIFACT,
         METADATA_KIND_COMPACTION, METADATA_KIND_ENCRYPTED_REASONING, METADATA_KIND_FILE,
-        METADATA_UNCOMPRESSED_SIZE_BYTES, SEEKABLE_ZSTD_FRAME_BYTES,
-        TOOL_RESULT_TRUNCATION_MARKER, ZSTD_SEEKABLE_FOOTER_MAGIC,
+        METADATA_UNCOMPRESSED_SIZE_BYTES, SEEKABLE_ZSTD_FRAME_BYTES, TOOL_RESULT_TRUNCATION_MARKER,
+        ZSTD_SEEKABLE_FOOTER_MAGIC,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use flate2::{write::GzEncoder, Compression};

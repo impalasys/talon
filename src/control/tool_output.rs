@@ -316,7 +316,8 @@ pub async fn normalize_for_session_storage(
             .await?;
         let captured = crate::control::cas::tool_result_logical_bytes(text.as_bytes());
         let captured_text = String::from_utf8_lossy(&captured);
-        let computed = text_descriptor(&captured_text, captured.len() < text.len());
+        let mut computed = text_descriptor(&captured_text, captured.len() < text.len());
+        computed.captured_size_bytes = captured.len() as u64;
         let preview = preview_text(&captured_text, 160);
         return Ok(ToolOutput {
             content_parts: vec![object_ref_part(object_ref)],
@@ -389,8 +390,8 @@ pub fn compact_mixed_tool_result_catalog(tool_call_id: &str, parts: &[ChatConten
         }
     }
     let mut summary = format!(
-        "Tool result catalog {}: {}. Use read with ref '{} /parts/N' (without the space) to inspect a part.",
-        tool_result_handle(tool_call_id),
+        "Tool result catalog {}: {}. Use read with ref '{}' to inspect a part.",
+        tool_result_part_handle(tool_call_id, 0),
         entries.join(", "),
         tool_result_handle(tool_call_id),
     );
