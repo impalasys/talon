@@ -1426,7 +1426,9 @@ async fn read_resource_tool(
         )
         .await;
     }
-    Err(anyhow!("read.ref must start with file://, artifact://, or tr://"))
+    Err(anyhow!(
+        "read.ref must start with file://, artifact://, or tr://"
+    ))
 }
 
 async fn read_session_tool_result(
@@ -1436,29 +1438,103 @@ async fn read_session_tool_result(
     session_id: &str,
     reference: &str,
 ) -> Result<ToolOutput> {
-    if session_id.is_empty() { return Err(anyhow!("tr:// references require an active session")); }
-    let raw = reference.strip_prefix("tr://").ok_or_else(|| anyhow!("invalid tr:// reference"))?;
+    if session_id.is_empty() {
+        return Err(anyhow!("tr:// references require an active session"));
+    }
+    let raw = reference
+        .strip_prefix("tr://")
+        .ok_or_else(|| anyhow!("invalid tr:// reference"))?;
     let (encoded_id, index) = match raw.rsplit_once("/parts/") {
-        Some((id, index)) => (id, Some(index.parse::<usize>().map_err(|_| anyhow!("tool result part index must be a zero-based integer"))?)),
+        Some((id, index)) => (
+            id,
+            Some(
+                index
+                    .parse::<usize>()
+                    .map_err(|_| anyhow!("tool result part index must be a zero-based integer"))?,
+            ),
+        ),
         None => (raw, None),
     };
-    if encoded_id.is_empty() || encoded_id.contains('/') { return Err(anyhow!("tr:// reference must include one encoded tool call id")); }
-    let tool_call_id = urlencoding::decode(encoded_id).map_err(|_| anyhow!("tool call id is not valid percent-encoding"))?.into_owned();
-    if crate::control::tool_output::tool_result_handle(&tool_call_id) != format!("tr://{encoded_id}") { return Err(anyhow!("tool call id is not canonically encoded")); }
+    if encoded_id.is_empty() || encoded_id.contains('/') {
+        return Err(anyhow!(
+            "tr:// reference must include one encoded tool call id"
+        ));
+    }
+    let tool_call_id = urlencoding::decode(encoded_id)
+        .map_err(|_| anyhow!("tool call id is not valid percent-encoding"))?
+        .into_owned();
+    if crate::control::tool_output::tool_result_handle(&tool_call_id)
+        != format!("tr://{encoded_id}")
+    {
+        return Err(anyhow!("tool call id is not canonically encoded"));
+    }
     let mut found = None;
-    for submission in cp.kv.list_keys(&keys::session_submission_prefix(namespace, agent, session_id), None).await? {
-        for (_, bytes) in cp.kv.list_entries(&keys::session_journal_entry_prefix(namespace, agent, session_id, &submission.name), None).await? {
+    for submission in cp
+        .kv
+        .list_keys(
+            &keys::session_submission_prefix(namespace, agent, session_id),
+            None,
+        )
+        .await?
+    {
+        for (_, bytes) in cp
+            .kv
+            .list_entries(
+                &keys::session_journal_entry_prefix(namespace, agent, session_id, &submission.name),
+                None,
+            )
+            .await?
+        {
             let entry = data_proto::SessionJournalEntry::decode(bytes.as_slice())?;
-            let Some(result) = entry.payload.as_ref().and_then(|payload| payload.payload.as_ref()).and_then(|payload| match payload { data_proto::session_journal_entry_payload::Payload::ToolResult(result) => Some(result), _ => None }) else { continue; };
-            if result.tool_call_id != tool_call_id { continue; }
-            let output = result.tool_output.clone().unwrap_or_else(|| ToolOutput::text(result.output.clone()));
-            if found.replace(output).is_some() { return Err(anyhow!("tool result reference '{}' is ambiguous in this session", tool_call_id)); }
+            let Some(result) = entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+                .and_then(|payload| match payload {
+                    data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
+                        Some(result)
+                    }
+                    _ => None,
+                })
+            else {
+                continue;
+            };
+            if result.tool_call_id != tool_call_id {
+                continue;
+            }
+            let output = result
+                .tool_output
+                .clone()
+                .unwrap_or_else(|| ToolOutput::text(result.output.clone()));
+            if found.replace(output).is_some() {
+                return Err(anyhow!(
+                    "tool result reference '{}' is ambiguous in this session",
+                    tool_call_id
+                ));
+            }
         }
     }
-    let output = found.ok_or_else(|| anyhow!("tool result '{}' was not found in the current session", tool_call_id))?;
+    let output = found.ok_or_else(|| {
+        anyhow!(
+            "tool result '{}' was not found in the current session",
+            tool_call_id
+        )
+    })?;
     match index {
-        None => Ok(ToolOutput::text(crate::control::tool_output::compact_tool_result_catalog(&tool_call_id, &output.content_parts))),
-        Some(index) => output.content_parts.get(index).cloned().map(|part| ToolOutput::from_content_parts(vec![part], format!("Tool result part {index}."))).ok_or_else(|| anyhow!("tool result part {index} does not exist")),
+        None => Ok(ToolOutput::text(
+            crate::control::tool_output::compact_tool_result_catalog(
+                &tool_call_id,
+                &output.content_parts,
+            ),
+        )),
+        Some(index) => output
+            .content_parts
+            .get(index)
+            .cloned()
+            .map(|part| {
+                ToolOutput::from_content_parts(vec![part], format!("Tool result part {index}."))
+            })
+            .ok_or_else(|| anyhow!("tool result part {index} does not exist")),
     }
 }
 
