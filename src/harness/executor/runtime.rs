@@ -1420,7 +1420,6 @@ impl AgentExecutor {
             rate_limit_key: None,
         }
     }
-
 }
 
 pub async fn project_tool_output_context(
@@ -1428,30 +1427,30 @@ pub async fn project_tool_output_context(
     tool_call_id: &str,
     result: &ToolOutput,
 ) -> Result<LoopMessage> {
-        let Some(range) = result.byte_range.as_ref() else {
-            return Ok(tool_output_loop_message(tool_call_id, result));
-        };
-        let Some(object) = result.object_ref() else {
-            return Ok(tool_output_loop_message(tool_call_id, result));
-        };
-        let Some(bytes) = cas
-            .get_text_range_decoded(&object.key, range.start, range.end)
-            .await?
-        else {
-            return Ok(tool_result_loop_message(
-                tool_call_id,
-                "[Selected tool-result text is unavailable.]",
-            ));
-        };
-        let text = std::str::from_utf8(&bytes)?;
-        let suffix = range
-            .next_byte
-            .map(|next| format!("\n[bytes {}..{}; next_byte={next})", range.start, range.end))
-            .unwrap_or_else(|| format!("\n[bytes {}..{})", range.start, range.end));
-        Ok(tool_result_loop_message(
+    let Some(range) = result.byte_range.as_ref() else {
+        return Ok(tool_output_loop_message(tool_call_id, result));
+    };
+    let Some(object) = result.object_ref() else {
+        return Ok(tool_output_loop_message(tool_call_id, result));
+    };
+    let Some(bytes) = cas
+        .get_text_range_decoded(&object.key, range.start, range.end)
+        .await?
+    else {
+        return Ok(tool_result_loop_message(
             tool_call_id,
-            &format!("{text}{suffix}"),
-        ))
+            "[Selected tool-result text is unavailable.]",
+        ));
+    };
+    let text = std::str::from_utf8(&bytes)?;
+    let suffix = range
+        .next_byte
+        .map(|next| format!("\n[bytes {}..{}; next_byte={next})", range.start, range.end))
+        .unwrap_or_else(|| format!("\n[bytes {}..{})", range.start, range.end));
+    Ok(tool_result_loop_message(
+        tool_call_id,
+        &format!("{text}{suffix}"),
+    ))
 }
 
 impl AgentExecutor {
