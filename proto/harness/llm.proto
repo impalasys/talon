@@ -16,6 +16,24 @@ message ChatContentPart {
 message ToolOutput {
   repeated ChatContentPart content_parts = 1;
   string summary = 2;
+  // Retained only to replay journals written by the pre-byte-range API.
+  optional ToolOutputLineSelection line_selection = 3;
+  // A zero-based, half-open selection over the sole text object referenced by
+  // content_parts. `end` is the actual end returned; `next_byte` is set for a
+  // bounded read when more logical bytes remain.
+  optional ToolOutputByteRange byte_range = 4;
+}
+
+message ToolOutputLineSelection {
+  // One-based, inclusive line bounds in the referenced text object.
+  uint64 start_line = 1;
+  uint64 end_line = 2;
+}
+
+message ToolOutputByteRange {
+  uint64 start = 1;
+  uint64 end = 2;
+  optional uint64 next_byte = 3;
 }
 
 message ToolCall {

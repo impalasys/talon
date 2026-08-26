@@ -5,6 +5,7 @@ use crate::control::cas::CasStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
     chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput,
+    ToolOutputByteRange, ToolOutputLineSelection,
 };
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -50,6 +51,8 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![text_part(text.clone())],
             summary: text,
+            line_selection: None,
+            byte_range: None,
         }
     }
 
@@ -77,6 +80,8 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![object_ref_part(object_ref)],
             summary,
+            line_selection: None,
+            byte_range: None,
         }
     }
 
@@ -84,6 +89,8 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts,
             summary: summary.into(),
+            line_selection: None,
+            byte_range: None,
         }
     }
 
@@ -219,6 +226,8 @@ pub async fn normalize_for_session_storage(
         summary(&ToolOutput {
             content_parts: content_parts.clone(),
             summary: String::new(),
+            line_selection: None,
+            byte_range: None,
         })
     } else {
         output.summary.clone()
@@ -226,6 +235,8 @@ pub async fn normalize_for_session_storage(
     Ok(ToolOutput {
         content_parts,
         summary,
+        line_selection: output.line_selection.clone(),
+        byte_range: output.byte_range.clone(),
     })
 }
 
@@ -265,6 +276,15 @@ pub fn tool_output_json(output: &ToolOutput) -> Value {
     json!({
         "summary": output.summary,
         "content_parts": output.content_parts.iter().map(content_part_json).collect::<Vec<_>>(),
+        "line_selection": output.line_selection.as_ref().map(|selection| json!({
+            "start_line": selection.start_line,
+            "end_line": selection.end_line,
+        })),
+        "byte_range": output.byte_range.as_ref().map(|range| json!({
+            "start": range.start,
+            "end": range.end,
+            "next_byte": range.next_byte,
+        })),
     })
 }
 
@@ -296,6 +316,34 @@ fn parse_tool_output_json(value: &Value) -> Result<ToolOutput> {
     Ok(ToolOutput {
         content_parts,
         summary,
+        line_selection: value
+            .get("line_selection")
+            .or_else(|| value.get("lineSelection"))
+            .and_then(Value::as_object)
+            .map(|selection| ToolOutputLineSelection {
+                start_line: selection
+                    .get("start_line")
+                    .or_else(|| selection.get("startLine"))
+                    .and_then(Value::as_u64)
+                    .unwrap_or_default(),
+                end_line: selection
+                    .get("end_line")
+                    .or_else(|| selection.get("endLine"))
+                    .and_then(Value::as_u64)
+                    .unwrap_or_default(),
+            }),
+        byte_range: value
+            .get("byte_range")
+            .or_else(|| value.get("byteRange"))
+            .and_then(Value::as_object)
+            .map(|range| ToolOutputByteRange {
+                start: range.get("start").and_then(Value::as_u64).unwrap_or_default(),
+                end: range.get("end").and_then(Value::as_u64).unwrap_or_default(),
+                next_byte: range
+                    .get("next_byte")
+                    .or_else(|| range.get("nextByte"))
+                    .and_then(Value::as_u64),
+            }),
     })
 }
 
@@ -318,6 +366,8 @@ fn legacy_tool_output(
         return Ok(ToolOutput {
             content_parts,
             summary: inline_output.to_string(),
+            line_selection: None,
+            byte_range: None,
         });
     }
     Ok(ToolOutput::text(inline_output.to_string()))
@@ -454,6 +504,35 @@ mod tests {
 
         assert_eq!(payload.tool_call_id, "call-1");
         assert_eq!(plain_text(&payload.tool_output).as_deref(), Some("result"));
+    }
+
+    #[test]
+    fn byte_range_payload_round_trips_without_catalog_metadata() {
+        let output = ToolOutput {
+            content_parts: vec![object_ref_part(object_ref("cas/text", "text/plain"))],
+            summary: "Read bytes 3..8.".to_string(),
+            line_selection: None,
+            byte_range: Some(ToolOutputByteRange {
+                start: 3,
+                end: 8,
+                next_byte: Some(8),
+            }),
+        };
+        let json = tool_result_payload_json("call-1", &output).unwrap();
+        let payload = parse_tool_result_payload_json(&json, None, "")
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(
+            payload.tool_output.byte_range,
+            Some(ToolOutputByteRange {
+                start: 3,
+                end: 8,
+                next_byte: Some(8),
+            })
+        );
+        assert!(!json.contains("section_readable"));
+        assert!(!json.contains("captured_size_bytes"));
     }
 
     #[test]
