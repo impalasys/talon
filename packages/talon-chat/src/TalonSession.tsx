@@ -172,8 +172,8 @@ export function TalonSession({
     hydrate: hydrateToolResultForExpandedItem,
     invalidate: invalidateToolResultHydration,
   } = useToolResultHydration(
-    gatewayClient?.cas,
-    currentSession ? `${currentSession.ns}\u0000${currentSession.agent}\u0000${currentSession.sessionId}` : null,
+    gatewayClient?.sessions,
+    currentSession,
   );
   const hasMoreHistory = sessionRuntimeState.history.hasMoreOlder;
   const nextBeforeMessageId = sessionRuntimeState.history.beforeMessageId;

@@ -539,6 +539,37 @@ public final class SessionServiceGrpc {
     return getSubmitTurnMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.ReadToolResultPartRequest,
+      talon.v1.Sessions.ReadToolResultPartResponse> getReadToolResultPartMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ReadToolResultPart",
+      requestType = talon.v1.Sessions.ReadToolResultPartRequest.class,
+      responseType = talon.v1.Sessions.ReadToolResultPartResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.ReadToolResultPartRequest,
+      talon.v1.Sessions.ReadToolResultPartResponse> getReadToolResultPartMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.ReadToolResultPartRequest, talon.v1.Sessions.ReadToolResultPartResponse> getReadToolResultPartMethod;
+    if ((getReadToolResultPartMethod = SessionServiceGrpc.getReadToolResultPartMethod) == null) {
+      synchronized (SessionServiceGrpc.class) {
+        if ((getReadToolResultPartMethod = SessionServiceGrpc.getReadToolResultPartMethod) == null) {
+          SessionServiceGrpc.getReadToolResultPartMethod = getReadToolResultPartMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.ReadToolResultPartRequest, talon.v1.Sessions.ReadToolResultPartResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ReadToolResultPart"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.ReadToolResultPartRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.ReadToolResultPartResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("ReadToolResultPart"))
+              .build();
+        }
+      }
+    }
+    return getReadToolResultPartMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -720,6 +751,13 @@ public final class SessionServiceGrpc {
         io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSubmitTurnMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void readToolResultPart(talon.v1.Sessions.ReadToolResultPartRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ReadToolResultPartResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getReadToolResultPartMethod(), responseObserver);
+    }
   }
 
   /**
@@ -884,6 +922,14 @@ public final class SessionServiceGrpc {
       io.grpc.stub.ClientCalls.asyncServerStreamingCall(
           getChannel().newCall(getSubmitTurnMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void readToolResultPart(talon.v1.Sessions.ReadToolResultPartRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ReadToolResultPartResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getReadToolResultPartMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -1028,6 +1074,13 @@ public final class SessionServiceGrpc {
       return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
           getChannel(), getSubmitTurnMethod(), getCallOptions(), request);
     }
+
+    /**
+     */
+    public talon.v1.Sessions.ReadToolResultPartResponse readToolResultPart(talon.v1.Sessions.ReadToolResultPartRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getReadToolResultPartMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -1168,6 +1221,13 @@ public final class SessionServiceGrpc {
       return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
           getChannel(), getSubmitTurnMethod(), getCallOptions(), request);
     }
+
+    /**
+     */
+    public talon.v1.Sessions.ReadToolResultPartResponse readToolResultPart(talon.v1.Sessions.ReadToolResultPartRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getReadToolResultPartMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -1289,6 +1349,14 @@ public final class SessionServiceGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getStopGenerationMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.ReadToolResultPartResponse> readToolResultPart(
+        talon.v1.Sessions.ReadToolResultPartRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getReadToolResultPartMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_CREATE = 0;
@@ -1308,6 +1376,7 @@ public final class SessionServiceGrpc {
   private static final int METHODID_STREAM_PARTS = 14;
   private static final int METHODID_STREAM_PARTS_BATCH = 15;
   private static final int METHODID_SUBMIT_TURN = 16;
+  private static final int METHODID_READ_TOOL_RESULT_PART = 17;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1393,6 +1462,10 @@ public final class SessionServiceGrpc {
         case METHODID_SUBMIT_TURN:
           serviceImpl.submitTurn((talon.v1.Sessions.SubmitSessionTurnRequest) request,
               (io.grpc.stub.StreamObserver<talon.events.Events.SessionMessagePartEvent>) responseObserver);
+          break;
+        case METHODID_READ_TOOL_RESULT_PART:
+          serviceImpl.readToolResultPart((talon.v1.Sessions.ReadToolResultPartRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.ReadToolResultPartResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -1531,6 +1604,13 @@ public final class SessionServiceGrpc {
               talon.v1.Sessions.SubmitSessionTurnRequest,
               talon.events.Events.SessionMessagePartEvent>(
                 service, METHODID_SUBMIT_TURN)))
+        .addMethod(
+          getReadToolResultPartMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Sessions.ReadToolResultPartRequest,
+              talon.v1.Sessions.ReadToolResultPartResponse>(
+                service, METHODID_READ_TOOL_RESULT_PART)))
         .build();
   }
 
@@ -1596,6 +1676,7 @@ public final class SessionServiceGrpc {
               .addMethod(getStreamPartsMethod())
               .addMethod(getStreamPartsBatchMethod())
               .addMethod(getSubmitTurnMethod())
+              .addMethod(getReadToolResultPartMethod())
               .build();
         }
       }

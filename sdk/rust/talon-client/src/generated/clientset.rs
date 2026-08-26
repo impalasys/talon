@@ -259,6 +259,13 @@ impl crate::TalonClient {
         crate::events::SessionMessagePartEvent,
     );
     delegate_dynamic_unary_rpc!(
+        read_session_tool_result_part,
+        sessions,
+        read_tool_result_part,
+        crate::v1::ReadToolResultPartRequest,
+        crate::v1::ReadToolResultPartResponse,
+    );
+    delegate_dynamic_unary_rpc!(
         post_channel_message,
         channels,
         post_message,
