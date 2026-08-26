@@ -29193,6 +29193,2470 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface ReadToolResultPartRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.ReadToolResultPartRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+
+    /**
+     * <code>string tool_call_id = 4;</code>
+     * @return The toolCallId.
+     */
+    java.lang.String getToolCallId();
+    /**
+     * <code>string tool_call_id = 4;</code>
+     * @return The bytes for toolCallId.
+     */
+    com.google.protobuf.ByteString
+        getToolCallIdBytes();
+
+    /**
+     * <code>uint32 part_index = 5;</code>
+     * @return The partIndex.
+     */
+    int getPartIndex();
+
+    /**
+     * <code>uint64 start = 6;</code>
+     * @return The start.
+     */
+    long getStart();
+
+    /**
+     * <code>optional uint64 max_size = 7;</code>
+     * @return Whether the maxSize field is set.
+     */
+    boolean hasMaxSize();
+    /**
+     * <code>optional uint64 max_size = 7;</code>
+     * @return The maxSize.
+     */
+    long getMaxSize();
+  }
+  /**
+   * <pre>
+   * Reads one session-local tool-result content part. CAS object keys are never
+   * accepted from clients; the service resolves the part through the session
+   * transcript after normal session authorization.
+   * </pre>
+   *
+   * Protobuf type {@code talon.v1.ReadToolResultPartRequest}
+   */
+  public static final class ReadToolResultPartRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.ReadToolResultPartRequest)
+      ReadToolResultPartRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ReadToolResultPartRequest");
+    }
+    // Use ReadToolResultPartRequest.newBuilder() to construct.
+    private ReadToolResultPartRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ReadToolResultPartRequest() {
+      sessionId_ = "";
+      agent_ = "";
+      ns_ = "";
+      toolCallId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Sessions.ReadToolResultPartRequest.class, talon.v1.Sessions.ReadToolResultPartRequest.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int SESSION_ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TOOL_CALL_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object toolCallId_ = "";
+    /**
+     * <code>string tool_call_id = 4;</code>
+     * @return The toolCallId.
+     */
+    @java.lang.Override
+    public java.lang.String getToolCallId() {
+      java.lang.Object ref = toolCallId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        toolCallId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string tool_call_id = 4;</code>
+     * @return The bytes for toolCallId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getToolCallIdBytes() {
+      java.lang.Object ref = toolCallId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        toolCallId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PART_INDEX_FIELD_NUMBER = 5;
+    private int partIndex_ = 0;
+    /**
+     * <code>uint32 part_index = 5;</code>
+     * @return The partIndex.
+     */
+    @java.lang.Override
+    public int getPartIndex() {
+      return partIndex_;
+    }
+
+    public static final int START_FIELD_NUMBER = 6;
+    private long start_ = 0L;
+    /**
+     * <code>uint64 start = 6;</code>
+     * @return The start.
+     */
+    @java.lang.Override
+    public long getStart() {
+      return start_;
+    }
+
+    public static final int MAX_SIZE_FIELD_NUMBER = 7;
+    private long maxSize_ = 0L;
+    /**
+     * <code>optional uint64 max_size = 7;</code>
+     * @return Whether the maxSize field is set.
+     */
+    @java.lang.Override
+    public boolean hasMaxSize() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional uint64 max_size = 7;</code>
+     * @return The maxSize.
+     */
+    @java.lang.Override
+    public long getMaxSize() {
+      return maxSize_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(toolCallId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, toolCallId_);
+      }
+      if (partIndex_ != 0) {
+        output.writeUInt32(5, partIndex_);
+      }
+      if (start_ != 0L) {
+        output.writeUInt64(6, start_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeUInt64(7, maxSize_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(toolCallId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, toolCallId_);
+      }
+      if (partIndex_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(5, partIndex_);
+      }
+      if (start_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(6, start_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(7, maxSize_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Sessions.ReadToolResultPartRequest)) {
+        return super.equals(obj);
+      }
+      talon.v1.Sessions.ReadToolResultPartRequest other = (talon.v1.Sessions.ReadToolResultPartRequest) obj;
+
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getToolCallId()
+          .equals(other.getToolCallId())) return false;
+      if (getPartIndex()
+          != other.getPartIndex()) return false;
+      if (getStart()
+          != other.getStart()) return false;
+      if (hasMaxSize() != other.hasMaxSize()) return false;
+      if (hasMaxSize()) {
+        if (getMaxSize()
+            != other.getMaxSize()) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + TOOL_CALL_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getToolCallId().hashCode();
+      hash = (37 * hash) + PART_INDEX_FIELD_NUMBER;
+      hash = (53 * hash) + getPartIndex();
+      hash = (37 * hash) + START_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStart());
+      if (hasMaxSize()) {
+        hash = (37 * hash) + MAX_SIZE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getMaxSize());
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Sessions.ReadToolResultPartRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Reads one session-local tool-result content part. CAS object keys are never
+     * accepted from clients; the service resolves the part through the session
+     * transcript after normal session authorization.
+     * </pre>
+     *
+     * Protobuf type {@code talon.v1.ReadToolResultPartRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.ReadToolResultPartRequest)
+        talon.v1.Sessions.ReadToolResultPartRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Sessions.ReadToolResultPartRequest.class, talon.v1.Sessions.ReadToolResultPartRequest.Builder.class);
+      }
+
+      // Construct using talon.v1.Sessions.ReadToolResultPartRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        sessionId_ = "";
+        agent_ = "";
+        ns_ = "";
+        toolCallId_ = "";
+        partIndex_ = 0;
+        start_ = 0L;
+        maxSize_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartRequest getDefaultInstanceForType() {
+        return talon.v1.Sessions.ReadToolResultPartRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartRequest build() {
+        talon.v1.Sessions.ReadToolResultPartRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartRequest buildPartial() {
+        talon.v1.Sessions.ReadToolResultPartRequest result = new talon.v1.Sessions.ReadToolResultPartRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Sessions.ReadToolResultPartRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.ns_ = ns_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.toolCallId_ = toolCallId_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.partIndex_ = partIndex_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.start_ = start_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.maxSize_ = maxSize_;
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Sessions.ReadToolResultPartRequest) {
+          return mergeFrom((talon.v1.Sessions.ReadToolResultPartRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Sessions.ReadToolResultPartRequest other) {
+        if (other == talon.v1.Sessions.ReadToolResultPartRequest.getDefaultInstance()) return this;
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getToolCallId().isEmpty()) {
+          toolCallId_ = other.toolCallId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (other.getPartIndex() != 0) {
+          setPartIndex(other.getPartIndex());
+        }
+        if (other.getStart() != 0L) {
+          setStart(other.getStart());
+        }
+        if (other.hasMaxSize()) {
+          setMaxSize(other.getMaxSize());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                toolCallId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 40: {
+                partIndex_ = input.readUInt32();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              case 48: {
+                start_ = input.readUInt64();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
+              case 56: {
+                maxSize_ = input.readUInt64();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 3;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object toolCallId_ = "";
+      /**
+       * <code>string tool_call_id = 4;</code>
+       * @return The toolCallId.
+       */
+      public java.lang.String getToolCallId() {
+        java.lang.Object ref = toolCallId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          toolCallId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string tool_call_id = 4;</code>
+       * @return The bytes for toolCallId.
+       */
+      public com.google.protobuf.ByteString
+          getToolCallIdBytes() {
+        java.lang.Object ref = toolCallId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          toolCallId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string tool_call_id = 4;</code>
+       * @param value The toolCallId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setToolCallId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        toolCallId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string tool_call_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearToolCallId() {
+        toolCallId_ = getDefaultInstance().getToolCallId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string tool_call_id = 4;</code>
+       * @param value The bytes for toolCallId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setToolCallIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        toolCallId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private int partIndex_ ;
+      /**
+       * <code>uint32 part_index = 5;</code>
+       * @return The partIndex.
+       */
+      @java.lang.Override
+      public int getPartIndex() {
+        return partIndex_;
+      }
+      /**
+       * <code>uint32 part_index = 5;</code>
+       * @param value The partIndex to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPartIndex(int value) {
+
+        partIndex_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 part_index = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPartIndex() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        partIndex_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long start_ ;
+      /**
+       * <code>uint64 start = 6;</code>
+       * @return The start.
+       */
+      @java.lang.Override
+      public long getStart() {
+        return start_;
+      }
+      /**
+       * <code>uint64 start = 6;</code>
+       * @param value The start to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStart(long value) {
+
+        start_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 start = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStart() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        start_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long maxSize_ ;
+      /**
+       * <code>optional uint64 max_size = 7;</code>
+       * @return Whether the maxSize field is set.
+       */
+      @java.lang.Override
+      public boolean hasMaxSize() {
+        return ((bitField0_ & 0x00000040) != 0);
+      }
+      /**
+       * <code>optional uint64 max_size = 7;</code>
+       * @return The maxSize.
+       */
+      @java.lang.Override
+      public long getMaxSize() {
+        return maxSize_;
+      }
+      /**
+       * <code>optional uint64 max_size = 7;</code>
+       * @param value The maxSize to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaxSize(long value) {
+
+        maxSize_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint64 max_size = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaxSize() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        maxSize_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.ReadToolResultPartRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.ReadToolResultPartRequest)
+    private static final talon.v1.Sessions.ReadToolResultPartRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Sessions.ReadToolResultPartRequest();
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ReadToolResultPartRequest>
+        PARSER = new com.google.protobuf.AbstractParser<ReadToolResultPartRequest>() {
+      @java.lang.Override
+      public ReadToolResultPartRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ReadToolResultPartRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ReadToolResultPartRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Sessions.ReadToolResultPartRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ReadToolResultPartResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.ReadToolResultPartResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string media_type = 1;</code>
+     * @return The mediaType.
+     */
+    java.lang.String getMediaType();
+    /**
+     * <code>string media_type = 1;</code>
+     * @return The bytes for mediaType.
+     */
+    com.google.protobuf.ByteString
+        getMediaTypeBytes();
+
+    /**
+     * <code>uint64 start = 2;</code>
+     * @return The start.
+     */
+    long getStart();
+
+    /**
+     * <code>uint64 end = 3;</code>
+     * @return The end.
+     */
+    long getEnd();
+
+    /**
+     * <code>optional uint64 next_byte = 4;</code>
+     * @return Whether the nextByte field is set.
+     */
+    boolean hasNextByte();
+    /**
+     * <code>optional uint64 next_byte = 4;</code>
+     * @return The nextByte.
+     */
+    long getNextByte();
+
+    /**
+     * <code>string text = 5;</code>
+     * @return Whether the text field is set.
+     */
+    boolean hasText();
+    /**
+     * <code>string text = 5;</code>
+     * @return The text.
+     */
+    java.lang.String getText();
+    /**
+     * <code>string text = 5;</code>
+     * @return The bytes for text.
+     */
+    com.google.protobuf.ByteString
+        getTextBytes();
+
+    /**
+     * <code>.talon.data.ObjectRef object = 6;</code>
+     * @return Whether the object field is set.
+     */
+    boolean hasObject();
+    /**
+     * <code>.talon.data.ObjectRef object = 6;</code>
+     * @return The object.
+     */
+    talon.data.Data.ObjectRef getObject();
+    /**
+     * <code>.talon.data.ObjectRef object = 6;</code>
+     */
+    talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder();
+
+    talon.v1.Sessions.ReadToolResultPartResponse.ContentCase getContentCase();
+  }
+  /**
+   * Protobuf type {@code talon.v1.ReadToolResultPartResponse}
+   */
+  public static final class ReadToolResultPartResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.ReadToolResultPartResponse)
+      ReadToolResultPartResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ReadToolResultPartResponse");
+    }
+    // Use ReadToolResultPartResponse.newBuilder() to construct.
+    private ReadToolResultPartResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ReadToolResultPartResponse() {
+      mediaType_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Sessions.ReadToolResultPartResponse.class, talon.v1.Sessions.ReadToolResultPartResponse.Builder.class);
+    }
+
+    private int bitField0_;
+    private int contentCase_ = 0;
+    @SuppressWarnings("serial")
+    private java.lang.Object content_;
+    public enum ContentCase
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
+      TEXT(5),
+      OBJECT(6),
+      CONTENT_NOT_SET(0);
+      private final int value;
+      private ContentCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static ContentCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static ContentCase forNumber(int value) {
+        switch (value) {
+          case 5: return TEXT;
+          case 6: return OBJECT;
+          case 0: return CONTENT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public ContentCase
+    getContentCase() {
+      return ContentCase.forNumber(
+          contentCase_);
+    }
+
+    public static final int MEDIA_TYPE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object mediaType_ = "";
+    /**
+     * <code>string media_type = 1;</code>
+     * @return The mediaType.
+     */
+    @java.lang.Override
+    public java.lang.String getMediaType() {
+      java.lang.Object ref = mediaType_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        mediaType_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string media_type = 1;</code>
+     * @return The bytes for mediaType.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMediaTypeBytes() {
+      java.lang.Object ref = mediaType_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        mediaType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int START_FIELD_NUMBER = 2;
+    private long start_ = 0L;
+    /**
+     * <code>uint64 start = 2;</code>
+     * @return The start.
+     */
+    @java.lang.Override
+    public long getStart() {
+      return start_;
+    }
+
+    public static final int END_FIELD_NUMBER = 3;
+    private long end_ = 0L;
+    /**
+     * <code>uint64 end = 3;</code>
+     * @return The end.
+     */
+    @java.lang.Override
+    public long getEnd() {
+      return end_;
+    }
+
+    public static final int NEXT_BYTE_FIELD_NUMBER = 4;
+    private long nextByte_ = 0L;
+    /**
+     * <code>optional uint64 next_byte = 4;</code>
+     * @return Whether the nextByte field is set.
+     */
+    @java.lang.Override
+    public boolean hasNextByte() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional uint64 next_byte = 4;</code>
+     * @return The nextByte.
+     */
+    @java.lang.Override
+    public long getNextByte() {
+      return nextByte_;
+    }
+
+    public static final int TEXT_FIELD_NUMBER = 5;
+    /**
+     * <code>string text = 5;</code>
+     * @return Whether the text field is set.
+     */
+    public boolean hasText() {
+      return contentCase_ == 5;
+    }
+    /**
+     * <code>string text = 5;</code>
+     * @return The text.
+     */
+    public java.lang.String getText() {
+      if (contentCase_ != 5) {
+        return "";
+      }
+      java.lang.Object ref = content_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        content_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string text = 5;</code>
+     * @return The bytes for text.
+     */
+    public com.google.protobuf.ByteString
+        getTextBytes() {
+      if (contentCase_ != 5) {
+        return com.google.protobuf.ByteString.copyFromUtf8("");
+      }
+      java.lang.Object ref = content_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        content_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OBJECT_FIELD_NUMBER = 6;
+    /**
+     * <code>.talon.data.ObjectRef object = 6;</code>
+     * @return Whether the object field is set.
+     */
+    @java.lang.Override
+    public boolean hasObject() {
+      return contentCase_ == 6;
+    }
+    /**
+     * <code>.talon.data.ObjectRef object = 6;</code>
+     * @return The object.
+     */
+    @java.lang.Override
+    public talon.data.Data.ObjectRef getObject() {
+      if (contentCase_ == 6) {
+         return (talon.data.Data.ObjectRef) content_;
+      }
+      return talon.data.Data.ObjectRef.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.data.ObjectRef object = 6;</code>
+     */
+    @java.lang.Override
+    public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
+      if (contentCase_ == 6) {
+         return (talon.data.Data.ObjectRef) content_;
+      }
+      return talon.data.Data.ObjectRef.getDefaultInstance();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, mediaType_);
+      }
+      if (start_ != 0L) {
+        output.writeUInt64(2, start_);
+      }
+      if (end_ != 0L) {
+        output.writeUInt64(3, end_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeUInt64(4, nextByte_);
+      }
+      if (contentCase_ == 5) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, content_);
+      }
+      if (contentCase_ == 6) {
+        output.writeMessage(6, (talon.data.Data.ObjectRef) content_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(mediaType_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, mediaType_);
+      }
+      if (start_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, start_);
+      }
+      if (end_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, end_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(4, nextByte_);
+      }
+      if (contentCase_ == 5) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, content_);
+      }
+      if (contentCase_ == 6) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, (talon.data.Data.ObjectRef) content_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Sessions.ReadToolResultPartResponse)) {
+        return super.equals(obj);
+      }
+      talon.v1.Sessions.ReadToolResultPartResponse other = (talon.v1.Sessions.ReadToolResultPartResponse) obj;
+
+      if (!getMediaType()
+          .equals(other.getMediaType())) return false;
+      if (getStart()
+          != other.getStart()) return false;
+      if (getEnd()
+          != other.getEnd()) return false;
+      if (hasNextByte() != other.hasNextByte()) return false;
+      if (hasNextByte()) {
+        if (getNextByte()
+            != other.getNextByte()) return false;
+      }
+      if (!getContentCase().equals(other.getContentCase())) return false;
+      switch (contentCase_) {
+        case 5:
+          if (!getText()
+              .equals(other.getText())) return false;
+          break;
+        case 6:
+          if (!getObject()
+              .equals(other.getObject())) return false;
+          break;
+        case 0:
+        default:
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + MEDIA_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getMediaType().hashCode();
+      hash = (37 * hash) + START_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStart());
+      hash = (37 * hash) + END_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getEnd());
+      if (hasNextByte()) {
+        hash = (37 * hash) + NEXT_BYTE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getNextByte());
+      }
+      switch (contentCase_) {
+        case 5:
+          hash = (37 * hash) + TEXT_FIELD_NUMBER;
+          hash = (53 * hash) + getText().hashCode();
+          break;
+        case 6:
+          hash = (37 * hash) + OBJECT_FIELD_NUMBER;
+          hash = (53 * hash) + getObject().hashCode();
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Sessions.ReadToolResultPartResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.ReadToolResultPartResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.ReadToolResultPartResponse)
+        talon.v1.Sessions.ReadToolResultPartResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Sessions.ReadToolResultPartResponse.class, talon.v1.Sessions.ReadToolResultPartResponse.Builder.class);
+      }
+
+      // Construct using talon.v1.Sessions.ReadToolResultPartResponse.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        mediaType_ = "";
+        start_ = 0L;
+        end_ = 0L;
+        nextByte_ = 0L;
+        if (objectBuilder_ != null) {
+          objectBuilder_.clear();
+        }
+        contentCase_ = 0;
+        content_ = null;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartResponse getDefaultInstanceForType() {
+        return talon.v1.Sessions.ReadToolResultPartResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartResponse build() {
+        talon.v1.Sessions.ReadToolResultPartResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartResponse buildPartial() {
+        talon.v1.Sessions.ReadToolResultPartResponse result = new talon.v1.Sessions.ReadToolResultPartResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        buildPartialOneofs(result);
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Sessions.ReadToolResultPartResponse result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.mediaType_ = mediaType_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.start_ = start_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.end_ = end_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.nextByte_ = nextByte_;
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      private void buildPartialOneofs(talon.v1.Sessions.ReadToolResultPartResponse result) {
+        result.contentCase_ = contentCase_;
+        result.content_ = this.content_;
+        if (contentCase_ == 6 &&
+            objectBuilder_ != null) {
+          result.content_ = objectBuilder_.build();
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Sessions.ReadToolResultPartResponse) {
+          return mergeFrom((talon.v1.Sessions.ReadToolResultPartResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Sessions.ReadToolResultPartResponse other) {
+        if (other == talon.v1.Sessions.ReadToolResultPartResponse.getDefaultInstance()) return this;
+        if (!other.getMediaType().isEmpty()) {
+          mediaType_ = other.mediaType_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.getStart() != 0L) {
+          setStart(other.getStart());
+        }
+        if (other.getEnd() != 0L) {
+          setEnd(other.getEnd());
+        }
+        if (other.hasNextByte()) {
+          setNextByte(other.getNextByte());
+        }
+        switch (other.getContentCase()) {
+          case TEXT: {
+            contentCase_ = 5;
+            content_ = other.content_;
+            onChanged();
+            break;
+          }
+          case OBJECT: {
+            mergeObject(other.getObject());
+            break;
+          }
+          case CONTENT_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                mediaType_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 16: {
+                start_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                end_ = input.readUInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 32: {
+                nextByte_ = input.readUInt64();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 32
+              case 42: {
+                contentCase_ = 5;
+                content_ = input.readStringRequireUtf8();
+                break;
+              } // case 42
+              case 50: {
+                input.readMessage(
+                    internalGetObjectFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                contentCase_ = 6;
+                break;
+              } // case 50
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int contentCase_ = 0;
+      private java.lang.Object content_;
+      public ContentCase
+          getContentCase() {
+        return ContentCase.forNumber(
+            contentCase_);
+      }
+
+      public Builder clearContent() {
+        contentCase_ = 0;
+        content_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int bitField0_;
+
+      private java.lang.Object mediaType_ = "";
+      /**
+       * <code>string media_type = 1;</code>
+       * @return The mediaType.
+       */
+      public java.lang.String getMediaType() {
+        java.lang.Object ref = mediaType_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          mediaType_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string media_type = 1;</code>
+       * @return The bytes for mediaType.
+       */
+      public com.google.protobuf.ByteString
+          getMediaTypeBytes() {
+        java.lang.Object ref = mediaType_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          mediaType_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string media_type = 1;</code>
+       * @param value The mediaType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMediaType(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        mediaType_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string media_type = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMediaType() {
+        mediaType_ = getDefaultInstance().getMediaType();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string media_type = 1;</code>
+       * @param value The bytes for mediaType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMediaTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        mediaType_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private long start_ ;
+      /**
+       * <code>uint64 start = 2;</code>
+       * @return The start.
+       */
+      @java.lang.Override
+      public long getStart() {
+        return start_;
+      }
+      /**
+       * <code>uint64 start = 2;</code>
+       * @param value The start to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStart(long value) {
+
+        start_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 start = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStart() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        start_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long end_ ;
+      /**
+       * <code>uint64 end = 3;</code>
+       * @return The end.
+       */
+      @java.lang.Override
+      public long getEnd() {
+        return end_;
+      }
+      /**
+       * <code>uint64 end = 3;</code>
+       * @param value The end to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEnd(long value) {
+
+        end_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 end = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEnd() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        end_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long nextByte_ ;
+      /**
+       * <code>optional uint64 next_byte = 4;</code>
+       * @return Whether the nextByte field is set.
+       */
+      @java.lang.Override
+      public boolean hasNextByte() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>optional uint64 next_byte = 4;</code>
+       * @return The nextByte.
+       */
+      @java.lang.Override
+      public long getNextByte() {
+        return nextByte_;
+      }
+      /**
+       * <code>optional uint64 next_byte = 4;</code>
+       * @param value The nextByte to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNextByte(long value) {
+
+        nextByte_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint64 next_byte = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNextByte() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        nextByte_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      /**
+       * <code>string text = 5;</code>
+       * @return Whether the text field is set.
+       */
+      @java.lang.Override
+      public boolean hasText() {
+        return contentCase_ == 5;
+      }
+      /**
+       * <code>string text = 5;</code>
+       * @return The text.
+       */
+      @java.lang.Override
+      public java.lang.String getText() {
+        if (contentCase_ != 5) {
+          return "";
+        }
+        java.lang.Object ref = content_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+            content_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string text = 5;</code>
+       * @return The bytes for text.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString
+          getTextBytes() {
+        if (contentCase_ != 5) {
+          return com.google.protobuf.ByteString.copyFromUtf8(        "");
+        }
+        java.lang.Object ref = content_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          content_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string text = 5;</code>
+       * @param value The text to set.
+       * @return This builder for chaining.
+       */
+      public Builder setText(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        contentCase_ = 5;
+        content_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string text = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearText() {
+        if (contentCase_ == 5) {
+          contentCase_ = 0;
+          content_ = null;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>string text = 5;</code>
+       * @param value The bytes for text to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTextBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        contentCase_ = 5;
+        content_ = value;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder> objectBuilder_;
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       * @return Whether the object field is set.
+       */
+      @java.lang.Override
+      public boolean hasObject() {
+        return contentCase_ == 6;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       * @return The object.
+       */
+      @java.lang.Override
+      public talon.data.Data.ObjectRef getObject() {
+        if (objectBuilder_ == null) {
+          if (contentCase_ == 6) {
+            return (talon.data.Data.ObjectRef) content_;
+          }
+          return talon.data.Data.ObjectRef.getDefaultInstance();
+        } else {
+          if (contentCase_ == 6) {
+            return objectBuilder_.getMessage();
+          }
+          return talon.data.Data.ObjectRef.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       */
+      public Builder setObject(talon.data.Data.ObjectRef value) {
+        if (objectBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          content_ = value;
+          onChanged();
+        } else {
+          objectBuilder_.setMessage(value);
+        }
+        contentCase_ = 6;
+        return this;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       */
+      public Builder setObject(
+          talon.data.Data.ObjectRef.Builder builderForValue) {
+        if (objectBuilder_ == null) {
+          content_ = builderForValue.build();
+          onChanged();
+        } else {
+          objectBuilder_.setMessage(builderForValue.build());
+        }
+        contentCase_ = 6;
+        return this;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       */
+      public Builder mergeObject(talon.data.Data.ObjectRef value) {
+        if (objectBuilder_ == null) {
+          if (contentCase_ == 6 &&
+              content_ != talon.data.Data.ObjectRef.getDefaultInstance()) {
+            content_ = talon.data.Data.ObjectRef.newBuilder((talon.data.Data.ObjectRef) content_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            content_ = value;
+          }
+          onChanged();
+        } else {
+          if (contentCase_ == 6) {
+            objectBuilder_.mergeFrom(value);
+          } else {
+            objectBuilder_.setMessage(value);
+          }
+        }
+        contentCase_ = 6;
+        return this;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       */
+      public Builder clearObject() {
+        if (objectBuilder_ == null) {
+          if (contentCase_ == 6) {
+            contentCase_ = 0;
+            content_ = null;
+            onChanged();
+          }
+        } else {
+          if (contentCase_ == 6) {
+            contentCase_ = 0;
+            content_ = null;
+          }
+          objectBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       */
+      public talon.data.Data.ObjectRef.Builder getObjectBuilder() {
+        return internalGetObjectFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       */
+      @java.lang.Override
+      public talon.data.Data.ObjectRefOrBuilder getObjectOrBuilder() {
+        if ((contentCase_ == 6) && (objectBuilder_ != null)) {
+          return objectBuilder_.getMessageOrBuilder();
+        } else {
+          if (contentCase_ == 6) {
+            return (talon.data.Data.ObjectRef) content_;
+          }
+          return talon.data.Data.ObjectRef.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.data.ObjectRef object = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>
+          internalGetObjectFieldBuilder() {
+        if (objectBuilder_ == null) {
+          if (!(contentCase_ == 6)) {
+            content_ = talon.data.Data.ObjectRef.getDefaultInstance();
+          }
+          objectBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.data.Data.ObjectRef, talon.data.Data.ObjectRef.Builder, talon.data.Data.ObjectRefOrBuilder>(
+                  (talon.data.Data.ObjectRef) content_,
+                  getParentForChildren(),
+                  isClean());
+          content_ = null;
+        }
+        contentCase_ = 6;
+        onChanged();
+        return objectBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.ReadToolResultPartResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.ReadToolResultPartResponse)
+    private static final talon.v1.Sessions.ReadToolResultPartResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Sessions.ReadToolResultPartResponse();
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ReadToolResultPartResponse>
+        PARSER = new com.google.protobuf.AbstractParser<ReadToolResultPartResponse>() {
+      @java.lang.Override
+      public ReadToolResultPartResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ReadToolResultPartResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ReadToolResultPartResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Sessions.ReadToolResultPartResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_v1_CreateSessionRequest_descriptor;
   private static final
@@ -29383,6 +31847,16 @@ java.lang.String defaultValue) {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_v1_StreamSessionPartsBatchRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -29488,44 +31962,55 @@ java.lang.String defaultValue) {
       "SessionPartsRequest\022\022\n\nsession_id\030\001 \001(\t\022" +
       "\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSess" +
       "ionPartsBatchRequest\022\025\n\rsession_names\030\001 " +
-      "\003(\t2\321\013\n\016SessionService\022C\n\006Create\022\036.talon" +
-      ".v1.CreateSessionRequest\032\031.talon.v1.Sess" +
-      "ionResponse\022=\n\003Get\022\033.talon.v1.GetSession" +
-      "Request\032\031.talon.v1.SessionResponse\022E\n\004Li" +
-      "st\022\035.talon.v1.ListSessionsRequest\032\036.talo" +
-      "n.v1.ListSessionsResponse\022[\n\014ListMessage" +
-      "s\022$.talon.v1.ListSessionMessagesRequest\032" +
-      "%.talon.v1.ListSessionMessagesResponse\022m" +
-      "\n\022ListQueuedMessages\022*.talon.v1.ListQueu" +
-      "edSessionMessagesRequest\032+.talon.v1.List" +
-      "QueuedSessionMessagesResponse\022I\n\006Delete\022" +
-      "\036.talon.v1.DeleteSessionRequest\032\037.talon." +
-      "v1.DeleteSessionResponse\022F\n\005Clear\022\035.talo" +
-      "n.v1.ClearSessionRequest\032\036.talon.v1.Clea" +
-      "rSessionResponse\022S\n\007Compact\022\037.talon.v1.C" +
-      "ompactSessionRequest\032%.talon.events.Sess" +
-      "ionMessagePartEvent0\001\022I\n\006Doctor\022\036.talon." +
-      "v1.DoctorSessionRequest\032\037.talon.v1.Docto" +
-      "rSessionResponse\022J\n\013SendMessage\022\034.talon." +
-      "v1.SendMessageRequest\032\035.talon.v1.SendMes" +
-      "sageResponse\022^\n\rAppendMessage\022%.talon.v1" +
-      ".AppendSessionMessageRequest\032&.talon.v1." +
-      "AppendSessionMessageResponse\022^\n\rUpdateMe" +
-      "ssage\022%.talon.v1.UpdateSessionMessageReq" +
-      "uest\032&.talon.v1.UpdateSessionMessageResp" +
-      "onse\022g\n\020AnswerPermission\022(.talon.v1.Answ" +
-      "erSessionPermissionRequest\032).talon.v1.An" +
-      "swerSessionPermissionResponse\022a\n\016StopGen" +
-      "eration\022&.talon.v1.StopSessionGeneration" +
-      "Request\032\'.talon.v1.StopSessionGeneration" +
-      "Response\022[\n\013StreamParts\022#.talon.v1.Strea" +
-      "mSessionPartsRequest\032%.talon.events.Sess" +
-      "ionMessagePartEvent0\001\022e\n\020StreamPartsBatc" +
-      "h\022(.talon.v1.StreamSessionPartsBatchRequ" +
-      "est\032%.talon.events.SessionMessagePartEve" +
-      "nt0\001\022Y\n\nSubmitTurn\022\".talon.v1.SubmitSess" +
-      "ionTurnRequest\032%.talon.events.SessionMes" +
-      "sagePartEvent0\001b\006proto3"
+      "\003(\t\"\247\001\n\031ReadToolResultPartRequest\022\022\n\nses" +
+      "sion_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t" +
+      "\022\024\n\014tool_call_id\030\004 \001(\t\022\022\n\npart_index\030\005 \001" +
+      "(\r\022\r\n\005start\030\006 \001(\004\022\025\n\010max_size\030\007 \001(\004H\000\210\001\001" +
+      "B\013\n\t_max_size\"\266\001\n\032ReadToolResultPartResp" +
+      "onse\022\022\n\nmedia_type\030\001 \001(\t\022\r\n\005start\030\002 \001(\004\022" +
+      "\013\n\003end\030\003 \001(\004\022\026\n\tnext_byte\030\004 \001(\004H\001\210\001\001\022\016\n\004" +
+      "text\030\005 \001(\tH\000\022\'\n\006object\030\006 \001(\0132\025.talon.dat" +
+      "a.ObjectRefH\000B\t\n\007contentB\014\n\n_next_byte2\262" +
+      "\014\n\016SessionService\022C\n\006Create\022\036.talon.v1.C" +
+      "reateSessionRequest\032\031.talon.v1.SessionRe" +
+      "sponse\022=\n\003Get\022\033.talon.v1.GetSessionReque" +
+      "st\032\031.talon.v1.SessionResponse\022E\n\004List\022\035." +
+      "talon.v1.ListSessionsRequest\032\036.talon.v1." +
+      "ListSessionsResponse\022[\n\014ListMessages\022$.t" +
+      "alon.v1.ListSessionMessagesRequest\032%.tal" +
+      "on.v1.ListSessionMessagesResponse\022m\n\022Lis" +
+      "tQueuedMessages\022*.talon.v1.ListQueuedSes" +
+      "sionMessagesRequest\032+.talon.v1.ListQueue" +
+      "dSessionMessagesResponse\022I\n\006Delete\022\036.tal" +
+      "on.v1.DeleteSessionRequest\032\037.talon.v1.De" +
+      "leteSessionResponse\022F\n\005Clear\022\035.talon.v1." +
+      "ClearSessionRequest\032\036.talon.v1.ClearSess" +
+      "ionResponse\022S\n\007Compact\022\037.talon.v1.Compac" +
+      "tSessionRequest\032%.talon.events.SessionMe" +
+      "ssagePartEvent0\001\022I\n\006Doctor\022\036.talon.v1.Do" +
+      "ctorSessionRequest\032\037.talon.v1.DoctorSess" +
+      "ionResponse\022J\n\013SendMessage\022\034.talon.v1.Se" +
+      "ndMessageRequest\032\035.talon.v1.SendMessageR" +
+      "esponse\022^\n\rAppendMessage\022%.talon.v1.Appe" +
+      "ndSessionMessageRequest\032&.talon.v1.Appen" +
+      "dSessionMessageResponse\022^\n\rUpdateMessage" +
+      "\022%.talon.v1.UpdateSessionMessageRequest\032" +
+      "&.talon.v1.UpdateSessionMessageResponse\022" +
+      "g\n\020AnswerPermission\022(.talon.v1.AnswerSes" +
+      "sionPermissionRequest\032).talon.v1.AnswerS" +
+      "essionPermissionResponse\022a\n\016StopGenerati" +
+      "on\022&.talon.v1.StopSessionGenerationReque" +
+      "st\032\'.talon.v1.StopSessionGenerationRespo" +
+      "nse\022[\n\013StreamParts\022#.talon.v1.StreamSess" +
+      "ionPartsRequest\032%.talon.events.SessionMe" +
+      "ssagePartEvent0\001\022e\n\020StreamPartsBatch\022(.t" +
+      "alon.v1.StreamSessionPartsBatchRequest\032%" +
+      ".talon.events.SessionMessagePartEvent0\001\022" +
+      "Y\n\nSubmitTurn\022\".talon.v1.SubmitSessionTu" +
+      "rnRequest\032%.talon.events.SessionMessageP" +
+      "artEvent0\001\022_\n\022ReadToolResultPart\022#.talon" +
+      ".v1.ReadToolResultPartRequest\032$.talon.v1" +
+      ".ReadToolResultPartResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -29761,6 +32246,18 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StreamSessionPartsBatchRequest_descriptor,
         new java.lang.String[] { "SessionNames", });
+    internal_static_talon_v1_ReadToolResultPartRequest_descriptor =
+      getDescriptor().getMessageType(32);
+    internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_ReadToolResultPartRequest_descriptor,
+        new java.lang.String[] { "SessionId", "Agent", "Ns", "ToolCallId", "PartIndex", "Start", "MaxSize", });
+    internal_static_talon_v1_ReadToolResultPartResponse_descriptor =
+      getDescriptor().getMessageType(33);
+    internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_ReadToolResultPartResponse_descriptor,
+        new java.lang.String[] { "MediaType", "Start", "End", "NextByte", "Text", "Object", "Content", });
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
     talon.events.Events.getDescriptor();
