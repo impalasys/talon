@@ -41,18 +41,25 @@ fn read_inline_tool_result_part(
     max_size: u64,
 ) -> std::result::Result<proto::ReadToolResultPartResponse, tonic::Status> {
     let bytes = text.as_bytes();
-    let start = usize::try_from(start).map_err(|_| tonic::Status::invalid_argument("start is too large"))?;
+    let start = usize::try_from(start)
+        .map_err(|_| tonic::Status::invalid_argument("start is too large"))?;
     if start > bytes.len() || !text.is_char_boundary(start) {
-        return Err(tonic::Status::invalid_argument("start is outside the text or not a UTF-8 boundary"));
+        return Err(tonic::Status::invalid_argument(
+            "start is outside the text or not a UTF-8 boundary",
+        ));
     }
     let mut end = start.saturating_add(max_size as usize).min(bytes.len());
-    while end > start && !text.is_char_boundary(end) { end -= 1; }
+    while end > start && !text.is_char_boundary(end) {
+        end -= 1;
+    }
     Ok(proto::ReadToolResultPartResponse {
         media_type: "text/plain; charset=utf-8".to_string(),
         start: start as u64,
         end: end as u64,
         next_byte: (end < bytes.len()).then_some(end as u64),
-        content: Some(proto::read_tool_result_part_response::Content::Text(text[start..end].to_string())),
+        content: Some(proto::read_tool_result_part_response::Content::Text(
+            text[start..end].to_string(),
+        )),
     })
 }
 
@@ -1044,7 +1051,8 @@ impl GrpcGatewayHandler {
     pub async fn handle_read_tool_result_part(
         &self,
         req: tonic::Request<proto::ReadToolResultPartRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ReadToolResultPartResponse>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<proto::ReadToolResultPartResponse>, tonic::Status>
+    {
         crate::require_auth!(
             read,
             self,
@@ -1056,40 +1064,114 @@ impl GrpcGatewayHandler {
         let req = req.into_inner();
         let max_size = req.max_size.unwrap_or(8 * 1024);
         if max_size == 0 || max_size > 8 * 1024 {
-            return Err(tonic::Status::invalid_argument("max_size must be between 1 and 8192"));
+            return Err(tonic::Status::invalid_argument(
+                "max_size must be between 1 and 8192",
+            ));
         }
         let prefix = keys::session_message_prefix(&req.ns, &req.agent, &req.session_id);
         let mut output = None;
-        for (_, bytes) in self.gateway.kv.list_entries(&prefix, None).await.map_err(|error| tonic::Status::internal(format!("Failed to list session messages: {error}")))? {
-            let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) else { continue; };
+        for (_, bytes) in self
+            .gateway
+            .kv
+            .list_entries(&prefix, None)
+            .await
+            .map_err(|error| {
+                tonic::Status::internal(format!("Failed to list session messages: {error}"))
+            })?
+        {
+            let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) else {
+                continue;
+            };
             for part in message.parts {
-                if part.part_type != data_proto::SessionMessagePartType::ToolResult as i32 { continue; }
-                let Some(parsed) = tool_output::parse_tool_result_payload_json(&part.payload_json, part.object.as_ref(), &part.content).map_err(|error| tonic::Status::internal(format!("Failed to parse tool output: {error}")))? else { continue; };
-                if parsed.tool_call_id != req.tool_call_id { continue; }
+                if part.part_type != data_proto::SessionMessagePartType::ToolResult as i32 {
+                    continue;
+                }
+                let Some(parsed) = tool_output::parse_tool_result_payload_json(
+                    &part.payload_json,
+                    part.object.as_ref(),
+                    &part.content,
+                )
+                .map_err(|error| {
+                    tonic::Status::internal(format!("Failed to parse tool output: {error}"))
+                })?
+                else {
+                    continue;
+                };
+                if parsed.tool_call_id != req.tool_call_id {
+                    continue;
+                }
                 if output.replace(parsed.tool_output).is_some() {
-                    return Err(tonic::Status::failed_precondition("tool call id is ambiguous in this session"));
+                    return Err(tonic::Status::failed_precondition(
+                        "tool call id is ambiguous in this session",
+                    ));
                 }
             }
         }
-        let output = output.ok_or_else(|| tonic::Status::not_found("tool result not found in this session"))?;
-        let part = output.content_parts.get(req.part_index as usize).ok_or_else(|| tonic::Status::not_found("tool result part not found"))?;
+        let output = output
+            .ok_or_else(|| tonic::Status::not_found("tool result not found in this session"))?;
+        let part = output
+            .content_parts
+            .get(req.part_index as usize)
+            .ok_or_else(|| tonic::Status::not_found("tool result part not found"))?;
         let response = match part.content.as_ref() {
-            Some(chat_content_part::Content::Text(text)) => read_inline_tool_result_part(text, req.start, max_size)?,
-            Some(chat_content_part::Content::ObjectRef(object)) if tool_output::is_text_object_media_type(&object.media_type) => {
-                let size = object.metadata.get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES).and_then(|value| value.parse::<u64>().ok()).unwrap_or(object.size_bytes);
-                if req.start > size { return Err(tonic::Status::invalid_argument("start exceeds text size")); }
+            Some(chat_content_part::Content::Text(text)) => {
+                read_inline_tool_result_part(text, req.start, max_size)?
+            }
+            Some(chat_content_part::Content::ObjectRef(object))
+                if tool_output::is_text_object_media_type(&object.media_type) =>
+            {
+                let size = object
+                    .metadata
+                    .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
+                    .and_then(|value| value.parse::<u64>().ok())
+                    .unwrap_or(object.size_bytes);
+                if req.start > size {
+                    return Err(tonic::Status::invalid_argument("start exceeds text size"));
+                }
                 let requested_end = req.start.saturating_add(max_size).min(size);
                 let cas = crate::control::cas::CasStore::new(self.gateway.objects.clone());
-                let bytes = cas.get_text_range_decoded(&object.key, req.start, requested_end).await.map_err(|error| tonic::Status::internal(format!("Failed to read tool-result text: {error}")))?.ok_or_else(|| tonic::Status::not_found("tool-result object is unavailable"))?;
+                let bytes = cas
+                    .get_text_range_decoded(&object.key, req.start, requested_end)
+                    .await
+                    .map_err(|error| {
+                        tonic::Status::internal(format!("Failed to read tool-result text: {error}"))
+                    })?
+                    .ok_or_else(|| tonic::Status::not_found("tool-result object is unavailable"))?;
                 let mut actual = bytes.len();
-                while actual > 0 && std::str::from_utf8(&bytes[..actual]).is_err() { actual -= 1; }
-                if actual == 0 && !bytes.is_empty() { return Err(tonic::Status::invalid_argument("start is not a UTF-8 boundary")); }
+                while actual > 0 && std::str::from_utf8(&bytes[..actual]).is_err() {
+                    actual -= 1;
+                }
+                if actual == 0 && !bytes.is_empty() {
+                    return Err(tonic::Status::invalid_argument(
+                        "start is not a UTF-8 boundary",
+                    ));
+                }
                 let end = req.start + actual as u64;
-                proto::ReadToolResultPartResponse { media_type: object.media_type.clone(), start: req.start, end, next_byte: (end < size).then_some(end), content: Some(proto::read_tool_result_part_response::Content::Text(String::from_utf8_lossy(&bytes[..actual]).into_owned())) }
+                proto::ReadToolResultPartResponse {
+                    media_type: object.media_type.clone(),
+                    start: req.start,
+                    end,
+                    next_byte: (end < size).then_some(end),
+                    content: Some(proto::read_tool_result_part_response::Content::Text(
+                        String::from_utf8_lossy(&bytes[..actual]).into_owned(),
+                    )),
+                }
             }
             Some(chat_content_part::Content::ObjectRef(object)) => {
-                if req.start != 0 || req.max_size.is_some() { return Err(tonic::Status::invalid_argument("byte ranges are only valid for text parts")); }
-                proto::ReadToolResultPartResponse { media_type: object.media_type.clone(), start: 0, end: 0, next_byte: None, content: Some(proto::read_tool_result_part_response::Content::Object(object.clone())) }
+                if req.start != 0 || req.max_size.is_some() {
+                    return Err(tonic::Status::invalid_argument(
+                        "byte ranges are only valid for text parts",
+                    ));
+                }
+                proto::ReadToolResultPartResponse {
+                    media_type: object.media_type.clone(),
+                    start: 0,
+                    end: 0,
+                    next_byte: None,
+                    content: Some(proto::read_tool_result_part_response::Content::Object(
+                        object.clone(),
+                    )),
+                }
             }
             None => return Err(tonic::Status::not_found("tool result part is empty")),
         };

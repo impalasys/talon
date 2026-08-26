@@ -7,6 +7,7 @@ import {
   objectRefKey,
 } from "../objectRefs";
 import type { TalonChatObjectRef } from "../types";
+import { toolResultPartText } from "./toolResultHydration.ts";
 
 export type ToolResultHydrationState = "loading" | { objectKey: string };
 
@@ -21,12 +22,6 @@ type ToolResultPartMatch = {
   key: string;
   object: TalonChatObjectRef;
 };
-
-export function toolResultPartText(response: unknown): string {
-  const content = (response as { content?: { case?: unknown; value?: unknown } } | undefined)
-    ?.content;
-  return content?.case === "text" && typeof content.value === "string" ? content.value : "";
-}
 
 function isToolResultPart(part: any) {
   const type = part?.type ?? part?.partType ?? part?.part_type;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { toolResultPartText } from "./useToolResultHydration.ts";
+import { toolResultPartText } from "./toolResultHydration.ts";
 
 describe("toolResultPartText", () => {
   it("reads the generated Connect oneof text shape", () => {
