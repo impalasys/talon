@@ -1364,7 +1364,10 @@ impl AgentExecutor {
                     .await?;
                     sink.on_tool_result(&tool.id, &tool.name, &recorded_result)
                         .await;
-                    context.push(tool_output_loop_message(&tool.id, &recorded_result));
+                    context.push(
+                        self.tool_output_context_message(&tool.id, &recorded_result)
+                            .await?,
+                    );
                     if stop_after_result {
                         stop_after_tool_result = Some(result_text);
                         break;
@@ -1412,6 +1415,40 @@ impl AgentExecutor {
             model: self.llm_model.clone(),
             rate_limit_key: None,
         }
+    }
+
+    /// Projects an output into the active turn without persisting a duplicate
+    /// of a selected CAS range. Unselected large text remains a `tr://` hint.
+    async fn tool_output_context_message(
+        &self,
+        tool_call_id: &str,
+        result: &ToolOutput,
+    ) -> Result<LoopMessage> {
+        let Some(range) = result.byte_range.as_ref() else {
+            return Ok(tool_output_loop_message(tool_call_id, result));
+        };
+        let Some(object) = result.object_ref() else {
+            return Ok(tool_output_loop_message(tool_call_id, result));
+        };
+        let cas = CasStore::new(self.control_plane.objects.clone());
+        let Some(bytes) = cas
+            .get_text_range_decoded(&object.key, range.start, range.end)
+            .await?
+        else {
+            return Ok(tool_result_loop_message(
+                tool_call_id,
+                "[Selected tool-result text is unavailable.]",
+            ));
+        };
+        let text = std::str::from_utf8(&bytes)?;
+        let suffix = range
+            .next_byte
+            .map(|next| format!("\n[bytes {}..{}; next_byte={next})", range.start, range.end))
+            .unwrap_or_else(|| format!("\n[bytes {}..{})", range.start, range.end));
+        Ok(tool_result_loop_message(
+            tool_call_id,
+            &format!("{text}{suffix}"),
+        ))
     }
 
     async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
