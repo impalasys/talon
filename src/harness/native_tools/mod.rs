@@ -1305,7 +1305,9 @@ mod tests {
         );
 
         assert!(read_registry.get_tool(LIST_FILES_TOOL).is_some());
-        assert!(read_registry.get_tool(READ_FILE_TOOL).is_some());
+        assert!(read_registry.get_tool(READ_TOOL).is_some());
+        assert!(read_registry.get_tool(WRITE_TOOL).is_some());
+        assert!(read_registry.get_tool(READ_FILE_TOOL).is_none());
         assert!(read_registry.get_tool(GET_FILE_METADATA_TOOL).is_some());
         assert!(read_registry.get_tool(CREATE_FILE_TOOL).is_none());
         assert!(read_registry.get_tool(UPDATE_FILE_TOOL).is_none());
@@ -1318,8 +1320,10 @@ mod tests {
             &Config::default(),
         );
 
-        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_some());
-        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_some());
+        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_none());
+        assert!(write_registry.get_tool(READ_TOOL).is_some());
+        assert!(write_registry.get_tool(WRITE_TOOL).is_some());
+        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_none());
         assert!(write_registry.get_tool(DELETE_FILE_TOOL).is_some());
         assert!(write_registry.get_tool(READ_FILE_TOOL).is_none());
     }
