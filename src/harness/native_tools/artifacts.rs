@@ -51,7 +51,10 @@ pub async fn create_artifact(
         current_agent,
         current_session,
         &artifact_id,
-        artifact.object_ref.as_ref().expect("new artifact object ref"),
+        artifact
+            .object_ref
+            .as_ref()
+            .expect("new artifact object ref"),
     )
     .await?;
     cp.kv
@@ -180,7 +183,10 @@ pub async fn update_artifact(
         &uri.agent,
         &uri.session_id,
         &uri.artifact_id,
-        artifact.object_ref.as_ref().expect("updated artifact object ref"),
+        artifact
+            .object_ref
+            .as_ref()
+            .expect("updated artifact object ref"),
     )
     .await?;
     let artifact_key = keys::artifact(
