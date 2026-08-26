@@ -999,7 +999,9 @@ fn session_message_artifact_uris(
         if part.part_type != data_proto::SessionMessagePartType::ToolResult as i32 {
             continue;
         }
-        if part.name != crate::harness::native_tools::CREATE_ARTIFACT_TOOL {
+        if part.name != crate::harness::native_tools::CREATE_ARTIFACT_TOOL
+            && part.name != crate::harness::native_tools::WRITE_TOOL
+        {
             continue;
         }
         if let Some(output) = tool_result_output(&part.payload_json) {
