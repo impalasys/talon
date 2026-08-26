@@ -420,7 +420,8 @@ impl proto::session_service_server::SessionService for GrpcGatewayHandler {
     async fn read_tool_result_part(
         &self,
         req: tonic::Request<proto::ReadToolResultPartRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ReadToolResultPartResponse>, tonic::Status> {
+    ) -> std::result::Result<tonic::Response<proto::ReadToolResultPartResponse>, tonic::Status>
+    {
         self.handle_read_tool_result_part(req).await
     }
 }
