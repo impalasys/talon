@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{connectors as connector_rpc, data_proto, proto, GrpcGatewayHandler};
-use crate::control::cas::{session_object_key_prefix, SessionCasScope, METADATA_AGENT};
+use crate::control::cas::{
+    artifact_object_key_prefix, session_object_key_prefix, SessionCasScope, METADATA_AGENT,
+    METADATA_KIND, METADATA_KIND_ARTIFACT,
+};
 use crate::control::scheduling;
 use crate::control::session_queue;
 use crate::control::tool_output;
@@ -247,7 +250,32 @@ async fn collect_session_tool_result_object_keys(
     session_id: &str,
 ) -> anyhow::Result<Vec<String>> {
     let expected_prefix = session_object_key_prefix(&SessionCasScope::new(ns, agent, session_id));
+    let artifact_prefix = artifact_object_key_prefix(ns);
     let mut keys_to_delete = HashSet::new();
+    for key in kv
+        .list_keys(&keys::artifact_revision_prefix(ns, agent, session_id), None)
+        .await?
+    {
+        match kv.get_msg::<data_proto::ObjectRef>(&key).await {
+            Ok(Some(object))
+                if object.key.starts_with(&artifact_prefix)
+                    && object.metadata.get(METADATA_KIND).is_some_and(|kind| kind == METADATA_KIND_ARTIFACT)
+                    && object.metadata.get(METADATA_AGENT).is_some_and(|owner| owner == agent)
+                    && object.metadata.get("session_id").is_some_and(|owner_session| owner_session == session_id) =>
+            {
+                keys_to_delete.insert(object.key);
+            }
+            Ok(Some(_)) | Ok(None) => {}
+            Err(error) => tracing::warn!(
+                error = %error,
+                namespace = %ns,
+                agent = %agent,
+                session_id = %session_id,
+                key = %key,
+                "failed to decode artifact revision while collecting session objects for deletion"
+            ),
+        }
+    }
     for key in kv
         .list_keys(&keys::session_message_prefix(ns, agent, session_id), None)
         .await?
