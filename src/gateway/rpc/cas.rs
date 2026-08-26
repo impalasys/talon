@@ -178,7 +178,7 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::cas::CasStore;
+    use crate::control::cas::{CasStore, CONTENT_ENCODING_ZSTD};
     use crate::control::object_store::InMemoryObjectStore;
     use crate::control::ControlPlane;
     use crate::gateway::Gateway;
@@ -225,7 +225,11 @@ mod tests {
             .unwrap()
             .into_inner();
 
-        assert_eq!(response.data, b"hello");
+        assert_eq!(response.content_encoding, CONTENT_ENCODING_ZSTD);
+        assert_eq!(
+            zstd::stream::decode_all(response.data.as_slice()).unwrap(),
+            b"hello"
+        );
         assert_eq!(response.media_type, object.media_type);
         assert_eq!(response.size_bytes, object.size_bytes);
     }
