@@ -226,6 +226,28 @@ pub fn compact_tool_result_catalog(tool_call_id: &str, parts: &[ChatContentPart]
     )
 }
 
+/// Represents a logical byte selection without copying the selected text into
+/// the durable session record.  The projection layer materializes this only
+/// when it is actually placed in model context.
+pub fn selected_object_byte_range_output(
+    object_ref: data_proto::ObjectRef,
+    start: u64,
+    end: u64,
+    next_byte: Option<u64>,
+    summary: impl Into<String>,
+) -> ToolOutput {
+    ToolOutput {
+        content_parts: vec![object_ref_part(object_ref)],
+        summary: summary.into(),
+        line_selection: None,
+        byte_range: Some(ToolOutputByteRange {
+            start,
+            end,
+            next_byte,
+        }),
+    }
+}
+
 fn truncate_utf8(value: &str, max_bytes: usize) -> String {
     if value.len() <= max_bytes {
         return value.to_string();
