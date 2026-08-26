@@ -1365,8 +1365,12 @@ impl AgentExecutor {
                     sink.on_tool_result(&tool.id, &tool.name, &recorded_result)
                         .await;
                     context.push(
-                        self.tool_output_context_message(&tool.id, &recorded_result)
-                            .await?,
+                        project_tool_output_context(
+                            &CasStore::new(self.control_plane.objects.clone()),
+                            &tool.id,
+                            &recorded_result,
+                        )
+                        .await?,
                     );
                     if stop_after_result {
                         stop_after_tool_result = Some(result_text);
@@ -1417,20 +1421,19 @@ impl AgentExecutor {
         }
     }
 
-    /// Projects an output into the active turn without persisting a duplicate
-    /// of a selected CAS range. Unselected large text remains a `tr://` hint.
-    async fn tool_output_context_message(
-        &self,
-        tool_call_id: &str,
-        result: &ToolOutput,
-    ) -> Result<LoopMessage> {
+}
+
+pub async fn project_tool_output_context(
+    cas: &CasStore,
+    tool_call_id: &str,
+    result: &ToolOutput,
+) -> Result<LoopMessage> {
         let Some(range) = result.byte_range.as_ref() else {
             return Ok(tool_output_loop_message(tool_call_id, result));
         };
         let Some(object) = result.object_ref() else {
             return Ok(tool_output_loop_message(tool_call_id, result));
         };
-        let cas = CasStore::new(self.control_plane.objects.clone());
         let Some(bytes) = cas
             .get_text_range_decoded(&object.key, range.start, range.end)
             .await?
@@ -1449,8 +1452,9 @@ impl AgentExecutor {
             tool_call_id,
             &format!("{text}{suffix}"),
         ))
-    }
+}
 
+impl AgentExecutor {
     async fn execute_tool_call_result(&self, tool: &ToolCall) -> ExecutedToolCall {
         match self.execute_tool(&tool.name, &tool.arguments).await {
             Ok(result) => ExecutedToolCall {

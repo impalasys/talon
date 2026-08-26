@@ -12,7 +12,7 @@ use crate::control::cas::{decode_stored_object_bytes, CasStore};
 use crate::control::tool_output::ToolOutputExt;
 use crate::control::ControlPlane;
 use crate::gateway::rpc::data_proto::{self, session_journal_entry_payload, SessionExecutionPhase};
-use crate::harness::executor::{tool_output_loop_message, LoopMessage};
+use crate::harness::executor::{project_tool_output_context, tool_output_loop_message, LoopMessage};
 use crate::harness::llm::ToolOutput;
 use crate::harness::sessions::{
     self, latest_submission_projection_message_id, plan_journal_recovery, JournalRecoveryPlan,
@@ -527,9 +527,18 @@ async fn replay_claimed_submission_journal(
                 name: tool.name.clone(),
                 result: result.clone(),
             });
-            runtime
-                .context
-                .push(tool_output_loop_message(&tool.id, &result_output));
+            runtime.context.push(
+                project_tool_output_context(
+                    &CasStore::new(cp.objects.clone()),
+                    &tool.id,
+                    &result_output,
+                )
+                .await
+                .unwrap_or_else(|error| {
+                    tracing::warn!(%error, tool_call_id = %tool.id, "failed to project recovered tool output; replaying compact result");
+                    tool_output_loop_message(&tool.id, &result_output)
+                }),
+            );
             stop_after_tool_results |=
                 crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
         }
