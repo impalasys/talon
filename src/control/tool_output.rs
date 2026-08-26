@@ -13,6 +13,8 @@ use serde_json::{json, Value};
 use std::collections::HashMap;
 
 pub const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
+pub const TOOL_RESULT_INLINE_CONTEXT_BYTES: usize = 8 * 1024;
+pub const TOOL_RESULT_DURABLE_SUMMARY_BYTES: usize = 512;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolResultPayload {
@@ -184,6 +186,52 @@ pub fn display_text(output: &ToolOutput) -> String {
     })
 }
 
+pub fn tool_result_handle(tool_call_id: &str) -> String {
+    format!("tr://{}", urlencoding::encode(tool_call_id))
+}
+
+pub fn tool_result_part_handle(tool_call_id: &str, index: usize) -> String {
+    format!("{}/parts/{index}", tool_result_handle(tool_call_id))
+}
+
+pub fn is_tool_result_object_ref(object_ref: &data_proto::ObjectRef) -> bool {
+    object_ref
+        .metadata
+        .get(crate::control::cas::METADATA_KIND)
+        .is_some_and(|kind| kind == crate::control::cas::METADATA_KIND_TOOL_RESULT)
+}
+
+pub fn compact_tool_result_catalog(tool_call_id: &str, parts: &[ChatContentPart]) -> String {
+    let entries = parts
+        .iter()
+        .enumerate()
+        .map(|(index, part)| match part.content.as_ref() {
+            Some(chat_content_part::Content::Text(text)) => {
+                format!("parts/{index}: text/plain ({} bytes)", text.len())
+            }
+            Some(chat_content_part::Content::ObjectRef(object)) => {
+                format!("parts/{index}: {} ({} bytes)", object.media_type, object.size_bytes)
+            }
+            None => format!("parts/{index}: empty"),
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
+    truncate_utf8(
+        &format!(
+            "Tool result catalog {}: {}. Use read with ref '{}' to inspect a part.",
+            tool_result_handle(tool_call_id), entries, tool_result_handle(tool_call_id)
+        ),
+        TOOL_RESULT_DURABLE_SUMMARY_BYTES,
+    )
+}
+
+fn truncate_utf8(value: &str, max_bytes: usize) -> String {
+    if value.len() <= max_bytes { return value.to_string(); }
+    let mut end = max_bytes.saturating_sub(3);
+    while end > 0 && !value.is_char_boundary(end) { end -= 1; }
+    format!("{}...", &value[..end])
+}
+
 pub async fn normalize_for_session_storage(
     cas: &CasStore,
     ctx: ToolOutputStorageContext<'_>,
@@ -220,15 +268,8 @@ pub async fn normalize_for_session_storage(
         content_parts.push(object_ref_part(object_ref));
         stored_large_text = true;
     }
-    let summary = if stored_large_text
-        && output.summary.as_bytes().len() >= TOOL_RESULT_OBJECT_THRESHOLD_BYTES
-    {
-        summary(&ToolOutput {
-            content_parts: content_parts.clone(),
-            summary: String::new(),
-            line_selection: None,
-            byte_range: None,
-        })
+    let summary = if stored_large_text {
+        compact_tool_result_catalog(ctx.tool_call_id, &content_parts)
     } else {
         output.summary.clone()
     };
@@ -701,7 +742,8 @@ mod tests {
         .unwrap();
 
         assert!(normalized.summary.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
-        assert!(normalized.summary.starts_with("[Object: call.txt ("));
+        assert!(normalized.summary.starts_with("Tool result catalog tr://call:"));
+        assert!(normalized.summary.contains("parts/0: text/plain"));
         let payload = tool_result_payload_json("call", &normalized).unwrap();
         assert!(payload.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
         assert!(!payload.contains(&"x".repeat(128)));
