@@ -12,7 +12,9 @@ use crate::control::cas::{decode_stored_object_bytes, CasStore};
 use crate::control::tool_output::ToolOutputExt;
 use crate::control::ControlPlane;
 use crate::gateway::rpc::data_proto::{self, session_journal_entry_payload, SessionExecutionPhase};
-use crate::harness::executor::{project_tool_output_context, tool_output_loop_message, LoopMessage};
+use crate::harness::executor::{
+    project_tool_output_context, tool_output_loop_message, LoopMessage,
+};
 use crate::harness::llm::ToolOutput;
 use crate::harness::sessions::{
     self, latest_submission_projection_message_id, plan_journal_recovery, JournalRecoveryPlan,

@@ -474,7 +474,8 @@ async fn tool_result_message_from_part(
                 &parsed.tool_output,
             )));
         }
-        if let Some(content) = selected_historical_tool_output(&parsed.tool_output, objects).await? {
+        if let Some(content) = selected_historical_tool_output(&parsed.tool_output, objects).await?
+        {
             let mut message = LoopMessage::text("tool", content);
             message.tool_call_id = Some(parsed.tool_call_id);
             return Ok(Some(message));
@@ -582,14 +583,22 @@ async fn selected_historical_tool_output(
     output: &crate::harness::llm::ToolOutput,
     objects: &(dyn ObjectStore + Send + Sync),
 ) -> Result<Option<String>> {
-    let Some(object) = output.object_ref() else { return Ok(Some(output.summary())); };
-    let Some(stored) = objects.get(&object.key).await? else { return Ok(Some(unavailable_historical_tool_output())); };
+    let Some(object) = output.object_ref() else {
+        return Ok(Some(output.summary()));
+    };
+    let Some(stored) = objects.get(&object.key).await? else {
+        return Ok(Some(unavailable_historical_tool_output()));
+    };
     let bytes = decode_stored_object_bytes(&stored, &object.key)?;
     let text = String::from_utf8_lossy(&bytes);
     if let Some(range) = output.byte_range.as_ref() {
         let start = usize::try_from(range.start).ok();
         let end = usize::try_from(range.end).ok();
-        return Ok(start.zip(end).and_then(|(start, end)| text.get(start..end)).map(str::to_string).or_else(|| Some(output.summary())));
+        return Ok(start
+            .zip(end)
+            .and_then(|(start, end)| text.get(start..end))
+            .map(str::to_string)
+            .or_else(|| Some(output.summary())));
     }
     if let Some(selection) = output.line_selection.as_ref() {
         let selected = text

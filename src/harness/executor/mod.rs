@@ -15,7 +15,8 @@ pub use compaction::{
 pub use history::{load, load_excluding_message_ids};
 pub use rpc::{RpcMessage, RpcRequest, RpcResponse};
 pub use runtime::{
-    project_tool_output_context, tool_output_loop_message, tool_result_loop_message, AgentEvent, AgentExecutor, CaptureSink,
-    ContextAssembler, ExecutionContext, ExecutionSink, LoopMessage, NullSink, RegisteredMcpTool,
+    project_tool_output_context, tool_output_loop_message, tool_result_loop_message, AgentEvent,
+    AgentExecutor, CaptureSink, ContextAssembler, ExecutionContext, ExecutionSink, LoopMessage,
+    NullSink, RegisteredMcpTool,
 };
 pub use task::{EncryptedResult, Task, TaskResult, TaskStatus};
