@@ -37,6 +37,7 @@ const (
 	SessionService_StreamParts_FullMethodName        = "/talon.v1.SessionService/StreamParts"
 	SessionService_StreamPartsBatch_FullMethodName   = "/talon.v1.SessionService/StreamPartsBatch"
 	SessionService_SubmitTurn_FullMethodName         = "/talon.v1.SessionService/SubmitTurn"
+	SessionService_ReadToolResultPart_FullMethodName = "/talon.v1.SessionService/ReadToolResultPart"
 )
 
 // SessionServiceClient is the client API for SessionService service.
@@ -60,6 +61,7 @@ type SessionServiceClient interface {
 	StreamParts(ctx context.Context, in *StreamSessionPartsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
 	StreamPartsBatch(ctx context.Context, in *StreamSessionPartsBatchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
 	SubmitTurn(ctx context.Context, in *SubmitSessionTurnRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
+	ReadToolResultPart(ctx context.Context, in *ReadToolResultPartRequest, opts ...grpc.CallOption) (*ReadToolResultPartResponse, error)
 }
 
 type sessionServiceClient struct {
@@ -276,6 +278,16 @@ func (c *sessionServiceClient) SubmitTurn(ctx context.Context, in *SubmitSession
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SessionService_SubmitTurnClient = grpc.ServerStreamingClient[events.SessionMessagePartEvent]
 
+func (c *sessionServiceClient) ReadToolResultPart(ctx context.Context, in *ReadToolResultPartRequest, opts ...grpc.CallOption) (*ReadToolResultPartResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReadToolResultPartResponse)
+	err := c.cc.Invoke(ctx, SessionService_ReadToolResultPart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SessionServiceServer is the server API for SessionService service.
 // All implementations must embed UnimplementedSessionServiceServer
 // for forward compatibility.
@@ -297,6 +309,7 @@ type SessionServiceServer interface {
 	StreamParts(*StreamSessionPartsRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
 	StreamPartsBatch(*StreamSessionPartsBatchRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
 	SubmitTurn(*SubmitSessionTurnRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
+	ReadToolResultPart(context.Context, *ReadToolResultPartRequest) (*ReadToolResultPartResponse, error)
 	mustEmbedUnimplementedSessionServiceServer()
 }
 
@@ -357,6 +370,9 @@ func (UnimplementedSessionServiceServer) StreamPartsBatch(*StreamSessionPartsBat
 }
 func (UnimplementedSessionServiceServer) SubmitTurn(*SubmitSessionTurnRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error {
 	return status.Errorf(codes.Unimplemented, "method SubmitTurn not implemented")
+}
+func (UnimplementedSessionServiceServer) ReadToolResultPart(context.Context, *ReadToolResultPartRequest) (*ReadToolResultPartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadToolResultPart not implemented")
 }
 func (UnimplementedSessionServiceServer) mustEmbedUnimplementedSessionServiceServer() {}
 func (UnimplementedSessionServiceServer) testEmbeddedByValue()                        {}
@@ -657,6 +673,24 @@ func _SessionService_SubmitTurn_Handler(srv interface{}, stream grpc.ServerStrea
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SessionService_SubmitTurnServer = grpc.ServerStreamingServer[events.SessionMessagePartEvent]
 
+func _SessionService_ReadToolResultPart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadToolResultPartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionServiceServer).ReadToolResultPart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SessionService_ReadToolResultPart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionServiceServer).ReadToolResultPart(ctx, req.(*ReadToolResultPartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SessionService_ServiceDesc is the grpc.ServiceDesc for SessionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -715,6 +749,10 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StopGeneration",
 			Handler:    _SessionService_StopGeneration_Handler,
+		},
+		{
+			MethodName: "ReadToolResultPart",
+			Handler:    _SessionService_ReadToolResultPart_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

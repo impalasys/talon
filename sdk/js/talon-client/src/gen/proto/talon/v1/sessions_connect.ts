@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, ClearSessionRequest, ClearSessionResponse, CompactSessionRequest, CreateSessionRequest, DeleteSessionRequest, DeleteSessionResponse, DoctorSessionRequest, DoctorSessionResponse, GetSessionRequest, ListQueuedSessionMessagesRequest, ListQueuedSessionMessagesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, SubmitSessionTurnRequest, UpdateSessionMessageRequest, UpdateSessionMessageResponse } from "./sessions_pb.js";
+import { AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, ClearSessionRequest, ClearSessionResponse, CompactSessionRequest, CreateSessionRequest, DeleteSessionRequest, DeleteSessionResponse, DoctorSessionRequest, DoctorSessionResponse, GetSessionRequest, ListQueuedSessionMessagesRequest, ListQueuedSessionMessagesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ReadToolResultPartRequest, ReadToolResultPartResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, SubmitSessionTurnRequest, UpdateSessionMessageRequest, UpdateSessionMessageResponse } from "./sessions_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { SessionMessagePartEvent } from "../../events_pb.js";
 
@@ -165,6 +165,15 @@ export const SessionService = {
       I: SubmitSessionTurnRequest,
       O: SessionMessagePartEvent,
       kind: MethodKind.ServerStreaming,
+    },
+    /**
+     * @generated from rpc talon.v1.SessionService.ReadToolResultPart
+     */
+    readToolResultPart: {
+      name: "ReadToolResultPart",
+      I: ReadToolResultPartRequest,
+      O: ReadToolResultPartResponse,
+      kind: MethodKind.Unary,
     },
   }
 } as const;

@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { decompress as decompressZstd } from "fzstd";
 import type { CopilotMessage } from "../../lib/chatTimeline";
 import { parsePayloadJson } from "../protocol";
 import {
-  objectRefContentEncoding,
   objectRefFromPart,
   objectRefFromValue,
   objectRefKey,
@@ -13,14 +11,22 @@ import type { TalonChatObjectRef } from "../types";
 export type ToolResultHydrationState = "loading" | { objectKey: string };
 
 type CasClient = {
-  getObject(request: { key: string }): Promise<any>;
+  readToolResultPart?: (request: { ns: string; agent: string; sessionId: string; toolCallId: string; partIndex: number; start: number; maxSize: number }) => Promise<any>;
 };
+
+type SessionTarget = { ns: string; agent: string; sessionId: string };
 
 type ToolResultPartMatch = {
   part: any;
   key: string;
   object: TalonChatObjectRef;
 };
+
+export function toolResultPartText(response: unknown): string {
+  const content = (response as { content?: { case?: unknown; value?: unknown } } | undefined)
+    ?.content;
+  return content?.case === "text" && typeof content.value === "string" ? content.value : "";
+}
 
 function isToolResultPart(part: any) {
   const type = part?.type ?? part?.partType ?? part?.part_type;
@@ -59,6 +65,21 @@ function findHydratableObjectPart(parts: unknown, toolCallId: string): ToolResul
     : null;
 }
 
+function toolResultTextPartIndex(part: unknown): number {
+  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
+  const output = payload.tool_output ?? payload.toolOutput;
+  const contentParts = output && typeof output === "object"
+    ? (output as Record<string, unknown>).content_parts ?? (output as Record<string, unknown>).contentParts
+    : undefined;
+  if (!Array.isArray(contentParts)) return 0;
+  const index = contentParts.findIndex((contentPart) => {
+    const object = objectRefFromValue(contentPart);
+    const type = String(object?.mediaType ?? object?.media_type ?? "").toLowerCase();
+    return Boolean(object && (type.startsWith("text/") || type === "application/json"));
+  });
+  return index >= 0 ? index : 0;
+}
+
 function replaceObjectInOutput(part: unknown, fallback: unknown, objectKey: string, hydratedOutput: string): unknown {
   const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
   const toolOutput = payload.tool_output ?? payload.toolOutput;
@@ -81,48 +102,7 @@ function replaceObjectInOutput(part: unknown, fallback: unknown, objectKey: stri
   return replaced ? output : fallback;
 }
 
-async function decompress(data: Uint8Array, encoding: string): Promise<Uint8Array> {
-  if (typeof DecompressionStream === "undefined") {
-    throw new Error(`${encoding} CAS object requires DecompressionStream support`);
-  }
-  const buffer = new ArrayBuffer(data.byteLength);
-  new Uint8Array(buffer).set(data);
-  const stream = new Blob([buffer]).stream().pipeThrough(new DecompressionStream(encoding as any));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
-}
-
-async function decodeObject(response: any, fallbackObject: TalonChatObjectRef): Promise<Uint8Array> {
-  const signedUrl = typeof response?.signedUrl === "string"
-    ? response.signedUrl
-    : typeof response?.signed_url === "string" ? response.signed_url : "";
-  const bytes = signedUrl
-    ? await (async () => {
-      const fetched = await fetch(signedUrl);
-      if (!fetched.ok) throw new Error(`Failed to fetch CAS object: HTTP ${fetched.status}`);
-      return new Uint8Array(await fetched.arrayBuffer());
-    })()
-    : response.data ?? new Uint8Array();
-  const encoding = response?.contentEncoding
-    ?? response?.content_encoding
-    ?? response?.metadata?.content_encoding
-    ?? response?.metadata?.contentEncoding
-    ?? objectRefContentEncoding(fallbackObject);
-  if (typeof encoding !== "string") return bytes;
-  if (encoding.toLowerCase() === "gzip") return decompress(bytes, "gzip");
-  if (encoding.toLowerCase() === "zstd") {
-    if (typeof DecompressionStream !== "undefined") {
-      try {
-        return await decompress(bytes, "zstd");
-      } catch (error) {
-        if (!(error instanceof TypeError)) throw error;
-      }
-    }
-    return decompressZstd(bytes);
-  }
-  return bytes;
-}
-
-export function useToolResultHydration(cas: CasClient | undefined, sessionKey: string | null) {
+export function useToolResultHydration(client: CasClient | undefined, target: SessionTarget | null) {
   const [state, setState] = useState<Record<string, ToolResultHydrationState>>({});
   const [outputs, setOutputs] = useState<Record<string, string>>({});
   const inFlight = useRef(new Set<string>());
@@ -137,7 +117,7 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
 
   useEffect(() => {
     invalidate();
-  }, [invalidate, sessionKey]);
+  }, [invalidate, target?.ns, target?.agent, target?.sessionId]);
 
   const resultFor = useCallback((message: CopilotMessage, toolCallId: string, fallback: unknown): unknown => {
     const partMatch = findObjectPart(message.parts, toolCallId);
@@ -161,7 +141,7 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
     const match = partMatch ?? (fallbackObject
       ? { part: undefined, key: fallbackObject.key, object: fallbackObject }
       : null);
-    if (!match || !cas?.getObject) return;
+    if (!match || !client?.readToolResultPart || !target) return;
 
     const outputKey = cacheKey(message.id, toolCallId, match.key);
     if (Object.prototype.hasOwnProperty.call(outputs, outputKey) || inFlight.current.has(toolRowKey)) return;
@@ -169,8 +149,17 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
     const currentGeneration = generation.current;
     setState((current) => ({ ...current, [toolRowKey]: "loading" }));
     try {
-      const response = await cas.getObject({ key: match.key });
-      const output = new TextDecoder().decode(await decodeObject(response, match.object));
+      const response = await client.readToolResultPart({
+        ns: target.ns,
+        agent: target.agent,
+        sessionId: target.sessionId,
+        toolCallId,
+        partIndex: toolResultTextPartIndex(match.part),
+        start: 0,
+        maxSize: 8 * 1024,
+      });
+      const output = toolResultPartText(response);
+      if (!output) throw new Error("Tool-result part is not text-readable");
       if (generation.current !== currentGeneration) return;
       setOutputs((current) => ({ ...current, [outputKey]: output }));
       setState((current) => {
@@ -181,12 +170,12 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
       });
     } catch (error) {
       if (generation.current !== currentGeneration) return;
-      console.warn("Could not hydrate CAS tool-result object", match.key, error);
+      console.warn("Could not hydrate tool-result part", toolCallId, error);
       setState((current) => ({ ...current, [toolRowKey]: { objectKey: match.key } }));
     } finally {
       inFlight.current.delete(toolRowKey);
     }
-  }, [cas, outputs]);
+  }, [client, outputs, target]);
 
   return { state, resultFor, hydrate, invalidate };
 }
