@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { ObjectRef, TokenCounter } from "../data/data_pb.js";
 import { ThinkingConfig } from "../resources/agents_pb.js";
 
@@ -72,6 +72,22 @@ export class ToolOutput extends Message<ToolOutput> {
    */
   summary = "";
 
+  /**
+   * Retained only to replay journals written by the pre-byte-range API.
+   *
+   * @generated from field: optional talon.harness.ToolOutputLineSelection line_selection = 3;
+   */
+  lineSelection?: ToolOutputLineSelection;
+
+  /**
+   * A zero-based, half-open selection over the sole text object referenced by
+   * content_parts. `end` is the actual end returned; `next_byte` is set for a
+   * bounded read when more logical bytes remain.
+   *
+   * @generated from field: optional talon.harness.ToolOutputByteRange byte_range = 4;
+   */
+  byteRange?: ToolOutputByteRange;
+
   constructor(data?: PartialMessage<ToolOutput>) {
     super();
     proto3.util.initPartial(data, this);
@@ -82,6 +98,8 @@ export class ToolOutput extends Message<ToolOutput> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "content_parts", kind: "message", T: ChatContentPart, repeated: true },
     { no: 2, name: "summary", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "line_selection", kind: "message", T: ToolOutputLineSelection, opt: true },
+    { no: 4, name: "byte_range", kind: "message", T: ToolOutputByteRange, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutput {
@@ -98,6 +116,100 @@ export class ToolOutput extends Message<ToolOutput> {
 
   static equals(a: ToolOutput | PlainMessage<ToolOutput> | undefined, b: ToolOutput | PlainMessage<ToolOutput> | undefined): boolean {
     return proto3.util.equals(ToolOutput, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.harness.ToolOutputLineSelection
+ */
+export class ToolOutputLineSelection extends Message<ToolOutputLineSelection> {
+  /**
+   * One-based, inclusive line bounds in the referenced text object.
+   *
+   * @generated from field: uint64 start_line = 1;
+   */
+  startLine = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 end_line = 2;
+   */
+  endLine = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ToolOutputLineSelection>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.harness.ToolOutputLineSelection";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start_line", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "end_line", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutputLineSelection {
+    return new ToolOutputLineSelection().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolOutputLineSelection {
+    return new ToolOutputLineSelection().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolOutputLineSelection {
+    return new ToolOutputLineSelection().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolOutputLineSelection | PlainMessage<ToolOutputLineSelection> | undefined, b: ToolOutputLineSelection | PlainMessage<ToolOutputLineSelection> | undefined): boolean {
+    return proto3.util.equals(ToolOutputLineSelection, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.harness.ToolOutputByteRange
+ */
+export class ToolOutputByteRange extends Message<ToolOutputByteRange> {
+  /**
+   * @generated from field: uint64 start = 1;
+   */
+  start = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 end = 2;
+   */
+  end = protoInt64.zero;
+
+  /**
+   * @generated from field: optional uint64 next_byte = 3;
+   */
+  nextByte?: bigint;
+
+  constructor(data?: PartialMessage<ToolOutputByteRange>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.harness.ToolOutputByteRange";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "end", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "next_byte", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolOutputByteRange {
+    return new ToolOutputByteRange().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolOutputByteRange | PlainMessage<ToolOutputByteRange> | undefined, b: ToolOutputByteRange | PlainMessage<ToolOutputByteRange> | undefined): boolean {
+    return proto3.util.equals(ToolOutputByteRange, a, b);
   }
 }
 
