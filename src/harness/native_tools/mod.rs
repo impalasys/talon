@@ -175,16 +175,7 @@ pub(crate) fn artifact_uris_from_message_text(text: &str) -> Vec<String> {
 
 // moved find_file_by_path -> files.rs
 
-struct ReadFileObject {
-    object: crate::control::object_store::StoredObject,
-    object_ref: data_proto::ObjectRef,
-}
-
-// moved read_file_content -> files.rs
-
 // moved read_file_output -> files.rs
-
-// moved read_file_object -> files.rs
 
 // moved upsert_file -> files.rs
 
@@ -1807,6 +1798,39 @@ mod tests {
         .unwrap()
         .unwrap();
         assert_eq!(read_output, "draft body");
+
+        let same_content_update = execute_tool_for_session(
+            &cp,
+            "Tenant:acme:Workspace:main",
+            "writer",
+            "session-1",
+            &manifests::AgentSpec::default(),
+            UPDATE_ARTIFACT_TOOL,
+            &json!({
+                "artifact_uri": artifact_uri,
+                "content": "draft body",
+                "media_type": "text/plain",
+            }),
+            &Config::default(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let same_content_value: Value = serde_json::from_str(&same_content_update).unwrap();
+        assert_eq!(same_content_value["artifact"]["mediaType"], "text/plain");
+        assert_eq!(
+            same_content_value["artifact"]["objectRef"]["mediaType"],
+            "text/plain"
+        );
+        assert_eq!(
+            cp.objects
+                .head(object_key)
+                .await
+                .unwrap()
+                .expect("original artifact object")
+                .media_type,
+            "text/markdown"
+        );
 
         let update_output = execute_tool_for_session(
             &cp,

@@ -37,4 +37,34 @@ describe("getMessageAssistantTimeline", () => {
       { type: "text", text: "after" },
     ]);
   });
+
+  it("keeps mixed tool-result parts structured for the details renderer", () => {
+    const timeline = getMessageAssistantTimeline({
+      parts: [{
+        partType: "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT",
+        name: "inspect",
+        payloadJson: JSON.stringify({
+          tool_call_id: "call-1",
+          tool_output: {
+            summary: "Tool result catalog",
+            content_parts: [
+              { type: "text", text: "small text" },
+              { type: "object_ref", object_ref: { key: "cas/large", media_type: "text/plain" } },
+              { type: "object_ref", object_ref: { key: "cas/image", media_type: "image/png" } },
+            ],
+          },
+        }),
+      }],
+    });
+
+    const result = timeline[0] && timeline[0].type === "tool" ? timeline[0].result : undefined;
+    assert.deepEqual(result, {
+      summary: "Tool result catalog",
+      content_parts: [
+        { type: "text", text: "small text" },
+        { type: "object_ref", object_ref: { key: "cas/large", media_type: "text/plain" } },
+        { type: "object_ref", object_ref: { key: "cas/image", media_type: "image/png" } },
+      ],
+    });
+  });
 });

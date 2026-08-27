@@ -9,6 +9,9 @@ import {
 } from "../lib/chatTimeline";
 import { MarkdownMessage } from "../lib/MarkdownMessage";
 import type { ToolResultHydrationState } from "./hooks/useToolResultHydration";
+import { objectRefFromValue, objectRefMediaType, objectRefSizeBytes } from "./objectRefs";
+import { isTextReadableMediaType } from "./mediaTypes";
+import type { TalonChatObjectRef } from "./types";
 
 export type AssistantMessageTimelineProps = {
   message: CopilotMessage;
@@ -18,7 +21,8 @@ export type AssistantMessageTimelineProps = {
   hydrationState: Record<string, ToolResultHydrationState>;
   resultFor: (message: CopilotMessage, toolCallId: string, fallback: unknown) => unknown;
   onToggleTool: (key: string) => void;
-  onHydrateTool: (message: CopilotMessage, toolCallId: string, key: string, fallback: unknown) => void;
+  onHydrateTool: (message: CopilotMessage, toolCallId: string, key: string, fallback: unknown, partIndex?: number) => void;
+  objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
   onResourceClick?: (uri: string) => void;
 };
 
@@ -84,7 +88,7 @@ function ContextCompactionDivider({ compacting }: { compacting: boolean }) {
 }
 
 type ToolInvocationCardProps = Pick<AssistantMessageTimelineProps,
-  "message" | "isLive" | "expandedTools" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool"
+  "message" | "isLive" | "expandedTools" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool" | "objectUrlForRef"
 > & {
   item: Extract<AssistantTimelineItem, { type: "tool" }>;
   index: number;
@@ -94,10 +98,14 @@ function ToolResultDetails({
   args,
   hydration,
   result,
+  objectUrlForRef,
+  onLoadPart,
 }: {
   args: unknown;
   hydration: ToolResultHydrationState | undefined;
   result: unknown;
+  objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
+  onLoadPart?: (partIndex: number) => void;
 }) {
   const output = hydration === "loading"
     ? "Loading output..."
@@ -117,15 +125,55 @@ function ToolResultDetails({
       {!hydration && result !== undefined ? (
         <div>
           <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>Output</div>
-          <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}><code>{typeof result === "string" ? result : JSON.stringify(result, null, 2)}</code></pre>
+          <ToolResultOutput result={result} objectUrlForRef={objectUrlForRef} onLoadPart={onLoadPart} />
         </div>
       ) : null}
     </div>
   );
 }
 
+function ToolResultOutput({
+  result,
+  objectUrlForRef,
+  onLoadPart,
+}: {
+  result: unknown;
+  objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
+  onLoadPart?: (partIndex: number) => void;
+}) {
+  const output = result && typeof result === "object" ? result as Record<string, unknown> : null;
+  const parts = output?.content_parts ?? output?.contentParts;
+  if (!Array.isArray(parts)) {
+    return <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}><code>{typeof result === "string" ? result : JSON.stringify(result, null, 2)}</code></pre>;
+  }
+  return <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    {typeof output?.summary === "string" ? <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>{output.summary}</div> : null}
+    {parts.map((part, index) => {
+      const value = part && typeof part === "object" ? part as { type?: unknown; text?: unknown } : {};
+      if (value.type === "text" && typeof value.text === "string") {
+        return <pre key={index} style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}><code>{value.text}</code></pre>;
+      }
+      const object = objectRefFromValue(part);
+      if (!object) return <div key={index} style={{ fontSize: 12 }}>Empty output part</div>;
+      const mediaType = objectRefMediaType(object);
+      const label = object.filename || object.key;
+      const source = objectUrlForRef?.(object);
+      if (mediaType.toLowerCase().startsWith("image/")) {
+        return source
+          ? <img key={index} src={source} alt={label} style={{ width: 132, maxWidth: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: 8, border: "1px solid var(--talon-chat-image-border, rgba(212,212,216,0.86))" }} />
+          : <div key={index} style={{ fontSize: 12 }}>Image attachment: {label}</div>;
+      }
+      const textReadable = isTextReadableMediaType(mediaType);
+      return <div key={index} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, border: "1px solid var(--talon-chat-divider, rgba(212,212,216,0.7))", borderRadius: 8, padding: "0.45rem 0.6rem", overflowWrap: "anywhere" }}>
+        <span style={{ flex: 1 }}>{textReadable ? "Large text" : "Attachment"}: {label} ({mediaType || "application/octet-stream"}; {objectRefSizeBytes(object)} bytes)</span>
+        {textReadable && onLoadPart ? <button type="button" onClick={() => onLoadPart(index)}>Load</button> : null}
+      </div>;
+    })}
+  </div>;
+}
+
 function ToolInvocationCard({
-  message, item, index, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool,
+  message, item, index, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, objectUrlForRef,
 }: ToolInvocationCardProps) {
   const toolKey = `${message.id}-tool-${item.toolCallId || index}`;
   const toolResult = resultFor(message, item.toolCallId, item.result);
@@ -139,7 +187,6 @@ function ToolInvocationCard({
         type="button"
         onClick={() => {
           onToggleTool(toolKey);
-          if (!isExpanded) onHydrateTool(message, item.toolCallId, toolKey, toolResult);
         }}
         style={{
           width: "auto", maxWidth: "100%", display: "flex", alignItems: "center", gap: 8,
@@ -154,7 +201,7 @@ function ToolInvocationCard({
         {isRunning ? <span style={{ flexShrink: 0, borderRadius: 999, background: "var(--talon-chat-tool-running-bg, rgba(14,165,233,0.12))", color: "var(--talon-chat-tool-running-fg, #0369a1)", padding: "0.1rem 0.45rem", fontSize: 11, fontWeight: 700 }}>Running</span> : null}
         <ChevronRight className="talon-session-tool-chevron" size="14" style={{ flexShrink: 0, transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
       </button>
-      {isExpanded ? <ToolResultDetails args={item.args} hydration={hydration} result={toolResult} /> : null}
+      {isExpanded ? <ToolResultDetails args={item.args} hydration={hydration} result={toolResult} objectUrlForRef={objectUrlForRef} onLoadPart={(partIndex) => onHydrateTool(message, item.toolCallId, toolKey, toolResult, partIndex)} /> : null}
     </div>
   );
 }
@@ -168,7 +215,7 @@ function TimelineItem({
   index: number;
   props: AssistantMessageTimelineProps;
 }) {
-  const { message, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick } = props;
+  const { message, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, objectUrlForRef, onResourceClick } = props;
   const key = `${message.id}-timeline-${index}`;
   if (item.type === "compaction") return <ContextCompactionDivider compacting={isLive} />;
   if (item.type === "text") return <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-assistant-fg, inherit)" }}><MarkdownMessage onResourceClick={onResourceClick}>{item.text}</MarkdownMessage></div>;
@@ -177,15 +224,15 @@ function TimelineItem({
     const summary = formatUsageSummary(item.usage);
     return summary ? <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>{summary}</div> : null;
   }
-  return <ToolInvocationCard key={`${key}-tool-${item.toolCallId}`} {...{ message, item, index, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool }} />;
+  return <ToolInvocationCard key={`${key}-tool-${item.toolCallId}`} {...{ message, item, index, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, objectUrlForRef }} />;
 }
 
 export function AssistantMessageTimeline({
-  message, items, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick,
+  message, items, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick, objectUrlForRef,
 }: AssistantMessageTimelineProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      {items.map((item, index) => <TimelineItem key={`${message.id}-timeline-${index}`} item={item} index={index} props={{ message, items, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick }} />)}
+      {items.map((item, index) => <TimelineItem key={`${message.id}-timeline-${index}`} item={item} index={index} props={{ message, items, isLive, expandedTools, hydrationState, resultFor, onToggleTool, onHydrateTool, onResourceClick, objectUrlForRef }} />)}
     </div>
   );
 }

@@ -1,8 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::runtime::{tool_output_loop_message, LoopMessage};
-use crate::control::cas::{decode_stored_object_bytes, object_ref_from_metadata};
+use super::runtime::{format_selected_tool_result_text, tool_output_loop_message, LoopMessage};
+use crate::control::cas::{
+    decode_stored_object_bytes, get_text_range_decoded, object_ref_from_metadata,
+};
 use crate::control::object_store::ObjectStore;
 use crate::control::tool_output::{self, ToolOutputExt};
 use crate::control::{KeyValueStore, ListOptions};
@@ -595,18 +597,15 @@ async fn selected_historical_tool_output(
     let Some(object) = output.object_ref() else {
         return Ok(Some(output.summary()));
     };
-    let Some(stored) = objects.get(&object.key).await? else {
-        return Ok(Some(unavailable_historical_tool_output()));
-    };
-    let bytes = decode_stored_object_bytes(&stored, &object.key)?;
-    let text = String::from_utf8_lossy(&bytes);
     if let Some(range) = output.byte_range.as_ref() {
-        let start = usize::try_from(range.start).ok();
-        let end = usize::try_from(range.end).ok();
-        return Ok(start
-            .zip(end)
-            .and_then(|(start, end)| text.get(start..end))
-            .map(str::to_string)
+        let Some(bytes) =
+            get_text_range_decoded(objects, &object.key, range.start, range.end).await?
+        else {
+            return Ok(Some(unavailable_historical_tool_output()));
+        };
+        return Ok(std::str::from_utf8(&bytes)
+            .map(|text| format_selected_tool_result_text(text, range))
+            .ok()
             .or_else(|| Some(output.summary())));
     }
     Ok(None)

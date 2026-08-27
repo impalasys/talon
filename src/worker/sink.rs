@@ -819,7 +819,8 @@ impl PubSubSessionSink {
             labels: HashMap::new(),
             metadata,
         };
-        crate::harness::native_tools::artifacts::record_artifact_revision(
+        let cas = CasStore::new(self.objects.clone());
+        if let Err(error) = crate::harness::native_tools::artifacts::record_artifact_revision(
             self.kv.as_ref(),
             &self.ns,
             &self.agent_id,
@@ -830,13 +831,50 @@ impl PubSubSessionSink {
                 .as_ref()
                 .expect("inline artifact object ref"),
         )
-        .await?;
-        self.kv
+        .await
+        {
+            crate::harness::native_tools::artifacts::discard_uncommitted_artifact(
+                &cas,
+                self.kv.as_ref(),
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+                &artifact_id,
+                artifact
+                    .object_ref
+                    .as_ref()
+                    .expect("inline artifact object ref"),
+                true,
+                false,
+            )
+            .await;
+            return Err(error);
+        }
+        if let Err(error) = self
+            .kv
             .set_msg(
                 &keys::artifact(&self.ns, &self.agent_id, &self.session_id, &artifact_id),
                 &artifact,
             )
-            .await?;
+            .await
+        {
+            crate::harness::native_tools::artifacts::discard_uncommitted_artifact(
+                &cas,
+                self.kv.as_ref(),
+                &self.ns,
+                &self.agent_id,
+                &self.session_id,
+                &artifact_id,
+                artifact
+                    .object_ref
+                    .as_ref()
+                    .expect("inline artifact object ref"),
+                true,
+                true,
+            )
+            .await;
+            return Err(error);
+        }
         Ok(format!(
             "artifact://{}/{}/{}/{}",
             self.ns, self.agent_id, self.session_id, artifact_id

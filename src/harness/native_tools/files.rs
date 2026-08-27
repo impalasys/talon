@@ -237,25 +237,26 @@ pub async fn find_file_by_path(
         .find(|file| file.spec.as_ref().map(|spec| spec.path.as_str()) == Some(path)))
 }
 
-pub(crate) async fn read_file_content(
-    cp: &ControlPlane,
-    file: &resources_proto::File,
-) -> Result<String> {
-    let read_object = read_file_object(cp, file).await?;
-    Ok(String::from_utf8_lossy(&read_object.object.bytes).to_string())
-}
-
 pub(crate) async fn read_file_output(
     cp: &ControlPlane,
     file: &resources_proto::File,
 ) -> Result<ToolOutput> {
-    let read_object = read_file_object(cp, file).await?;
+    let source_ref = file
+        .status
+        .as_ref()
+        .and_then(|status| status.object_ref.as_ref())
+        .ok_or_else(|| anyhow!("File has no objectRef"))?;
+    let metadata = cp
+        .objects
+        .head(&source_ref.key)
+        .await?
+        .ok_or_else(|| anyhow!("File object '{}' not found", source_ref.key))?;
     let spec_media_type = file
         .spec
         .as_ref()
         .map(|spec| spec.media_type.trim())
         .unwrap_or_default();
-    let object_media_type = read_object.object.metadata.media_type.trim();
+    let object_media_type = metadata.media_type.trim();
     let media_type = if !spec_media_type.is_empty() {
         spec_media_type.to_string()
     } else if !object_media_type.is_empty() {
@@ -268,7 +269,7 @@ pub(crate) async fn read_file_output(
             .to_string()
     };
     let filename = {
-        let metadata_filename = read_object.object.metadata.filename.trim();
+        let metadata_filename = metadata.filename.trim();
         if !metadata_filename.is_empty() {
             metadata_filename.to_string()
         } else {
@@ -285,32 +286,32 @@ pub(crate) async fn read_file_output(
                 .unwrap_or_default()
         }
     };
-    let mut object_ref = read_object.object_ref;
+    let mut object_ref = crate::control::cas::object_ref_from_metadata(&source_ref.key, &metadata);
     object_ref.media_type = media_type.clone();
     object_ref.filename = filename.clone();
-    Ok(ToolOutput::from_source_object(
-        read_object.object.bytes,
-        media_type,
-        filename,
-        object_ref,
+    if crate::control::tool_output::is_text_object_media_type(&media_type)
+        && metadata.size_bytes
+            < crate::control::tool_output::TOOL_RESULT_OBJECT_THRESHOLD_BYTES as u64
+    {
+        let object = crate::control::cas::CasStore::new(cp.objects.clone())
+            .get_object_decoded(&source_ref.key)
+            .await?
+            .ok_or_else(|| anyhow!("File object '{}' not found", source_ref.key))?;
+        return Ok(ToolOutput::from_source_object(
+            object.bytes,
+            media_type,
+            filename,
+            object_ref,
+        ));
+    }
+    Ok(ToolOutput::from_content_parts(
+        vec![crate::harness::llm::object_ref_part(object_ref)],
+        crate::control::tool_output::object_ref_summary(
+            &media_type,
+            &filename,
+            metadata.size_bytes,
+        ),
     ))
-}
-
-pub(crate) async fn read_file_object(
-    cp: &ControlPlane,
-    file: &resources_proto::File,
-) -> Result<ReadFileObject> {
-    let object_ref = file
-        .status
-        .as_ref()
-        .and_then(|status| status.object_ref.as_ref())
-        .ok_or_else(|| anyhow!("File has no objectRef"))?;
-    let object = crate::control::cas::CasStore::new(cp.objects.clone())
-        .get_object_decoded(&object_ref.key)
-        .await?
-        .ok_or_else(|| anyhow!("File object '{}' not found", object_ref.key))?;
-    let object_ref = crate::control::cas::object_ref_from_stored_object(&object_ref.key, &object);
-    Ok(ReadFileObject { object, object_ref })
 }
 
 pub(crate) async fn upsert_file(

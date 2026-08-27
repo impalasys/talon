@@ -246,8 +246,17 @@ message ReadToolResultPartRequest {
   string ns = 3;
   string tool_call_id = 4;
   uint32 part_index = 5;
-  uint64 start = 6;
-  optional uint64 max_size = 7;
+  ToolResultByteRange byte_range = 6;
+}
+
+// Matches the generic read tool's byte_range contract. `end` is exclusive;
+// exactly one of `end` and `max_size` must be supplied.
+message ToolResultByteRange {
+  uint64 start = 1;
+  oneof limit {
+    uint64 end = 2;
+    uint64 max_size = 3;
+  }
 }
 
 message ReadToolResultPartResponse {
