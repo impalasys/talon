@@ -4,8 +4,7 @@
 use crate::control::cas::CasStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
-    chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput,
-    ToolOutputByteRange, ToolOutputLineSelection,
+    chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput, ToolOutputByteRange,
 };
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -51,7 +50,6 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![text_part(text.clone())],
             summary: text,
-            line_selection: None,
             byte_range: None,
         }
     }
@@ -80,7 +78,6 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![object_ref_part(object_ref)],
             summary,
-            line_selection: None,
             byte_range: None,
         }
     }
@@ -89,7 +86,6 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts,
             summary: summary.into(),
-            line_selection: None,
             byte_range: None,
         }
     }
@@ -226,7 +222,6 @@ pub async fn normalize_for_session_storage(
         summary(&ToolOutput {
             content_parts: content_parts.clone(),
             summary: String::new(),
-            line_selection: None,
             byte_range: None,
         })
     } else {
@@ -235,7 +230,6 @@ pub async fn normalize_for_session_storage(
     Ok(ToolOutput {
         content_parts,
         summary,
-        line_selection: output.line_selection.clone(),
         byte_range: output.byte_range.clone(),
     })
 }
@@ -276,10 +270,6 @@ pub fn tool_output_json(output: &ToolOutput) -> Value {
     json!({
         "summary": output.summary,
         "content_parts": output.content_parts.iter().map(content_part_json).collect::<Vec<_>>(),
-        "line_selection": output.line_selection.as_ref().map(|selection| json!({
-            "start_line": selection.start_line,
-            "end_line": selection.end_line,
-        })),
         "byte_range": output.byte_range.as_ref().map(|range| json!({
             "start": range.start,
             "end": range.end,
@@ -316,22 +306,6 @@ fn parse_tool_output_json(value: &Value) -> Result<ToolOutput> {
     Ok(ToolOutput {
         content_parts,
         summary,
-        line_selection: value
-            .get("line_selection")
-            .or_else(|| value.get("lineSelection"))
-            .and_then(Value::as_object)
-            .map(|selection| ToolOutputLineSelection {
-                start_line: selection
-                    .get("start_line")
-                    .or_else(|| selection.get("startLine"))
-                    .and_then(Value::as_u64)
-                    .unwrap_or_default(),
-                end_line: selection
-                    .get("end_line")
-                    .or_else(|| selection.get("endLine"))
-                    .and_then(Value::as_u64)
-                    .unwrap_or_default(),
-            }),
         byte_range: value
             .get("byte_range")
             .or_else(|| value.get("byteRange"))
@@ -369,7 +343,6 @@ fn legacy_tool_output(
         return Ok(ToolOutput {
             content_parts,
             summary: inline_output.to_string(),
-            line_selection: None,
             byte_range: None,
         });
     }
@@ -514,7 +487,6 @@ mod tests {
         let output = ToolOutput {
             content_parts: vec![object_ref_part(object_ref("cas/text", "text/plain"))],
             summary: "Read bytes 3..8.".to_string(),
-            line_selection: None,
             byte_range: Some(ToolOutputByteRange {
                 start: 3,
                 end: 8,

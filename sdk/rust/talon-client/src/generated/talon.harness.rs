@@ -23,22 +23,11 @@ pub struct ToolOutput {
     pub content_parts: ::prost::alloc::vec::Vec<ChatContentPart>,
     #[prost(string, tag = "2")]
     pub summary: ::prost::alloc::string::String,
-    /// Retained only to replay journals written by the pre-byte-range API.
-    #[prost(message, optional, tag = "3")]
-    pub line_selection: ::core::option::Option<ToolOutputLineSelection>,
     /// A zero-based, half-open selection over the sole text object referenced by
     /// content_parts. `end` is the actual end returned; `next_byte` is set for a
     /// bounded read when more logical bytes remain.
-    #[prost(message, optional, tag = "4")]
+    #[prost(message, optional, tag = "3")]
     pub byte_range: ::core::option::Option<ToolOutputByteRange>,
-}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct ToolOutputLineSelection {
-    /// One-based, inclusive line bounds in the referenced text object.
-    #[prost(uint64, tag = "1")]
-    pub start_line: u64,
-    #[prost(uint64, tag = "2")]
-    pub end_line: u64,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ToolOutputByteRange {
