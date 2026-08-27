@@ -159,7 +159,6 @@ fn main() -> std::io::Result<()> {
         ".talon.harness.ChatRequest",
         ".talon.harness.ChatResponse",
         ".talon.harness.ToolOutput",
-        ".talon.harness.ToolOutputLineSelection",
         ".talon.harness.ToolOutputByteRange",
         ".talon.harness.Tool",
         ".talon.harness.ToolCall",

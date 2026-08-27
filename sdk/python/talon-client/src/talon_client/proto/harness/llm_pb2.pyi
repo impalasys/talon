@@ -17,24 +17,14 @@ class ChatContentPart(_message.Message):
     def __init__(self, text: _Optional[str] = ..., object_ref: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
 
 class ToolOutput(_message.Message):
-    __slots__ = ("content_parts", "summary", "line_selection", "byte_range")
+    __slots__ = ("content_parts", "summary", "byte_range")
     CONTENT_PARTS_FIELD_NUMBER: _ClassVar[int]
     SUMMARY_FIELD_NUMBER: _ClassVar[int]
-    LINE_SELECTION_FIELD_NUMBER: _ClassVar[int]
     BYTE_RANGE_FIELD_NUMBER: _ClassVar[int]
     content_parts: _containers.RepeatedCompositeFieldContainer[ChatContentPart]
     summary: str
-    line_selection: ToolOutputLineSelection
     byte_range: ToolOutputByteRange
-    def __init__(self, content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., summary: _Optional[str] = ..., line_selection: _Optional[_Union[ToolOutputLineSelection, _Mapping]] = ..., byte_range: _Optional[_Union[ToolOutputByteRange, _Mapping]] = ...) -> None: ...
-
-class ToolOutputLineSelection(_message.Message):
-    __slots__ = ("start_line", "end_line")
-    START_LINE_FIELD_NUMBER: _ClassVar[int]
-    END_LINE_FIELD_NUMBER: _ClassVar[int]
-    start_line: int
-    end_line: int
-    def __init__(self, start_line: _Optional[int] = ..., end_line: _Optional[int] = ...) -> None: ...
+    def __init__(self, content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., summary: _Optional[str] = ..., byte_range: _Optional[_Union[ToolOutputByteRange, _Mapping]] = ...) -> None: ...
 
 class ToolOutputByteRange(_message.Message):
     __slots__ = ("start", "end", "next_byte")
