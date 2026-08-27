@@ -468,7 +468,16 @@ async fn tool_result_message_from_part(
         else {
             return Ok(None);
         };
-        if parsed.tool_output.byte_range.is_none() && parsed.tool_output.line_selection.is_none() {
+        let has_externalized_tool_result_text = parsed
+            .tool_output
+            .content_parts()
+            .iter()
+            .filter_map(content_part_object_ref)
+            .any(|object| {
+                tool_output::is_tool_result_object_ref(object)
+                    && tool_output::is_text_object_media_type(&object.media_type)
+            });
+        if parsed.tool_output.byte_range.is_none() && has_externalized_tool_result_text {
             return Ok(Some(tool_output_loop_message(
                 &parsed.tool_call_id,
                 &parsed.tool_output,
@@ -599,19 +608,6 @@ async fn selected_historical_tool_output(
             .and_then(|(start, end)| text.get(start..end))
             .map(str::to_string)
             .or_else(|| Some(output.summary())));
-    }
-    if let Some(selection) = output.line_selection.as_ref() {
-        let selected = text
-            .lines()
-            .enumerate()
-            .filter(|(index, _)| {
-                let line = *index as u64 + 1;
-                line >= selection.start_line && line <= selection.end_line
-            })
-            .map(|(_, line)| line)
-            .collect::<Vec<_>>()
-            .join("\n");
-        return Ok(Some(selected));
     }
     Ok(None)
 }
