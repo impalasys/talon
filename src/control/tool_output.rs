@@ -239,7 +239,6 @@ pub fn selected_object_byte_range_output(
     ToolOutput {
         content_parts: vec![object_ref_part(object_ref)],
         summary: summary.into(),
-        line_selection: None,
         byte_range: Some(ToolOutputByteRange {
             start,
             end,
