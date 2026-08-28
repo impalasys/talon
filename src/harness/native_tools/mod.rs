@@ -27,6 +27,12 @@ use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::skills::render::format_active_skill_context;
 
 mod common;
+mod sessions;
+mod goals;
+mod schedules;
+mod research;
+mod files;
+mod dispatch;
 mod registry;
 use common::{has_capability_action, normalize_logical_path, opt_str, opt_u64, opt_usize, req_str, require_capability, require_file_read, string_map, string_vec};
 pub use registry::{register_channel_tools, register_skill_tools, register_tools};
