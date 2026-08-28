@@ -259,40 +259,7 @@ pub async fn execute_tool_for_session_output(
                 .await
                 .map(ToolOutput::text)
                 .map(Some)
-        }
-        SEARCH_MEMORY_TOOL => {
-            require_memory_read(spec)?;
-            search_memory(cp, current_namespace, args)
-                .await
-                .map(ToolOutput::text)
-                .map(Some)
-        }
-        READ_MEMORY_TOOL => {
-            require_memory_read(spec)?;
-            read_memory(cp, current_namespace, args).await.map(Some)
-        }
-        LIST_MEMORY_TOOL => {
-            require_memory_read(spec)?;
-            list_memory(cp, current_namespace, args)
-                .await
-                .map(ToolOutput::text)
-                .map(Some)
-        }
-        CREATE_MEMORY_TOOL => {
-            require_capability(spec, "memory", "create")?;
-            put_memory(cp, current_namespace, args)
-                .await
-                .map(ToolOutput::text)
-                .map(Some)
-        }
-        UPDATE_MEMORY_TOOL => {
-            require_capability(spec, "memory", "update")?;
-            put_memory(cp, current_namespace, args)
-                .await
-                .map(ToolOutput::text)
-                .map(Some)
-        }
-        LIST_FILES_TOOL => {
+        }        LIST_FILES_TOOL => {
             require_file_read(spec)?;
             list_files_tool(cp, current_namespace, args)
                 .await
@@ -629,9 +596,6 @@ fn require_global_capability(config: &Config, capability: &str, action: &str) ->
 fn global_capability_for_tool(name: &str) -> Option<(&'static str, &'static str)> {
     match name {
         READ_SESSION_MESSAGES_TOOL => Some(("sessions", "read:messages")),
-        SEARCH_MEMORY_TOOL | READ_MEMORY_TOOL | LIST_MEMORY_TOOL => Some(("memory", "read")),
-        CREATE_MEMORY_TOOL => Some(("memory", "create")),
-        UPDATE_MEMORY_TOOL => Some(("memory", "update")),
         LIST_FILES_TOOL | READ_FILE_TOOL | GET_FILE_METADATA_TOOL => Some(("files", "read")),
         CREATE_FILE_TOOL => Some(("files", "create")),
         UPDATE_FILE_TOOL => Some(("files", "update")),
@@ -695,94 +659,9 @@ async fn read_session_messages(
     }))?)
 }
 
-async fn search_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
-    let namespace = namespace_arg(current_namespace, args);
-    let query = req_str(args, "query")?.to_ascii_lowercase();
-    let prefix = opt_str(args, "prefix")
-        .map(normalize_logical_path)
-        .transpose()?
-        .unwrap_or_else(|| "/memory".to_string());
-    let limit = opt_usize(args, "limit").unwrap_or(10).clamp(1, 50);
-    let mut results = Vec::new();
-    for file in list_memory_files(cp, &namespace, &prefix).await? {
-        let Some(spec) = file.spec.as_ref() else {
-            continue;
-        };
-        let content = read_file_content(cp, &file).await.unwrap_or_default();
-        let haystack = format!("{}\n{}", spec.path, content).to_ascii_lowercase();
-        if haystack.contains(&query) {
-            results.push(json!({
-                "namespace": namespace,
-                "name": file_name_from_file(&file),
-                "path": spec.path,
-                "mediaType": spec.media_type,
-                "excerpt": memory_excerpt(&content, &query),
-            }));
-            if results.len() >= limit {
-                break;
-            }
-        }
-    }
-    Ok(serde_json::to_string_pretty(
-        &json!({ "results": results }),
-    )?)
-}
 
-async fn read_memory(
-    cp: &ControlPlane,
-    current_namespace: &str,
-    args: &Value,
-) -> Result<ToolOutput> {
-    let namespace = namespace_arg(current_namespace, args);
-    let path = normalize_logical_path(req_str(args, "path")?)?;
-    let file = find_memory_file_by_path(cp, &namespace, &path)
-        .await?
-        .ok_or_else(|| anyhow!("memory file '{}' not found", path))?;
-    read_file_output(cp, &file).await
-}
 
-async fn list_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
-    let namespace = namespace_arg(current_namespace, args);
-    let prefix = opt_str(args, "prefix")
-        .map(normalize_logical_path)
-        .transpose()?
-        .unwrap_or_else(|| "/memory".to_string());
-    let limit = opt_usize(args, "limit").unwrap_or(50).clamp(1, 100);
-    let files = list_memory_files(cp, &namespace, &prefix).await?;
-    let entries = files
-        .into_iter()
-        .take(limit)
-        .filter_map(|file| {
-            let spec = file.spec.as_ref()?;
-            let object = file
-                .status
-                .as_ref()
-                .and_then(|status| status.object_ref.as_ref());
-            Some(json!({
-                "namespace": namespace,
-                "name": file_name_from_file(&file),
-                "path": spec.path,
-                "mediaType": spec.media_type,
-                "sizeBytes": object.map(|object| object.size_bytes).unwrap_or_default(),
-                "sha256": object.map(|object| object.sha256.as_str()).unwrap_or_default(),
-            }))
-        })
-        .collect::<Vec<_>>();
-    Ok(serde_json::to_string_pretty(
-        &json!({ "entries": entries }),
-    )?)
-}
 
-async fn put_memory(cp: &ControlPlane, current_namespace: &str, args: &Value) -> Result<String> {
-    let namespace = namespace_arg(current_namespace, args);
-    let path = normalize_memory_path(req_str(args, "path")?)?;
-    let content = req_str(args, "content")?;
-    let media_type = opt_str(args, "media_type").unwrap_or("text/markdown");
-    let file = upsert_memory_file(cp, &namespace, &path, media_type, content.as_bytes()).await?;
-    Ok(serde_json::to_string_pretty(&json!({
-        "file": memory_file_json(&file),
-    }))?)
-}
 
 async fn list_files_tool(
     cp: &ControlPlane,
@@ -974,20 +853,6 @@ async fn delete_file_tool(
     }))?)
 }
 
-async fn list_memory_files(
-    cp: &ControlPlane,
-    namespace: &str,
-    prefix: &str,
-) -> Result<Vec<resources_proto::File>> {
-    list_files_by_filter(
-        cp,
-        namespace,
-        prefix,
-        Some(resources_proto::FilePurpose::Memory as i32),
-        Some(resources_proto::FileIndexPolicy::Retrieval as i32),
-    )
-    .await
-}
 
 async fn list_files_by_filter(
     cp: &ControlPlane,
@@ -1025,16 +890,6 @@ async fn list_files_by_filter(
     Ok(files)
 }
 
-async fn find_memory_file_by_path(
-    cp: &ControlPlane,
-    namespace: &str,
-    path: &str,
-) -> Result<Option<resources_proto::File>> {
-    Ok(list_memory_files(cp, namespace, path)
-        .await?
-        .into_iter()
-        .find(|file| file.spec.as_ref().map(|spec| spec.path.as_str()) == Some(path)))
-}
 
 async fn find_file_by_path(
     cp: &ControlPlane,
@@ -1122,27 +977,6 @@ async fn read_file_object(
     Ok(ReadFileObject { object, object_ref })
 }
 
-async fn upsert_memory_file(
-    cp: &ControlPlane,
-    namespace: &str,
-    path: &str,
-    media_type: &str,
-    content: &[u8],
-) -> Result<resources_proto::File> {
-    let existing = find_memory_file_by_path(cp, namespace, path).await?;
-    upsert_file(
-        cp,
-        namespace,
-        existing,
-        path,
-        media_type,
-        resources_proto::FilePurpose::Memory as i32,
-        resources_proto::FileIndexPolicy::Retrieval as i32,
-        resources_proto::FileRetention::Retained as i32,
-        content,
-    )
-    .await
-}
 
 async fn upsert_file(
     cp: &ControlPlane,
@@ -1295,23 +1129,6 @@ fn file_json(file: &resources_proto::File, include_resource_name: bool) -> Value
     value
 }
 
-fn memory_file_json(file: &resources_proto::File) -> Value {
-    let spec = file.spec.as_ref();
-    let object = file
-        .status
-        .as_ref()
-        .and_then(|status| status.object_ref.as_ref());
-    json!({
-        "namespace": file.metadata.as_ref().map(|metadata| metadata.namespace.as_str()).unwrap_or_default(),
-        "name": file_name_from_file(file),
-        "path": spec.map(|spec| spec.path.as_str()).unwrap_or_default(),
-        "mediaType": spec.map(|spec| spec.media_type.as_str()).unwrap_or_default(),
-        "purpose": "MEMORY",
-        "indexPolicy": "RETRIEVAL",
-        "sizeBytes": object.map(|object| object.size_bytes).unwrap_or_default(),
-        "sha256": object.map(|object| object.sha256.as_str()).unwrap_or_default(),
-    })
-}
 
 fn file_uri(namespace: &str, path: &str) -> String {
     format!("file://{}{}", namespace, path)
@@ -1373,13 +1190,6 @@ pub(super) fn ensure_file_read_namespace(
     }
 }
 
-fn normalize_memory_path(path: &str) -> Result<String> {
-    let path = normalize_logical_path(path)?;
-    if !path.starts_with("/memory/") && path != "/memory" {
-        return Err(anyhow!("memory path must be under /memory"));
-    }
-    Ok(path)
-}
 
 fn file_resource_labels(
     purpose: i32,
@@ -1474,27 +1284,6 @@ fn normalize_enum_input(value: &str) -> String {
     value.trim().to_ascii_lowercase().replace(['_', ' '], "-")
 }
 
-fn memory_excerpt(content: &str, query: &str) -> String {
-    let lower = content.to_ascii_lowercase();
-    let query_index = lower.find(query).unwrap_or(0);
-    let mut byte_count: usize = 0;
-    let mut char_index: usize = 0;
-    for ch in content.chars() {
-        if byte_count >= query_index {
-            break;
-        }
-        byte_count += ch.len_utf8();
-        char_index += 1;
-    }
-    let start = char_index.saturating_sub(120);
-    content
-        .chars()
-        .skip(start)
-        .take(340)
-        .collect::<String>()
-        .trim()
-        .to_string()
-}
 
 async fn create_artifact(
     cp: &ControlPlane,
@@ -3261,14 +3050,6 @@ async fn authorize_artifact_access(
 }
 
 
-fn require_memory_read(spec: &manifests::AgentSpec) -> Result<()> {
-    if has_capability_action(spec, "memory", "read")
-        || has_capability_action(spec, "memory", "inspect")
-    {
-        return Ok(());
-    }
-    Err(anyhow!("agent does not have capability 'memory:read'"))
-}
 
 
 
@@ -4374,151 +4155,20 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn read_memory_returns_typed_image_output() {
-        let kv = Arc::new(MockKvStore::default());
-        let scheduler = Arc::new(MockScheduler::default());
-        let cp = control_plane(kv.clone(), scheduler);
-        let png_bytes = b"png-bytes";
-        upsert_memory_file(
-            &cp,
-            "Tenant:acme:Workspace:main",
-            "/memory/screenshot.png",
-            "image/png",
-            png_bytes,
-        )
-        .await
-        .unwrap();
-
-        let output = execute_tool_for_session_output(
-            &cp,
-            "Tenant:acme:Workspace:main",
-            "writer",
-            "session-1",
-            &manifests::AgentSpec {
-                capabilities: HashMap::from([(
-                    "memory".to_string(),
-                    crate::gateway::rpc::protobuf_value::ListValue {
-                        values: vec![crate::gateway::rpc::protobuf_value::Value {
-                            kind: Some(ProtoValueKind::StringValue("read".to_string())),
-                        }],
-                    },
-                )]),
-                ..manifests::AgentSpec::default()
-            },
-            READ_MEMORY_TOOL,
-            &json!({"path": "/memory/screenshot.png"}),
-            &Config::default(),
-        )
-        .await
-        .unwrap()
-        .unwrap();
-
-        let source_object_key = output
-            .object_ref()
-            .as_ref()
-            .expect("image output should retain source object ref")
-            .key
-            .clone();
-        let content_parts = output.content_parts();
-        assert_eq!(
-            crate::harness::llm::content_part_object_ref(&content_parts[0])
-                .unwrap()
-                .key,
-            source_object_key
-        );
-
-        let journaled_object = append_test_tool_result(
-            kv.as_ref(),
-            &cp,
-            "Tenant:acme:Workspace:main",
-            "writer",
-            "session-1",
-            READ_MEMORY_TOOL,
-            &output,
-        )
-        .await;
-        assert_eq!(journaled_object.key, source_object_key);
-    }
-
-    #[tokio::test]
-    async fn read_memory_text_output_reuses_object_ref() {
-        let kv = Arc::new(MockKvStore::default());
-        let scheduler = Arc::new(MockScheduler::default());
-        let cp = control_plane(kv.clone(), scheduler);
-        let content = "source text ".repeat(400);
-        upsert_memory_file(
-            &cp,
-            "Tenant:acme:Workspace:main",
-            "/memory/notes.txt",
-            "text/plain; charset=utf-8",
-            content.as_bytes(),
-        )
-        .await
-        .unwrap();
-
-        let output = execute_tool_for_session_output(
-            &cp,
-            "Tenant:acme:Workspace:main",
-            "writer",
-            "session-1",
-            &manifests::AgentSpec {
-                capabilities: HashMap::from([(
-                    "memory".to_string(),
-                    crate::gateway::rpc::protobuf_value::ListValue {
-                        values: vec![crate::gateway::rpc::protobuf_value::Value {
-                            kind: Some(ProtoValueKind::StringValue("read".to_string())),
-                        }],
-                    },
-                )]),
-                ..manifests::AgentSpec::default()
-            },
-            READ_MEMORY_TOOL,
-            &json!({"path": "/memory/notes.txt"}),
-            &Config::default(),
-        )
-        .await
-        .unwrap()
-        .unwrap();
-
-        assert!(output.summary().starts_with("[Object: notes.txt"));
-        assert!(!output.summary().contains(&content));
-        let source_object_key = output
-            .object_ref()
-            .expect("text output should retain source object ref")
-            .key
-            .clone();
-        let content_parts = output.content_parts();
-        assert_eq!(
-            crate::harness::llm::content_part_object_ref(&content_parts[0])
-                .unwrap()
-                .key,
-            source_object_key
-        );
-
-        let journaled_object = append_test_tool_result(
-            kv.as_ref(),
-            &cp,
-            "Tenant:acme:Workspace:main",
-            "writer",
-            "session-1",
-            READ_MEMORY_TOOL,
-            &output,
-        )
-        .await;
-        assert_eq!(journaled_object.key, source_object_key);
-    }
-
-    #[tokio::test]
     async fn read_file_output_reuses_object_ref() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
         let cp = control_plane(kv.clone(), scheduler);
         let content = "source text ".repeat(400);
-        let file = upsert_memory_file(
+        let file = upsert_file(
             &cp,
             "Tenant:acme:Workspace:main",
+            None,
             "/memory/notes.txt",
             "text/plain; charset=utf-8",
+            resources_proto::FilePurpose::Artifact as i32,
+            resources_proto::FileIndexPolicy::Search as i32,
+            resources_proto::FileRetention::Retained as i32,
             content.as_bytes(),
         )
         .await
