@@ -27,6 +27,8 @@ use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::skills::render::format_active_skill_context;
 
 mod common;
+pub mod artifacts;
+pub mod tasks;
 pub mod files;
 pub mod research;
 pub mod schedules;
