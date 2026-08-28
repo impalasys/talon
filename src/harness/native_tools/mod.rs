@@ -36,8 +36,13 @@ pub mod goals;
 pub mod sessions;
 pub mod dispatch;
 pub use dispatch::{execute_tool, execute_tool_for_session, execute_tool_for_session_output};
-pub(crate) use artifacts::{create_artifact, read_artifact, update_artifact, get_artifact_metadata, grant_artifact, artifact_content_bytes, resolve_artifact_uri, artifact_json, default_access_expiry, parse_artifact_uri};
+pub(crate) use artifacts::{create_artifact, read_artifact, update_artifact, get_artifact_metadata, grant_artifact, artifact_content_bytes, resolve_artifact_uri, artifact_json, default_access_expiry, parse_artifact_uri, access_expiry_from_ttl_seconds};
 pub use files::{ensure_file_read_namespace, find_file_by_path, parse_file_uri};
+pub(crate) use files::*;
+pub(crate) use research::*;
+pub(crate) use goals::*;
+pub(crate) use schedules::*;
+
 pub use goals::active_goals_context;
 mod registry;
 use common::{has_capability_action, normalize_logical_path, opt_str, opt_u64, opt_usize, req_str, require_capability, require_file_read, string_map, string_vec};
@@ -84,11 +89,6 @@ pub const GET_ARTIFACT_METADATA_TOOL: &str = "get_artifact_metadata";
 pub const GRANT_ARTIFACT_TOOL: &str = "grant_artifact";
 pub const FETCH_URL_TOOL: &str = "fetch_url";
 pub const WEB_SEARCH_TOOL: &str = "web_search";
-pub const SEARCH_MEMORY_TOOL: &str = "search_memory";
-pub const READ_MEMORY_TOOL: &str = "read_memory";
-pub const LIST_MEMORY_TOOL: &str = "list_memory";
-pub const CREATE_MEMORY_TOOL: &str = "create_memory";
-pub const UPDATE_MEMORY_TOOL: &str = "update_memory";
 pub const LIST_FILES_TOOL: &str = "list_files";
 pub const READ_FILE_TOOL: &str = "read_file";
 pub const GET_FILE_METADATA_TOOL: &str = "get_file_metadata";
@@ -2060,7 +2060,7 @@ mod tests {
             "Tenant:acme:Workspace:main",
             "writer",
             "session-1",
-            READ_MEMORY_TOOL,
+            READ_FILE_TOOL,
             &output,
         )
         .await;
@@ -3833,3 +3833,5 @@ mod tests {
         assert!(active_context.is_none());
     }
 }
+
+// Facade re-exports for external callers - keep public API stable
