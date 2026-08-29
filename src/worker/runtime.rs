@@ -399,11 +399,6 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::harness::native_tools::GRANT_ARTIFACT_TOOL,
         crate::harness::native_tools::FETCH_URL_TOOL,
         crate::harness::native_tools::WEB_SEARCH_TOOL,
-        crate::harness::native_tools::SEARCH_MEMORY_TOOL,
-        crate::harness::native_tools::READ_MEMORY_TOOL,
-        crate::harness::native_tools::LIST_MEMORY_TOOL,
-        crate::harness::native_tools::CREATE_MEMORY_TOOL,
-        crate::harness::native_tools::UPDATE_MEMORY_TOOL,
         crate::harness::native_tools::RUN_PYTHON_CODE_TOOL,
     ]
 }
@@ -719,9 +714,7 @@ mod tests {
         assert!(names.contains(&crate::harness::native_tools::DELEGATE_TASK_TOOL));
         assert!(names.contains(&crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL));
         assert!(names.contains(&crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL));
-        assert!(names.contains(&crate::harness::native_tools::SEARCH_MEMORY_TOOL));
-        assert!(names.contains(&crate::harness::native_tools::READ_MEMORY_TOOL));
-    }
+            }
 
     #[tokio::test]
     async fn agent_runtime_build_errors_for_missing_agent_or_spec() {
