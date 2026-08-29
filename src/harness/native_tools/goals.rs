@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub(crate) async fn create_goal(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -110,7 +109,11 @@ pub(crate) async fn list_session_goals(
     Ok(goals)
 }
 
-pub(crate) fn goal_matches(goal: &data_proto::Goal, status_group: Option<&str>, phase: Option<&str>) -> bool {
+pub(crate) fn goal_matches(
+    goal: &data_proto::Goal,
+    status_group: Option<&str>,
+    phase: Option<&str>,
+) -> bool {
     if status_group
         .is_some_and(|current| !goal_status_group(goal.phase).eq_ignore_ascii_case(current))
     {

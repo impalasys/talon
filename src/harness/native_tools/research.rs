@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub(crate) async fn fetch_url(args: &Value) -> Result<String> {
     let url = req_str(args, "url")?;
     let mut current_url = validate_public_http_url(url).await?;

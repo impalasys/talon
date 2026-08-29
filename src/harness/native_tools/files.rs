@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub(crate) async fn list_files_tool(
     cp: &ControlPlane,
     current_namespace: &str,
@@ -238,12 +237,18 @@ pub async fn find_file_by_path(
         .find(|file| file.spec.as_ref().map(|spec| spec.path.as_str()) == Some(path)))
 }
 
-pub(crate) async fn read_file_content(cp: &ControlPlane, file: &resources_proto::File) -> Result<String> {
+pub(crate) async fn read_file_content(
+    cp: &ControlPlane,
+    file: &resources_proto::File,
+) -> Result<String> {
     let read_object = read_file_object(cp, file).await?;
     Ok(String::from_utf8_lossy(&read_object.object.bytes).to_string())
 }
 
-pub(crate) async fn read_file_output(cp: &ControlPlane, file: &resources_proto::File) -> Result<ToolOutput> {
+pub(crate) async fn read_file_output(
+    cp: &ControlPlane,
+    file: &resources_proto::File,
+) -> Result<ToolOutput> {
     let read_object = read_file_object(cp, file).await?;
     let spec_media_type = file
         .spec
@@ -405,7 +410,9 @@ pub(crate) async fn write_file_objects(
     })
 }
 
-pub(crate) fn file_from_resource(resource: resources_proto::Resource) -> Option<resources_proto::File> {
+pub(crate) fn file_from_resource(
+    resource: resources_proto::Resource,
+) -> Option<resources_proto::File> {
     let spec = resource.spec.and_then(|spec| match spec.kind {
         Some(resources_proto::resource_spec::Kind::File(spec)) => Some(spec),
         _ => None,
@@ -463,7 +470,10 @@ pub(crate) fn file_uri(namespace: &str, path: &str) -> String {
     format!("file://{}{}", namespace, path)
 }
 
-pub(crate) fn file_location_from_args(current_namespace: &str, args: &Value) -> Result<(String, String)> {
+pub(crate) fn file_location_from_args(
+    current_namespace: &str,
+    args: &Value,
+) -> Result<(String, String)> {
     if let Some(uri) = opt_str(args, "uri") {
         return parse_file_uri(uri);
     }

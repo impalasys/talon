@@ -120,11 +120,17 @@ pub async fn execute_tool_for_session_output(
     match name {
         READ_SESSION_MESSAGES_TOOL => {
             require_capability(spec, "sessions", "read:messages")?;
-            crate::harness::native_tools::sessions::read_session_messages(cp, current_namespace, current_agent, args)
-                .await
-                .map(ToolOutput::text)
-                .map(Some)
-        }        LIST_FILES_TOOL => {
+            crate::harness::native_tools::sessions::read_session_messages(
+                cp,
+                current_namespace,
+                current_agent,
+                args,
+            )
+            .await
+            .map(ToolOutput::text)
+            .map(Some)
+        }
+        LIST_FILES_TOOL => {
             require_file_read(spec)?;
             crate::harness::native_tools::files::list_files_tool(cp, current_namespace, args)
                 .await
@@ -133,7 +139,9 @@ pub async fn execute_tool_for_session_output(
         }
         READ_FILE_TOOL => {
             require_file_read(spec)?;
-            crate::harness::native_tools::files::read_file_tool(cp, current_namespace, args).await.map(Some)
+            crate::harness::native_tools::files::read_file_tool(cp, current_namespace, args)
+                .await
+                .map(Some)
         }
         GET_FILE_METADATA_TOOL => {
             require_file_read(spec)?;
@@ -165,11 +173,17 @@ pub async fn execute_tool_for_session_output(
         }
         FETCH_URL_TOOL => {
             require_capability(spec, "research", "fetch_url")?;
-            crate::harness::native_tools::research::fetch_url(args).await.map(ToolOutput::text).map(Some)
+            crate::harness::native_tools::research::fetch_url(args)
+                .await
+                .map(ToolOutput::text)
+                .map(Some)
         }
         WEB_SEARCH_TOOL => {
             require_capability(spec, "research", "web_search")?;
-            crate::harness::native_tools::research::web_search(args).await.map(ToolOutput::text).map(Some)
+            crate::harness::native_tools::research::web_search(args)
+                .await
+                .map(ToolOutput::text)
+                .map(Some)
         }
         ACTIVATE_SKILL_TOOL => {
             let skill_name = req_str(args, "name")?;
@@ -280,7 +294,9 @@ pub async fn execute_tool_for_session_output(
                     })
                     .unwrap_or(true);
                 if matches_agent && matches_enabled {
-                    schedules.push(crate::harness::native_tools::schedules::schedule_json(&schedule));
+                    schedules.push(crate::harness::native_tools::schedules::schedule_json(
+                        &schedule,
+                    ));
                 }
                 if schedules.len() >= limit {
                     break;
@@ -307,8 +323,14 @@ pub async fn execute_tool_for_session_output(
         }
         CREATE_SCHEDULE_TOOL => {
             require_capability(spec, "schedules", "create")?;
-            let schedule =
-                crate::harness::native_tools::schedules::upsert_schedule(cp, current_namespace, current_agent, args, None).await?;
+            let schedule = crate::harness::native_tools::schedules::upsert_schedule(
+                cp,
+                current_namespace,
+                current_agent,
+                args,
+                None,
+            )
+            .await?;
             Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
                 &json!({
                     "schedule": crate::harness::native_tools::schedules::schedule_json(&schedule),
@@ -325,8 +347,14 @@ pub async fn execute_tool_for_session_output(
                 .get_msg::<resources_proto::Schedule>(&keys::schedule(namespace, schedule_name))
                 .await?
                 .ok_or_else(|| anyhow!("schedule '{}' not found", schedule_name))?;
-            let schedule =
-                crate::harness::native_tools::schedules::upsert_schedule(cp, current_namespace, current_agent, args, Some(existing)).await?;
+            let schedule = crate::harness::native_tools::schedules::upsert_schedule(
+                cp,
+                current_namespace,
+                current_agent,
+                args,
+                Some(existing),
+            )
+            .await?;
             Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
                 &json!({
                     "schedule": crate::harness::native_tools::schedules::schedule_json(&schedule),
@@ -359,11 +387,19 @@ pub async fn execute_tool_for_session_output(
             let status_group = opt_str(args, "status_group");
             let phase = opt_str(args, "phase");
             let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
-            let goals = crate::harness::native_tools::goals::list_goals(cp, namespace, agent, session_id, status_group, phase, limit)
-                .await?
-                .into_iter()
-                .map(|goal| crate::harness::native_tools::goals::goal_json(&goal))
-                .collect::<Vec<_>>();
+            let goals = crate::harness::native_tools::goals::list_goals(
+                cp,
+                namespace,
+                agent,
+                session_id,
+                status_group,
+                phase,
+                limit,
+            )
+            .await?
+            .into_iter()
+            .map(|goal| crate::harness::native_tools::goals::goal_json(&goal))
+            .collect::<Vec<_>>();
             Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
                 &json!({
                     "goals": goals
@@ -372,9 +408,14 @@ pub async fn execute_tool_for_session_output(
         }
         GET_GOAL_TOOL => {
             require_capability(spec, "goals", "inspect")?;
-            let goal =
-                crate::harness::native_tools::goals::get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
-                    .await?;
+            let goal = crate::harness::native_tools::goals::get_goal_from_args(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await?;
             Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
                 &json!({
                     "goal": crate::harness::native_tools::goals::goal_json(&goal)
@@ -383,8 +424,14 @@ pub async fn execute_tool_for_session_output(
         }
         CREATE_GOAL_TOOL => {
             require_capability(spec, "goals", "create")?;
-            let goal =
-                crate::harness::native_tools::goals::create_goal(cp, current_namespace, current_agent, current_session, args).await?;
+            let goal = crate::harness::native_tools::goals::create_goal(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await?;
             Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
                 &json!({
                     "goal": crate::harness::native_tools::goals::goal_json(&goal)
@@ -393,9 +440,14 @@ pub async fn execute_tool_for_session_output(
         }
         UPDATE_GOAL_TOOL => {
             require_capability(spec, "goals", "update")?;
-            let mut goal =
-                crate::harness::native_tools::goals::get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
-                    .await?;
+            let mut goal = crate::harness::native_tools::goals::get_goal_from_args(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await?;
             crate::harness::native_tools::goals::update_goal_from_args(&mut goal, args)?;
             crate::harness::native_tools::goals::upsert_goal(cp, goal.clone()).await?;
             Ok(Some(ToolOutput::text(serde_json::to_string_pretty(
@@ -406,9 +458,14 @@ pub async fn execute_tool_for_session_output(
         }
         COMPLETE_GOAL_TOOL => {
             require_capability(spec, "goals", "update")?;
-            let mut goal =
-                crate::harness::native_tools::goals::get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
-                    .await?;
+            let mut goal = crate::harness::native_tools::goals::get_goal_from_args(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await?;
             let now = chrono::Utc::now().timestamp_micros();
             goal.phase = crate::gateway::rpc::data_proto::GoalPhase::Succeeded as i32;
             goal.updated_at = now;
@@ -425,9 +482,14 @@ pub async fn execute_tool_for_session_output(
         }
         BLOCK_GOAL_TOOL => {
             require_capability(spec, "goals", "update")?;
-            let mut goal =
-                crate::harness::native_tools::goals::get_goal_from_args(cp, current_namespace, current_agent, current_session, args)
-                    .await?;
+            let mut goal = crate::harness::native_tools::goals::get_goal_from_args(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await?;
             let now = chrono::Utc::now().timestamp_micros();
             goal.phase = crate::gateway::rpc::data_proto::GoalPhase::Blocked as i32;
             goal.updated_at = now;
@@ -477,4 +539,3 @@ fn global_capability_for_tool(name: &str) -> Option<(&'static str, &'static str)
         _ => None,
     }
 }
-

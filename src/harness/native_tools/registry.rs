@@ -1,19 +1,19 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
-use serde_json::{json, Value};
+use super::common::has_capability_action;
+use super::{
+    ACTIVATE_SKILL_TOOL, BLOCK_GOAL_TOOL, CHANNEL_PUBLISH_TOOL, CHANNEL_SKIP_REPLY_TOOL,
+    COMPLETE_GOAL_TOOL, CREATE_FILE_TOOL, CREATE_GOAL_TOOL, CREATE_SCHEDULE_TOOL,
+    DEACTIVATE_SKILL_TOOL, DELETE_FILE_TOOL, DELETE_SCHEDULE_TOOL, FETCH_URL_TOOL,
+    GET_FILE_METADATA_TOOL, GET_GOAL_TOOL, GET_SCHEDULE_TOOL, LIST_FILES_TOOL, LIST_GOALS_TOOL,
+    LIST_SCHEDULES_TOOL, READ_FILE_TOOL, READ_SESSION_MESSAGES_TOOL, UPDATE_FILE_TOOL,
+    UPDATE_GOAL_TOOL, UPDATE_SCHEDULE_TOOL, WEB_SEARCH_TOOL,
+};
 use crate::control::config::Config;
 use crate::gateway::rpc::manifests;
 use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
-use super::common::has_capability_action;
-use super::{
-    ACTIVATE_SKILL_TOOL, BLOCK_GOAL_TOOL, CHANNEL_PUBLISH_TOOL, CHANNEL_SKIP_REPLY_TOOL,
-    COMPLETE_GOAL_TOOL, CREATE_GOAL_TOOL, CREATE_SCHEDULE_TOOL, DEACTIVATE_SKILL_TOOL,
-    DELETE_FILE_TOOL, DELETE_SCHEDULE_TOOL, GET_FILE_METADATA_TOOL, GET_GOAL_TOOL, GET_SCHEDULE_TOOL,
-    LIST_FILES_TOOL, LIST_GOALS_TOOL, LIST_SCHEDULES_TOOL, READ_FILE_TOOL, UPDATE_FILE_TOOL,
-    UPDATE_GOAL_TOOL, UPDATE_SCHEDULE_TOOL, CREATE_FILE_TOOL, READ_SESSION_MESSAGES_TOOL,
-    FETCH_URL_TOOL, WEB_SEARCH_TOOL,
-};
+use serde_json::{json, Value};
 
 pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
     let names = namespace::effective_skill_names(skills);
@@ -444,4 +444,3 @@ fn file_write_schema() -> Value {
         "required": ["content"]
     })
 }
-
