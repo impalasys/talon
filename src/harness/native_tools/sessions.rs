@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub(crate) async fn read_session_messages(
     cp: &ControlPlane,
     current_namespace: &str,

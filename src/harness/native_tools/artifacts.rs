@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub async fn create_artifact(
     cp: &ControlPlane,
     current_namespace: &str,

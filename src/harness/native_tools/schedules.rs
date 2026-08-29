@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub(crate) async fn upsert_schedule(
     cp: &ControlPlane,
     current_namespace: &str,

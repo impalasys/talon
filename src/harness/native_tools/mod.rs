@@ -26,26 +26,33 @@ use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::skills::render::format_active_skill_context;
 
-mod common;
 pub mod artifacts;
-pub mod tasks;
+mod common;
+pub mod dispatch;
 pub mod files;
+pub mod goals;
 pub mod research;
 pub mod schedules;
-pub mod goals;
 pub mod sessions;
-pub mod dispatch;
+pub mod tasks;
+pub(crate) use artifacts::{
+    access_expiry_from_ttl_seconds, artifact_content_bytes, artifact_json, create_artifact,
+    default_access_expiry, get_artifact_metadata, grant_artifact, parse_artifact_uri,
+    read_artifact, resolve_artifact_uri, update_artifact,
+};
 pub use dispatch::{execute_tool, execute_tool_for_session, execute_tool_for_session_output};
-pub(crate) use artifacts::{create_artifact, read_artifact, update_artifact, get_artifact_metadata, grant_artifact, artifact_content_bytes, resolve_artifact_uri, artifact_json, default_access_expiry, parse_artifact_uri, access_expiry_from_ttl_seconds};
-pub use files::{ensure_file_read_namespace, find_file_by_path, parse_file_uri};
 pub(crate) use files::*;
-pub(crate) use research::*;
+pub use files::{ensure_file_read_namespace, find_file_by_path, parse_file_uri};
 pub(crate) use goals::*;
+pub(crate) use research::*;
 pub(crate) use schedules::*;
 
 pub use goals::active_goals_context;
 mod registry;
-use common::{has_capability_action, normalize_logical_path, opt_str, opt_u64, opt_usize, req_str, require_capability, require_file_read, string_map, string_vec};
+use common::{
+    has_capability_action, normalize_logical_path, opt_str, opt_u64, opt_usize, req_str,
+    require_capability, require_file_read, string_map, string_vec,
+};
 pub use registry::{register_channel_tools, register_skill_tools, register_tools};
 
 #[path = "../tools/a2a.rs"]
@@ -145,14 +152,8 @@ pub(crate) fn artifact_uris_from_message_text(text: &str) -> Vec<String> {
     a2a_tools::artifact_uris_from_message_text(text)
 }
 
-
-
 // dispatch moved to dispatch.rs
 // moved read_session_messages -> sessions.rs
-
-
-
-
 
 // moved list_files_tool -> files.rs
 
@@ -166,9 +167,7 @@ pub(crate) fn artifact_uris_from_message_text(text: &str) -> Vec<String> {
 
 // moved delete_file_tool -> files.rs
 
-
 // moved list_files_by_filter -> files.rs
-
 
 // moved find_file_by_path -> files.rs
 
@@ -183,7 +182,6 @@ struct ReadFileObject {
 
 // moved read_file_object -> files.rs
 
-
 // moved upsert_file -> files.rs
 
 // moved write_file_objects -> files.rs
@@ -194,7 +192,6 @@ struct ReadFileObject {
 
 // moved file_json -> files.rs
 
-
 // moved file_uri -> files.rs
 
 // moved file_location_from_args -> files.rs
@@ -204,7 +201,6 @@ struct ReadFileObject {
 // moved parse_file_uri -> files.rs
 
 // moved ensure_file_read_namespace -> files.rs
-
 
 // moved file_resource_labels -> files.rs
 
@@ -221,7 +217,6 @@ struct ReadFileObject {
 // moved parse_file_retention -> files.rs
 
 // moved normalize_enum_input -> files.rs
-
 
 // moved create_artifact -> artifacts.rs
 
@@ -839,12 +834,6 @@ fn is_terminal_phase(value: i32) -> bool {
 
 // moved is_terminal_goal_phase -> goals.rs
 
-
-
-
-
-
-
 // moved artifact_content_bytes -> artifacts.rs
 
 #[derive(Debug, Clone)]
@@ -905,16 +894,11 @@ struct ValidatedHttpUrl {
 
 // moved access_expiry_from_ttl_seconds -> artifacts.rs
 
-
 // moved parse_artifact_uri -> artifacts.rs
 
 // moved validate_uri_segment -> artifacts.rs
 
 // moved authorize_artifact_access -> artifacts.rs
-
-
-
-
 
 #[cfg(test)]
 mod tests {
