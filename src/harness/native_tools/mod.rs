@@ -26,13 +26,13 @@ use crate::harness::skills::namespace::{self, NamespaceSkill};
 use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::skills::render::format_active_skill_context;
 
-#[path = "tools/a2a.rs"]
+#[path = "../tools/a2a.rs"]
 mod a2a_tools;
-#[path = "tools/artifacts.rs"]
+#[path = "../tools/artifacts.rs"]
 mod artifact_tools;
-#[path = "tools/code.rs"]
+#[path = "../tools/code.rs"]
 mod code_tools;
-#[path = "tools/tasks.rs"]
+#[path = "../tools/tasks.rs"]
 mod task_tools;
 
 pub const CREATE_SCHEDULE_TOOL: &str = "create_schedule";

@@ -714,7 +714,7 @@ mod tests {
         assert!(names.contains(&crate::harness::native_tools::DELEGATE_TASK_TOOL));
         assert!(names.contains(&crate::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL));
         assert!(names.contains(&crate::harness::native_tools::READ_SESSION_MESSAGES_TOOL));
-            }
+    }
 
     #[tokio::test]
     async fn agent_runtime_build_errors_for_missing_agent_or_spec() {
