@@ -93,6 +93,14 @@ def _selected_tool_result_texts(
             end = byte_range.get("end")
             assert isinstance(start, int)
             assert isinstance(end, int)
+            next_byte = byte_range.get("next_byte")
+            if next_byte is None:
+                next_byte = byte_range.get("nextByte")
+            request_range = (
+                ToolResultByteRange(start=start, end=end)
+                if next_byte is None
+                else ToolResultByteRange(start=start, max_size=end - start)
+            )
             response = client.sessions.ReadToolResultPart(
                 ReadToolResultPartRequest(
                     ns=ns,
@@ -100,14 +108,11 @@ def _selected_tool_result_texts(
                     session_id=session_id,
                     tool_call_id=tool_call_id,
                     part_index=0,
-                    byte_range=ToolResultByteRange(start=start, end=end),
+                    byte_range=request_range,
                 )
             )
             assert response.start == start
             assert response.end == end
-            next_byte = byte_range.get("next_byte")
-            if next_byte is None:
-                next_byte = byte_range.get("nextByte")
             if next_byte is None:
                 assert not response.HasField("next_byte")
             else:
