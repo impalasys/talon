@@ -11,47 +11,6 @@ use crate::harness::skills::registry::ToolRegistry;
 
 pub(super) fn register(registry: &mut ToolRegistry) {
     registry.register_builtin(
-        super::CREATE_ARTIFACT_TOOL,
-        "Create a session-scoped artifact and return an artifact:// URI that can be read or granted to another agent.",
-        json!({
-            "type": "object",
-            "properties": {
-                "title": { "type": "string", "description": "Human-readable artifact title." },
-                "media_type": { "type": "string", "description": "Media type. Defaults to text/markdown." },
-                "content": { "type": "string", "description": "Full text content to store. Required unless content_base64 is provided." },
-                "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." },
-                "labels": { "type": "object", "additionalProperties": { "type": "string" } },
-                "metadata": { "type": "object", "additionalProperties": { "type": "string" } }
-            },
-            "required": ["title"]
-        }),
-    );
-    registry.register_builtin(
-        super::READ_ARTIFACT_TOOL,
-        "Read an artifact by artifact:// URI.",
-        json!({
-            "type": "object",
-            "properties": {
-                "artifact_uri": { "type": "string" }
-            },
-            "required": ["artifact_uri"]
-        }),
-    );
-    registry.register_builtin(
-        super::UPDATE_ARTIFACT_TOOL,
-        "Update an artifact owned by the current agent/session. Writes a new immutable object and keeps the same artifact:// URI.",
-        json!({
-            "type": "object",
-            "properties": {
-                "artifact_uri": { "type": "string" },
-                "media_type": { "type": "string", "description": "Media type. Defaults to the artifact's current media type." },
-                "content": { "type": "string", "description": "Full text content to store. Required unless content_base64 is provided." },
-                "content_base64": { "type": "string", "description": "Base64 bytes to store instead of content." }
-            },
-            "required": ["artifact_uri"]
-        }),
-    );
-    registry.register_builtin(
         super::GET_ARTIFACT_METADATA_TOOL,
         "Return artifact metadata for an artifact:// URI without reading bytes.",
         json!({
