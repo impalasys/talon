@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { SessionMessage, SessionMessagePart, TokenCounter } from "../../data/data_pb.js";
+import { ObjectRef, SessionMessage, SessionMessagePart, TokenCounter } from "../../data/data_pb.js";
 
 /**
  * @generated from message talon.v1.CreateSessionRequest
@@ -1623,5 +1623,156 @@ export class StreamSessionPartsBatchRequest extends Message<StreamSessionPartsBa
 
   static equals(a: StreamSessionPartsBatchRequest | PlainMessage<StreamSessionPartsBatchRequest> | undefined, b: StreamSessionPartsBatchRequest | PlainMessage<StreamSessionPartsBatchRequest> | undefined): boolean {
     return proto3.util.equals(StreamSessionPartsBatchRequest, a, b);
+  }
+}
+
+/**
+ * Reads one session-local tool-result content part. CAS object keys are never
+ * accepted from clients; the service resolves the part through the session
+ * transcript after normal session authorization.
+ *
+ * @generated from message talon.v1.ReadToolResultPartRequest
+ */
+export class ReadToolResultPartRequest extends Message<ReadToolResultPartRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string tool_call_id = 4;
+   */
+  toolCallId = "";
+
+  /**
+   * @generated from field: uint32 part_index = 5;
+   */
+  partIndex = 0;
+
+  /**
+   * @generated from field: uint64 start = 6;
+   */
+  start = protoInt64.zero;
+
+  /**
+   * @generated from field: optional uint64 max_size = 7;
+   */
+  maxSize?: bigint;
+
+  constructor(data?: PartialMessage<ReadToolResultPartRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ReadToolResultPartRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "tool_call_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "part_index", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 6, name: "start", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "max_size", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReadToolResultPartRequest {
+    return new ReadToolResultPartRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReadToolResultPartRequest {
+    return new ReadToolResultPartRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReadToolResultPartRequest {
+    return new ReadToolResultPartRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReadToolResultPartRequest | PlainMessage<ReadToolResultPartRequest> | undefined, b: ReadToolResultPartRequest | PlainMessage<ReadToolResultPartRequest> | undefined): boolean {
+    return proto3.util.equals(ReadToolResultPartRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.ReadToolResultPartResponse
+ */
+export class ReadToolResultPartResponse extends Message<ReadToolResultPartResponse> {
+  /**
+   * @generated from field: string media_type = 1;
+   */
+  mediaType = "";
+
+  /**
+   * @generated from field: uint64 start = 2;
+   */
+  start = protoInt64.zero;
+
+  /**
+   * @generated from field: uint64 end = 3;
+   */
+  end = protoInt64.zero;
+
+  /**
+   * @generated from field: optional uint64 next_byte = 4;
+   */
+  nextByte?: bigint;
+
+  /**
+   * @generated from oneof talon.v1.ReadToolResultPartResponse.content
+   */
+  content: {
+    /**
+     * @generated from field: string text = 5;
+     */
+    value: string;
+    case: "text";
+  } | {
+    /**
+     * @generated from field: talon.data.ObjectRef object = 6;
+     */
+    value: ObjectRef;
+    case: "object";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<ReadToolResultPartResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ReadToolResultPartResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "start", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "end", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "next_byte", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 5, name: "text", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "content" },
+    { no: 6, name: "object", kind: "message", T: ObjectRef, oneof: "content" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReadToolResultPartResponse {
+    return new ReadToolResultPartResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReadToolResultPartResponse {
+    return new ReadToolResultPartResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReadToolResultPartResponse {
+    return new ReadToolResultPartResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReadToolResultPartResponse | PlainMessage<ReadToolResultPartResponse> | undefined, b: ReadToolResultPartResponse | PlainMessage<ReadToolResultPartResponse> | undefined): boolean {
+    return proto3.util.equals(ReadToolResultPartResponse, a, b);
   }
 }

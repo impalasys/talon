@@ -416,6 +416,14 @@ impl proto::session_service_server::SessionService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<Self::SubmitTurnStream>, tonic::Status> {
         self.handle_submit_session_turn(req).await
     }
+
+    async fn read_tool_result_part(
+        &self,
+        req: tonic::Request<proto::ReadToolResultPartRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ReadToolResultPartResponse>, tonic::Status>
+    {
+        self.handle_read_tool_result_part(req).await
+    }
 }
 
 #[tonic::async_trait]

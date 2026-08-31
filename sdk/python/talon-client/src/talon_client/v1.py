@@ -8,7 +8,7 @@ from talon_client.proto.talon.v1.knowledge_pb2 import GetKnowledgeRequest, Knowl
 from talon_client.proto.talon.v1.namespaces_pb2 import CreateNamespaceRequest, GetNamespaceRequest, DeleteNamespaceRequest, ListNamespacesRequest, NamespaceResponse, ListNamespacesResponse
 from talon_client.proto.talon.v1.resources_pb2 import CreateResourceRequest, GetResourceRequest, ListResourcesRequest, DeleteResourceRequest, ResourceResponse, ListResourcesResponse, DeleteResourceResponse
 from talon_client.proto.talon.v1.search_pb2 import SearchMode, SEARCH_MODE_UNSPECIFIED, SEARCH_MODE_KEYWORD, SEARCH_MODE_SEMANTIC, SEARCH_MODE_HYBRID, SearchSort, SEARCH_SORT_UNSPECIFIED, SEARCH_SORT_RELEVANCE, SEARCH_SORT_RECENCY, SearchRequest, SearchSourceFilter, SearchResult, SearchResponse, GetSearchResultRequest, GetSearchResultResponse
-from talon_client.proto.talon.v1.sessions_pb2 import CreateSessionRequest, GetSessionRequest, ListSessionMessagesRequest, ListSessionMessagesResponseItem, ListSessionMessagesResponse, ListQueuedSessionMessagesRequest, QueuedSessionMessage, ListQueuedSessionMessagesResponse, ListSessionsRequest, SessionListItem, ListSessionsResponse, SessionResponse, DeleteSessionRequest, DeleteSessionResponse, ClearSessionRequest, ClearSessionResponse, CompactSessionRequest, DoctorSessionRequest, DoctorSessionResponse, SubmitSessionTurnRequest, SendMessageRequest, SendMessageResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, UpdateSessionMessageRequest, UpdateSessionMessageResponse, AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsRequest, StreamSessionPartsBatchRequest
+from talon_client.proto.talon.v1.sessions_pb2 import CreateSessionRequest, GetSessionRequest, ListSessionMessagesRequest, ListSessionMessagesResponseItem, ListSessionMessagesResponse, ListQueuedSessionMessagesRequest, QueuedSessionMessage, ListQueuedSessionMessagesResponse, ListSessionsRequest, SessionListItem, ListSessionsResponse, SessionResponse, DeleteSessionRequest, DeleteSessionResponse, ClearSessionRequest, ClearSessionResponse, CompactSessionRequest, DoctorSessionRequest, DoctorSessionResponse, SubmitSessionTurnRequest, SendMessageRequest, SendMessageResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, UpdateSessionMessageRequest, UpdateSessionMessageResponse, AnswerSessionPermissionRequest, AnswerSessionPermissionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamSessionPartsRequest, StreamSessionPartsBatchRequest, ReadToolResultPartRequest, ReadToolResultPartResponse
 from talon_client.proto.talon.v1.workflows_pb2 import CreateWorkflowRunRequest, GetWorkflowRunRequest, ListWorkflowRunsRequest, ResumeWorkflowRunRequest, CancelWorkflowRunRequest, StreamWorkflowEventsRequest, WorkflowRunResponse, ListWorkflowRunsResponse
 
 __all__ = [
@@ -124,6 +124,8 @@ __all__ = [
     "StopSessionGenerationResponse",
     "StreamSessionPartsRequest",
     "StreamSessionPartsBatchRequest",
+    "ReadToolResultPartRequest",
+    "ReadToolResultPartResponse",
     "CreateWorkflowRunRequest",
     "GetWorkflowRunRequest",
     "ListWorkflowRunsRequest",

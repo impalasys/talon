@@ -385,3 +385,37 @@ class StreamSessionPartsBatchRequest(_message.Message):
     SESSION_NAMES_FIELD_NUMBER: _ClassVar[int]
     session_names: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, session_names: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class ReadToolResultPartRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns", "tool_call_id", "part_index", "start", "max_size")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    TOOL_CALL_ID_FIELD_NUMBER: _ClassVar[int]
+    PART_INDEX_FIELD_NUMBER: _ClassVar[int]
+    START_FIELD_NUMBER: _ClassVar[int]
+    MAX_SIZE_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    tool_call_id: str
+    part_index: int
+    start: int
+    max_size: int
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., tool_call_id: _Optional[str] = ..., part_index: _Optional[int] = ..., start: _Optional[int] = ..., max_size: _Optional[int] = ...) -> None: ...
+
+class ReadToolResultPartResponse(_message.Message):
+    __slots__ = ("media_type", "start", "end", "next_byte", "text", "object")
+    MEDIA_TYPE_FIELD_NUMBER: _ClassVar[int]
+    START_FIELD_NUMBER: _ClassVar[int]
+    END_FIELD_NUMBER: _ClassVar[int]
+    NEXT_BYTE_FIELD_NUMBER: _ClassVar[int]
+    TEXT_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_FIELD_NUMBER: _ClassVar[int]
+    media_type: str
+    start: int
+    end: int
+    next_byte: int
+    text: str
+    object: _data_pb2.ObjectRef
+    def __init__(self, media_type: _Optional[str] = ..., start: _Optional[int] = ..., end: _Optional[int] = ..., next_byte: _Optional[int] = ..., text: _Optional[str] = ..., object: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...

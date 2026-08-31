@@ -23,6 +23,7 @@ service SessionService {
   rpc StreamParts(StreamSessionPartsRequest) returns (stream talon.events.SessionMessagePartEvent);
   rpc StreamPartsBatch(StreamSessionPartsBatchRequest) returns (stream talon.events.SessionMessagePartEvent);
   rpc SubmitTurn(SubmitSessionTurnRequest) returns (stream talon.events.SessionMessagePartEvent);
+  rpc ReadToolResultPart(ReadToolResultPartRequest) returns (ReadToolResultPartResponse);
 }
 
 message CreateSessionRequest {
@@ -234,4 +235,28 @@ message StreamSessionPartsRequest {
 
 message StreamSessionPartsBatchRequest {
   repeated string session_names = 1;
+}
+
+// Reads one session-local tool-result content part. CAS object keys are never
+// accepted from clients; the service resolves the part through the session
+// transcript after normal session authorization.
+message ReadToolResultPartRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  string tool_call_id = 4;
+  uint32 part_index = 5;
+  uint64 start = 6;
+  optional uint64 max_size = 7;
+}
+
+message ReadToolResultPartResponse {
+  string media_type = 1;
+  uint64 start = 2;
+  uint64 end = 3;
+  optional uint64 next_byte = 4;
+  oneof content {
+    string text = 5;
+    talon.data.ObjectRef object = 6;
+  }
 }

@@ -799,6 +799,49 @@ pub struct StreamSessionPartsBatchRequest {
     #[prost(string, repeated, tag = "1")]
     pub session_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
+/// Reads one session-local tool-result content part. CAS object keys are never
+/// accepted from clients; the service resolves the part through the session
+/// transcript after normal session authorization.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadToolResultPartRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub tool_call_id: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "5")]
+    pub part_index: u32,
+    #[prost(uint64, tag = "6")]
+    pub start: u64,
+    #[prost(uint64, optional, tag = "7")]
+    pub max_size: ::core::option::Option<u64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadToolResultPartResponse {
+    #[prost(string, tag = "1")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "2")]
+    pub start: u64,
+    #[prost(uint64, tag = "3")]
+    pub end: u64,
+    #[prost(uint64, optional, tag = "4")]
+    pub next_byte: ::core::option::Option<u64>,
+    #[prost(oneof = "read_tool_result_part_response::Content", tags = "5, 6")]
+    pub content: ::core::option::Option<read_tool_result_part_response::Content>,
+}
+/// Nested message and enum types in `ReadToolResultPartResponse`.
+pub mod read_tool_result_part_response {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Content {
+        #[prost(string, tag = "5")]
+        Text(::prost::alloc::string::String),
+        #[prost(message, tag = "6")]
+        Object(super::super::data::ObjectRef),
+    }
+}
 /// Generated client implementations.
 pub mod session_service_client {
     #![allow(
@@ -1307,6 +1350,32 @@ pub mod session_service_client {
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.v1.SessionService", "SubmitTurn"));
             self.inner.server_streaming(req, path, codec).await
+        }
+        pub async fn read_tool_result_part(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadToolResultPartRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadToolResultPartResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.SessionService/ReadToolResultPart",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.v1.SessionService", "ReadToolResultPart"),
+                );
+            self.inner.unary(req, path, codec).await
         }
     }
 }
