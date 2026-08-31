@@ -78,7 +78,8 @@ def _selected_tool_result_texts(
                 continue
             payload = json.loads(part.payload_json or "{}")
             tool_output = payload.get("tool_output") or payload.get("toolOutput") or {}
-            if not tool_output.get("byte_range") and not tool_output.get("byteRange"):
+            byte_range = tool_output.get("byte_range") or tool_output.get("byteRange")
+            if not byte_range:
                 continue
             content_parts = (
                 tool_output.get("content_parts")
@@ -88,6 +89,10 @@ def _selected_tool_result_texts(
             assert all(item.get("type") != "text" for item in content_parts)
             tool_call_id = payload.get("tool_call_id") or payload.get("toolCallId")
             assert tool_call_id
+            start = byte_range.get("start")
+            end = byte_range.get("end")
+            assert isinstance(start, int)
+            assert isinstance(end, int)
             response = client.sessions.ReadToolResultPart(
                 ReadToolResultPartRequest(
                     ns=ns,
@@ -95,9 +100,18 @@ def _selected_tool_result_texts(
                     session_id=session_id,
                     tool_call_id=tool_call_id,
                     part_index=0,
-                    byte_range=ToolResultByteRange(start=0, max_size=8192),
+                    byte_range=ToolResultByteRange(start=start, end=end),
                 )
             )
+            assert response.start == start
+            assert response.end == end
+            next_byte = byte_range.get("next_byte")
+            if next_byte is None:
+                next_byte = byte_range.get("nextByte")
+            if next_byte is None:
+                assert not response.HasField("next_byte")
+            else:
+                assert response.next_byte == next_byte
             texts.append(response.text)
     return texts
 

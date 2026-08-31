@@ -38,7 +38,11 @@
         "tool_name": "read",
         "content": "I will read the generated artifact. ",
         "arguments": {
-          "ref": "{{artifact_uri}}"
+          "ref": "{{artifact_uri}}",
+          "byte_range": {
+            "start": 3,
+            "end": 100
+          }
         }
       }
     },
