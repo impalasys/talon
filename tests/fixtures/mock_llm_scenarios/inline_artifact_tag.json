@@ -31,14 +31,14 @@
       "id": "inline_artifact_coordinator_reads_output",
       "system_contains": "inline artifact coordinator",
       "last_message_contains": "read this delegated artifact",
-      "tool_name": "read_artifact",
+      "tool_name": "read",
       "response": {
         "type": "tool_call",
         "tool_call_id": "call_read_inline_artifact_1",
-        "tool_name": "read_artifact",
+        "tool_name": "read",
         "content": "I will read the generated artifact. ",
         "arguments": {
-          "artifact_uri": "{{artifact_uri}}"
+          "ref": "{{artifact_uri}}"
         }
       }
     },

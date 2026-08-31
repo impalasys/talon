@@ -77,6 +77,31 @@ def test_mock_llm_json_scenario_rules_emit_legal_delegate_tool_call() -> None:
     assert payload["choices"][0]["message"]["content"] == "Let me assign the legal review. "
 
 
+def test_mock_llm_delegated_artifact_flow_uses_generic_resource_tools() -> None:
+    messages = [
+        {
+            "role": "user",
+            "content": "You have been assigned a Talon Task. Task ID: ns/task",
+        }
+    ]
+    tools = [{"type": "function", "function": {"name": "write"}}]
+
+    assert mock_llm.should_emit_delegated_artifact_call(messages, tools)
+    response = mock_llm.build_write_artifact_call_response("mock-model", messages)
+    tool_call = response["choices"][0]["message"]["tool_calls"][0]
+    assert tool_call["function"]["name"] == "write"
+    assert json.loads(tool_call["function"]["arguments"])["kind"] == "artifact"
+
+    artifact_uri = "artifact://ns/agent/session/artifact"
+    read_messages = [{"role": "user", "content": f"Please read this artifact {artifact_uri}"}]
+    read_tools = [{"type": "function", "function": {"name": "read"}}]
+    assert mock_llm.should_emit_read_artifact_call(read_messages, read_tools)
+    read = mock_llm.build_read_artifact_call_response("mock-model", artifact_uri)
+    read_call = read["choices"][0]["message"]["tool_calls"][0]
+    assert read_call["function"]["name"] == "read"
+    assert json.loads(read_call["function"]["arguments"]) == {"ref": artifact_uri}
+
+
 @pytest.mark.anyio
 async def test_mock_llm_non_streaming_blocking_lookup_honors_super_large_query() -> None:
     transport = httpx.ASGITransport(app=mock_llm.app)
