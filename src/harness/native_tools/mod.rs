@@ -1826,11 +1826,29 @@ mod tests {
             .as_str()
             .unwrap();
         assert_ne!(updated_object_key, object_key);
-        assert!(crate::control::cas::CasStore::new(cp.objects.clone())
-            .get_object_decoded(object_key)
+        assert_eq!(
+            crate::control::cas::CasStore::new(cp.objects.clone())
+                .get_object_decoded(object_key)
+                .await
+                .unwrap()
+                .unwrap()
+                .bytes,
+            b"draft body"
+        );
+        assert_eq!(
+            kv.list_keys(
+                &keys::artifact_revision_prefix(
+                    "Tenant:acme:Workspace:main",
+                    "writer",
+                    "session-1",
+                ),
+                None,
+            )
             .await
             .unwrap()
-            .is_none());
+            .len(),
+            2
+        );
 
         let read_updated_output = execute_tool_for_session(
             &cp,

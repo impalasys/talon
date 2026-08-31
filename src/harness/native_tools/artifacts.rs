@@ -1,4 +1,5 @@
 use super::*;
+use crate::control::KeyValueStore;
 
 pub async fn create_artifact(
     cp: &ControlPlane,
@@ -45,6 +46,18 @@ pub async fn create_artifact(
         labels,
         metadata,
     };
+    record_artifact_revision(
+        cp.kv.as_ref(),
+        current_namespace,
+        current_agent,
+        current_session,
+        &artifact_id,
+        artifact
+            .object_ref
+            .as_ref()
+            .expect("new artifact object ref"),
+    )
+    .await?;
     cp.kv
         .set_msg(
             &keys::artifact(
@@ -142,10 +155,6 @@ pub async fn update_artifact(
         ))
         .await?
         .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
-    let previous_object_key = artifact
-        .object_ref
-        .as_ref()
-        .map(|object_ref| object_ref.key.clone());
     let media_type = opt_str(args, "media_type").unwrap_or(&artifact.media_type);
     if args.get("content").and_then(Value::as_str).is_none()
         && opt_str(args, "content_base64").is_none()
@@ -169,6 +178,18 @@ pub async fn update_artifact(
         .await?;
     artifact.media_type = media_type.to_string();
     artifact.object_ref = Some(object_ref);
+    record_artifact_revision(
+        cp.kv.as_ref(),
+        &uri.namespace,
+        &uri.agent,
+        &uri.session_id,
+        &uri.artifact_id,
+        artifact
+            .object_ref
+            .as_ref()
+            .expect("updated artifact object ref"),
+    )
+    .await?;
     let artifact_key = keys::artifact(
         &uri.namespace,
         &uri.agent,
@@ -191,25 +212,28 @@ pub async fn update_artifact(
         }
         return Err(error);
     }
-    if let Some(previous_object_key) = previous_object_key {
-        if artifact
-            .object_ref
-            .as_ref()
-            .is_none_or(|object_ref| object_ref.key != previous_object_key)
-        {
-            if let Err(error) = cas.delete_object(&previous_object_key).await {
-                tracing::warn!(
-                    error = %error,
-                    object_key = %previous_object_key,
-                    "failed to delete superseded artifact CAS object"
-                );
-            }
-        }
-    }
+    // Previous immutable revisions remain readable through durable history.
+    // Session teardown reclaims every indexed revision.
     Ok(serde_json::to_string_pretty(&json!({
         "artifact": artifact_json(&artifact),
         "artifactUri": uri.encode()
     }))?)
+}
+
+pub(crate) async fn record_artifact_revision(
+    kv: &dyn KeyValueStore,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    artifact_id: &str,
+    object_ref: &data_proto::ObjectRef,
+) -> Result<()> {
+    let revision_id = format!("{artifact_id}-{}", object_ref.sha256);
+    kv.set_msg(
+        &keys::artifact_revision(namespace, agent, session_id, &revision_id),
+        object_ref,
+    )
+    .await
 }
 
 pub async fn get_artifact_metadata(

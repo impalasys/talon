@@ -819,6 +819,18 @@ impl PubSubSessionSink {
             labels: HashMap::new(),
             metadata,
         };
+        crate::harness::native_tools::artifacts::record_artifact_revision(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &artifact_id,
+            artifact
+                .object_ref
+                .as_ref()
+                .expect("inline artifact object ref"),
+        )
+        .await?;
         self.kv
             .set_msg(
                 &keys::artifact(&self.ns, &self.agent_id, &self.session_id, &artifact_id),
@@ -2245,6 +2257,19 @@ mod tests {
             .unwrap()
             .expect("artifact object");
         assert_eq!(object.bytes, b"# Redline\n\n- edit");
+        let revision_key = keys::artifact_revision(
+            "conic",
+            "infra",
+            "session-1",
+            &format!("{}-{}", artifact.id, object_ref.sha256),
+        )
+        .to_string();
+        assert!(kv
+            .entries
+            .lock()
+            .await
+            .iter()
+            .any(|(key, _)| key == &revision_key));
     }
 
     #[tokio::test]

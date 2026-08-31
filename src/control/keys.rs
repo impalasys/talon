@@ -471,6 +471,31 @@ pub fn artifact_prefix(namespace: &str, agent: &str, session_id: &str) -> Resour
     )
 }
 
+/// Immutable CAS revisions retained for artifacts owned by a session. The
+/// current Artifact resource points at only its newest revision, so teardown
+/// uses this index to reclaim every prior revision safely.
+pub fn artifact_revision(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    revision_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        "ArtifactRevision",
+        revision_id,
+    )
+}
+
+pub fn artifact_revision_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Agent", agent), ("Session", session_id)],
+        Some("ArtifactRevision"),
+    )
+}
+
 pub fn goal(namespace: &str, agent: &str, session_id: &str, goal_id: &str) -> ResourceKey {
     resource_key(
         namespace,
