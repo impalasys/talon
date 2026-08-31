@@ -116,7 +116,7 @@ export type SessionMessageProps = {
   resultFor: (message: CopilotMessage, toolCallId: string, fallback: unknown) => unknown;
   onToggleThinking: (messageId: string) => void;
   onToggleTool: (key: string) => void;
-  onHydrateTool: (message: CopilotMessage, toolCallId: string, key: string, fallback: unknown) => void;
+  onHydrateTool: (message: CopilotMessage, toolCallId: string, key: string, fallback: unknown, partIndex?: number) => void;
   onResourceClick: (uri: string) => void;
   onEditingValueChange: (value: string) => void;
   onSaveEdit: (message: CopilotMessage) => void;
@@ -142,6 +142,7 @@ type WorkDetailsProps = Pick<
   | "onToggleTool"
   | "onHydrateTool"
   | "onResourceClick"
+  | "objectUrlForRef"
 >;
 
 function previousUserMessage(messages: CopilotMessage[], beforeIndex: number) {
@@ -192,7 +193,7 @@ function WorkDetailsHeader({
 
 type WorkDetailsContentProps = Pick<
   WorkDetailsProps,
-  "message" | "expandedToolItems" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool" | "onResourceClick"
+  "message" | "expandedToolItems" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool" | "onResourceClick" | "objectUrlForRef"
 > & {
   items: ReturnType<typeof splitAssistantMessageTimeline>["workTimeline"];
   isLive: boolean;
@@ -212,6 +213,7 @@ function WorkDetailsContent({
   onToggleTool,
   onHydrateTool,
   onResourceClick,
+  objectUrlForRef,
   showReasoningFallback,
   reasoningContent,
   showUsageFallback,
@@ -219,7 +221,7 @@ function WorkDetailsContent({
 }: WorkDetailsContentProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
-      <AssistantMessageTimeline message={message} items={items} isLive={isLive} expandedTools={expandedToolItems} hydrationState={hydrationState} resultFor={resultFor} onToggleTool={onToggleTool} onHydrateTool={onHydrateTool} onResourceClick={onResourceClick} />
+      <AssistantMessageTimeline message={message} items={items} isLive={isLive} expandedTools={expandedToolItems} hydrationState={hydrationState} resultFor={resultFor} onToggleTool={onToggleTool} onHydrateTool={onHydrateTool} onResourceClick={onResourceClick} objectUrlForRef={objectUrlForRef} />
       {showReasoningFallback ? <div style={{ whiteSpace: "normal", overflowWrap: "break-word", fontSize: 13, lineHeight: 1.55, color: "var(--talon-chat-subtle-fg, rgba(82,82,91,0.96))" }}>{reasoningContent}</div> : null}
       {showUsageFallback ? <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>{usageSummary}</div> : null}
     </div>
@@ -241,6 +243,7 @@ function MessageWorkDetails({
   onToggleTool,
   onHydrateTool,
   onResourceClick,
+  objectUrlForRef,
 }: WorkDetailsProps) {
   if (message.role !== "assistant") return null;
   const isLive = isSessionLive && messageIndex === messages.length - 1;
@@ -269,7 +272,7 @@ function MessageWorkDetails({
       <WorkDetailsHeader canExpand={canExpand} isExpanded={isExpanded} label={label} onToggle={toggle} />
       {isExpanded ? <WorkDetailsContent {...{
         message, items: workTimeline, isLive, expandedToolItems, hydrationState,
-        resultFor, onToggleTool, onHydrateTool, onResourceClick,
+        resultFor, onToggleTool, onHydrateTool, onResourceClick, objectUrlForRef,
         showReasoningFallback: !workHasReasoning && Boolean(reasoningContent), reasoningContent,
         showUsageFallback: !workHasUsage && Boolean(usageSummary), usageSummary,
       }} /> : null}
@@ -279,7 +282,7 @@ function MessageWorkDetails({
 
 type MessageContentProps = Pick<
   SessionMessageProps,
-  "message" | "isSessionLive" | "expandedToolItems" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool" | "onResourceClick"
+  "message" | "isSessionLive" | "expandedToolItems" | "hydrationState" | "resultFor" | "onToggleTool" | "onHydrateTool" | "onResourceClick" | "objectUrlForRef"
 > & {
   isLiveAssistantMessage: boolean;
   content: string;
@@ -443,6 +446,7 @@ function SessionMessagePresentation(props: SessionMessageProps) {
     onToggleTool,
     onHydrateTool,
     onResourceClick,
+    objectUrlForRef,
   };
 
   return (
@@ -453,7 +457,7 @@ function SessionMessagePresentation(props: SessionMessageProps) {
             <MessageWorkDetails {...{
               message, messageIndex, messages, isSessionLive, loadingStartedAt, loadingNow,
               expandedThinkingMessages, expandedToolItems, hydrationState, resultFor, onToggleThinking,
-              onToggleTool, onHydrateTool, onResourceClick,
+              onToggleTool, onHydrateTool, onResourceClick, objectUrlForRef,
             }} />
           ) : null}
           <PendingConnectorDelivery message={message} pending={state.isPendingConnectorDelivery} disabled={state.isReviewActionPending || state.isEditing} onUpdate={onUpdateConnectorDelivery} />

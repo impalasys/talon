@@ -35,12 +35,57 @@ const RESERVED_CONNECTOR_LABEL_PREFIX: &str = "talon.impalasys.com/connector-";
 const RESERVED_CONNECTOR_MATCH_LABEL_PREFIX: &str = "talon.impalasys.com/connector-match/";
 const RESERVED_EXTERNAL_LABEL_PREFIX: &str = "talon.impalasys.com/external-";
 
+#[derive(Clone, Copy)]
+enum ToolResultReadSelection {
+    Exact { start: u64, end: u64 },
+    Bounded { start: u64, max_size: u64 },
+}
+
+fn tool_result_read_selection(
+    range: proto::ToolResultByteRange,
+) -> std::result::Result<ToolResultReadSelection, tonic::Status> {
+    match range.limit {
+        Some(proto::tool_result_byte_range::Limit::End(end))
+            if end >= range.start && end - range.start <= 8 * 1024 =>
+        {
+            Ok(ToolResultReadSelection::Exact {
+                start: range.start,
+                end,
+            })
+        }
+        Some(proto::tool_result_byte_range::Limit::MaxSize(max_size))
+            if max_size > 0 && max_size <= 8 * 1024 =>
+        {
+            Ok(ToolResultReadSelection::Bounded {
+                start: range.start,
+                max_size,
+            })
+        }
+        Some(proto::tool_result_byte_range::Limit::End(_)) => Err(tonic::Status::invalid_argument(
+            "byte_range.end must not precede start and must span at most 8192 bytes",
+        )),
+        Some(proto::tool_result_byte_range::Limit::MaxSize(_)) => Err(
+            tonic::Status::invalid_argument("byte_range.max_size must be between 1 and 8192"),
+        ),
+        None => Err(tonic::Status::invalid_argument(
+            "byte_range requires exactly one of end or max_size",
+        )),
+    }
+}
+
 fn read_inline_tool_result_part(
     text: &str,
-    start: u64,
-    max_size: u64,
+    selection: ToolResultReadSelection,
 ) -> std::result::Result<proto::ReadToolResultPartResponse, tonic::Status> {
     let bytes = text.as_bytes();
+    let (start, requested_end, bounded) = match selection {
+        ToolResultReadSelection::Exact { start, end } => (start, end, false),
+        ToolResultReadSelection::Bounded { start, max_size } => (
+            start,
+            start.saturating_add(max_size).min(bytes.len() as u64),
+            true,
+        ),
+    };
     let start = usize::try_from(start)
         .map_err(|_| tonic::Status::invalid_argument("start is too large"))?;
     if start > bytes.len() || !text.is_char_boundary(start) {
@@ -48,15 +93,32 @@ fn read_inline_tool_result_part(
             "start is outside the text or not a UTF-8 boundary",
         ));
     }
-    let mut end = start.saturating_add(max_size as usize).min(bytes.len());
-    while end > start && !text.is_char_boundary(end) {
-        end -= 1;
+    let mut end = usize::try_from(requested_end)
+        .map_err(|_| tonic::Status::invalid_argument("end is too large"))?;
+    if end > bytes.len() {
+        return Err(tonic::Status::invalid_argument(
+            "byte_range exceeds text size",
+        ));
+    }
+    if bounded {
+        while end > start && !text.is_char_boundary(end) {
+            end -= 1;
+        }
+        if end == start && start < bytes.len() {
+            return Err(tonic::Status::invalid_argument(
+                "byte_range.max_size is too small to include one UTF-8 character",
+            ));
+        }
+    } else if !text.is_char_boundary(end) {
+        return Err(tonic::Status::invalid_argument(
+            "byte_range.end is not a UTF-8 boundary",
+        ));
     }
     Ok(proto::ReadToolResultPartResponse {
         media_type: "text/plain; charset=utf-8".to_string(),
         start: start as u64,
         end: end as u64,
-        next_byte: (end < bytes.len()).then_some(end as u64),
+        next_byte: (bounded && end < bytes.len()).then_some(end as u64),
         content: Some(proto::read_tool_result_part_response::Content::Text(
             text[start..end].to_string(),
         )),
@@ -1062,103 +1124,93 @@ impl GrpcGatewayHandler {
             &req.get_ref().session_id
         );
         let req = req.into_inner();
-        let max_size = req.max_size.unwrap_or(8 * 1024);
-        if max_size == 0 || max_size > 8 * 1024 {
-            return Err(tonic::Status::invalid_argument(
-                "max_size must be between 1 and 8192",
-            ));
-        }
-        let prefix = keys::session_message_prefix(&req.ns, &req.agent, &req.session_id);
-        let mut output = None;
-        for (_, bytes) in self
-            .gateway
-            .kv
-            .list_entries(&prefix, None)
-            .await
-            .map_err(|error| {
-                tonic::Status::internal(format!("Failed to list session messages: {error}"))
-            })?
-        {
-            let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) else {
-                continue;
-            };
-            for part in message.parts {
-                if part.part_type != data_proto::SessionMessagePartType::ToolResult as i32 {
-                    continue;
-                }
-                let Some(parsed) = tool_output::parse_tool_result_payload_json(
-                    &part.payload_json,
-                    part.object.as_ref(),
-                    &part.content,
-                )
-                .map_err(|error| {
-                    tonic::Status::internal(format!("Failed to parse tool output: {error}"))
-                })?
-                else {
-                    continue;
-                };
-                if parsed.tool_call_id != req.tool_call_id {
-                    continue;
-                }
-                if output.replace(parsed.tool_output).is_some() {
-                    return Err(tonic::Status::failed_precondition(
-                        "tool call id is ambiguous in this session",
-                    ));
-                }
-            }
-        }
-        let output = output
-            .ok_or_else(|| tonic::Status::not_found("tool result not found in this session"))?;
+        let selection = req.byte_range.map(tool_result_read_selection).transpose()?;
+        let output = tool_output::resolve_session_tool_result(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            &req.tool_call_id,
+        )
+        .await
+        .map_err(|error| {
+            tonic::Status::internal(format!("Failed to resolve tool result: {error}"))
+        })?
+        .ok_or_else(|| tonic::Status::not_found("tool result not found in this session"))?;
         let part = output
             .content_parts
             .get(req.part_index as usize)
             .ok_or_else(|| tonic::Status::not_found("tool result part not found"))?;
         let response = match part.content.as_ref() {
-            Some(chat_content_part::Content::Text(text)) => {
-                read_inline_tool_result_part(text, req.start, max_size)?
-            }
+            Some(chat_content_part::Content::Text(text)) => read_inline_tool_result_part(
+                text,
+                selection.unwrap_or(ToolResultReadSelection::Bounded {
+                    start: 0,
+                    max_size: 8 * 1024,
+                }),
+            )?,
             Some(chat_content_part::Content::ObjectRef(object))
                 if tool_output::is_text_object_media_type(&object.media_type) =>
             {
-                let size = object
-                    .metadata
-                    .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
-                    .and_then(|value| value.parse::<u64>().ok())
-                    .unwrap_or(object.size_bytes);
-                if req.start > size {
+                let size = tool_output::logical_object_size_bytes(object);
+                let (start, requested_end, bounded) =
+                    match selection.unwrap_or(ToolResultReadSelection::Bounded {
+                        start: 0,
+                        max_size: 8 * 1024,
+                    }) {
+                        ToolResultReadSelection::Exact { start, end } => (start, end, false),
+                        ToolResultReadSelection::Bounded { start, max_size } => {
+                            (start, start.saturating_add(max_size).min(size), true)
+                        }
+                    };
+                if start > size {
                     return Err(tonic::Status::invalid_argument("start exceeds text size"));
                 }
-                let requested_end = req.start.saturating_add(max_size).min(size);
+                if requested_end > size {
+                    return Err(tonic::Status::invalid_argument(
+                        "byte_range exceeds text size",
+                    ));
+                }
                 let cas = crate::control::cas::CasStore::new(self.gateway.objects.clone());
                 let bytes = cas
-                    .get_text_range_decoded(&object.key, req.start, requested_end)
+                    .get_text_range_decoded(&object.key, start, requested_end)
                     .await
                     .map_err(|error| {
                         tonic::Status::internal(format!("Failed to read tool-result text: {error}"))
                     })?
                     .ok_or_else(|| tonic::Status::not_found("tool-result object is unavailable"))?;
-                let mut actual = bytes.len();
-                while actual > 0 && std::str::from_utf8(&bytes[..actual]).is_err() {
-                    actual -= 1;
-                }
-                if actual == 0 && !bytes.is_empty() {
-                    return Err(tonic::Status::invalid_argument(
-                        "start is not a UTF-8 boundary",
-                    ));
-                }
-                let end = req.start + actual as u64;
+                let actual = if bounded {
+                    let mut actual = bytes.len();
+                    while actual > 0 && std::str::from_utf8(&bytes[..actual]).is_err() {
+                        actual -= 1;
+                    }
+                    if actual == 0 && !bytes.is_empty() {
+                        return Err(tonic::Status::invalid_argument(
+                            "byte_range.max_size is too small to include one UTF-8 character",
+                        ));
+                    }
+                    actual
+                } else {
+                    std::str::from_utf8(&bytes).map_err(|_| {
+                        tonic::Status::invalid_argument(
+                            "byte_range start and end must be UTF-8 boundaries",
+                        )
+                    })?;
+                    bytes.len()
+                };
+                let end = start + actual as u64;
                 proto::ReadToolResultPartResponse {
                     media_type: object.media_type.clone(),
-                    start: req.start,
+                    start,
                     end,
-                    next_byte: (end < size).then_some(end),
+                    next_byte: (bounded && end < size).then_some(end),
                     content: Some(proto::read_tool_result_part_response::Content::Text(
                         String::from_utf8_lossy(&bytes[..actual]).into_owned(),
                     )),
                 }
             }
             Some(chat_content_part::Content::ObjectRef(object)) => {
-                if req.start != 0 || req.max_size.is_some() {
+                if selection.is_some() {
                     return Err(tonic::Status::invalid_argument(
                         "byte ranges are only valid for text parts",
                     ));
@@ -2310,6 +2362,25 @@ mod tests {
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
+    }
+
+    #[test]
+    fn tool_result_part_ranges_match_generic_read_semantics() {
+        let exact =
+            read_inline_tool_result_part("hé", ToolResultReadSelection::Exact { start: 0, end: 3 })
+                .unwrap();
+        assert_eq!(exact.start, 0);
+        assert_eq!(exact.end, 3);
+        assert_eq!(exact.next_byte, None);
+
+        let bounded = read_inline_tool_result_part(
+            "é",
+            ToolResultReadSelection::Bounded {
+                start: 0,
+                max_size: 1,
+            },
+        );
+        assert!(bounded.is_err());
     }
 
     #[tokio::test]

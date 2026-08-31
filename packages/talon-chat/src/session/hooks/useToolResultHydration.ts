@@ -7,12 +7,23 @@ import {
   objectRefKey,
 } from "../objectRefs";
 import type { TalonChatObjectRef } from "../types";
-import { toolResultPartText } from "./toolResultHydration.ts";
+import { isTextReadableMediaType } from "../mediaTypes";
+import { initialToolResultPartByteRange, toolResultPartText } from "./toolResultHydration";
 
 export type ToolResultHydrationState = "loading" | { objectKey: string };
 
 type CasClient = {
-  readToolResultPart?: (request: { ns: string; agent: string; sessionId: string; toolCallId: string; partIndex: number; start: number; maxSize: number }) => Promise<any>;
+  readToolResultPart?: (request: {
+    ns: string;
+    agent: string;
+    sessionId: string;
+    toolCallId: string;
+    partIndex: number;
+    byteRange: {
+      start: bigint;
+      limit: { case: "maxSize"; value: bigint };
+    };
+  }) => Promise<any>;
 };
 
 type SessionTarget = { ns: string; agent: string; sessionId: string };
@@ -69,32 +80,52 @@ function toolResultTextPartIndex(part: unknown): number {
   if (!Array.isArray(contentParts)) return 0;
   const index = contentParts.findIndex((contentPart) => {
     const object = objectRefFromValue(contentPart);
-    const type = String(object?.mediaType ?? object?.media_type ?? "").toLowerCase();
-    return Boolean(object && (type.startsWith("text/") || type === "application/json"));
+    const type = String(object?.mediaType ?? object?.media_type ?? "");
+    return Boolean(object && isTextReadableMediaType(type));
   });
   return index >= 0 ? index : 0;
 }
 
-function replaceObjectInOutput(part: unknown, fallback: unknown, objectKey: string, hydratedOutput: string): unknown {
+function replaceObjectInOutput(
+  part: unknown,
+  fallback: unknown,
+  messageId: string,
+  toolCallId: string,
+  outputs: Record<string, string>,
+): unknown {
   const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
   const toolOutput = payload.tool_output ?? payload.toolOutput;
   const contentParts = toolOutput && typeof toolOutput === "object"
     ? (toolOutput as Record<string, unknown>).content_parts ?? (toolOutput as Record<string, unknown>).contentParts
     : undefined;
-  if (!Array.isArray(contentParts)) return hydratedOutput;
+  if (!Array.isArray(contentParts)) return fallback;
 
   let replaced = false;
   const output = contentParts.map((contentPart) => {
-    if (!contentPart || typeof contentPart !== "object") return "";
-    const value = contentPart as { type?: unknown; text?: unknown };
-    if (value.type === "text" && typeof value.text === "string") return value.text;
-    if (objectRefFromValue(contentPart)?.key === objectKey) {
-      replaced = true;
-      return hydratedOutput;
+    const object = objectRefFromValue(contentPart);
+    if (object) {
+      const hydratedOutput = outputs[cacheKey(messageId, toolCallId, object.key)];
+      if (hydratedOutput !== undefined) {
+        replaced = true;
+        return { type: "text", text: hydratedOutput };
+      }
     }
-    return "";
-  }).join("");
-  return replaced ? output : fallback;
+    return contentPart;
+  });
+  if (!replaced || !toolOutput || typeof toolOutput !== "object") return fallback;
+  return {
+    ...(toolOutput as Record<string, unknown>),
+    content_parts: output,
+  };
+}
+
+function objectAtToolResultPartIndex(part: unknown, partIndex: number): TalonChatObjectRef | undefined {
+  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
+  const output = payload.tool_output ?? payload.toolOutput;
+  const contentParts = output && typeof output === "object"
+    ? (output as Record<string, unknown>).content_parts ?? (output as Record<string, unknown>).contentParts
+    : undefined;
+  return Array.isArray(contentParts) ? objectRefFromValue(contentParts[partIndex]) : undefined;
 }
 
 export function useToolResultHydration(client: CasClient | undefined, target: SessionTarget | null) {
@@ -116,12 +147,8 @@ export function useToolResultHydration(client: CasClient | undefined, target: Se
 
   const resultFor = useCallback((message: CopilotMessage, toolCallId: string, fallback: unknown): unknown => {
     const partMatch = findObjectPart(message.parts, toolCallId);
-    const object = partMatch?.object ?? objectRefFromValue(fallback);
-    const key = objectRefKey(object);
-    if (!key) return fallback;
-    const keyForOutput = cacheKey(message.id, toolCallId, key);
-    return Object.prototype.hasOwnProperty.call(outputs, keyForOutput)
-      ? replaceObjectInOutput(partMatch?.part, fallback, key, outputs[keyForOutput]!)
+    return partMatch
+      ? replaceObjectInOutput(partMatch.part, fallback, message.id, toolCallId, outputs)
       : fallback;
   }, [outputs]);
 
@@ -130,17 +157,22 @@ export function useToolResultHydration(client: CasClient | undefined, target: Se
     toolCallId: string,
     toolRowKey: string,
     fallback: unknown,
+    requestedPartIndex?: number,
   ) => {
     const partMatch = findHydratableObjectPart(message.parts, toolCallId);
+    const partIndex = requestedPartIndex ?? toolResultTextPartIndex(partMatch?.part);
+    const selectedObject = partMatch && objectAtToolResultPartIndex(partMatch.part, partIndex);
     const fallbackObject = partMatch ? undefined : objectRefFromValue(fallback);
-    const match = partMatch ?? (fallbackObject
-      ? { part: undefined, key: fallbackObject.key, object: fallbackObject }
-      : null);
+    const match = selectedObject
+      ? { part: partMatch!.part, key: selectedObject.key, object: selectedObject }
+      : partMatch ?? (fallbackObject
+        ? { part: undefined, key: fallbackObject.key, object: fallbackObject }
+        : null);
     if (!match || !client?.readToolResultPart || !target) return;
 
     const outputKey = cacheKey(message.id, toolCallId, match.key);
-    if (Object.prototype.hasOwnProperty.call(outputs, outputKey) || inFlight.current.has(toolRowKey)) return;
-    inFlight.current.add(toolRowKey);
+    if (Object.prototype.hasOwnProperty.call(outputs, outputKey) || inFlight.current.has(`${toolRowKey}:${partIndex}`)) return;
+    inFlight.current.add(`${toolRowKey}:${partIndex}`);
     const currentGeneration = generation.current;
     setState((current) => ({ ...current, [toolRowKey]: "loading" }));
     try {
@@ -149,9 +181,8 @@ export function useToolResultHydration(client: CasClient | undefined, target: Se
         agent: target.agent,
         sessionId: target.sessionId,
         toolCallId,
-        partIndex: toolResultTextPartIndex(match.part),
-        start: 0,
-        maxSize: 8 * 1024,
+        partIndex,
+        byteRange: initialToolResultPartByteRange(),
       });
       const output = toolResultPartText(response);
       if (!output) throw new Error("Tool-result part is not text-readable");
@@ -168,7 +199,7 @@ export function useToolResultHydration(client: CasClient | undefined, target: Se
       console.warn("Could not hydrate tool-result part", toolCallId, error);
       setState((current) => ({ ...current, [toolRowKey]: { objectKey: match.key } }));
     } finally {
-      inFlight.current.delete(toolRowKey);
+      inFlight.current.delete(`${toolRowKey}:${partIndex}`);
     }
   }, [client, outputs, target]);
 

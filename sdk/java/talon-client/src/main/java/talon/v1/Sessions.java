@@ -29252,21 +29252,19 @@ java.lang.String defaultValue) {
     int getPartIndex();
 
     /**
-     * <code>uint64 start = 6;</code>
-     * @return The start.
+     * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+     * @return Whether the byteRange field is set.
      */
-    long getStart();
-
+    boolean hasByteRange();
     /**
-     * <code>optional uint64 max_size = 7;</code>
-     * @return Whether the maxSize field is set.
+     * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+     * @return The byteRange.
      */
-    boolean hasMaxSize();
+    talon.v1.Sessions.ToolResultByteRange getByteRange();
     /**
-     * <code>optional uint64 max_size = 7;</code>
-     * @return The maxSize.
+     * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
      */
-    long getMaxSize();
+    talon.v1.Sessions.ToolResultByteRangeOrBuilder getByteRangeOrBuilder();
   }
   /**
    * <pre>
@@ -29488,34 +29486,30 @@ java.lang.String defaultValue) {
       return partIndex_;
     }
 
-    public static final int START_FIELD_NUMBER = 6;
-    private long start_ = 0L;
+    public static final int BYTE_RANGE_FIELD_NUMBER = 6;
+    private talon.v1.Sessions.ToolResultByteRange byteRange_;
     /**
-     * <code>uint64 start = 6;</code>
-     * @return The start.
+     * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+     * @return Whether the byteRange field is set.
      */
     @java.lang.Override
-    public long getStart() {
-      return start_;
-    }
-
-    public static final int MAX_SIZE_FIELD_NUMBER = 7;
-    private long maxSize_ = 0L;
-    /**
-     * <code>optional uint64 max_size = 7;</code>
-     * @return Whether the maxSize field is set.
-     */
-    @java.lang.Override
-    public boolean hasMaxSize() {
+    public boolean hasByteRange() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>optional uint64 max_size = 7;</code>
-     * @return The maxSize.
+     * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+     * @return The byteRange.
      */
     @java.lang.Override
-    public long getMaxSize() {
-      return maxSize_;
+    public talon.v1.Sessions.ToolResultByteRange getByteRange() {
+      return byteRange_ == null ? talon.v1.Sessions.ToolResultByteRange.getDefaultInstance() : byteRange_;
+    }
+    /**
+     * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+     */
+    @java.lang.Override
+    public talon.v1.Sessions.ToolResultByteRangeOrBuilder getByteRangeOrBuilder() {
+      return byteRange_ == null ? talon.v1.Sessions.ToolResultByteRange.getDefaultInstance() : byteRange_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -29547,11 +29541,8 @@ java.lang.String defaultValue) {
       if (partIndex_ != 0) {
         output.writeUInt32(5, partIndex_);
       }
-      if (start_ != 0L) {
-        output.writeUInt64(6, start_);
-      }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeUInt64(7, maxSize_);
+        output.writeMessage(6, getByteRange());
       }
       getUnknownFields().writeTo(output);
     }
@@ -29578,13 +29569,9 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(5, partIndex_);
       }
-      if (start_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(6, start_);
-      }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(7, maxSize_);
+          .computeMessageSize(6, getByteRange());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -29611,12 +29598,10 @@ java.lang.String defaultValue) {
           .equals(other.getToolCallId())) return false;
       if (getPartIndex()
           != other.getPartIndex()) return false;
-      if (getStart()
-          != other.getStart()) return false;
-      if (hasMaxSize() != other.hasMaxSize()) return false;
-      if (hasMaxSize()) {
-        if (getMaxSize()
-            != other.getMaxSize()) return false;
+      if (hasByteRange() != other.hasByteRange()) return false;
+      if (hasByteRange()) {
+        if (!getByteRange()
+            .equals(other.getByteRange())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -29639,13 +29624,9 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getToolCallId().hashCode();
       hash = (37 * hash) + PART_INDEX_FIELD_NUMBER;
       hash = (53 * hash) + getPartIndex();
-      hash = (37 * hash) + START_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getStart());
-      if (hasMaxSize()) {
-        hash = (37 * hash) + MAX_SIZE_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getMaxSize());
+      if (hasByteRange()) {
+        hash = (37 * hash) + BYTE_RANGE_FIELD_NUMBER;
+        hash = (53 * hash) + getByteRange().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -29772,13 +29753,19 @@ java.lang.String defaultValue) {
 
       // Construct using talon.v1.Sessions.ReadToolResultPartRequest.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetByteRangeFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -29789,8 +29776,11 @@ java.lang.String defaultValue) {
         ns_ = "";
         toolCallId_ = "";
         partIndex_ = 0;
-        start_ = 0L;
-        maxSize_ = 0L;
+        byteRange_ = null;
+        if (byteRangeBuilder_ != null) {
+          byteRangeBuilder_.dispose();
+          byteRangeBuilder_ = null;
+        }
         return this;
       }
 
@@ -29839,12 +29829,11 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000010) != 0)) {
           result.partIndex_ = partIndex_;
         }
-        if (((from_bitField0_ & 0x00000020) != 0)) {
-          result.start_ = start_;
-        }
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000040) != 0)) {
-          result.maxSize_ = maxSize_;
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.byteRange_ = byteRangeBuilder_ == null
+              ? byteRange_
+              : byteRangeBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
         result.bitField0_ |= to_bitField0_;
@@ -29885,11 +29874,8 @@ java.lang.String defaultValue) {
         if (other.getPartIndex() != 0) {
           setPartIndex(other.getPartIndex());
         }
-        if (other.getStart() != 0L) {
-          setStart(other.getStart());
-        }
-        if (other.hasMaxSize()) {
-          setMaxSize(other.getMaxSize());
+        if (other.hasByteRange()) {
+          mergeByteRange(other.getByteRange());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -29942,16 +29928,13 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 40
-              case 48: {
-                start_ = input.readUInt64();
+              case 50: {
+                input.readMessage(
+                    internalGetByteRangeFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000020;
                 break;
-              } // case 48
-              case 56: {
-                maxSize_ = input.readUInt64();
-                bitField0_ |= 0x00000040;
-                break;
-              } // case 56
+              } // case 50
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -30289,76 +30272,125 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private long start_ ;
+      private talon.v1.Sessions.ToolResultByteRange byteRange_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.v1.Sessions.ToolResultByteRange, talon.v1.Sessions.ToolResultByteRange.Builder, talon.v1.Sessions.ToolResultByteRangeOrBuilder> byteRangeBuilder_;
       /**
-       * <code>uint64 start = 6;</code>
-       * @return The start.
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+       * @return Whether the byteRange field is set.
        */
-      @java.lang.Override
-      public long getStart() {
-        return start_;
+      public boolean hasByteRange() {
+        return ((bitField0_ & 0x00000020) != 0);
       }
       /**
-       * <code>uint64 start = 6;</code>
-       * @param value The start to set.
-       * @return This builder for chaining.
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+       * @return The byteRange.
        */
-      public Builder setStart(long value) {
-
-        start_ = value;
+      public talon.v1.Sessions.ToolResultByteRange getByteRange() {
+        if (byteRangeBuilder_ == null) {
+          return byteRange_ == null ? talon.v1.Sessions.ToolResultByteRange.getDefaultInstance() : byteRange_;
+        } else {
+          return byteRangeBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+       */
+      public Builder setByteRange(talon.v1.Sessions.ToolResultByteRange value) {
+        if (byteRangeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          byteRange_ = value;
+        } else {
+          byteRangeBuilder_.setMessage(value);
+        }
         bitField0_ |= 0x00000020;
         onChanged();
         return this;
       }
       /**
-       * <code>uint64 start = 6;</code>
-       * @return This builder for chaining.
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
        */
-      public Builder clearStart() {
+      public Builder setByteRange(
+          talon.v1.Sessions.ToolResultByteRange.Builder builderForValue) {
+        if (byteRangeBuilder_ == null) {
+          byteRange_ = builderForValue.build();
+        } else {
+          byteRangeBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+       */
+      public Builder mergeByteRange(talon.v1.Sessions.ToolResultByteRange value) {
+        if (byteRangeBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) != 0) &&
+            byteRange_ != null &&
+            byteRange_ != talon.v1.Sessions.ToolResultByteRange.getDefaultInstance()) {
+            getByteRangeBuilder().mergeFrom(value);
+          } else {
+            byteRange_ = value;
+          }
+        } else {
+          byteRangeBuilder_.mergeFrom(value);
+        }
+        if (byteRange_ != null) {
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+       */
+      public Builder clearByteRange() {
         bitField0_ = (bitField0_ & ~0x00000020);
-        start_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long maxSize_ ;
-      /**
-       * <code>optional uint64 max_size = 7;</code>
-       * @return Whether the maxSize field is set.
-       */
-      @java.lang.Override
-      public boolean hasMaxSize() {
-        return ((bitField0_ & 0x00000040) != 0);
-      }
-      /**
-       * <code>optional uint64 max_size = 7;</code>
-       * @return The maxSize.
-       */
-      @java.lang.Override
-      public long getMaxSize() {
-        return maxSize_;
-      }
-      /**
-       * <code>optional uint64 max_size = 7;</code>
-       * @param value The maxSize to set.
-       * @return This builder for chaining.
-       */
-      public Builder setMaxSize(long value) {
-
-        maxSize_ = value;
-        bitField0_ |= 0x00000040;
+        byteRange_ = null;
+        if (byteRangeBuilder_ != null) {
+          byteRangeBuilder_.dispose();
+          byteRangeBuilder_ = null;
+        }
         onChanged();
         return this;
       }
       /**
-       * <code>optional uint64 max_size = 7;</code>
-       * @return This builder for chaining.
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
        */
-      public Builder clearMaxSize() {
-        bitField0_ = (bitField0_ & ~0x00000040);
-        maxSize_ = 0L;
+      public talon.v1.Sessions.ToolResultByteRange.Builder getByteRangeBuilder() {
+        bitField0_ |= 0x00000020;
         onChanged();
-        return this;
+        return internalGetByteRangeFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+       */
+      public talon.v1.Sessions.ToolResultByteRangeOrBuilder getByteRangeOrBuilder() {
+        if (byteRangeBuilder_ != null) {
+          return byteRangeBuilder_.getMessageOrBuilder();
+        } else {
+          return byteRange_ == null ?
+              talon.v1.Sessions.ToolResultByteRange.getDefaultInstance() : byteRange_;
+        }
+      }
+      /**
+       * <code>.talon.v1.ToolResultByteRange byte_range = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.v1.Sessions.ToolResultByteRange, talon.v1.Sessions.ToolResultByteRange.Builder, talon.v1.Sessions.ToolResultByteRangeOrBuilder>
+          internalGetByteRangeFieldBuilder() {
+        if (byteRangeBuilder_ == null) {
+          byteRangeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.v1.Sessions.ToolResultByteRange, talon.v1.Sessions.ToolResultByteRange.Builder, talon.v1.Sessions.ToolResultByteRangeOrBuilder>(
+                  getByteRange(),
+                  getParentForChildren(),
+                  isClean());
+          byteRange_ = null;
+        }
+        return byteRangeBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.v1.ReadToolResultPartRequest)
@@ -30407,6 +30439,739 @@ java.lang.String defaultValue) {
 
     @java.lang.Override
     public talon.v1.Sessions.ReadToolResultPartRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ToolResultByteRangeOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.ToolResultByteRange)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint64 start = 1;</code>
+     * @return The start.
+     */
+    long getStart();
+
+    /**
+     * <code>uint64 end = 2;</code>
+     * @return Whether the end field is set.
+     */
+    boolean hasEnd();
+    /**
+     * <code>uint64 end = 2;</code>
+     * @return The end.
+     */
+    long getEnd();
+
+    /**
+     * <code>uint64 max_size = 3;</code>
+     * @return Whether the maxSize field is set.
+     */
+    boolean hasMaxSize();
+    /**
+     * <code>uint64 max_size = 3;</code>
+     * @return The maxSize.
+     */
+    long getMaxSize();
+
+    talon.v1.Sessions.ToolResultByteRange.LimitCase getLimitCase();
+  }
+  /**
+   * <pre>
+   * Matches the generic read tool's byte_range contract. `end` is exclusive;
+   * exactly one of `end` and `max_size` must be supplied.
+   * </pre>
+   *
+   * Protobuf type {@code talon.v1.ToolResultByteRange}
+   */
+  public static final class ToolResultByteRange extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.ToolResultByteRange)
+      ToolResultByteRangeOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ToolResultByteRange");
+    }
+    // Use ToolResultByteRange.newBuilder() to construct.
+    private ToolResultByteRange(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ToolResultByteRange() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Sessions.internal_static_talon_v1_ToolResultByteRange_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Sessions.internal_static_talon_v1_ToolResultByteRange_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Sessions.internal_static_talon_v1_ToolResultByteRange_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Sessions.ToolResultByteRange.class, talon.v1.Sessions.ToolResultByteRange.Builder.class);
+    }
+
+    private int limitCase_ = 0;
+    @SuppressWarnings("serial")
+    private java.lang.Object limit_;
+    public enum LimitCase
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
+      END(2),
+      MAX_SIZE(3),
+      LIMIT_NOT_SET(0);
+      private final int value;
+      private LimitCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static LimitCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static LimitCase forNumber(int value) {
+        switch (value) {
+          case 2: return END;
+          case 3: return MAX_SIZE;
+          case 0: return LIMIT_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public LimitCase
+    getLimitCase() {
+      return LimitCase.forNumber(
+          limitCase_);
+    }
+
+    public static final int START_FIELD_NUMBER = 1;
+    private long start_ = 0L;
+    /**
+     * <code>uint64 start = 1;</code>
+     * @return The start.
+     */
+    @java.lang.Override
+    public long getStart() {
+      return start_;
+    }
+
+    public static final int END_FIELD_NUMBER = 2;
+    /**
+     * <code>uint64 end = 2;</code>
+     * @return Whether the end field is set.
+     */
+    @java.lang.Override
+    public boolean hasEnd() {
+      return limitCase_ == 2;
+    }
+    /**
+     * <code>uint64 end = 2;</code>
+     * @return The end.
+     */
+    @java.lang.Override
+    public long getEnd() {
+      if (limitCase_ == 2) {
+        return (java.lang.Long) limit_;
+      }
+      return 0L;
+    }
+
+    public static final int MAX_SIZE_FIELD_NUMBER = 3;
+    /**
+     * <code>uint64 max_size = 3;</code>
+     * @return Whether the maxSize field is set.
+     */
+    @java.lang.Override
+    public boolean hasMaxSize() {
+      return limitCase_ == 3;
+    }
+    /**
+     * <code>uint64 max_size = 3;</code>
+     * @return The maxSize.
+     */
+    @java.lang.Override
+    public long getMaxSize() {
+      if (limitCase_ == 3) {
+        return (java.lang.Long) limit_;
+      }
+      return 0L;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (start_ != 0L) {
+        output.writeUInt64(1, start_);
+      }
+      if (limitCase_ == 2) {
+        output.writeUInt64(
+            2, (long)((java.lang.Long) limit_));
+      }
+      if (limitCase_ == 3) {
+        output.writeUInt64(
+            3, (long)((java.lang.Long) limit_));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (start_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(1, start_);
+      }
+      if (limitCase_ == 2) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(
+              2, (long)((java.lang.Long) limit_));
+      }
+      if (limitCase_ == 3) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(
+              3, (long)((java.lang.Long) limit_));
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Sessions.ToolResultByteRange)) {
+        return super.equals(obj);
+      }
+      talon.v1.Sessions.ToolResultByteRange other = (talon.v1.Sessions.ToolResultByteRange) obj;
+
+      if (getStart()
+          != other.getStart()) return false;
+      if (!getLimitCase().equals(other.getLimitCase())) return false;
+      switch (limitCase_) {
+        case 2:
+          if (getEnd()
+              != other.getEnd()) return false;
+          break;
+        case 3:
+          if (getMaxSize()
+              != other.getMaxSize()) return false;
+          break;
+        case 0:
+        default:
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + START_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStart());
+      switch (limitCase_) {
+        case 2:
+          hash = (37 * hash) + END_FIELD_NUMBER;
+          hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+              getEnd());
+          break;
+        case 3:
+          hash = (37 * hash) + MAX_SIZE_FIELD_NUMBER;
+          hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+              getMaxSize());
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Sessions.ToolResultByteRange parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Sessions.ToolResultByteRange parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ToolResultByteRange parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Sessions.ToolResultByteRange prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Matches the generic read tool's byte_range contract. `end` is exclusive;
+     * exactly one of `end` and `max_size` must be supplied.
+     * </pre>
+     *
+     * Protobuf type {@code talon.v1.ToolResultByteRange}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.ToolResultByteRange)
+        talon.v1.Sessions.ToolResultByteRangeOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Sessions.internal_static_talon_v1_ToolResultByteRange_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Sessions.internal_static_talon_v1_ToolResultByteRange_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Sessions.ToolResultByteRange.class, talon.v1.Sessions.ToolResultByteRange.Builder.class);
+      }
+
+      // Construct using talon.v1.Sessions.ToolResultByteRange.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        start_ = 0L;
+        limitCase_ = 0;
+        limit_ = null;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Sessions.internal_static_talon_v1_ToolResultByteRange_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ToolResultByteRange getDefaultInstanceForType() {
+        return talon.v1.Sessions.ToolResultByteRange.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ToolResultByteRange build() {
+        talon.v1.Sessions.ToolResultByteRange result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ToolResultByteRange buildPartial() {
+        talon.v1.Sessions.ToolResultByteRange result = new talon.v1.Sessions.ToolResultByteRange(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        buildPartialOneofs(result);
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Sessions.ToolResultByteRange result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.start_ = start_;
+        }
+      }
+
+      private void buildPartialOneofs(talon.v1.Sessions.ToolResultByteRange result) {
+        result.limitCase_ = limitCase_;
+        result.limit_ = this.limit_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Sessions.ToolResultByteRange) {
+          return mergeFrom((talon.v1.Sessions.ToolResultByteRange)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Sessions.ToolResultByteRange other) {
+        if (other == talon.v1.Sessions.ToolResultByteRange.getDefaultInstance()) return this;
+        if (other.getStart() != 0L) {
+          setStart(other.getStart());
+        }
+        switch (other.getLimitCase()) {
+          case END: {
+            setEnd(other.getEnd());
+            break;
+          }
+          case MAX_SIZE: {
+            setMaxSize(other.getMaxSize());
+            break;
+          }
+          case LIMIT_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                start_ = input.readUInt64();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                limit_ = input.readUInt64();
+                limitCase_ = 2;
+                break;
+              } // case 16
+              case 24: {
+                limit_ = input.readUInt64();
+                limitCase_ = 3;
+                break;
+              } // case 24
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int limitCase_ = 0;
+      private java.lang.Object limit_;
+      public LimitCase
+          getLimitCase() {
+        return LimitCase.forNumber(
+            limitCase_);
+      }
+
+      public Builder clearLimit() {
+        limitCase_ = 0;
+        limit_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int bitField0_;
+
+      private long start_ ;
+      /**
+       * <code>uint64 start = 1;</code>
+       * @return The start.
+       */
+      @java.lang.Override
+      public long getStart() {
+        return start_;
+      }
+      /**
+       * <code>uint64 start = 1;</code>
+       * @param value The start to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStart(long value) {
+
+        start_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 start = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStart() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        start_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      /**
+       * <code>uint64 end = 2;</code>
+       * @return Whether the end field is set.
+       */
+      public boolean hasEnd() {
+        return limitCase_ == 2;
+      }
+      /**
+       * <code>uint64 end = 2;</code>
+       * @return The end.
+       */
+      public long getEnd() {
+        if (limitCase_ == 2) {
+          return (java.lang.Long) limit_;
+        }
+        return 0L;
+      }
+      /**
+       * <code>uint64 end = 2;</code>
+       * @param value The end to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEnd(long value) {
+
+        limitCase_ = 2;
+        limit_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 end = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEnd() {
+        if (limitCase_ == 2) {
+          limitCase_ = 0;
+          limit_ = null;
+          onChanged();
+        }
+        return this;
+      }
+
+      /**
+       * <code>uint64 max_size = 3;</code>
+       * @return Whether the maxSize field is set.
+       */
+      public boolean hasMaxSize() {
+        return limitCase_ == 3;
+      }
+      /**
+       * <code>uint64 max_size = 3;</code>
+       * @return The maxSize.
+       */
+      public long getMaxSize() {
+        if (limitCase_ == 3) {
+          return (java.lang.Long) limit_;
+        }
+        return 0L;
+      }
+      /**
+       * <code>uint64 max_size = 3;</code>
+       * @param value The maxSize to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaxSize(long value) {
+
+        limitCase_ = 3;
+        limit_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 max_size = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaxSize() {
+        if (limitCase_ == 3) {
+          limitCase_ = 0;
+          limit_ = null;
+          onChanged();
+        }
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.ToolResultByteRange)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.ToolResultByteRange)
+    private static final talon.v1.Sessions.ToolResultByteRange DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Sessions.ToolResultByteRange();
+    }
+
+    public static talon.v1.Sessions.ToolResultByteRange getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ToolResultByteRange>
+        PARSER = new com.google.protobuf.AbstractParser<ToolResultByteRange>() {
+      @java.lang.Override
+      public ToolResultByteRange parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ToolResultByteRange> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ToolResultByteRange> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Sessions.ToolResultByteRange getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -31853,6 +32618,11 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_ToolResultByteRange_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_ToolResultByteRange_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -31965,52 +32735,54 @@ java.lang.String defaultValue) {
       "\003(\t\"\247\001\n\031ReadToolResultPartRequest\022\022\n\nses" +
       "sion_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t" +
       "\022\024\n\014tool_call_id\030\004 \001(\t\022\022\n\npart_index\030\005 \001" +
-      "(\r\022\r\n\005start\030\006 \001(\004\022\025\n\010max_size\030\007 \001(\004H\000\210\001\001" +
-      "B\013\n\t_max_size\"\266\001\n\032ReadToolResultPartResp" +
-      "onse\022\022\n\nmedia_type\030\001 \001(\t\022\r\n\005start\030\002 \001(\004\022" +
-      "\013\n\003end\030\003 \001(\004\022\026\n\tnext_byte\030\004 \001(\004H\001\210\001\001\022\016\n\004" +
-      "text\030\005 \001(\tH\000\022\'\n\006object\030\006 \001(\0132\025.talon.dat" +
-      "a.ObjectRefH\000B\t\n\007contentB\014\n\n_next_byte2\262" +
-      "\014\n\016SessionService\022C\n\006Create\022\036.talon.v1.C" +
-      "reateSessionRequest\032\031.talon.v1.SessionRe" +
-      "sponse\022=\n\003Get\022\033.talon.v1.GetSessionReque" +
-      "st\032\031.talon.v1.SessionResponse\022E\n\004List\022\035." +
-      "talon.v1.ListSessionsRequest\032\036.talon.v1." +
-      "ListSessionsResponse\022[\n\014ListMessages\022$.t" +
-      "alon.v1.ListSessionMessagesRequest\032%.tal" +
-      "on.v1.ListSessionMessagesResponse\022m\n\022Lis" +
-      "tQueuedMessages\022*.talon.v1.ListQueuedSes" +
-      "sionMessagesRequest\032+.talon.v1.ListQueue" +
-      "dSessionMessagesResponse\022I\n\006Delete\022\036.tal" +
-      "on.v1.DeleteSessionRequest\032\037.talon.v1.De" +
-      "leteSessionResponse\022F\n\005Clear\022\035.talon.v1." +
-      "ClearSessionRequest\032\036.talon.v1.ClearSess" +
-      "ionResponse\022S\n\007Compact\022\037.talon.v1.Compac" +
-      "tSessionRequest\032%.talon.events.SessionMe" +
-      "ssagePartEvent0\001\022I\n\006Doctor\022\036.talon.v1.Do" +
-      "ctorSessionRequest\032\037.talon.v1.DoctorSess" +
-      "ionResponse\022J\n\013SendMessage\022\034.talon.v1.Se" +
-      "ndMessageRequest\032\035.talon.v1.SendMessageR" +
-      "esponse\022^\n\rAppendMessage\022%.talon.v1.Appe" +
-      "ndSessionMessageRequest\032&.talon.v1.Appen" +
-      "dSessionMessageResponse\022^\n\rUpdateMessage" +
-      "\022%.talon.v1.UpdateSessionMessageRequest\032" +
-      "&.talon.v1.UpdateSessionMessageResponse\022" +
-      "g\n\020AnswerPermission\022(.talon.v1.AnswerSes" +
-      "sionPermissionRequest\032).talon.v1.AnswerS" +
-      "essionPermissionResponse\022a\n\016StopGenerati" +
-      "on\022&.talon.v1.StopSessionGenerationReque" +
-      "st\032\'.talon.v1.StopSessionGenerationRespo" +
-      "nse\022[\n\013StreamParts\022#.talon.v1.StreamSess" +
-      "ionPartsRequest\032%.talon.events.SessionMe" +
-      "ssagePartEvent0\001\022e\n\020StreamPartsBatch\022(.t" +
-      "alon.v1.StreamSessionPartsBatchRequest\032%" +
-      ".talon.events.SessionMessagePartEvent0\001\022" +
-      "Y\n\nSubmitTurn\022\".talon.v1.SubmitSessionTu" +
-      "rnRequest\032%.talon.events.SessionMessageP" +
-      "artEvent0\001\022_\n\022ReadToolResultPart\022#.talon" +
-      ".v1.ReadToolResultPartRequest\032$.talon.v1" +
-      ".ReadToolResultPartResponseb\006proto3"
+      "(\r\0221\n\nbyte_range\030\006 \001(\0132\035.talon.v1.ToolRe" +
+      "sultByteRange\"P\n\023ToolResultByteRange\022\r\n\005" +
+      "start\030\001 \001(\004\022\r\n\003end\030\002 \001(\004H\000\022\022\n\010max_size\030\003" +
+      " \001(\004H\000B\007\n\005limit\"\266\001\n\032ReadToolResultPartRe" +
+      "sponse\022\022\n\nmedia_type\030\001 \001(\t\022\r\n\005start\030\002 \001(" +
+      "\004\022\013\n\003end\030\003 \001(\004\022\026\n\tnext_byte\030\004 \001(\004H\001\210\001\001\022\016" +
+      "\n\004text\030\005 \001(\tH\000\022\'\n\006object\030\006 \001(\0132\025.talon.d" +
+      "ata.ObjectRefH\000B\t\n\007contentB\014\n\n_next_byte" +
+      "2\262\014\n\016SessionService\022C\n\006Create\022\036.talon.v1" +
+      ".CreateSessionRequest\032\031.talon.v1.Session" +
+      "Response\022=\n\003Get\022\033.talon.v1.GetSessionReq" +
+      "uest\032\031.talon.v1.SessionResponse\022E\n\004List\022" +
+      "\035.talon.v1.ListSessionsRequest\032\036.talon.v" +
+      "1.ListSessionsResponse\022[\n\014ListMessages\022$" +
+      ".talon.v1.ListSessionMessagesRequest\032%.t" +
+      "alon.v1.ListSessionMessagesResponse\022m\n\022L" +
+      "istQueuedMessages\022*.talon.v1.ListQueuedS" +
+      "essionMessagesRequest\032+.talon.v1.ListQue" +
+      "uedSessionMessagesResponse\022I\n\006Delete\022\036.t" +
+      "alon.v1.DeleteSessionRequest\032\037.talon.v1." +
+      "DeleteSessionResponse\022F\n\005Clear\022\035.talon.v" +
+      "1.ClearSessionRequest\032\036.talon.v1.ClearSe" +
+      "ssionResponse\022S\n\007Compact\022\037.talon.v1.Comp" +
+      "actSessionRequest\032%.talon.events.Session" +
+      "MessagePartEvent0\001\022I\n\006Doctor\022\036.talon.v1." +
+      "DoctorSessionRequest\032\037.talon.v1.DoctorSe" +
+      "ssionResponse\022J\n\013SendMessage\022\034.talon.v1." +
+      "SendMessageRequest\032\035.talon.v1.SendMessag" +
+      "eResponse\022^\n\rAppendMessage\022%.talon.v1.Ap" +
+      "pendSessionMessageRequest\032&.talon.v1.App" +
+      "endSessionMessageResponse\022^\n\rUpdateMessa" +
+      "ge\022%.talon.v1.UpdateSessionMessageReques" +
+      "t\032&.talon.v1.UpdateSessionMessageRespons" +
+      "e\022g\n\020AnswerPermission\022(.talon.v1.AnswerS" +
+      "essionPermissionRequest\032).talon.v1.Answe" +
+      "rSessionPermissionResponse\022a\n\016StopGenera" +
+      "tion\022&.talon.v1.StopSessionGenerationReq" +
+      "uest\032\'.talon.v1.StopSessionGenerationRes" +
+      "ponse\022[\n\013StreamParts\022#.talon.v1.StreamSe" +
+      "ssionPartsRequest\032%.talon.events.Session" +
+      "MessagePartEvent0\001\022e\n\020StreamPartsBatch\022(" +
+      ".talon.v1.StreamSessionPartsBatchRequest" +
+      "\032%.talon.events.SessionMessagePartEvent0" +
+      "\001\022Y\n\nSubmitTurn\022\".talon.v1.SubmitSession" +
+      "TurnRequest\032%.talon.events.SessionMessag" +
+      "ePartEvent0\001\022_\n\022ReadToolResultPart\022#.tal" +
+      "on.v1.ReadToolResultPartRequest\032$.talon." +
+      "v1.ReadToolResultPartResponseb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -32251,9 +33023,15 @@ java.lang.String defaultValue) {
     internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ReadToolResultPartRequest_descriptor,
-        new java.lang.String[] { "SessionId", "Agent", "Ns", "ToolCallId", "PartIndex", "Start", "MaxSize", });
-    internal_static_talon_v1_ReadToolResultPartResponse_descriptor =
+        new java.lang.String[] { "SessionId", "Agent", "Ns", "ToolCallId", "PartIndex", "ByteRange", });
+    internal_static_talon_v1_ToolResultByteRange_descriptor =
       getDescriptor().getMessageType(33);
+    internal_static_talon_v1_ToolResultByteRange_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_ToolResultByteRange_descriptor,
+        new java.lang.String[] { "Start", "End", "MaxSize", "Limit", });
+    internal_static_talon_v1_ReadToolResultPartResponse_descriptor =
+      getDescriptor().getMessageType(34);
     internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ReadToolResultPartResponse_descriptor,

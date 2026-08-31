@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::cas::CasStore;
+use crate::control::{keys, KeyValueStore};
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
     chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput, ToolOutputByteRange,
 };
 use anyhow::{anyhow, Result};
+use prost::Message;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -14,6 +16,7 @@ use std::collections::HashMap;
 pub const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 pub const TOOL_RESULT_INLINE_CONTEXT_BYTES: usize = 8 * 1024;
 pub const TOOL_RESULT_DURABLE_SUMMARY_BYTES: usize = 512;
+const TOOL_RESULT_CATALOG_PREVIEW_BYTES: usize = 256;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolResultPayload {
@@ -197,7 +200,36 @@ pub fn is_tool_result_object_ref(object_ref: &data_proto::ObjectRef) -> bool {
         .is_some_and(|kind| kind == crate::control::cas::METADATA_KIND_TOOL_RESULT)
 }
 
+/// Returns the number of logical bytes exposed through the text-range API.
+/// `ObjectRef::size_bytes` is deliberately the stored-object size, which is
+/// smaller for compressed tool results.
+pub fn logical_object_size_bytes(object_ref: &data_proto::ObjectRef) -> u64 {
+    object_ref
+        .metadata
+        .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(object_ref.size_bytes)
+}
+
 pub fn compact_tool_result_catalog(tool_call_id: &str, parts: &[ChatContentPart]) -> String {
+    compact_tool_result_catalog_with_preview(tool_call_id, parts, None)
+}
+
+pub fn compact_tool_result_catalog_for_output(tool_call_id: &str, output: &ToolOutput) -> String {
+    let prefix = format!("Tool result catalog {}:", tool_result_handle(tool_call_id));
+    let preview = output
+        .summary
+        .strip_prefix(&prefix)
+        .and_then(|_| output.summary.split_once("\nPreview:\n"))
+        .map(|(_, preview)| preview);
+    compact_tool_result_catalog_with_preview(tool_call_id, &output.content_parts, preview)
+}
+
+pub fn compact_tool_result_catalog_with_preview(
+    tool_call_id: &str,
+    parts: &[ChatContentPart],
+    preview: Option<&str>,
+) -> String {
     let entries = parts
         .iter()
         .enumerate()
@@ -208,22 +240,25 @@ pub fn compact_tool_result_catalog(tool_call_id: &str, parts: &[ChatContentPart]
             Some(chat_content_part::Content::ObjectRef(object)) => {
                 format!(
                     "parts/{index}: {} ({} bytes)",
-                    object.media_type, object.size_bytes
+                    object.media_type,
+                    logical_object_size_bytes(object)
                 )
             }
             None => format!("parts/{index}: empty"),
         })
         .collect::<Vec<_>>()
         .join(", ");
-    truncate_utf8(
-        &format!(
-            "Tool result catalog {}: {}. Use read with ref '{}' to inspect a part.",
-            tool_result_handle(tool_call_id),
-            entries,
-            tool_result_handle(tool_call_id)
-        ),
-        TOOL_RESULT_DURABLE_SUMMARY_BYTES,
-    )
+    let mut catalog = format!(
+        "Tool result catalog {}: {}. Use read with ref '{}' to inspect a part.",
+        tool_result_handle(tool_call_id),
+        entries,
+        tool_result_handle(tool_call_id)
+    );
+    if let Some(text) = preview {
+        catalog.push_str("\nPreview:\n");
+        catalog.push_str(&truncate_utf8(text, TOOL_RESULT_CATALOG_PREVIEW_BYTES));
+    }
+    truncate_utf8(&catalog, TOOL_RESULT_DURABLE_SUMMARY_BYTES)
 }
 
 /// Represents a logical byte selection without copying the selected text into
@@ -265,6 +300,7 @@ pub async fn normalize_for_session_storage(
 ) -> Result<ToolOutput> {
     let mut content_parts = Vec::with_capacity(output.content_parts.len());
     let mut stored_large_text = false;
+    let mut catalog_preview = None;
     for (index, part) in output.content_parts.iter().enumerate() {
         let Some(chat_content_part::Content::Text(text)) = part.content.as_ref() else {
             content_parts.push(part.clone());
@@ -273,6 +309,9 @@ pub async fn normalize_for_session_storage(
         if text.as_bytes().len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES {
             content_parts.push(part.clone());
             continue;
+        }
+        if output.content_parts.len() == 1 {
+            catalog_preview = Some(text.as_str());
         }
         let object_part_id = if output.content_parts.len() == 1 {
             ctx.part_id.to_string()
@@ -295,7 +334,7 @@ pub async fn normalize_for_session_storage(
         stored_large_text = true;
     }
     let summary = if stored_large_text {
-        compact_tool_result_catalog(ctx.tool_call_id, &content_parts)
+        compact_tool_result_catalog_with_preview(ctx.tool_call_id, &content_parts, catalog_preview)
     } else {
         output.summary.clone()
     };
@@ -304,6 +343,102 @@ pub async fn normalize_for_session_storage(
         summary,
         byte_range: output.byte_range.clone(),
     })
+}
+
+/// Resolve a tool result through the session records without exposing CAS keys.
+/// A result can appear in the active submission journal and the canonical
+/// transcript during finalization; identical copies are one logical result.
+pub async fn resolve_session_tool_result(
+    kv: &dyn KeyValueStore,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    tool_call_id: &str,
+) -> Result<Option<ToolOutput>> {
+    let mut canonical = None;
+
+    for (_, bytes) in kv
+        .list_entries(
+            &keys::session_message_prefix(namespace, agent, session_id),
+            None,
+        )
+        .await?
+    {
+        let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
+        for part in message.parts {
+            if part.part_type != data_proto::SessionMessagePartType::ToolResult as i32 {
+                continue;
+            }
+            let Some(payload) = parse_tool_result_payload_json(
+                &part.payload_json,
+                part.object.as_ref(),
+                &part.content,
+            )?
+            else {
+                continue;
+            };
+            if payload.tool_call_id == tool_call_id {
+                if canonical.replace(payload.tool_output).is_some() {
+                    return Err(anyhow!(
+                        "tool result reference '{}' is ambiguous in this session",
+                        tool_call_id
+                    ));
+                }
+            }
+        }
+    }
+    let mut journal = None;
+    for submission in kv
+        .list_keys(
+            &keys::session_submission_prefix(namespace, agent, session_id),
+            None,
+        )
+        .await?
+    {
+        for (_, bytes) in kv
+            .list_entries(
+                &keys::session_journal_entry_prefix(namespace, agent, session_id, &submission.name),
+                None,
+            )
+            .await?
+        {
+            let entry = data_proto::SessionJournalEntry::decode(bytes.as_slice())?;
+            let Some(result) = entry
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.payload.as_ref())
+                .and_then(|payload| match payload {
+                    data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
+                        Some(result)
+                    }
+                    _ => None,
+                })
+            else {
+                continue;
+            };
+            if result.tool_call_id == tool_call_id {
+                let output = result
+                    .tool_output
+                    .clone()
+                    .unwrap_or_else(|| ToolOutput::text(result.output.clone()));
+                if journal.replace(output).is_some() {
+                    return Err(anyhow!(
+                        "tool result reference '{}' is ambiguous in this session",
+                        tool_call_id
+                    ));
+                }
+            }
+        }
+    }
+    match (canonical, journal) {
+        (Some(canonical), Some(journal)) if canonical == journal => Ok(Some(canonical)),
+        (Some(_), Some(_)) => Err(anyhow!(
+            "tool result reference '{}' disagrees between the journal and transcript",
+            tool_call_id
+        )),
+        (Some(output), None) | (None, Some(output)) => Ok(Some(output)),
+        (None, None) => Ok(None),
+    }
 }
 
 pub fn tool_result_payload_json(tool_call_id: &str, output: &ToolOutput) -> Result<String> {
@@ -528,6 +663,9 @@ pub(crate) fn object_ref_summary(media_type: &str, filename: &str, size_bytes: u
 mod tests {
     use super::*;
     use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
+    use crate::control::KeyValueStore;
+    use crate::test_support::MockKvStore;
+    use prost::Message;
     use std::sync::Arc;
 
     fn object_ref(key: &str, media_type: &str) -> data_proto::ObjectRef {
@@ -749,9 +887,74 @@ mod tests {
             .summary
             .starts_with("Tool result catalog tr://call:"));
         assert!(normalized.summary.contains("parts/0: text/plain"));
+        assert!(normalized.summary.contains("Preview:\n"));
         let payload = tool_result_payload_json("call", &normalized).unwrap();
         assert!(payload.len() < TOOL_RESULT_OBJECT_THRESHOLD_BYTES);
-        assert!(!payload.contains(&"x".repeat(128)));
+        assert!(!payload.contains(&"x".repeat(TOOL_RESULT_OBJECT_THRESHOLD_BYTES)));
+    }
+
+    #[test]
+    fn catalog_reports_logical_not_compressed_object_size() {
+        let mut object = object_ref("cas/tool-result", "text/plain; charset=utf-8");
+        object.size_bytes = 37;
+        object.metadata.insert(
+            crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES.to_string(),
+            "4096".to_string(),
+        );
+
+        let catalog = compact_tool_result_catalog("call", &[object_ref_part(object)]);
+
+        assert!(catalog.contains("4096 bytes"));
+        assert!(!catalog.contains("37 bytes"));
+    }
+
+    #[test]
+    fn root_catalog_keeps_only_an_existing_catalog_preview() {
+        let output = ToolOutput {
+            content_parts: vec![object_ref_part(object_ref("cas/tool-result", "text/plain"))],
+            summary: "Tool result catalog tr://call: parts/0: text/plain (12 bytes). Use read with ref 'tr://call' to inspect a part.\nPreview:\nhello".to_string(),
+            byte_range: None,
+        };
+        assert!(
+            compact_tool_result_catalog_for_output("call", &output).ends_with("Preview:\nhello")
+        );
+
+        let plain = ToolOutput::text("opaque tool summary");
+        assert!(compact_tool_result_catalog_for_output("call", &plain)
+            .starts_with("Tool result catalog tr://call:"));
+    }
+
+    #[tokio::test]
+    async fn session_tool_result_resolution_reads_the_canonical_transcript() {
+        let kv = MockKvStore::default();
+        let output = ToolOutput::text("result");
+        let message = data_proto::SessionMessage {
+            id: "assistant-1".to_string(),
+            role: data_proto::MessageRole::RoleAssistant as i32,
+            created_at: 0,
+            labels: HashMap::new(),
+            parts: vec![data_proto::SessionMessagePart {
+                id: "result-1".to_string(),
+                part_type: data_proto::SessionMessagePartType::ToolResult as i32,
+                content: String::new(),
+                name: "inspect".to_string(),
+                payload_json: tool_result_payload_json("call-1", &output).unwrap(),
+                created_at: 0,
+                object: None,
+            }],
+        };
+        kv.set(
+            &keys::session_message("ns", "agent", "session", &message.id),
+            &message.encode_to_vec(),
+        )
+        .await
+        .unwrap();
+
+        let resolved = resolve_session_tool_result(&kv, "ns", "agent", "session", "call-1")
+            .await
+            .unwrap();
+
+        assert_eq!(resolved, Some(output));
     }
 
     #[tokio::test]

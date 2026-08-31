@@ -24,7 +24,8 @@ pub async fn create_artifact(
     let labels = string_map(args.get("labels"));
     let metadata = string_map(args.get("metadata"));
     let artifact_id = crate::control::uuid::unique_name("artifact");
-    let object_ref = crate::control::cas::CasStore::new(cp.objects.clone())
+    let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+    let object_ref = cas
         .put_artifact(
             current_namespace,
             current_agent,
@@ -46,7 +47,7 @@ pub async fn create_artifact(
         labels,
         metadata,
     };
-    record_artifact_revision(
+    if let Err(error) = record_artifact_revision(
         cp.kv.as_ref(),
         current_namespace,
         current_agent,
@@ -57,8 +58,27 @@ pub async fn create_artifact(
             .as_ref()
             .expect("new artifact object ref"),
     )
-    .await?;
-    cp.kv
+    .await
+    {
+        discard_uncommitted_artifact(
+            &cas,
+            cp.kv.as_ref(),
+            current_namespace,
+            current_agent,
+            current_session,
+            &artifact_id,
+            artifact
+                .object_ref
+                .as_ref()
+                .expect("new artifact object ref"),
+            true,
+            false,
+        )
+        .await;
+        return Err(error);
+    }
+    if let Err(error) = cp
+        .kv
         .set_msg(
             &keys::artifact(
                 current_namespace,
@@ -68,7 +88,25 @@ pub async fn create_artifact(
             ),
             &artifact,
         )
-        .await?;
+        .await
+    {
+        discard_uncommitted_artifact(
+            &cas,
+            cp.kv.as_ref(),
+            current_namespace,
+            current_agent,
+            current_session,
+            &artifact_id,
+            artifact
+                .object_ref
+                .as_ref()
+                .expect("new artifact object ref"),
+            true,
+            true,
+        )
+        .await;
+        return Err(error);
+    }
     let artifact_uri = ArtifactUri {
         namespace: current_namespace.to_string(),
         agent: current_agent.to_string(),
@@ -96,35 +134,52 @@ pub async fn read_artifact(
         .object_ref
         .as_ref()
         .ok_or_else(|| anyhow!("Artifact has no objectRef"))?;
-    let object = cp
+    let metadata = cp
         .objects
-        .get(&object_ref.key)
+        .head(&object_ref.key)
         .await?
         .ok_or_else(|| anyhow!("Artifact object not found"))?;
     let media_type = if !artifact.media_type.trim().is_empty() {
         artifact.media_type.trim().to_string()
     } else if !object_ref.media_type.trim().is_empty() {
         object_ref.media_type.trim().to_string()
-    } else if !object.metadata.media_type.trim().is_empty() {
-        object.metadata.media_type.trim().to_string()
+    } else if !metadata.media_type.trim().is_empty() {
+        metadata.media_type.trim().to_string()
     } else {
         "application/octet-stream".to_string()
     };
     let filename = if !object_ref.filename.trim().is_empty() {
         object_ref.filename.clone()
-    } else if !object.metadata.filename.trim().is_empty() {
-        object.metadata.filename.clone()
+    } else if !metadata.filename.trim().is_empty() {
+        metadata.filename.clone()
     } else {
         artifact.title.clone()
     };
-    let mut object_ref = object_ref.clone();
+    let mut object_ref = crate::control::cas::object_ref_from_metadata(&object_ref.key, &metadata);
     object_ref.media_type = media_type.clone();
     object_ref.filename = filename.clone();
-    Ok(ToolOutput::from_source_object(
-        object.bytes,
-        media_type,
-        filename,
-        object_ref,
+    if crate::control::tool_output::is_text_object_media_type(&media_type)
+        && metadata.size_bytes
+            < crate::control::tool_output::TOOL_RESULT_OBJECT_THRESHOLD_BYTES as u64
+    {
+        let object = crate::control::cas::CasStore::new(cp.objects.clone())
+            .get_object_decoded(&object_ref.key)
+            .await?
+            .ok_or_else(|| anyhow!("Artifact object not found"))?;
+        return Ok(ToolOutput::from_source_object(
+            object.bytes,
+            media_type,
+            filename,
+            object_ref,
+        ));
+    }
+    Ok(ToolOutput::from_content_parts(
+        vec![crate::harness::llm::object_ref_part(object_ref)],
+        crate::control::tool_output::object_ref_summary(
+            &media_type,
+            &filename,
+            metadata.size_bytes,
+        ),
     ))
 }
 
@@ -155,6 +210,10 @@ pub async fn update_artifact(
         ))
         .await?
         .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
+    let previous_object_key = artifact
+        .object_ref
+        .as_ref()
+        .map(|object_ref| object_ref.key.clone());
     let media_type = opt_str(args, "media_type").unwrap_or(&artifact.media_type);
     if args.get("content").and_then(Value::as_str).is_none()
         && opt_str(args, "content_base64").is_none()
@@ -165,20 +224,44 @@ pub async fn update_artifact(
     }
     let content = artifact_content_bytes(args)?;
     let cas = crate::control::cas::CasStore::new(cp.objects.clone());
-    let object_ref = cas
-        .put_artifact(
-            &uri.namespace,
-            &uri.agent,
-            &uri.session_id,
-            &uri.artifact_id,
-            &content,
-            media_type,
-            artifact.metadata.clone(),
-        )
-        .await?;
+    let object_sha = crate::control::cas::sha256_hex(&content);
+    let object_key =
+        crate::control::cas::artifact_object_key(&uri.namespace, &uri.artifact_id, &object_sha);
+    let existing_object_metadata = cp.objects.head(&object_key).await?;
+    let object_existed = existing_object_metadata.is_some();
+    let revision_key = keys::artifact_revision(
+        &uri.namespace,
+        &uri.agent,
+        &uri.session_id,
+        &format!("{}-{object_sha}", uri.artifact_id),
+    );
+    let revision_existed = cp.kv.get(&revision_key).await?.is_some();
+    let mut object_ref = match existing_object_metadata {
+        Some(metadata) => crate::control::cas::object_ref_from_metadata(&object_key, &metadata),
+        None => {
+            cas.put_artifact(
+                &uri.namespace,
+                &uri.agent,
+                &uri.session_id,
+                &uri.artifact_id,
+                &content,
+                media_type,
+                artifact.metadata.clone(),
+            )
+            .await?
+        }
+    };
+    // The ObjectRef describes this artifact's logical representation. Reusing
+    // immutable content must not rewrite its stored metadata, but the current
+    // Artifact and its reference must still agree on a requested media type.
+    object_ref.media_type = media_type.to_string();
     artifact.media_type = media_type.to_string();
     artifact.object_ref = Some(object_ref);
-    record_artifact_revision(
+    let is_new_object = artifact
+        .object_ref
+        .as_ref()
+        .is_some_and(|object_ref| previous_object_key.as_deref() != Some(&object_ref.key));
+    if let Err(error) = record_artifact_revision(
         cp.kv.as_ref(),
         &uri.namespace,
         &uri.agent,
@@ -189,7 +272,27 @@ pub async fn update_artifact(
             .as_ref()
             .expect("updated artifact object ref"),
     )
-    .await?;
+    .await
+    {
+        if is_new_object && !object_existed {
+            discard_uncommitted_artifact(
+                &cas,
+                cp.kv.as_ref(),
+                &uri.namespace,
+                &uri.agent,
+                &uri.session_id,
+                &uri.artifact_id,
+                artifact
+                    .object_ref
+                    .as_ref()
+                    .expect("updated artifact object ref"),
+                true,
+                false,
+            )
+            .await;
+        }
+        return Err(error);
+    }
     let artifact_key = keys::artifact(
         &uri.namespace,
         &uri.agent,
@@ -197,18 +300,22 @@ pub async fn update_artifact(
         &uri.artifact_id,
     );
     if let Err(error) = cp.kv.set_msg(&artifact_key, &artifact).await {
-        if let Some(new_object_key) = artifact
-            .object_ref
-            .as_ref()
-            .map(|object_ref| &object_ref.key)
-        {
-            if let Err(cleanup_error) = cas.delete_object(new_object_key).await {
-                tracing::warn!(
-                    error = %cleanup_error,
-                    object_key = %new_object_key,
-                    "failed to delete uncommitted artifact CAS object after update failure"
-                );
-            }
+        if is_new_object && (!object_existed || !revision_existed) {
+            discard_uncommitted_artifact(
+                &cas,
+                cp.kv.as_ref(),
+                &uri.namespace,
+                &uri.agent,
+                &uri.session_id,
+                &uri.artifact_id,
+                artifact
+                    .object_ref
+                    .as_ref()
+                    .expect("updated artifact object ref"),
+                !object_existed,
+                !revision_existed,
+            )
+            .await;
         }
         return Err(error);
     }
@@ -234,6 +341,49 @@ pub(crate) async fn record_artifact_revision(
         object_ref,
     )
     .await
+}
+
+/// Best-effort compensation after an artifact's CAS write cannot be made
+/// durable. Keeping this together prevents failed writes from leaking either
+/// the object or a revision index that points at it.
+pub(crate) async fn discard_uncommitted_artifact(
+    cas: &crate::control::cas::CasStore,
+    kv: &dyn KeyValueStore,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    artifact_id: &str,
+    object_ref: &data_proto::ObjectRef,
+    remove_object: bool,
+    remove_revision: bool,
+) {
+    if remove_revision {
+        let revision_id = format!("{artifact_id}-{}", object_ref.sha256);
+        if let Err(error) = kv
+            .delete(&keys::artifact_revision(
+                namespace,
+                agent,
+                session_id,
+                &revision_id,
+            ))
+            .await
+        {
+            tracing::warn!(
+                error = %error,
+                object_key = %object_ref.key,
+                "failed to remove uncommitted artifact revision"
+            );
+        }
+    }
+    if remove_object {
+        if let Err(error) = cas.delete_object(&object_ref.key).await {
+            tracing::warn!(
+                error = %error,
+                object_key = %object_ref.key,
+                "failed to delete uncommitted artifact CAS object"
+            );
+        }
+    }
 }
 
 pub async fn get_artifact_metadata(
@@ -451,6 +601,105 @@ pub(crate) async fn authorize_artifact_access(
         ));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_support::{EmptyPubSub, MockKvStore};
+    use std::collections::HashMap;
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn discard_uncommitted_artifact_removes_object_and_revision() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(EmptyPubSub)).build();
+        let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+        let object = cas
+            .put_artifact(
+                "ns",
+                "agent",
+                "session",
+                "artifact",
+                b"uncommitted",
+                "text/plain",
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
+        record_artifact_revision(kv.as_ref(), "ns", "agent", "session", "artifact", &object)
+            .await
+            .unwrap();
+
+        discard_uncommitted_artifact(
+            &cas,
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session",
+            "artifact",
+            &object,
+            true,
+            true,
+        )
+        .await;
+
+        assert!(cp.objects.head(&object.key).await.unwrap().is_none());
+        assert!(kv
+            .get(&keys::artifact_revision(
+                "ns",
+                "agent",
+                "session",
+                &format!("artifact-{}", object.sha256),
+            ))
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn discard_uncommitted_artifact_preserves_retained_revision() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = ControlPlane::builder(kv.clone(), Arc::new(EmptyPubSub)).build();
+        let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+        let object = cas
+            .put_artifact(
+                "ns",
+                "agent",
+                "session",
+                "artifact",
+                b"retained revision",
+                "text/plain",
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
+        let revision_key = keys::artifact_revision(
+            "ns",
+            "agent",
+            "session",
+            &format!("artifact-{}", object.sha256),
+        );
+        record_artifact_revision(kv.as_ref(), "ns", "agent", "session", "artifact", &object)
+            .await
+            .unwrap();
+
+        discard_uncommitted_artifact(
+            &cas,
+            kv.as_ref(),
+            "ns",
+            "agent",
+            "session",
+            "artifact",
+            &object,
+            false,
+            false,
+        )
+        .await;
+
+        assert!(cp.objects.head(&object.key).await.unwrap().is_some());
+        assert!(kv.get(&revision_key).await.unwrap().is_some());
+    }
 }
 
 pub fn default_access_expiry() -> i64 {

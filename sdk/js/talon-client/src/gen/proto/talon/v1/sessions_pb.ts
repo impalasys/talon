@@ -1660,14 +1660,9 @@ export class ReadToolResultPartRequest extends Message<ReadToolResultPartRequest
   partIndex = 0;
 
   /**
-   * @generated from field: uint64 start = 6;
+   * @generated from field: talon.v1.ToolResultByteRange byte_range = 6;
    */
-  start = protoInt64.zero;
-
-  /**
-   * @generated from field: optional uint64 max_size = 7;
-   */
-  maxSize?: bigint;
+  byteRange?: ToolResultByteRange;
 
   constructor(data?: PartialMessage<ReadToolResultPartRequest>) {
     super();
@@ -1682,8 +1677,7 @@ export class ReadToolResultPartRequest extends Message<ReadToolResultPartRequest
     { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "tool_call_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "part_index", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
-    { no: 6, name: "start", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 7, name: "max_size", kind: "scalar", T: 4 /* ScalarType.UINT64 */, opt: true },
+    { no: 6, name: "byte_range", kind: "message", T: ToolResultByteRange },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReadToolResultPartRequest {
@@ -1700,6 +1694,65 @@ export class ReadToolResultPartRequest extends Message<ReadToolResultPartRequest
 
   static equals(a: ReadToolResultPartRequest | PlainMessage<ReadToolResultPartRequest> | undefined, b: ReadToolResultPartRequest | PlainMessage<ReadToolResultPartRequest> | undefined): boolean {
     return proto3.util.equals(ReadToolResultPartRequest, a, b);
+  }
+}
+
+/**
+ * Matches the generic read tool's byte_range contract. `end` is exclusive;
+ * exactly one of `end` and `max_size` must be supplied.
+ *
+ * @generated from message talon.v1.ToolResultByteRange
+ */
+export class ToolResultByteRange extends Message<ToolResultByteRange> {
+  /**
+   * @generated from field: uint64 start = 1;
+   */
+  start = protoInt64.zero;
+
+  /**
+   * @generated from oneof talon.v1.ToolResultByteRange.limit
+   */
+  limit: {
+    /**
+     * @generated from field: uint64 end = 2;
+     */
+    value: bigint;
+    case: "end";
+  } | {
+    /**
+     * @generated from field: uint64 max_size = 3;
+     */
+    value: bigint;
+    case: "maxSize";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<ToolResultByteRange>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ToolResultByteRange";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "end", kind: "scalar", T: 4 /* ScalarType.UINT64 */, oneof: "limit" },
+    { no: 3, name: "max_size", kind: "scalar", T: 4 /* ScalarType.UINT64 */, oneof: "limit" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ToolResultByteRange {
+    return new ToolResultByteRange().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ToolResultByteRange {
+    return new ToolResultByteRange().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ToolResultByteRange {
+    return new ToolResultByteRange().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ToolResultByteRange | PlainMessage<ToolResultByteRange> | undefined, b: ToolResultByteRange | PlainMessage<ToolResultByteRange> | undefined): boolean {
+    return proto3.util.equals(ToolResultByteRange, a, b);
   }
 }
 

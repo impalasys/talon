@@ -1443,14 +1443,21 @@ pub async fn project_tool_output_context(
         ));
     };
     let text = std::str::from_utf8(&bytes)?;
+    Ok(tool_result_loop_message(
+        tool_call_id,
+        &format_selected_tool_result_text(text, range),
+    ))
+}
+
+pub fn format_selected_tool_result_text(
+    text: &str,
+    range: &crate::harness::llm::ToolOutputByteRange,
+) -> String {
     let suffix = range
         .next_byte
         .map(|next| format!("\n[bytes {}..{}; next_byte={next})", range.start, range.end))
         .unwrap_or_else(|| format!("\n[bytes {}..{})", range.start, range.end));
-    Ok(tool_result_loop_message(
-        tool_call_id,
-        &format!("{text}{suffix}"),
-    ))
+    format!("{text}{suffix}")
 }
 
 impl AgentExecutor {
@@ -1501,6 +1508,23 @@ pub fn tool_result_loop_message(tool_call_id: &str, result: &str) -> LoopMessage
 }
 
 pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> LoopMessage {
+    if matches!(
+        result.content_parts.as_slice(),
+        [crate::harness::llm::ChatContentPart {
+            content: Some(crate::harness::llm::chat_content_part::Content::ObjectRef(object)),
+        }]
+            if crate::control::tool_output::is_tool_result_object_ref(object)
+                && crate::control::tool_output::is_text_object_media_type(&object.media_type)
+    ) {
+        return tool_result_loop_message(
+            tool_call_id,
+            &format!(
+                "{}\nLarge text remains available at {}.",
+                result.summary(),
+                crate::control::tool_output::tool_result_part_handle(tool_call_id, 0)
+            ),
+        );
+    }
     LoopMessage {
         role: "tool".to_string(),
         content_parts: result

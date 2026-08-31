@@ -18,8 +18,10 @@ from talon_client import (
     GetSessionRequest,
     ListResourcesRequest,
     ListSessionsRequest,
+    ReadToolResultPartRequest,
     SendMessageRequest,
     TalonClient,
+    ToolResultByteRange,
 )
 from talon_client.resources import AgentSpec, Model
 from talon_client.resources import A2A, Connection, ConnectionRef, InternalConnectionRef
@@ -58,6 +60,65 @@ def _tool_result_content(payload: dict) -> str:
     if isinstance(decoded, str):
         return decoded
     return ""
+
+
+def _selected_tool_result_texts(
+    client: TalonClient,
+    *,
+    ns: str,
+    agent: str,
+    session_id: str,
+    messages: list,
+) -> list[str]:
+    """Materialize durable read selections through the session-local API."""
+    texts = []
+    for message in messages:
+        for part in message.parts:
+            if part.part_type != PART_TYPE_TOOL_RESULT or part.name != "read":
+                continue
+            payload = json.loads(part.payload_json or "{}")
+            tool_output = payload.get("tool_output") or payload.get("toolOutput") or {}
+            byte_range = tool_output.get("byte_range") or tool_output.get("byteRange")
+            if not byte_range:
+                continue
+            content_parts = (
+                tool_output.get("content_parts")
+                or tool_output.get("contentParts")
+                or []
+            )
+            assert all(item.get("type") != "text" for item in content_parts)
+            tool_call_id = payload.get("tool_call_id") or payload.get("toolCallId")
+            assert tool_call_id
+            start = byte_range.get("start")
+            end = byte_range.get("end")
+            assert isinstance(start, int)
+            assert isinstance(end, int)
+            next_byte = byte_range.get("next_byte")
+            if next_byte is None:
+                next_byte = byte_range.get("nextByte")
+            request_range = (
+                ToolResultByteRange(start=start, end=end)
+                if next_byte is None
+                else ToolResultByteRange(start=start, max_size=end - start)
+            )
+            response = client.sessions.ReadToolResultPart(
+                ReadToolResultPartRequest(
+                    ns=ns,
+                    agent=agent,
+                    session_id=session_id,
+                    tool_call_id=tool_call_id,
+                    part_index=0,
+                    byte_range=request_range,
+                )
+            )
+            assert response.start == start
+            assert response.end == end
+            if next_byte is None:
+                assert not response.HasField("next_byte")
+            else:
+                assert response.next_byte == next_byte
+            texts.append(response.text)
+    return texts
 
 
 def _send_message_when_available(
@@ -319,18 +380,13 @@ def test_delegate_task_creates_durable_child_session(
             )
         )
         owner_read_messages = owner.messages
-        owner_tool_results = [
-            part
-            for message in owner_read_messages
-            for part in message.parts
-            if part.part_type == PART_TYPE_TOOL_RESULT
-        ]
-        read_outputs = []
-        for part in owner_tool_results:
-            payload = json.loads(part.payload_json or "{}")
-            output = _tool_result_content(payload)
-            if output:
-                read_outputs.append(output)
+        read_outputs = _selected_tool_result_texts(
+            client,
+            ns=owner_namespace,
+            agent="owner-agent",
+            session_id=owner_session_id,
+            messages=owner_read_messages,
+        )
         if owner.state == "IDLE" and any(
             "Onboarding checklist" in output
             for output in read_outputs
@@ -338,17 +394,13 @@ def test_delegate_task_creates_durable_child_session(
             break
 
     assert owner_read_messages, "owner did not process artifact read"
-    owner_tool_results = [
-        part
-        for message in owner_read_messages
-        for part in message.parts
-        if part.part_type == PART_TYPE_TOOL_RESULT
-    ]
-    read_outputs = []
-    for part in owner_tool_results:
-        output = _tool_result_content(json.loads(part.payload_json or "{}"))
-        if output:
-            read_outputs.append(output)
+    read_outputs = _selected_tool_result_texts(
+        client,
+        ns=owner_namespace,
+        agent="owner-agent",
+        session_id=owner_session_id,
+        messages=owner_read_messages,
+    )
     assert any(
         "Onboarding checklist" in output
         for output in read_outputs
@@ -546,15 +598,13 @@ def test_legal_document_refinement_delegation_returns_redline_artifact(
                 ns=coordinator_namespace,
             )
         )
-        read_outputs = []
-        for message in coordinator.messages:
-            for part in message.parts:
-                if part.part_type != PART_TYPE_TOOL_RESULT:
-                    continue
-                payload = json.loads(part.payload_json or "{}")
-                output = _tool_result_content(payload)
-                if output:
-                    read_outputs.append(output)
+        read_outputs = _selected_tool_result_texts(
+            client,
+            ns=coordinator_namespace,
+            agent="legal-coordinator-agent",
+            session_id=coordinator_session_id,
+            messages=coordinator.messages,
+        )
         if coordinator.state == "IDLE" and any(
             "Mutual NDA fallback clause redline" in output
             for output in read_outputs
@@ -738,15 +788,13 @@ def test_delegated_final_text_artifact_tag_becomes_readable_task_output(
                 ns=coordinator_namespace,
             )
         )
-        read_outputs = []
-        for message in coordinator.messages:
-            for part in message.parts:
-                if part.part_type != PART_TYPE_TOOL_RESULT:
-                    continue
-                payload = json.loads(part.payload_json or "{}")
-                output = _tool_result_content(payload)
-                if output:
-                    read_outputs.append(output)
+        read_outputs = _selected_tool_result_texts(
+            client,
+            ns=coordinator_namespace,
+            agent="inline-coordinator-agent",
+            session_id=coordinator_session_id,
+            messages=coordinator.messages,
+        )
         if coordinator.state == "IDLE" and any(
             "Directors should approve" in output
             for output in read_outputs

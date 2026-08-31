@@ -119,6 +119,9 @@ function toolResultFromPayload(payload: Record<string, unknown>, fallback: unkno
     const contentParts = (toolOutput as { content_parts?: unknown; contentParts?: unknown }).content_parts
       ?? (toolOutput as { contentParts?: unknown }).contentParts;
     if (Array.isArray(contentParts)) {
+      if (contentParts.some((part) => (part as { type?: unknown })?.type === "object_ref")) {
+        return toolOutput;
+      }
       const text = contentParts
         .map((part) => {
           if (!part || typeof part !== "object") return "";

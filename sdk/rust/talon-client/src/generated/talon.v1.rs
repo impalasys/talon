@@ -814,10 +814,27 @@ pub struct ReadToolResultPartRequest {
     pub tool_call_id: ::prost::alloc::string::String,
     #[prost(uint32, tag = "5")]
     pub part_index: u32,
-    #[prost(uint64, tag = "6")]
+    #[prost(message, optional, tag = "6")]
+    pub byte_range: ::core::option::Option<ToolResultByteRange>,
+}
+/// Matches the generic read tool's byte_range contract. `end` is exclusive;
+/// exactly one of `end` and `max_size` must be supplied.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ToolResultByteRange {
+    #[prost(uint64, tag = "1")]
     pub start: u64,
-    #[prost(uint64, optional, tag = "7")]
-    pub max_size: ::core::option::Option<u64>,
+    #[prost(oneof = "tool_result_byte_range::Limit", tags = "2, 3")]
+    pub limit: ::core::option::Option<tool_result_byte_range::Limit>,
+}
+/// Nested message and enum types in `ToolResultByteRange`.
+pub mod tool_result_byte_range {
+    #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
+    pub enum Limit {
+        #[prost(uint64, tag = "2")]
+        End(u64),
+        #[prost(uint64, tag = "3")]
+        MaxSize(u64),
+    }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadToolResultPartResponse {

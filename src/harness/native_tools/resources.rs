@@ -159,10 +159,10 @@ async fn selected_resource_output(
     output: ToolOutput,
     selection: Option<ResourceSelection>,
 ) -> Result<ToolOutput> {
-    let Some(selection) = selection else {
-        return Ok(output);
-    };
     let Some(object) = output.object_ref().cloned() else {
+        let Some(selection) = selection else {
+            return Ok(output);
+        };
         let text = tool_output::plain_text(&output)
             .ok_or_else(|| anyhow!("byte_range is only valid for text resources"))?;
         let (text, start, end, next_byte) = select_resource_bytes(&text, selection)?;
@@ -174,8 +174,19 @@ async fn selected_resource_output(
         )));
     };
     if !tool_output::is_text_object_media_type(&object.media_type) {
+        if selection.is_none() {
+            return Ok(output);
+        }
         return Err(anyhow!("byte_range is only valid for text resources"));
     }
+    // An unrestricted text object reference would otherwise be fully
+    // materialized by the model-context projector. Make the default read
+    // contract explicit so file:// and artifact:// have the same 8 KiB cap
+    // and pagination behavior as text tr:// parts.
+    let selection = selection.unwrap_or(ResourceSelection::Bounded {
+        start: 0,
+        max_size: MAX_RESOURCE_READ_BYTES,
+    });
     let (start, end, next_byte) = checked_object_byte_range(cp, &object, selection).await?;
     Ok(tool_output::selected_object_byte_range_output(
         object,
@@ -190,11 +201,7 @@ fn object_byte_range(
     object: &data_proto::ObjectRef,
     selection: ResourceSelection,
 ) -> Result<(u64, u64, Option<u64>)> {
-    let size = object
-        .metadata
-        .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(object.size_bytes);
+    let size = tool_output::logical_object_size_bytes(object);
     match selection {
         ResourceSelection::Exact { start, end } if end <= size => Ok((start, end, None)),
         ResourceSelection::Exact { .. } => Err(anyhow!("byte_range exceeds resource size")),
@@ -228,6 +235,11 @@ fn select_resource_bytes(
     if bounded {
         while end > start && !text.is_char_boundary(end) {
             end -= 1;
+        }
+        if end == start && start < bytes.len() {
+            return Err(anyhow!(
+                "byte_range.max_size is too small to include one UTF-8 character"
+            ));
         }
     } else if !text.is_char_boundary(end) {
         return Err(anyhow!("byte_range.end must be on a UTF-8 boundary"));
@@ -278,53 +290,15 @@ async fn read_session_tool_result(
     {
         return Err(anyhow!("tool call id is not canonically encoded"));
     }
-    let mut found = None;
-    for submission in cp
-        .kv
-        .list_keys(
-            &keys::session_submission_prefix(namespace, agent, session_id),
-            None,
-        )
-        .await?
-    {
-        for (_, bytes) in cp
-            .kv
-            .list_entries(
-                &keys::session_journal_entry_prefix(namespace, agent, session_id, &submission.name),
-                None,
-            )
-            .await?
-        {
-            let entry = data_proto::SessionJournalEntry::decode(bytes.as_slice())?;
-            let Some(result) = entry
-                .payload
-                .as_ref()
-                .and_then(|payload| payload.payload.as_ref())
-                .and_then(|payload| match payload {
-                    data_proto::session_journal_entry_payload::Payload::ToolResult(result) => {
-                        Some(result)
-                    }
-                    _ => None,
-                })
-            else {
-                continue;
-            };
-            if result.tool_call_id != tool_call_id {
-                continue;
-            }
-            let output = result
-                .tool_output
-                .clone()
-                .unwrap_or_else(|| ToolOutput::text(result.output.clone()));
-            if found.replace(output).is_some() {
-                return Err(anyhow!(
-                    "tool result reference '{}' is ambiguous in this session",
-                    tool_call_id
-                ));
-            }
-        }
-    }
-    let output = found.ok_or_else(|| {
+    let output = tool_output::resolve_session_tool_result(
+        cp.kv.as_ref(),
+        namespace,
+        agent,
+        session_id,
+        &tool_call_id,
+    )
+    .await?
+    .ok_or_else(|| {
         anyhow!(
             "tool result '{}' was not found in the current session",
             tool_call_id
@@ -336,11 +310,9 @@ async fn read_session_tool_result(
                 "byte_range requires a tr://.../parts/<index> reference"
             ));
         }
-        return Ok(ToolOutput::text(if output.summary.is_empty() {
-            tool_output::compact_tool_result_catalog(&tool_call_id, &output.content_parts)
-        } else {
-            output.summary
-        }));
+        return Ok(ToolOutput::text(
+            tool_output::compact_tool_result_catalog_for_output(&tool_call_id, &output),
+        ));
     };
     let part = output
         .content_parts
@@ -416,14 +388,12 @@ async fn checked_object_byte_range(
                 actual -= 1;
             }
             if actual == 0 && !bytes.is_empty() {
-                return Err(anyhow!("byte_range.start must be a UTF-8 boundary"));
+                return Err(anyhow!(
+                    "byte_range.max_size is too small to include one UTF-8 character"
+                ));
             }
             end = start + actual as u64;
-            let size = object
-                .metadata
-                .get(crate::control::cas::METADATA_UNCOMPRESSED_SIZE_BYTES)
-                .and_then(|v| v.parse().ok())
-                .unwrap_or(object.size_bytes);
+            let size = tool_output::logical_object_size_bytes(object);
             next_byte = (end < size).then_some(end);
         }
     }
@@ -487,4 +457,44 @@ fn args_with_string(args: &Value, key: &str, value: &str) -> Result<Value> {
         .ok_or_else(|| anyhow!("tool arguments must be an object"))?;
     object.insert(key.to_string(), Value::String(value.to_string()));
     Ok(args)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::control::tool_output::ToolOutputExt;
+    use crate::test_support::{EmptyPubSub, MockKvStore};
+    use std::collections::HashMap;
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn default_text_object_read_records_a_bounded_selection() {
+        let cp =
+            ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build();
+        let content = "x".repeat(MAX_RESOURCE_READ_BYTES as usize + 1);
+        let object = crate::control::cas::CasStore::new(cp.objects.clone())
+            .put_artifact(
+                "ns",
+                "agent",
+                "session",
+                "artifact",
+                content.as_bytes(),
+                "text/plain",
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
+        let output =
+            ToolOutput::from_source_object(content.into_bytes(), "text/plain", "large.txt", object);
+
+        let selected = selected_resource_output(&cp, output, None).await.unwrap();
+        assert_eq!(
+            selected.byte_range,
+            Some(crate::harness::llm::ToolOutputByteRange {
+                start: 0,
+                end: MAX_RESOURCE_READ_BYTES,
+                next_byte: Some(MAX_RESOURCE_READ_BYTES),
+            })
+        );
+    }
 }
