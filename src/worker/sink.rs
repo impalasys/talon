@@ -1502,7 +1502,7 @@ impl ExecutionSink for PubSubSessionSink {
         id: &str,
         name: &str,
         result: &ToolOutput,
-    ) -> Result<()> {
+    ) -> Result<ToolOutput> {
         let part_id = self.next_part_id();
         let cas = CasStore::new(self.objects.clone());
         let entry = sessions::append_tool_result(
@@ -1536,11 +1536,11 @@ impl ExecutionSink for PubSubSessionSink {
             id.to_string(),
             RecordedToolResult {
                 part_id: part_id.clone(),
-                output,
+                output: output.clone(),
             },
         );
         *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
-        Ok(())
+        Ok(output)
     }
 
     async fn take_steering_messages(&self) -> Result<Vec<crate::harness::executor::LoopMessage>> {
