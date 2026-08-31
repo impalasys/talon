@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::runtime::LoopMessage;
+use super::runtime::{tool_output_loop_message, LoopMessage};
 use crate::control::cas::{decode_stored_object_bytes, object_ref_from_metadata};
 use crate::control::object_store::ObjectStore;
 use crate::control::tool_output::{self, ToolOutputExt};
@@ -468,6 +468,27 @@ async fn tool_result_message_from_part(
         else {
             return Ok(None);
         };
+        let has_externalized_tool_result_text = parsed
+            .tool_output
+            .content_parts()
+            .iter()
+            .filter_map(content_part_object_ref)
+            .any(|object| {
+                tool_output::is_tool_result_object_ref(object)
+                    && tool_output::is_text_object_media_type(&object.media_type)
+            });
+        if parsed.tool_output.byte_range.is_none() && has_externalized_tool_result_text {
+            return Ok(Some(tool_output_loop_message(
+                &parsed.tool_call_id,
+                &parsed.tool_output,
+            )));
+        }
+        if let Some(content) = selected_historical_tool_output(&parsed.tool_output, objects).await?
+        {
+            let mut message = LoopMessage::text("tool", content);
+            message.tool_call_id = Some(parsed.tool_call_id);
+            return Ok(Some(message));
+        }
         return Ok(Some(LoopMessage {
             role: "tool".to_string(),
             content_parts: materialize_tool_output_content_parts(
@@ -565,6 +586,30 @@ async fn tool_result_message_from_part(
     let mut message = LoopMessage::text("tool", output);
     message.tool_call_id = Some(tool_call_id.to_string());
     Ok(Some(message))
+}
+
+async fn selected_historical_tool_output(
+    output: &crate::harness::llm::ToolOutput,
+    objects: &(dyn ObjectStore + Send + Sync),
+) -> Result<Option<String>> {
+    let Some(object) = output.object_ref() else {
+        return Ok(Some(output.summary()));
+    };
+    let Some(stored) = objects.get(&object.key).await? else {
+        return Ok(Some(unavailable_historical_tool_output()));
+    };
+    let bytes = decode_stored_object_bytes(&stored, &object.key)?;
+    let text = String::from_utf8_lossy(&bytes);
+    if let Some(range) = output.byte_range.as_ref() {
+        let start = usize::try_from(range.start).ok();
+        let end = usize::try_from(range.end).ok();
+        return Ok(start
+            .zip(end)
+            .and_then(|(start, end)| text.get(start..end))
+            .map(str::to_string)
+            .or_else(|| Some(output.summary())));
+    }
+    Ok(None)
 }
 
 /// Converts text objects in a persisted typed tool result back into text before
