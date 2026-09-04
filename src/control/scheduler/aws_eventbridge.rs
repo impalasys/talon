@@ -294,13 +294,13 @@ mod tests {
 
     #[test]
     fn schedule_names_are_scheduler_safe_and_bounded() {
-        let name = schedule_name("talon", "conic:test/team", "nightly report!", 42, 1_234_567);
+        let name = schedule_name("talon", "acme:test/team", "nightly report!", 42, 1_234_567);
 
         assert!(name.len() <= 64);
         assert!(name
             .chars()
             .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.')));
-        assert!(name.starts_with("talon-conic-test-team-nightly-report"));
+        assert!(name.starts_with("talon-acme-test-team-nightly-report"));
     }
 
     #[test]

@@ -283,15 +283,15 @@ mod tests {
     #[test]
     fn config_for_resolution_namespace_uses_calling_namespace_for_inherited_server() {
         let config = crate::harness::mcp::McpConnectionConfig {
-            server_name: "conic".to_string(),
-            server_ref: "conic".to_string(),
+            server_name: "acme".to_string(),
+            server_ref: "acme".to_string(),
             transport: "http".to_string(),
-            target: "https://api.useconic.com/mcp".to_string(),
+            target: "https://mcp.example.test".to_string(),
             args: Vec::new(),
             headers: HashMap::new(),
             disabled: false,
-            namespace: Some("Tenant:conic:Customers".to_string()),
-            mcp_server_name: Some("conic".to_string()),
+            namespace: Some("Tenant:acme:Customers".to_string()),
+            mcp_server_name: Some("acme".to_string()),
             agent_name: None,
             session_id: None,
             jwt_issuer: None,
@@ -300,13 +300,13 @@ mod tests {
 
         let _env_lock = crate::test_support::env_lock();
         let expected_issuer = platform_jwt::issuer().unwrap();
-        let scoped = config_for_resolution_namespace(config, "Tenant:conic:Customers:12").unwrap();
+        let scoped = config_for_resolution_namespace(config, "Tenant:acme:Customers:12").unwrap();
 
         assert_eq!(
             scoped.namespace.as_deref(),
-            Some("Tenant:conic:Customers:12")
+            Some("Tenant:acme:Customers:12")
         );
-        assert_eq!(scoped.mcp_server_name.as_deref(), Some("conic"));
+        assert_eq!(scoped.mcp_server_name.as_deref(), Some("acme"));
         assert_eq!(scoped.jwt_issuer.as_deref(), Some(expected_issuer.as_str()));
     }
 
@@ -314,7 +314,7 @@ mod tests {
     async fn invalidate_removes_named_entry_and_namespace_cache() {
         let registry = McpRegistry::new();
         registry.cache.write().await.insert(
-            "conic".to_string(),
+            "acme".to_string(),
             HashMap::from([(
                 "github".to_string(),
                 Arc::new(super::ResolvedMcpServer {
@@ -326,7 +326,7 @@ mod tests {
                         args: Vec::new(),
                         headers: HashMap::new(),
                         disabled: false,
-                        namespace: Some("conic".to_string()),
+                        namespace: Some("acme".to_string()),
                         mcp_server_name: Some("github".to_string()),
                         agent_name: None,
                         session_id: None,
@@ -338,11 +338,11 @@ mod tests {
             )]),
         );
 
-        registry.invalidate("conic", Some("github")).await;
-        assert!(registry.cache.read().await.get("conic").is_none());
+        registry.invalidate("acme", Some("github")).await;
+        assert!(registry.cache.read().await.get("acme").is_none());
 
         registry.cache.write().await.insert(
-            "conic".to_string(),
+            "acme".to_string(),
             HashMap::from([(
                 "docs".to_string(),
                 Arc::new(super::ResolvedMcpServer {
@@ -354,7 +354,7 @@ mod tests {
                         args: Vec::new(),
                         headers: HashMap::new(),
                         disabled: false,
-                        namespace: Some("conic".to_string()),
+                        namespace: Some("acme".to_string()),
                         mcp_server_name: Some("docs".to_string()),
                         agent_name: None,
                         session_id: None,
@@ -365,7 +365,7 @@ mod tests {
                 }),
             )]),
         );
-        registry.invalidate("conic", None).await;
+        registry.invalidate("acme", None).await;
         assert!(registry.cache.read().await.is_empty());
     }
 
@@ -395,7 +395,7 @@ mod tests {
         let registry = McpRegistry::new();
 
         let missing_server = registry
-            .resolve_server(&cp, "github", "conic")
+            .resolve_server(&cp, "github", "acme")
             .await
             .unwrap_err();
         assert!(missing_server.to_string().contains("not found"));
@@ -405,10 +405,10 @@ mod tests {
     async fn resolve_server_from_ancestry_prefers_exact_namespace() {
         let kv = Arc::new(MockKvStore::default());
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        seed_server(&kv, "conic", "docs", "https://parent.example.com").await;
-        seed_server(&kv, "conic:child", "docs", "https://child.example.com").await;
+        seed_server(&kv, "acme", "docs", "https://parent.example.com").await;
+        seed_server(&kv, "acme:child", "docs", "https://child.example.com").await;
 
-        let resolved = super::resolve_server_from_ancestry(&cp, "conic:child", "docs")
+        let resolved = super::resolve_server_from_ancestry(&cp, "acme:child", "docs")
             .await
             .unwrap();
 
@@ -417,7 +417,7 @@ mod tests {
                 .metadata
                 .as_ref()
                 .map(|meta| meta.namespace.as_str()),
-            Some("conic:child")
+            Some("acme:child")
         );
         assert_eq!(
             resolved.spec.as_ref().map(|spec| spec.target.as_str()),
@@ -429,9 +429,9 @@ mod tests {
     async fn resolve_server_from_ancestry_uses_parent_for_child_namespace() {
         let kv = Arc::new(MockKvStore::default());
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        seed_server(&kv, "conic", "docs", "https://parent.example.com").await;
+        seed_server(&kv, "acme", "docs", "https://parent.example.com").await;
 
-        let resolved = super::resolve_server_from_ancestry(&cp, "conic:child:leaf", "docs")
+        let resolved = super::resolve_server_from_ancestry(&cp, "acme:child:leaf", "docs")
             .await
             .unwrap();
 
@@ -440,7 +440,7 @@ mod tests {
                 .metadata
                 .as_ref()
                 .map(|meta| meta.namespace.as_str()),
-            Some("conic")
+            Some("acme")
         );
     }
 
@@ -450,7 +450,7 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         seed_server(&kv, "Sys", "docs", "https://sys.example.com").await;
 
-        let missing = super::resolve_server_from_ancestry(&cp, "conic:child", "docs")
+        let missing = super::resolve_server_from_ancestry(&cp, "acme:child", "docs")
             .await
             .unwrap_err();
 
@@ -464,11 +464,11 @@ mod tests {
         let registry = McpRegistry::new();
 
         kv.set_msg(
-            &crate::control::keys::mcp_server("conic", "docs"),
+            &crate::control::keys::mcp_server("acme", "docs"),
             &manifests::McpServer {
                 metadata: Some(manifests::ObjectMeta {
                     name: "docs".to_string(),
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
                     ..Default::default()
@@ -501,7 +501,7 @@ mod tests {
         .unwrap();
 
         let err = registry
-            .resolve_server(&cp, "docs", "conic:child")
+            .resolve_server(&cp, "docs", "acme:child")
             .await
             .unwrap_err();
         assert!(err.to_string().contains("disabled"));

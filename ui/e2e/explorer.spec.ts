@@ -7,15 +7,15 @@ test.describe('Explorer navigation', () => {
     const client = createE2ETalonClient(gatewayUrl);
 
     await expect(async () => {
-      await client.namespaces.create({ name: 'conic:wks:13', recursive: true });
+      await client.namespaces.create({ name: 'acme:wks:13', recursive: true });
     }).toPass({ timeout: 60000 });
 
     await client.resources.create({
-      ns: 'conic:wks:13',
+      ns: 'acme:wks:13',
       manifest: {
         apiVersion: "talon.impalasys.com/v1",
         kind: "Agent",
-        metadata: { name: "cmo", namespace: "conic:wks:13", labels: {}, annotations: {}, ownerReferences: [], finalizers: [], generation: BigInt(0), resourceVersion: "", uid: "" },
+        metadata: { name: "cmo", namespace: "acme:wks:13", labels: {}, annotations: {}, ownerReferences: [], finalizers: [], generation: BigInt(0), resourceVersion: "", uid: "" },
         spec: {
           kind: {
             case: "agent",
@@ -37,13 +37,13 @@ test.describe('Explorer navigation', () => {
     });
 
     const sessionRes = await client.sessions.create({
-      ns: 'conic:wks:13',
+      ns: 'acme:wks:13',
       agent: 'cmo',
     });
 
     const params = new URLSearchParams({
       connected: 'true',
-      ns: 'conic:wks:13',
+      ns: 'acme:wks:13',
       type: 'session',
       agent: 'cmo',
       session: sessionRes.sessionId,
@@ -54,7 +54,7 @@ test.describe('Explorer navigation', () => {
     await page.goto(`/?${params.toString()}`);
 
     await expect(page.locator('text=Connected')).toBeVisible({ timeout: 15000 });
-    await expect(page.locator('.truncate', { hasText: 'conic' }).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('.truncate', { hasText: 'acme' }).first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator('.truncate', { hasText: 'wks' }).first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator('.truncate', { hasText: '13' }).first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator('.truncate', { hasText: 'cmo' }).first()).toBeVisible({ timeout: 15000 });

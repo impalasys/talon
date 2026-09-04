@@ -10,7 +10,7 @@ use crate::control::resource_model::TypedResource;
 
 #[derive(clap::Args)]
 pub(crate) struct GenCommand {
-    #[arg(long, default_value = "conic/manifests")]
+    #[arg(long, default_value = "talon/manifests")]
     dir: String,
     #[arg(long, default_value = "client.ts")]
     out: String,

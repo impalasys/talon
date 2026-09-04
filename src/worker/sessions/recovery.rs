@@ -814,7 +814,7 @@ mod tests {
         let object = cp
             .objects
             .put(
-                "cas/conic%3Atest/sessions/session-1/messages/message-1/screenshot.png",
+                "cas/acme%3Atest/sessions/session-1/messages/message-1/screenshot.png",
                 b"png-bytes",
                 ObjectMetadata::default(),
             )

@@ -146,7 +146,7 @@ export function ConnectionConfigScreen({
                     value={namespace}
                     onChange={(event) => onNamespaceChange(event.target.value)}
                     className="h-12 w-full rounded-lg border border-border/80 bg-background px-4 font-mono text-[15px] text-foreground transition-shadow focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                    placeholder="Tenant:conic"
+                    placeholder="Tenant:acme"
                     disabled={isConnecting}
                   />
                 </div>

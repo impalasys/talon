@@ -1634,7 +1634,7 @@ mod tests {
 
     fn access(prefixes: &[&str]) -> TalonOpsAccess {
         TalonOpsAccess {
-            namespace: "conic".to_string(),
+            namespace: "acme".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: Some("cmo".to_string()),
             policy: TalonOpsPolicy {
@@ -1752,15 +1752,15 @@ mod tests {
 
     #[test]
     fn talon_ops_access_checks_prefix_scope() {
-        let access = access(&["Conic", "Conic:Customers:"]);
-        assert!(access.allows_namespace("Conic"));
-        assert!(access.allows_namespace("Conic:Customers:13"));
+        let access = access(&["Acme", "Acme:Customers:"]);
+        assert!(access.allows_namespace("Acme"));
+        assert!(access.allows_namespace("Acme:Customers:13"));
         assert!(!access.allows_namespace("default"));
     }
 
     #[test]
     fn talon_ops_access_uses_default_limits() {
-        let access = access(&["conic"]);
+        let access = access(&["acme"]);
         assert_eq!(access.max_list_limit(), DEFAULT_MAX_LIST_LIMIT as usize);
         assert_eq!(
             access.max_history_lookback_seconds(),
@@ -1775,7 +1775,7 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_rejects_unknown_params() {
         let error = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&wat=1",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Acme&wat=1",
         )
         .expect_err("unknown params should fail");
 
@@ -1787,13 +1787,13 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_reads_known_params() {
         let policy = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&allowed_prefix=Conic%3ACustomers%3A&session_messages=1&channel_messages=1&max_limit=25&max_lookback_s=60",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Acme&allowed_prefix=Acme%3ACustomers%3A&session_messages=1&channel_messages=1&max_limit=25&max_lookback_s=60",
         )
         .expect("policy should parse");
 
         assert_eq!(
             policy.allowed_namespace_prefixes,
-            vec!["Conic".to_string(), "Conic:Customers:".to_string()]
+            vec!["Acme".to_string(), "Acme:Customers:".to_string()]
         );
         assert!(policy.allow_session_messages);
         assert!(policy.allow_channel_messages);
@@ -1804,19 +1804,19 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_rejects_invalid_values_and_duplicates() {
         let duplicate = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&session_messages=1&session_messages=0",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Acme&session_messages=1&session_messages=0",
         )
         .expect_err("duplicate singleton params should fail");
         assert!(duplicate.to_string().contains("may only be specified once"));
 
         let invalid_bool = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&session_messages=yes",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Acme&session_messages=yes",
         )
         .expect_err("invalid boolean should fail");
         assert!(invalid_bool.to_string().contains("must be 0 or 1"));
 
         let invalid_int = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&max_limit=-1",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Acme&max_limit=-1",
         )
         .expect_err("negative integers should fail");
         assert!(invalid_int.to_string().contains("must be non-negative"));
@@ -1833,11 +1833,11 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_uses_defaults_when_optionals_absent() {
         let policy = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=Acme",
         )
         .expect("policy should parse");
 
-        assert_eq!(policy.allowed_namespace_prefixes, vec!["Conic".to_string()]);
+        assert_eq!(policy.allowed_namespace_prefixes, vec!["Acme".to_string()]);
         assert!(!policy.allow_session_messages);
         assert!(!policy.allow_channel_messages);
         assert_eq!(policy.max_list_limit, DEFAULT_MAX_LIST_LIMIT);
@@ -1866,11 +1866,11 @@ mod tests {
     #[test]
     fn talon_ops_access_uses_configured_limits_and_bounded_limit() {
         let access = TalonOpsAccess {
-            namespace: "conic".to_string(),
+            namespace: "acme".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: None,
             policy: TalonOpsPolicy {
-                allowed_namespace_prefixes: vec!["conic".to_string()],
+                allowed_namespace_prefixes: vec!["acme".to_string()],
                 allow_session_messages: false,
                 allow_channel_messages: false,
                 max_list_limit: 12,
@@ -1918,7 +1918,7 @@ mod tests {
 
         let access_token = mint_talon_ops_access_token(
             TEST_PLATFORM_JWT_ISSUER,
-            "conic",
+            "acme",
             "talon-ops",
             Some("cmo"),
             Some("session-123"),
@@ -1930,7 +1930,7 @@ mod tests {
             TEST_PLATFORM_JWT_ISSUER,
         )
         .expect("claims should parse");
-        assert_eq!(access_claims.namespace, "conic");
+        assert_eq!(access_claims.namespace, "acme");
         assert_eq!(access_claims.mcp_server_name, "talon-ops");
         assert_eq!(access_claims.agent_name.as_deref(), Some("cmo"));
         assert_eq!(access_claims.session_id.as_deref(), Some("session-123"));
@@ -1941,7 +1941,7 @@ mod tests {
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            namespace: "conic".to_string(),
+            namespace: "acme".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: None,
             session_id: None,
@@ -1951,7 +1951,7 @@ mod tests {
             TEST_PLATFORM_JWT_ISSUER,
         )
         .expect("broker claims should parse");
-        assert_eq!(broker_claims.namespace, "conic");
+        assert_eq!(broker_claims.namespace, "acme");
         assert_eq!(broker_claims.mcp_server_name, "talon-ops");
         assert!(broker_claims.agent_name.is_none());
 
@@ -1989,7 +1989,7 @@ mod tests {
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            namespace: "conic".to_string(),
+            namespace: "acme".to_string(),
             mcp_server_name: " ".to_string(),
             agent_name: None,
             session_id: None,
@@ -2010,10 +2010,10 @@ mod tests {
         assert!(format!("{error:?}").contains("missing extension"));
 
         let mut request = Request::builder().uri("/").body(()).unwrap();
-        request.extensions_mut().insert(access(&["conic"]));
+        request.extensions_mut().insert(access(&["acme"]));
         let (parts, _) = request.into_parts();
         let extracted = talon_ops_access_from_parts(&parts).expect("extension should load");
-        assert_eq!(extracted.namespace, "conic");
+        assert_eq!(extracted.namespace, "acme");
     }
 
     #[test]
@@ -2026,9 +2026,8 @@ mod tests {
 
     #[test]
     fn require_namespace_access_rejects_out_of_scope_namespace() {
-        let access = access(&["Conic", "Conic:Customers:"]);
-        require_namespace_access(&access, "Conic:Customers:1")
-            .expect("namespace should be allowed");
+        let access = access(&["Acme", "Acme:Customers:"]);
+        require_namespace_access(&access, "Acme:Customers:1").expect("namespace should be allowed");
         let error = require_namespace_access(&access, "default")
             .expect_err("out of scope namespace should fail");
         assert!(format!("{error:?}").contains("outside MCP server scope"));
@@ -2037,7 +2036,7 @@ mod tests {
     #[test]
     fn schedule_json_includes_target_and_status_details() {
         let schedule = crate::control::resource_model::schedule(
-            "conic",
+            "acme",
             "nightly",
             resources_proto::ScheduleSpec {
                 kind: "cron".to_string(),
@@ -2093,14 +2092,14 @@ mod tests {
         let server = manifests::McpServer {
             metadata: Some(manifests::ObjectMeta {
                 name: "talon-ops".to_string(),
-                namespace: "Conic".to_string(),
+                namespace: "Acme".to_string(),
                 labels: HashMap::new(),
                 annotations: HashMap::new(),
                 ..Default::default()
             }),
             spec: Some(manifests::McpServerSpec {
                 transport: "streamable_http".to_string(),
-                target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=Conic&session_messages=1".to_string(),
+                target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=Acme&session_messages=1".to_string(),
                 args: Vec::new(),
                 headers: HashMap::new(),
                 disabled: false,
@@ -2109,19 +2108,19 @@ mod tests {
             }),
             status: Some(crate::control::resource_model::common_status(String::new())),
         };
-        kv.set_msg(&keys::mcp_server("Conic", "talon-ops"), &server)
+        kv.set_msg(&keys::mcp_server("Acme", "talon-ops"), &server)
             .await
             .expect("MCP server should persist");
 
         let policy = talon_ops_policy_from_server(&server).expect("policy should load");
-        assert_eq!(policy.allowed_namespace_prefixes, vec!["Conic".to_string()]);
+        assert_eq!(policy.allowed_namespace_prefixes, vec!["Acme".to_string()]);
         assert!(policy.allow_session_messages);
         assert!(!policy.allow_channel_messages);
 
-        let access = load_talon_ops_server_access(&kv, "Conic", "talon-ops", Some("ctl"))
+        let access = load_talon_ops_server_access(&kv, "Acme", "talon-ops", Some("ctl"))
             .await
             .expect("MCP server access should load");
-        assert_eq!(access.namespace, "Conic");
+        assert_eq!(access.namespace, "Acme");
         assert_eq!(access.mcp_server_name, "talon-ops");
         assert_eq!(access.agent_name.as_deref(), Some("ctl"));
     }
@@ -2129,17 +2128,17 @@ mod tests {
     #[tokio::test]
     async fn load_talon_ops_server_access_rejects_missing_or_wrong_server() {
         let kv = MockKvStore::default();
-        let missing = load_talon_ops_server_access(&kv, "conic", "talon-ops", None)
+        let missing = load_talon_ops_server_access(&kv, "acme", "talon-ops", None)
             .await
             .expect_err("missing MCP server should fail");
         assert!(missing.to_string().contains("not found"));
 
         kv.set_msg(
-            &keys::mcp_server("conic", "wrong"),
+            &keys::mcp_server("acme", "wrong"),
             &manifests::McpServer {
                 metadata: Some(manifests::ObjectMeta {
                     name: "wrong".to_string(),
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
                     ..Default::default()
@@ -2159,7 +2158,7 @@ mod tests {
         .await
         .expect("wrong MCP server should persist");
 
-        let wrong = load_talon_ops_server_access(&kv, "conic", "wrong", None)
+        let wrong = load_talon_ops_server_access(&kv, "acme", "wrong", None)
             .await
             .expect_err("wrong MCP server should fail");
         assert!(wrong.to_string().contains("is not talon-ops"));
@@ -2168,7 +2167,7 @@ mod tests {
     #[tokio::test]
     async fn talon_ops_access_from_request_checks_header_and_mcp_server() {
         let kv = Arc::new(MockKvStore::default());
-        seed_talon_ops_server(kv.as_ref(), "conic", "talon-ops").await;
+        seed_talon_ops_server(kv.as_ref(), "acme", "talon-ops").await;
         let handler = handler_with_kv(kv);
 
         let missing = talon_ops_access_from_request(&handler, None)
@@ -2179,7 +2178,7 @@ mod tests {
         let _guard = PlatformJwtEnvGuard::acquire().await;
         let token = mint_talon_ops_access_token(
             TEST_PLATFORM_JWT_ISSUER,
-            "conic",
+            "acme",
             "talon-ops",
             Some("ctl"),
             Some("session-1"),
@@ -2190,7 +2189,7 @@ mod tests {
         let access = talon_ops_access_from_request(&handler, Some(&header))
             .await
             .expect("MCP server access should load");
-        assert_eq!(access.namespace, "conic");
+        assert_eq!(access.namespace, "acme");
         assert_eq!(access.mcp_server_name, "talon-ops");
         assert_eq!(access.agent_name.as_deref(), Some("ctl"));
 
@@ -2204,7 +2203,7 @@ mod tests {
     #[tokio::test]
     async fn talon_ops_auth_broker_validates_request_and_mints_token() {
         let kv = Arc::new(MockKvStore::default());
-        seed_talon_ops_server(kv.as_ref(), "conic", "talon-ops").await;
+        seed_talon_ops_server(kv.as_ref(), "acme", "talon-ops").await;
         let handler = handler_with_kv(kv);
         let _guard = PlatformJwtEnvGuard::acquire().await;
 
@@ -2214,7 +2213,7 @@ mod tests {
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            namespace: "conic".to_string(),
+            namespace: "acme".to_string(),
             mcp_server_name: "talon-ops".to_string(),
             agent_name: Some("ctl".to_string()),
             session_id: Some("session-1".to_string()),
@@ -2244,7 +2243,7 @@ mod tests {
             State(handler.clone()),
             headers.clone(),
             Json(McpAuthBrokerRequest {
-                namespace: "conic".to_string(),
+                namespace: "acme".to_string(),
                 mcp_server_name: "talon-ops".to_string(),
                 agent_name: Some("ctl".to_string()),
                 session_id: Some("session-2".to_string()),
@@ -2261,7 +2260,7 @@ mod tests {
             aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
-            namespace: "conic".to_string(),
+            namespace: "acme".to_string(),
             mcp_server_name: "github".to_string(),
             agent_name: Some("ctl".to_string()),
             session_id: Some("session-1".to_string()),
@@ -2275,7 +2274,7 @@ mod tests {
             State(handler.clone()),
             unsupported_server_headers,
             Json(McpAuthBrokerRequest {
-                namespace: "conic".to_string(),
+                namespace: "acme".to_string(),
                 mcp_server_name: "github".to_string(),
                 agent_name: Some("ctl".to_string()),
                 session_id: Some("session-1".to_string()),
@@ -2290,7 +2289,7 @@ mod tests {
             State(handler),
             headers,
             Json(McpAuthBrokerRequest {
-                namespace: "conic".to_string(),
+                namespace: "acme".to_string(),
                 mcp_server_name: "talon-ops".to_string(),
                 agent_name: Some("ctl".to_string()),
                 session_id: Some("session-1".to_string()),
@@ -2305,18 +2304,18 @@ mod tests {
     #[tokio::test]
     async fn talon_ops_server_lists_visible_resources_and_filters_sessions() {
         let kv = Arc::new(MockKvStore::default());
-        seed_talon_ops_server(kv.as_ref(), "conic", "talon-ops").await;
-        seed_namespace(kv.as_ref(), "conic", "").await;
-        seed_namespace(kv.as_ref(), "conic:child", "conic").await;
+        seed_talon_ops_server(kv.as_ref(), "acme", "talon-ops").await;
+        seed_namespace(kv.as_ref(), "acme", "").await;
+        seed_namespace(kv.as_ref(), "acme:child", "acme").await;
         seed_namespace(kv.as_ref(), "default", "").await;
-        seed_agent(kv.as_ref(), "conic", "alpha").await;
-        seed_agent(kv.as_ref(), "conic", "beta").await;
+        seed_agent(kv.as_ref(), "acme", "alpha").await;
+        seed_agent(kv.as_ref(), "acme", "beta").await;
         seed_agent(kv.as_ref(), "default", "hidden").await;
-        seed_channel(kv.as_ref(), "conic", "incident-room", "open").await;
+        seed_channel(kv.as_ref(), "acme", "incident-room", "open").await;
         seed_channel(kv.as_ref(), "default", "hidden-room", "open").await;
         seed_channel_message(
             kv.as_ref(),
-            "conic",
+            "acme",
             "incident-room",
             "019f0000-0000-7000-8000-000000000001",
             "first",
@@ -2324,7 +2323,7 @@ mod tests {
         .await;
         seed_channel_message(
             kv.as_ref(),
-            "conic",
+            "acme",
             "incident-room",
             "019f0000-0000-7000-8000-000000000002",
             "second",
@@ -2332,11 +2331,11 @@ mod tests {
         .await;
 
         kv.set_msg(
-            &keys::session("conic", "alpha", "session-old"),
+            &keys::session("acme", "alpha", "session-old"),
             &data_proto::Session {
                 id: "session-old".to_string(),
                 agent: "alpha".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "IDLE".to_string(),
                 created_at: 10,
                 last_active: 100,
@@ -2349,11 +2348,11 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &keys::session("conic", "beta", "session-new"),
+            &keys::session("acme", "beta", "session-new"),
             &data_proto::Session {
                 id: "session-new".to_string(),
                 agent: "beta".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 20,
                 last_active: 200,
@@ -2366,7 +2365,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &keys::session_message("conic", "beta", "session-new", "msg-1"),
+            &keys::session_message("acme", "beta", "session-new", "msg-1"),
             &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: 1,
@@ -2387,14 +2386,14 @@ mod tests {
         .unwrap();
 
         let server = TalonOpsServer::new(handler_with_kv(kv));
-        let parts = parts_with_access(access(&["conic"]));
+        let parts = parts_with_access(access(&["acme"]));
 
         let namespaces: String = server
             .list_namespaces(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(ListNamespacesArgs {
                     parent: None,
-                    prefix: Some("conic".to_string()),
+                    prefix: Some("acme".to_string()),
                     limit: Some(10),
                 }),
             )
@@ -2407,7 +2406,7 @@ mod tests {
             .get_agent(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(GetAgentArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     name: "alpha".to_string(),
                 }),
             )
@@ -2419,7 +2418,7 @@ mod tests {
             .list_channels(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(ListChannelsArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     status: Some("open".to_string()),
                     limit: Some(10),
                 }),
@@ -2437,7 +2436,7 @@ mod tests {
             .get_channel(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(GetChannelArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     name: "incident-room".to_string(),
                 }),
             )
@@ -2449,7 +2448,7 @@ mod tests {
             .list_channel_messages(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(ListChannelMessagesArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     channel: "incident-room".to_string(),
                     page_size: Some(1),
                     before_message_id: None,
@@ -2470,7 +2469,7 @@ mod tests {
             .get_channel_message(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(GetChannelMessageArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     channel: "incident-room".to_string(),
                     message_id: "019f0000-0000-7000-8000-000000000001".to_string(),
                 }),
@@ -2483,11 +2482,11 @@ mod tests {
         let denied = server
             .list_channel_messages(
                 rmcp::handler::server::common::Extension(parts_with_access(TalonOpsAccess {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     mcp_server_name: "talon-ops".to_string(),
                     agent_name: None,
                     policy: TalonOpsPolicy {
-                        allowed_namespace_prefixes: vec!["conic".to_string()],
+                        allowed_namespace_prefixes: vec!["acme".to_string()],
                         allow_session_messages: true,
                         allow_channel_messages: false,
                         max_list_limit: DEFAULT_MAX_LIST_LIMIT,
@@ -2495,7 +2494,7 @@ mod tests {
                     },
                 })),
                 Parameters(ListChannelMessagesArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     channel: "incident-room".to_string(),
                     page_size: Some(1),
                     before_message_id: None,
@@ -2509,7 +2508,7 @@ mod tests {
             .list_sessions(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(ListSessionsArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     agent: None,
                     state: Some("PROCESSING".to_string()),
                     limit: Some(10),
@@ -2526,7 +2525,7 @@ mod tests {
             .list_mcp_servers(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(ListMcpServersArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     limit: Some(10),
                 }),
             )
@@ -2540,13 +2539,13 @@ mod tests {
     async fn talon_ops_server_manages_schedule_lifecycle() {
         let kv = Arc::new(MockKvStore::default());
         let server = TalonOpsServer::new(handler_with_kv(kv.clone()));
-        let parts = parts_with_access(access(&["conic"]));
+        let parts = parts_with_access(access(&["acme"]));
 
         let created: String = server
             .create_schedule(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(PutScheduleArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     name: "nightly".to_string(),
                     labels: Some(HashMap::from([("tier".to_string(), "prod".to_string())])),
                     kind: "every".to_string(),
@@ -2574,7 +2573,7 @@ mod tests {
             .list_schedules(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(ListSchedulesArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     agent: Some("alpha".to_string()),
                     enabled: Some(true),
                     limit: Some(10),
@@ -2589,7 +2588,7 @@ mod tests {
             .update_schedule(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(PutScheduleArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     name: "nightly".to_string(),
                     labels: None,
                     kind: "".to_string(),
@@ -2625,7 +2624,7 @@ mod tests {
             .get_schedule(
                 rmcp::handler::server::common::Extension(parts.clone()),
                 Parameters(GetScheduleArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     name: "nightly".to_string(),
                 }),
             )
@@ -2638,7 +2637,7 @@ mod tests {
             .delete_schedule(
                 rmcp::handler::server::common::Extension(parts),
                 Parameters(DeleteScheduleArgs {
-                    namespace: "conic".to_string(),
+                    namespace: "acme".to_string(),
                     name: "nightly".to_string(),
                 }),
             )

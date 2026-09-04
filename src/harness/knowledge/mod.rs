@@ -661,9 +661,9 @@ mod tests {
         let book = KvKnowledgeBook::new(kv.clone());
 
         for (ns, path, content) in [
-            ("conic", "playbooks/root.md", "shared root"),
-            ("conic", "playbooks/nested/child.md", "shared child"),
-            ("conic:wks:13", "playbooks/local.md", "local root"),
+            ("acme", "playbooks/root.md", "shared root"),
+            ("acme", "playbooks/nested/child.md", "shared child"),
+            ("acme:wks:13", "playbooks/local.md", "local root"),
         ] {
             let entry = KnowledgeEntry {
                 namespace: ns.to_string(),
@@ -681,7 +681,7 @@ mod tests {
         }
 
         let non_recursive = book
-            .list("conic:wks:13", "playbooks", false, false, 10)
+            .list("acme:wks:13", "playbooks", false, false, 10)
             .await
             .unwrap();
         assert_eq!(non_recursive.len(), 2);
@@ -691,7 +691,7 @@ mod tests {
         assert!(non_recursive[1].inherited);
 
         let recursive = book
-            .list("conic:wks:13", "playbooks", false, true, 10)
+            .list("acme:wks:13", "playbooks", false, true, 10)
             .await
             .unwrap();
         assert_eq!(recursive.len(), 3);
@@ -709,7 +709,7 @@ mod tests {
         );
 
         let local_only = book
-            .list("conic:wks:13", "playbooks", true, true, 10)
+            .list("acme:wks:13", "playbooks", true, true, 10)
             .await
             .unwrap();
         assert_eq!(local_only.len(), 1);
@@ -723,7 +723,7 @@ mod tests {
         let book = KvKnowledgeBook::new(kv.clone());
 
         let entry = KnowledgeEntry {
-            namespace: "conic".to_string(),
+            namespace: "acme".to_string(),
             name: "unicode.md".to_string(),
             path: "unicode.md".to_string(),
             content: "Hello 👋 café résumé 東京 unicode body".to_string(),
@@ -731,17 +731,17 @@ mod tests {
         };
         let bytes = serde_json::to_vec(&entry).unwrap();
         kv.set(
-            &crate::control::keys::knowledge("conic", "unicode.md"),
+            &crate::control::keys::knowledge("acme", "unicode.md"),
             &bytes,
         )
         .await
         .unwrap();
 
-        let results = book.search("conic", "café", 5).await.unwrap();
+        let results = book.search("acme", "café", 5).await.unwrap();
 
         assert_eq!(results.len(), 1);
         assert!(results[0].excerpt.contains("café"));
-        assert_eq!(results[0].namespace, "conic");
+        assert_eq!(results[0].namespace, "acme");
     }
 
     #[tokio::test]
@@ -750,9 +750,9 @@ mod tests {
         let documents = ephemeral_document_store();
         documents
             .upsert_documents(&[knowledge_document(
-                "@Namespace/conic/@/Knowledge/docs:content",
-                "conic",
-                "@Namespace/conic/@/Knowledge/docs",
+                "@Namespace/acme/@/Knowledge/docs:content",
+                "acme",
+                "@Namespace/acme/@/Knowledge/docs",
                 "docs.md",
                 "Document-store knowledge result",
                 42,
@@ -765,10 +765,10 @@ mod tests {
             documents,
         );
 
-        let results = book.search("conic", "document-store", 5).await.unwrap();
+        let results = book.search("acme", "document-store", 5).await.unwrap();
 
         assert_eq!(results.len(), 1);
-        assert_eq!(results[0].namespace, "conic");
+        assert_eq!(results[0].namespace, "acme");
         assert_eq!(results[0].path, "docs.md");
         assert_eq!(results[0].excerpt, "Document-store knowledge result");
         assert_eq!(results[0].updated_at, 42);
@@ -780,7 +780,7 @@ mod tests {
 
         assert_eq!(name, "docs%2Fhello%20world.md");
         assert!(!name.contains('/'));
-        let key = crate::control::keys::ResourceKey::new("conic", &[], KIND_KNOWLEDGE, &name);
+        let key = crate::control::keys::ResourceKey::new("acme", &[], KIND_KNOWLEDGE, &name);
         let parsed = crate::control::keys::ResourceKey::parse_canonical(&key.canonical()).unwrap();
         assert_eq!(parsed.name, name);
     }
@@ -792,17 +792,17 @@ mod tests {
         documents
             .upsert_documents(&[
                 knowledge_document(
-                    "@Namespace/conic/@/Knowledge/docs:content",
-                    "conic",
-                    "@Namespace/conic/@/Knowledge/docs",
+                    "@Namespace/acme/@/Knowledge/docs:content",
+                    "acme",
+                    "@Namespace/acme/@/Knowledge/docs",
                     "docs.md",
                     "root document-store result",
                     42,
                 ),
                 knowledge_document(
-                    "@Namespace/conic:wks:13/@/Knowledge/docs:content",
-                    "conic:wks:13",
-                    "@Namespace/conic:wks:13/@/Knowledge/docs",
+                    "@Namespace/acme:wks:13/@/Knowledge/docs:content",
+                    "acme:wks:13",
+                    "@Namespace/acme:wks:13/@/Knowledge/docs",
                     "docs.md",
                     "child document-store result",
                     41,
@@ -817,12 +817,12 @@ mod tests {
         );
 
         let results = book
-            .search("conic:wks:13", "document-store", 5)
+            .search("acme:wks:13", "document-store", 5)
             .await
             .unwrap();
 
         assert_eq!(results.len(), 1);
-        assert_eq!(results[0].namespace, "conic:wks:13");
+        assert_eq!(results[0].namespace, "acme:wks:13");
         assert_eq!(results[0].path, "docs.md");
         assert!(results[0].excerpt.contains("child"));
     }
@@ -833,7 +833,7 @@ mod tests {
         let book = KvKnowledgeBook::new(kv.clone());
 
         let entry = KnowledgeEntry {
-            namespace: "conic".to_string(),
+            namespace: "acme".to_string(),
             name: "playbooks/aeo.md".to_string(),
             path: "playbooks/aeo.md".to_string(),
             content: "Shared AEO guidance".to_string(),
@@ -841,15 +841,15 @@ mod tests {
         };
         let bytes = serde_json::to_vec(&entry).unwrap();
         kv.set(
-            &crate::control::keys::knowledge("conic", "playbooks/aeo.md"),
+            &crate::control::keys::knowledge("acme", "playbooks/aeo.md"),
             &bytes,
         )
         .await
         .unwrap();
 
-        let result = book.get("conic:wks:13", "playbooks/aeo.md").await.unwrap();
+        let result = book.get("acme:wks:13", "playbooks/aeo.md").await.unwrap();
         let result = result.expect("expected inherited knowledge");
-        assert_eq!(result.namespace, "conic");
+        assert_eq!(result.namespace, "acme");
         assert_eq!(result.content, "Shared AEO guidance");
     }
 
@@ -859,8 +859,8 @@ mod tests {
         let book = KvKnowledgeBook::new(kv.clone());
 
         for (ns, content) in [
-            ("conic", "Shared prompt framework"),
-            ("conic:wks:13", "Workspace-specific prompt framework"),
+            ("acme", "Shared prompt framework"),
+            ("acme:wks:13", "Workspace-specific prompt framework"),
         ] {
             let entry = KnowledgeEntry {
                 namespace: ns.to_string(),
@@ -878,9 +878,9 @@ mod tests {
             .unwrap();
         }
 
-        let results = book.search("conic:wks:13", "framework", 5).await.unwrap();
+        let results = book.search("acme:wks:13", "framework", 5).await.unwrap();
         assert_eq!(results.len(), 1);
-        assert_eq!(results[0].namespace, "conic:wks:13");
+        assert_eq!(results[0].namespace, "acme:wks:13");
     }
 
     #[tokio::test]
@@ -889,23 +889,23 @@ mod tests {
         let book = KvKnowledgeBook::new(kv.clone());
 
         kv.set(
-            &crate::control::keys::knowledge("conic", "notes/Plan.md"),
+            &crate::control::keys::knowledge("acme", "notes/Plan.md"),
             b"plain text body",
         )
         .await
         .unwrap();
-        let resolved = book.find_entry("conic", "plan.md").await.unwrap().unwrap();
-        assert_eq!(resolved.namespace, "conic");
+        let resolved = book.find_entry("acme", "plan.md").await.unwrap().unwrap();
+        assert_eq!(resolved.namespace, "acme");
         assert_eq!(resolved.path(), "notes/Plan.md");
         assert_eq!(resolved.content, "plain text body");
 
         kv.set(
-            &crate::control::keys::knowledge("conic", "other/Plan.md"),
+            &crate::control::keys::knowledge("acme", "other/Plan.md"),
             b"another body",
         )
         .await
         .unwrap();
-        let ambiguous = book.find_entry("conic", "plan.md").await.unwrap();
+        let ambiguous = book.find_entry("acme", "plan.md").await.unwrap();
         assert!(ambiguous.is_none());
     }
 
@@ -921,21 +921,21 @@ mod tests {
             ("misc/ideas", "mentions framework in body"),
         ] {
             let entry = KnowledgeEntry {
-                namespace: "conic".to_string(),
+                namespace: "acme".to_string(),
                 name: path.to_string(),
                 path: path.to_string(),
                 content: content.to_string(),
                 updated_at: 0,
             };
             kv.set(
-                &crate::control::keys::knowledge("conic", path),
+                &crate::control::keys::knowledge("acme", path),
                 &serde_json::to_vec(&entry).unwrap(),
             )
             .await
             .unwrap();
         }
 
-        let results = book.search("conic", "framework", 3).await.unwrap();
+        let results = book.search("acme", "framework", 3).await.unwrap();
         assert_eq!(results.len(), 3);
         assert_eq!(results[0].path, "framework");
         assert_eq!(results[1].path, "playbooks/framework");
@@ -950,7 +950,7 @@ mod tests {
 
         let wrote = execute_tool(
             &book,
-            "conic",
+            "acme",
             KNOWLEDGE_WRITE_TOOL,
             &json!({"path":"goals.md","content":"ship it"}),
         )
@@ -963,19 +963,19 @@ mod tests {
 
         let got = execute_tool(
             &book,
-            "conic",
+            "acme",
             KNOWLEDGE_GET_TOOL,
             &json!({"path":"goals.md"}),
         )
         .await
         .unwrap()
         .unwrap();
-        assert!(got.contains("[conic:goals.md]"));
+        assert!(got.contains("[acme:goals.md]"));
         assert!(got.contains("ship it"));
 
         let missing = execute_tool(
             &book,
-            "conic",
+            "acme",
             KNOWLEDGE_GET_TOOL,
             &json!({"path":"missing.md"}),
         )
@@ -986,18 +986,18 @@ mod tests {
 
         let search = execute_tool(
             &book,
-            "conic",
+            "acme",
             KNOWLEDGE_SEARCH_TOOL,
             &json!({"query":"ship"}),
         )
         .await
         .unwrap()
         .unwrap();
-        assert!(search.contains("[conic:goals.md]"));
+        assert!(search.contains("[acme:goals.md]"));
 
         let empty_search = execute_tool(
             &book,
-            "conic",
+            "acme",
             KNOWLEDGE_SEARCH_TOOL,
             &json!({"query":"absent"}),
         )
@@ -1006,7 +1006,7 @@ mod tests {
         .unwrap();
         assert!(empty_search.contains("no matching artifacts found"));
 
-        let list = execute_tool(&book, "conic", KNOWLEDGE_LIST_TOOL, &json!({}))
+        let list = execute_tool(&book, "acme", KNOWLEDGE_LIST_TOOL, &json!({}))
             .await
             .unwrap()
             .unwrap();
@@ -1017,7 +1017,7 @@ mod tests {
 
         let inherited_list = execute_tool(
             &book,
-            "conic:wks:13",
+            "acme:wks:13",
             KNOWLEDGE_LIST_TOOL,
             &json!({"local":false}),
         )
@@ -1030,7 +1030,7 @@ mod tests {
 
         let empty_list = execute_tool(
             &book,
-            "conic",
+            "acme",
             KNOWLEDGE_LIST_TOOL,
             &json!({"path":"missing/"}),
         )
@@ -1039,7 +1039,7 @@ mod tests {
         .unwrap();
         assert!(empty_list.contains("no artifacts found"));
 
-        let unknown = execute_tool(&book, "conic", "unknown_tool", &json!({}))
+        let unknown = execute_tool(&book, "acme", "unknown_tool", &json!({}))
             .await
             .unwrap();
         assert!(unknown.is_none());

@@ -32,7 +32,7 @@ apiVersion: talon.impalasys.com/v1
 kind: McpServer
 metadata:
   name: github
-  namespace: conic
+  namespace: acme
 spec:
   transport: http
   target: https://example.com/mcp
@@ -65,7 +65,7 @@ apiVersion: talon.impalasys.com/v1
 kind: McpServerBinding
 metadata:
   name: github
-  namespace: conic
+  namespace: acme
 spec:
   serverRef: github
 "#,
@@ -300,7 +300,7 @@ apiVersion: talon.impalasys.com/v1
 kind: Connector
 metadata:
   name: nimbus-shukant
-  namespace: Tenant:conic:Nimbus
+  namespace: Tenant:acme:Nimbus
 spec:
   classRef:
     name: nimbus-imessage

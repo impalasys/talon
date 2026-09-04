@@ -2,10 +2,10 @@ apiVersion: talon.impalasys.com/v1
 kind: McpServer
 metadata:
   name: talon-ops
-  namespace: Conic
+  namespace: Talon
 spec:
   transport: http
-  target: {{ vars.talon_ops_mcp_target_url }}?allowed_prefix=Conic&allowed_prefix=Conic%3ACustomers%3A&session_messages=1&channel_messages=1&max_limit=100&max_lookback_s=604800
+  target: {{ vars.talon_ops_mcp_target_url }}?allowed_prefix=Talon&allowed_prefix=Talon%3ACustomers%3A&session_messages=1&channel_messages=1&max_limit=100&max_lookback_s=604800
   args: []
   headers: {}
   disabled: false

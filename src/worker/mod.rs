@@ -481,7 +481,7 @@ mod tests {
 
     fn schedule(revision: u64, next_run_at: i64, session_mode: &str) -> resources_proto::Schedule {
         crate::control::resource_model::schedule(
-            "conic:test",
+            "acme:test",
             "nightly",
             resources_proto::ScheduleSpec {
                 kind: "every".to_string(),
@@ -547,9 +547,9 @@ mod tests {
 
     async fn seed_agent_and_session(kv: &MockKvStore) {
         kv.set_msg(
-            &crate::control::keys::agent("conic:test", "assistant"),
+            &crate::control::keys::agent("acme:test", "assistant"),
             &crate::control::resource_model::agent(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 manifests::AgentSpec::default(),
                 HashMap::new(),
@@ -558,11 +558,11 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "IDLE".to_string(),
                 created_at: 0,
                 last_active: 0,
@@ -670,7 +670,7 @@ mod tests {
         let lifecycle = LifecycleEvent {
             resource_type: "McpServer".to_string(),
             name: "server-1".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             action: 1,
             timestamp: 123,
         };
@@ -689,7 +689,7 @@ mod tests {
 
         handler
             .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
-                namespace: "conic:test".to_string(),
+                namespace: "acme:test".to_string(),
                 schedule_id: "missing".to_string(),
                 revision: 1,
                 intended_run_at: Utc::now().timestamp_micros(),
@@ -705,7 +705,7 @@ mod tests {
         let handler = handler(kv.clone(), pubsub);
         let intended = (Utc::now() + Duration::seconds(30)).timestamp_micros();
         kv.set_msg(
-            &crate::control::keys::schedule("conic:test", "nightly"),
+            &crate::control::keys::schedule("acme:test", "nightly"),
             &schedule(3, intended, "reuse"),
         )
         .await
@@ -713,7 +713,7 @@ mod tests {
 
         handler
             .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
-                namespace: "conic:test".to_string(),
+                namespace: "acme:test".to_string(),
                 schedule_id: "nightly".to_string(),
                 revision: 3,
                 intended_run_at: intended,
@@ -723,7 +723,7 @@ mod tests {
 
         let updated = kv
             .get_msg::<resources_proto::Schedule>(&crate::control::keys::schedule(
-                "conic:test",
+                "acme:test",
                 "nightly",
             ))
             .await
@@ -746,7 +746,7 @@ mod tests {
         seed_agent_and_session(kv.as_ref()).await;
         let intended = (Utc::now() - Duration::seconds(2)).timestamp_micros();
         kv.set_msg(
-            &crate::control::keys::schedule("conic:test", "nightly"),
+            &crate::control::keys::schedule("acme:test", "nightly"),
             &schedule(7, intended, "reuse"),
         )
         .await
@@ -754,7 +754,7 @@ mod tests {
 
         handler
             .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
-                namespace: "conic:test".to_string(),
+                namespace: "acme:test".to_string(),
                 schedule_id: "nightly".to_string(),
                 revision: 7,
                 intended_run_at: intended,
@@ -764,7 +764,7 @@ mod tests {
 
         let updated = kv
             .get_msg::<resources_proto::Schedule>(&crate::control::keys::schedule(
-                "conic:test",
+                "acme:test",
                 "nightly",
             ))
             .await
@@ -778,7 +778,7 @@ mod tests {
 
         let session = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -790,7 +790,7 @@ mod tests {
         let message_keys = kv
             .list_keys(
                 &crate::control::keys::session_message_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),
@@ -867,7 +867,7 @@ mod tests {
             loop {
                 let Some(updated) = kv
                     .get_msg::<resources_proto::Schedule>(&crate::control::keys::schedule(
-                        "conic:test",
+                        "acme:test",
                         "nightly",
                     ))
                     .await
@@ -904,7 +904,7 @@ mod tests {
         let message_keys = kv
             .list_keys(
                 &crate::control::keys::session_message_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),

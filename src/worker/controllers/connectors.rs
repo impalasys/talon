@@ -1028,44 +1028,44 @@ mod tests {
             name: "slack".to_string(),
         };
 
-        let namespace = connector_class_namespace("Tenant:conic:Customers:13", &class_ref).unwrap();
+        let namespace = connector_class_namespace("Tenant:acme:Customers:13", &class_ref).unwrap();
 
-        assert_eq!(namespace, "Tenant:conic:Customers:13");
+        assert_eq!(namespace, "Tenant:acme:Customers:13");
     }
 
     #[test]
     fn connector_class_namespace_accepts_self_or_ancestor_namespace() {
         let self_ref = resources_proto::ResourceRef {
-            namespace: "Tenant:conic:Customers:13".to_string(),
+            namespace: "Tenant:acme:Customers:13".to_string(),
             name: "slack".to_string(),
         };
         let parent_ref = resources_proto::ResourceRef {
-            namespace: "Tenant:conic:Customers".to_string(),
+            namespace: "Tenant:acme:Customers".to_string(),
             name: "slack".to_string(),
         };
 
         assert_eq!(
-            connector_class_namespace("Tenant:conic:Customers:13", &self_ref).unwrap(),
-            "Tenant:conic:Customers:13"
+            connector_class_namespace("Tenant:acme:Customers:13", &self_ref).unwrap(),
+            "Tenant:acme:Customers:13"
         );
         assert_eq!(
-            connector_class_namespace("Tenant:conic:Customers:13", &parent_ref).unwrap(),
-            "Tenant:conic:Customers"
+            connector_class_namespace("Tenant:acme:Customers:13", &parent_ref).unwrap(),
+            "Tenant:acme:Customers"
         );
     }
 
     #[test]
     fn connector_class_namespace_rejects_sibling_child_and_prefix_matches() {
         for class_namespace in [
-            "Tenant:conic:Customers:12",
-            "Tenant:conic:Customers:13:Child",
-            "Tenant:conic:Customers2",
+            "Tenant:acme:Customers:12",
+            "Tenant:acme:Customers:13:Child",
+            "Tenant:acme:Customers2",
         ] {
             let class_ref = resources_proto::ResourceRef {
                 namespace: class_namespace.to_string(),
                 name: "slack".to_string(),
             };
-            let err = connector_class_namespace("Tenant:conic:Customers:13", &class_ref)
+            let err = connector_class_namespace("Tenant:acme:Customers:13", &class_ref)
                 .unwrap_err()
                 .to_string();
 
@@ -1077,7 +1077,7 @@ mod tests {
     fn connector_references_class_allows_parent_class_namespace() {
         let connector = resources_proto::Resource {
             metadata: Some(resources_proto::ResourceMeta {
-                namespace: "Tenant:conic:Customers:13".to_string(),
+                namespace: "Tenant:acme:Customers:13".to_string(),
                 name: "slack".to_string(),
                 ..Default::default()
             }),
@@ -1085,7 +1085,7 @@ mod tests {
                 kind: Some(resources_proto::resource_spec::Kind::Connector(
                     resources_proto::ConnectorSpec {
                         class_ref: Some(resources_proto::ResourceRef {
-                            namespace: "Tenant:conic:Customers".to_string(),
+                            namespace: "Tenant:acme:Customers".to_string(),
                             name: "slack".to_string(),
                         }),
                         enabled: true,
@@ -1098,12 +1098,12 @@ mod tests {
 
         assert!(connector_references_class(
             &connector,
-            "Tenant:conic:Customers",
+            "Tenant:acme:Customers",
             "slack"
         ));
         assert!(!connector_references_class(
             &connector,
-            "Tenant:conic:Customers:13",
+            "Tenant:acme:Customers:13",
             "slack"
         ));
     }

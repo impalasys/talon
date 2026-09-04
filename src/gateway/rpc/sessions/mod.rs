@@ -2120,7 +2120,7 @@ mod tests {
     #[tokio::test]
     async fn doctor_diagnoses_incomplete_tool_call_batches_without_mutating_history() {
         let kv = Arc::new(MockKvStore::default());
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let incomplete_key = keys::session_message(ns, agent, session_id, "assistant-1");
@@ -2418,7 +2418,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
 
         kv.set_msg(
@@ -2474,7 +2474,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
@@ -2486,7 +2486,7 @@ mod tests {
                 created_at: 1,
                 labels: Default::default(),
                 parts: text_and_compaction_parts(data_proto::ObjectRef {
-                    key: "cas/conic/sessions/session-1/compactions/submission-1/000001.txt"
+                    key: "cas/acme/sessions/session-1/compactions/submission-1/000001.txt"
                         .to_string(),
                     ..Default::default()
                 }),
@@ -2520,7 +2520,7 @@ mod tests {
         );
         assert_eq!(
             marker.object.as_ref().map(|object| object.key.as_str()),
-            Some("cas/conic/sessions/session-1/compactions/submission-1/000001.txt")
+            Some("cas/acme/sessions/session-1/compactions/submission-1/000001.txt")
         );
     }
 
@@ -2529,7 +2529,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
@@ -2541,7 +2541,7 @@ mod tests {
                 created_at: 1,
                 labels: Default::default(),
                 parts: text_and_compaction_parts(data_proto::ObjectRef {
-                    key: "cas/conic/sessions/session-1/compactions/submission-1/000001.txt"
+                    key: "cas/acme/sessions/session-1/compactions/submission-1/000001.txt"
                         .to_string(),
                     ..Default::default()
                 }),
@@ -2577,7 +2577,7 @@ mod tests {
         );
         assert_eq!(
             marker.object.as_ref().map(|object| object.key.as_str()),
-            Some("cas/conic/sessions/session-1/compactions/submission-1/000001.txt")
+            Some("cas/acme/sessions/session-1/compactions/submission-1/000001.txt")
         );
     }
 
@@ -2586,7 +2586,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
@@ -2655,12 +2655,12 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let submission_id = "submission-1";
         let journal_entry_id = "000001";
-        let object_key = "cas/conic/sessions/session-1/compactions/submission-1/000001.txt";
+        let object_key = "cas/acme/sessions/session-1/compactions/submission-1/000001.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let summary_object = handler
             .gateway
@@ -2708,12 +2708,12 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let message_id = "message-1";
         let tool_call_id = "tool-1";
-        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.txt";
+        let object_key = "cas/acme/sessions/session-1/messages/message-1/part-1.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = handler
             .gateway
@@ -2774,12 +2774,12 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let message_id = "message-1";
         let tool_call_id = "tool-1";
-        let foreign_object_key = "cas/conic/sessions/session-2/messages/message-1/part-1.txt";
+        let foreign_object_key = "cas/acme/sessions/session-2/messages/message-1/part-1.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = handler
             .gateway
@@ -2839,13 +2839,13 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let other_agent = "research";
         let session_id = "session-1";
         let message_id = "message-1";
         let tool_call_id = "tool-1";
-        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.txt";
+        let object_key = "cas/acme/sessions/session-1/messages/message-1/part-1.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = handler
             .gateway
@@ -2905,13 +2905,13 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let message_id = "message-1";
         let submission_id = "submission-1";
         let tool_call_id = "tool-1";
-        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.txt";
+        let object_key = "cas/acme/sessions/session-1/messages/message-1/part-1.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = handler
             .gateway
@@ -3066,13 +3066,13 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let message_id = "message-1";
         let submission_id = "submission-1";
         let tool_call_id = "tool-1";
-        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.png";
+        let object_key = "cas/acme/sessions/session-1/messages/message-1/part-1.png";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = handler
             .gateway
@@ -3154,12 +3154,12 @@ mod tests {
             inner: InMemoryObjectStore::default(),
         });
         let handler = handler_with_objects(kv.clone(), pubsub, objects.clone());
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let message_id = "message-1";
         let tool_call_id = "tool-1";
-        let object_key = "cas/conic/sessions/session-1/messages/message-1/part-1.txt";
+        let object_key = "cas/acme/sessions/session-1/messages/message-1/part-1.txt";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         let object = objects
             .put(
@@ -3217,7 +3217,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         seed_session(kv.as_ref(), ns, agent, session_id).await;
@@ -3249,7 +3249,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let submission_id = "submission-1";
@@ -3289,11 +3289,11 @@ mod tests {
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub);
         kv.set_msg(
-            &keys::session("conic:test", "assistant", "session-1"),
+            &keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "READY".to_string(),
                 created_at: 10,
                 last_active: 20,
@@ -3306,7 +3306,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &keys::session_message("conic:test", "assistant", "session-1", "assistant-1"),
+            &keys::session_message("acme:test", "assistant", "session-1", "assistant-1"),
             &data_proto::SessionMessage {
                 id: "assistant-1".to_string(),
                 role: data_proto::MessageRole::RoleAssistant as i32,
@@ -3315,7 +3315,7 @@ mod tests {
                     ("old".to_string(), "label".to_string()),
                     (
                         "talon.impalasys.com/connector-registration".to_string(),
-                        "Namespace/conic/ConnectorClass/slack".to_string(),
+                        "Namespace/acme/ConnectorClass/slack".to_string(),
                     ),
                     (
                         "talon.impalasys.com/connector-match/teamId".to_string(),
@@ -3347,7 +3347,7 @@ mod tests {
         let response = handler
             .handle_update_session_message(tonic::Request::new(
                 proto::UpdateSessionMessageRequest {
-                    ns: "conic:test".to_string(),
+                    ns: "acme:test".to_string(),
                     agent: "assistant".to_string(),
                     session_id: "session-1".to_string(),
                     message_id: "assistant-1".to_string(),
@@ -3396,7 +3396,7 @@ mod tests {
                 .labels
                 .get("talon.impalasys.com/connector-registration")
                 .map(String::as_str),
-            Some("Namespace/conic/ConnectorClass/slack")
+            Some("Namespace/acme/ConnectorClass/slack")
         );
         assert_eq!(
             message
@@ -3424,7 +3424,7 @@ mod tests {
         assert_eq!(message.parts[0].content, "edited text");
 
         kv.set_msg(
-            &keys::session_message("conic:test", "assistant", "session-1", "system-1"),
+            &keys::session_message("acme:test", "assistant", "session-1", "system-1"),
             &data_proto::SessionMessage {
                 id: "system-1".to_string(),
                 role: data_proto::MessageRole::RoleSystem as i32,
@@ -3447,7 +3447,7 @@ mod tests {
         let error = handler
             .handle_update_session_message(tonic::Request::new(
                 proto::UpdateSessionMessageRequest {
-                    ns: "conic:test".to_string(),
+                    ns: "acme:test".to_string(),
                     agent: "assistant".to_string(),
                     session_id: "session-1".to_string(),
                     message_id: "system-1".to_string(),
@@ -3473,7 +3473,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub.clone());
-        let ns = "conic";
+        let ns = "acme";
         let agent = "coding";
         let session_id = "session-1";
         let request_id = "request-1";
@@ -3577,7 +3577,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub.clone());
-        let ns = "conic:test";
+        let ns = "acme:test";
         let oidc_request = |agent: &str, subject: &str| {
             let mut request = tonic::Request::new(proto::CreateSessionRequest {
                 ns: ns.to_string(),
@@ -3660,7 +3660,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = handler(kv.clone(), pubsub.clone());
-        let ns = "conic:identity";
+        let ns = "acme:identity";
         let oidc_request = |subject: &str| {
             let mut request = tonic::Request::new(proto::CreateSessionRequest {
                 ns: ns.to_string(),
@@ -3726,7 +3726,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let setup_pubsub = Arc::new(RecordingPubSub::default());
         let handler = failing_publish_handler(kv.clone());
-        let ns = "conic:rollback";
+        let ns = "acme:rollback";
         put_agent(kv.clone(), setup_pubsub.clone(), ns, "assistant").await;
         put_usage_policy(
             kv.clone(),

@@ -429,7 +429,7 @@ apiVersion: talon.impalasys.com/v1
 kind: Skill
 metadata:
   name: blog-publish
-  namespace: Tenant:conic:Customers
+  namespace: Tenant:acme:Customers
 spec:
   description: Publish one blog post.
 ---
@@ -437,7 +437,7 @@ apiVersion: talon.impalasys.com/v1
 kind: File
 metadata:
   name: skills-blog-publish-skill-md
-  namespace: Tenant:conic:Customers
+  namespace: Tenant:acme:Customers
 spec:
   path: /skills/blog-publish/SKILL.md
   mediaType: text/markdown

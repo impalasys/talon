@@ -596,13 +596,13 @@ mod tests {
     #[tokio::test]
     async fn test_scoped_jwt_can_manage_descendant_namespaces_only() {
         let _guard = PlatformJwtEnvGuard::acquire().await;
-        let token = scoped_token("Tenant:conic");
+        let token = scoped_token("Tenant:acme");
         let handler = setup_mock_gateway_handler_with_auth(Some(jwt_auth_config()));
 
         handler
             .handle_create_namespace(with_bearer(
                 tonic::Request::new(proto::CreateNamespaceRequest {
-                    name: "Tenant:conic:Customers:13".to_string(),
+                    name: "Tenant:acme:Customers:13".to_string(),
                     recursive: true,
                     labels: HashMap::new(),
                 }),
@@ -614,7 +614,7 @@ mod tests {
         handler
             .handle_get_namespace(with_bearer(
                 tonic::Request::new(proto::GetNamespaceRequest {
-                    name: "Tenant:conic:Customers:13".to_string(),
+                    name: "Tenant:acme:Customers:13".to_string(),
                 }),
                 &token,
             ))
@@ -624,7 +624,7 @@ mod tests {
         handler
             .handle_list_namespaces(with_bearer(
                 tonic::Request::new(proto::ListNamespacesRequest {
-                    parent: Some("Tenant:conic".to_string()),
+                    parent: Some("Tenant:acme".to_string()),
                 }),
                 &token,
             ))

@@ -1327,13 +1327,13 @@ mod tests {
         let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
         store
             .upsert(
-                "conic:test",
+                "acme:test",
                 resources_proto::Resource {
                     api_version: "talon.impalasys.com/v1".to_string(),
                     kind: "ConnectorClass".to_string(),
                     metadata: Some(resources_proto::ResourceMeta {
                         name: "slack".to_string(),
-                        namespace: "conic:test".to_string(),
+                        namespace: "acme:test".to_string(),
                         ..Default::default()
                     }),
                     spec: Some(resources_proto::ResourceSpec {
@@ -1378,13 +1378,13 @@ mod tests {
         let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
         store
             .upsert(
-                "conic:test",
+                "acme:test",
                 resources_proto::Resource {
                     api_version: "talon.impalasys.com/v1".to_string(),
                     kind: "Connector".to_string(),
                     metadata: Some(resources_proto::ResourceMeta {
                         name: "slack-main".to_string(),
-                        namespace: "conic:test".to_string(),
+                        namespace: "acme:test".to_string(),
                         uid: "connector-uid-1".to_string(),
                         ..Default::default()
                     }),
@@ -1442,7 +1442,7 @@ mod tests {
             ),
             (
                 "talon.impalasys.com/connector-registration".to_string(),
-                "Namespace/conic%3Atest/ConnectorClass/slack".to_string(),
+                "Namespace/acme%3Atest/ConnectorClass/slack".to_string(),
             ),
             (
                 "talon.impalasys.com/connector".to_string(),
@@ -1474,11 +1474,11 @@ mod tests {
         text: &str,
     ) {
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "READY".to_string(),
                 created_at: 0,
                 last_active: 123,
@@ -1492,7 +1492,7 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "assistant-1",
@@ -2146,7 +2146,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "PROCESSING".to_string(),
             created_at: 0,
             last_active: 123,
@@ -2156,7 +2156,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -2164,7 +2164,7 @@ mod tests {
 
         handler
             .release_session_lock(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 123,
@@ -2174,7 +2174,7 @@ mod tests {
 
         let updated = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -2191,7 +2191,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "PROCESSING".to_string(),
             created_at: 0,
             last_active: 123,
@@ -2201,7 +2201,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -2209,7 +2209,7 @@ mod tests {
 
         handler
             .release_session_lock(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 123,
@@ -2219,7 +2219,7 @@ mod tests {
 
         let updated = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -2236,7 +2236,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "PROCESSING".to_string(),
             created_at: 0,
             last_active: 123,
@@ -2246,14 +2246,14 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
         .expect("session should persist");
         crate::control::session_queue::queue_text_message(
             kv.as_ref(),
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             crate::control::session_queue::NEXT_QUEUE,
@@ -2266,7 +2266,7 @@ mod tests {
 
         handler
             .release_session_lock(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 123,
@@ -2276,7 +2276,7 @@ mod tests {
 
         let updated = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -2287,7 +2287,7 @@ mod tests {
         let submissions = kv
             .list_entries(
                 &crate::control::keys::session_submission_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),
@@ -2448,7 +2448,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "PROCESSING".to_string(),
             created_at: 0,
             last_active: 456,
@@ -2458,7 +2458,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -2466,7 +2466,7 @@ mod tests {
 
         handler
             .release_session_lock(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 123,
@@ -2476,7 +2476,7 @@ mod tests {
 
         let updated = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -2521,13 +2521,13 @@ mod tests {
             runtime: None,
         };
 
-        put_agent_resource(kv.clone(), "conic:test", "assistant", spec).await;
+        put_agent_resource(kv.clone(), "acme:test", "assistant", spec).await;
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 0,
                 last_active: 123,
@@ -2540,12 +2540,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message(
-                "conic:test",
-                "assistant",
-                "session-1",
-                "user-1",
-            ),
+            &crate::control::keys::session_message("acme:test", "assistant", "session-1", "user-1"),
             &data_proto::SessionMessage {
                 id: "user-1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
@@ -2566,7 +2561,7 @@ mod tests {
         .unwrap();
         handler
             .handle_session_message(SessionDispatchEvent {
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
                 message_id: "user-1".to_string(),
@@ -2581,7 +2576,7 @@ mod tests {
 
         let session = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -2593,7 +2588,7 @@ mod tests {
         let message_keys = kv
             .list_keys(
                 &crate::control::keys::session_message_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),
@@ -2695,7 +2690,7 @@ mod tests {
         );
         put_agent_resource(
             kv.clone(),
-            "conic:test",
+            "acme:test",
             "assistant",
             manifests::AgentSpec {
                 features: Vec::new(),
@@ -2711,11 +2706,11 @@ mod tests {
         .await;
         put_connector_class_resource(kv.clone(), endpoint).await;
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 0,
                 last_active: 123,
@@ -2727,7 +2722,7 @@ mod tests {
                     ),
                     (
                         "talon.impalasys.com/connector-registration".to_string(),
-                        "Namespace/conic%3Atest/ConnectorClass/slack".to_string(),
+                        "Namespace/acme%3Atest/ConnectorClass/slack".to_string(),
                     ),
                     (
                         "talon.impalasys.com/connector".to_string(),
@@ -2765,12 +2760,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message(
-                "conic:test",
-                "assistant",
-                "session-1",
-                "user-1",
-            ),
+            &crate::control::keys::session_message("acme:test", "assistant", "session-1", "user-1"),
             &data_proto::SessionMessage {
                 id: "user-1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
@@ -2792,7 +2782,7 @@ mod tests {
 
         handler
             .handle_session_message(SessionDispatchEvent {
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
                 message_id: "user-1".to_string(),
@@ -2853,11 +2843,11 @@ mod tests {
         put_connector_class_resource(kv.clone(), endpoint).await;
 
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "READY".to_string(),
                 created_at: 0,
                 last_active: 123,
@@ -2869,7 +2859,7 @@ mod tests {
                     ),
                     (
                         "talon.impalasys.com/connector-registration".to_string(),
-                        "Namespace/conic%3Atest/ConnectorClass/slack".to_string(),
+                        "Namespace/acme%3Atest/ConnectorClass/slack".to_string(),
                     ),
                     (
                         "talon.impalasys.com/connector".to_string(),
@@ -2896,7 +2886,7 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "assistant-1",
@@ -2926,7 +2916,7 @@ mod tests {
         let cp = ControlPlane::builder(kv, Arc::new(MockPubSub)).build();
         crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
             &cp,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "assistant-1",
@@ -2981,7 +2971,7 @@ mod tests {
             connector_session_labels([
                 (
                     "talon.impalasys.com/connector-registration",
-                    "Namespace/conic%3Atest/ConnectorClass/stale-class",
+                    "Namespace/acme%3Atest/ConnectorClass/stale-class",
                 ),
                 ("talon.impalasys.com/connector-class", "stale-class"),
                 ("talon.impalasys.com/connector-match/teamId", "stale-team"),
@@ -2994,7 +2984,7 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
             &cp,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "assistant-1",
@@ -3007,7 +2997,7 @@ mod tests {
         let delivery = &deliveries[0];
         assert_eq!(
             delivery["registrationId"],
-            "Namespace/conic%3Atest/ConnectorClass/slack"
+            "Namespace/acme%3Atest/ConnectorClass/slack"
         );
         assert_eq!(delivery["connectorClass"], "slack");
         assert_eq!(delivery["connectorName"], "slack-main");
@@ -3031,7 +3021,7 @@ mod tests {
         .await;
         let sent = handler
             .maybe_send_connector_session_activity(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "non-connector-activity",
@@ -3051,7 +3041,7 @@ mod tests {
         .await;
         let sent = handler
             .maybe_send_connector_session_activity(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "channel-triggered-activity",
@@ -3093,7 +3083,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "PROCESSING".to_string(),
             created_at: 0,
             last_active: 123,
@@ -3101,7 +3091,7 @@ mod tests {
             labels: connector_session_labels([
                 (
                     "talon.impalasys.com/connector-registration",
-                    "Namespace/conic%3Atest/ConnectorClass/stale-class",
+                    "Namespace/acme%3Atest/ConnectorClass/stale-class",
                 ),
                 ("talon.impalasys.com/connector-class", "stale-class"),
                 ("talon.impalasys.com/connector-match/teamId", "stale-team"),
@@ -3127,7 +3117,7 @@ mod tests {
         assert_eq!(activity["activityId"], "activity-1");
         assert_eq!(
             activity["registrationId"],
-            "Namespace/conic%3Atest/ConnectorClass/slack"
+            "Namespace/acme%3Atest/ConnectorClass/slack"
         );
         assert_eq!(activity["connectorClass"], "slack");
         assert_eq!(activity["connectorName"], "slack-main");
@@ -3150,7 +3140,7 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
             &cp,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "assistant-1",
@@ -3160,7 +3150,7 @@ mod tests {
 
         let message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "assistant-1",
@@ -3204,7 +3194,7 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
             &cp,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "assistant-1",
@@ -3214,7 +3204,7 @@ mod tests {
 
         let message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "assistant-1",
@@ -3273,7 +3263,7 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
             &cp,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "assistant-1",
@@ -3286,7 +3276,7 @@ mod tests {
         assert_eq!(deliveries[0]["text"], "send now");
         let message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "assistant-1",
@@ -3320,7 +3310,7 @@ mod tests {
                      Json(payload): Json<Value>| async move {
                         deliveries.lock().unwrap().push(payload);
                         let message_key = crate::control::keys::session_message(
-                            "conic:test",
+                            "acme:test",
                             "assistant",
                             "session-1",
                             "assistant-1",
@@ -3366,7 +3356,7 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
             &cp,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "assistant-1",
@@ -3379,7 +3369,7 @@ mod tests {
         assert_eq!(deliveries[0]["text"], "edited reply");
         let message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "assistant-1",
@@ -3422,7 +3412,7 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
             &cp,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "assistant-1",
@@ -3431,7 +3421,7 @@ mod tests {
         .expect("skipped review delivery should be a no-op");
         let message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "assistant-1",
@@ -3487,7 +3477,7 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
         crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
             &cp,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "assistant-1",
@@ -3497,7 +3487,7 @@ mod tests {
 
         let message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "assistant-1",
@@ -3526,7 +3516,7 @@ mod tests {
         let handler = handler_with_kv(kv.clone());
         put_agent_resource(
             kv.clone(),
-            "conic:test",
+            "acme:test",
             "assistant",
             manifests::AgentSpec {
                 features: Vec::new(),
@@ -3541,11 +3531,11 @@ mod tests {
         )
         .await;
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 0,
                 last_active: 123,
@@ -3558,12 +3548,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message(
-                "conic:test",
-                "assistant",
-                "session-1",
-                "user-1",
-            ),
+            &crate::control::keys::session_message("acme:test", "assistant", "session-1", "user-1"),
             &data_proto::SessionMessage {
                 id: "user-1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
@@ -3584,7 +3569,7 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &crate::control::keys::session_journal_entry(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "user-1",
@@ -3607,7 +3592,7 @@ mod tests {
 
         let result = handler
             .handle_session_message(SessionDispatchEvent {
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
                 message_id: "user-1".to_string(),
@@ -3622,7 +3607,7 @@ mod tests {
 
         let session = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -3633,7 +3618,7 @@ mod tests {
         let message_keys = kv
             .list_keys(
                 &crate::control::keys::session_message_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),
@@ -3654,7 +3639,7 @@ mod tests {
         );
         let error_message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 error_message_id,
@@ -3705,13 +3690,13 @@ mod tests {
             runtime: None,
         };
 
-        put_agent_resource(kv.clone(), "conic:test", "assistant", spec).await;
+        put_agent_resource(kv.clone(), "acme:test", "assistant", spec).await;
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 0,
                 last_active: 123,
@@ -3726,7 +3711,7 @@ mod tests {
 
         handler
             .handle_session_message(SessionDispatchEvent {
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
                 message_id: "user-1".to_string(),
@@ -3741,7 +3726,7 @@ mod tests {
 
         let session = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -3754,7 +3739,7 @@ mod tests {
         let message_keys = kv
             .list_keys(
                 &crate::control::keys::session_message_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),
@@ -3763,7 +3748,7 @@ mod tests {
             .await
             .unwrap();
         let prefix =
-            crate::control::keys::session_message_prefix("conic:test", "assistant", "session-1");
+            crate::control::keys::session_message_prefix("acme:test", "assistant", "session-1");
         let mut reply = None;
         for key in message_keys {
             if !prefix.matches(&key) {
@@ -3784,7 +3769,7 @@ mod tests {
         let submission = kv
             .get_msg::<crate::harness::sessions::SessionSubmission>(
                 &crate::control::keys::session_submission(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                     "submission-1",
@@ -3814,7 +3799,7 @@ mod tests {
             .as_deref()
             .expect("submission should point at committed journal entry");
         let journal_entry_key = crate::control::keys::session_journal_entry(
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "submission-1",
@@ -3844,7 +3829,7 @@ mod tests {
         let before_duplicate_keys = kv
             .list_keys(
                 &crate::control::keys::session_message_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),
@@ -3854,7 +3839,7 @@ mod tests {
             .unwrap();
         handler
             .handle_session_message(SessionDispatchEvent {
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
                 message_id: "user-1".to_string(),
@@ -3869,7 +3854,7 @@ mod tests {
         let after_duplicate_keys = kv
             .list_keys(
                 &crate::control::keys::session_message_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),
@@ -3919,10 +3904,10 @@ mod tests {
             runtime: None,
         };
 
-        put_agent_resource(kv.clone(), "conic:test", "assistant", spec).await;
+        put_agent_resource(kv.clone(), "acme:test", "assistant", spec).await;
         put_usage_policy(
             kv.clone(),
-            "conic:test",
+            "acme:test",
             "llm-token-limit",
             vec![
                 usage_limit(crate::control::usage::METRIC_LLM_INPUT_TOKENS, 100),
@@ -3933,11 +3918,11 @@ mod tests {
         )
         .await;
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 0,
                 last_active: 123,
@@ -3951,7 +3936,7 @@ mod tests {
         .unwrap();
 
         let event = SessionDispatchEvent {
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             agent: "assistant".to_string(),
             session_id: "session-1".to_string(),
             message_id: "user-1".to_string(),
@@ -3964,7 +3949,7 @@ mod tests {
         handler.handle_session_message(event.clone()).await.unwrap();
         assert_eq!(call_count.load(Ordering::SeqCst), 1);
 
-        let status = usage_policy_status(kv.clone(), "conic:test", "llm-token-limit").await;
+        let status = usage_policy_status(kv.clone(), "acme:test", "llm-token-limit").await;
         let used_for = |metric: &str| {
             status
                 .hard
@@ -3992,7 +3977,7 @@ mod tests {
 
         handler.handle_session_message(event).await.unwrap();
         assert_eq!(call_count.load(Ordering::SeqCst), 1);
-        let status = usage_policy_status(kv.clone(), "conic:test", "llm-token-limit").await;
+        let status = usage_policy_status(kv.clone(), "acme:test", "llm-token-limit").await;
         assert_eq!(
             status
                 .hard
@@ -4010,11 +3995,11 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let handler = handler_with_kv(kv.clone());
         kv.set_msg(
-            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &crate::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 1,
                 last_active: 123,
@@ -4028,7 +4013,7 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "user-1-assistant",
@@ -4056,7 +4041,7 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &crate::control::keys::session_journal_entry(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "user-1",
@@ -4085,7 +4070,7 @@ mod tests {
 
         handler
             .handle_session_message(SessionDispatchEvent {
-                ns: "conic:test".to_string(),
+                ns: "acme:test".to_string(),
                 agent: "assistant".to_string(),
                 session_id: "session-1".to_string(),
                 message_id: "user-1".to_string(),
@@ -4101,7 +4086,7 @@ mod tests {
         let messages = kv
             .list_keys(
                 &crate::control::keys::session_message_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                 ),
@@ -4112,7 +4097,7 @@ mod tests {
         assert_eq!(messages.len(), 1);
         let assistant_message = kv
             .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 "user-1-assistant",
@@ -4130,7 +4115,7 @@ mod tests {
         let submission = kv
             .get_msg::<crate::harness::sessions::SessionSubmission>(
                 &crate::control::keys::session_submission(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                     "user-1",
@@ -4149,7 +4134,7 @@ mod tests {
         );
         let session = kv
             .get_msg::<data_proto::Session>(&crate::control::keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))

@@ -1020,7 +1020,7 @@ mod tests {
     #[test]
     fn wire_ref_round_trips() {
         let reference = AgentWireRef {
-            namespace: "Tenant:conic:Nexus".to_string(),
+            namespace: "Tenant:acme:Nexus".to_string(),
             agent: "critic".to_string(),
             session_id: "session-1".to_string(),
         };

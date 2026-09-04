@@ -2006,7 +2006,7 @@ mod tests {
     use prost::Message;
     use std::sync::Arc;
 
-    const TEST_NAMESPACE: &str = "conic:test";
+    const TEST_NAMESPACE: &str = "acme:test";
     const TEST_AGENT: &str = "connector-agent";
     const TEST_SESSION: &str = "session-1";
 
@@ -2101,7 +2101,7 @@ mod tests {
             &external_proto::ConnectorMessageEvent {
                 event_id: "provider-event-1".to_string(),
                 event_kind: external_proto::ConnectorMessageEventKind::Created as i32,
-                registration_id: "Namespace/conic/ConnectorClass/slack".to_string(),
+                registration_id: "Namespace/acme/ConnectorClass/slack".to_string(),
                 connector_class: "slack".to_string(),
                 external_message_id: "provider-message-1".to_string(),
                 text: "hello from connector".to_string(),

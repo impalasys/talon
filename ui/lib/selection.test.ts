@@ -15,7 +15,7 @@ describe('selection helpers', () => {
   it('parses and serializes deep session URLs without changing the public shape', () => {
     const params = new URLSearchParams({
       connected: 'true',
-      ns: 'conic:wks:13',
+      ns: 'acme:wks:13',
       type: 'session',
       agent: 'cmo',
       session: 'session-123',
@@ -25,27 +25,27 @@ describe('selection helpers', () => {
 
     expect(selection).toEqual({
       type: 'session',
-      ns: 'conic:wks:13',
+      ns: 'acme:wks:13',
       agent: 'cmo',
       sessionId: 'session-123',
-      fullPath: 'conic:wks:13/cmo/session-123',
+      fullPath: 'acme:wks:13/cmo/session-123',
     });
     expect(buildSearchParams(true, selection, params).toString()).toBe(
-      'connected=true&ns=conic%3Awks%3A13&type=session&agent=cmo&session=session-123',
+      'connected=true&ns=acme%3Awks%3A13&type=session&agent=cmo&session=session-123',
     );
   });
 
   it('returns namespace and selected child expansion ids for deep links', () => {
-    expect(namespaceAncestors('conic:wks:13')).toEqual(['', 'conic', 'conic:wks', 'conic:wks:13']);
+    expect(namespaceAncestors('acme:wks:13')).toEqual(['', 'acme', 'acme:wks', 'acme:wks:13']);
     expect(
       selectionExpansionIds({
         type: 'channel-subscription',
-        ns: 'conic:wks',
+        ns: 'acme:wks',
         channel: 'incidents',
         resourceName: 'triage',
-        fullPath: 'conic:wks:channel:incidents:subscription:triage',
+        fullPath: 'acme:wks:channel:incidents:subscription:triage',
       }),
-    ).toEqual(['', 'conic', 'conic:wks', 'conic:wks:channel:incidents']);
+    ).toEqual(['', 'acme', 'acme:wks', 'acme:wks:channel:incidents']);
   });
 
   it('compares selection identity fields only', () => {
@@ -120,7 +120,7 @@ describe('selection helpers', () => {
   });
 
   it('keeps connection root separate from explorer selection namespace', () => {
-    const params = new URLSearchParams({ root: 'Tenant:conic', ns: 'Tenant:other', type: 'namespace' });
+    const params = new URLSearchParams({ root: 'Tenant:acme', ns: 'Tenant:other', type: 'namespace' });
 
     expect(selectionFromSearchParams(params)).toEqual({
       type: 'namespace',

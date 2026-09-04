@@ -1987,7 +1987,7 @@ mod tests {
     }
 
     fn reply_key() -> ResourceKey {
-        keys::session_message("conic", "infra", "session-1", "reply-1")
+        keys::session_message("acme", "infra", "session-1", "reply-1")
     }
 
     #[async_trait]
@@ -2205,7 +2205,7 @@ mod tests {
             objects.clone(),
             None,
             None,
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2231,7 +2231,7 @@ mod tests {
             .join("\n");
         assert_eq!(
             text,
-            "Review complete: artifact://conic/infra/session-1/artifact-reply-1-inline-000"
+            "Review complete: artifact://acme/infra/session-1/artifact-reply-1-inline-000"
         );
 
         let artifact = latest_artifact(kv.as_ref()).await;
@@ -2257,7 +2257,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         crate::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
-            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
         )
         .await
@@ -2267,7 +2267,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2317,7 +2317,7 @@ mod tests {
         let sink = PubSubSessionSink::new_with_token_publish_interval(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2354,7 +2354,7 @@ mod tests {
         let sink = PubSubSessionSink::new_with_token_publish_interval(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2394,7 +2394,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         crate::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
-            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
         )
         .await
@@ -2402,7 +2402,7 @@ mod tests {
         let sink = PubSubSessionSink::new_with_token_publish_interval(
             kv,
             pubsub.clone(),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2436,7 +2436,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2514,7 +2514,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2565,7 +2565,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2611,7 +2611,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2662,7 +2662,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2751,7 +2751,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2808,7 +2808,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         crate::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
-            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
         )
         .await
@@ -2818,7 +2818,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2884,7 +2884,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         crate::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
-            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
         )
         .await
@@ -2894,7 +2894,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2958,7 +2958,7 @@ mod tests {
         let sink = PubSubSessionSink::new_with_token_publish_interval(
             kv,
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -2986,7 +2986,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3030,7 +3030,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         sessions::create_submission_if_absent(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             &submission,
@@ -3040,7 +3040,7 @@ mod tests {
         let sink = PubSubSessionSink::new(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3084,7 +3084,7 @@ mod tests {
 
         let entry_keys = kv
             .list_keys(
-                &keys::session_journal_entry_prefix("conic", "infra", "session-1", "submission-1"),
+                &keys::session_journal_entry_prefix("acme", "infra", "session-1", "submission-1"),
                 None,
             )
             .await
@@ -3142,7 +3142,7 @@ mod tests {
 
         let stored_submission = kv
             .get_msg::<sessions::SessionSubmission>(&keys::session_submission(
-                "conic",
+                "acme",
                 "infra",
                 "session-1",
                 "submission-1",
@@ -3173,7 +3173,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         sessions::create_submission_if_absent(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             &submission,
@@ -3182,11 +3182,11 @@ mod tests {
         .unwrap();
         let initial_reply_id = crate::control::uuid::session_message_id();
         let initial_reply_key =
-            keys::session_message("conic", "infra", "session-1", &initial_reply_id);
+            keys::session_message("acme", "infra", "session-1", &initial_reply_id);
         for message in ["first follow-up", "second follow-up"] {
             session_queue::queue_text_message(
                 kv.as_ref(),
-                "conic",
+                "acme",
                 "infra",
                 "session-1",
                 STEER_QUEUE,
@@ -3200,7 +3200,7 @@ mod tests {
         let sink = PubSubSessionSink::new(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             initial_reply_id.clone(),
@@ -3219,7 +3219,7 @@ mod tests {
             .is_none());
         let entries = sessions::list_journal_entries(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             "submission-1",
@@ -3252,7 +3252,7 @@ mod tests {
         let sink = PubSubSessionSink::new(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3271,7 +3271,7 @@ mod tests {
             .is_none());
         assert!(sessions::list_journal_entries(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             "submission-1",
@@ -3294,7 +3294,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         sessions::create_submission_if_absent(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             &submission,
@@ -3303,7 +3303,7 @@ mod tests {
         .unwrap();
         session_queue::queue_text_message(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             STEER_QUEUE,
@@ -3316,7 +3316,7 @@ mod tests {
         let sink = PubSubSessionSink::new(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3348,7 +3348,7 @@ mod tests {
         );
         let entries = sessions::list_journal_entries(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             "submission-1",
@@ -3377,11 +3377,11 @@ mod tests {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
         kv.set_msg(
-            &keys::session("conic", "infra", "session-1"),
+            &keys::session("acme", "infra", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "infra".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 1,
                 last_active: 1,
@@ -3399,7 +3399,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         sessions::create_submission_if_absent(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             &submission,
@@ -3428,7 +3428,7 @@ mod tests {
         .unwrap();
         session_queue::queue_text_message(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             STEER_QUEUE,
@@ -3441,7 +3441,7 @@ mod tests {
         let sink = PubSubSessionSink::new(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3456,7 +3456,7 @@ mod tests {
         let unused_continuation_message_id = sink.current_reply_msg_id();
         kv.set_msg(
             &keys::session_message(
-                "conic",
+                "acme",
                 "infra",
                 "session-1",
                 &unused_continuation_message_id,
@@ -3486,7 +3486,7 @@ mod tests {
         .unwrap();
         session_queue::queue_text_message(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             STEER_QUEUE,
@@ -3501,7 +3501,7 @@ mod tests {
         assert_ne!(sink.current_reply_msg_id(), unused_continuation_message_id);
         assert!(kv
             .get_msg::<data_proto::SessionMessage>(&keys::session_message(
-                "conic",
+                "acme",
                 "infra",
                 "session-1",
                 &unused_continuation_message_id,
@@ -3524,7 +3524,7 @@ mod tests {
         );
         let entries = sessions::list_journal_entries(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             "submission-1",
@@ -3559,7 +3559,7 @@ mod tests {
         );
         assert!(kv
             .list_keys(
-                &keys::session_queue_prefix("conic", "infra", "session-1", STEER_QUEUE),
+                &keys::session_queue_prefix("acme", "infra", "session-1", STEER_QUEUE),
                 None,
             )
             .await
@@ -3574,13 +3574,13 @@ mod tests {
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
-        let session_key = keys::session("conic", "infra", "session-1");
+        let session_key = keys::session("acme", "infra", "session-1");
         kv.set_msg(
             &session_key,
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "infra".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 1,
                 last_active: 1,
@@ -3598,7 +3598,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         sessions::create_submission_if_absent(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             &submission,
@@ -3608,7 +3608,7 @@ mod tests {
         let sink = PubSubSessionSink::new(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3656,7 +3656,7 @@ mod tests {
         assert_eq!(session.context_tokens, Some(second));
         let journal_entries = sessions::list_journal_entries(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             "submission-1",
@@ -3673,13 +3673,13 @@ mod tests {
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
-        let session_key = keys::session("conic", "infra", "session-1");
+        let session_key = keys::session("acme", "infra", "session-1");
         kv.set_msg(
             &session_key,
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "infra".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 1,
                 last_active: 1,
@@ -3697,7 +3697,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         sessions::create_submission_if_absent(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             &submission,
@@ -3707,7 +3707,7 @@ mod tests {
         let sink = PubSubSessionSink::new(
             kv.clone(),
             Arc::new(MockPubSub { events }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3744,7 +3744,7 @@ mod tests {
             .is_none());
         let entries = sessions::list_journal_entries(
             kv.as_ref(),
-            "conic",
+            "acme",
             "infra",
             "session-1",
             "submission-1",
@@ -3779,7 +3779,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         crate::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
-            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
         )
         .await
@@ -3789,7 +3789,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3861,7 +3861,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3897,7 +3897,7 @@ mod tests {
         submission.attempt_id = "attempt-1".to_string();
         crate::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
-            &keys::session_submission("conic", "infra", "session-1", "submission-1"),
+            &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
         )
         .await
@@ -3907,7 +3907,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",
@@ -3940,7 +3940,7 @@ mod tests {
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
-            "conic",
+            "acme",
             "session-1",
             "infra",
             "reply-1",

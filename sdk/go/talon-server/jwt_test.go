@@ -42,10 +42,10 @@ func TestVerifyMCPJWT(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if claims.Namespace != "Tenant:conic:Customers:11" {
+	if claims.Namespace != "Tenant:acme:Customers:11" {
 		t.Fatalf("unexpected namespace %q", claims.Namespace)
 	}
-	if claims.MCPServer != "conic" {
+	if claims.MCPServer != "acme" {
 		t.Fatalf("unexpected MCP server %q", claims.MCPServer)
 	}
 	if claims.Agent != "cmo" {
@@ -92,8 +92,8 @@ func TestMCPJWTVerifierRejectsHS256(t *testing.T) {
 		"aud":              MCPAudience,
 		"exp":              time.Now().Add(time.Minute).Unix(),
 		"iat":              time.Now().Unix(),
-		"talon:ns":         "Tenant:conic:Customers:11",
-		"talon:mcp_server": "conic",
+		"talon:ns":         "Tenant:acme:Customers:11",
+		"talon:mcp_server": "acme",
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("secret"))
 	if err != nil {
@@ -132,8 +132,8 @@ func signMCPToken(t *testing.T, key *rsa.PrivateKey, kid, issuer, audience strin
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(now),
 		},
-		Namespace: "Tenant:conic:Customers:11",
-		MCPServer: "conic",
+		Namespace: "Tenant:acme:Customers:11",
+		MCPServer: "acme",
 		Agent:     "cmo",
 		SessionID: "session-123",
 	}

@@ -18,7 +18,7 @@ pub const DEFAULT: &str = "default";
 pub const TALON_DOMAIN: &str = "talon.impalasys.com";
 
 /// Returns the namespace ancestry chain from most specific to least specific.
-/// Example: `conic:wks:13` => `["conic:wks:13", "conic:wks", "conic"]`
+/// Example: `acme:wks:13` => `["acme:wks:13", "acme:wks", "acme"]`
 pub fn ancestry(namespace: &str) -> Vec<String> {
     let mut current = namespace.trim();
     let mut chain = Vec::new();
@@ -41,10 +41,10 @@ mod tests {
     #[test]
     fn ancestry_walks_namespace_tree() {
         assert_eq!(
-            ancestry("conic:wks:13"),
-            vec!["conic:wks:13", "conic:wks", "conic"]
+            ancestry("acme:wks:13"),
+            vec!["acme:wks:13", "acme:wks", "acme"]
         );
-        assert_eq!(ancestry("conic"), vec!["conic"]);
+        assert_eq!(ancestry("acme"), vec!["acme"]);
         assert!(ancestry("").is_empty());
     }
 }

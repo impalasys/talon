@@ -142,7 +142,7 @@ def test_deployment_materialized_workflow_runs_in_target_namespace(
     stack: E2EStack,
     client: TalonClient,
 ) -> None:
-    # Verify the Conic-style deployment model: a Workflow Template in a parent
+    # Verify the Acme-style deployment model: a Workflow Template in a parent
     # namespace is materialized as a real Workflow resource in each selected
     # child namespace, and WorkflowService.CreateRun uses that child resource.
     run_id = uuid.uuid4().hex[:8]
@@ -159,7 +159,7 @@ def test_deployment_materialized_workflow_runs_in_target_namespace(
         CreateNamespaceRequest(
             name=target_namespace,
             recursive=True,
-            labels={"app.conic/customer-workspace": "true"},
+            labels={"app.example/customer-workspace": "true"},
         )
     )
 
@@ -173,7 +173,7 @@ def test_deployment_materialized_workflow_runs_in_target_namespace(
                 kind="Workflow",
                 metadata=ResourceMeta(
                     name=workflow_name,
-                    labels={"app.conic/kind": "backlink-outreach"},
+                    labels={"app.example/kind": "backlink-outreach"},
                 ),
                 spec_json=json.dumps({
                     "description": "Prepare outreach drafts for {{ namespace.name }}.",
@@ -213,7 +213,7 @@ def test_deployment_materialized_workflow_runs_in_target_namespace(
                 placement=DeploymentPlacement(
                     namespace_selector=NamespaceSelector(
                         parent=parent_namespace,
-                        match_labels={"app.conic/customer-workspace": "true"},
+                        match_labels={"app.example/customer-workspace": "true"},
                     )
                 ),
                 templates=[template_name],
@@ -240,7 +240,7 @@ def test_deployment_materialized_workflow_runs_in_target_namespace(
     assert rendered is not None, "Deployment did not materialize workflow"
     assert rendered.metadata.namespace == target_namespace
     assert rendered.metadata.name == workflow_name
-    assert rendered.metadata.labels["app.conic/kind"] == "backlink-outreach"
+    assert rendered.metadata.labels["app.example/kind"] == "backlink-outreach"
     assert rendered.spec.workflow.description == (
         f"Prepare outreach drafts for {target_namespace}."
     )

@@ -1320,7 +1320,7 @@ mod tests {
 
     fn schedule(kind: &str) -> resources_proto::Schedule {
         crate::control::resource_model::schedule(
-            "conic:test",
+            "acme:test",
             "daily-digest",
             resources_proto::ScheduleSpec {
                 kind: kind.to_string(),
@@ -1557,7 +1557,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "IDLE".to_string(),
             created_at: 0,
             last_active: 0,
@@ -1567,7 +1567,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &keys::session("conic:test", "assistant", "session-1"),
+            &keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -1579,7 +1579,7 @@ mod tests {
         let returned_submission_id = send_message(
             cp.kv.as_ref(),
             cp.pubsub.as_ref(),
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "hello",
@@ -1621,13 +1621,13 @@ mod tests {
         );
         assert_eq!(
             index_event.key,
-            keys::session_message("conic:test", "assistant", "session-1", &dispatch.message_id)
+            keys::session_message("acme:test", "assistant", "session-1", &dispatch.message_id)
                 .canonical()
         );
         assert!(kv
             .list_keys(
                 &keys::session_queue_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                     crate::control::session_queue::NEXT_QUEUE,
@@ -1640,7 +1640,7 @@ mod tests {
         let submission = cp
             .kv
             .get_msg::<crate::harness::sessions::SessionSubmission>(&keys::session_submission(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 &dispatch.submission_id,
@@ -1660,7 +1660,7 @@ mod tests {
         let queued_entry_id = send_message(
             cp.kv.as_ref(),
             cp.pubsub.as_ref(),
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "again",
@@ -1673,7 +1673,7 @@ mod tests {
         assert_eq!(
             kv.list_keys(
                 &keys::session_queue_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                     crate::control::session_queue::STEER_QUEUE,
@@ -1694,7 +1694,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "ERROR".to_string(),
             created_at: 0,
             last_active: 0,
@@ -1704,7 +1704,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &keys::session("conic:test", "assistant", "session-1"),
+            &keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -1716,7 +1716,7 @@ mod tests {
         let submission_id = send_message(
             kv.as_ref(),
             pubsub.as_ref(),
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "recover the session",
@@ -1729,7 +1729,7 @@ mod tests {
         assert!(!submission_id.is_empty());
         assert_eq!(
             kv.get_msg::<data_proto::Session>(&keys::session(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
             ))
@@ -1742,7 +1742,7 @@ mod tests {
         assert!(kv
             .list_keys(
                 &keys::session_queue_prefix(
-                    "conic:test",
+                    "acme:test",
                     "assistant",
                     "session-1",
                     crate::control::session_queue::STEER_QUEUE,
@@ -1761,7 +1761,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "IDLE".to_string(),
             created_at: 0,
             last_active: 0,
@@ -1771,7 +1771,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &keys::session("conic:test", "assistant", "session-1"),
+            &keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -1783,7 +1783,7 @@ mod tests {
         let err = send_message(
             kv.as_ref(),
             pubsub.as_ref(),
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "   ",
@@ -1956,23 +1956,21 @@ mod tests {
         let cp = ControlPlane::builder(kv.clone(), pubsub.clone()).build();
 
         let agent = crate::control::resource_model::agent(
-            "conic:test",
+            "acme:test",
             "assistant",
             manifests::AgentSpec::default(),
             HashMap::new(),
         );
-        kv.set_msg(&keys::agent("conic:test", "assistant"), &agent)
+        kv.set_msg(&keys::agent("acme:test", "assistant"), &agent)
             .await
             .unwrap();
 
         let now = DateTime::parse_from_rfc3339("2026-05-02T12:00:00Z")
             .unwrap()
             .with_timezone(&Utc);
-        let session_id = create_session(&cp, "conic:test", "assistant")
-            .await
-            .unwrap();
+        let session_id = create_session(&cp, "acme:test", "assistant").await.unwrap();
         let session = kv
-            .get_msg::<data_proto::Session>(&keys::session("conic:test", "assistant", &session_id))
+            .get_msg::<data_proto::Session>(&keys::session("acme:test", "assistant", &session_id))
             .await
             .unwrap()
             .expect("session should be persisted");
@@ -2010,7 +2008,7 @@ mod tests {
         let pubsub = Arc::new(MockPubSub::default());
         let cp = ControlPlane::builder(kv.clone(), pubsub.clone()).build();
         let workflow = crate::control::resource_model::workflow(
-            "conic:test",
+            "acme:test",
             "retention-review",
             resources_proto::WorkflowSpec {
                 input_schema_json: r#"{"type":"object","required":["accountId"]}"#.to_string(),
@@ -2025,7 +2023,7 @@ mod tests {
             },
             HashMap::new(),
         );
-        kv.set_msg(&keys::workflow("conic:test", "retention-review"), &workflow)
+        kv.set_msg(&keys::workflow("acme:test", "retention-review"), &workflow)
             .await
             .unwrap();
 
@@ -2046,7 +2044,7 @@ mod tests {
 
         let run = kv
             .get_msg::<data_proto::WorkflowRun>(&keys::workflow_run(
-                "conic:test",
+                "acme:test",
                 "retention-review",
                 &run_id,
             ))
@@ -2069,7 +2067,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "IDLE".to_string(),
             created_at: 0,
             last_active: 0,
@@ -2079,7 +2077,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &keys::session("conic:test", "assistant", "session-1"),
+            &keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -2091,7 +2089,7 @@ mod tests {
         let err = send_message(
             kv.as_ref(),
             &FailingPubSub,
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             "hello",
@@ -2103,7 +2101,7 @@ mod tests {
         assert!(err.to_string().contains("publish failed"));
 
         let updated = kv
-            .get_msg::<data_proto::Session>(&keys::session("conic:test", "assistant", "session-1"))
+            .get_msg::<data_proto::Session>(&keys::session("acme:test", "assistant", "session-1"))
             .await
             .unwrap()
             .expect("session should still exist");
@@ -2117,7 +2115,7 @@ mod tests {
         let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "assistant".to_string(),
-            ns: "conic:test".to_string(),
+            ns: "acme:test".to_string(),
             status: "IDLE".to_string(),
             created_at: 0,
             last_active: 0,
@@ -2127,7 +2125,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &keys::session("conic:test", "assistant", "session-1"),
+            &keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -2139,7 +2137,7 @@ mod tests {
         let submission_id = compact_session(
             kv.as_ref(),
             pubsub.as_ref(),
-            "conic:test",
+            "acme:test",
             "assistant",
             "session-1",
             now,
@@ -2155,7 +2153,7 @@ mod tests {
         assert!(event.message.is_empty());
         let submission = kv
             .get_msg::<crate::harness::sessions::SessionSubmission>(&keys::session_submission(
-                "conic:test",
+                "acme:test",
                 "assistant",
                 "session-1",
                 &submission_id,

@@ -12,12 +12,12 @@ function resource(kind: string, ns: string, name: string, caseName: string, valu
 describe('explorer model', () => {
   it('builds a namespace-only tree', () => {
     const tree = buildNamespaceTree({
-      activeNamespace: 'Tenant:conic',
-      selectedNode: { type: 'file', ns: 'Tenant:conic', resourceName: 'guide', fullPath: 'Tenant:conic:file:guide' },
+      activeNamespace: 'Tenant:acme',
+      selectedNode: { type: 'file', ns: 'Tenant:acme', resourceName: 'guide', fullPath: 'Tenant:acme:file:guide' },
       namespaceParents: ['', 'Tenant'],
       namespaceQueries: [
         { data: [{ name: 'Tenant', labels: {} }] },
-        { data: [{ name: 'Tenant:conic', labels: { workspace_name: 'Conic' } }] },
+        { data: [{ name: 'Tenant:acme', labels: { workspace_name: 'Acme' } }] },
       ],
     } as any);
 
@@ -25,30 +25,30 @@ describe('explorer model', () => {
     expect(tree.children[0].selection.type).toBe('namespace');
     expect(tree.children[0].children[0].selection).toEqual({
       type: 'namespace',
-      ns: 'Tenant:conic',
-      fullPath: 'Tenant:conic',
+      ns: 'Tenant:acme',
+      fullPath: 'Tenant:acme',
     });
-    expect(tree.children[0].children[0].badge).toBe('Conic');
+    expect(tree.children[0].children[0].badge).toBe('Acme');
   });
 
   it('builds contents only for the active namespace', () => {
     const groups = buildNamespaceContents({
-      activeNamespace: 'Tenant:conic',
+      activeNamespace: 'Tenant:acme',
       resourcesByNamespaceKind: {
-        'Tenant:conic': {
-          Agent: [resource('Agent', 'Tenant:conic', 'writer', 'agent')],
-          File: [resource('File', 'Tenant:conic', 'guide', 'file', { path: 'docs/guide.md' })],
-          Channel: [resource('Channel', 'Tenant:conic', 'alerts', 'channel', { title: 'Alerts' })],
+        'Tenant:acme': {
+          Agent: [resource('Agent', 'Tenant:acme', 'writer', 'agent')],
+          File: [resource('File', 'Tenant:acme', 'guide', 'file', { path: 'docs/guide.md' })],
+          Channel: [resource('Channel', 'Tenant:acme', 'alerts', 'channel', { title: 'Alerts' })],
           Schedule: [],
           McpServer: [],
           Template: [],
           Deployment: [],
           DeploymentReplica: [],
           ConnectorClass: [
-            resource('ConnectorClass', 'Tenant:conic', 'slack', 'connectorClass', { platform: 'slack' }),
+            resource('ConnectorClass', 'Tenant:acme', 'slack', 'connectorClass', { platform: 'slack' }),
           ],
           Connector: [
-            resource('Connector', 'Tenant:conic', 'alerts', 'connector', {
+            resource('Connector', 'Tenant:acme', 'alerts', 'connector', {
               classRef: { name: 'slack' },
               enabled: true,
             }),
@@ -62,13 +62,13 @@ describe('explorer model', () => {
         },
       },
       sessionsByAgentKey: {
-        'Tenant:conic/writer': ['01HZ0000000000000000000000'],
+        'Tenant:acme/writer': ['01HZ0000000000000000000000'],
       },
       channelSubscriptionsByKey: {},
     } as any);
 
     expect(groups.map((group) => group.title)).toEqual(['Agents', 'Channels', 'Files', 'Connectors']);
-    expect(groups[0].nodes[0].selection).toMatchObject({ type: 'agent', ns: 'Tenant:conic', agent: 'writer' });
+    expect(groups[0].nodes[0].selection).toMatchObject({ type: 'agent', ns: 'Tenant:acme', agent: 'writer' });
     expect(groups[0].nodes[0].children[0].selection.type).toBe('session');
     expect(groups[3].nodes.map((node) => node.selection.type)).toEqual(['connector', 'connector-class']);
     expect(groups.flatMap((group) => group.nodes).some((node) => node.name === 'other-agent')).toBe(false);

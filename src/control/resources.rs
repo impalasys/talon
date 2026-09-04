@@ -1912,8 +1912,8 @@ mod tests {
             api_version: "talon.impalasys.com/v1".to_string(),
             kind: "Deployment".to_string(),
             metadata: Some(resources_proto::ResourceMeta {
-                name: "conic-cmo".to_string(),
-                namespace: "Conic:Customers".to_string(),
+                name: "acme-cmo".to_string(),
+                namespace: "Acme:Customers".to_string(),
                 ..Default::default()
             }),
             spec: Some(resources_proto::ResourceSpec {
@@ -1930,29 +1930,25 @@ mod tests {
                 )),
             }),
         };
-        let key = crate::control::keys::ResourceKey::new(
-            "Conic:Customers",
-            &[],
-            "Deployment",
-            "conic-cmo",
-        );
+        let key =
+            crate::control::keys::ResourceKey::new("Acme:Customers", &[], "Deployment", "acme-cmo");
         kv.set(&key, &legacy.encode_to_vec()).await.unwrap();
 
         let updated = store
             .upsert_manifest(
-                "Conic:Customers",
+                "Acme:Customers",
                 resources_proto::ResourceManifest {
                     api_version: "talon.impalasys.com/v1".to_string(),
                     kind: "Deployment".to_string(),
                     metadata: Some(resources_proto::ResourceMeta {
-                        name: "conic-cmo".to_string(),
-                        namespace: "Conic:Customers".to_string(),
+                        name: "acme-cmo".to_string(),
+                        namespace: "Acme:Customers".to_string(),
                         ..Default::default()
                     }),
                     spec: Some(resources_proto::ResourceSpec {
                         kind: Some(resources_proto::resource_spec::Kind::Deployment(
                             resources_proto::DeploymentSpec {
-                                templates: vec!["conic-cmo".to_string()],
+                                templates: vec!["acme-cmo".to_string()],
                                 ..Default::default()
                             },
                         )),
@@ -1965,7 +1961,7 @@ mod tests {
         assert_eq!(updated.metadata.as_ref().unwrap().generation, 1);
         match updated.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
             Some(resources_proto::resource_spec::Kind::Deployment(spec)) => {
-                assert_eq!(spec.templates, vec!["conic-cmo"]);
+                assert_eq!(spec.templates, vec!["acme-cmo"]);
             }
             other => panic!("expected Deployment spec, got {other:?}"),
         }
@@ -1974,7 +1970,7 @@ mod tests {
             resources_proto::Deployment::decode(stored.as_slice()).expect("typed Deployment");
         assert_eq!(
             stored_deployment.spec.as_ref().unwrap().templates,
-            vec!["conic-cmo"]
+            vec!["acme-cmo"]
         );
     }
 }

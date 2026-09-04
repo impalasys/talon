@@ -828,10 +828,10 @@ mod tests {
     #[test]
     fn file_names_are_derived_from_full_logical_path() {
         let acme = file_name_for_path("/memory/acme/brand-guidelines.md");
-        let conic = file_name_for_path("/memory/conic/brand-guidelines.md");
-        assert_ne!(acme, conic);
+        let example = file_name_for_path("/memory/example/brand-guidelines.md");
+        assert_ne!(acme, example);
+        assert!(example.starts_with("memory-example-brand-guidelines-md-"));
         assert!(acme.starts_with("memory-acme-brand-guidelines-md-"));
-        assert!(conic.starts_with("memory-conic-brand-guidelines-md-"));
         assert_eq!(acme.rsplit_once('-').unwrap().1.len(), 12);
     }
 
@@ -881,12 +881,12 @@ mod tests {
     #[test]
     fn mcp_keys_use_resource_store_kinds() {
         assert_eq!(
-            mcp_server("Conic:Customers:13", "conic").canonical(),
-            "@Namespace/Conic:Customers:13/@/McpServer/conic"
+            mcp_server("Acme:Customers:13", "acme").canonical(),
+            "@Namespace/Acme:Customers:13/@/McpServer/acme"
         );
         assert_eq!(
-            mcp_server_prefix("Conic:Customers:13").canonical_prefix(),
-            "@Namespace/Conic:Customers:13/@/McpServer/"
+            mcp_server_prefix("Acme:Customers:13").canonical_prefix(),
+            "@Namespace/Acme:Customers:13/@/McpServer/"
         );
     }
 

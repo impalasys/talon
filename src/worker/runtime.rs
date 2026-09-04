@@ -596,18 +596,18 @@ mod tests {
     #[test]
     fn config_for_agent_namespace_uses_calling_namespace_for_inherited_mcp_server() {
         let inherited = McpConnectionConfig {
-            namespace: Some("Tenant:conic:Customers".to_string()),
-            mcp_server_name: Some("conic".to_string()),
-            ..config("conic", Some("conic"))
+            namespace: Some("Tenant:acme:Customers".to_string()),
+            mcp_server_name: Some("acme".to_string()),
+            ..config("acme", Some("acme"))
         };
 
-        let scoped = config_for_agent_namespace(&inherited, "Tenant:conic:Customers:42");
+        let scoped = config_for_agent_namespace(&inherited, "Tenant:acme:Customers:42");
 
         assert_eq!(
             scoped.namespace.as_deref(),
-            Some("Tenant:conic:Customers:42")
+            Some("Tenant:acme:Customers:42")
         );
-        assert_eq!(scoped.mcp_server_name.as_deref(), Some("conic"));
+        assert_eq!(scoped.mcp_server_name.as_deref(), Some("acme"));
     }
 
     fn spec_with_capabilities(capabilities: &[(&str, &[&str])]) -> manifests::AgentSpec {
@@ -723,20 +723,9 @@ mod tests {
         let config = runtime_config();
         let registry = crate::worker::mcp_registry::McpRegistry::new();
 
-        let missing =
-            match AgentRuntime::build("conic", "missing", "session-1", &cp, &config, &registry)
-                .await
-            {
-                Ok(_) => panic!("expected missing agent error"),
-                Err(err) => err,
-            };
-        assert!(missing.to_string().contains("Agent 'missing' not found"));
-
-        put_agent_resource(kv.clone(), "conic", "writer", None).await;
-
-        let no_spec = match AgentRuntime::build(
-            "conic",
-            "writer",
+        let missing = match AgentRuntime::build(
+            "acme",
+            "missing",
             "session-1",
             &cp,
             &config,
@@ -744,9 +733,19 @@ mod tests {
         )
         .await
         {
-            Ok(_) => panic!("expected missing effective spec error"),
+            Ok(_) => panic!("expected missing agent error"),
             Err(err) => err,
         };
+        assert!(missing.to_string().contains("Agent 'missing' not found"));
+
+        put_agent_resource(kv.clone(), "acme", "writer", None).await;
+
+        let no_spec =
+            match AgentRuntime::build("acme", "writer", "session-1", &cp, &config, &registry).await
+            {
+                Ok(_) => panic!("expected missing effective spec error"),
+                Err(err) => err,
+            };
         assert!(no_spec
             .to_string()
             .contains("Agent resource is missing typed Agent spec"));
@@ -769,7 +768,7 @@ mod tests {
             runtime: None,
         };
 
-        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
+        put_agent_resource(kv.clone(), "acme", "writer", Some(spec)).await;
 
         let mut reply_labels = HashMap::new();
         reply_labels.insert(
@@ -777,11 +776,11 @@ mod tests {
             "incident-room".to_string(),
         );
         kv.set_msg(
-            &crate::control::keys::session("conic", "writer", "reply-session"),
+            &crate::control::keys::session("acme", "writer", "reply-session"),
             &data_proto::Session {
                 id: "reply-session".to_string(),
                 agent: "writer".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "active".to_string(),
                 labels: reply_labels,
                 skill_state: None,
@@ -802,11 +801,11 @@ mod tests {
             "none".to_string(),
         );
         kv.set_msg(
-            &crate::control::keys::session("conic", "writer", "no-reply-session"),
+            &crate::control::keys::session("acme", "writer", "no-reply-session"),
             &data_proto::Session {
                 id: "no-reply-session".to_string(),
                 agent: "writer".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "active".to_string(),
                 labels: no_reply_labels,
                 skill_state: None,
@@ -818,7 +817,7 @@ mod tests {
         .unwrap();
 
         let reply_runtime =
-            AgentRuntime::build("conic", "writer", "reply-session", &cp, &config, &registry)
+            AgentRuntime::build("acme", "writer", "reply-session", &cp, &config, &registry)
                 .await
                 .unwrap();
         let reply_registry = reply_runtime.executor.registry.read().await;
@@ -831,7 +830,7 @@ mod tests {
         drop(reply_registry);
 
         let no_reply_runtime = AgentRuntime::build(
-            "conic",
+            "acme",
             "writer",
             "no-reply-session",
             &cp,
@@ -919,9 +918,9 @@ mod tests {
             runtime: None,
         };
 
-        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
+        put_agent_resource(kv.clone(), "acme", "writer", Some(spec)).await;
         kv.set_msg(
-            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
+            &crate::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
             &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: 1,
@@ -941,7 +940,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-2"),
+            &crate::control::keys::session_message("acme", "writer", "session-1", "msg-2"),
             &data_proto::SessionMessage {
                 id: "msg-2".to_string(),
                 role: 2,
@@ -989,12 +988,12 @@ mod tests {
         .await
         .unwrap();
         kv.set(
-            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-2/sub"),
+            &crate::control::keys::session_message("acme", "writer", "session-1", "msg-2/sub"),
             b"nested",
         )
         .await
         .unwrap();
-        let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+        let runtime = AgentRuntime::build("acme", "writer", "session-1", &cp, &config, &registry)
             .await
             .unwrap();
 
@@ -1028,14 +1027,14 @@ mod tests {
             runtime: None,
         };
 
-        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
+        put_agent_resource(kv.clone(), "acme", "writer", Some(spec)).await;
         let mut failed_labels = HashMap::new();
         failed_labels.insert(
             crate::harness::sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
             crate::harness::sessions::SESSION_PROJECTION_STATE_FAILED.to_string(),
         );
         kv.set_msg(
-            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
+            &crate::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
             &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: data_proto::MessageRole::RoleAssistant as i32,
@@ -1092,7 +1091,7 @@ mod tests {
         .await
         .unwrap();
 
-        let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+        let runtime = AgentRuntime::build("acme", "writer", "session-1", &cp, &config, &registry)
             .await
             .unwrap();
 
@@ -1130,7 +1129,7 @@ mod tests {
             runtime: None,
         };
 
-        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
+        put_agent_resource(kv.clone(), "acme", "writer", Some(spec)).await;
 
         let object = cp
             .objects
@@ -1146,7 +1145,7 @@ mod tests {
             .await
             .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
+            &crate::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
             &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
@@ -1177,7 +1176,7 @@ mod tests {
         .await
         .unwrap();
 
-        let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+        let runtime = AgentRuntime::build("acme", "writer", "session-1", &cp, &config, &registry)
             .await
             .unwrap();
 

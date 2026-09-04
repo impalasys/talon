@@ -170,11 +170,11 @@ mod tests {
     async fn renew_session_lock_timestamp_returns_existing_future_timestamp() {
         let kv = MockKvStore::default();
         kv.set_msg(
-            &keys::session("conic", "infra", "session-1"),
+            &keys::session("acme", "infra", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "infra".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 1,
                 last_active: 200,
@@ -187,13 +187,13 @@ mod tests {
         .await
         .unwrap();
 
-        let renewed_at = renew_session_lock_timestamp(&kv, "conic", "infra", "session-1", 100)
+        let renewed_at = renew_session_lock_timestamp(&kv, "acme", "infra", "session-1", 100)
             .await
             .unwrap();
 
         assert_eq!(renewed_at, 200);
         let session = kv
-            .get_msg::<data_proto::Session>(&keys::session("conic", "infra", "session-1"))
+            .get_msg::<data_proto::Session>(&keys::session("acme", "infra", "session-1"))
             .await
             .unwrap()
             .unwrap();
@@ -204,11 +204,11 @@ mod tests {
     async fn renew_session_lock_timestamp_returns_written_timestamp() {
         let kv = MockKvStore::default();
         kv.set_msg(
-            &keys::session("conic", "infra", "session-1"),
+            &keys::session("acme", "infra", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "infra".to_string(),
-                ns: "conic".to_string(),
+                ns: "acme".to_string(),
                 status: "PROCESSING".to_string(),
                 created_at: 1,
                 last_active: 100,
@@ -221,13 +221,13 @@ mod tests {
         .await
         .unwrap();
 
-        let renewed_at = renew_session_lock_timestamp(&kv, "conic", "infra", "session-1", 200)
+        let renewed_at = renew_session_lock_timestamp(&kv, "acme", "infra", "session-1", 200)
             .await
             .unwrap();
 
         assert_eq!(renewed_at, 200);
         let session = kv
-            .get_msg::<data_proto::Session>(&keys::session("conic", "infra", "session-1"))
+            .get_msg::<data_proto::Session>(&keys::session("acme", "infra", "session-1"))
             .await
             .unwrap()
             .unwrap();

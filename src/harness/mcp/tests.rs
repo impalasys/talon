@@ -378,7 +378,7 @@ mod tests {
         let config = http_config_with_headers(HashMap::from([
             ("Authorization".to_string(), "Bearer token".to_string()),
             ("x-consumer-api-key".to_string(), "secret".to_string()),
-            ("x-conic-workspace".to_string(), "demo".to_string()),
+            ("x-acme-workspace".to_string(), "demo".to_string()),
         ]));
 
         let headers = resolve_http_headers(&config).await.unwrap();
@@ -391,7 +391,7 @@ mod tests {
         );
         assert_eq!(
             headers
-                .get("x-conic-workspace")
+                .get("x-acme-workspace")
                 .and_then(|value| value.to_str().ok()),
             Some("demo")
         );
@@ -592,12 +592,12 @@ mod tests {
                         hits.fetch_add(1, Ordering::SeqCst);
                         assert_broker_assertion(
                             &headers,
-                            "conic:wks:42",
+                            "acme:wks:42",
                             "github",
                             Some("cmo"),
                             Some("session-123"),
                         );
-                        assert_eq!(payload["namespace"], "conic:wks:42");
+                        assert_eq!(payload["namespace"], "acme:wks:42");
                         assert_eq!(payload["mcp_server_name"], "github");
                         assert_eq!(payload["agent_name"], "cmo");
                         assert_eq!(payload["session_id"], "session-123");
@@ -624,7 +624,7 @@ mod tests {
             args: Vec::new(),
             headers: HashMap::new(),
             disabled: false,
-            namespace: Some("conic:wks:42".to_string()),
+            namespace: Some("acme:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             session_id: Some("session-123".to_string()),
@@ -664,7 +664,7 @@ mod tests {
             args: Vec::new(),
             headers: HashMap::from([("Authorization".to_string(), "Bearer static".to_string())]),
             disabled: false,
-            namespace: Some("conic:wks:42".to_string()),
+            namespace: Some("acme:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             session_id: None,
@@ -695,7 +695,7 @@ mod tests {
 
         let missing_mcp_server_name = McpConnectionConfig {
             headers: HashMap::new(),
-            namespace: Some("conic:wks:42".to_string()),
+            namespace: Some("acme:wks:42".to_string()),
             mcp_server_name: None,
             ..with_static_auth.clone()
         };
@@ -718,7 +718,7 @@ mod tests {
             args: Vec::new(),
             headers: HashMap::new(),
             disabled: false,
-            namespace: Some("conic:wks:42".to_string()),
+            namespace: Some("acme:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             session_id: None,
@@ -769,12 +769,12 @@ mod tests {
                         hits.fetch_add(1, Ordering::SeqCst);
                         assert_broker_assertion(
                             &headers,
-                            "conic:wks:42",
+                            "acme:wks:42",
                             "github",
                             Some("cmo"),
                             None,
                         );
-                        assert_eq!(payload["namespace"], "conic:wks:42");
+                        assert_eq!(payload["namespace"], "acme:wks:42");
                         assert_eq!(payload["mcp_server_name"], "github");
                         assert_eq!(payload["agent_name"], "cmo");
                         tokio::time::sleep(Duration::from_millis(50)).await;
@@ -801,7 +801,7 @@ mod tests {
             args: Vec::new(),
             headers: HashMap::new(),
             disabled: false,
-            namespace: Some("conic:wks:42".to_string()),
+            namespace: Some("acme:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             session_id: None,
@@ -900,7 +900,7 @@ mod tests {
             args: Vec::new(),
             headers: HashMap::new(),
             disabled: false,
-            namespace: Some("conic:wks:42".to_string()),
+            namespace: Some("acme:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             session_id: None,
@@ -1241,7 +1241,7 @@ mod tests {
                 );
                 assert_eq!(
                     headers
-                        .get("x-conic-workspace")
+                        .get("x-acme-workspace")
                         .and_then(|value| value.to_str().ok()),
                     Some("demo")
                 );
@@ -1264,7 +1264,7 @@ mod tests {
             reqwest::header::HeaderValue::from_static("consumer-secret"),
         );
         default_headers.insert(
-            "x-conic-workspace",
+            "x-acme-workspace",
             reqwest::header::HeaderValue::from_static("demo"),
         );
         let client = AuthenticatedReqwestClient::new(
@@ -1612,7 +1612,7 @@ mod tests {
                         let server_name = payload["mcp_server_name"].as_str().unwrap_or("missing");
                         assert_broker_assertion(
                             &headers,
-                            "conic:wks:42",
+                            "acme:wks:42",
                             server_name,
                             Some("cmo"),
                             None,
@@ -1640,7 +1640,7 @@ mod tests {
             args: Vec::new(),
             headers: HashMap::new(),
             disabled: false,
-            namespace: Some("conic:wks:42".to_string()),
+            namespace: Some("acme:wks:42".to_string()),
             mcp_server_name: Some("github".to_string()),
             agent_name: Some("cmo".to_string()),
             session_id: None,
@@ -1671,12 +1671,12 @@ mod tests {
         resolve_http_headers(&other_server).await.unwrap();
         assert_eq!(hits.load(Ordering::SeqCst), 2);
 
-        invalidate_broker_auth_cache("conic:wks:42", Some("github")).await;
+        invalidate_broker_auth_cache("acme:wks:42", Some("github")).await;
         resolve_http_headers(&base).await.unwrap();
         resolve_http_headers(&other_server).await.unwrap();
         assert_eq!(hits.load(Ordering::SeqCst), 3);
 
-        invalidate_broker_auth_cache("conic:wks:42", None).await;
+        invalidate_broker_auth_cache("acme:wks:42", None).await;
         resolve_http_headers(&base).await.unwrap();
         resolve_http_headers(&other_server).await.unwrap();
         assert_eq!(hits.load(Ordering::SeqCst), 5);

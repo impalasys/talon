@@ -388,7 +388,7 @@ describe('TalonCopilot', () => {
         sessionId="sess-1"
         messageDisplayTransformer={(message) => ({
           ...message,
-          renderNode: <details data-testid="custom-message"><summary>Conic instructions</summary></details>,
+          renderNode: <details data-testid="custom-message"><summary>Acme instructions</summary></details>,
         })}
       />,
     );

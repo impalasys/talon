@@ -431,7 +431,7 @@ mod tests {
     fn tenant_slug_uses_first_segment_after_tenant_prefix() {
         assert_eq!(tenant_slug("Tenant:acme"), Some("acme"));
         assert_eq!(tenant_slug("Tenant:acme:prod"), Some("acme"));
-        assert_eq!(tenant_slug("conic:wks:13"), None);
+        assert_eq!(tenant_slug("acme:wks:13"), None);
         assert_eq!(tenant_slug("Tenant:"), None);
     }
 
