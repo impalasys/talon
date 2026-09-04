@@ -429,11 +429,13 @@ spec:
         else {
             panic!("expected Agent spec");
         };
-        assert!(!spec.model_policy.unwrap().profiles[0]
-            .model
-            .as_ref()
-            .unwrap()
-            .zero_data_retention);
+        assert!(
+            !spec.model_policy.unwrap().profiles[0]
+                .model
+                .as_ref()
+                .unwrap()
+                .zero_data_retention
+        );
     }
 
     #[test]
