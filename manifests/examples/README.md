@@ -7,6 +7,7 @@ The files are organized by tutorial:
 - `marketing-agency/`
 - `customer-retention-system/`
 - `internal-ops-copilot/`
+- `openai-agents/` — direct OpenAI Agents API runtime and live verification
 
 Each example directory can include:
 

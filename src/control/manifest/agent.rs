@@ -51,6 +51,7 @@ struct FeatureManifest {
 struct ModelManifest {
     provider: String,
     name: String,
+    #[serde(default)]
     temperature: f32,
     thinking: Option<ThinkingConfigManifest>,
     #[serde(default)]

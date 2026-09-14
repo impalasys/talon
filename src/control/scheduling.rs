@@ -20,6 +20,7 @@ use crate::control::{
 use crate::gateway::rpc::{data_proto, resources_proto};
 
 pub const MIN_RECURRING_INTERVAL_SECONDS: u32 = 300;
+pub(crate) const SESSION_CLEARING: &str = "talon.clear_in_progress";
 const DEFAULT_SESSION_PROCESSING_TIMEOUT_SECONDS: i64 = 10;
 const DEFAULT_SCHEDULE_CLAIM_TIMEOUT_SECONDS: i64 = 60;
 const MAX_CAS_RETRIES: usize = 8;
@@ -641,6 +642,10 @@ pub async fn send_message(
         }],
     };
 
+    if crate::harness::openai_agents::uses_openai_agents(kv, ns, agent).await? {
+        return send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now).await;
+    }
+
     // Interactive input uses STEER as its single durable inbox. When the
     // session is idle, dispatch promotes the oldest entry into a new
     // submission; while a worker is active, the worker drains it as steering.
@@ -745,50 +750,98 @@ pub async fn enqueue_session_message_without_dispatch(
         }
     }
 
-    let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
-    kv.set_msg(&message_key, &user_msg).await?;
+    let openai_agents = crate::harness::openai_agents::uses_openai_agents(kv, ns, agent).await?;
+    let admission = if openai_agents {
+        crate::harness::openai_agents::validate_message(&user_msg)?;
+        Some(
+            crate::harness::openai_agents::admit_input(
+                kv,
+                ns,
+                agent,
+                session_id,
+                &user_msg.id,
+                now_micros,
+            )
+            .await?,
+        )
+    } else {
+        None
+    };
     let message_id = user_msg.id.clone();
-    if let Err(error) = crate::control::search::publish_index_event(
-        pubsub,
-        events::IndexEvent {
-            operation: events::IndexOperation::Upsert as i32,
-            key: message_key.canonical(),
-            ..Default::default()
-        },
-    )
-    .await
-    {
-        tracing::warn!(
-            error = %error,
-            namespace = %ns,
-            agent = %agent,
-            session_id = %session_id,
-            message_id = %message_id,
-            "failed to publish search index event for queued session message"
-        );
-    }
+    let prepared = async {
+        let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
+        if openai_agents {
+            crate::harness::openai_agents::persist_input(kv, &message_key, &user_msg).await?;
+        } else {
+            kv.set_msg(&message_key, &user_msg).await?;
+        }
+        let message_id = user_msg.id.clone();
+        if let Err(error) = crate::control::search::publish_index_event(
+            pubsub,
+            events::IndexEvent {
+                operation: events::IndexOperation::Upsert as i32,
+                key: message_key.canonical(),
+                ..Default::default()
+            },
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                namespace = %ns,
+                agent = %agent,
+                session_id = %session_id,
+                message_id = %message_id,
+                "failed to publish search index event for queued session message"
+            );
+        }
 
-    let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::harness::sessions::pending_submission(
-        submission_id.clone(),
-        session_id.to_string(),
-        message_id.clone(),
-        now_micros,
-    );
-    crate::harness::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission)
+        let submission_id = if openai_agents {
+            message_id.clone()
+        } else {
+            crate::control::uuid::session_submission_id()
+        };
+        let submission = crate::harness::sessions::pending_submission(
+            submission_id.clone(),
+            session_id.to_string(),
+            message_id.clone(),
+            now_micros,
+        );
+        crate::harness::sessions::create_submission_if_absent(
+            kv,
+            ns,
+            agent,
+            session_id,
+            &submission,
+        )
         .await?;
 
-    Ok(events::SessionDispatchEvent {
-        session_id: session_id.to_string(),
-        message_id: message_id.clone(),
-        direction: events::MessageDirection::Inbound as i32,
-        timestamp: now_micros,
-        agent: agent.to_string(),
-        message: session_message_text_projection(&user_msg),
-        ns: ns.to_string(),
-        submission_id,
-        kind: events::SessionDispatchKind::Message as i32,
-    })
+        Ok(events::SessionDispatchEvent {
+            session_id: session_id.to_string(),
+            message_id: message_id.clone(),
+            direction: events::MessageDirection::Inbound as i32,
+            timestamp: now_micros,
+            agent: agent.to_string(),
+            message: session_message_text_projection(&user_msg),
+            ns: ns.to_string(),
+            submission_id,
+            kind: events::SessionDispatchKind::Message as i32,
+        })
+    }
+    .await;
+    if let Some(token) = admission {
+        crate::harness::openai_agents::finish_admission(
+            kv,
+            ns,
+            agent,
+            session_id,
+            &message_id,
+            &token,
+            prepared.is_ok(),
+        )
+        .await?;
+    }
+    prepared
 }
 
 pub async fn send_session_message(
@@ -802,6 +855,20 @@ pub async fn send_session_message(
 ) -> Result<String> {
     if user_msg.parts.is_empty() {
         return Err(EmptyMessageError.into());
+    }
+
+    if crate::harness::openai_agents::uses_openai_agents(kv, ns, agent).await? {
+        let event = enqueue_session_message_without_dispatch(
+            kv, pubsub, ns, agent, session_id, user_msg, now,
+        )
+        .await?;
+        pubsub
+            .publish(
+                crate::control::topics::SESSION_DISPATCH_TOPIC,
+                &event.encode_to_vec(),
+            )
+            .await?;
+        return Ok(event.submission_id);
     }
 
     let key = keys::session(ns, agent, session_id);
@@ -1002,6 +1069,11 @@ pub async fn compact_session(
     session_id: &str,
     now: DateTime<Utc>,
 ) -> Result<String> {
+    if crate::harness::openai_agents::uses_openai_agents(kv, ns, agent).await? {
+        return Err(anyhow!(
+            "OpenAI owns conversation context; Talon compaction is unsupported for openai_agents"
+        ));
+    }
     let key = keys::session(ns, agent, session_id);
     let now_micros = now.timestamp_micros();
     let timeout_micros = session_processing_timeout_micros();

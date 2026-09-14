@@ -94,6 +94,39 @@ pub async fn resolve_llm_for_namespace(
     .await
 }
 
+/// Resolve the same tenant credential and model used by native OpenAI agents,
+/// without constructing a local model loop or a Responses API provider.
+pub async fn resolve_openai_agents_credentials(
+    spec: &AgentSpec,
+    config: &Config,
+    cp: &ControlPlane,
+    namespace: &str,
+) -> Result<(String, String, String)> {
+    let model = resolve_model_profile(spec.model_policy.as_ref())
+        .ok_or_else(|| anyhow!("openai_agents requires a default model profile"))?;
+    let provider = config
+        .providers
+        .get(&model.provider)
+        .ok_or_else(|| anyhow!("LLM provider '{}' not found in config", model.provider))?;
+    let Some(proto::llm_provider_config::Config::Openai(openai)) = &provider.config else {
+        return Err(anyhow!(
+            "openai_agents requires an OpenAI provider configuration"
+        ));
+    };
+    let api_key = resolve_provider_api_key(
+        &model.provider,
+        openai.api_key.as_ref(),
+        Some(TenantCredentialContext { cp, namespace }),
+        "OpenAI provider config is missing api_key",
+    )
+    .await?;
+    Ok((
+        api_key,
+        std::env::var("OPENAI_BASE_URL").unwrap_or_else(|_| "https://api.openai.com/v1".into()),
+        model.name.clone(),
+    ))
+}
+
 #[derive(Clone, Copy)]
 struct TenantCredentialContext<'a> {
     cp: &'a ControlPlane,

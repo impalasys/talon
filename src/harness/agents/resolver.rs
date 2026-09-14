@@ -54,6 +54,9 @@ pub fn validate_agent_spec(spec: &manifests::AgentSpec) -> Result<()> {
 
     if let Some(runtime) = spec.runtime.as_ref() {
         validate_agent_runtime(runtime)?;
+        if runtime.kind == "openai_agents" {
+            crate::harness::openai_agents::validate_spec(spec)?;
+        }
     }
 
     Ok(())
@@ -61,7 +64,7 @@ pub fn validate_agent_spec(spec: &manifests::AgentSpec) -> Result<()> {
 
 fn validate_agent_runtime(runtime: &manifests::AgentRuntime) -> Result<()> {
     match runtime.kind.as_str() {
-        "" | "llm" | "native" => Ok(()),
+        "" | "llm" | "native" | "openai_agents" => Ok(()),
         "acp" => {
             let acp = runtime
                 .acp

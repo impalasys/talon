@@ -11,6 +11,7 @@ pub mod llm;
 pub mod mcp;
 pub mod memory;
 pub mod native_tools;
+pub mod openai_agents;
 pub mod sandbox;
 pub mod sessions;
 pub mod skills;

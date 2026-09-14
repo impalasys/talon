@@ -33,9 +33,14 @@ async fn cancel_one(
     agent: &str,
     session_id: &str,
 ) -> Result<(), tonic::Status> {
+    let openai_agents =
+        crate::harness::openai_agents::uses_openai_agents(gateway.kv.as_ref(), ns, agent)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
     let prefix = keys::session_submission_prefix(ns, agent, session_id);
     let now = chrono::Utc::now().timestamp_micros();
     let mut active = Vec::new();
+    let mut unfinished = false;
     for (_, bytes) in gateway
         .kv
         .list_entries(&prefix, None)
@@ -44,6 +49,7 @@ async fn cancel_one(
     {
         let submission = data_proto::SessionSubmission::decode(bytes.as_slice())
             .map_err(|e| tonic::Status::internal(format!("Failed to decode submission: {e}")))?;
+        unfinished |= !crate::harness::sessions::submission_is_terminal(&submission);
         if submission.status == data_proto::SessionSubmissionStatus::Claimed as i32
             && submission
                 .claim_expires_at
@@ -57,8 +63,24 @@ async fn cancel_one(
         .into_iter()
         .max_by_key(|s| (s.created_at, s.updated_at))
     else {
+        if unfinished && openai_agents {
+            return Err(tonic::Status::unavailable(
+                "OpenAI may still be running, but no live Talon worker owns this submission; retry the same submission to reattach, then stop it",
+            ));
+        }
         return Ok(());
     };
+    if openai_agents {
+        crate::harness::openai_agents::request_cancellation(
+            gateway.kv.as_ref(),
+            ns,
+            agent,
+            session_id,
+            &submission.submission_id,
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(format!("Failed to save OpenAI stop request: {e}")))?;
+    }
     let endpoints = crate::gateway::worker_conn::WorkerConnectionPool::worker_endpoints(
         gateway.kv.as_ref(),
         &submission.claim_worker_id,

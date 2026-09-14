@@ -12,6 +12,7 @@ use crate::gateway::rpc::data_proto::{
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ClaimOutcome {
+    Missing,
     Claimed(SessionSubmission),
     AlreadyTerminal(SessionSubmission),
     Busy(SessionSubmission),
@@ -97,12 +98,14 @@ pub async fn claim_submission(
     worker_id: &str,
     now_micros: i64,
     claim_ttl_micros: i64,
+    create_if_missing: bool,
 ) -> Result<ClaimOutcome> {
     let key = keys::session_submission(ns, agent, session_id, submission_id);
     for _ in 0..8 {
         let current = kv.get(&key).await?;
         let mut submission = match current.as_ref() {
             Some(bytes) => SessionSubmission::decode(bytes.as_slice())?,
+            None if !create_if_missing => return Ok(ClaimOutcome::Missing),
             None => pending_submission(submission_id, session_id, user_message_id, now_micros),
         };
 
@@ -308,6 +311,7 @@ mod tests {
             "worker-1",
             1_000,
             10_000,
+            true,
         )
         .await
         .unwrap();

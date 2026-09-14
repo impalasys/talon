@@ -1,0 +1,15 @@
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: openai-luna
+  namespace: Tenant:example:main
+spec:
+  runtime:
+    kind: openai_agents
+  systemPrompt: Answer the user's questions clearly and concisely.
+  modelPolicy:
+    profiles:
+      - name: default
+        model:
+          provider: openai
+          name: gpt-5.6-luna

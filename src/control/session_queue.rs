@@ -265,6 +265,10 @@ pub async fn queue_session_message(
     if message.parts.is_empty() {
         return Err(scheduling::EmptyMessageError.into());
     }
+    let openai_agents = crate::harness::openai_agents::uses_openai_agents(kv, ns, agent).await?;
+    if openai_agents {
+        crate::harness::openai_agents::validate_message(&message)?;
+    }
     let now_micros = now.timestamp_micros();
     let queue_entry_suffix = if message.id.is_empty() {
         crate::control::uuid::session_message_id()
@@ -290,11 +294,40 @@ pub async fn queue_session_message(
     // timestamp. Connector event times may arrive out of order, and using them
     // here would allow a later accepted message to overtake an earlier one.
     let entry_id = format!("{now_micros:020}-{queue_entry_suffix}");
-    kv.set_msg(
-        &keys::session_queue_entry(ns, agent, session_id, queue, &entry_id),
-        &message,
-    )
-    .await?;
+    let admission = if openai_agents {
+        Some(
+            crate::harness::openai_agents::admit_input(
+                kv,
+                ns,
+                agent,
+                session_id,
+                &queue_entry_suffix,
+                now_micros,
+            )
+            .await?,
+        )
+    } else {
+        None
+    };
+    let stored = kv
+        .set_msg(
+            &keys::session_queue_entry(ns, agent, session_id, queue, &entry_id),
+            &message,
+        )
+        .await;
+    if let Some(token) = admission {
+        crate::harness::openai_agents::finish_admission(
+            kv,
+            ns,
+            agent,
+            session_id,
+            &queue_entry_suffix,
+            &token,
+            stored.is_ok(),
+        )
+        .await?;
+    }
+    stored?;
 
     Ok(QueuedSessionMessage {
         queue: queue.to_string(),
@@ -334,6 +367,39 @@ pub async fn dispatch_next_queued_message(
     now: DateTime<Utc>,
 ) -> Result<Option<DispatchedQueuedSessionMessage>> {
     validate_queue_name(queue)?;
+    if crate::harness::openai_agents::uses_openai_agents(kv, ns, agent).await? {
+        let prefix = keys::session_queue_prefix(ns, agent, session_id, queue);
+        let mut first = None;
+        while let Some((entry_key, bytes)) = kv
+            .list_entries(&prefix, Some(ListOptions::default().limit(1)))
+            .await?
+            .into_iter()
+            .next()
+        {
+            let entry_id = keys::direct_child_name(&prefix, &entry_key)
+                .ok_or_else(|| anyhow!("Invalid queued message key"))?;
+            let mut message = data_proto::SessionMessage::decode(bytes.as_slice())?;
+            message.id = entry_id
+                .split_once('-')
+                .ok_or_else(|| anyhow!("Invalid queued message id"))?
+                .1
+                .to_string();
+            let message_id = message.id.clone();
+            let submission_id =
+                scheduling::send_session_message(kv, pubsub, ns, agent, session_id, message, now)
+                    .await?;
+            // Keep the stable input until its dispatch has been published.
+            kv.delete(&entry_key).await?;
+            first.get_or_insert(DispatchedQueuedSessionMessage {
+                queue: queue.into(),
+                entry_id,
+                message_id,
+                submission_id,
+            });
+        }
+        return Ok(first);
+    }
+
     let prefix = keys::session_queue_prefix(ns, agent, session_id, queue);
     let Some(entry_key) = kv
         .list_keys(&prefix, Some(ListOptions::default().limit(1)))

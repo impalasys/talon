@@ -614,6 +614,34 @@ async fn acquire_clear_session_lock(
         let mut session = data_proto::Session::decode(current_bytes.as_slice())
             .map_err(|e| tonic::Status::internal(format!("Failed to decode session: {}", e)))?;
 
+        let openai_agents =
+            crate::harness::openai_agents::uses_openai_agents(kv, &key.namespace, &session.agent)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        if openai_agents && session.metadata.contains_key(scheduling::SESSION_CLEARING) {
+            return Err(tonic::Status::resource_exhausted(
+                "Session clear is already in progress.",
+            ));
+        }
+        if openai_agents
+            && session
+                .metadata
+                .keys()
+                .any(|key| key.starts_with(crate::harness::openai_agents::ADMISSION_PREFIX))
+            && !crate::harness::openai_agents::inputs_finished(
+                kv,
+                &key.namespace,
+                &session.agent,
+                &key.name,
+                &session,
+            )
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+        {
+            return Err(tonic::Status::resource_exhausted(
+                "OpenAI input is still being saved or processed. Finish or recover it before clearing this session.",
+            ));
+        }
         if session.status == "PROCESSING"
             && now_micros.saturating_sub(session.last_active)
                 <= scheduling::session_processing_timeout_micros()
@@ -625,6 +653,11 @@ async fn acquire_clear_session_lock(
 
         session.status = "PROCESSING".to_string();
         session.last_active = now_micros;
+        if openai_agents {
+            session
+                .metadata
+                .insert(scheduling::SESSION_CLEARING.into(), now_micros.to_string());
+        }
         let updated = session.encode_to_vec();
         if kv
             .compare_and_swap(key, Some(current_bytes.as_slice()), &updated)
@@ -666,6 +699,10 @@ async fn release_clear_session_lock(
 
         session.status = "IDLE".to_string();
         session.last_active = expected_last_active;
+        session.metadata.remove(scheduling::SESSION_CLEARING);
+        session
+            .metadata
+            .retain(|key, _| !key.starts_with(crate::harness::openai_agents::ADMISSION_PREFIX));
         let updated = session.encode_to_vec();
         if kv
             .compare_and_swap(key, Some(current_bytes.as_slice()), &updated)
@@ -1369,6 +1406,18 @@ impl GrpcGatewayHandler {
         let session_db_key = keys::session(&req.ns, &req.agent, &req.session_id);
         let now_micros = chrono::Utc::now().timestamp_micros();
         acquire_clear_session_lock(self.gateway.kv.as_ref(), &session_db_key, now_micros).await?;
+
+        #[cfg(test)]
+        if crate::harness::openai_agents::uses_openai_agents(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?
+        {
+            crate::harness::openai_agents::test_pause("clear_locked").await;
+        }
 
         if let Err(e) = delete_descendants(
             self.gateway.kv.as_ref(),

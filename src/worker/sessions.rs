@@ -102,11 +102,208 @@ fn is_wait_for_message_reply(reply: &str) -> bool {
 pub(super) enum SessionCompletionStatus {
     Completed,
     Waiting,
+    Cancelled,
     Errored,
     Panicked,
 }
 
 impl WorkerEventHandler {
+    async fn execute_openai_submission(
+        &self,
+        event: &SessionDispatchEvent,
+        spec: &crate::gateway::rpc::manifests::AgentSpec,
+        sink: &mut PubSubSessionSink,
+        cancellation: &CancellationToken,
+    ) -> Result<SessionCompletionStatus> {
+        use crate::harness::openai_agents::{OpenAiAgentRuntime, RecoveryNeeded};
+        let execution = AssertUnwindSafe(async {
+            if event.kind != crate::control::events::SessionDispatchKind::Message as i32 {
+                anyhow::bail!(
+                    "openai_agents only supports user messages; OpenAI owns context management"
+                );
+            }
+            let message = self
+                .cp
+                .kv
+                .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+                    &event.ns,
+                    &event.agent,
+                    &event.session_id,
+                    &event.message_id,
+                ))
+                .await?
+                .ok_or_else(|| anyhow!("OpenAI submission user message is missing"))?;
+            crate::harness::openai_agents::validate_message(&message)?;
+            let runtime = OpenAiAgentRuntime::build(
+                self.cp.clone(),
+                &self.config,
+                &event.ns,
+                &event.agent,
+                &event.session_id,
+                spec,
+            )
+            .await?;
+            let turn = runtime
+                .execute(
+                    &sink.submission_id,
+                    &sink.attempt_id,
+                    &crate::control::scheduling::session_message_text_projection(&message),
+                    cancellation,
+                )
+                .await?;
+            let persisted: Result<SessionCompletionStatus> = async {
+                sink.rotate_reply_message(turn.reply.message_id);
+                if turn.reply.submission_id != sink.submission_id {
+                    // OpenAI may combine several inputs into one turn. Exactly one
+                    // submission owns its output; steering submissions just refer to it.
+                    loop {
+                        let owner = self
+                            .cp
+                            .kv
+                            .get_msg::<data_proto::SessionSubmission>(
+                                &crate::control::keys::session_submission(
+                                    &event.ns,
+                                    &event.agent,
+                                    &event.session_id,
+                                    &turn.reply.submission_id,
+                                ),
+                            )
+                            .await?
+                            .ok_or_else(|| anyhow!("OpenAI turn reply owner is missing"))?;
+                        if sessions::submission_is_terminal(&owner) {
+                            sink.complete_with_existing_reply(owner.status).await?;
+                            return Ok(match SessionSubmissionStatus::try_from(owner.status) {
+                                Ok(SessionSubmissionStatus::Committed) => {
+                                    SessionCompletionStatus::Waiting
+                                }
+                                Ok(SessionSubmissionStatus::Interrupted) => {
+                                    SessionCompletionStatus::Cancelled
+                                }
+                                _ => SessionCompletionStatus::Errored,
+                            });
+                        }
+                        if owner
+                            .claim_expires_at
+                            .is_none_or(|expires| expires < chrono::Utc::now().timestamp_micros())
+                        {
+                            let message = self
+                                .cp
+                                .kv
+                                .get_msg::<data_proto::SessionMessage>(
+                                    &crate::control::keys::session_message(
+                                        &event.ns,
+                                        &event.agent,
+                                        &event.session_id,
+                                        &owner.user_message_id,
+                                    ),
+                                )
+                                .await?
+                                .ok_or_else(|| {
+                                    anyhow!("OpenAI reply owner user message is missing")
+                                })?;
+                            self.cp
+                            .pubsub
+                            .publish(
+                                crate::control::topics::SESSION_DISPATCH_TOPIC,
+                                &SessionDispatchEvent {
+                                    ns: event.ns.clone(),
+                                    agent: event.agent.clone(),
+                                    session_id: event.session_id.clone(),
+                                    message_id: owner.user_message_id,
+                                    submission_id: owner.submission_id,
+                                    message:
+                                        crate::control::scheduling::session_message_text_projection(
+                                            &message,
+                                        ),
+                                    timestamp: chrono::Utc::now().timestamp_micros(),
+                                    direction: crate::control::events::MessageDirection::Inbound
+                                        as i32,
+                                    kind: crate::control::events::SessionDispatchKind::Message
+                                        as i32,
+                                }
+                                .encode_to_vec(),
+                            )
+                            .await?;
+                        }
+                        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                    }
+                }
+                let expected = match turn.status.as_str() {
+                    "completed" => SessionSubmissionStatus::Committed,
+                    "cancelled" => SessionSubmissionStatus::Interrupted,
+                    _ => SessionSubmissionStatus::Failed,
+                };
+                let status = match turn.status.as_str() {
+                    "completed" => {
+                        sink.on_llm_response(&crate::harness::llm::ChatResponse {
+                            content: turn.text.clone(),
+                            ..Default::default()
+                        })
+                        .await?;
+                        sink.on_token(&turn.text).await;
+                        sink.on_done().await;
+                        #[cfg(test)]
+                        crate::harness::openai_agents::test_pause("committed").await;
+                        SessionCompletionStatus::Completed
+                    }
+                    "cancelled" => {
+                        sink.on_cancelled().await;
+                        SessionCompletionStatus::Cancelled
+                    }
+                    _ => {
+                        sink.on_error(&format!(
+                            "OpenAI turn failed: {}",
+                            turn.error.unwrap_or_default()
+                        ))
+                        .await;
+                        SessionCompletionStatus::Errored
+                    }
+                };
+                let terminal = self
+                    .cp
+                    .kv
+                    .get_msg::<data_proto::SessionSubmission>(
+                        &crate::control::keys::session_submission(
+                            &event.ns,
+                            &event.agent,
+                            &event.session_id,
+                            &sink.submission_id,
+                        ),
+                    )
+                    .await?;
+                if !terminal.is_some_and(|s| {
+                    s.status == expected as i32
+                        && s.committed_message_id.as_deref()
+                            == Some(sink.current_reply_msg_id().as_str())
+                }) {
+                    anyhow::bail!("Talon did not persist the OpenAI turn outcome");
+                }
+                Ok(status)
+            }
+            .await;
+            persisted.map_err(|e| {
+                RecoveryNeeded(format!(
+                    "OpenAI's saved turn needs local reply recovery; retry this submission: {e:#}"
+                ))
+                .into()
+            })
+        })
+        .catch_unwind()
+        .await;
+        match execution {
+            Ok(Ok(status)) => Ok(status),
+            Ok(Err(err)) if err.downcast_ref::<RecoveryNeeded>().is_some() => Err(err),
+            Ok(Err(err)) => {
+                sink.on_error(&format!("Error: {err:#}")).await;
+                Ok(SessionCompletionStatus::Errored)
+            }
+            Err(_) => {
+                sink.on_error("OpenAI runtime panicked").await;
+                Ok(SessionCompletionStatus::Panicked)
+            }
+        }
+    }
+
     #[tracing::instrument(
         name = "WorkerEventHandler.handle_session_message",
         skip_all,
@@ -135,6 +332,12 @@ impl WorkerEventHandler {
         } else {
             event.submission_id.as_str()
         };
+        let openai_agents = crate::harness::openai_agents::uses_openai_agents(
+            self.cp.kv.as_ref(),
+            ns,
+            &event.agent,
+        )
+        .await?;
         let claim = sessions::claim_submission(
             self.cp.kv.as_ref(),
             ns,
@@ -145,12 +348,14 @@ impl WorkerEventHandler {
             &self.worker_id,
             now_micros,
             crate::control::scheduling::session_processing_timeout_micros(),
+            !openai_agents,
         )
         .instrument(tracing::info_span!(
             "WorkerEventHandler.claim_session_submission"
         ))
         .await?;
         let submission = match claim {
+            ClaimOutcome::Missing => return Ok(()), // Clear removed this admitted input.
             ClaimOutcome::Claimed(submission) => submission,
             ClaimOutcome::AlreadyTerminal(submission) => {
                 tracing::info!(
@@ -252,7 +457,7 @@ impl WorkerEventHandler {
 
         // Build the deterministic assistant reply sink. The sink owns live UI
         // fanout plus mutable SessionMessage projection writes for this attempt.
-        let sink = PubSubSessionSink::new_with_fanout(
+        let mut sink = PubSubSessionSink::new_with_fanout(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
             self.cp.objects.clone(),
@@ -352,6 +557,13 @@ impl WorkerEventHandler {
             )
             .await?;
             self.session_cancellations.remove(&cancellation_key).await;
+            self.maybe_deliver_connector_session_reply(
+                ns,
+                &event.agent,
+                &event.session_id,
+                &committed_message_id,
+            )
+            .await?;
             self.release_session_lock(
                 ns,
                 &event.agent,
@@ -422,6 +634,21 @@ impl WorkerEventHandler {
                     return Ok((SessionCompletionStatus::Errored, sink.summary()));
                 }
             };
+            if agent
+                .spec
+                .as_ref()
+                .is_some_and(crate::harness::openai_agents::is_openai_agents)
+            {
+                return self
+                    .execute_openai_submission(
+                        &event,
+                        agent.spec.as_ref().unwrap(),
+                        &mut sink,
+                        &cancellation_token,
+                    )
+                    .await
+                    .map(|status| (status, sink.summary()));
+            }
             let is_acp = agent
                 .spec
                 .as_ref()
@@ -569,6 +796,31 @@ impl WorkerEventHandler {
         .await;
 
         self.session_cancellations.remove(&cancellation_key).await;
+        if outcome.as_ref().err().is_some_and(|e| {
+            e.downcast_ref::<crate::harness::openai_agents::RecoveryNeeded>()
+                .is_some()
+        }) {
+            // Keep the durable claim recoverable. A lost connection is not a
+            // failed remote turn, and must not produce a connector error reply.
+            // Expire our lease before redelivery, otherwise an immediate broker
+            // retry could be acknowledged as Busy after this observer has left.
+            drop(lease_renewal);
+            sessions::renew_submission_claim(
+                self.cp.kv.as_ref(),
+                ns,
+                &event.agent,
+                &event.session_id,
+                &submission.submission_id,
+                &submission.attempt_id,
+                chrono::Utc::now().timestamp_micros(),
+                0,
+            )
+            .await?;
+            if let Some(typing_keepalive) = typing_keepalive {
+                typing_keepalive.stop_after_release().await;
+            }
+            return outcome.map(|_| ());
+        }
         let completion_status = outcome
             .as_ref()
             .map(|(status, _)| *status)
@@ -811,6 +1063,10 @@ impl WorkerEventHandler {
         expected_last_active: i64,
         completion_status: SessionCompletionStatus,
     ) {
+        let openai_agents =
+            crate::harness::openai_agents::uses_openai_agents(self.cp.kv.as_ref(), ns, agent_id)
+                .await
+                .unwrap_or(false);
         let key = crate::control::keys::session(ns, agent_id, session_id);
         let mut released_session = None;
         let mut last_error = None;
@@ -830,11 +1086,45 @@ impl WorkerEventHandler {
                     break;
                 }
             };
-            if session.status != "PROCESSING" || session.last_active != expected_last_active {
+            if session.status != "PROCESSING"
+                || (openai_agents
+                    && session
+                        .metadata
+                        .contains_key(crate::control::scheduling::SESSION_CLEARING))
+                || (!openai_agents && session.last_active != expected_last_active)
+            {
                 return;
             }
+            if openai_agents {
+                // Bind the pending-input check to this exact session version.
+                // An admission changes the parent before writing its child,
+                // so either its marker blocks release or this CAS must retry.
+                match crate::harness::openai_agents::inputs_finished(
+                    self.cp.kv.as_ref(),
+                    ns,
+                    agent_id,
+                    session_id,
+                    &session,
+                )
+                .await
+                {
+                    Ok(true) => {}
+                    Ok(false) => return,
+                    Err(error) => {
+                        last_error = Some(error.to_string());
+                        break;
+                    }
+                }
+                #[cfg(test)]
+                crate::harness::openai_agents::test_pause("release_checked").await;
+                session.metadata.retain(|key, _| {
+                    !key.starts_with(crate::harness::openai_agents::ADMISSION_PREFIX)
+                });
+            }
             session.status = match completion_status {
-                SessionCompletionStatus::Completed | SessionCompletionStatus::Waiting => "IDLE",
+                SessionCompletionStatus::Completed
+                | SessionCompletionStatus::Waiting
+                | SessionCompletionStatus::Cancelled => "IDLE",
                 SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => "ERROR",
             }
             .to_string();
@@ -909,7 +1199,9 @@ impl WorkerEventHandler {
                     crate::control::delegation::DelegatedSessionCompletion::Completed
                 }
                 SessionCompletionStatus::Waiting => unreachable!(),
-                SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => {
+                SessionCompletionStatus::Errored
+                | SessionCompletionStatus::Panicked
+                | SessionCompletionStatus::Cancelled => {
                     crate::control::delegation::DelegatedSessionCompletion::Failed
                 }
             };

@@ -1331,6 +1331,24 @@ impl PubSubSessionSink {
     pub async fn clear_provider_continuation(&self) -> Result<()> {
         sessions::clear_provider_request_id(self.kv.as_ref(), &self.claim).await
     }
+
+    /// Coalesced steering inputs refer to the one assistant reply for their
+    /// OpenAI turn. They must never overwrite or redeliver that reply.
+    pub async fn complete_with_existing_reply(&self, status: i32) -> Result<()> {
+        if !self.mark_terminal(status).await {
+            anyhow::bail!("Failed to commit steering submission");
+        }
+        self.publish_event(AgentEvent::Done).await;
+        Ok(())
+    }
+
+    pub async fn on_cancelled(&self) {
+        self.persist_error(
+            "OpenAI turn cancelled",
+            SessionSubmissionStatus::Interrupted as i32,
+        )
+        .await;
+    }
 }
 
 #[async_trait]
@@ -1894,6 +1912,13 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_error(&self, err: &str) {
+        self.persist_error(err, SessionSubmissionStatus::Failed as i32)
+            .await;
+    }
+}
+
+impl PubSubSessionSink {
+    async fn persist_error(&self, err: &str, status: i32) {
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
 
@@ -1928,8 +1953,7 @@ impl ExecutionSink for PubSubSessionSink {
         .await;
         match result {
             Ok(()) => {
-                self.mark_terminal(SessionSubmissionStatus::Failed as i32)
-                    .await;
+                self.mark_terminal(status).await;
                 self.publish_reply_index_event().await;
                 self.publish_event(AgentEvent::Error(err.to_string())).await;
             }
