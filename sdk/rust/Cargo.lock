@@ -1344,6 +1344,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "talon-connector"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "tokio",
+]
+
+[[package]]
 name = "talon-rust-sdk-codegen"
 version = "0.1.0"
 dependencies = [
