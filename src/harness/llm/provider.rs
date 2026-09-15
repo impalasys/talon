@@ -11,8 +11,9 @@ use std::{error::Error, fmt};
 use crate::gateway::rpc::data_proto;
 pub use crate::gateway::rpc::data_proto::TokenCounter;
 pub use crate::gateway::rpc::harness_proto::{
-    chat_content_part, chat_stream_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
-    ChatStreamEvent, Tool, ToolCall, ToolCallDelta, ToolOutput,
+    chat_content_part, chat_stream_event, ChatContentPart, ChatContentPartByteRange, ChatMessage,
+    ChatRequest, ChatResponse, ChatStreamEvent, Tool, ToolCall, ToolCallDelta, ToolOutput,
+    ToolOutputByteRange,
 };
 
 #[derive(Debug)]
@@ -48,12 +49,14 @@ pub fn provider_error_token_counter(error: &anyhow::Error) -> Option<&TokenCount
 pub fn text_part(text: impl Into<String>) -> ChatContentPart {
     ChatContentPart {
         content: Some(chat_content_part::Content::Text(text.into())),
+        byte_range: None,
     }
 }
 
 pub fn object_ref_part(object_ref: data_proto::ObjectRef) -> ChatContentPart {
     ChatContentPart {
         content: Some(chat_content_part::Content::ObjectRef(object_ref)),
+        byte_range: None,
     }
 }
 

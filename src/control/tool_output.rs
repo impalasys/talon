@@ -4,7 +4,8 @@
 use crate::control::cas::CasStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
-    chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput,
+    chat_content_part, object_ref_part, text_part, ChatContentPart, ChatContentPartByteRange,
+    ToolOutput, ToolOutputByteRange,
 };
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -50,6 +51,8 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![text_part(text.clone())],
             summary: text,
+            byte_range: None,
+            content_view_version: 0,
         }
     }
 
@@ -77,6 +80,8 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![object_ref_part(object_ref)],
             summary,
+            byte_range: None,
+            content_view_version: 0,
         }
     }
 
@@ -84,6 +89,8 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts,
             summary: summary.into(),
+            byte_range: None,
+            content_view_version: 0,
         }
     }
 
@@ -101,25 +108,7 @@ impl ToolOutputExt for ToolOutput {
 }
 
 pub fn is_text_object_media_type(media_type: &str) -> bool {
-    let media_type = media_type
-        .split(';')
-        .next()
-        .unwrap_or_default()
-        .trim()
-        .to_ascii_lowercase();
-    media_type.starts_with("text/")
-        || matches!(
-            media_type.as_str(),
-            "application/json"
-                | "application/yaml"
-                | "application/x-yaml"
-                | "application/toml"
-                | "application/xml"
-                | "application/javascript"
-                | "application/x-javascript"
-        )
-        || media_type.ends_with("+json")
-        || media_type.ends_with("+xml")
+    crate::harness::visible_text::is_text_media_type(media_type)
 }
 
 pub fn first_object_ref(output: &ToolOutput) -> Option<&data_proto::ObjectRef> {
@@ -210,7 +199,9 @@ pub async fn normalize_for_session_storage(
                 text.as_bytes(),
             )
             .await?;
-        content_parts.push(object_ref_part(object_ref));
+        let mut object_part = object_ref_part(object_ref);
+        object_part.byte_range = part.byte_range.clone();
+        content_parts.push(object_part);
         stored_large_text = true;
     }
     let summary = if stored_large_text
@@ -219,6 +210,8 @@ pub async fn normalize_for_session_storage(
         summary(&ToolOutput {
             content_parts: content_parts.clone(),
             summary: String::new(),
+            byte_range: None,
+            content_view_version: 0,
         })
     } else {
         output.summary.clone()
@@ -226,6 +219,8 @@ pub async fn normalize_for_session_storage(
     Ok(ToolOutput {
         content_parts,
         summary,
+        byte_range: output.byte_range.clone(),
+        content_view_version: output.content_view_version,
     })
 }
 
@@ -262,10 +257,15 @@ pub fn parse_tool_result_payload_json(
 }
 
 pub fn tool_output_json(output: &ToolOutput) -> Value {
-    json!({
+    let mut value = json!({
         "summary": output.summary,
         "content_parts": output.content_parts.iter().map(content_part_json).collect::<Vec<_>>(),
-    })
+        "content_view_version": output.content_view_version,
+    });
+    if let Some(byte_range) = &output.byte_range {
+        value["byte_range"] = tool_output_byte_range_json(byte_range);
+    }
+    value
 }
 
 pub fn text_from_payload_json(payload_json: &str) -> Option<String> {
@@ -293,9 +293,32 @@ fn parse_tool_output_json(value: &Value) -> Result<ToolOutput> {
         })
         .transpose()?
         .unwrap_or_default();
+    let byte_range = value
+        .get("byte_range")
+        .or_else(|| value.get("byteRange"))
+        .map(parse_tool_output_byte_range)
+        .transpose()?;
+    if let Some(byte_range) = &byte_range {
+        crate::harness::visible_text::validate_page_receipt(byte_range)?;
+    }
     Ok(ToolOutput {
         content_parts,
         summary,
+        byte_range,
+        content_view_version: value
+            .get("content_view_version")
+            .or_else(|| value.get("contentViewVersion"))
+            .map(|value| {
+                value
+                    .as_u64()
+                    .ok_or_else(|| anyhow!("content_view_version must be an unsigned integer"))
+                    .and_then(|value| {
+                        u32::try_from(value)
+                            .map_err(|_| anyhow!("content_view_version is out of range"))
+                    })
+            })
+            .transpose()?
+            .unwrap_or_default(),
     })
 }
 
@@ -318,13 +341,15 @@ fn legacy_tool_output(
         return Ok(ToolOutput {
             content_parts,
             summary: inline_output.to_string(),
+            byte_range: None,
+            content_view_version: 0,
         });
     }
     Ok(ToolOutput::text(inline_output.to_string()))
 }
 
 fn content_part_json(part: &ChatContentPart) -> Value {
-    match part.content.as_ref() {
+    let mut value = match part.content.as_ref() {
         Some(chat_content_part::Content::Text(text)) => json!({
             "type": "text",
             "text": text,
@@ -336,32 +361,94 @@ fn content_part_json(part: &ChatContentPart) -> Value {
         None => json!({
             "type": "empty",
         }),
+    };
+    if let Some(byte_range) = &part.byte_range {
+        value["byte_range"] = json!({
+            "start": byte_range.start,
+            "end": byte_range.end,
+        });
     }
+    value
 }
 
 fn parse_content_part_json(value: &Value) -> Result<ChatContentPart> {
-    match value
+    let mut part = match value
         .get("type")
         .and_then(Value::as_str)
         .unwrap_or_default()
     {
-        "text" => Ok(text_part(
+        "text" => text_part(
             value
                 .get("text")
                 .and_then(Value::as_str)
                 .unwrap_or_default()
                 .to_string(),
-        )),
+        ),
         "object_ref" => {
             let object_ref = value
                 .get("object_ref")
                 .or_else(|| value.get("objectRef"))
                 .ok_or_else(|| anyhow!("object_ref content part is missing object_ref"))?;
-            Ok(object_ref_part(parse_object_ref_json(object_ref)?))
+            object_ref_part(parse_object_ref_json(object_ref)?)
         }
-        "empty" | "" => Ok(ChatContentPart { content: None }),
-        _ => Ok(ChatContentPart { content: None }),
+        "empty" | "" => ChatContentPart {
+            content: None,
+            byte_range: None,
+        },
+        _ => ChatContentPart {
+            content: None,
+            byte_range: None,
+        },
+    };
+    if let Some(byte_range) = value.get("byte_range").or_else(|| value.get("byteRange")) {
+        part.byte_range = Some(parse_content_part_byte_range(byte_range)?);
     }
+    Ok(part)
+}
+
+fn parse_content_part_byte_range(value: &Value) -> Result<ChatContentPartByteRange> {
+    Ok(ChatContentPartByteRange {
+        start: value
+            .get("start")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| anyhow!("content part byte_range is missing start"))?,
+        end: value
+            .get("end")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| anyhow!("content part byte_range is missing end"))?,
+    })
+}
+
+fn tool_output_byte_range_json(byte_range: &ToolOutputByteRange) -> Value {
+    let mut value = json!({
+        "requested_start": byte_range.requested_start,
+        "actual_end": byte_range.actual_end,
+    });
+    if let Some(next_byte) = byte_range.next_byte {
+        value["next_byte"] = json!(next_byte);
+    }
+    value
+}
+
+fn parse_tool_output_byte_range(value: &Value) -> Result<ToolOutputByteRange> {
+    Ok(ToolOutputByteRange {
+        requested_start: value
+            .get("requested_start")
+            .or_else(|| value.get("requestedStart"))
+            .or_else(|| value.get("start"))
+            .and_then(Value::as_u64)
+            .ok_or_else(|| anyhow!("tool output byte_range is missing requested_start"))?,
+        actual_end: value
+            .get("actual_end")
+            .or_else(|| value.get("actualEnd"))
+            .or_else(|| value.get("end"))
+            .and_then(Value::as_u64)
+            .ok_or_else(|| anyhow!("tool output byte_range is missing actual_end"))?,
+        next_byte: value
+            .get("next_byte")
+            .or_else(|| value.get("nextByte"))
+            .and_then(Value::as_u64),
+    })
 }
 
 fn object_ref_json(object_ref: &data_proto::ObjectRef) -> Value {
@@ -454,6 +541,70 @@ mod tests {
 
         assert_eq!(payload.tool_call_id, "call-1");
         assert_eq!(plain_text(&payload.tool_output).as_deref(), Some("result"));
+    }
+
+    #[test]
+    fn selection_ranges_and_receipts_round_trip_in_custom_json() {
+        let mut part = text_part("prefix-selected-suffix");
+        part.byte_range = Some(ChatContentPartByteRange { start: 7, end: 15 });
+        let mut output = ToolOutput::from_content_parts(vec![part], "selected");
+        output.content_view_version = crate::harness::visible_text::CONTENT_VIEW_VERSION;
+        output.byte_range = Some(ToolOutputByteRange {
+            requested_start: 7,
+            actual_end: 15,
+            next_byte: Some(15),
+        });
+
+        let json = tool_result_payload_json("call-1", &output).unwrap();
+        let payload = parse_tool_result_payload_json(&json, None, "")
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(payload.tool_output.content_view_version, 1);
+        assert_eq!(
+            payload.tool_output.content_parts[0].byte_range,
+            Some(ChatContentPartByteRange { start: 7, end: 15 })
+        );
+        assert_eq!(payload.tool_output.byte_range, output.byte_range);
+    }
+
+    #[test]
+    fn custom_json_rejects_an_inconsistent_page_receipt() {
+        let payload = parse_tool_result_payload_json(
+            r#"{"tool_call_id":"call-1","tool_output":{"summary":"","byte_range":{"requested_start":0,"actual_end":4,"next_byte":3}}}"#,
+            None,
+            "",
+        );
+        assert!(payload.is_err());
+    }
+
+    #[test]
+    fn custom_json_accepts_legacy_receipt_field_names() {
+        let payload = parse_tool_result_payload_json(
+            r#"{"tool_call_id":"call-1","tool_output":{"summary":"","byteRange":{"start":0,"end":4,"nextByte":4}}}"#,
+            None,
+            "",
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(
+            payload.tool_output.byte_range,
+            Some(ToolOutputByteRange {
+                requested_start: 0,
+                actual_end: 4,
+                next_byte: Some(4),
+            })
+        );
+    }
+
+    #[test]
+    fn custom_json_rejects_out_of_range_view_versions() {
+        let payload = parse_tool_result_payload_json(
+            r#"{"tool_call_id":"call-1","tool_output":{"summary":"","content_view_version":4294967296}}"#,
+            None,
+            "",
+        );
+        assert!(payload.is_err());
     }
 
     #[test]
@@ -594,6 +745,45 @@ mod tests {
         let object = first_object_ref(&normalized).unwrap();
         assert!(object.key.contains("/messages/message/part.txt"));
         assert!(store.get(&object.key).await.unwrap().is_some());
+    }
+
+    #[tokio::test]
+    async fn normalization_preserves_a_non_prefix_part_view() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let cas = CasStore::new(store);
+        let source = format!("{}SELECTED{}", "p".repeat(2048), "s".repeat(2048));
+        let mut part = text_part(source);
+        part.byte_range = Some(ChatContentPartByteRange {
+            start: 2048,
+            end: 2056,
+        });
+        let output = ToolOutput::from_content_parts(vec![part], "selected");
+        let normalized = normalize_for_session_storage(
+            &cas,
+            ToolOutputStorageContext {
+                ns: "ns",
+                agent: "agent",
+                session_id: "session",
+                message_id: "message",
+                part_id: "part",
+                tool_call_id: "call",
+                tool_name: "tool",
+            },
+            &output,
+        )
+        .await
+        .unwrap();
+
+        assert!(
+            crate::harness::llm::content_part_object_ref(&normalized.content_parts[0]).is_some()
+        );
+        assert_eq!(
+            normalized.content_parts[0].byte_range,
+            Some(ChatContentPartByteRange {
+                start: 2048,
+                end: 2056,
+            })
+        );
     }
 
     #[tokio::test]
