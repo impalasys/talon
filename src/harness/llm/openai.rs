@@ -30,9 +30,9 @@ fn object_ref_text(object_ref: &crate::gateway::rpc::data_proto::ObjectRef) -> s
 
 async fn openai_content_part(cas: &CasStore, part: &ChatContentPart) -> Result<serde_json::Value> {
     Ok(match part.content.as_ref() {
-        Some(chat_content_part::Content::Text(text)) => serde_json::json!({
+        Some(chat_content_part::Content::Text(_)) => serde_json::json!({
             "type": "text",
-            "text": text,
+            "text": crate::harness::visible_text::visible_inline_text(part)?.unwrap_or_default(),
         }),
         Some(chat_content_part::Content::ObjectRef(object_ref)) => {
             let object_ref_media_type = object_ref.media_type.trim();
@@ -191,17 +191,21 @@ impl OpenAiCompatibleProvider {
         Ok(serialized)
     }
 
-    fn tool_message_content(parts: &[ChatContentPart]) -> String {
+    fn tool_message_content(parts: &[ChatContentPart]) -> Result<String> {
         parts
             .iter()
-            .filter_map(|part| match part.content.as_ref()? {
-                chat_content_part::Content::Text(text) => Some(text.clone()),
-                chat_content_part::Content::ObjectRef(object_ref) => {
-                    Some(object_ref_fallback_text(object_ref))
+            .map(|part| match part.content.as_ref() {
+                Some(chat_content_part::Content::Text(_)) => {
+                    crate::harness::visible_text::visible_inline_text(part)
+                        .map(|text| text.unwrap_or_default().to_string())
                 }
+                Some(chat_content_part::Content::ObjectRef(object_ref)) => {
+                    Ok(object_ref_fallback_text(object_ref))
+                }
+                None => Ok(String::new()),
             })
-            .collect::<Vec<_>>()
-            .join("\n")
+            .collect::<Result<Vec<_>>>()
+            .map(|parts| parts.join("\n"))
     }
 
     async fn serialize_tool_result_media_message(
@@ -282,7 +286,7 @@ impl OpenAiCompatibleProvider {
                 let tool_call_id = message.tool_call_id.as_deref();
                 let mut json = serde_json::json!({
                     "role": "tool",
-                    "content": Self::tool_message_content(&message.content_parts),
+                    "content": Self::tool_message_content(&message.content_parts)?,
                 });
                 if let Some(tool_call_id) = tool_call_id {
                     json["tool_call_id"] = serde_json::json!(tool_call_id);
@@ -301,9 +305,11 @@ impl OpenAiCompatibleProvider {
             let content = match message.content_parts.as_slice() {
                 [] => serde_json::Value::String(String::new()),
                 [part] => match part.content.as_ref() {
-                    Some(chat_content_part::Content::Text(text)) => {
-                        serde_json::Value::String(text.clone())
-                    }
+                    Some(chat_content_part::Content::Text(_)) => serde_json::Value::String(
+                        crate::harness::visible_text::visible_inline_text(part)?
+                            .unwrap_or_default()
+                            .to_string(),
+                    ),
                     _ => serde_json::Value::Array(
                         self.serialize_content_parts(&message.content_parts).await?,
                     ),
@@ -854,7 +860,7 @@ impl OpenAiCompatibleProvider {
                         .collect::<Vec<_>>();
                     Value::Array(content)
                 } else {
-                    Value::String(Self::tool_message_content(&message.content_parts))
+                    Value::String(Self::tool_message_content(&message.content_parts)?)
                 };
                 input.push(serde_json::json!({
                     "type": "function_call_output",

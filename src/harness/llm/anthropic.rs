@@ -96,9 +96,11 @@ impl AnthropicProvider {
         let content = match message.content_parts.as_slice() {
             [] => serde_json::Value::String(String::new()),
             [part] => match part.content.as_ref() {
-                Some(chat_content_part::Content::Text(text)) => {
-                    serde_json::Value::String(text.clone())
-                }
+                Some(chat_content_part::Content::Text(_)) => serde_json::Value::String(
+                    crate::harness::visible_text::visible_inline_text(part)?
+                        .unwrap_or_default()
+                        .to_string(),
+                ),
                 _ => serde_json::Value::Array(
                     self.serialize_content_parts(&message.content_parts).await?,
                 ),
@@ -113,7 +115,7 @@ impl AnthropicProvider {
         }))
     }
 
-    fn request_system_prompt(messages: &[ChatMessage]) -> Option<String> {
+    fn request_system_prompt(messages: &[ChatMessage]) -> Result<Option<String>> {
         let system_parts = messages
             .iter()
             .filter(|message| message.role == "system")
@@ -121,17 +123,16 @@ impl AnthropicProvider {
                 message
                     .content_parts
                     .iter()
-                    .filter_map(|part| match part.content.as_ref() {
-                        Some(chat_content_part::Content::Text(text)) => Some(text.as_str()),
-                        _ => None,
-                    })
-                    .collect::<Vec<_>>()
-                    .join("")
+                    .map(crate::harness::visible_text::visible_inline_text)
+                    .collect::<Result<Vec<_>>>()
+                    .map(|parts| parts.into_iter().flatten().collect::<Vec<_>>().join(""))
             })
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
             .filter(|text| !text.trim().is_empty())
             .collect::<Vec<_>>();
 
-        (!system_parts.is_empty()).then(|| system_parts.join("\n\n"))
+        Ok((!system_parts.is_empty()).then(|| system_parts.join("\n\n")))
     }
 
     async fn request_messages(&self, messages: &[ChatMessage]) -> Result<Vec<serde_json::Value>> {
@@ -155,9 +156,9 @@ async fn anthropic_content_part(
     part: &ChatContentPart,
 ) -> Result<serde_json::Value> {
     Ok(match part.content.as_ref() {
-        Some(chat_content_part::Content::Text(text)) => json!({
+        Some(chat_content_part::Content::Text(_)) => json!({
             "type": "text",
-            "text": text,
+            "text": crate::harness::visible_text::visible_inline_text(part)?.unwrap_or_default(),
         }),
         Some(chat_content_part::Content::ObjectRef(object_ref)) => {
             let object_ref_media_type = object_ref.media_type.trim();
@@ -213,7 +214,7 @@ impl LlmProvider for AnthropicProvider {
             "max_tokens": max_tokens,
             "messages": self.request_messages(&request.messages).await?,
         });
-        if let Some(system_prompt) = Self::request_system_prompt(&request.messages) {
+        if let Some(system_prompt) = Self::request_system_prompt(&request.messages)? {
             payload["system"] = json!(system_prompt);
         }
         if let Some(thinking_payload) = thinking_payload {
@@ -272,7 +273,7 @@ impl LlmProvider for AnthropicProvider {
             "messages": self.request_messages(&request.messages).await?,
             "stream": true,
         });
-        if let Some(system_prompt) = Self::request_system_prompt(&request.messages) {
+        if let Some(system_prompt) = Self::request_system_prompt(&request.messages)? {
             payload["system"] = json!(system_prompt);
         }
         if let Some(thinking_payload) = thinking_payload {

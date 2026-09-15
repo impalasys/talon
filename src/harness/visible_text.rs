@@ -103,6 +103,44 @@ pub fn validate_visible_part(
     Ok(Some(visible))
 }
 
+/// Validates the portion of a persisted part view that is knowable without
+/// reading an object. Inline text is checked completely; object text ranges
+/// are checked when their decoded source is loaded by the reader.
+pub fn validate_persisted_part(part: &ChatContentPart) -> Result<()> {
+    match part.content.as_ref() {
+        Some(chat_content_part::Content::Text(text)) => {
+            validate_visible_part(part, &TextEligibility::Inline, Some(text), None)?;
+        }
+        Some(chat_content_part::Content::ObjectRef(_)) => {
+            if part.byte_range.is_none() {
+                return Ok(());
+            }
+            let eligibility = resolve_text_eligibility(part, None)?;
+            if !eligibility.is_text() && part.byte_range.is_some() {
+                bail!("byte_range is valid only for text content parts");
+            }
+        }
+        None if part.byte_range.is_some() => {
+            bail!("byte_range is valid only for text content parts");
+        }
+        None => {}
+    }
+    Ok(())
+}
+
+/// Returns the exact inline view selected by a content part. Callers that
+/// project text use this instead of the source field so a part range can never
+/// accidentally expose its prefix or suffix.
+pub fn visible_inline_text(part: &ChatContentPart) -> Result<Option<&str>> {
+    let Some(chat_content_part::Content::Text(source)) = part.content.as_ref() else {
+        validate_persisted_part(part)?;
+        return Ok(None);
+    };
+    let range = validate_visible_part(part, &TextEligibility::Inline, Some(source), None)?
+        .expect("inline text always has a visible range");
+    Ok(Some(&source[range.start as usize..range.end as usize]))
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct ResolvedVisibleSource {
     pub eligibility: TextEligibility,
@@ -638,16 +676,16 @@ mod tests {
     fn object_views_use_decoded_text_boundaries_not_stored_size() {
         let mut object = data_proto::ObjectRef {
             media_type: "text/plain".to_string(),
-            size_bytes: 3,
+            size_bytes: 1,
             ..Default::default()
         };
         object
             .metadata
-            .insert("test_text".to_string(), "éB".to_string());
-        let plan =
-            plan_visible_text_with_resolver(&[object_ref_part(object)], resolve_inline_or_object)
-                .unwrap();
-        assert_eq!(materialize_visible_parts(&plan), "éB");
+            .insert("test_text".to_string(), "éBC".to_string());
+        let mut part = object_ref_part(object);
+        part.byte_range = Some(ChatContentPartByteRange { start: 2, end: 4 });
+        let plan = plan_visible_text_with_resolver(&[part], resolve_inline_or_object).unwrap();
+        assert_eq!(materialize_visible_parts(&plan), "BC");
     }
 
     #[test]

@@ -595,7 +595,12 @@ async fn materialize_tool_output_content_parts(
                 continue;
             };
             let bytes = decode_stored_object_bytes(&stored, &object_ref.key)?;
-            materialized.push(text_part(String::from_utf8_lossy(&bytes).into_owned()));
+            let text = String::from_utf8(bytes)
+                .map_err(|_| anyhow!("text object is not valid UTF-8: {}", object_ref.key))?;
+            let mut materialized_part = text_part(text);
+            materialized_part.byte_range = content_part.byte_range;
+            crate::harness::visible_text::visible_inline_text(&materialized_part)?;
+            materialized.push(materialized_part);
         } else {
             materialized.push(object_ref_part(object_ref));
         }
@@ -618,7 +623,9 @@ mod tests {
     use crate::control::tool_output::{self, ToolOutputExt};
     use crate::control::KeyValueStore;
     use crate::gateway::rpc::data_proto;
-    use crate::harness::llm::{content_part_object_ref, object_ref_part, text_part, ToolOutput};
+    use crate::harness::llm::{
+        content_part_object_ref, object_ref_part, text_part, ChatContentPartByteRange, ToolOutput,
+    };
     use crate::test_support::MockKvStore;
     use prost::Message;
     use std::collections::{HashMap, HashSet};
@@ -1048,6 +1055,41 @@ mod tests {
             .content_parts
             .iter()
             .all(|part| content_part_object_ref(part).is_none()));
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_preserves_a_text_object_view() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/acme/support/session-1/tool-results/ranged.txt",
+                b"prefix-selected-suffix",
+                ObjectMetadata {
+                    media_type: "text/plain".to_string(),
+                    size_bytes: 22,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let mut ranged = object_ref_part(object);
+        ranged.byte_range = Some(ChatContentPartByteRange { start: 7, end: 15 });
+        let output = ToolOutput::from_content_parts(vec![ranged], "selected");
+        let part = tool_result_part(
+            String::new(),
+            tool_output::tool_result_payload_json("tool-1", &output).unwrap(),
+        );
+
+        let message = tool_result_message_from_part(&part, &store)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(message.text_content(), "selected");
+        assert_eq!(
+            message.content_parts[0].byte_range,
+            Some(ChatContentPartByteRange { start: 7, end: 15 })
+        );
     }
 
     #[tokio::test]

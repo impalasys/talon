@@ -83,9 +83,10 @@ pub fn object_ref_fallback_text(object_ref: &data_proto::ObjectRef) -> String {
 pub fn content_parts_text(parts: &[ChatContentPart]) -> String {
     parts
         .iter()
-        .filter_map(|part| match part.content.as_ref()? {
-            chat_content_part::Content::Text(text) => Some(text.as_str()),
-            _ => None,
+        .filter_map(|part| {
+            crate::harness::visible_text::visible_inline_text(part)
+                .ok()
+                .flatten()
         })
         .collect::<Vec<_>>()
         .join("")

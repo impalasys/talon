@@ -133,13 +133,12 @@ pub fn plain_text(output: &ToolOutput) -> Option<String> {
             output
                 .content_parts
                 .iter()
-                .filter_map(|part| match part.content.as_ref()? {
-                    chat_content_part::Content::Text(text) => Some(text.as_str()),
-                    _ => None,
-                })
-                .collect::<Vec<_>>()
-                .join("")
+                .map(crate::harness::visible_text::visible_inline_text)
+                .collect::<Result<Vec<_>>>()
+                .ok()
+                .map(|parts| parts.into_iter().flatten().collect::<Vec<_>>().join(""))
         })
+        .flatten()
 }
 
 pub fn summary(output: &ToolOutput) -> String {
@@ -403,6 +402,7 @@ fn parse_content_part_json(value: &Value) -> Result<ChatContentPart> {
     if let Some(byte_range) = value.get("byte_range").or_else(|| value.get("byteRange")) {
         part.byte_range = Some(parse_content_part_byte_range(byte_range)?);
     }
+    crate::harness::visible_text::validate_persisted_part(&part)?;
     Ok(part)
 }
 
@@ -566,6 +566,23 @@ mod tests {
             Some(ChatContentPartByteRange { start: 7, end: 15 })
         );
         assert_eq!(payload.tool_output.byte_range, output.byte_range);
+        assert_eq!(
+            plain_text(&payload.tool_output).as_deref(),
+            Some("selected")
+        );
+        assert_eq!(display_text(&payload.tool_output), "selected");
+    }
+
+    #[test]
+    fn custom_json_rejects_invalid_content_part_views() {
+        for payload_json in [
+            r#"{"tool_call_id":"call-1","tool_output":{"content_parts":[{"type":"empty","byte_range":{"start":0,"end":0}}]}}"#,
+            r#"{"tool_call_id":"call-1","tool_output":{"content_parts":[{"type":"object_ref","object_ref":{"media_type":"image/png"},"byte_range":{"start":0,"end":0}}]}}"#,
+            r#"{"tool_call_id":"call-1","tool_output":{"content_parts":[{"type":"text","text":"abc","byte_range":{"start":2,"end":1}}]}}"#,
+            r#"{"tool_call_id":"call-1","tool_output":{"content_parts":[{"type":"text","text":"é","byte_range":{"start":1,"end":2}}]}}"#,
+        ] {
+            assert!(parse_tool_result_payload_json(payload_json, None, "").is_err());
+        }
     }
 
     #[test]
