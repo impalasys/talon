@@ -1710,7 +1710,7 @@ mod tests {
     use super::*;
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use crate::gateway::rpc::manifests::ThinkingConfig;
-    use crate::harness::llm::{object_ref_part, text_part};
+    use crate::harness::llm::{object_ref_part, text_part, ChatContentPartByteRange};
     use axum::{extract::State, routing::post, Json, Router};
     use std::{
         net::SocketAddr,
@@ -1872,6 +1872,37 @@ mod tests {
             serialized[0]["content"][1]["image_url"]["url"],
             "data:image/png;base64,cG5nLWJ5dGVz"
         );
+    }
+
+    #[tokio::test]
+    async fn serialize_messages_materializes_ranged_text_views() {
+        let mut part = text_part("prefix-selected-suffix");
+        part.byte_range = Some(ChatContentPartByteRange { start: 7, end: 15 });
+        let serialized = test_provider()
+            .serialize_messages(vec![
+                ChatMessage {
+                    role: "user".to_string(),
+                    content_parts: vec![part.clone()],
+                    tool_calls: Vec::new(),
+                    tool_call_id: None,
+                    encrypted_reasoning: None,
+                },
+                ChatMessage {
+                    role: "tool".to_string(),
+                    content_parts: vec![part],
+                    tool_calls: Vec::new(),
+                    tool_call_id: Some("call_1".to_string()),
+                    encrypted_reasoning: None,
+                },
+            ])
+            .await
+            .unwrap();
+
+        assert_eq!(serialized[0]["content"], "selected");
+        assert_eq!(serialized[1]["content"], "selected");
+        assert!(!serde_json::to_string(&serialized)
+            .unwrap()
+            .contains("prefix-selected-suffix"));
     }
 
     #[tokio::test]

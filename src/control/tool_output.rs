@@ -161,7 +161,7 @@ pub fn summary(output: &ToolOutput) -> String {
 
 pub fn display_text(output: &ToolOutput) -> String {
     plain_text(output).unwrap_or_else(|| {
-        serde_json::to_string(&tool_output_json(output)).unwrap_or_else(|_| summary(output))
+        serde_json::to_string(&display_tool_output_json(output)).unwrap_or_else(|_| summary(output))
     })
 }
 
@@ -259,6 +259,21 @@ pub fn tool_output_json(output: &ToolOutput) -> Value {
     let mut value = json!({
         "summary": output.summary,
         "content_parts": output.content_parts.iter().map(content_part_json).collect::<Vec<_>>(),
+        "content_view_version": output.content_view_version,
+    });
+    if let Some(byte_range) = &output.byte_range {
+        value["byte_range"] = tool_output_byte_range_json(byte_range);
+    }
+    value
+}
+
+/// Produces the diagnostic/display representation of a tool output. Unlike
+/// the persistence representation, inline text is materialized to its visible
+/// interval so mixed outputs cannot reveal a ranged part's source text.
+fn display_tool_output_json(output: &ToolOutput) -> Value {
+    let mut value = json!({
+        "summary": output.summary,
+        "content_parts": output.content_parts.iter().map(display_content_part_json).collect::<Vec<_>>(),
         "content_view_version": output.content_view_version,
     });
     if let Some(byte_range) = &output.byte_range {
@@ -368,6 +383,23 @@ fn content_part_json(part: &ChatContentPart) -> Value {
         });
     }
     value
+}
+
+fn display_content_part_json(part: &ChatContentPart) -> Value {
+    match part.content.as_ref() {
+        Some(chat_content_part::Content::Text(_)) => json!({
+            "type": "text",
+            "text": crate::harness::visible_text::visible_inline_text(part)
+                .ok()
+                .flatten()
+                .unwrap_or("[Invalid byte-range view]"),
+        }),
+        Some(chat_content_part::Content::ObjectRef(object_ref)) => json!({
+            "type": "object_ref",
+            "object_ref": object_ref_json(object_ref),
+        }),
+        None => json!({ "type": "empty" }),
+    }
 }
 
 fn parse_content_part_json(value: &Value) -> Result<ChatContentPart> {
@@ -571,6 +603,21 @@ mod tests {
             Some("selected")
         );
         assert_eq!(display_text(&payload.tool_output), "selected");
+    }
+
+    #[test]
+    fn mixed_output_display_materializes_inline_part_views() {
+        let mut part = text_part("prefix-selected-suffix");
+        part.byte_range = Some(ChatContentPartByteRange { start: 7, end: 15 });
+        let output = ToolOutput::from_content_parts(
+            vec![part, object_ref_part(object_ref("cas/image", "image/png"))],
+            "selected image",
+        );
+
+        let displayed = display_text(&output);
+        assert!(displayed.contains("selected"));
+        assert!(!displayed.contains("prefix-"));
+        assert!(!displayed.contains("-suffix"));
     }
 
     #[test]

@@ -468,7 +468,9 @@ mod tests {
     use super::*;
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use crate::gateway::rpc::manifests::ThinkingConfig;
-    use crate::harness::llm::{chat_message_text, object_ref_part};
+    use crate::harness::llm::{
+        chat_message_text, object_ref_part, text_part, ChatContentPartByteRange,
+    };
     use axum::{routing::post, Json, Router};
     use serde_json::json;
     use std::sync::Arc;
@@ -612,6 +614,31 @@ mod tests {
 
         assert_eq!(empty["content"], "");
         assert_eq!(text["content"], "hello");
+    }
+
+    #[tokio::test]
+    async fn serialize_message_materializes_ranged_text_views() {
+        let provider = AnthropicProvider::new(
+            "test-key".to_string(),
+            "claude-test".to_string(),
+            test_cas_store(),
+        );
+        let mut part = text_part("prefix-selected-suffix");
+        part.byte_range = Some(ChatContentPartByteRange { start: 7, end: 15 });
+
+        let serialized = provider
+            .serialize_message(&ChatMessage {
+                role: "user".to_string(),
+                content_parts: vec![part],
+                tool_calls: Vec::new(),
+                tool_call_id: None,
+                encrypted_reasoning: None,
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(serialized["content"], "selected");
+        assert!(!serialized.to_string().contains("prefix-selected-suffix"));
     }
 
     fn test_provider(base_url: String) -> AnthropicProvider {

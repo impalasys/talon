@@ -23,7 +23,7 @@ use crate::harness::skills::{
     render::format_active_skill_context,
 };
 use crate::harness::telemetry;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -812,9 +812,12 @@ impl AgentExecutor {
                 infer_media_type_for_object_ref(object_ref).unwrap_or_default()
             };
             if is_text_object_media_type(&media_type) {
-                hydrated.push(text_part(
-                    String::from_utf8_lossy(&stored.bytes).to_string(),
-                ));
+                let text = String::from_utf8(stored.bytes)
+                    .map_err(|_| anyhow!("text object is not valid UTF-8: {}", object_ref.key))?;
+                let mut hydrated_part = text_part(text);
+                hydrated_part.byte_range = part.byte_range;
+                crate::harness::visible_text::visible_inline_text(&hydrated_part)?;
+                hydrated.push(hydrated_part);
                 continue;
             }
             if !is_image_object_media_type(&media_type) {
@@ -1473,7 +1476,7 @@ mod tests {
         usage_event, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse, ChatStream,
         LlmProvider, TokenCounter,
     };
-    use crate::harness::llm::ToolOutput;
+    use crate::harness::llm::{ChatContentPartByteRange, ToolOutput};
     use crate::harness::memory::Embedding;
     use crate::harness::skills::registry::ToolRegistry;
     use crate::test_support::{MockKvStore, RecordingPubSub};
@@ -2272,10 +2275,10 @@ mod tests {
             .objects
             .put(
                 "cas/acme/files/file-1/notes.txt",
-                b"source text",
+                b"prefix-selected-suffix",
                 ObjectMetadata {
                     media_type: "text/plain; charset=utf-8".to_string(),
-                    size_bytes: 11,
+                    size_bytes: 22,
                     filename: "notes.txt".to_string(),
                     ..ObjectMetadata::default()
                 },
@@ -2299,7 +2302,11 @@ mod tests {
         let mut context = ExecutionContext::new("cmo");
         context.push(LoopMessage {
             role: "user".to_string(),
-            content_parts: vec![object_ref_part(object)],
+            content_parts: vec![{
+                let mut part = object_ref_part(object);
+                part.byte_range = Some(ChatContentPartByteRange { start: 7, end: 15 });
+                part
+            }],
             tool_calls: None,
             tool_call_id: None,
             encrypted_reasoning: None,
@@ -2311,7 +2318,7 @@ mod tests {
             .unwrap();
 
         let seen = llm.seen_messages.lock().unwrap();
-        assert_eq!(seen.last().unwrap()[0].text_content(), "source text");
+        assert_eq!(seen.last().unwrap()[0].text_content(), "selected");
     }
 
     #[tokio::test]

@@ -958,10 +958,12 @@ fn text_parts(text: String) -> Vec<ChatContentPart> {
 fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatContentPart> {
     let total_text_len = parts
         .iter()
-        .filter_map(|part| match part.content.as_ref() {
-            Some(chat_content_part::Content::Text(text)) => Some(text.len()),
-            _ => None,
+        .filter_map(|part| {
+            crate::harness::visible_text::visible_inline_text(part)
+                .ok()
+                .flatten()
         })
+        .map(str::len)
         .sum::<usize>();
     if total_text_len <= max_chars {
         return parts.to_vec();
@@ -971,10 +973,16 @@ fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatC
     let mut truncated = Vec::with_capacity(parts.len());
     for part in parts {
         match part.content.as_ref() {
-            Some(chat_content_part::Content::Text(text)) => {
+            Some(chat_content_part::Content::Text(_)) => {
                 if remaining == 0 {
                     continue;
                 }
+                let Some(text) = crate::harness::visible_text::visible_inline_text(part)
+                    .ok()
+                    .flatten()
+                else {
+                    continue;
+                };
                 let next = truncate_middle(text, remaining);
                 remaining = remaining.saturating_sub(next.len());
                 if !next.is_empty() {
@@ -996,10 +1004,16 @@ fn fit_content_parts_to_weight(
 
     for part in parts {
         match part.content.as_ref() {
-            Some(chat_content_part::Content::Text(text)) => {
+            Some(chat_content_part::Content::Text(_)) => {
                 if remaining == 0 {
                     continue;
                 }
+                let Some(text) = crate::harness::visible_text::visible_inline_text(part)
+                    .ok()
+                    .flatten()
+                else {
+                    continue;
+                };
                 let next = truncate_middle(text, remaining);
                 remaining = remaining.saturating_sub(next.len());
                 if !next.is_empty() {
@@ -1029,10 +1043,20 @@ fn fit_content_parts_to_weight(
 
 fn content_part_weight(part: &ChatContentPart) -> usize {
     match part.content.as_ref() {
-        Some(chat_content_part::Content::Text(text)) => text.len(),
+        Some(chat_content_part::Content::Text(_)) => {
+            crate::harness::visible_text::visible_inline_text(part)
+                .ok()
+                .flatten()
+                .map(str::len)
+                .unwrap_or(0)
+        }
         Some(chat_content_part::Content::ObjectRef(object)) => {
             let object_payload_weight = if is_text_object_media_type(&object.media_type) {
-                usize::try_from(object.size_bytes).unwrap_or(usize::MAX)
+                part.byte_range
+                    .as_ref()
+                    .map(|range| range.end.saturating_sub(range.start))
+                    .map(|length| usize::try_from(length).unwrap_or(usize::MAX))
+                    .unwrap_or_else(|| usize::try_from(object.size_bytes).unwrap_or(usize::MAX))
             } else {
                 INLINE_IMAGE_CONTEXT_WEIGHT
             };
@@ -1283,15 +1307,15 @@ fn env_usize(key: &str, default: usize) -> usize {
 mod tests {
     use super::{
         compact_history_for_llm_with_budget, compact_history_for_llm_with_budget_and_model_limits,
-        context_metrics, replay_has_user_or_tool_anchor, serialized_message_weight, summarize,
-        tool_history_is_consistent, ContextBudget, ModelContextLimits, COMPACTION_PROMPT,
-        MAX_COMPACTION_SUMMARY_WORDS,
+        content_part_weight, context_metrics, replay_has_user_or_tool_anchor,
+        serialized_message_weight, summarize, tool_history_is_consistent, truncate_text_parts,
+        ContextBudget, ModelContextLimits, COMPACTION_PROMPT, MAX_COMPACTION_SUMMARY_WORDS,
     };
     use crate::gateway::rpc::data_proto;
     use crate::harness::executor::LoopMessage;
     use crate::harness::llm::{
-        content_part_object_ref, object_ref_part, text_part, ChatContentPart, ChatRequest,
-        ChatResponse, ChatStream, LlmProvider, ToolCall,
+        content_part_object_ref, object_ref_part, text_part, ChatContentPart,
+        ChatContentPartByteRange, ChatRequest, ChatResponse, ChatStream, LlmProvider, ToolCall,
     };
     use crate::harness::memory::Embedding;
     use anyhow::Result;
@@ -1332,6 +1356,22 @@ mod tests {
         assert!(COMPACTION_PROMPT.contains("<summary>\n## User goal"));
         assert!(COMPACTION_PROMPT.contains("under 10000 words"));
         assert!(COMPACTION_PROMPT.contains("<summary>"));
+    }
+
+    #[test]
+    fn compaction_budgets_the_visible_inline_view() {
+        let mut ranged = text_part("prefix-selected-suffix");
+        ranged.byte_range = Some(ChatContentPartByteRange { start: 7, end: 15 });
+
+        assert_eq!(content_part_weight(&ranged), 8);
+        let truncated = truncate_text_parts(&[ranged], 4);
+        let text = match truncated[0].content.as_ref() {
+            Some(crate::harness::llm::chat_content_part::Content::Text(text)) => text,
+            _ => panic!("expected text part"),
+        };
+        assert_eq!(text, "sele");
+        assert!(!text.contains("prefix-"));
+        assert!(!text.contains("-suffix"));
     }
 
     struct SummaryLlm {
