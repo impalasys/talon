@@ -214,9 +214,11 @@ fn prefix_latest_user_message(history: &mut [LoopMessage], prefix: &str) {
     let prefix = format!("{prefix}\n\n");
 
     if let Some(first_part) = message.content_parts.first_mut() {
-        if let Some(chat_content_part::Content::Text(text)) = first_part.content.as_mut() {
-            text.insert_str(0, &prefix);
-            return;
+        if first_part.byte_range.is_none() {
+            if let Some(chat_content_part::Content::Text(text)) = first_part.content.as_mut() {
+                text.insert_str(0, &prefix);
+                return;
+            }
         }
     }
 
@@ -790,6 +792,9 @@ impl AgentExecutor {
                 continue;
             };
             let object_ref_media_type = object_ref.media_type.trim();
+            if !object_ref_media_type.is_empty() {
+                crate::harness::visible_text::validate_persisted_part(&part)?;
+            }
             if !object_ref_media_type.is_empty()
                 && !is_text_object_media_type(object_ref_media_type)
                 && !is_image_object_media_type(object_ref_media_type)
@@ -811,6 +816,15 @@ impl AgentExecutor {
             } else {
                 infer_media_type_for_object_ref(object_ref).unwrap_or_default()
             };
+            if part.byte_range.is_some() {
+                let mut canonical_part = part.clone();
+                if let Some(chat_content_part::Content::ObjectRef(canonical_ref)) =
+                    canonical_part.content.as_mut()
+                {
+                    canonical_ref.media_type = media_type.clone();
+                }
+                crate::harness::visible_text::validate_persisted_part(&canonical_part)?;
+            }
             if is_text_object_media_type(&media_type) {
                 let text = String::from_utf8(stored.bytes)
                     .map_err(|_| anyhow!("text object is not valid UTF-8: {}", object_ref.key))?;
@@ -1472,9 +1486,9 @@ mod tests {
     };
     use crate::harness::executor::compaction::compact;
     use crate::harness::llm::provider::{
-        content_part_object_ref, object_ref_part, text_delta_event, tool_call_delta_event,
-        usage_event, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse, ChatStream,
-        LlmProvider, TokenCounter,
+        content_part_object_ref, object_ref_part, text_delta_event, text_part,
+        tool_call_delta_event, usage_event, ChatMessage, ChatMessageExt, ChatRequest, ChatResponse,
+        ChatStream, LlmProvider, TokenCounter,
     };
     use crate::harness::llm::{ChatContentPartByteRange, ToolOutput};
     use crate::harness::memory::Embedding;
@@ -2095,6 +2109,45 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn executor_prefixes_ranged_user_text_without_shifting_its_view() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let mut spec = manifests::AgentSpec::default();
+        spec.post_history_prompt = "RULE".to_string();
+        let executor = AgentExecutor::new(
+            llm.clone(),
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "acme:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            spec,
+            HashMap::new(),
+        );
+        let mut ranged = text_part("prefix-selected-suffix");
+        ranged.byte_range = Some(ChatContentPartByteRange { start: 7, end: 15 });
+        let mut context = ExecutionContext::new("cmo");
+        context.push(LoopMessage {
+            role: "user".to_string(),
+            content_parts: vec![ranged],
+            tool_calls: None,
+            tool_call_id: None,
+            encrypted_reasoning: None,
+        });
+
+        executor
+            .execute(&mut context, &CaptureSink::new(), None)
+            .await
+            .unwrap();
+
+        let seen = llm.seen_messages.lock().unwrap();
+        assert_eq!(seen.last().unwrap()[0].text_content(), "RULE\n\nselected");
+    }
+
+    #[tokio::test]
     async fn executor_prefixes_multimodal_latest_user_message_without_dropping_parts() {
         let llm = Arc::new(RecordingLlmProvider::default());
         let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
@@ -2319,6 +2372,47 @@ mod tests {
 
         let seen = llm.seen_messages.lock().unwrap();
         assert_eq!(seen.last().unwrap()[0].text_content(), "selected");
+    }
+
+    #[tokio::test]
+    async fn executor_rejects_ranged_non_text_object_ref_for_llm() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let cp = ControlPlane::noop();
+        let object = cp
+            .objects
+            .put(
+                "cas/acme/files/file-1/image.png",
+                b"png-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    size_bytes: 9,
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let executor = AgentExecutor::new(
+            llm,
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "acme:wks:13".to_string(),
+            "cmo".to_string(),
+            cp,
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+        let mut part = object_ref_part(object);
+        part.byte_range = Some(ChatContentPartByteRange { start: 0, end: 0 });
+
+        let error = executor
+            .hydrate_object_ref_parts_for_llm(vec![part])
+            .await
+            .expect_err("ranged image parts must be rejected");
+        assert!(error.to_string().contains("only for text"));
     }
 
     #[tokio::test]
