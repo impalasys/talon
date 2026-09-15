@@ -23,7 +23,7 @@ use crate::harness::skills::{
     render::format_active_skill_context,
 };
 use crate::harness::telemetry;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -803,6 +803,9 @@ impl AgentExecutor {
                 continue;
             }
             let Some(stored) = cas.get_object_decoded(&object_ref.key).await? else {
+                if part.byte_range.is_some() {
+                    bail!("selected text object is missing: {}", object_ref.key);
+                }
                 hydrated.push(text_part(format!(
                     "[Object '{}' is missing.]",
                     object_ref.key
@@ -2413,6 +2416,39 @@ mod tests {
             .await
             .expect_err("ranged image parts must be rejected");
         assert!(error.to_string().contains("only for text"));
+    }
+
+    #[tokio::test]
+    async fn executor_rejects_missing_selected_text_object_for_llm() {
+        let llm = Arc::new(RecordingLlmProvider::default());
+        let registry = Arc::new(tokio::sync::RwLock::new(ToolRegistry::new()));
+        let executor = AgentExecutor::new(
+            llm,
+            "test-provider".to_string(),
+            "test-model".to_string(),
+            ContextAssembler::new("."),
+            registry,
+            Arc::new(Config::default()),
+            "acme:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane::noop(),
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+        let mut part = object_ref_part(data_proto::ObjectRef {
+            key: "cas/acme/files/missing.txt".to_string(),
+            media_type: "text/plain".to_string(),
+            ..Default::default()
+        });
+        part.byte_range = Some(ChatContentPartByteRange { start: 0, end: 1 });
+
+        let error = executor
+            .hydrate_object_ref_parts_for_llm(vec![part])
+            .await
+            .expect_err("missing selected text must fail");
+        assert!(error
+            .to_string()
+            .contains("selected text object is missing"));
     }
 
     #[tokio::test]

@@ -10,7 +10,7 @@ use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
     content_part_object_ref, object_ref_part, text_part, ChatContentPart, ToolCall,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use prost::Message;
 use std::collections::HashSet;
 use std::path::Path;
@@ -583,6 +583,9 @@ async fn materialize_tool_output_content_parts(
             continue;
         };
         let Some(metadata) = objects.head(&object_ref.key).await? else {
+            if content_part.byte_range.is_some() {
+                bail!("selected text object is missing: {}", object_ref.key);
+            }
             materialized.push(text_part(unavailable_historical_tool_output()));
             continue;
         };
@@ -591,6 +594,9 @@ async fn materialize_tool_output_content_parts(
         }
         if tool_output::is_text_object_media_type(&object_ref.media_type) {
             let Some(stored) = objects.get(&object_ref.key).await? else {
+                if content_part.byte_range.is_some() {
+                    bail!("selected text object is missing: {}", object_ref.key);
+                }
                 materialized.push(text_part(unavailable_historical_tool_output()));
                 continue;
             };
@@ -1305,6 +1311,29 @@ mod tests {
             message.text_content(),
             "[Historical tool output is unavailable. Do not assume it reflects the current state.]"
         );
+    }
+
+    #[tokio::test]
+    async fn tool_result_message_rejects_missing_selected_text_object() {
+        let store = InMemoryObjectStore::default();
+        let mut selected = object_ref_part(data_proto::ObjectRef {
+            key: "cas/Tenant%3Aacme/files/italki/missing-selected".to_string(),
+            media_type: "text/markdown".to_string(),
+            ..Default::default()
+        });
+        selected.byte_range = Some(ChatContentPartByteRange { start: 0, end: 8 });
+        let output = ToolOutput::from_content_parts(vec![selected], "selected");
+        let part = tool_result_part(
+            String::new(),
+            tool_output::tool_result_payload_json("read-file-1", &output).unwrap(),
+        );
+
+        let error = tool_result_message_from_part(&part, &store)
+            .await
+            .expect_err("missing selected text must fail");
+        assert!(error
+            .to_string()
+            .contains("selected text object is missing"));
     }
 
     #[tokio::test]
