@@ -9,20 +9,42 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class ChatContentPart(_message.Message):
-    __slots__ = ("text", "object_ref")
+    __slots__ = ("text", "object_ref", "byte_range")
     TEXT_FIELD_NUMBER: _ClassVar[int]
     OBJECT_REF_FIELD_NUMBER: _ClassVar[int]
+    BYTE_RANGE_FIELD_NUMBER: _ClassVar[int]
     text: str
     object_ref: _data_pb2.ObjectRef
-    def __init__(self, text: _Optional[str] = ..., object_ref: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ...) -> None: ...
+    byte_range: ChatContentPartByteRange
+    def __init__(self, text: _Optional[str] = ..., object_ref: _Optional[_Union[_data_pb2.ObjectRef, _Mapping]] = ..., byte_range: _Optional[_Union[ChatContentPartByteRange, _Mapping]] = ...) -> None: ...
+
+class ChatContentPartByteRange(_message.Message):
+    __slots__ = ("start", "end")
+    START_FIELD_NUMBER: _ClassVar[int]
+    END_FIELD_NUMBER: _ClassVar[int]
+    start: int
+    end: int
+    def __init__(self, start: _Optional[int] = ..., end: _Optional[int] = ...) -> None: ...
 
 class ToolOutput(_message.Message):
-    __slots__ = ("content_parts", "summary")
+    __slots__ = ("content_parts", "summary", "byte_range")
     CONTENT_PARTS_FIELD_NUMBER: _ClassVar[int]
     SUMMARY_FIELD_NUMBER: _ClassVar[int]
+    BYTE_RANGE_FIELD_NUMBER: _ClassVar[int]
     content_parts: _containers.RepeatedCompositeFieldContainer[ChatContentPart]
     summary: str
-    def __init__(self, content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., summary: _Optional[str] = ...) -> None: ...
+    byte_range: ToolOutputByteRange
+    def __init__(self, content_parts: _Optional[_Iterable[_Union[ChatContentPart, _Mapping]]] = ..., summary: _Optional[str] = ..., byte_range: _Optional[_Union[ToolOutputByteRange, _Mapping]] = ...) -> None: ...
+
+class ToolOutputByteRange(_message.Message):
+    __slots__ = ("start", "end", "next_byte")
+    START_FIELD_NUMBER: _ClassVar[int]
+    END_FIELD_NUMBER: _ClassVar[int]
+    NEXT_BYTE_FIELD_NUMBER: _ClassVar[int]
+    start: int
+    end: int
+    next_byte: int
+    def __init__(self, start: _Optional[int] = ..., end: _Optional[int] = ..., next_byte: _Optional[int] = ...) -> None: ...
 
 class ToolCall(_message.Message):
     __slots__ = ("id", "name", "arguments")

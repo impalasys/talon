@@ -11,11 +11,29 @@ message ChatContentPart {
     talon.data.ObjectRef object_ref = 4;
   }
   reserved 2, 3;
+  // A half-open UTF-8 byte interval over this part's source text. It is a
+  // view, never ObjectRef identity: it is valid only for inline text or a
+  // text-media-type object_ref. Endpoints must be UTF-8 character boundaries.
+  optional ChatContentPartByteRange byte_range = 5;
+}
+
+message ChatContentPartByteRange {
+  uint64 start = 1;
+  uint64 end = 2;
 }
 
 message ToolOutput {
   repeated ChatContentPart content_parts = 1;
   string summary = 2;
+  // Deprecated page receipt. This records a legacy read result; it does not
+  // select or materialize content.
+  optional ToolOutputByteRange byte_range = 3;
+}
+
+message ToolOutputByteRange {
+  uint64 start = 1;
+  uint64 end = 2;
+  optional uint64 next_byte = 3;
 }
 
 message ToolCall {
