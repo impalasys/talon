@@ -50,6 +50,7 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![text_part(text.clone())],
             summary: text,
+            byte_range: None,
         }
     }
 
@@ -77,6 +78,7 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts: vec![object_ref_part(object_ref)],
             summary,
+            byte_range: None,
         }
     }
 
@@ -84,6 +86,7 @@ impl ToolOutputExt for ToolOutput {
         Self {
             content_parts,
             summary: summary.into(),
+            byte_range: None,
         }
     }
 
@@ -219,6 +222,7 @@ pub async fn normalize_for_session_storage(
         summary(&ToolOutput {
             content_parts: content_parts.clone(),
             summary: String::new(),
+            byte_range: None,
         })
     } else {
         output.summary.clone()
@@ -226,6 +230,7 @@ pub async fn normalize_for_session_storage(
     Ok(ToolOutput {
         content_parts,
         summary,
+        byte_range: None,
     })
 }
 
@@ -296,6 +301,7 @@ fn parse_tool_output_json(value: &Value) -> Result<ToolOutput> {
     Ok(ToolOutput {
         content_parts,
         summary,
+        byte_range: None,
     })
 }
 
@@ -318,6 +324,7 @@ fn legacy_tool_output(
         return Ok(ToolOutput {
             content_parts,
             summary: inline_output.to_string(),
+            byte_range: None,
         });
     }
     Ok(ToolOutput::text(inline_output.to_string()))
@@ -359,8 +366,14 @@ fn parse_content_part_json(value: &Value) -> Result<ChatContentPart> {
                 .ok_or_else(|| anyhow!("object_ref content part is missing object_ref"))?;
             Ok(object_ref_part(parse_object_ref_json(object_ref)?))
         }
-        "empty" | "" => Ok(ChatContentPart { content: None }),
-        _ => Ok(ChatContentPart { content: None }),
+        "empty" | "" => Ok(ChatContentPart {
+            content: None,
+            byte_range: None,
+        }),
+        _ => Ok(ChatContentPart {
+            content: None,
+            byte_range: None,
+        }),
     }
 }
 
