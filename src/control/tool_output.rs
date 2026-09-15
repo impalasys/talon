@@ -104,25 +104,7 @@ impl ToolOutputExt for ToolOutput {
 }
 
 pub fn is_text_object_media_type(media_type: &str) -> bool {
-    let media_type = media_type
-        .split(';')
-        .next()
-        .unwrap_or_default()
-        .trim()
-        .to_ascii_lowercase();
-    media_type.starts_with("text/")
-        || matches!(
-            media_type.as_str(),
-            "application/json"
-                | "application/yaml"
-                | "application/x-yaml"
-                | "application/toml"
-                | "application/xml"
-                | "application/javascript"
-                | "application/x-javascript"
-        )
-        || media_type.ends_with("+json")
-        || media_type.ends_with("+xml")
+    crate::harness::visible_text::is_text_media_type(media_type)
 }
 
 pub fn first_object_ref(output: &ToolOutput) -> Option<&data_proto::ObjectRef> {
