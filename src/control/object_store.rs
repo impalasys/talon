@@ -12,6 +12,7 @@ use google_cloud_auth::credentials::{AccessTokenCredentials, Builder as Credenti
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::ops::Range;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -19,6 +20,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 const GCS_STORAGE_SCOPE: &str = "https://www.googleapis.com/auth/devstorage.read_write";
 const GCS_API_BASE: &str = "https://storage.googleapis.com";
 const LEGACY_CONTENT_ENCODING_METADATA: &str = "content_encoding";
+/// Internal metadata key used to bind multi-request reads to one object
+/// generation. It is never copied to object metadata supplied by callers.
+pub const OBJECT_VERSION_METADATA: &str = "_talon_object_version";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ObjectMetadata {
@@ -34,6 +38,47 @@ pub struct ObjectMetadata {
 pub struct StoredObject {
     pub bytes: Vec<u8>,
     pub metadata: ObjectMetadata,
+}
+
+/// Typed validation failure for the half-open stored-byte ranges accepted by
+/// [`ObjectStore::get_range`].  Object stores never interpret these bytes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ObjectRangeError {
+    pub start: u64,
+    pub end: u64,
+    pub size: u64,
+}
+
+impl std::fmt::Display for ObjectRangeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "invalid object byte range [{}..{}) for object of {} bytes",
+            self.start, self.end, self.size
+        )
+    }
+}
+
+impl std::error::Error for ObjectRangeError {}
+
+/// The object changed after CAS selected the generation it intended to read.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ObjectVersionChanged;
+
+impl std::fmt::Display for ObjectVersionChanged {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("object changed while reading a versioned range")
+    }
+}
+
+impl std::error::Error for ObjectVersionChanged {}
+
+pub fn object_version(metadata: &ObjectMetadata) -> Option<&str> {
+    metadata
+        .metadata
+        .get(OBJECT_VERSION_METADATA)
+        .map(String::as_str)
+        .filter(|version| !version.is_empty())
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -52,6 +97,37 @@ pub trait ObjectStore: Send + Sync {
         metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef>;
     async fn get(&self, key: &str) -> Result<Option<StoredObject>>;
+    /// Return raw stored bytes in the validated half-open byte range `[start, end)`.
+    /// Compression and logical-text offsets are deliberately owned by CAS, not here.
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        let Some(object) = self.get(key).await? else {
+            return Ok(None);
+        };
+        validate_object_range(&range, object.bytes.len() as u64)?;
+        Ok(Some(
+            object.bytes[range.start as usize..range.end as usize].to_vec(),
+        ))
+    }
+    /// Read a range only if the object is still the generation selected by a
+    /// preceding `head`. Backends with conditional requests override this;
+    /// the fallback takes a single-object snapshot before slicing.
+    async fn get_range_if_version(
+        &self,
+        key: &str,
+        range: Range<u64>,
+        version: &str,
+    ) -> Result<Option<Vec<u8>>> {
+        let Some(object) = self.get(key).await? else {
+            return Ok(None);
+        };
+        if object_version(&object.metadata) != Some(version) {
+            return Err(ObjectVersionChanged.into());
+        }
+        validate_object_range(&range, object.bytes.len() as u64)?;
+        Ok(Some(
+            object.bytes[range.start as usize..range.end as usize].to_vec(),
+        ))
+    }
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>>;
     async fn delete(&self, key: &str) -> Result<()>;
     async fn signed_get_url(
@@ -96,6 +172,7 @@ pub async fn object_store_from_config(
 #[derive(Default)]
 pub struct InMemoryObjectStore {
     objects: tokio::sync::RwLock<HashMap<String, StoredObject>>,
+    generation: std::sync::atomic::AtomicU64,
 }
 
 #[async_trait]
@@ -108,7 +185,15 @@ impl ObjectStore for InMemoryObjectStore {
     ) -> Result<data_proto::ObjectRef> {
         validate_key(key)?;
         metadata.size_bytes = bytes.len() as u64;
-        let metadata = normalize_object_metadata(metadata);
+        let mut metadata = normalize_object_metadata(metadata);
+        metadata.metadata.insert(
+            OBJECT_VERSION_METADATA.to_string(),
+            format!(
+                "memory-{}",
+                self.generation
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+            ),
+        );
         self.objects.write().await.insert(
             key.to_string(),
             StoredObject {
@@ -122,6 +207,38 @@ impl ObjectStore for InMemoryObjectStore {
     async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
         validate_key(key)?;
         Ok(self.objects.read().await.get(key).cloned())
+    }
+
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        validate_key(key)?;
+        let objects = self.objects.read().await;
+        let Some(object) = objects.get(key) else {
+            return Ok(None);
+        };
+        validate_object_range(&range, object.bytes.len() as u64)?;
+        Ok(Some(
+            object.bytes[range.start as usize..range.end as usize].to_vec(),
+        ))
+    }
+
+    async fn get_range_if_version(
+        &self,
+        key: &str,
+        range: Range<u64>,
+        version: &str,
+    ) -> Result<Option<Vec<u8>>> {
+        validate_key(key)?;
+        let objects = self.objects.read().await;
+        let Some(object) = objects.get(key) else {
+            return Ok(None);
+        };
+        if object_version(&object.metadata) != Some(version) {
+            return Err(ObjectVersionChanged.into());
+        }
+        validate_object_range(&range, object.bytes.len() as u64)?;
+        Ok(Some(
+            object.bytes[range.start as usize..range.end as usize].to_vec(),
+        ))
     }
 
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
@@ -143,13 +260,19 @@ impl ObjectStore for InMemoryObjectStore {
 
 pub struct LocalFsObjectStore {
     root: PathBuf,
+    generation: std::sync::atomic::AtomicU64,
+    mutation_lock: tokio::sync::RwLock<()>,
 }
 
 pub type LocalObjectStore = LocalFsObjectStore;
 
 impl LocalFsObjectStore {
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        Self { root: root.into() }
+        Self {
+            root: root.into(),
+            generation: std::sync::atomic::AtomicU64::new(0),
+            mutation_lock: tokio::sync::RwLock::new(()),
+        }
     }
 
     fn from_config(cfg: &LocalObjectStoreConfig, default_path: PathBuf) -> Self {
@@ -184,8 +307,17 @@ impl ObjectStore for LocalFsObjectStore {
         mut metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef> {
         validate_key(key)?;
+        let _mutation = self.mutation_lock.write().await;
         metadata.size_bytes = bytes.len() as u64;
-        let metadata = normalize_object_metadata(metadata);
+        let mut metadata = normalize_object_metadata(metadata);
+        metadata.metadata.insert(
+            OBJECT_VERSION_METADATA.to_string(),
+            format!(
+                "local-{}",
+                self.generation
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+            ),
+        );
         let data_path = self.data_path(key)?;
         let metadata_path = self.metadata_path(key)?;
         let metadata_bytes = serde_json::to_vec(&metadata)?;
@@ -202,6 +334,7 @@ impl ObjectStore for LocalFsObjectStore {
 
     async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
         validate_key(key)?;
+        let _read = self.mutation_lock.read().await;
         let data_path = self.data_path(key)?;
         let metadata_path = self.metadata_path(key)?;
         let bytes = match tokio::fs::read(&data_path).await {
@@ -219,8 +352,26 @@ impl ObjectStore for LocalFsObjectStore {
         Ok(Some(StoredObject { bytes, metadata }))
     }
 
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        use tokio::io::{AsyncReadExt, AsyncSeekExt};
+        validate_key(key)?;
+        let data_path = self.data_path(key)?;
+        let size = match tokio::fs::metadata(&data_path).await {
+            Ok(metadata) => metadata.len(),
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(err) => return Err(err.into()),
+        };
+        validate_object_range(&range, size)?;
+        let mut file = tokio::fs::File::open(data_path).await?;
+        file.seek(std::io::SeekFrom::Start(range.start)).await?;
+        let mut bytes = vec![0; (range.end - range.start) as usize];
+        file.read_exact(&mut bytes).await?;
+        Ok(Some(bytes))
+    }
+
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
         validate_key(key)?;
+        let _read = self.mutation_lock.read().await;
         let data_path = self.data_path(key)?;
         let metadata_path = self.metadata_path(key)?;
         let size_bytes = match tokio::fs::metadata(&data_path).await {
@@ -239,6 +390,7 @@ impl ObjectStore for LocalFsObjectStore {
 
     async fn delete(&self, key: &str) -> Result<()> {
         validate_key(key)?;
+        let _mutation = self.mutation_lock.write().await;
         let data_path = self.data_path(key)?;
         let metadata_path = self.metadata_path(key)?;
         for path in [data_path, metadata_path] {
@@ -299,6 +451,7 @@ impl ObjectStore for GcsObjectStore {
         mut metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef> {
         metadata.size_bytes = bytes.len() as u64;
+        metadata.metadata.remove(OBJECT_VERSION_METADATA);
         let metadata = normalize_object_metadata(metadata);
         let object_key = self.object_key(key)?;
         let upload_url = format!(
@@ -365,6 +518,88 @@ impl ObjectStore for GcsObjectStore {
         }))
     }
 
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        let Some(metadata) = self.head(key).await? else {
+            return Ok(None);
+        };
+        validate_object_range(&range, metadata.size_bytes)?;
+        if range.start == range.end {
+            return Ok(Some(Vec::new()));
+        }
+        let object_key = self.object_key(key)?;
+        let url = format!(
+            "{}/storage/v1/b/{}/o/{}?alt=media",
+            self.api_base.trim_end_matches('/'),
+            urlencoding::encode(&self.bucket),
+            urlencoding::encode(&object_key)
+        );
+        let response = self
+            .client
+            .get(url)
+            .bearer_auth(self.bearer_token().await?)
+            .header(
+                reqwest::header::RANGE,
+                format!("bytes={}-{}", range.start, range.end - 1),
+            )
+            .send()
+            .await?;
+        let response = ensure_success(response, "GCS object range download").await?;
+        let bytes = response.bytes().await?.to_vec();
+        if bytes.len() as u64 != range.end - range.start {
+            return Err(anyhow!(
+                "GCS object range response did not match requested length"
+            ));
+        }
+        Ok(Some(bytes))
+    }
+
+    async fn get_range_if_version(
+        &self,
+        key: &str,
+        range: Range<u64>,
+        version: &str,
+    ) -> Result<Option<Vec<u8>>> {
+        let Some(metadata) = self.head(key).await? else {
+            return Ok(None);
+        };
+        if object_version(&metadata) != Some(version) {
+            return Err(ObjectVersionChanged.into());
+        }
+        validate_object_range(&range, metadata.size_bytes)?;
+        if range.start == range.end {
+            return Ok(Some(Vec::new()));
+        }
+        let object_key = self.object_key(key)?;
+        let url = format!(
+            "{}/storage/v1/b/{}/o/{}?alt=media&ifGenerationMatch={}",
+            self.api_base.trim_end_matches('/'),
+            urlencoding::encode(&self.bucket),
+            urlencoding::encode(&object_key),
+            urlencoding::encode(version),
+        );
+        let response = self
+            .client
+            .get(url)
+            .bearer_auth(self.bearer_token().await?)
+            .header(
+                reqwest::header::RANGE,
+                format!("bytes={}-{}", range.start, range.end - 1),
+            )
+            .send()
+            .await?;
+        if response.status() == StatusCode::PRECONDITION_FAILED {
+            return Err(ObjectVersionChanged.into());
+        }
+        let response = ensure_success(response, "GCS versioned object range download").await?;
+        let bytes = response.bytes().await?.to_vec();
+        if bytes.len() as u64 != range.end - range.start {
+            return Err(anyhow!(
+                "GCS object range response did not match requested length"
+            ));
+        }
+        Ok(Some(bytes))
+    }
+
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
         let object_key = self.object_key(key)?;
         let url = format!(
@@ -384,7 +619,14 @@ impl ObjectStore for GcsObjectStore {
         }
         let response = ensure_success(response, "GCS object metadata fetch").await?;
         let mut metadata = metadata_from_headers(response.headers());
-        metadata.size_bytes = response.content_length().unwrap_or_default();
+        // reqwest reports no body length for a HEAD response even though GCS
+        // supplies the object's Content-Length header.
+        metadata.size_bytes = response
+            .headers()
+            .get(reqwest::header::CONTENT_LENGTH)
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.parse().ok())
+            .unwrap_or_default();
         Ok(Some(metadata))
     }
 
@@ -453,6 +695,7 @@ impl ObjectStore for S3ObjectStore {
         mut metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef> {
         metadata.size_bytes = bytes.len() as u64;
+        metadata.metadata.remove(OBJECT_VERSION_METADATA);
         let metadata = normalize_object_metadata(metadata);
         let object_key = self.object_key(key)?;
         let mut s3_metadata = metadata.metadata.clone();
@@ -509,6 +752,85 @@ impl ObjectStore for S3ObjectStore {
             },
             bytes,
         }))
+    }
+
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        let Some(metadata) = self.head(key).await? else {
+            return Ok(None);
+        };
+        validate_object_range(&range, metadata.size_bytes)?;
+        if range.start == range.end {
+            return Ok(Some(Vec::new()));
+        }
+        let object_key = self.object_key(key)?;
+        let response = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(object_key)
+            .range(format!("bytes={}-{}", range.start, range.end - 1))
+            .send()
+            .await;
+        let response = match response {
+            Ok(response) => response,
+            Err(err) if is_s3_not_found(&err) => return Ok(None),
+            Err(err) => return Err(err.into()),
+        };
+        let bytes = response.body.collect().await?.into_bytes().to_vec();
+        if bytes.len() as u64 != range.end - range.start {
+            return Err(anyhow!(
+                "S3 object range response did not match requested length"
+            ));
+        }
+        Ok(Some(bytes))
+    }
+
+    async fn get_range_if_version(
+        &self,
+        key: &str,
+        range: Range<u64>,
+        version: &str,
+    ) -> Result<Option<Vec<u8>>> {
+        let Some(metadata) = self.head(key).await? else {
+            return Ok(None);
+        };
+        if object_version(&metadata) != Some(version) {
+            return Err(ObjectVersionChanged.into());
+        }
+        validate_object_range(&range, metadata.size_bytes)?;
+        if range.start == range.end {
+            return Ok(Some(Vec::new()));
+        }
+        let object_key = self.object_key(key)?;
+        let response = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(object_key)
+            .range(format!("bytes={}-{}", range.start, range.end - 1))
+            .if_match(version)
+            .send()
+            .await;
+        let response = match response {
+            Ok(response) => response,
+            Err(err)
+                if err
+                    .raw_response()
+                    .map(|response| response.status().as_u16())
+                    == Some(412) =>
+            {
+                return Err(ObjectVersionChanged.into());
+            }
+            Err(err) if is_s3_not_found(&err) => return Ok(None),
+            Err(err) => return Err(err.into()),
+        };
+        let bytes = response.body.collect().await?.into_bytes().to_vec();
+        if bytes.len() as u64 != range.end - range.start {
+            return Err(anyhow!(
+                "S3 object range response did not match requested length"
+            ));
+        }
+        Ok(Some(bytes))
     }
 
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
@@ -569,6 +891,8 @@ impl ObjectStore for S3ObjectStore {
         metadata: ObjectMetadata,
         expires_in: Duration,
     ) -> Result<Option<SignedObjectUrl>> {
+        let mut metadata = metadata;
+        metadata.metadata.remove(OBJECT_VERSION_METADATA);
         let metadata = normalize_object_metadata(metadata);
         let object_key = self.object_key(key)?;
         let mut s3_metadata = metadata.metadata.clone();
@@ -614,7 +938,21 @@ impl ObjectStore for S3ObjectStore {
     }
 }
 
+fn validate_object_range(range: &Range<u64>, size: u64) -> Result<()> {
+    if range.start > range.end || range.end > size {
+        return Err(ObjectRangeError {
+            start: range.start,
+            end: range.end,
+            size,
+        }
+        .into());
+    }
+    Ok(())
+}
+
 fn object_ref(key: &str, metadata: ObjectMetadata) -> data_proto::ObjectRef {
+    let mut user_metadata = metadata.metadata;
+    user_metadata.remove(OBJECT_VERSION_METADATA);
     data_proto::ObjectRef {
         key: key.to_string(),
         media_type: metadata.media_type,
@@ -622,7 +960,7 @@ fn object_ref(key: &str, metadata: ObjectMetadata) -> data_proto::ObjectRef {
         sha256: metadata.sha256,
         filename: metadata.filename,
         content_encoding: metadata.content_encoding,
-        metadata: metadata.metadata,
+        metadata: user_metadata,
     }
 }
 
@@ -692,7 +1030,7 @@ fn metadata_from_headers(headers: &reqwest::header::HeaderMap) -> ObjectMetadata
         .and_then(|value| value.to_str().ok())
         .unwrap_or_default()
         .to_string();
-    let metadata = headers
+    let mut metadata: HashMap<String, String> = headers
         .iter()
         .filter_map(|(name, value)| {
             let name = name.as_str().strip_prefix("x-goog-meta-talon-")?;
@@ -705,6 +1043,13 @@ fn metadata_from_headers(headers: &reqwest::header::HeaderMap) -> ObjectMetadata
             Some((name.to_string(), value.to_str().ok()?.to_string()))
         })
         .collect();
+    if let Some(version) = headers
+        .get("x-goog-generation")
+        .and_then(|value| value.to_str().ok())
+        .filter(|version| !version.is_empty())
+    {
+        metadata.insert(OBJECT_VERSION_METADATA.to_string(), version.to_string());
+    }
     ObjectMetadata {
         media_type,
         size_bytes: 0,
@@ -734,7 +1079,7 @@ fn metadata_from_s3_response(
         .or_else(|| s3_metadata.get(LEGACY_CONTENT_ENCODING_METADATA))
         .cloned()
         .unwrap_or_default();
-    let metadata = s3_metadata
+    let mut metadata: HashMap<String, String> = s3_metadata
         .iter()
         .filter_map(|(key, value)| {
             if matches!(
@@ -751,6 +1096,9 @@ fn metadata_from_s3_response(
             }
         })
         .collect();
+    if let Some(version) = response.e_tag().filter(|version| !version.is_empty()) {
+        metadata.insert(OBJECT_VERSION_METADATA.to_string(), version.to_string());
+    }
     ObjectMetadata {
         media_type,
         size_bytes: 0,
@@ -780,7 +1128,7 @@ fn metadata_from_s3_head_response(
         .or_else(|| s3_metadata.get(LEGACY_CONTENT_ENCODING_METADATA))
         .cloned()
         .unwrap_or_default();
-    let metadata = s3_metadata
+    let mut metadata: HashMap<String, String> = s3_metadata
         .iter()
         .filter_map(|(key, value)| {
             if matches!(
@@ -797,6 +1145,9 @@ fn metadata_from_s3_head_response(
             }
         })
         .collect();
+    if let Some(version) = response.e_tag().filter(|version| !version.is_empty()) {
+        metadata.insert(OBJECT_VERSION_METADATA.to_string(), version.to_string());
+    }
     ObjectMetadata {
         media_type,
         size_bytes: 0,
@@ -867,12 +1218,133 @@ fn safe_relative_path(key: &str) -> Result<PathBuf> {
 mod tests {
     use super::{
         object_store_from_config, prefixed_key, GcsObjectStore, InMemoryObjectStore,
-        LocalObjectStore, ObjectMetadata, ObjectStore, S3ObjectStore,
+        LocalObjectStore, ObjectMetadata, ObjectRangeError, ObjectStore, S3ObjectStore,
     };
     use crate::control::config::proto::{
         object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
         S3ObjectStoreConfig,
     };
+    use google_cloud_auth::credentials::{
+        AccessToken, AccessTokenCredentials, AccessTokenCredentialsProvider, CacheableResource,
+        CredentialsProvider, EntityTag,
+    };
+    use std::sync::Arc;
+    use tokio::{
+        io::{AsyncReadExt, AsyncWriteExt},
+        net::TcpListener,
+        sync::Mutex,
+    };
+
+    #[derive(Clone, Debug)]
+    struct StaticAccessTokenCredentials;
+
+    impl CredentialsProvider for StaticAccessTokenCredentials {
+        async fn headers(
+            &self,
+            _extensions: axum::http::Extensions,
+        ) -> std::result::Result<
+            CacheableResource<axum::http::HeaderMap>,
+            google_cloud_auth::errors::CredentialsError,
+        > {
+            Ok(CacheableResource::New {
+                data: axum::http::HeaderMap::new(),
+                entity_tag: EntityTag::default(),
+            })
+        }
+
+        async fn universe_domain(&self) -> Option<String> {
+            None
+        }
+    }
+
+    impl AccessTokenCredentialsProvider for StaticAccessTokenCredentials {
+        async fn access_token(
+            &self,
+        ) -> std::result::Result<AccessToken, google_cloud_auth::errors::CredentialsError> {
+            Ok(AccessToken {
+                token: "test-token".to_string(),
+            })
+        }
+    }
+
+    #[derive(Clone, Default)]
+    struct RangeRequestCapture {
+        ranges: Arc<Mutex<Vec<String>>>,
+    }
+
+    impl GcsObjectStore {
+        fn for_range_test(api_base: String) -> Self {
+            Self {
+                client: reqwest::Client::new(),
+                credentials: AccessTokenCredentials::from(StaticAccessTokenCredentials),
+                bucket: "test-bucket".to_string(),
+                prefix: "prefix".to_string(),
+                api_base,
+            }
+        }
+    }
+
+    async fn s3_for_range_test(endpoint_url: String) -> S3ObjectStore {
+        let shared_config = aws_config::defaults(aws_config::BehaviorVersion::latest())
+            .region(aws_config::Region::new("us-east-1"))
+            .credentials_provider(aws_sdk_s3::config::Credentials::new(
+                "test", "test", None, None, "test",
+            ))
+            .endpoint_url(endpoint_url)
+            .load()
+            .await;
+        let config = aws_sdk_s3::config::Builder::from(&shared_config)
+            .force_path_style(true)
+            .build();
+        S3ObjectStore {
+            client: aws_sdk_s3::Client::from_conf(config),
+            bucket: "test-bucket".to_string(),
+            prefix: "prefix".to_string(),
+        }
+    }
+
+    async fn range_test_server(capture: RangeRequestCapture) -> String {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            for _ in 0..2 {
+                let (mut stream, _) = listener.accept().await.unwrap();
+                let mut request = Vec::new();
+                let mut buffer = [0; 1024];
+                loop {
+                    let read = stream.read(&mut buffer).await.unwrap();
+                    request.extend_from_slice(&buffer[..read]);
+                    if request.windows(4).any(|window| window == b"\r\n\r\n") {
+                        break;
+                    }
+                }
+                let request = String::from_utf8(request).unwrap();
+                if request.starts_with("HEAD ") {
+                    stream
+                        .write_all(
+                            b"HTTP/1.1 200 OK\r\nContent-Length: 6\r\nConnection: close\r\n\r\n",
+                        )
+                        .await
+                        .unwrap();
+                } else {
+                    let range = request
+                        .lines()
+                        .find_map(|line| {
+                            line.strip_prefix("range: ")
+                                .or_else(|| line.strip_prefix("Range: "))
+                        })
+                        .unwrap()
+                        .to_string();
+                    capture.ranges.lock().await.push(range);
+                    stream
+                        .write_all(b"HTTP/1.1 206 Partial Content\r\nContent-Length: 3\r\nConnection: close\r\n\r\nbcd")
+                        .await
+                        .unwrap();
+                }
+            }
+        });
+        format!("http://{address}")
+    }
 
     #[tokio::test]
     async fn local_object_store_round_trips_bytes_and_metadata() {
@@ -903,6 +1375,64 @@ mod tests {
         assert_eq!(stored.bytes, b"image-bytes");
         assert_eq!(stored.metadata.media_type, "image/png");
         assert_eq!(stored.metadata.filename, "image.png");
+    }
+
+    #[tokio::test]
+    async fn memory_and_local_ranges_are_half_open_and_typed_when_invalid() {
+        let memory = InMemoryObjectStore::default();
+        let dir = tempfile::tempdir().unwrap();
+        let local = LocalObjectStore::new(dir.path());
+        for store in [&memory as &dyn ObjectStore, &local as &dyn ObjectStore] {
+            store
+                .put("range-test", b"abcdef", ObjectMetadata::default())
+                .await
+                .unwrap();
+            assert_eq!(
+                store.get_range("range-test", 1..4).await.unwrap().unwrap(),
+                b"bcd"
+            );
+            assert_eq!(
+                store.get_range("range-test", 6..6).await.unwrap().unwrap(),
+                b""
+            );
+            for range in [4..3, 0..7] {
+                let error = store.get_range("range-test", range).await.unwrap_err();
+                assert!(error.downcast_ref::<ObjectRangeError>().is_some());
+            }
+        }
+    }
+
+    #[test]
+    fn shared_range_validation_is_used_by_remote_backends_too() {
+        for range in [3..2, 0..7] {
+            let error = super::validate_object_range(&range, 6).unwrap_err();
+            assert!(error.downcast_ref::<ObjectRangeError>().is_some());
+        }
+        assert!(super::validate_object_range(&(6..6), 6).is_ok());
+    }
+
+    #[tokio::test]
+    async fn gcs_range_reads_send_a_half_open_http_range_request() {
+        let capture = RangeRequestCapture::default();
+        let store = GcsObjectStore::for_range_test(range_test_server(capture.clone()).await);
+
+        assert_eq!(
+            store.get_range("sessions/object.txt", 1..4).await.unwrap(),
+            Some(b"bcd".to_vec())
+        );
+        assert_eq!(*capture.ranges.lock().await, ["bytes=1-3"]);
+    }
+
+    #[tokio::test]
+    async fn s3_range_reads_send_a_half_open_http_range_request() {
+        let capture = RangeRequestCapture::default();
+        let store = s3_for_range_test(range_test_server(capture.clone()).await).await;
+
+        assert_eq!(
+            store.get_range("sessions/object.txt", 1..4).await.unwrap(),
+            Some(b"bcd".to_vec())
+        );
+        assert_eq!(*capture.ranges.lock().await, ["bytes=1-3"]);
     }
 
     #[tokio::test]
