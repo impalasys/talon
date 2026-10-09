@@ -32,6 +32,7 @@ pub mod dispatch;
 pub mod files;
 pub mod goals;
 pub mod research;
+pub mod resources;
 pub mod schedules;
 pub mod sessions;
 pub mod tasks;
@@ -98,6 +99,8 @@ pub const FETCH_URL_TOOL: &str = "fetch_url";
 pub const WEB_SEARCH_TOOL: &str = "web_search";
 pub const LIST_FILES_TOOL: &str = "list_files";
 pub const READ_FILE_TOOL: &str = "read_file";
+pub const READ_RESOURCE_TOOL: &str = "read";
+pub const WRITE_RESOURCE_TOOL: &str = "write";
 pub const GET_FILE_METADATA_TOOL: &str = "get_file_metadata";
 pub const CREATE_FILE_TOOL: &str = "create_file";
 pub const UPDATE_FILE_TOOL: &str = "update_file";
@@ -1321,6 +1324,32 @@ mod tests {
     }
 
     #[test]
+    fn register_resource_tools_shares_the_generic_schemas_and_keeps_legacy_tools() {
+        let mut registry = ToolRegistry::new();
+        register_tools(
+            &mut registry,
+            &file_spec(&["read", "create", "update"]),
+            &Config::default(),
+        );
+
+        let read = registry
+            .get_tool(READ_RESOURCE_TOOL)
+            .expect("generic read should be registered");
+        let write = registry
+            .get_tool(WRITE_RESOURCE_TOOL)
+            .expect("generic write should be registered");
+        assert_eq!(read.input_schema["required"], json!(["ref"]));
+        assert_eq!(
+            write.input_schema["properties"]["kind"]["enum"],
+            json!(["file", "artifact"])
+        );
+        assert!(registry.get_tool(READ_FILE_TOOL).is_some());
+        assert!(registry.get_tool(CREATE_FILE_TOOL).is_some());
+        assert!(registry.get_tool(READ_ARTIFACT_TOOL).is_some());
+        assert!(registry.get_tool(CREATE_ARTIFACT_TOOL).is_some());
+    }
+
+    #[test]
     fn file_uri_parsing_preserves_namespace_and_path() {
         let (namespace, path) = parse_file_uri(
             "file://Tenant:conic:Customers:13/content/pages/cGFnZToxNjY=/content.md",
@@ -1439,6 +1468,246 @@ mod tests {
         .await
         .expect_err("deleted file should not read");
         assert!(error.to_string().contains("not found"));
+    }
+
+    #[tokio::test]
+    async fn generic_resource_tools_dispatch_files_and_artifacts_without_losing_metadata() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let namespace = "Tenant:acme:Workspace:main";
+        let agent = "writer";
+        let session = "session-1";
+        let spec = file_spec(&["read", "create", "update"]);
+        let path = "/content/generic.md";
+        let file_ref = file_uri(namespace, path);
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            WRITE_RESOURCE_TOOL,
+            &json!({
+                "kind": "file",
+                "uri": file_ref,
+                "content": "first file body",
+                "purpose": "MEMORY",
+                "index_policy": "RETRIEVAL",
+                "retention": "RETAINED"
+            }),
+            &Config::default(),
+        )
+        .await
+        .expect("generic file create should work");
+
+        let file = find_file_by_path(&cp, namespace, path)
+            .await
+            .unwrap()
+            .expect("file should exist");
+        let file_spec = file.spec.expect("file should retain its policy");
+        assert_eq!(
+            file_spec.purpose,
+            resources_proto::FilePurpose::Memory as i32
+        );
+        assert_eq!(
+            file_spec.index_policy,
+            resources_proto::FileIndexPolicy::Retrieval as i32
+        );
+
+        let read = execute_tool_for_session_output(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            READ_RESOURCE_TOOL,
+            &json!({"ref": file_ref}),
+            &Config::default(),
+        )
+        .await
+        .expect("generic file read should work")
+        .expect("generic file read should return output");
+        assert_eq!(read.summary(), "first file body");
+
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            WRITE_RESOURCE_TOOL,
+            &json!({"ref": file_ref, "content": "revised file body"}),
+            &Config::default(),
+        )
+        .await
+        .expect("generic file update should use ref");
+        let revised = execute_tool_for_session_output(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            READ_RESOURCE_TOOL,
+            &json!({"ref": file_ref}),
+            &Config::default(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(revised.summary(), "revised file body");
+
+        let created = execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            WRITE_RESOURCE_TOOL,
+            &json!({
+                "kind": "artifact",
+                "title": "Generic draft",
+                "content": "first artifact body",
+                "labels": {"review": "needed"}
+            }),
+            &Config::default(),
+        )
+        .await
+        .expect("generic artifact create should work")
+        .expect("generic artifact create should return output");
+        let created: Value = serde_json::from_str(&created).unwrap();
+        let artifact_ref = created["artifactUri"].as_str().unwrap();
+        assert_eq!(created["artifact"]["labels"]["review"], "needed");
+
+        let artifact_read = execute_tool_for_session_output(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            READ_RESOURCE_TOOL,
+            &json!({"ref": artifact_ref}),
+            &Config::default(),
+        )
+        .await
+        .expect("generic artifact read should work")
+        .expect("generic artifact read should return output");
+        assert_eq!(artifact_read.summary(), "first artifact body");
+
+        let updated = execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            WRITE_RESOURCE_TOOL,
+            &json!({"kind": "artifact", "ref": artifact_ref, "content": "revised artifact body"}),
+            &Config::default(),
+        )
+        .await
+        .expect("generic artifact update should use ref")
+        .expect("generic artifact update should return output");
+        let updated: Value = serde_json::from_str(&updated).unwrap();
+        assert_eq!(updated["artifactUri"], artifact_ref);
+        assert_eq!(updated["artifact"]["labels"]["review"], "needed");
+
+        let unknown = execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            READ_RESOURCE_TOOL,
+            &json!({"ref": "bogus://example/resource"}),
+            &Config::default(),
+        )
+        .await
+        .expect_err("unknown resource schemes should fail");
+        assert!(unknown
+            .to_string()
+            .contains("unsupported resource URI scheme"));
+
+        let denied_agent = execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &manifests::AgentSpec::default(),
+            READ_RESOURCE_TOOL,
+            &json!({"ref": file_ref}),
+            &Config::default(),
+        )
+        .await
+        .expect_err("file agent gate should apply to generic reads");
+        assert!(denied_agent.to_string().contains("files:read"));
+        let artifact_without_file_capability = execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &manifests::AgentSpec::default(),
+            READ_RESOURCE_TOOL,
+            &json!({"ref": artifact_ref}),
+            &Config::default(),
+        )
+        .await
+        .expect("artifacts should retain their existing agent gate behavior");
+        assert_eq!(
+            artifact_without_file_capability.as_deref(),
+            Some("revised artifact body")
+        );
+
+        let mut files_disabled = Config::default();
+        files_disabled.capabilities.insert(
+            "files".to_string(),
+            crate::control::config::CapabilityGate {
+                actions: HashMap::from([
+                    (String::from("read"), false),
+                    (String::from("create"), false),
+                    (String::from("update"), false),
+                ]),
+            },
+        );
+        let denied = execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            READ_RESOURCE_TOOL,
+            &json!({"ref": file_ref}),
+            &files_disabled,
+        )
+        .await
+        .expect_err("file global gate should apply to generic reads");
+        assert!(denied.to_string().contains("files:read"));
+        let denied_write = execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            WRITE_RESOURCE_TOOL,
+            &json!({"ref": file_ref, "content": "blocked"}),
+            &files_disabled,
+        )
+        .await
+        .expect_err("file global gate should apply to generic writes");
+        assert!(denied_write.to_string().contains("files:update"));
+        let artifact_allowed = execute_tool_for_session(
+            &cp,
+            namespace,
+            agent,
+            session,
+            &spec,
+            READ_RESOURCE_TOOL,
+            &json!({"ref": artifact_ref}),
+            &files_disabled,
+        )
+        .await
+        .expect("artifact reads should retain their existing gate behavior");
+        assert_eq!(artifact_allowed.as_deref(), Some("revised artifact body"));
     }
 
     #[test]

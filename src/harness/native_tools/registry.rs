@@ -6,8 +6,8 @@ use super::{
     COMPLETE_GOAL_TOOL, CREATE_FILE_TOOL, CREATE_GOAL_TOOL, CREATE_SCHEDULE_TOOL,
     DEACTIVATE_SKILL_TOOL, DELETE_FILE_TOOL, DELETE_SCHEDULE_TOOL, FETCH_URL_TOOL,
     GET_FILE_METADATA_TOOL, GET_GOAL_TOOL, GET_SCHEDULE_TOOL, LIST_FILES_TOOL, LIST_GOALS_TOOL,
-    LIST_SCHEDULES_TOOL, READ_FILE_TOOL, READ_SESSION_MESSAGES_TOOL, UPDATE_FILE_TOOL,
-    UPDATE_GOAL_TOOL, UPDATE_SCHEDULE_TOOL, WEB_SEARCH_TOOL,
+    LIST_SCHEDULES_TOOL, READ_FILE_TOOL, READ_RESOURCE_TOOL, READ_SESSION_MESSAGES_TOOL,
+    UPDATE_FILE_TOOL, UPDATE_GOAL_TOOL, UPDATE_SCHEDULE_TOOL, WEB_SEARCH_TOOL, WRITE_RESOURCE_TOOL,
 };
 use crate::control::config::Config;
 use crate::gateway::rpc::manifests;
@@ -73,6 +73,16 @@ pub fn register_channel_tools(registry: &mut ToolRegistry) {
 
 pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, config: &Config) {
     super::artifact_tools::register(registry);
+    registry.register_builtin(
+        READ_RESOURCE_TOOL,
+        "Read a file:// or artifact:// resource by URI.",
+        super::resources::read_schema(),
+    );
+    registry.register_builtin(
+        WRITE_RESOURCE_TOOL,
+        "Create or update a file or session artifact. Creation requires kind; updates use ref.",
+        super::resources::write_schema(),
+    );
     super::a2a_tools::register(registry, spec);
     register_research_tools(registry, spec);
 

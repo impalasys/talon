@@ -121,6 +121,29 @@ pub async fn execute_tool_for_session_output(
     }
 
     match name {
+        READ_RESOURCE_TOOL => crate::harness::native_tools::resources::read_resource(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            args,
+            config,
+        )
+        .await
+        .map(Some),
+        WRITE_RESOURCE_TOOL => crate::harness::native_tools::resources::write_resource(
+            cp,
+            current_namespace,
+            current_agent,
+            current_session,
+            spec,
+            args,
+            config,
+        )
+        .await
+        .map(ToolOutput::text)
+        .map(Some),
         READ_SESSION_MESSAGES_TOOL => {
             require_capability(spec, "sessions", "read:messages")?;
             crate::harness::native_tools::sessions::read_session_messages(
