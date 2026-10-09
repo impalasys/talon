@@ -4,7 +4,8 @@
 use crate::control::cas::CasStore;
 use crate::gateway::rpc::data_proto;
 use crate::harness::llm::{
-    chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput,
+    chat_content_part, object_ref_part, text_part, ByteRange, ChatContentPart, ToolOutput,
+    ToolOutputByteRange,
 };
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -270,10 +271,18 @@ pub fn parse_tool_result_payload_json(
     }))
 }
 
+#[allow(deprecated)]
 pub fn tool_output_json(output: &ToolOutput) -> Value {
     json!({
         "summary": output.summary,
         "content_parts": output.content_parts.iter().map(content_part_json).collect::<Vec<_>>(),
+        // Deprecated page receipt: carried through payload JSON as bookkeeping only.
+        // It must never be used to select bytes during materialization.
+        "byte_range": output.byte_range.as_ref().map(|range| json!({
+            "start": range.start,
+            "end": range.end,
+            "next_byte": range.next_byte,
+        })),
     })
 }
 
@@ -303,10 +312,23 @@ fn parse_tool_output_json(value: &Value) -> Result<ToolOutput> {
         })
         .transpose()?
         .unwrap_or_default();
+    let byte_range = value
+        .get("byte_range")
+        .and_then(parse_tool_output_byte_range_json);
     Ok(ToolOutput {
         content_parts,
         summary,
-        byte_range: None,
+        byte_range,
+    })
+}
+
+#[allow(deprecated)]
+fn parse_tool_output_byte_range_json(value: &Value) -> Option<ToolOutputByteRange> {
+    let range = value.as_object()?;
+    Some(ToolOutputByteRange {
+        start: range.get("start")?.as_u64()?,
+        end: range.get("end")?.as_u64()?,
+        next_byte: range.get("next_byte").and_then(Value::as_u64),
     })
 }
 
@@ -337,7 +359,7 @@ fn legacy_tool_output(
 }
 
 fn content_part_json(part: &ChatContentPart) -> Value {
-    match part.content.as_ref() {
+    let mut value = match part.content.as_ref() {
         Some(chat_content_part::Content::Text(text)) => json!({
             "type": "text",
             "text": text,
@@ -349,38 +371,52 @@ fn content_part_json(part: &ChatContentPart) -> Value {
         None => json!({
             "type": "empty",
         }),
+    };
+    if let Some(range) = &part.byte_range {
+        value["byte_range"] = json!({
+            "start": range.start,
+            "end": range.end,
+        });
     }
+    value
+}
+
+fn parse_byte_range_json(value: &Value) -> Option<ByteRange> {
+    let range = value.as_object()?;
+    Some(ByteRange {
+        start: range.get("start")?.as_u64()?,
+        end: range.get("end")?.as_u64()?,
+    })
 }
 
 fn parse_content_part_json(value: &Value) -> Result<ChatContentPart> {
-    match value
+    let byte_range = value.get("byte_range").and_then(parse_byte_range_json);
+    let mut part = match value
         .get("type")
         .and_then(Value::as_str)
         .unwrap_or_default()
     {
-        "text" => Ok(text_part(
+        "text" => text_part(
             value
                 .get("text")
                 .and_then(Value::as_str)
                 .unwrap_or_default()
                 .to_string(),
-        )),
+        ),
         "object_ref" => {
             let object_ref = value
                 .get("object_ref")
                 .or_else(|| value.get("objectRef"))
                 .ok_or_else(|| anyhow!("object_ref content part is missing object_ref"))?;
-            Ok(object_ref_part(parse_object_ref_json(object_ref)?))
+            object_ref_part(parse_object_ref_json(object_ref)?)
         }
-        "empty" | "" => Ok(ChatContentPart {
+        _ => ChatContentPart {
             content: None,
             byte_range: None,
-        }),
-        _ => Ok(ChatContentPart {
-            content: None,
-            byte_range: None,
-        }),
-    }
+        },
+    };
+    part.byte_range = byte_range;
+    Ok(part)
 }
 
 fn object_ref_json(object_ref: &data_proto::ObjectRef) -> Value {
@@ -673,5 +709,86 @@ mod tests {
             Some("cas/existing")
         );
         assert!(store.get("cas/existing").await.unwrap().is_none());
+    }
+
+    #[test]
+    fn ranged_part_json_round_trips() {
+        let output = ToolOutput::from_content_parts(
+            vec![ChatContentPart {
+                content: Some(chat_content_part::Content::Text(
+                    "h\u{e9}llo w\u{f6}rld".to_string(),
+                )),
+                byte_range: Some(ByteRange { start: 0, end: 5 }),
+            }],
+            "s",
+        );
+        let json = tool_result_payload_json("call-1", &output).unwrap();
+        let payload = parse_tool_result_payload_json(&json, None, "")
+            .unwrap()
+            .unwrap();
+
+        let range = payload.tool_output.content_parts[0]
+            .byte_range
+            .as_ref()
+            .expect("part byte range survives payload JSON round trip");
+        assert_eq!((range.start, range.end), (0, 5));
+    }
+
+    #[test]
+    fn ranged_object_part_json_round_trips() {
+        let mut part = object_ref_part(object_ref("cas/log", "text/plain"));
+        part.byte_range = Some(ByteRange { start: 8, end: 21 });
+        let output = ToolOutput::from_content_parts(vec![part], "");
+        let json = tool_result_payload_json("call-1", &output).unwrap();
+        let payload = parse_tool_result_payload_json(&json, None, "")
+            .unwrap()
+            .unwrap();
+
+        let range = payload.tool_output.content_parts[0]
+            .byte_range
+            .as_ref()
+            .expect("object part byte range survives payload JSON round trip");
+        assert_eq!((range.start, range.end), (8, 21));
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn deprecated_receipt_json_round_trips() {
+        let output = ToolOutput {
+            content_parts: vec![text_part("abc")],
+            summary: "s".to_string(),
+            byte_range: Some(ToolOutputByteRange {
+                start: 0,
+                end: 3,
+                next_byte: Some(3),
+            }),
+        };
+        let json = tool_result_payload_json("call-1", &output).unwrap();
+        let payload = parse_tool_result_payload_json(&json, None, "")
+            .unwrap()
+            .unwrap();
+
+        let receipt = payload
+            .tool_output
+            .byte_range
+            .expect("deprecated receipt survives payload JSON round trip");
+        assert_eq!(receipt.start, 0);
+        assert_eq!(receipt.end, 3);
+        assert_eq!(receipt.next_byte, Some(3));
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn payload_without_byte_range_decodes_to_none() {
+        let payload = parse_tool_result_payload_json(
+            r#"{"tool_call_id":"call-1","tool_output":{"summary":"s","content_parts":[{"type":"text","text":"abc"}]}}"#,
+            None,
+            "",
+        )
+        .unwrap()
+        .unwrap();
+
+        assert!(payload.tool_output.byte_range.is_none());
+        assert!(payload.tool_output.content_parts[0].byte_range.is_none());
     }
 }
