@@ -12,6 +12,7 @@ use google_cloud_auth::credentials::{AccessTokenCredentials, Builder as Credenti
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::ops::Range;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -36,6 +37,27 @@ pub struct StoredObject {
     pub metadata: ObjectMetadata,
 }
 
+/// Typed validation failure for the half-open stored-byte ranges accepted by
+/// [`ObjectStore::get_range`].  Object stores never interpret these bytes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ObjectRangeError {
+    pub start: u64,
+    pub end: u64,
+    pub size: u64,
+}
+
+impl std::fmt::Display for ObjectRangeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "invalid object byte range [{}..{}) for object of {} bytes",
+            self.start, self.end, self.size
+        )
+    }
+}
+
+impl std::error::Error for ObjectRangeError {}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SignedObjectUrl {
     pub url: String,
@@ -52,6 +74,17 @@ pub trait ObjectStore: Send + Sync {
         metadata: ObjectMetadata,
     ) -> Result<data_proto::ObjectRef>;
     async fn get(&self, key: &str) -> Result<Option<StoredObject>>;
+    /// Return raw stored bytes in the validated half-open byte range `[start, end)`.
+    /// Compression and logical-text offsets are deliberately owned by CAS, not here.
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        let Some(object) = self.get(key).await? else {
+            return Ok(None);
+        };
+        validate_object_range(&range, object.bytes.len() as u64)?;
+        Ok(Some(
+            object.bytes[range.start as usize..range.end as usize].to_vec(),
+        ))
+    }
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>>;
     async fn delete(&self, key: &str) -> Result<()>;
     async fn signed_get_url(
@@ -122,6 +155,18 @@ impl ObjectStore for InMemoryObjectStore {
     async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
         validate_key(key)?;
         Ok(self.objects.read().await.get(key).cloned())
+    }
+
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        validate_key(key)?;
+        let objects = self.objects.read().await;
+        let Some(object) = objects.get(key) else {
+            return Ok(None);
+        };
+        validate_object_range(&range, object.bytes.len() as u64)?;
+        Ok(Some(
+            object.bytes[range.start as usize..range.end as usize].to_vec(),
+        ))
     }
 
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
@@ -217,6 +262,23 @@ impl ObjectStore for LocalFsObjectStore {
         metadata.size_bytes = bytes.len() as u64;
         let metadata = normalize_object_metadata(metadata);
         Ok(Some(StoredObject { bytes, metadata }))
+    }
+
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        use tokio::io::{AsyncReadExt, AsyncSeekExt};
+        validate_key(key)?;
+        let data_path = self.data_path(key)?;
+        let size = match tokio::fs::metadata(&data_path).await {
+            Ok(metadata) => metadata.len(),
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(err) => return Err(err.into()),
+        };
+        validate_object_range(&range, size)?;
+        let mut file = tokio::fs::File::open(data_path).await?;
+        file.seek(std::io::SeekFrom::Start(range.start)).await?;
+        let mut bytes = vec![0; (range.end - range.start) as usize];
+        file.read_exact(&mut bytes).await?;
+        Ok(Some(bytes))
     }
 
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
@@ -365,6 +427,41 @@ impl ObjectStore for GcsObjectStore {
         }))
     }
 
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        let Some(metadata) = self.head(key).await? else {
+            return Ok(None);
+        };
+        validate_object_range(&range, metadata.size_bytes)?;
+        if range.start == range.end {
+            return Ok(Some(Vec::new()));
+        }
+        let object_key = self.object_key(key)?;
+        let url = format!(
+            "{}/storage/v1/b/{}/o/{}?alt=media",
+            self.api_base.trim_end_matches('/'),
+            urlencoding::encode(&self.bucket),
+            urlencoding::encode(&object_key)
+        );
+        let response = self
+            .client
+            .get(url)
+            .bearer_auth(self.bearer_token().await?)
+            .header(
+                reqwest::header::RANGE,
+                format!("bytes={}-{}", range.start, range.end - 1),
+            )
+            .send()
+            .await?;
+        let response = ensure_success(response, "GCS object range download").await?;
+        let bytes = response.bytes().await?.to_vec();
+        if bytes.len() as u64 != range.end - range.start {
+            return Err(anyhow!(
+                "GCS object range response did not match requested length"
+            ));
+        }
+        Ok(Some(bytes))
+    }
+
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
         let object_key = self.object_key(key)?;
         let url = format!(
@@ -511,6 +608,37 @@ impl ObjectStore for S3ObjectStore {
         }))
     }
 
+    async fn get_range(&self, key: &str, range: Range<u64>) -> Result<Option<Vec<u8>>> {
+        let Some(metadata) = self.head(key).await? else {
+            return Ok(None);
+        };
+        validate_object_range(&range, metadata.size_bytes)?;
+        if range.start == range.end {
+            return Ok(Some(Vec::new()));
+        }
+        let object_key = self.object_key(key)?;
+        let response = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(object_key)
+            .range(format!("bytes={}-{}", range.start, range.end - 1))
+            .send()
+            .await;
+        let response = match response {
+            Ok(response) => response,
+            Err(err) if is_s3_not_found(&err) => return Ok(None),
+            Err(err) => return Err(err.into()),
+        };
+        let bytes = response.body.collect().await?.into_bytes().to_vec();
+        if bytes.len() as u64 != range.end - range.start {
+            return Err(anyhow!(
+                "S3 object range response did not match requested length"
+            ));
+        }
+        Ok(Some(bytes))
+    }
+
     async fn head(&self, key: &str) -> Result<Option<ObjectMetadata>> {
         let object_key = self.object_key(key)?;
         let response = self
@@ -612,6 +740,18 @@ impl ObjectStore for S3ObjectStore {
             required_headers,
         }))
     }
+}
+
+fn validate_object_range(range: &Range<u64>, size: u64) -> Result<()> {
+    if range.start > range.end || range.end > size {
+        return Err(ObjectRangeError {
+            start: range.start,
+            end: range.end,
+            size,
+        }
+        .into());
+    }
+    Ok(())
 }
 
 fn object_ref(key: &str, metadata: ObjectMetadata) -> data_proto::ObjectRef {
@@ -867,7 +1007,7 @@ fn safe_relative_path(key: &str) -> Result<PathBuf> {
 mod tests {
     use super::{
         object_store_from_config, prefixed_key, GcsObjectStore, InMemoryObjectStore,
-        LocalObjectStore, ObjectMetadata, ObjectStore, S3ObjectStore,
+        LocalObjectStore, ObjectMetadata, ObjectRangeError, ObjectStore, S3ObjectStore,
     };
     use crate::control::config::proto::{
         object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
@@ -903,6 +1043,40 @@ mod tests {
         assert_eq!(stored.bytes, b"image-bytes");
         assert_eq!(stored.metadata.media_type, "image/png");
         assert_eq!(stored.metadata.filename, "image.png");
+    }
+
+    #[tokio::test]
+    async fn memory_and_local_ranges_are_half_open_and_typed_when_invalid() {
+        let memory = InMemoryObjectStore::default();
+        let dir = tempfile::tempdir().unwrap();
+        let local = LocalObjectStore::new(dir.path());
+        for store in [&memory as &dyn ObjectStore, &local as &dyn ObjectStore] {
+            store
+                .put("range-test", b"abcdef", ObjectMetadata::default())
+                .await
+                .unwrap();
+            assert_eq!(
+                store.get_range("range-test", 1..4).await.unwrap().unwrap(),
+                b"bcd"
+            );
+            assert_eq!(
+                store.get_range("range-test", 6..6).await.unwrap().unwrap(),
+                b""
+            );
+            for range in [4..3, 0..7] {
+                let error = store.get_range("range-test", range).await.unwrap_err();
+                assert!(error.downcast_ref::<ObjectRangeError>().is_some());
+            }
+        }
+    }
+
+    #[test]
+    fn shared_range_validation_is_used_by_remote_backends_too() {
+        for range in [3..2, 0..7] {
+            let error = super::validate_object_range(&range, 6).unwrap_err();
+            assert!(error.downcast_ref::<ObjectRangeError>().is_some());
+        }
+        assert!(super::validate_object_range(&(6..6), 6).is_ok());
     }
 
     #[tokio::test]
