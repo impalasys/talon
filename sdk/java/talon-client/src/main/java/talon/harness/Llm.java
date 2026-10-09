@@ -26,6 +26,533 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
+  public interface ByteRangeOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.harness.ByteRange)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint64 start = 1;</code>
+     * @return The start.
+     */
+    long getStart();
+
+    /**
+     * <code>uint64 end = 2;</code>
+     * @return The end.
+     */
+    long getEnd();
+  }
+  /**
+   * <pre>
+   * Half-open byte interval [start, end) selecting a slice of a tool-result
+   * part's UTF-8 text. Endpoints are byte offsets within the part's text and
+   * must lie on UTF-8 character boundaries. Part-level so nested selections
+   * compose by interval arithmetic.
+   * </pre>
+   *
+   * Protobuf type {@code talon.harness.ByteRange}
+   */
+  public static final class ByteRange extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.harness.ByteRange)
+      ByteRangeOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ByteRange");
+    }
+    // Use ByteRange.newBuilder() to construct.
+    private ByteRange(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ByteRange() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.harness.Llm.internal_static_talon_harness_ByteRange_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.harness.Llm.internal_static_talon_harness_ByteRange_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.harness.Llm.internal_static_talon_harness_ByteRange_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.harness.Llm.ByteRange.class, talon.harness.Llm.ByteRange.Builder.class);
+    }
+
+    public static final int START_FIELD_NUMBER = 1;
+    private long start_ = 0L;
+    /**
+     * <code>uint64 start = 1;</code>
+     * @return The start.
+     */
+    @java.lang.Override
+    public long getStart() {
+      return start_;
+    }
+
+    public static final int END_FIELD_NUMBER = 2;
+    private long end_ = 0L;
+    /**
+     * <code>uint64 end = 2;</code>
+     * @return The end.
+     */
+    @java.lang.Override
+    public long getEnd() {
+      return end_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (start_ != 0L) {
+        output.writeUInt64(1, start_);
+      }
+      if (end_ != 0L) {
+        output.writeUInt64(2, end_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (start_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(1, start_);
+      }
+      if (end_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, end_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.harness.Llm.ByteRange)) {
+        return super.equals(obj);
+      }
+      talon.harness.Llm.ByteRange other = (talon.harness.Llm.ByteRange) obj;
+
+      if (getStart()
+          != other.getStart()) return false;
+      if (getEnd()
+          != other.getEnd()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + START_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStart());
+      hash = (37 * hash) + END_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getEnd());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.harness.Llm.ByteRange parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.harness.Llm.ByteRange parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.harness.Llm.ByteRange parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ByteRange parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.harness.Llm.ByteRange prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Half-open byte interval [start, end) selecting a slice of a tool-result
+     * part's UTF-8 text. Endpoints are byte offsets within the part's text and
+     * must lie on UTF-8 character boundaries. Part-level so nested selections
+     * compose by interval arithmetic.
+     * </pre>
+     *
+     * Protobuf type {@code talon.harness.ByteRange}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.harness.ByteRange)
+        talon.harness.Llm.ByteRangeOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.harness.Llm.internal_static_talon_harness_ByteRange_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.harness.Llm.internal_static_talon_harness_ByteRange_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.harness.Llm.ByteRange.class, talon.harness.Llm.ByteRange.Builder.class);
+      }
+
+      // Construct using talon.harness.Llm.ByteRange.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        start_ = 0L;
+        end_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.harness.Llm.internal_static_talon_harness_ByteRange_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ByteRange getDefaultInstanceForType() {
+        return talon.harness.Llm.ByteRange.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ByteRange build() {
+        talon.harness.Llm.ByteRange result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ByteRange buildPartial() {
+        talon.harness.Llm.ByteRange result = new talon.harness.Llm.ByteRange(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.harness.Llm.ByteRange result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.start_ = start_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.end_ = end_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.harness.Llm.ByteRange) {
+          return mergeFrom((talon.harness.Llm.ByteRange)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.harness.Llm.ByteRange other) {
+        if (other == talon.harness.Llm.ByteRange.getDefaultInstance()) return this;
+        if (other.getStart() != 0L) {
+          setStart(other.getStart());
+        }
+        if (other.getEnd() != 0L) {
+          setEnd(other.getEnd());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                start_ = input.readUInt64();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                end_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private long start_ ;
+      /**
+       * <code>uint64 start = 1;</code>
+       * @return The start.
+       */
+      @java.lang.Override
+      public long getStart() {
+        return start_;
+      }
+      /**
+       * <code>uint64 start = 1;</code>
+       * @param value The start to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStart(long value) {
+
+        start_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 start = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStart() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        start_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long end_ ;
+      /**
+       * <code>uint64 end = 2;</code>
+       * @return The end.
+       */
+      @java.lang.Override
+      public long getEnd() {
+        return end_;
+      }
+      /**
+       * <code>uint64 end = 2;</code>
+       * @param value The end to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEnd(long value) {
+
+        end_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 end = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEnd() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        end_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.harness.ByteRange)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.harness.ByteRange)
+    private static final talon.harness.Llm.ByteRange DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.harness.Llm.ByteRange();
+    }
+
+    public static talon.harness.Llm.ByteRange getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ByteRange>
+        PARSER = new com.google.protobuf.AbstractParser<ByteRange>() {
+      @java.lang.Override
+      public ByteRange parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ByteRange> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ByteRange> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.harness.Llm.ByteRange getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface ChatContentPartOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.harness.ChatContentPart)
       com.google.protobuf.MessageOrBuilder {
@@ -61,6 +588,42 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      * <code>.talon.data.ObjectRef object_ref = 4;</code>
      */
     talon.data.Data.ObjectRefOrBuilder getObjectRefOrBuilder();
+
+    /**
+     * <pre>
+     * Half-open byte interval [start, end) within this part's UTF-8 text.
+     * Valid only for inline text or a text-media-type object_ref; endpoints
+     * must be UTF-8 character boundaries. A range on a non-text part is
+     * rejected, never silently ignored.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     * @return Whether the byteRange field is set.
+     */
+    boolean hasByteRange();
+    /**
+     * <pre>
+     * Half-open byte interval [start, end) within this part's UTF-8 text.
+     * Valid only for inline text or a text-media-type object_ref; endpoints
+     * must be UTF-8 character boundaries. A range on a non-text part is
+     * rejected, never silently ignored.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     * @return The byteRange.
+     */
+    talon.harness.Llm.ByteRange getByteRange();
+    /**
+     * <pre>
+     * Half-open byte interval [start, end) within this part's UTF-8 text.
+     * Valid only for inline text or a text-media-type object_ref; endpoints
+     * must be UTF-8 character boundaries. A range on a non-text part is
+     * rejected, never silently ignored.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     */
+    talon.harness.Llm.ByteRangeOrBuilder getByteRangeOrBuilder();
 
     talon.harness.Llm.ChatContentPart.ContentCase getContentCase();
   }
@@ -106,6 +669,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
               talon.harness.Llm.ChatContentPart.class, talon.harness.Llm.ChatContentPart.Builder.class);
     }
 
+    private int bitField0_;
     private int contentCase_ = 0;
     @SuppressWarnings("serial")
     private java.lang.Object content_;
@@ -227,6 +791,53 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       return talon.data.Data.ObjectRef.getDefaultInstance();
     }
 
+    public static final int BYTE_RANGE_FIELD_NUMBER = 5;
+    private talon.harness.Llm.ByteRange byteRange_;
+    /**
+     * <pre>
+     * Half-open byte interval [start, end) within this part's UTF-8 text.
+     * Valid only for inline text or a text-media-type object_ref; endpoints
+     * must be UTF-8 character boundaries. A range on a non-text part is
+     * rejected, never silently ignored.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     * @return Whether the byteRange field is set.
+     */
+    @java.lang.Override
+    public boolean hasByteRange() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Half-open byte interval [start, end) within this part's UTF-8 text.
+     * Valid only for inline text or a text-media-type object_ref; endpoints
+     * must be UTF-8 character boundaries. A range on a non-text part is
+     * rejected, never silently ignored.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     * @return The byteRange.
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ByteRange getByteRange() {
+      return byteRange_ == null ? talon.harness.Llm.ByteRange.getDefaultInstance() : byteRange_;
+    }
+    /**
+     * <pre>
+     * Half-open byte interval [start, end) within this part's UTF-8 text.
+     * Valid only for inline text or a text-media-type object_ref; endpoints
+     * must be UTF-8 character boundaries. A range on a non-text part is
+     * rejected, never silently ignored.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ByteRangeOrBuilder getByteRangeOrBuilder() {
+      return byteRange_ == null ? talon.harness.Llm.ByteRange.getDefaultInstance() : byteRange_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -247,6 +858,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (contentCase_ == 4) {
         output.writeMessage(4, (talon.data.Data.ObjectRef) content_);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(5, getByteRange());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -263,6 +877,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, (talon.data.Data.ObjectRef) content_);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getByteRange());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -278,6 +896,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       talon.harness.Llm.ChatContentPart other = (talon.harness.Llm.ChatContentPart) obj;
 
+      if (hasByteRange() != other.hasByteRange()) return false;
+      if (hasByteRange()) {
+        if (!getByteRange()
+            .equals(other.getByteRange())) return false;
+      }
       if (!getContentCase().equals(other.getContentCase())) return false;
       switch (contentCase_) {
         case 1:
@@ -302,6 +925,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasByteRange()) {
+        hash = (37 * hash) + BYTE_RANGE_FIELD_NUMBER;
+        hash = (53 * hash) + getByteRange().hashCode();
+      }
       switch (contentCase_) {
         case 1:
           hash = (37 * hash) + TEXT_FIELD_NUMBER;
@@ -433,13 +1060,19 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       // Construct using talon.harness.Llm.ChatContentPart.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetByteRangeFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -447,6 +1080,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         bitField0_ = 0;
         if (objectRefBuilder_ != null) {
           objectRefBuilder_.clear();
+        }
+        byteRange_ = null;
+        if (byteRangeBuilder_ != null) {
+          byteRangeBuilder_.dispose();
+          byteRangeBuilder_ = null;
         }
         contentCase_ = 0;
         content_ = null;
@@ -484,6 +1122,14 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       private void buildPartial0(talon.harness.Llm.ChatContentPart result) {
         int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.byteRange_ = byteRangeBuilder_ == null
+              ? byteRange_
+              : byteRangeBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       private void buildPartialOneofs(talon.harness.Llm.ChatContentPart result) {
@@ -507,6 +1153,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       public Builder mergeFrom(talon.harness.Llm.ChatContentPart other) {
         if (other == talon.harness.Llm.ChatContentPart.getDefaultInstance()) return this;
+        if (other.hasByteRange()) {
+          mergeByteRange(other.getByteRange());
+        }
         switch (other.getContentCase()) {
           case TEXT: {
             contentCase_ = 1;
@@ -560,6 +1209,13 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 contentCase_ = 4;
                 break;
               } // case 34
+              case 42: {
+                input.readMessage(
+                    internalGetByteRangeFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -823,6 +1479,190 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         return objectRefBuilder_;
       }
 
+      private talon.harness.Llm.ByteRange byteRange_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ByteRange, talon.harness.Llm.ByteRange.Builder, talon.harness.Llm.ByteRangeOrBuilder> byteRangeBuilder_;
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       * @return Whether the byteRange field is set.
+       */
+      public boolean hasByteRange() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       * @return The byteRange.
+       */
+      public talon.harness.Llm.ByteRange getByteRange() {
+        if (byteRangeBuilder_ == null) {
+          return byteRange_ == null ? talon.harness.Llm.ByteRange.getDefaultInstance() : byteRange_;
+        } else {
+          return byteRangeBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public Builder setByteRange(talon.harness.Llm.ByteRange value) {
+        if (byteRangeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          byteRange_ = value;
+        } else {
+          byteRangeBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public Builder setByteRange(
+          talon.harness.Llm.ByteRange.Builder builderForValue) {
+        if (byteRangeBuilder_ == null) {
+          byteRange_ = builderForValue.build();
+        } else {
+          byteRangeBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public Builder mergeByteRange(talon.harness.Llm.ByteRange value) {
+        if (byteRangeBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            byteRange_ != null &&
+            byteRange_ != talon.harness.Llm.ByteRange.getDefaultInstance()) {
+            getByteRangeBuilder().mergeFrom(value);
+          } else {
+            byteRange_ = value;
+          }
+        } else {
+          byteRangeBuilder_.mergeFrom(value);
+        }
+        if (byteRange_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public Builder clearByteRange() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        byteRange_ = null;
+        if (byteRangeBuilder_ != null) {
+          byteRangeBuilder_.dispose();
+          byteRangeBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public talon.harness.Llm.ByteRange.Builder getByteRangeBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetByteRangeFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public talon.harness.Llm.ByteRangeOrBuilder getByteRangeOrBuilder() {
+        if (byteRangeBuilder_ != null) {
+          return byteRangeBuilder_.getMessageOrBuilder();
+        } else {
+          return byteRange_ == null ?
+              talon.harness.Llm.ByteRange.getDefaultInstance() : byteRange_;
+        }
+      }
+      /**
+       * <pre>
+       * Half-open byte interval [start, end) within this part's UTF-8 text.
+       * Valid only for inline text or a text-media-type object_ref; endpoints
+       * must be UTF-8 character boundaries. A range on a non-text part is
+       * rejected, never silently ignored.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ByteRange, talon.harness.Llm.ByteRange.Builder, talon.harness.Llm.ByteRangeOrBuilder>
+          internalGetByteRangeFieldBuilder() {
+        if (byteRangeBuilder_ == null) {
+          byteRangeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.harness.Llm.ByteRange, talon.harness.Llm.ByteRange.Builder, talon.harness.Llm.ByteRangeOrBuilder>(
+                  getByteRange(),
+                  getParentForChildren(),
+                  isClean());
+          byteRange_ = null;
+        }
+        return byteRangeBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.harness.ChatContentPart)
     }
 
@@ -874,6 +1714,634 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface ToolOutputByteRangeOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.harness.ToolOutputByteRange)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint64 start = 1;</code>
+     * @return The start.
+     */
+    long getStart();
+
+    /**
+     * <code>uint64 end = 2;</code>
+     * @return The end.
+     */
+    long getEnd();
+
+    /**
+     * <code>optional uint64 next_byte = 3;</code>
+     * @return Whether the nextByte field is set.
+     */
+    boolean hasNextByte();
+    /**
+     * <code>optional uint64 next_byte = 3;</code>
+     * @return The nextByte.
+     */
+    long getNextByte();
+  }
+  /**
+   * <pre>
+   * Deprecated page receipt: records the byte range requested for a
+   * ToolOutput read (requested start/end, plus next_byte to continue the
+   * read). Must never be used to select bytes during materialization.
+   * </pre>
+   *
+   * Protobuf type {@code talon.harness.ToolOutputByteRange}
+   */
+  public static final class ToolOutputByteRange extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.harness.ToolOutputByteRange)
+      ToolOutputByteRangeOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ToolOutputByteRange");
+    }
+    // Use ToolOutputByteRange.newBuilder() to construct.
+    private ToolOutputByteRange(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ToolOutputByteRange() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputByteRange_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputByteRange_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.harness.Llm.internal_static_talon_harness_ToolOutputByteRange_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.harness.Llm.ToolOutputByteRange.class, talon.harness.Llm.ToolOutputByteRange.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int START_FIELD_NUMBER = 1;
+    private long start_ = 0L;
+    /**
+     * <code>uint64 start = 1;</code>
+     * @return The start.
+     */
+    @java.lang.Override
+    public long getStart() {
+      return start_;
+    }
+
+    public static final int END_FIELD_NUMBER = 2;
+    private long end_ = 0L;
+    /**
+     * <code>uint64 end = 2;</code>
+     * @return The end.
+     */
+    @java.lang.Override
+    public long getEnd() {
+      return end_;
+    }
+
+    public static final int NEXT_BYTE_FIELD_NUMBER = 3;
+    private long nextByte_ = 0L;
+    /**
+     * <code>optional uint64 next_byte = 3;</code>
+     * @return Whether the nextByte field is set.
+     */
+    @java.lang.Override
+    public boolean hasNextByte() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional uint64 next_byte = 3;</code>
+     * @return The nextByte.
+     */
+    @java.lang.Override
+    public long getNextByte() {
+      return nextByte_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (start_ != 0L) {
+        output.writeUInt64(1, start_);
+      }
+      if (end_ != 0L) {
+        output.writeUInt64(2, end_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeUInt64(3, nextByte_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (start_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(1, start_);
+      }
+      if (end_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, end_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(3, nextByte_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.harness.Llm.ToolOutputByteRange)) {
+        return super.equals(obj);
+      }
+      talon.harness.Llm.ToolOutputByteRange other = (talon.harness.Llm.ToolOutputByteRange) obj;
+
+      if (getStart()
+          != other.getStart()) return false;
+      if (getEnd()
+          != other.getEnd()) return false;
+      if (hasNextByte() != other.hasNextByte()) return false;
+      if (hasNextByte()) {
+        if (getNextByte()
+            != other.getNextByte()) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + START_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getStart());
+      hash = (37 * hash) + END_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getEnd());
+      if (hasNextByte()) {
+        hash = (37 * hash) + NEXT_BYTE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getNextByte());
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.harness.Llm.ToolOutputByteRange parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.harness.Llm.ToolOutputByteRange parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.harness.Llm.ToolOutputByteRange parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.harness.Llm.ToolOutputByteRange prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Deprecated page receipt: records the byte range requested for a
+     * ToolOutput read (requested start/end, plus next_byte to continue the
+     * read). Must never be used to select bytes during materialization.
+     * </pre>
+     *
+     * Protobuf type {@code talon.harness.ToolOutputByteRange}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.harness.ToolOutputByteRange)
+        talon.harness.Llm.ToolOutputByteRangeOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputByteRange_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputByteRange_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.harness.Llm.ToolOutputByteRange.class, talon.harness.Llm.ToolOutputByteRange.Builder.class);
+      }
+
+      // Construct using talon.harness.Llm.ToolOutputByteRange.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        start_ = 0L;
+        end_ = 0L;
+        nextByte_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.harness.Llm.internal_static_talon_harness_ToolOutputByteRange_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputByteRange getDefaultInstanceForType() {
+        return talon.harness.Llm.ToolOutputByteRange.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputByteRange build() {
+        talon.harness.Llm.ToolOutputByteRange result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.harness.Llm.ToolOutputByteRange buildPartial() {
+        talon.harness.Llm.ToolOutputByteRange result = new talon.harness.Llm.ToolOutputByteRange(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.harness.Llm.ToolOutputByteRange result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.start_ = start_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.end_ = end_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.nextByte_ = nextByte_;
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.harness.Llm.ToolOutputByteRange) {
+          return mergeFrom((talon.harness.Llm.ToolOutputByteRange)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.harness.Llm.ToolOutputByteRange other) {
+        if (other == talon.harness.Llm.ToolOutputByteRange.getDefaultInstance()) return this;
+        if (other.getStart() != 0L) {
+          setStart(other.getStart());
+        }
+        if (other.getEnd() != 0L) {
+          setEnd(other.getEnd());
+        }
+        if (other.hasNextByte()) {
+          setNextByte(other.getNextByte());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                start_ = input.readUInt64();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                end_ = input.readUInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                nextByte_ = input.readUInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private long start_ ;
+      /**
+       * <code>uint64 start = 1;</code>
+       * @return The start.
+       */
+      @java.lang.Override
+      public long getStart() {
+        return start_;
+      }
+      /**
+       * <code>uint64 start = 1;</code>
+       * @param value The start to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStart(long value) {
+
+        start_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 start = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStart() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        start_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long end_ ;
+      /**
+       * <code>uint64 end = 2;</code>
+       * @return The end.
+       */
+      @java.lang.Override
+      public long getEnd() {
+        return end_;
+      }
+      /**
+       * <code>uint64 end = 2;</code>
+       * @param value The end to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEnd(long value) {
+
+        end_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 end = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEnd() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        end_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long nextByte_ ;
+      /**
+       * <code>optional uint64 next_byte = 3;</code>
+       * @return Whether the nextByte field is set.
+       */
+      @java.lang.Override
+      public boolean hasNextByte() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>optional uint64 next_byte = 3;</code>
+       * @return The nextByte.
+       */
+      @java.lang.Override
+      public long getNextByte() {
+        return nextByte_;
+      }
+      /**
+       * <code>optional uint64 next_byte = 3;</code>
+       * @param value The nextByte to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNextByte(long value) {
+
+        nextByte_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint64 next_byte = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNextByte() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        nextByte_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.harness.ToolOutputByteRange)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.harness.ToolOutputByteRange)
+    private static final talon.harness.Llm.ToolOutputByteRange DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.harness.Llm.ToolOutputByteRange();
+    }
+
+    public static talon.harness.Llm.ToolOutputByteRange getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ToolOutputByteRange>
+        PARSER = new com.google.protobuf.AbstractParser<ToolOutputByteRange>() {
+      @java.lang.Override
+      public ToolOutputByteRange parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ToolOutputByteRange> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ToolOutputByteRange> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputByteRange getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface ToolOutputOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.harness.ToolOutput)
       com.google.protobuf.MessageOrBuilder {
@@ -913,6 +2381,43 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getSummaryBytes();
+
+    /**
+     * <pre>
+     * Deprecated page receipt: records the requested range for a read.
+     * Must never be used to select bytes during materialization; the
+     * part-level ByteRange fields are the authoritative selection.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+     * @deprecated talon.harness.ToolOutput.byte_range is deprecated.
+     *     See proto/harness/llm.proto;l=44
+     * @return Whether the byteRange field is set.
+     */
+    @java.lang.Deprecated boolean hasByteRange();
+    /**
+     * <pre>
+     * Deprecated page receipt: records the requested range for a read.
+     * Must never be used to select bytes during materialization; the
+     * part-level ByteRange fields are the authoritative selection.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+     * @deprecated talon.harness.ToolOutput.byte_range is deprecated.
+     *     See proto/harness/llm.proto;l=44
+     * @return The byteRange.
+     */
+    @java.lang.Deprecated talon.harness.Llm.ToolOutputByteRange getByteRange();
+    /**
+     * <pre>
+     * Deprecated page receipt: records the requested range for a read.
+     * Must never be used to select bytes during materialization; the
+     * part-level ByteRange fields are the authoritative selection.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+     */
+    @java.lang.Deprecated talon.harness.Llm.ToolOutputByteRangeOrBuilder getByteRangeOrBuilder();
   }
   /**
    * Protobuf type {@code talon.harness.ToolOutput}
@@ -958,6 +2463,7 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
               talon.harness.Llm.ToolOutput.class, talon.harness.Llm.ToolOutput.Builder.class);
     }
 
+    private int bitField0_;
     public static final int CONTENT_PARTS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
     private java.util.List<talon.harness.Llm.ChatContentPart> contentParts_;
@@ -1038,6 +2544,54 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
     }
 
+    public static final int BYTE_RANGE_FIELD_NUMBER = 3;
+    private talon.harness.Llm.ToolOutputByteRange byteRange_;
+    /**
+     * <pre>
+     * Deprecated page receipt: records the requested range for a read.
+     * Must never be used to select bytes during materialization; the
+     * part-level ByteRange fields are the authoritative selection.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+     * @deprecated talon.harness.ToolOutput.byte_range is deprecated.
+     *     See proto/harness/llm.proto;l=44
+     * @return Whether the byteRange field is set.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated public boolean hasByteRange() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <pre>
+     * Deprecated page receipt: records the requested range for a read.
+     * Must never be used to select bytes during materialization; the
+     * part-level ByteRange fields are the authoritative selection.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+     * @deprecated talon.harness.ToolOutput.byte_range is deprecated.
+     *     See proto/harness/llm.proto;l=44
+     * @return The byteRange.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated public talon.harness.Llm.ToolOutputByteRange getByteRange() {
+      return byteRange_ == null ? talon.harness.Llm.ToolOutputByteRange.getDefaultInstance() : byteRange_;
+    }
+    /**
+     * <pre>
+     * Deprecated page receipt: records the requested range for a read.
+     * Must never be used to select bytes during materialization; the
+     * part-level ByteRange fields are the authoritative selection.
+     * </pre>
+     *
+     * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+     */
+    @java.lang.Override
+    @java.lang.Deprecated public talon.harness.Llm.ToolOutputByteRangeOrBuilder getByteRangeOrBuilder() {
+      return byteRange_ == null ? talon.harness.Llm.ToolOutputByteRange.getDefaultInstance() : byteRange_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1057,6 +2611,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, summary_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(3, getByteRange());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1079,6 +2636,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(summary_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, summary_);
       }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getByteRange());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -1098,6 +2659,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           .equals(other.getContentPartsList())) return false;
       if (!getSummary()
           .equals(other.getSummary())) return false;
+      if (hasByteRange() != other.hasByteRange()) return false;
+      if (hasByteRange()) {
+        if (!getByteRange()
+            .equals(other.getByteRange())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1115,6 +2681,10 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
       }
       hash = (37 * hash) + SUMMARY_FIELD_NUMBER;
       hash = (53 * hash) + getSummary().hashCode();
+      if (hasByteRange()) {
+        hash = (37 * hash) + BYTE_RANGE_FIELD_NUMBER;
+        hash = (53 * hash) + getByteRange().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1234,13 +2804,20 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
 
       // Construct using talon.harness.Llm.ToolOutput.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetContentPartsFieldBuilder();
+          internalGetByteRangeFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
@@ -1254,6 +2831,11 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         }
         bitField0_ = (bitField0_ & ~0x00000001);
         summary_ = "";
+        byteRange_ = null;
+        if (byteRangeBuilder_ != null) {
+          byteRangeBuilder_.dispose();
+          byteRangeBuilder_ = null;
+        }
         return this;
       }
 
@@ -1303,6 +2885,14 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         if (((from_bitField0_ & 0x00000002) != 0)) {
           result.summary_ = summary_;
         }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.byteRange_ = byteRangeBuilder_ == null
+              ? byteRange_
+              : byteRangeBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -1348,6 +2938,9 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000002;
           onChanged();
         }
+        if (other.hasByteRange()) {
+          mergeByteRange(other.getByteRange());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -1392,6 +2985,13 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetByteRangeFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1719,6 +3319,185 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
+      }
+
+      private talon.harness.Llm.ToolOutputByteRange byteRange_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutputByteRange, talon.harness.Llm.ToolOutputByteRange.Builder, talon.harness.Llm.ToolOutputByteRangeOrBuilder> byteRangeBuilder_;
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       * @deprecated talon.harness.ToolOutput.byte_range is deprecated.
+       *     See proto/harness/llm.proto;l=44
+       * @return Whether the byteRange field is set.
+       */
+      @java.lang.Deprecated public boolean hasByteRange() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       * @deprecated talon.harness.ToolOutput.byte_range is deprecated.
+       *     See proto/harness/llm.proto;l=44
+       * @return The byteRange.
+       */
+      @java.lang.Deprecated public talon.harness.Llm.ToolOutputByteRange getByteRange() {
+        if (byteRangeBuilder_ == null) {
+          return byteRange_ == null ? talon.harness.Llm.ToolOutputByteRange.getDefaultInstance() : byteRange_;
+        } else {
+          return byteRangeBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       */
+      @java.lang.Deprecated public Builder setByteRange(talon.harness.Llm.ToolOutputByteRange value) {
+        if (byteRangeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          byteRange_ = value;
+        } else {
+          byteRangeBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       */
+      @java.lang.Deprecated public Builder setByteRange(
+          talon.harness.Llm.ToolOutputByteRange.Builder builderForValue) {
+        if (byteRangeBuilder_ == null) {
+          byteRange_ = builderForValue.build();
+        } else {
+          byteRangeBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       */
+      @java.lang.Deprecated public Builder mergeByteRange(talon.harness.Llm.ToolOutputByteRange value) {
+        if (byteRangeBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            byteRange_ != null &&
+            byteRange_ != talon.harness.Llm.ToolOutputByteRange.getDefaultInstance()) {
+            getByteRangeBuilder().mergeFrom(value);
+          } else {
+            byteRange_ = value;
+          }
+        } else {
+          byteRangeBuilder_.mergeFrom(value);
+        }
+        if (byteRange_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       */
+      @java.lang.Deprecated public Builder clearByteRange() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        byteRange_ = null;
+        if (byteRangeBuilder_ != null) {
+          byteRangeBuilder_.dispose();
+          byteRangeBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       */
+      @java.lang.Deprecated public talon.harness.Llm.ToolOutputByteRange.Builder getByteRangeBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetByteRangeFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       */
+      @java.lang.Deprecated public talon.harness.Llm.ToolOutputByteRangeOrBuilder getByteRangeOrBuilder() {
+        if (byteRangeBuilder_ != null) {
+          return byteRangeBuilder_.getMessageOrBuilder();
+        } else {
+          return byteRange_ == null ?
+              talon.harness.Llm.ToolOutputByteRange.getDefaultInstance() : byteRange_;
+        }
+      }
+      /**
+       * <pre>
+       * Deprecated page receipt: records the requested range for a read.
+       * Must never be used to select bytes during materialization; the
+       * part-level ByteRange fields are the authoritative selection.
+       * </pre>
+       *
+       * <code>optional .talon.harness.ToolOutputByteRange byte_range = 3 [deprecated = true];</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutputByteRange, talon.harness.Llm.ToolOutputByteRange.Builder, talon.harness.Llm.ToolOutputByteRangeOrBuilder>
+          internalGetByteRangeFieldBuilder() {
+        if (byteRangeBuilder_ == null) {
+          byteRangeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.harness.Llm.ToolOutputByteRange, talon.harness.Llm.ToolOutputByteRange.Builder, talon.harness.Llm.ToolOutputByteRangeOrBuilder>(
+                  getByteRange(),
+                  getParentForChildren(),
+                  isClean());
+          byteRange_ = null;
+        }
+        return byteRangeBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.harness.ToolOutput)
@@ -10598,10 +12377,20 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_harness_ByteRange_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_harness_ByteRange_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_harness_ChatContentPart_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_harness_ChatContentPart_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_harness_ToolOutputByteRange_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_harness_ToolOutputByteRange_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_harness_ToolOutput_descriptor;
   private static final
@@ -10653,41 +12442,48 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
     java.lang.String[] descriptorData = {
       "\n\027proto/harness/llm.proto\022\rtalon.harness" +
       "\032\025proto/data/data.proto\032\034proto/resources" +
-      "/agents.proto\"e\n\017ChatContentPart\022\016\n\004text" +
-      "\030\001 \001(\tH\000\022+\n\nobject_ref\030\004 \001(\0132\025.talon.dat" +
-      "a.ObjectRefH\000B\t\n\007contentJ\004\010\002\020\003J\004\010\003\020\004\"T\n\n" +
-      "ToolOutput\0225\n\rcontent_parts\030\001 \003(\0132\036.talo" +
-      "n.harness.ChatContentPart\022\017\n\007summary\030\002 \001" +
-      "(\t\"7\n\010ToolCall\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t" +
-      "\022\021\n\targuments\030\003 \001(\t\"x\n\rToolCallDelta\022\r\n\005" +
-      "index\030\001 \001(\r\022\017\n\002id\030\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001" +
-      "(\tH\001\210\001\001\022\026\n\targuments\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007" +
-      "\n\005_nameB\014\n\n_arguments\"\374\001\n\013ChatMessage\022\014\n" +
-      "\004role\030\001 \001(\t\0225\n\rcontent_parts\030\002 \003(\0132\036.tal" +
-      "on.harness.ChatContentPart\022+\n\ntool_calls" +
-      "\030\003 \003(\0132\027.talon.harness.ToolCall\022\031\n\014tool_" +
-      "call_id\030\004 \001(\tH\000\210\001\001\0227\n\023encrypted_reasonin" +
-      "g\030\005 \001(\0132\025.talon.data.ObjectRefH\001\210\001\001B\017\n\r_" +
-      "tool_call_idB\026\n\024_encrypted_reasoning\"\325\001\n" +
-      "\014ChatResponse\022\017\n\007content\030\001 \001(\t\022+\n\ntool_c" +
-      "alls\030\002 \003(\0132\027.talon.harness.ToolCall\022,\n\005u" +
-      "sage\030\003 \001(\0132\030.talon.data.TokenCounterH\000\210\001" +
-      "\001\0227\n\023encrypted_reasoning\030\004 \001(\0132\025.talon.d" +
-      "ata.ObjectRefH\001\210\001\001B\010\n\006_usageB\026\n\024_encrypt" +
-      "ed_reasoning\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013de" +
-      "scription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001" +
-      "(\t\"\375\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.t" +
-      "alon.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132" +
-      "\023.talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037" +
-      ".talon.resources.ThinkingConfigH\000\210\001\001\022!\n\024" +
-      "previous_response_id\030\004 \001(\tH\001\210\001\001\022\033\n\023zero_" +
-      "data_retention\030\005 \001(\010B\013\n\t_thinkingB\027\n\025_pr" +
-      "evious_response_id\"\316\001\n\017ChatStreamEvent\022\024" +
-      "\n\ntext_delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030" +
-      "\002 \001(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon" +
-      ".harness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132" +
-      "\030.talon.data.TokenCounterH\000\022\035\n\023encrypted" +
-      "_reasoning\030\005 \001(\tH\000B\007\n\005eventb\006proto3"
+      "/agents.proto\"\'\n\tByteRange\022\r\n\005start\030\001 \001(" +
+      "\004\022\013\n\003end\030\002 \001(\004\"\247\001\n\017ChatContentPart\022\016\n\004te" +
+      "xt\030\001 \001(\tH\000\022+\n\nobject_ref\030\004 \001(\0132\025.talon.d" +
+      "ata.ObjectRefH\000\0221\n\nbyte_range\030\005 \001(\0132\030.ta" +
+      "lon.harness.ByteRangeH\001\210\001\001B\t\n\007contentB\r\n" +
+      "\013_byte_rangeJ\004\010\002\020\003J\004\010\003\020\004\"W\n\023ToolOutputBy" +
+      "teRange\022\r\n\005start\030\001 \001(\004\022\013\n\003end\030\002 \001(\004\022\026\n\tn" +
+      "ext_byte\030\003 \001(\004H\000\210\001\001B\014\n\n_next_byte\"\244\001\n\nTo" +
+      "olOutput\0225\n\rcontent_parts\030\001 \003(\0132\036.talon." +
+      "harness.ChatContentPart\022\017\n\007summary\030\002 \001(\t" +
+      "\022?\n\nbyte_range\030\003 \001(\0132\".talon.harness.Too" +
+      "lOutputByteRangeB\002\030\001H\000\210\001\001B\r\n\013_byte_range" +
+      "\"7\n\010ToolCall\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\021" +
+      "\n\targuments\030\003 \001(\t\"x\n\rToolCallDelta\022\r\n\005in" +
+      "dex\030\001 \001(\r\022\017\n\002id\030\002 \001(\tH\000\210\001\001\022\021\n\004name\030\003 \001(\t" +
+      "H\001\210\001\001\022\026\n\targuments\030\004 \001(\tH\002\210\001\001B\005\n\003_idB\007\n\005" +
+      "_nameB\014\n\n_arguments\"\374\001\n\013ChatMessage\022\014\n\004r" +
+      "ole\030\001 \001(\t\0225\n\rcontent_parts\030\002 \003(\0132\036.talon" +
+      ".harness.ChatContentPart\022+\n\ntool_calls\030\003" +
+      " \003(\0132\027.talon.harness.ToolCall\022\031\n\014tool_ca" +
+      "ll_id\030\004 \001(\tH\000\210\001\001\0227\n\023encrypted_reasoning\030" +
+      "\005 \001(\0132\025.talon.data.ObjectRefH\001\210\001\001B\017\n\r_to" +
+      "ol_call_idB\026\n\024_encrypted_reasoning\"\325\001\n\014C" +
+      "hatResponse\022\017\n\007content\030\001 \001(\t\022+\n\ntool_cal" +
+      "ls\030\002 \003(\0132\027.talon.harness.ToolCall\022,\n\005usa" +
+      "ge\030\003 \001(\0132\030.talon.data.TokenCounterH\000\210\001\001\022" +
+      "7\n\023encrypted_reasoning\030\004 \001(\0132\025.talon.dat" +
+      "a.ObjectRefH\001\210\001\001B\010\n\006_usageB\026\n\024_encrypted" +
+      "_reasoning\"D\n\004Tool\022\014\n\004name\030\001 \001(\t\022\023\n\013desc" +
+      "ription\030\002 \001(\t\022\031\n\021input_schema_json\030\003 \001(\t" +
+      "\"\375\001\n\013ChatRequest\022,\n\010messages\030\001 \003(\0132\032.tal" +
+      "on.harness.ChatMessage\022\"\n\005tools\030\002 \003(\0132\023." +
+      "talon.harness.Tool\0226\n\010thinking\030\003 \001(\0132\037.t" +
+      "alon.resources.ThinkingConfigH\000\210\001\001\022!\n\024pr" +
+      "evious_response_id\030\004 \001(\tH\001\210\001\001\022\033\n\023zero_da" +
+      "ta_retention\030\005 \001(\010B\013\n\t_thinkingB\027\n\025_prev" +
+      "ious_response_id\"\316\001\n\017ChatStreamEvent\022\024\n\n" +
+      "text_delta\030\001 \001(\tH\000\022\031\n\017reasoning_delta\030\002 " +
+      "\001(\tH\000\0227\n\017tool_call_delta\030\003 \001(\0132\034.talon.h" +
+      "arness.ToolCallDeltaH\000\022)\n\005usage\030\004 \001(\0132\030." +
+      "talon.data.TokenCounterH\000\022\035\n\023encrypted_r" +
+      "easoning\030\005 \001(\tH\000B\007\n\005eventb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -10695,56 +12491,68 @@ public final class Llm extends com.google.protobuf.GeneratedFile {
           talon.data.Data.getDescriptor(),
           talon.resources.Agents.getDescriptor(),
         });
-    internal_static_talon_harness_ChatContentPart_descriptor =
+    internal_static_talon_harness_ByteRange_descriptor =
       getDescriptor().getMessageType(0);
+    internal_static_talon_harness_ByteRange_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_harness_ByteRange_descriptor,
+        new java.lang.String[] { "Start", "End", });
+    internal_static_talon_harness_ChatContentPart_descriptor =
+      getDescriptor().getMessageType(1);
     internal_static_talon_harness_ChatContentPart_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatContentPart_descriptor,
-        new java.lang.String[] { "Text", "ObjectRef", "Content", });
+        new java.lang.String[] { "Text", "ObjectRef", "ByteRange", "Content", });
+    internal_static_talon_harness_ToolOutputByteRange_descriptor =
+      getDescriptor().getMessageType(2);
+    internal_static_talon_harness_ToolOutputByteRange_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_harness_ToolOutputByteRange_descriptor,
+        new java.lang.String[] { "Start", "End", "NextByte", });
     internal_static_talon_harness_ToolOutput_descriptor =
-      getDescriptor().getMessageType(1);
+      getDescriptor().getMessageType(3);
     internal_static_talon_harness_ToolOutput_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolOutput_descriptor,
-        new java.lang.String[] { "ContentParts", "Summary", });
+        new java.lang.String[] { "ContentParts", "Summary", "ByteRange", });
     internal_static_talon_harness_ToolCall_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(4);
     internal_static_talon_harness_ToolCall_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolCall_descriptor,
         new java.lang.String[] { "Id", "Name", "Arguments", });
     internal_static_talon_harness_ToolCallDelta_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(5);
     internal_static_talon_harness_ToolCallDelta_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ToolCallDelta_descriptor,
         new java.lang.String[] { "Index", "Id", "Name", "Arguments", });
     internal_static_talon_harness_ChatMessage_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(6);
     internal_static_talon_harness_ChatMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatMessage_descriptor,
         new java.lang.String[] { "Role", "ContentParts", "ToolCalls", "ToolCallId", "EncryptedReasoning", });
     internal_static_talon_harness_ChatResponse_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(7);
     internal_static_talon_harness_ChatResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatResponse_descriptor,
         new java.lang.String[] { "Content", "ToolCalls", "Usage", "EncryptedReasoning", });
     internal_static_talon_harness_Tool_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(8);
     internal_static_talon_harness_Tool_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_Tool_descriptor,
         new java.lang.String[] { "Name", "Description", "InputSchemaJson", });
     internal_static_talon_harness_ChatRequest_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(9);
     internal_static_talon_harness_ChatRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatRequest_descriptor,
         new java.lang.String[] { "Messages", "Tools", "Thinking", "PreviousResponseId", "ZeroDataRetention", });
     internal_static_talon_harness_ChatStreamEvent_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(10);
     internal_static_talon_harness_ChatStreamEvent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_harness_ChatStreamEvent_descriptor,
