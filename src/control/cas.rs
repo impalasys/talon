@@ -1,7 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::object_store::{ObjectMetadata, ObjectStore, StoredObject};
+use crate::control::object_store::{
+    object_version, ObjectMetadata, ObjectStore, ObjectVersionChanged, StoredObject,
+};
 use crate::gateway::rpc::data_proto;
 use anyhow::{anyhow, Result};
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
@@ -325,6 +327,21 @@ impl CasStore {
     /// this into model text must supply character boundaries; CAS returns the exact
     /// requested bytes and intentionally does not validate UTF-8 boundaries.
     pub async fn get_text_range_decoded(&self, key: &str, range: Range<u64>) -> Result<Vec<u8>> {
+        // A seekable read needs a head, seek-table range, and frame range. Each
+        // range is conditional on the generation returned by head; retry when a
+        // concurrent overwrite wins between those requests.
+        for _ in 0..3 {
+            match self.get_text_range_decoded_once(key, range.clone()).await {
+                Err(error) if error.downcast_ref::<ObjectVersionChanged>().is_some() => continue,
+                result => return result,
+            }
+        }
+        Err(anyhow!(
+            "CAS object '{key}' changed repeatedly during a seekable range read"
+        ))
+    }
+
+    async fn get_text_range_decoded_once(&self, key: &str, range: Range<u64>) -> Result<Vec<u8>> {
         let metadata = self
             .objects
             .head(key)
@@ -338,8 +355,12 @@ impl CasStore {
             }
         }
 
-        if let (true, Some(logical_size)) = (is_zstd_metadata(&metadata), declared_logical_size) {
-            if let Some(table) = self.seek_table(key, metadata.size_bytes).await? {
+        if let (true, Some(logical_size), Some(version)) = (
+            is_zstd_metadata(&metadata),
+            declared_logical_size,
+            object_version(&metadata),
+        ) {
+            if let Some(table) = self.seek_table(key, metadata.size_bytes, version).await? {
                 if table.logical_size != logical_size {
                     return Err(CasRangeError::LogicalSizeMismatch {
                         metadata_size: logical_size,
@@ -347,7 +368,9 @@ impl CasStore {
                     }
                     .into());
                 }
-                return self.decode_seekable_range(key, &table, range).await;
+                return self
+                    .decode_seekable_range(key, &table, range, version)
+                    .await;
             }
         }
 
@@ -371,8 +394,13 @@ impl CasStore {
         Ok(decoded[range.start as usize..range.end as usize].to_vec())
     }
 
-    async fn seek_table(&self, key: &str, stored_size: u64) -> Result<Option<SeekTable>> {
-        if let Some(table) = self.seek_tables.lock().unwrap().get(key) {
+    async fn seek_table(
+        &self,
+        key: &str,
+        stored_size: u64,
+        version: &str,
+    ) -> Result<Option<SeekTable>> {
+        if let Some(table) = self.seek_tables.lock().unwrap().get(key, version) {
             return Ok(Some(table));
         }
         if stored_size < SEEK_FOOTER_BYTES as u64 {
@@ -380,7 +408,11 @@ impl CasStore {
         }
         let footer = self
             .objects
-            .get_range(key, stored_size - SEEK_FOOTER_BYTES as u64..stored_size)
+            .get_range_if_version(
+                key,
+                stored_size - SEEK_FOOTER_BYTES as u64..stored_size,
+                version,
+            )
             .await?
             .ok_or_else(|| anyhow!("CAS object '{key}' disappeared during seek-table read"))?;
         let Some((frame_count, descriptor)) = parse_seek_footer(&footer) else {
@@ -403,7 +435,7 @@ impl CasStore {
         }
         let table_bytes = self
             .objects
-            .get_range(key, stored_size - table_size..stored_size)
+            .get_range_if_version(key, stored_size - table_size..stored_size, version)
             .await?
             .ok_or_else(|| anyhow!("CAS object '{key}' disappeared during seek-table read"))?;
         let table = parse_seek_table(&table_bytes, frame_count, descriptor)?;
@@ -412,10 +444,11 @@ impl CasStore {
                 "CAS object '{key}' seek table does not cover its stored frames"
             ));
         }
-        self.seek_tables
-            .lock()
-            .unwrap()
-            .insert(key.to_string(), table.clone());
+        self.seek_tables.lock().unwrap().insert(
+            key.to_string(),
+            version.to_string(),
+            table.clone(),
+        );
         Ok(Some(table))
     }
 
@@ -424,6 +457,7 @@ impl CasStore {
         key: &str,
         table: &SeekTable,
         range: Range<u64>,
+        version: &str,
     ) -> Result<Vec<u8>> {
         let first = table
             .frames
@@ -437,18 +471,19 @@ impl CasStore {
             .ok_or_else(|| anyhow!("seek table has no frame for requested logical range"))?;
         let stored = self
             .objects
-            .get_range(
+            .get_range_if_version(
                 key,
                 table.frames[first].stored_start..table.frames[last].stored_end,
+                version,
             )
             .await?
             .ok_or_else(|| anyhow!("CAS object '{key}' disappeared during frame read"))?;
         let mut decoded = Vec::new();
         for frame in &table.frames[first..=last] {
             let offset = (frame.stored_start - table.frames[first].stored_start) as usize;
-            let end = offset + frame.stored_size as usize;
+            let end = offset + (frame.stored_end - frame.stored_start) as usize;
             let bytes = unzstd(&stored[offset..end], key)?;
-            if bytes.len() as u64 != frame.logical_size {
+            if bytes.len() as u64 != frame.logical_end - frame.logical_start {
                 return Err(anyhow!(
                     "CAS object '{key}' seek frame decoded to an unexpected size"
                 ));
@@ -922,7 +957,6 @@ pub enum CasRangeError {
         end: u64,
         size: u64,
     },
-    MissingLogicalSizeMetadata,
     InvalidLogicalSizeMetadata(String),
     LogicalSizeMismatch {
         metadata_size: u64,
@@ -934,7 +968,6 @@ impl std::fmt::Display for CasRangeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidLogicalRange { start, end, size } => write!(f, "invalid logical text range [{start}..{end}) for object of {size} bytes"),
-            Self::MissingLogicalSizeMetadata => write!(f, "tool-result object is missing logical size metadata"),
             Self::InvalidLogicalSizeMetadata(value) => write!(f, "tool-result object has invalid logical size metadata '{value}'"),
             Self::LogicalSizeMismatch { metadata_size, seek_table_size } => write!(f, "tool-result logical size metadata ({metadata_size}) does not match decoded seek-table size ({seek_table_size})"),
         }
@@ -947,10 +980,8 @@ impl std::error::Error for CasRangeError {}
 struct SeekFrame {
     stored_start: u64,
     stored_end: u64,
-    stored_size: u64,
     logical_start: u64,
     logical_end: u64,
-    logical_size: u64,
 }
 
 #[derive(Debug, Clone)]
@@ -961,29 +992,34 @@ struct SeekTable {
 
 #[derive(Default)]
 struct SeekTableCache {
-    entries: VecDeque<(String, SeekTable)>,
+    entries: VecDeque<((String, String), SeekTable)>,
 }
 
 impl SeekTableCache {
-    fn get(&mut self, key: &str) -> Option<SeekTable> {
+    fn get(&mut self, key: &str, version: &str) -> Option<SeekTable> {
         let index = self
             .entries
             .iter()
-            .position(|(cached_key, _)| cached_key == key)?;
+            .position(|((cached_key, cached_version), _)| {
+                cached_key == key && cached_version == version
+            })?;
         let entry = self.entries.remove(index).unwrap();
         let table = entry.1.clone();
         self.entries.push_front(entry);
         Some(table)
     }
 
-    fn insert(&mut self, key: String, table: SeekTable) {
-        self.entries.retain(|(cached_key, _)| cached_key != &key);
-        self.entries.push_front((key, table));
+    fn insert(&mut self, key: String, version: String, table: SeekTable) {
+        self.entries.retain(|((cached_key, cached_version), _)| {
+            cached_key != &key || cached_version != &version
+        });
+        self.entries.push_front(((key, version), table));
         self.entries.truncate(64);
     }
 
     fn remove(&mut self, key: &str) {
-        self.entries.retain(|(cached_key, _)| cached_key != key);
+        self.entries
+            .retain(|((cached_key, _), _)| cached_key != key);
     }
 }
 
@@ -1064,12 +1100,10 @@ fn parse_seek_table(bytes: &[u8], frame_count: u64, descriptor: u8) -> Result<Se
             stored_end: stored_offset
                 .checked_add(stored_size)
                 .ok_or_else(|| anyhow!("seek table stored offsets overflow"))?,
-            stored_size,
             logical_start: logical_offset,
             logical_end: logical_offset
                 .checked_add(logical_size)
                 .ok_or_else(|| anyhow!("seek table logical offsets overflow"))?,
-            logical_size,
         };
         stored_offset = frame.stored_end;
         logical_offset = frame.logical_end;
@@ -1246,10 +1280,7 @@ mod tests {
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
     use rand::{RngExt, SeedableRng};
-    use std::sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    };
+    use std::sync::{Arc, Mutex};
 
     #[test]
     fn session_object_keys_are_stable_and_session_scoped() {
@@ -1342,7 +1373,9 @@ mod tests {
         assert_eq!(stored.metadata.sha256, object.sha256);
         assert_eq!(stored.metadata.filename, object.filename);
         assert_eq!(stored.metadata.content_encoding, object.content_encoding);
-        assert_eq!(stored.metadata.metadata, object.metadata);
+        let mut stored_user_metadata = stored.metadata.metadata;
+        stored_user_metadata.remove(crate::control::object_store::OBJECT_VERSION_METADATA);
+        assert_eq!(stored_user_metadata, object.metadata);
 
         let loaded = store
             .get_session_object(
@@ -1931,7 +1964,7 @@ mod tests {
         #[derive(Default)]
         struct CountingStore {
             inner: InMemoryObjectStore,
-            range_calls: AtomicUsize,
+            ranges: Mutex<Vec<std::ops::Range<u64>>>,
         }
         #[async_trait::async_trait]
         impl ObjectStore for CountingStore {
@@ -1954,8 +1987,16 @@ mod tests {
                 key: &str,
                 range: std::ops::Range<u64>,
             ) -> anyhow::Result<Option<Vec<u8>>> {
-                self.range_calls.fetch_add(1, Ordering::SeqCst);
                 self.inner.get_range(key, range).await
+            }
+            async fn get_range_if_version(
+                &self,
+                key: &str,
+                range: std::ops::Range<u64>,
+                version: &str,
+            ) -> anyhow::Result<Option<Vec<u8>>> {
+                self.ranges.lock().unwrap().push(range.clone());
+                self.inner.get_range_if_version(key, range, version).await
             }
             async fn head(&self, key: &str) -> anyhow::Result<Option<ObjectMetadata>> {
                 self.inner.head(key).await
@@ -1987,37 +2028,83 @@ mod tests {
                 .unwrap(),
             b"xxxx"
         );
-        let after_first = objects.range_calls.load(Ordering::SeqCst);
+        let stored = objects.inner.get(&object.key).await.unwrap().unwrap();
+        let footer_start = stored.bytes.len() - super::SEEK_FOOTER_BYTES;
+        let (frame_count, descriptor) =
+            super::parse_seek_footer(&stored.bytes[footer_start..]).unwrap();
+        let entry_size = if descriptor & super::SEEK_CHECKSUM_FLAG != 0 {
+            12
+        } else {
+            8
+        };
+        let table_size = super::SEEKABLE_SKIPPABLE_HEADER_BYTES
+            + frame_count as usize * entry_size
+            + super::SEEK_FOOTER_BYTES;
+        let table = super::parse_seek_table(
+            &stored.bytes[stored.bytes.len() - table_size..],
+            frame_count,
+            descriptor,
+        )
+        .unwrap();
+        let after_first = objects.ranges.lock().unwrap().len();
         assert_eq!(
-            store
-                .get_text_range_decoded(&object.key, 9..12)
-                .await
-                .unwrap(),
-            b"xxx"
+            objects.ranges.lock().unwrap().last(),
+            Some(&(table.frames[0].stored_start..table.frames[0].stored_end)),
+            "single-frame read fetches only that stored frame"
         );
         assert_eq!(
-            objects.range_calls.load(Ordering::SeqCst),
+            store
+                .get_text_range_decoded(
+                    &object.key,
+                    TOOL_RESULT_SEEKABLE_FRAME_BYTES as u64 - 1
+                        ..TOOL_RESULT_SEEKABLE_FRAME_BYTES as u64 + 1,
+                )
+                .await
+                .unwrap(),
+            b"xx"
+        );
+        assert_eq!(
+            objects.ranges.lock().unwrap().len(),
             after_first + 1,
             "second read fetches a frame but not a footer/table"
+        );
+        assert_eq!(
+            objects.ranges.lock().unwrap().last(),
+            Some(&(table.frames[0].stored_start..table.frames[1].stored_end)),
+            "cross-frame read fetches exactly the intersecting stored frames"
         );
     }
 
     #[test]
     fn seek_table_cache_evicts_the_least_recently_used_entry_at_capacity() {
         let mut cache = SeekTableCache::default();
-        for index in 0..65 {
+        for index in 0..64 {
             cache.insert(
                 format!("key-{index}"),
+                "version".to_string(),
                 SeekTable {
                     frames: Vec::new(),
                     logical_size: index,
                 },
             );
         }
+        assert!(cache.get("key-0", "version").is_some());
+        cache.insert(
+            "key-64".to_string(),
+            "version".to_string(),
+            SeekTable {
+                frames: Vec::new(),
+                logical_size: 64,
+            },
+        );
 
         assert_eq!(cache.entries.len(), 64);
-        assert!(cache.get("key-0").is_none(), "oldest entry is evicted");
-        assert_eq!(cache.get("key-64").unwrap().logical_size, 64);
+        assert!(
+            cache.get("key-1", "version").is_none(),
+            "untouched oldest entry is evicted"
+        );
+        assert_eq!(cache.get("key-0", "version").unwrap().logical_size, 0);
+        assert_eq!(cache.get("key-64", "version").unwrap().logical_size, 64);
     }
 
     #[tokio::test]
@@ -2069,6 +2156,98 @@ mod tests {
                 .await
                 .unwrap(),
             replacement[17..31]
+        );
+    }
+
+    #[tokio::test]
+    async fn range_read_retries_when_the_object_changes_between_table_and_frame_reads() {
+        struct OverwritingStore {
+            inner: Arc<InMemoryObjectStore>,
+            replacement: Mutex<Option<(String, Vec<u8>, ObjectMetadata)>>,
+        }
+        #[async_trait::async_trait]
+        impl ObjectStore for OverwritingStore {
+            async fn put(
+                &self,
+                key: &str,
+                bytes: &[u8],
+                metadata: ObjectMetadata,
+            ) -> anyhow::Result<crate::gateway::rpc::data_proto::ObjectRef> {
+                self.inner.put(key, bytes, metadata).await
+            }
+            async fn get(
+                &self,
+                key: &str,
+            ) -> anyhow::Result<Option<crate::control::object_store::StoredObject>> {
+                self.inner.get(key).await
+            }
+            async fn get_range(
+                &self,
+                key: &str,
+                range: std::ops::Range<u64>,
+            ) -> anyhow::Result<Option<Vec<u8>>> {
+                self.inner.get_range(key, range).await
+            }
+            async fn get_range_if_version(
+                &self,
+                key: &str,
+                range: std::ops::Range<u64>,
+                version: &str,
+            ) -> anyhow::Result<Option<Vec<u8>>> {
+                let bytes = self.inner.get_range_if_version(key, range, version).await?;
+                let replacement = { self.replacement.lock().unwrap().take() };
+                if let Some((replacement_key, replacement_bytes, replacement_metadata)) =
+                    replacement
+                {
+                    self.inner
+                        .put(&replacement_key, &replacement_bytes, replacement_metadata)
+                        .await?;
+                }
+                Ok(bytes)
+            }
+            async fn head(&self, key: &str) -> anyhow::Result<Option<ObjectMetadata>> {
+                self.inner.head(key).await
+            }
+            async fn delete(&self, key: &str) -> anyhow::Result<()> {
+                self.inner.delete(key).await
+            }
+        }
+
+        let inner = Arc::new(InMemoryObjectStore::default());
+        let objects = Arc::new(OverwritingStore {
+            inner: inner.clone(),
+            replacement: Mutex::new(None),
+        });
+        let store = CasStore::new(objects.clone());
+        let original = vec![b'a'; TOOL_RESULT_SEEKABLE_FRAME_BYTES * 2];
+        let replacement = vec![b'z'; original.len()];
+        let object = store
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                &original,
+            )
+            .await
+            .unwrap();
+        let mut replacement_metadata = inner.get(&object.key).await.unwrap().unwrap().metadata;
+        let replacement_bytes = super::seekable_zstd(&replacement).unwrap();
+        replacement_metadata.size_bytes = replacement_bytes.len() as u64;
+        replacement_metadata.sha256 = super::sha256_hex(&replacement_bytes);
+        *objects.replacement.lock().unwrap() =
+            Some((object.key.clone(), replacement_bytes, replacement_metadata));
+
+        assert_eq!(
+            store
+                .get_text_range_decoded(&object.key, 17..31)
+                .await
+                .unwrap(),
+            replacement[17..31],
+            "a stale seek table must never be applied to replacement bytes"
         );
     }
 
