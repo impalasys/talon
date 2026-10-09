@@ -96,6 +96,20 @@ impl CasStore {
         self.objects.as_ref()
     }
 
+    async fn put_object(
+        &self,
+        key: &str,
+        bytes: &[u8],
+        metadata: ObjectMetadata,
+    ) -> Result<data_proto::ObjectRef> {
+        let object = self.objects.put(key, bytes, metadata).await?;
+        // Cache entries are keyed by canonical object key rather than version. Drop
+        // them after a successful mutation so a replacement cannot reuse old frame
+        // boundaries, even when its stored or logical size is unchanged.
+        self.seek_tables.lock().unwrap().remove(key);
+        Ok(object)
+    }
+
     pub fn session_object_key(
         &self,
         scope: &SessionCasScope,
@@ -120,20 +134,19 @@ impl CasStore {
             ("file_uid".to_string(), file_uid.to_string()),
             ("path".to_string(), path.to_string()),
         ]);
-        self.objects
-            .put(
-                &key,
-                bytes,
-                ObjectMetadata {
-                    media_type: media_type.to_string(),
-                    size_bytes: bytes.len() as u64,
-                    sha256: sha,
-                    filename: filename_for_path(path),
-                    content_encoding: String::new(),
-                    metadata,
-                },
-            )
-            .await
+        self.put_object(
+            &key,
+            bytes,
+            ObjectMetadata {
+                media_type: media_type.to_string(),
+                size_bytes: bytes.len() as u64,
+                sha256: sha,
+                filename: filename_for_path(path),
+                content_encoding: String::new(),
+                metadata,
+            },
+        )
+        .await
     }
 
     pub fn signed_file_object_metadata(
@@ -194,20 +207,19 @@ impl CasStore {
             ("path".to_string(), path.to_string()),
             ("latest".to_string(), "true".to_string()),
         ]);
-        self.objects
-            .put(
-                &key,
-                bytes,
-                ObjectMetadata {
-                    media_type: media_type.to_string(),
-                    size_bytes: bytes.len() as u64,
-                    sha256: sha256_hex(bytes),
-                    filename: filename_for_path(path),
-                    content_encoding: String::new(),
-                    metadata,
-                },
-            )
-            .await
+        self.put_object(
+            &key,
+            bytes,
+            ObjectMetadata {
+                media_type: media_type.to_string(),
+                size_bytes: bytes.len() as u64,
+                sha256: sha256_hex(bytes),
+                filename: filename_for_path(path),
+                content_encoding: String::new(),
+                metadata,
+            },
+        )
+        .await
     }
 
     pub async fn put_artifact(
@@ -230,20 +242,19 @@ impl CasStore {
         metadata.insert("artifact_id".to_string(), artifact_uid.to_string());
         metadata.insert(METADATA_AGENT.to_string(), agent.to_string());
         metadata.insert("session_id".to_string(), session_id.to_string());
-        self.objects
-            .put(
-                &key,
-                bytes,
-                ObjectMetadata {
-                    media_type: media_type.to_string(),
-                    size_bytes: bytes.len() as u64,
-                    sha256: sha,
-                    filename: String::new(),
-                    content_encoding: String::new(),
-                    metadata,
-                },
-            )
-            .await
+        self.put_object(
+            &key,
+            bytes,
+            ObjectMetadata {
+                media_type: media_type.to_string(),
+                size_bytes: bytes.len() as u64,
+                sha256: sha,
+                filename: String::new(),
+                content_encoding: String::new(),
+                metadata,
+            },
+        )
+        .await
     }
 
     /// Load caller-defined content as logical bytes.
@@ -258,7 +269,9 @@ impl CasStore {
     }
 
     pub async fn delete_object(&self, key: &str) -> Result<()> {
-        self.objects.delete(key).await
+        self.objects.delete(key).await?;
+        self.seek_tables.lock().unwrap().remove(key);
+        Ok(())
     }
 
     /// Store a tool result under the canonical session/message/part CAS path.
@@ -290,20 +303,20 @@ impl CasStore {
         let stored_bytes = seekable_zstd(&logical_bytes)?;
         let metadata = tool_result_metadata(&scope, tool_call_id, tool_name, &logical_bytes);
 
-        self.objects
-            .put(
-                &self.session_object_key(&scope, &identity),
-                &stored_bytes,
-                ObjectMetadata {
-                    media_type: TOOL_RESULT_MEDIA_TYPE.to_string(),
-                    size_bytes: stored_bytes.len() as u64,
-                    sha256: sha256_hex(&stored_bytes),
-                    filename: format!("{}.txt", object_key_segment(tool_call_id)),
-                    content_encoding: CONTENT_ENCODING_ZSTD.to_string(),
-                    metadata,
-                },
-            )
-            .await
+        let key = self.session_object_key(&scope, &identity);
+        self.put_object(
+            &key,
+            &stored_bytes,
+            ObjectMetadata {
+                media_type: TOOL_RESULT_MEDIA_TYPE.to_string(),
+                size_bytes: stored_bytes.len() as u64,
+                sha256: sha256_hex(&stored_bytes),
+                filename: format!("{}.txt", object_key_segment(tool_call_id)),
+                content_encoding: CONTENT_ENCODING_ZSTD.to_string(),
+                metadata,
+            },
+        )
+        .await
     }
 
     /// Decode a logical byte range from a text tool-result object.
@@ -462,30 +475,29 @@ impl CasStore {
         let identity =
             SessionObjectIdentity::new("encrypted-reasoning", &uuid::Uuid::now_v7().to_string());
         let bytes = value.as_bytes();
-        self.objects
-            .put(
-                &session_object_key_with_extension(&scope, &identity, "bin"),
-                bytes,
-                ObjectMetadata {
-                    media_type: "application/octet-stream".to_string(),
-                    size_bytes: bytes.len() as u64,
-                    sha256: sha256_hex(bytes),
-                    filename: String::new(),
-                    content_encoding: String::new(),
-                    metadata: HashMap::from([
-                        (
-                            METADATA_KIND.to_string(),
-                            METADATA_KIND_ENCRYPTED_REASONING.to_string(),
-                        ),
-                        ("namespace".to_string(), ns.to_string()),
-                        (METADATA_AGENT.to_string(), agent.to_string()),
-                        ("session_id".to_string(), session_id.to_string()),
-                        ("provider".to_string(), provider.to_string()),
-                        ("model".to_string(), model.to_string()),
-                    ]),
-                },
-            )
-            .await
+        self.put_object(
+            &session_object_key_with_extension(&scope, &identity, "bin"),
+            bytes,
+            ObjectMetadata {
+                media_type: "application/octet-stream".to_string(),
+                size_bytes: bytes.len() as u64,
+                sha256: sha256_hex(bytes),
+                filename: String::new(),
+                content_encoding: String::new(),
+                metadata: HashMap::from([
+                    (
+                        METADATA_KIND.to_string(),
+                        METADATA_KIND_ENCRYPTED_REASONING.to_string(),
+                    ),
+                    ("namespace".to_string(), ns.to_string()),
+                    (METADATA_AGENT.to_string(), agent.to_string()),
+                    ("session_id".to_string(), session_id.to_string()),
+                    ("provider".to_string(), provider.to_string()),
+                    ("model".to_string(), model.to_string()),
+                ]),
+            },
+        )
+        .await
     }
 
     /// Store the immutable Markdown summary for a durable context compaction.
@@ -513,20 +525,19 @@ impl CasStore {
             ("submission_id".to_string(), submission_id.to_string()),
             ("journal_entry_id".to_string(), journal_entry_id.to_string()),
         ]);
-        self.objects
-            .put(
-                &key,
-                bytes,
-                ObjectMetadata {
-                    media_type: "text/markdown; charset=utf-8".to_string(),
-                    size_bytes: bytes.len() as u64,
-                    sha256: sha256_hex(bytes),
-                    filename: format!("{}.txt", object_key_segment(journal_entry_id)),
-                    content_encoding: String::new(),
-                    metadata,
-                },
-            )
-            .await
+        self.put_object(
+            &key,
+            bytes,
+            ObjectMetadata {
+                media_type: "text/markdown; charset=utf-8".to_string(),
+                size_bytes: bytes.len() as u64,
+                sha256: sha256_hex(bytes),
+                filename: format!("{}.txt", object_key_segment(journal_entry_id)),
+                content_encoding: String::new(),
+                metadata,
+            },
+        )
+        .await
     }
 
     /// Store a tool result only after the logical value crosses a raw-byte
@@ -970,6 +981,10 @@ impl SeekTableCache {
         self.entries.push_front((key, table));
         self.entries.truncate(64);
     }
+
+    fn remove(&mut self, key: &str) {
+        self.entries.retain(|(cached_key, _)| cached_key != key);
+    }
 }
 
 fn seekable_zstd(raw_bytes: &[u8]) -> Result<Vec<u8>> {
@@ -1222,16 +1237,15 @@ fn sha256_hex(bytes: &[u8]) -> String {
 mod tests {
     use super::{
         compaction_summary_object_key, parse_session_object_key, CasRangeError, CasStore,
-        SessionCasScope, SessionObjectIdentity, CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD,
-        MAX_LOGICAL_OBJECT_BYTES, MAX_TOOL_RESULT_LOGICAL_BYTES, METADATA_AGENT,
-        METADATA_CONTENT_ENCODING, METADATA_KIND, METADATA_KIND_ARTIFACT, METADATA_KIND_COMPACTION,
-        METADATA_KIND_ENCRYPTED_REASONING, METADATA_KIND_FILE, METADATA_UNCOMPRESSED_SIZE_BYTES,
-        TOOL_RESULT_SEEKABLE_FRAME_BYTES, TOOL_RESULT_TRUNCATION_MARKER,
+        SeekTable, SeekTableCache, SessionCasScope, SessionObjectIdentity, CONTENT_ENCODING_GZIP,
+        CONTENT_ENCODING_ZSTD, MAX_LOGICAL_OBJECT_BYTES, MAX_TOOL_RESULT_LOGICAL_BYTES,
+        METADATA_AGENT, METADATA_CONTENT_ENCODING, METADATA_KIND, METADATA_KIND_ARTIFACT,
+        METADATA_KIND_COMPACTION, METADATA_KIND_ENCRYPTED_REASONING, METADATA_KIND_FILE,
+        METADATA_UNCOMPRESSED_SIZE_BYTES, TOOL_RESULT_SEEKABLE_FRAME_BYTES,
+        TOOL_RESULT_TRUNCATION_MARKER,
     };
     use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
-    use flate2::{write::GzEncoder, Compression};
     use rand::{RngExt, SeedableRng};
-    use std::io::Write;
     use std::sync::{
         atomic::{AtomicUsize, Ordering},
         Arc,
@@ -1657,9 +1671,9 @@ mod tests {
         let objects = Arc::new(InMemoryObjectStore::default());
         let store = CasStore::new(objects.clone());
         let raw = b"legacy gzip payload";
-        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-        encoder.write_all(raw).unwrap();
-        let gzip_bytes = encoder.finish().unwrap();
+        // Use the historical CAS compressor rather than constructing a fixture
+        // directly, so legacy-object tests match what old writers stored.
+        let gzip_bytes = super::gzip(raw).unwrap();
         let object = objects
             .put(
                 "cas/acme/sessions/session-1/messages/message-1/000001.txt",
@@ -1759,6 +1773,7 @@ mod tests {
         for (index, size) in [
             0,
             17,
+            TOOL_RESULT_SEEKABLE_FRAME_BYTES - 1,
             TOOL_RESULT_SEEKABLE_FRAME_BYTES,
             TOOL_RESULT_SEEKABLE_FRAME_BYTES + 1,
             TOOL_RESULT_SEEKABLE_FRAME_BYTES * 2 + 19,
@@ -1985,6 +2000,104 @@ mod tests {
             after_first + 1,
             "second read fetches a frame but not a footer/table"
         );
+    }
+
+    #[test]
+    fn seek_table_cache_evicts_the_least_recently_used_entry_at_capacity() {
+        let mut cache = SeekTableCache::default();
+        for index in 0..65 {
+            cache.insert(
+                format!("key-{index}"),
+                SeekTable {
+                    frames: Vec::new(),
+                    logical_size: index,
+                },
+            );
+        }
+
+        assert_eq!(cache.entries.len(), 64);
+        assert!(cache.get("key-0").is_none(), "oldest entry is evicted");
+        assert_eq!(cache.get("key-64").unwrap().logical_size, 64);
+    }
+
+    #[tokio::test]
+    async fn range_reads_invalidate_cached_table_after_overwrite() {
+        let objects = Arc::new(InMemoryObjectStore::default());
+        let store = CasStore::new(objects);
+        let original = (0..TOOL_RESULT_SEEKABLE_FRAME_BYTES * 2)
+            .map(|index| (index % 251) as u8)
+            .collect::<Vec<_>>();
+        let replacement = vec![b'z'; original.len()];
+        let first = store
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                &original,
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            store
+                .get_text_range_decoded(&first.key, 17..31)
+                .await
+                .unwrap(),
+            original[17..31]
+        );
+
+        let replacement_object = store
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                &replacement,
+            )
+            .await
+            .unwrap();
+        assert_eq!(replacement_object.key, first.key);
+        assert_eq!(
+            store
+                .get_text_range_decoded(&first.key, 17..31)
+                .await
+                .unwrap(),
+            replacement[17..31]
+        );
+    }
+
+    #[tokio::test]
+    async fn range_reads_reject_invalid_logical_ranges() {
+        let store = CasStore::new(Arc::new(InMemoryObjectStore::default()));
+        let object = store
+            .put_tool_result(
+                "acme",
+                "agent",
+                "session-1",
+                "message-1",
+                "000001",
+                "call-1",
+                "search",
+                b"logical bytes",
+            )
+            .await
+            .unwrap();
+        for range in [5..4, 0..14] {
+            let error = store
+                .get_text_range_decoded(&object.key, range)
+                .await
+                .unwrap_err();
+            assert!(matches!(
+                error.downcast_ref::<CasRangeError>(),
+                Some(CasRangeError::InvalidLogicalRange { .. })
+            ));
+        }
     }
 
     #[tokio::test]

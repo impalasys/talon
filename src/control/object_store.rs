@@ -481,7 +481,14 @@ impl ObjectStore for GcsObjectStore {
         }
         let response = ensure_success(response, "GCS object metadata fetch").await?;
         let mut metadata = metadata_from_headers(response.headers());
-        metadata.size_bytes = response.content_length().unwrap_or_default();
+        // reqwest reports no body length for a HEAD response even though GCS
+        // supplies the object's Content-Length header.
+        metadata.size_bytes = response
+            .headers()
+            .get(reqwest::header::CONTENT_LENGTH)
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.parse().ok())
+            .unwrap_or_default();
         Ok(Some(metadata))
     }
 
@@ -1013,6 +1020,127 @@ mod tests {
         object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
         S3ObjectStoreConfig,
     };
+    use google_cloud_auth::credentials::{
+        AccessToken, AccessTokenCredentials, AccessTokenCredentialsProvider, CacheableResource,
+        CredentialsProvider, EntityTag,
+    };
+    use std::sync::Arc;
+    use tokio::{
+        io::{AsyncReadExt, AsyncWriteExt},
+        net::TcpListener,
+        sync::Mutex,
+    };
+
+    #[derive(Clone, Debug)]
+    struct StaticAccessTokenCredentials;
+
+    impl CredentialsProvider for StaticAccessTokenCredentials {
+        async fn headers(
+            &self,
+            _extensions: axum::http::Extensions,
+        ) -> std::result::Result<
+            CacheableResource<axum::http::HeaderMap>,
+            google_cloud_auth::errors::CredentialsError,
+        > {
+            Ok(CacheableResource::New {
+                data: axum::http::HeaderMap::new(),
+                entity_tag: EntityTag::default(),
+            })
+        }
+
+        async fn universe_domain(&self) -> Option<String> {
+            None
+        }
+    }
+
+    impl AccessTokenCredentialsProvider for StaticAccessTokenCredentials {
+        async fn access_token(
+            &self,
+        ) -> std::result::Result<AccessToken, google_cloud_auth::errors::CredentialsError> {
+            Ok(AccessToken {
+                token: "test-token".to_string(),
+            })
+        }
+    }
+
+    #[derive(Clone, Default)]
+    struct RangeRequestCapture {
+        ranges: Arc<Mutex<Vec<String>>>,
+    }
+
+    impl GcsObjectStore {
+        fn for_range_test(api_base: String) -> Self {
+            Self {
+                client: reqwest::Client::new(),
+                credentials: AccessTokenCredentials::from(StaticAccessTokenCredentials),
+                bucket: "test-bucket".to_string(),
+                prefix: "prefix".to_string(),
+                api_base,
+            }
+        }
+    }
+
+    async fn s3_for_range_test(endpoint_url: String) -> S3ObjectStore {
+        let shared_config = aws_config::defaults(aws_config::BehaviorVersion::latest())
+            .region(aws_config::Region::new("us-east-1"))
+            .credentials_provider(aws_sdk_s3::config::Credentials::new(
+                "test", "test", None, None, "test",
+            ))
+            .endpoint_url(endpoint_url)
+            .load()
+            .await;
+        let config = aws_sdk_s3::config::Builder::from(&shared_config)
+            .force_path_style(true)
+            .build();
+        S3ObjectStore {
+            client: aws_sdk_s3::Client::from_conf(config),
+            bucket: "test-bucket".to_string(),
+            prefix: "prefix".to_string(),
+        }
+    }
+
+    async fn range_test_server(capture: RangeRequestCapture) -> String {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            for _ in 0..2 {
+                let (mut stream, _) = listener.accept().await.unwrap();
+                let mut request = Vec::new();
+                let mut buffer = [0; 1024];
+                loop {
+                    let read = stream.read(&mut buffer).await.unwrap();
+                    request.extend_from_slice(&buffer[..read]);
+                    if request.windows(4).any(|window| window == b"\r\n\r\n") {
+                        break;
+                    }
+                }
+                let request = String::from_utf8(request).unwrap();
+                if request.starts_with("HEAD ") {
+                    stream
+                        .write_all(
+                            b"HTTP/1.1 200 OK\r\nContent-Length: 6\r\nConnection: close\r\n\r\n",
+                        )
+                        .await
+                        .unwrap();
+                } else {
+                    let range = request
+                        .lines()
+                        .find_map(|line| {
+                            line.strip_prefix("range: ")
+                                .or_else(|| line.strip_prefix("Range: "))
+                        })
+                        .unwrap()
+                        .to_string();
+                    capture.ranges.lock().await.push(range);
+                    stream
+                        .write_all(b"HTTP/1.1 206 Partial Content\r\nContent-Length: 3\r\nConnection: close\r\n\r\nbcd")
+                        .await
+                        .unwrap();
+                }
+            }
+        });
+        format!("http://{address}")
+    }
 
     #[tokio::test]
     async fn local_object_store_round_trips_bytes_and_metadata() {
@@ -1077,6 +1205,30 @@ mod tests {
             assert!(error.downcast_ref::<ObjectRangeError>().is_some());
         }
         assert!(super::validate_object_range(&(6..6), 6).is_ok());
+    }
+
+    #[tokio::test]
+    async fn gcs_range_reads_send_a_half_open_http_range_request() {
+        let capture = RangeRequestCapture::default();
+        let store = GcsObjectStore::for_range_test(range_test_server(capture.clone()).await);
+
+        assert_eq!(
+            store.get_range("sessions/object.txt", 1..4).await.unwrap(),
+            Some(b"bcd".to_vec())
+        );
+        assert_eq!(*capture.ranges.lock().await, ["bytes=1-3"]);
+    }
+
+    #[tokio::test]
+    async fn s3_range_reads_send_a_half_open_http_range_request() {
+        let capture = RangeRequestCapture::default();
+        let store = s3_for_range_test(range_test_server(capture.clone()).await).await;
+
+        assert_eq!(
+            store.get_range("sessions/object.txt", 1..4).await.unwrap(),
+            Some(b"bcd".to_vec())
+        );
+        assert_eq!(*capture.ranges.lock().await, ["bytes=1-3"]);
     }
 
     #[tokio::test]
