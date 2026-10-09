@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod byte_range;
 mod client;
 
 pub mod generated {
