@@ -200,7 +200,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_cas_object_returns_session_scoped_bytes() {
+    async fn get_cas_object_returns_session_scoped_stored_bytes() {
         let objects = Arc::new(InMemoryObjectStore::default());
         let cas = CasStore::new(objects.clone());
         let object = cas
@@ -225,7 +225,9 @@ mod tests {
             .unwrap()
             .into_inner();
 
-        assert_eq!(response.data, b"hello");
+        assert_ne!(response.data, b"hello");
+        assert_eq!(&response.data[..4], &[0x28, 0xb5, 0x2f, 0xfd]);
+        assert_eq!(response.content_encoding, "zstd");
         assert_eq!(response.media_type, object.media_type);
         assert_eq!(response.size_bytes, object.size_bytes);
     }
