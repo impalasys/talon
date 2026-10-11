@@ -32,6 +32,7 @@ pub mod dispatch;
 pub mod files;
 pub mod goals;
 pub mod research;
+mod resources;
 pub mod schedules;
 pub mod sessions;
 pub mod tasks;
@@ -80,6 +81,8 @@ pub const LIST_TASKS_TOOL: &str = "list_tasks";
 pub const UPDATE_TASK_TOOL: &str = "update_task";
 pub const READ_SESSION_MESSAGES_TOOL: &str = "read_session_messages";
 pub const READ_TOOL_RESULT_TOOL: &str = "read_tool_result";
+pub const READ_RESOURCE_TOOL: &str = "read";
+pub const WRITE_RESOURCE_TOOL: &str = "write";
 pub const CREATE_GOAL_TOOL: &str = "create_goal";
 pub const GET_GOAL_TOOL: &str = "get_goal";
 pub const LIST_GOALS_TOOL: &str = "list_goals";
@@ -1302,10 +1305,12 @@ mod tests {
         );
 
         assert!(read_registry.get_tool(LIST_FILES_TOOL).is_some());
-        assert!(read_registry.get_tool(READ_FILE_TOOL).is_some());
+        assert!(read_registry.get_tool(READ_RESOURCE_TOOL).is_some());
+        assert!(read_registry.get_tool(READ_FILE_TOOL).is_none());
         assert!(read_registry.get_tool(GET_FILE_METADATA_TOOL).is_some());
         assert!(read_registry.get_tool(CREATE_FILE_TOOL).is_none());
         assert!(read_registry.get_tool(UPDATE_FILE_TOOL).is_none());
+        assert!(read_registry.get_tool(WRITE_RESOURCE_TOOL).is_none());
         assert!(read_registry.get_tool(DELETE_FILE_TOOL).is_none());
 
         let mut write_registry = ToolRegistry::new();
@@ -1315,8 +1320,9 @@ mod tests {
             &Config::default(),
         );
 
-        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_some());
-        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_some());
+        assert!(write_registry.get_tool(WRITE_RESOURCE_TOOL).is_some());
+        assert!(write_registry.get_tool(CREATE_FILE_TOOL).is_none());
+        assert!(write_registry.get_tool(UPDATE_FILE_TOOL).is_none());
         assert!(write_registry.get_tool(DELETE_FILE_TOOL).is_some());
         assert!(write_registry.get_tool(READ_FILE_TOOL).is_none());
     }

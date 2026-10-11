@@ -141,6 +141,54 @@ pub async fn read_tool_result_handle(
     .await
 }
 
+pub async fn read_tool_result_handle_bounded(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    uri: &str,
+    start: u64,
+    max_size: u64,
+) -> Result<ToolOutput> {
+    if max_size == 0 || max_size > MAX_TOOL_RESULT_READ_BYTES {
+        bail!("tool result reads are limited to 8192 bytes");
+    }
+    let handle = parse_tool_result_handle(uri)?;
+    let part_index = handle
+        .part_index
+        .ok_or_else(|| anyhow!("byte_range can only be used with a tr:// part handle"))?;
+    let payload =
+        resolve_tool_result_payload(cp, ns, agent, session_id, &handle.tool_call_id).await?;
+    let part = payload
+        .tool_output
+        .content_parts
+        .get(part_index)
+        .ok_or_else(|| anyhow!("tool result part index {part_index} does not exist"))?;
+    let total = match part.content.as_ref() {
+        Some(chat_content_part::Content::Text(text)) => text.len() as u64,
+        Some(chat_content_part::Content::ObjectRef(object)) => object
+            .metadata
+            .get("uncompressed_size_bytes")
+            .and_then(|size| size.parse().ok())
+            .unwrap_or(object.size_bytes),
+        None => bail!("tool result part has no content"),
+    };
+    if start > total {
+        bail!("byte range exceeds the tool result part size");
+    }
+    let end = start.saturating_add(max_size).min(total);
+    materialize_part(
+        cp,
+        ns,
+        agent,
+        session_id,
+        &handle.tool_call_id,
+        part,
+        Some(ByteRange { start, end }),
+    )
+    .await
+}
+
 async fn resolve_tool_result_payload(
     cp: &ControlPlane,
     ns: &str,

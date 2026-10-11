@@ -163,6 +163,44 @@ pub async fn execute_tool_for_session_output(
             .await
             .map(Some)
         }
+        READ_RESOURCE_TOOL => {
+            let reference = req_str(args, "ref")?;
+            if reference.starts_with("tr://") {
+                require_capability(spec, "sessions", "read:messages")?;
+                require_global_capability(config, "sessions", "read:messages")?;
+            } else {
+                require_file_read(spec)?;
+                require_global_capability(config, "files", "read")?;
+            }
+            crate::harness::native_tools::resources::read(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await
+            .map(Some)
+        }
+        WRITE_RESOURCE_TOOL => {
+            let action = if args.get("ref").and_then(Value::as_str).is_some() {
+                "update"
+            } else {
+                "create"
+            };
+            require_capability(spec, "files", action)?;
+            require_global_capability(config, "files", action)?;
+            crate::harness::native_tools::resources::write(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await
+            .map(ToolOutput::text)
+            .map(Some)
+        }
         LIST_FILES_TOOL => {
             require_file_read(spec)?;
             crate::harness::native_tools::files::list_files_tool(cp, current_namespace, args)

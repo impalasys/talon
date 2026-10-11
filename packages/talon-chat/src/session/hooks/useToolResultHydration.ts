@@ -63,7 +63,14 @@ function findObjectPart(parts: unknown, toolCallId: string): ToolResultPartMatch
 function findHydratableObjectPart(parts: unknown, toolCallId: string): ToolResultPartMatch | null {
   const match = findObjectPart(parts, toolCallId);
   const content = match?.part.content;
-  return match && !(typeof content === "string" && content.length > 0) ? match : null;
+  if (!match || (typeof content === "string" && content.length > 0)) return null;
+  const mediaType = (match.object as any).mediaType ?? (match.object as any).media_type ?? "";
+  const normalizedType = typeof mediaType === "string" ? mediaType.split(";")[0]!.trim().toLowerCase() : "";
+  const isText = normalizedType.startsWith("text/")
+    || ["application/json", "application/yaml", "application/x-yaml", "application/toml", "application/xml", "application/javascript", "application/x-javascript"].includes(normalizedType)
+    || normalizedType.endsWith("+json")
+    || normalizedType.endsWith("+xml");
+  return isText ? match : null;
 }
 
 function textFromOutput(value: any): string | null {
@@ -71,8 +78,11 @@ function textFromOutput(value: any): string | null {
   const contentParts = output?.contentParts ?? output?.content_parts;
   if (Array.isArray(contentParts)) {
     const text = contentParts
-      .filter((part: any) => part?.type === "text" && typeof part.text === "string")
-      .map((part: any) => part.text)
+      .filter((part: any) =>
+        (part?.type === "text" && typeof part.text === "string")
+        || (part?.content?.case === "text" && typeof part.content.value === "string"),
+      )
+      .map((part: any) => part.type === "text" ? part.text : part.content.value)
       .join("");
     return text || null;
   }
