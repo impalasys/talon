@@ -6,8 +6,8 @@ use super::{
     COMPLETE_GOAL_TOOL, CREATE_FILE_TOOL, CREATE_GOAL_TOOL, CREATE_SCHEDULE_TOOL,
     DEACTIVATE_SKILL_TOOL, DELETE_FILE_TOOL, DELETE_SCHEDULE_TOOL, FETCH_URL_TOOL,
     GET_FILE_METADATA_TOOL, GET_GOAL_TOOL, GET_SCHEDULE_TOOL, LIST_FILES_TOOL, LIST_GOALS_TOOL,
-    LIST_SCHEDULES_TOOL, READ_FILE_TOOL, READ_SESSION_MESSAGES_TOOL, UPDATE_FILE_TOOL,
-    UPDATE_GOAL_TOOL, UPDATE_SCHEDULE_TOOL, WEB_SEARCH_TOOL,
+    LIST_SCHEDULES_TOOL, READ_FILE_TOOL, READ_SESSION_MESSAGES_TOOL, READ_TOOL_RESULT_TOOL,
+    UPDATE_FILE_TOOL, UPDATE_GOAL_TOOL, UPDATE_SCHEDULE_TOOL, WEB_SEARCH_TOOL,
 };
 use crate::control::config::Config;
 use crate::gateway::rpc::manifests;
@@ -95,6 +95,28 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, 
         && !has_capability_action(spec, "goals", "update")
     {
         return;
+    }
+
+    if has_capability_action(spec, "sessions", "read:messages") {
+        registry.register_builtin(
+            READ_TOOL_RESULT_TOOL,
+            "Read a prior tool result from this session using its tr:// handle. Omit byte_range to read the full text part, or request a UTF-8 byte interval of at most 8192 bytes.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "ref": { "type": "string", "description": "Session-local tr://<encoded-tool-call-id> catalog or tr://<encoded-tool-call-id>/parts/<index> handle." },
+                    "byte_range": {
+                        "type": "object",
+                        "properties": {
+                            "start": { "type": "integer", "minimum": 0 },
+                            "end": { "type": "integer", "minimum": 0 }
+                        },
+                        "required": ["start", "end"]
+                    }
+                },
+                "required": ["ref"]
+            }),
+        );
     }
 
     if has_capability_action(spec, "schedules", "inspect") {

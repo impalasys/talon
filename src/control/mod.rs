@@ -23,6 +23,7 @@ pub mod session_queue;
 pub mod skills;
 pub mod telemetry;
 pub mod tool_output;
+pub mod tool_result_handles;
 pub mod topics;
 pub mod usage;
 pub mod uuid;

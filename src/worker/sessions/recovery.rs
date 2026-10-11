@@ -527,9 +527,13 @@ async fn replay_claimed_submission_journal(
                 name: tool.name.clone(),
                 result: result.clone(),
             });
+            let context_output = crate::control::tool_result_handles::tool_result_context_output(
+                &tool.id,
+                &result_output,
+            )?;
             runtime
                 .context
-                .push(tool_output_loop_message(&tool.id, &result_output));
+                .push(tool_output_loop_message(&tool.id, &context_output));
             stop_after_tool_results |=
                 crate::harness::native_tools::tool_requests_worker_stop(&tool.name);
         }

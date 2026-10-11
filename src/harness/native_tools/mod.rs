@@ -79,6 +79,7 @@ pub const GET_TASK_TOOL: &str = "get_task";
 pub const LIST_TASKS_TOOL: &str = "list_tasks";
 pub const UPDATE_TASK_TOOL: &str = "update_task";
 pub const READ_SESSION_MESSAGES_TOOL: &str = "read_session_messages";
+pub const READ_TOOL_RESULT_TOOL: &str = "read_tool_result";
 pub const CREATE_GOAL_TOOL: &str = "create_goal";
 pub const GET_GOAL_TOOL: &str = "get_goal";
 pub const LIST_GOALS_TOOL: &str = "list_goals";

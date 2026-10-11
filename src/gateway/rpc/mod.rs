@@ -314,6 +314,14 @@ impl proto::session_service_server::SessionService for GrpcGatewayHandler {
         self.handle_list_session_messages(req).await
     }
 
+    async fn read_tool_result_part(
+        &self,
+        req: tonic::Request<proto::ReadToolResultPartRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ReadToolResultPartResponse>, tonic::Status>
+    {
+        self.handle_read_tool_result_part(req).await
+    }
+
     async fn list_queued_messages(
         &self,
         req: tonic::Request<proto::ListQueuedSessionMessagesRequest>,

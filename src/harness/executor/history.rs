@@ -459,6 +459,25 @@ async fn tool_result_message_from_part(
     let Some(tool_call_id) = payload.get("tool_call_id").and_then(|v| v.as_str()) else {
         return Ok(None);
     };
+    if let Some(parsed) = tool_output::parse_tool_result_payload_json(
+        &part.payload_json,
+        part.object.as_ref(),
+        &part.content,
+    )? {
+        let projected = crate::control::tool_result_handles::tool_result_context_output(
+            tool_call_id,
+            &parsed.tool_output,
+        )?;
+        if projected.content_parts != parsed.tool_output.content_parts {
+            return Ok(Some(LoopMessage {
+                role: "tool".to_string(),
+                content_parts: projected.content_parts,
+                tool_calls: None,
+                tool_call_id: Some(tool_call_id.to_string()),
+                encrypted_reasoning: None,
+            }));
+        }
+    }
     if payload.get("tool_output").is_some() {
         let Some(parsed) = tool_output::parse_tool_result_payload_json(
             &part.payload_json,
@@ -567,11 +586,11 @@ async fn tool_result_message_from_part(
     Ok(Some(message))
 }
 
-/// Converts text objects in a persisted typed tool result back into text before
-/// the result is replayed into model context. Non-text objects remain references
-/// so provider adapters can hydrate them in their native representation. A
-/// missing historical object is represented explicitly so one deleted File
-/// revision cannot prevent the entire session from replaying.
+/// Materializes non-handle text objects in persisted tool results before replay.
+/// Session tool-result objects are projected as tr:// handles earlier, while
+/// non-text objects remain references for provider adapters. A missing
+/// historical object is represented explicitly so one deleted File revision
+/// cannot prevent the entire session from replaying.
 async fn materialize_tool_output_content_parts(
     parts: Vec<ChatContentPart>,
     objects: &(dyn ObjectStore + Send + Sync),

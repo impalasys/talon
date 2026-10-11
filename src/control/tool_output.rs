@@ -190,6 +190,11 @@ pub async fn normalize_for_session_storage(
     ctx: ToolOutputStorageContext<'_>,
     output: &ToolOutput,
 ) -> Result<ToolOutput> {
+    // Transcript-handle reads may be bounded or full-part reads. Keep their
+    // selected text inline so the response itself remains useful after replay.
+    if output.byte_range.is_some() || ctx.tool_name == "read_tool_result" {
+        return Ok(output.clone());
+    }
     let mut content_parts = Vec::with_capacity(output.content_parts.len());
     let mut stored_large_text = false;
     for (index, part) in output.content_parts.iter().enumerate() {
@@ -649,6 +654,42 @@ mod tests {
         let object = first_object_ref(&normalized).unwrap();
         assert!(object.key.contains("/messages/message/part.txt"));
         assert!(store.get(&object.key).await.unwrap().is_some());
+    }
+
+    #[tokio::test]
+    async fn bounded_tool_result_reads_stay_inline_for_replay() {
+        let store = Arc::new(InMemoryObjectStore::default());
+        let cas = CasStore::new(store);
+        let mut output = ToolOutput::text("x".repeat(TOOL_RESULT_OBJECT_THRESHOLD_BYTES));
+        #[allow(deprecated)]
+        {
+            output.byte_range = Some(ToolOutputByteRange {
+                start: 0,
+                end: TOOL_RESULT_OBJECT_THRESHOLD_BYTES as u64,
+                next_byte: None,
+            });
+        }
+        let normalized = normalize_for_session_storage(
+            &cas,
+            ToolOutputStorageContext {
+                ns: "ns",
+                agent: "agent",
+                session_id: "session",
+                message_id: "message",
+                part_id: "part",
+                tool_call_id: "call",
+                tool_name: "read_tool_result",
+            },
+            &output,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            plain_text(&normalized).unwrap().len(),
+            TOOL_RESULT_OBJECT_THRESHOLD_BYTES
+        );
+        assert!(first_object_ref(&normalized).is_none());
     }
 
     #[tokio::test]
