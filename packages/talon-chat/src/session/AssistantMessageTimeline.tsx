@@ -18,7 +18,7 @@ export type AssistantMessageTimelineProps = {
   hydrationState: Record<string, ToolResultHydrationState>;
   resultFor: (message: CopilotMessage, toolCallId: string, fallback: unknown) => unknown;
   onToggleTool: (key: string) => void;
-  onHydrateTool: (message: CopilotMessage, toolCallId: string, key: string, fallback: unknown) => void;
+  onHydrateTool: (message: CopilotMessage, toolCallId: string, key: string, fallback: unknown, partIndex?: number) => void;
   onResourceClick?: (uri: string) => void;
 };
 
@@ -92,29 +92,41 @@ type ToolInvocationCardProps = Pick<AssistantMessageTimelineProps,
 
 function ToolResultDetails({
   args,
-  hydration,
   result,
+  message,
+  toolCallId,
+  toolKey,
+  hydrationState,
+  onHydrateTool,
 }: {
   args: unknown;
-  hydration: ToolResultHydrationState | undefined;
   result: unknown;
+  message: CopilotMessage;
+  toolCallId: string;
+  toolKey: string;
+  hydrationState: Record<string, ToolResultHydrationState>;
+  onHydrateTool: AssistantMessageTimelineProps["onHydrateTool"];
 }) {
-  const output = hydration === "loading"
-    ? "Loading output..."
-    : hydration
-      ? <>
-        Historical output is unavailable.
-        <details style={{ marginTop: 4 }}><summary>Developer details</summary><code style={{ overflowWrap: "anywhere" }}>{hydration.objectKey}</code></details>
-      </>
-      : undefined;
+  const resultParts = (result as any)?.kind === "tool-output-parts" ? (result as any).parts as any[] : null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 12, paddingLeft: 22 }}>
       <div>
         <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>Input</div>
         <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}><code>{JSON.stringify(args ?? {}, null, 2)}</code></pre>
       </div>
-      {output ? <div style={{ fontSize: 12, color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>{output}</div> : null}
-      {!hydration && result !== undefined ? (
+      {resultParts ? resultParts.map((part, index) => {
+        const rowKey = `${toolKey}-part-${part.partIndex ?? index}`;
+        const hydration = hydrationState[rowKey];
+        if (part.kind === "external-text") {
+          return <div key={rowKey} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {hydration === "loading" ? <span>Loading text…</span> : hydration ? <span>Text could not be loaded.</span> : null}
+            {!hydration || hydration !== "loading" ? <button type="button" onClick={() => onHydrateTool(message, toolCallId, rowKey, result, part.partIndex)}>Load text</button> : null}
+          </div>;
+        }
+        if (part.kind === "attachment") return <div key={rowKey} style={{ fontSize: 12 }}>Attachment: {part.label}</div>;
+        return <pre key={rowKey} style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}>{part.text}</pre>;
+      }) : null}
+      {!resultParts && result !== undefined ? (
         <div>
           <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--talon-chat-muted-fg, rgba(82,82,91,0.88))" }}>Output</div>
           <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 8, background: "var(--talon-chat-code-bg, rgba(24,24,27,0.05))", padding: 10, fontSize: 12, margin: 0 }}><code>{typeof result === "string" ? result : JSON.stringify(result, null, 2)}</code></pre>
@@ -131,7 +143,6 @@ function ToolInvocationCard({
   const toolResult = resultFor(message, item.toolCallId, item.result);
   const isExpanded = expandedTools[toolKey] ?? false;
   const isRunning = isLive && toolResult === undefined;
-  const hydration = hydrationState[toolKey];
   return (
     <div>
       <button
@@ -139,7 +150,9 @@ function ToolInvocationCard({
         type="button"
         onClick={() => {
           onToggleTool(toolKey);
-          if (!isExpanded) onHydrateTool(message, item.toolCallId, toolKey, toolResult);
+          if (!isExpanded && (toolResult as any)?.kind !== "tool-output-parts") {
+            onHydrateTool(message, item.toolCallId, toolKey, toolResult);
+          }
         }}
         style={{
           width: "auto", maxWidth: "100%", display: "flex", alignItems: "center", gap: 8,
@@ -154,7 +167,7 @@ function ToolInvocationCard({
         {isRunning ? <span style={{ flexShrink: 0, borderRadius: 999, background: "var(--talon-chat-tool-running-bg, rgba(14,165,233,0.12))", color: "var(--talon-chat-tool-running-fg, #0369a1)", padding: "0.1rem 0.45rem", fontSize: 11, fontWeight: 700 }}>Running</span> : null}
         <ChevronRight className="talon-session-tool-chevron" size="14" style={{ flexShrink: 0, transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", color: "var(--talon-chat-subtle-fg, rgba(113,113,122,0.9))" }} />
       </button>
-      {isExpanded ? <ToolResultDetails args={item.args} hydration={hydration} result={toolResult} /> : null}
+      {isExpanded ? <ToolResultDetails args={item.args} result={toolResult} message={message} toolCallId={item.toolCallId} toolKey={toolKey} hydrationState={hydrationState} onHydrateTool={onHydrateTool} /> : null}
     </div>
   );
 }

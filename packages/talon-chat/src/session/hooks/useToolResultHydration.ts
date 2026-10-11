@@ -41,7 +41,7 @@ function cacheKey(messageId: string, toolCallId: string, objectKey: string): str
   return `${messageId}\u0000${toolCallId}\u0000${objectKey}`;
 }
 
-function findObjectPart(parts: unknown, toolCallId: string): ToolResultPartMatch | null {
+function findObjectPart(parts: unknown, toolCallId: string, wantedPartIndex?: number): ToolResultPartMatch | null {
   if (!Array.isArray(parts)) return null;
   for (const part of parts) {
     if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
@@ -51,6 +51,7 @@ function findObjectPart(parts: unknown, toolCallId: string): ToolResultPartMatch
     const contentParts = output?.content_parts ?? output?.contentParts;
     if (!Array.isArray(contentParts)) continue;
     for (let partIndex = 0; partIndex < contentParts.length; partIndex += 1) {
+      if (wantedPartIndex !== undefined && wantedPartIndex !== partIndex) continue;
       const contentPart = contentParts[partIndex];
       const object = objectRefFromValue(contentPart);
       const key = objectRefKey(object);
@@ -73,6 +74,19 @@ function findHydratableObjectPart(parts: unknown, toolCallId: string): ToolResul
   return isText ? match : null;
 }
 
+function findToolOutputParts(parts: unknown, toolCallId: string): { part: any; values: any[] } | null {
+  if (!Array.isArray(parts)) return null;
+  for (const part of parts) {
+    if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
+    if (toolCallId && toolCallIdFromPart(part) !== toolCallId) continue;
+    const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
+    const output = payload.tool_output ?? payload.toolOutput;
+    const values = output?.content_parts ?? output?.contentParts;
+    if (Array.isArray(values)) return { part, values };
+  }
+  return null;
+}
+
 function textFromOutput(value: any): string | null {
   const output = value?.output ?? value;
   const contentParts = output?.contentParts ?? output?.content_parts;
@@ -87,28 +101,6 @@ function textFromOutput(value: any): string | null {
     return text || null;
   }
   return typeof output?.summary === "string" ? output.summary : null;
-}
-
-function replaceObjectInOutput(part: unknown, fallback: unknown, objectKey: string, hydratedText: string): unknown {
-  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
-  const toolOutput = payload.tool_output ?? payload.toolOutput;
-  const contentParts = toolOutput && typeof toolOutput === "object"
-    ? (toolOutput as Record<string, unknown>).content_parts ?? (toolOutput as Record<string, unknown>).contentParts
-    : undefined;
-  if (!Array.isArray(contentParts)) return fallback;
-
-  let replaced = false;
-  const output = contentParts.map((contentPart) => {
-    if (!contentPart || typeof contentPart !== "object") return "";
-    const value = contentPart as { type?: unknown; text?: unknown };
-    if (value.type === "text" && typeof value.text === "string") return value.text;
-    if (objectRefFromValue(contentPart)?.key === objectKey) {
-      replaced = true;
-      return hydratedText;
-    }
-    return "";
-  }).join("");
-  return replaced ? output : fallback;
 }
 
 export function useToolResultHydration(sessions: SessionClient | undefined, target: SessionTarget, sessionKey: string | null) {
@@ -129,21 +121,37 @@ export function useToolResultHydration(sessions: SessionClient | undefined, targ
   }, [invalidate, sessionKey]);
 
   const resultFor = useCallback((message: CopilotMessage, toolCallId: string, fallback: unknown): unknown => {
-    const match = findObjectPart(message.parts, toolCallId);
-    if (!match) return fallback;
-    const keyForOutput = cacheKey(message.id, toolCallId, match.key);
-    return Object.prototype.hasOwnProperty.call(outputs, keyForOutput)
-      ? replaceObjectInOutput(match.part, fallback, match.key, outputs[keyForOutput]!)
-      : fallback;
+    const result = findToolOutputParts(message.parts, toolCallId);
+    if (!result) return fallback;
+    const parts = result.values.map((value, partIndex) => {
+      if (value?.type === "text" && typeof value.text === "string") return { kind: "text", text: value.text };
+      const object = objectRefFromValue(value);
+      const key = objectRefKey(object);
+      if (!object || !key) return { kind: "attachment", label: "Attachment" };
+      const keyForOutput = cacheKey(message.id, toolCallId, key);
+      if (Object.prototype.hasOwnProperty.call(outputs, keyForOutput)) {
+        return { kind: "text", text: outputs[keyForOutput] };
+      }
+      const mediaType = object.mediaType ?? object.media_type ?? "";
+      const normalizedType = mediaType.split(";")[0]!.trim().toLowerCase();
+      const readable = normalizedType.startsWith("text/") || normalizedType === "application/json" || normalizedType.endsWith("+json") || normalizedType.endsWith("+xml");
+      return readable
+        ? { kind: "external-text", partIndex, objectKey: key }
+        : { kind: "attachment", label: object.filename || mediaType || "Attachment" };
+    });
+    return { kind: "tool-output-parts", parts };
   }, [outputs]);
 
   const hydrate = useCallback(async (
     message: CopilotMessage,
     toolCallId: string,
     toolRowKey: string,
-    fallback: unknown,
+    _fallback: unknown,
+    partIndex?: number,
   ) => {
-    const match = findHydratableObjectPart(message.parts, toolCallId);
+    const match = partIndex === undefined
+      ? findHydratableObjectPart(message.parts, toolCallId)
+      : findObjectPart(message.parts, toolCallId, partIndex);
     if (!match || !target || !sessions?.readToolResultPart) return;
 
     const outputKey = cacheKey(message.id, toolCallId, match.key);
