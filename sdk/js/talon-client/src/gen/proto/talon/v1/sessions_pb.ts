@@ -5,7 +5,108 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { ByteRange, ToolOutput } from "../../harness/llm_pb.js";
 import { SessionMessage, SessionMessagePart, TokenCounter } from "../../data/data_pb.js";
+
+/**
+ * @generated from message talon.v1.ReadToolResultPartRequest
+ */
+export class ReadToolResultPartRequest extends Message<ReadToolResultPartRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  /**
+   * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+   *
+   * @generated from field: string ref = 4;
+   */
+  ref = "";
+
+  /**
+   * @generated from field: optional talon.harness.ByteRange byte_range = 5;
+   */
+  byteRange?: ByteRange;
+
+  constructor(data?: PartialMessage<ReadToolResultPartRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ReadToolResultPartRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "ref", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "byte_range", kind: "message", T: ByteRange, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReadToolResultPartRequest {
+    return new ReadToolResultPartRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReadToolResultPartRequest {
+    return new ReadToolResultPartRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReadToolResultPartRequest {
+    return new ReadToolResultPartRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReadToolResultPartRequest | PlainMessage<ReadToolResultPartRequest> | undefined, b: ReadToolResultPartRequest | PlainMessage<ReadToolResultPartRequest> | undefined): boolean {
+    return proto3.util.equals(ReadToolResultPartRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.v1.ReadToolResultPartResponse
+ */
+export class ReadToolResultPartResponse extends Message<ReadToolResultPartResponse> {
+  /**
+   * @generated from field: talon.harness.ToolOutput output = 1;
+   */
+  output?: ToolOutput;
+
+  constructor(data?: PartialMessage<ReadToolResultPartResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.v1.ReadToolResultPartResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "output", kind: "message", T: ToolOutput },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReadToolResultPartResponse {
+    return new ReadToolResultPartResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReadToolResultPartResponse {
+    return new ReadToolResultPartResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReadToolResultPartResponse {
+    return new ReadToolResultPartResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReadToolResultPartResponse | PlainMessage<ReadToolResultPartResponse> | undefined, b: ReadToolResultPartResponse | PlainMessage<ReadToolResultPartResponse> | undefined): boolean {
+    return proto3.util.equals(ReadToolResultPartResponse, a, b);
+  }
+}
 
 /**
  * @generated from message talon.v1.CreateSessionRequest

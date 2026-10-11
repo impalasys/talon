@@ -55,6 +55,11 @@ class SessionServiceStub(object):
                 request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesRequest.SerializeToString,
                 response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesResponse.FromString,
                 _registered_method=True)
+        self.ReadToolResultPart = channel.unary_unary(
+                '/talon.v1.SessionService/ReadToolResultPart',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartResponse.FromString,
+                _registered_method=True)
         self.ListQueuedMessages = channel.unary_unary(
                 '/talon.v1.SessionService/ListQueuedMessages',
                 request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListQueuedSessionMessagesRequest.SerializeToString,

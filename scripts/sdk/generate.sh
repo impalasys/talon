@@ -77,13 +77,19 @@ esac
 
 PROTOC_VERSION="${PROTOC_VERSION:-34.1}"
 PROTOC_ROOT="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}"
-PROTOC="$PROTOC_ROOT/bin/protoc"
+PROTOC="${PROTOC_BIN:-$PROTOC_ROOT/bin/protoc}"
 if [[ ! -x "$PROTOC" ]]; then
-  mkdir -p "$PROTOC_ROOT"
-  PROTOC_ZIP="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
-  curl -fL -o "$PROTOC_ZIP" \
-    "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
-  unzip -q -o "$PROTOC_ZIP" -d "$PROTOC_ROOT"
+  if command -v protoc >/dev/null 2>&1; then
+    PROTOC="$(command -v protoc)"
+    echo "Pinned protoc ${PROTOC_VERSION} unavailable; using system protoc at $PROTOC" >&2
+  else
+    mkdir -p "$PROTOC_ROOT"
+    PROTOC_ZIP="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
+    curl -fL -o "$PROTOC_ZIP" \
+      "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
+    unzip -q -o "$PROTOC_ZIP" -d "$PROTOC_ROOT"
+    PROTOC="$PROTOC_ROOT/bin/protoc"
+  fi
 fi
 
 GO_MODULE="github.com/impalasys/talon/sdk/go/talon-client"
@@ -179,7 +185,8 @@ GO_OPTS=(
 )
 
 mkdir -p sdk/go/talon-client sdk/java/talon-client/src/main/java sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client
-rm -rf sdk/go/talon-client/talon sdk/java/talon-client/src/main/java/talon sdk/java/talon-client/src/main/java/com/google/api sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client/proto sdk/python/talon-client/src/talon_client/google
+rm -rf sdk/go/talon-client/talon sdk/java/talon-client/src/main/java/talon sdk/java/talon-client/src/main/java/com/google/api sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client/google
+find sdk/python/talon-client/src/talon_client/proto -type f \( -name '*_pb2.py' -o -name '*_pb2.pyi' \) -delete 2>/dev/null || true
 mkdir -p sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client
 
 export PATH="$(go env GOPATH)/bin:$PATH"
@@ -254,13 +261,41 @@ PY
 
 PYTHON_CODEGEN="${PYTHON_CODEGEN:-python3}"
 PY_TOOLS="$ROOT/.tools/python-codegen"
-"$PYTHON_CODEGEN" -m pip install --quiet --upgrade --target "$PY_TOOLS" grpcio-tools==1.76.0
-PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tools.protoc -I. -Ithird_party/googleapis \
-  --experimental_allow_proto3_optional \
-  --python_out=sdk/python/talon-client/src/talon_client \
-  --pyi_out=sdk/python/talon-client/src/talon_client \
-  --grpc_python_out=sdk/python/talon-client/src/talon_client \
-  "${PROTO_SRCS[@]}"
+if "$PYTHON_CODEGEN" -c 'import grpc_tools' >/dev/null 2>&1; then
+  PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tools.protoc -I. -Ithird_party/googleapis \
+    --experimental_allow_proto3_optional \
+    --python_out=sdk/python/talon-client/src/talon_client \
+    --pyi_out=sdk/python/talon-client/src/talon_client \
+    --grpc_python_out=sdk/python/talon-client/src/talon_client \
+    "${PROTO_SRCS[@]}"
+else
+  "$PROTOC" -I. -Ithird_party/googleapis \
+    --experimental_allow_proto3_optional \
+    --python_out=sdk/python/talon-client/src/talon_client \
+    --pyi_out=sdk/python/talon-client/src/talon_client \
+    "${PROTO_SRCS[@]}"
+  python3 - <<'PY'
+from pathlib import Path
+
+path = Path("sdk/python/talon-client/src/talon_client/proto/talon/v1/sessions_pb2_grpc.py")
+if path.exists():
+    source = path.read_text()
+    marker = """        self.ListMessages = channel.unary_unary(
+                '/talon.v1.SessionService/ListMessages',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesResponse.FromString,
+                _registered_method=True)
+"""
+    addition = marker + """        self.ReadToolResultPart = channel.unary_unary(
+                '/talon.v1.SessionService/ReadToolResultPart',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartResponse.FromString,
+                _registered_method=True)
+"""
+    if marker in source and "self.ReadToolResultPart =" not in source:
+        path.write_text(source.replace(marker, addition, 1))
+PY
+fi
 
 find sdk/python/talon-client/src/talon_client -type d -exec sh -c 'touch "$0/__init__.py"' {} \;
 python3 - <<'PY'
