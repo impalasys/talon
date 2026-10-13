@@ -22,13 +22,14 @@
       "id": "legal_reviewer_creates_redline_artifact",
       "system_contains": "legal reviewer",
       "last_message_contains": "you have been assigned a talon task",
-      "tool_name": "create_artifact",
+      "tool_name": "write",
       "response": {
         "type": "tool_call",
         "tool_call_id": "call_create_legal_redline_artifact_1",
-        "tool_name": "create_artifact",
+        "tool_name": "write",
         "content": "I will prepare the redline artifact. ",
         "arguments": {
+          "kind": "artifact",
           "title": "Mutual NDA fallback clause redline",
           "content": "## Mutual NDA fallback clause redline\n\nOriginal: The Receiving Party will try to protect Confidential Information using reasonable efforts.\n\nRevised: The Receiving Party must protect Confidential Information using at least the same degree of care it uses for its own similar confidential information, and never less than reasonable care.\n\nRationale: The revision replaces aspirational language with a concrete obligation and adds a fallback standard if internal practices are weak.",
           "media_type": "text/markdown",
@@ -43,14 +44,14 @@
       "id": "coordinator_reads_granted_redline",
       "system_contains": "legal coordinator",
       "last_message_contains": "read this delegated artifact",
-      "tool_name": "read_artifact",
+      "tool_name": "read",
       "response": {
         "type": "tool_call",
         "tool_call_id": "call_read_legal_redline_artifact_1",
-        "tool_name": "read_artifact",
+        "tool_name": "read",
         "content": "I will inspect the delegated redline. ",
         "arguments": {
-          "artifact_uri": "{{artifact_uri}}"
+          "ref": "{{artifact_uri}}"
         }
       }
     },

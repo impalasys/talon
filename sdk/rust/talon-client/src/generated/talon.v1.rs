@@ -476,6 +476,25 @@ pub mod resource_service_client {
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadToolResultPartRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+    /// Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+    #[prost(string, tag = "4")]
+    pub r#ref: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "5")]
+    pub byte_range: ::core::option::Option<super::harness::ByteRange>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadToolResultPartResponse {
+    #[prost(message, optional, tag = "1")]
+    pub output: ::core::option::Option<super::harness::ToolOutput>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateSessionRequest {
     #[prost(string, tag = "1")]
     pub agent: ::prost::alloc::string::String,
@@ -984,6 +1003,32 @@ pub mod session_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.v1.SessionService", "ListMessages"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn read_tool_result_part(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadToolResultPartRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadToolResultPartResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.v1.SessionService/ReadToolResultPart",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.v1.SessionService", "ReadToolResultPart"),
+                );
             self.inner.unary(req, path, codec).await
         }
         pub async fn list_queued_messages(

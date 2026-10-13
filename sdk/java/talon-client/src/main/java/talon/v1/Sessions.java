@@ -26,6 +26,1784 @@ public final class Sessions extends com.google.protobuf.GeneratedFile {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
+  public interface ReadToolResultPartRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.ReadToolResultPartRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    java.lang.String getSessionId();
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+
+    /**
+     * <pre>
+     * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+     * </pre>
+     *
+     * <code>string ref = 4;</code>
+     * @return The ref.
+     */
+    java.lang.String getRef();
+    /**
+     * <pre>
+     * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+     * </pre>
+     *
+     * <code>string ref = 4;</code>
+     * @return The bytes for ref.
+     */
+    com.google.protobuf.ByteString
+        getRefBytes();
+
+    /**
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     * @return Whether the byteRange field is set.
+     */
+    boolean hasByteRange();
+    /**
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     * @return The byteRange.
+     */
+    talon.harness.Llm.ByteRange getByteRange();
+    /**
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     */
+    talon.harness.Llm.ByteRangeOrBuilder getByteRangeOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.v1.ReadToolResultPartRequest}
+   */
+  public static final class ReadToolResultPartRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.ReadToolResultPartRequest)
+      ReadToolResultPartRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ReadToolResultPartRequest");
+    }
+    // Use ReadToolResultPartRequest.newBuilder() to construct.
+    private ReadToolResultPartRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ReadToolResultPartRequest() {
+      sessionId_ = "";
+      agent_ = "";
+      ns_ = "";
+      ref_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Sessions.ReadToolResultPartRequest.class, talon.v1.Sessions.ReadToolResultPartRequest.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int SESSION_ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object sessionId_ = "";
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The sessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getSessionId() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        sessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string session_id = 1;</code>
+     * @return The bytes for sessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
+      java.lang.Object ref = sessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REF_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ref_ = "";
+    /**
+     * <pre>
+     * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+     * </pre>
+     *
+     * <code>string ref = 4;</code>
+     * @return The ref.
+     */
+    @java.lang.Override
+    public java.lang.String getRef() {
+      java.lang.Object ref = ref_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ref_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+     * </pre>
+     *
+     * <code>string ref = 4;</code>
+     * @return The bytes for ref.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRefBytes() {
+      java.lang.Object ref = ref_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ref_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int BYTE_RANGE_FIELD_NUMBER = 5;
+    private talon.harness.Llm.ByteRange byteRange_;
+    /**
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     * @return Whether the byteRange field is set.
+     */
+    @java.lang.Override
+    public boolean hasByteRange() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     * @return The byteRange.
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ByteRange getByteRange() {
+      return byteRange_ == null ? talon.harness.Llm.ByteRange.getDefaultInstance() : byteRange_;
+    }
+    /**
+     * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ByteRangeOrBuilder getByteRangeOrBuilder() {
+      return byteRange_ == null ? talon.harness.Llm.ByteRange.getDefaultInstance() : byteRange_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ref_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, ref_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(5, getByteRange());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ref_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, ref_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getByteRange());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Sessions.ReadToolResultPartRequest)) {
+        return super.equals(obj);
+      }
+      talon.v1.Sessions.ReadToolResultPartRequest other = (talon.v1.Sessions.ReadToolResultPartRequest) obj;
+
+      if (!getSessionId()
+          .equals(other.getSessionId())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getRef()
+          .equals(other.getRef())) return false;
+      if (hasByteRange() != other.hasByteRange()) return false;
+      if (hasByteRange()) {
+        if (!getByteRange()
+            .equals(other.getByteRange())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + REF_FIELD_NUMBER;
+      hash = (53 * hash) + getRef().hashCode();
+      if (hasByteRange()) {
+        hash = (37 * hash) + BYTE_RANGE_FIELD_NUMBER;
+        hash = (53 * hash) + getByteRange().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Sessions.ReadToolResultPartRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.ReadToolResultPartRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.ReadToolResultPartRequest)
+        talon.v1.Sessions.ReadToolResultPartRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Sessions.ReadToolResultPartRequest.class, talon.v1.Sessions.ReadToolResultPartRequest.Builder.class);
+      }
+
+      // Construct using talon.v1.Sessions.ReadToolResultPartRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetByteRangeFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        sessionId_ = "";
+        agent_ = "";
+        ns_ = "";
+        ref_ = "";
+        byteRange_ = null;
+        if (byteRangeBuilder_ != null) {
+          byteRangeBuilder_.dispose();
+          byteRangeBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartRequest getDefaultInstanceForType() {
+        return talon.v1.Sessions.ReadToolResultPartRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartRequest build() {
+        talon.v1.Sessions.ReadToolResultPartRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartRequest buildPartial() {
+        talon.v1.Sessions.ReadToolResultPartRequest result = new talon.v1.Sessions.ReadToolResultPartRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Sessions.ReadToolResultPartRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.sessionId_ = sessionId_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.ns_ = ns_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.ref_ = ref_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.byteRange_ = byteRangeBuilder_ == null
+              ? byteRange_
+              : byteRangeBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Sessions.ReadToolResultPartRequest) {
+          return mergeFrom((talon.v1.Sessions.ReadToolResultPartRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Sessions.ReadToolResultPartRequest other) {
+        if (other == talon.v1.Sessions.ReadToolResultPartRequest.getDefaultInstance()) return this;
+        if (!other.getSessionId().isEmpty()) {
+          sessionId_ = other.sessionId_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getRef().isEmpty()) {
+          ref_ = other.ref_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (other.hasByteRange()) {
+          mergeByteRange(other.getByteRange());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                sessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                ref_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                input.readMessage(
+                    internalGetByteRangeFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object sessionId_ = "";
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The sessionId.
+       */
+      public java.lang.String getSessionId() {
+        java.lang.Object ref = sessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          sessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return The bytes for sessionId.
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSessionId() {
+        sessionId_ = getDefaultInstance().getSessionId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string session_id = 1;</code>
+       * @param value The bytes for sessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        sessionId_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 3;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ref_ = "";
+      /**
+       * <pre>
+       * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+       * </pre>
+       *
+       * <code>string ref = 4;</code>
+       * @return The ref.
+       */
+      public java.lang.String getRef() {
+        java.lang.Object ref = ref_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ref_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+       * </pre>
+       *
+       * <code>string ref = 4;</code>
+       * @return The bytes for ref.
+       */
+      public com.google.protobuf.ByteString
+          getRefBytes() {
+        java.lang.Object ref = ref_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ref_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+       * </pre>
+       *
+       * <code>string ref = 4;</code>
+       * @param value The ref to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRef(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ref_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+       * </pre>
+       *
+       * <code>string ref = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRef() {
+        ref_ = getDefaultInstance().getRef();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+       * </pre>
+       *
+       * <code>string ref = 4;</code>
+       * @param value The bytes for ref to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRefBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ref_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private talon.harness.Llm.ByteRange byteRange_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ByteRange, talon.harness.Llm.ByteRange.Builder, talon.harness.Llm.ByteRangeOrBuilder> byteRangeBuilder_;
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       * @return Whether the byteRange field is set.
+       */
+      public boolean hasByteRange() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       * @return The byteRange.
+       */
+      public talon.harness.Llm.ByteRange getByteRange() {
+        if (byteRangeBuilder_ == null) {
+          return byteRange_ == null ? talon.harness.Llm.ByteRange.getDefaultInstance() : byteRange_;
+        } else {
+          return byteRangeBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public Builder setByteRange(talon.harness.Llm.ByteRange value) {
+        if (byteRangeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          byteRange_ = value;
+        } else {
+          byteRangeBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public Builder setByteRange(
+          talon.harness.Llm.ByteRange.Builder builderForValue) {
+        if (byteRangeBuilder_ == null) {
+          byteRange_ = builderForValue.build();
+        } else {
+          byteRangeBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public Builder mergeByteRange(talon.harness.Llm.ByteRange value) {
+        if (byteRangeBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+            byteRange_ != null &&
+            byteRange_ != talon.harness.Llm.ByteRange.getDefaultInstance()) {
+            getByteRangeBuilder().mergeFrom(value);
+          } else {
+            byteRange_ = value;
+          }
+        } else {
+          byteRangeBuilder_.mergeFrom(value);
+        }
+        if (byteRange_ != null) {
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public Builder clearByteRange() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        byteRange_ = null;
+        if (byteRangeBuilder_ != null) {
+          byteRangeBuilder_.dispose();
+          byteRangeBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public talon.harness.Llm.ByteRange.Builder getByteRangeBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return internalGetByteRangeFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      public talon.harness.Llm.ByteRangeOrBuilder getByteRangeOrBuilder() {
+        if (byteRangeBuilder_ != null) {
+          return byteRangeBuilder_.getMessageOrBuilder();
+        } else {
+          return byteRange_ == null ?
+              talon.harness.Llm.ByteRange.getDefaultInstance() : byteRange_;
+        }
+      }
+      /**
+       * <code>optional .talon.harness.ByteRange byte_range = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ByteRange, talon.harness.Llm.ByteRange.Builder, talon.harness.Llm.ByteRangeOrBuilder>
+          internalGetByteRangeFieldBuilder() {
+        if (byteRangeBuilder_ == null) {
+          byteRangeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.harness.Llm.ByteRange, talon.harness.Llm.ByteRange.Builder, talon.harness.Llm.ByteRangeOrBuilder>(
+                  getByteRange(),
+                  getParentForChildren(),
+                  isClean());
+          byteRange_ = null;
+        }
+        return byteRangeBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.ReadToolResultPartRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.ReadToolResultPartRequest)
+    private static final talon.v1.Sessions.ReadToolResultPartRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Sessions.ReadToolResultPartRequest();
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ReadToolResultPartRequest>
+        PARSER = new com.google.protobuf.AbstractParser<ReadToolResultPartRequest>() {
+      @java.lang.Override
+      public ReadToolResultPartRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ReadToolResultPartRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ReadToolResultPartRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Sessions.ReadToolResultPartRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ReadToolResultPartResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.v1.ReadToolResultPartResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.harness.ToolOutput output = 1;</code>
+     * @return Whether the output field is set.
+     */
+    boolean hasOutput();
+    /**
+     * <code>.talon.harness.ToolOutput output = 1;</code>
+     * @return The output.
+     */
+    talon.harness.Llm.ToolOutput getOutput();
+    /**
+     * <code>.talon.harness.ToolOutput output = 1;</code>
+     */
+    talon.harness.Llm.ToolOutputOrBuilder getOutputOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.v1.ReadToolResultPartResponse}
+   */
+  public static final class ReadToolResultPartResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.v1.ReadToolResultPartResponse)
+      ReadToolResultPartResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ReadToolResultPartResponse");
+    }
+    // Use ReadToolResultPartResponse.newBuilder() to construct.
+    private ReadToolResultPartResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ReadToolResultPartResponse() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.v1.Sessions.ReadToolResultPartResponse.class, talon.v1.Sessions.ReadToolResultPartResponse.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int OUTPUT_FIELD_NUMBER = 1;
+    private talon.harness.Llm.ToolOutput output_;
+    /**
+     * <code>.talon.harness.ToolOutput output = 1;</code>
+     * @return Whether the output field is set.
+     */
+    @java.lang.Override
+    public boolean hasOutput() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.harness.ToolOutput output = 1;</code>
+     * @return The output.
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutput getOutput() {
+      return output_ == null ? talon.harness.Llm.ToolOutput.getDefaultInstance() : output_;
+    }
+    /**
+     * <code>.talon.harness.ToolOutput output = 1;</code>
+     */
+    @java.lang.Override
+    public talon.harness.Llm.ToolOutputOrBuilder getOutputOrBuilder() {
+      return output_ == null ? talon.harness.Llm.ToolOutput.getDefaultInstance() : output_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getOutput());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getOutput());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.v1.Sessions.ReadToolResultPartResponse)) {
+        return super.equals(obj);
+      }
+      talon.v1.Sessions.ReadToolResultPartResponse other = (talon.v1.Sessions.ReadToolResultPartResponse) obj;
+
+      if (hasOutput() != other.hasOutput()) return false;
+      if (hasOutput()) {
+        if (!getOutput()
+            .equals(other.getOutput())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasOutput()) {
+        hash = (37 * hash) + OUTPUT_FIELD_NUMBER;
+        hash = (53 * hash) + getOutput().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.v1.Sessions.ReadToolResultPartResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.v1.Sessions.ReadToolResultPartResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.v1.ReadToolResultPartResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.v1.ReadToolResultPartResponse)
+        talon.v1.Sessions.ReadToolResultPartResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.v1.Sessions.ReadToolResultPartResponse.class, talon.v1.Sessions.ReadToolResultPartResponse.Builder.class);
+      }
+
+      // Construct using talon.v1.Sessions.ReadToolResultPartResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetOutputFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        output_ = null;
+        if (outputBuilder_ != null) {
+          outputBuilder_.dispose();
+          outputBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.v1.Sessions.internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartResponse getDefaultInstanceForType() {
+        return talon.v1.Sessions.ReadToolResultPartResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartResponse build() {
+        talon.v1.Sessions.ReadToolResultPartResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.v1.Sessions.ReadToolResultPartResponse buildPartial() {
+        talon.v1.Sessions.ReadToolResultPartResponse result = new talon.v1.Sessions.ReadToolResultPartResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.v1.Sessions.ReadToolResultPartResponse result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.output_ = outputBuilder_ == null
+              ? output_
+              : outputBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.v1.Sessions.ReadToolResultPartResponse) {
+          return mergeFrom((talon.v1.Sessions.ReadToolResultPartResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.v1.Sessions.ReadToolResultPartResponse other) {
+        if (other == talon.v1.Sessions.ReadToolResultPartResponse.getDefaultInstance()) return this;
+        if (other.hasOutput()) {
+          mergeOutput(other.getOutput());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetOutputFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.harness.Llm.ToolOutput output_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutput, talon.harness.Llm.ToolOutput.Builder, talon.harness.Llm.ToolOutputOrBuilder> outputBuilder_;
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       * @return Whether the output field is set.
+       */
+      public boolean hasOutput() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       * @return The output.
+       */
+      public talon.harness.Llm.ToolOutput getOutput() {
+        if (outputBuilder_ == null) {
+          return output_ == null ? talon.harness.Llm.ToolOutput.getDefaultInstance() : output_;
+        } else {
+          return outputBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       */
+      public Builder setOutput(talon.harness.Llm.ToolOutput value) {
+        if (outputBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          output_ = value;
+        } else {
+          outputBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       */
+      public Builder setOutput(
+          talon.harness.Llm.ToolOutput.Builder builderForValue) {
+        if (outputBuilder_ == null) {
+          output_ = builderForValue.build();
+        } else {
+          outputBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       */
+      public Builder mergeOutput(talon.harness.Llm.ToolOutput value) {
+        if (outputBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            output_ != null &&
+            output_ != talon.harness.Llm.ToolOutput.getDefaultInstance()) {
+            getOutputBuilder().mergeFrom(value);
+          } else {
+            output_ = value;
+          }
+        } else {
+          outputBuilder_.mergeFrom(value);
+        }
+        if (output_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       */
+      public Builder clearOutput() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        output_ = null;
+        if (outputBuilder_ != null) {
+          outputBuilder_.dispose();
+          outputBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       */
+      public talon.harness.Llm.ToolOutput.Builder getOutputBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetOutputFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       */
+      public talon.harness.Llm.ToolOutputOrBuilder getOutputOrBuilder() {
+        if (outputBuilder_ != null) {
+          return outputBuilder_.getMessageOrBuilder();
+        } else {
+          return output_ == null ?
+              talon.harness.Llm.ToolOutput.getDefaultInstance() : output_;
+        }
+      }
+      /**
+       * <code>.talon.harness.ToolOutput output = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.harness.Llm.ToolOutput, talon.harness.Llm.ToolOutput.Builder, talon.harness.Llm.ToolOutputOrBuilder>
+          internalGetOutputFieldBuilder() {
+        if (outputBuilder_ == null) {
+          outputBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.harness.Llm.ToolOutput, talon.harness.Llm.ToolOutput.Builder, talon.harness.Llm.ToolOutputOrBuilder>(
+                  getOutput(),
+                  getParentForChildren(),
+                  isClean());
+          output_ = null;
+        }
+        return outputBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.v1.ReadToolResultPartResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.v1.ReadToolResultPartResponse)
+    private static final talon.v1.Sessions.ReadToolResultPartResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.v1.Sessions.ReadToolResultPartResponse();
+    }
+
+    public static talon.v1.Sessions.ReadToolResultPartResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ReadToolResultPartResponse>
+        PARSER = new com.google.protobuf.AbstractParser<ReadToolResultPartResponse>() {
+      @java.lang.Override
+      public ReadToolResultPartResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ReadToolResultPartResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ReadToolResultPartResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.v1.Sessions.ReadToolResultPartResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface CreateSessionRequestOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.v1.CreateSessionRequest)
       com.google.protobuf.MessageOrBuilder {
@@ -29194,6 +30972,16 @@ java.lang.String defaultValue) {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_ReadToolResultPartRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_v1_ReadToolResultPartResponse_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_v1_CreateSessionRequest_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -29394,147 +31182,169 @@ java.lang.String defaultValue) {
     java.lang.String[] descriptorData = {
       "\n\035proto/talon/v1/sessions.proto\022\010talon.v" +
       "1\032\025proto/data/data.proto\032\022proto/events.p" +
-      "roto\"\234\001\n\024CreateSessionRequest\022\r\n\005agent\030\001" +
-      " \001(\t\022\n\n\002ns\030\002 \001(\t\022:\n\006labels\030\003 \003(\0132*.talon" +
-      ".v1.CreateSessionRequest.LabelsEntry\032-\n\013" +
-      "LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:" +
-      "\0028\001\"k\n\021GetSessionRequest\022\022\n\nsession_id\030\001" +
-      " \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\025\n\rmessa" +
-      "ge_limit\030\004 \001(\005J\004\010\005\020\006R\nstep_limit\"\224\001\n\032Lis" +
-      "tSessionMessagesRequest\022\022\n\nsession_id\030\001 " +
-      "\001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\021\n\tpage_s" +
-      "ize\030\004 \001(\005\022\036\n\021before_message_id\030\005 \001(\tH\000\210\001" +
-      "\001B\024\n\022_before_message_id\"[\n\037ListSessionMe" +
-      "ssagesResponseItem\022+\n\007message\030\001 \001(\0132\032.ta" +
-      "lon.data.SessionMessageJ\004\010\002\020\003R\005steps\"\333\001\n" +
-      "\033ListSessionMessagesResponse\022\022\n\nsession_" +
-      "id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005state\030\003 \001(\t\0228" +
-      "\n\005items\030\004 \003(\0132).talon.v1.ListSessionMess" +
-      "agesResponseItem\022\020\n\010has_more\030\005 \001(\010\022#\n\026ne" +
-      "xt_before_message_id\030\006 \001(\tH\000\210\001\001B\031\n\027_next" +
-      "_before_message_id\"`\n ListQueuedSessionM" +
-      "essagesRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005ag" +
-      "ent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\r\n\005queue\030\004 \001(\t\"U\n\024" +
-      "QueuedSessionMessage\022\020\n\010entry_id\030\001 \001(\t\022+" +
-      "\n\007message\030\002 \001(\0132\032.talon.data.SessionMess" +
-      "age\"\206\001\n!ListQueuedSessionMessagesRespons" +
-      "e\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005" +
-      "queue\030\003 \001(\t\022/\n\007entries\030\004 \003(\0132\036.talon.v1." +
-      "QueuedSessionMessage\"0\n\023ListSessionsRequ" +
-      "est\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\"\237\001\n\017Sessi" +
-      "onListItem\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nupdate" +
-      "d_at\030\002 \001(\003\0225\n\006labels\030\003 \003(\0132%.talon.v1.Se" +
-      "ssionListItem.LabelsEntry\032-\n\013LabelsEntry" +
-      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"X\n\024List" +
-      "SessionsResponse\022\023\n\013session_ids\030\001 \003(\t\022+\n" +
-      "\010sessions\030\002 \003(\0132\031.talon.v1.SessionListIt" +
-      "em\"\256\002\n\017SessionResponse\022\022\n\nsession_id\030\001 \001" +
-      "(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005state\030\003 \001(\t\022,\n\010mess" +
-      "ages\030\004 \003(\0132\032.talon.data.SessionMessage\0225" +
-      "\n\006labels\030\006 \003(\0132%.talon.v1.SessionRespons" +
-      "e.LabelsEntry\0225\n\016context_tokens\030\007 \001(\0132\030." +
-      "talon.data.TokenCounterH\000\210\001\001\032-\n\013LabelsEn" +
-      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\021\n\017_" +
-      "context_tokensJ\004\010\005\020\006R\005steps\"E\n\024DeleteSes" +
-      "sionRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent" +
-      "\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"(\n\025DeleteSessionRespo" +
-      "nse\022\017\n\007success\030\001 \001(\010\"D\n\023ClearSessionRequ" +
-      "est\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n" +
-      "\n\002ns\030\003 \001(\t\"\'\n\024ClearSessionResponse\022\017\n\007su" +
-      "ccess\030\001 \001(\010\"F\n\025CompactSessionRequest\022\022\n\n" +
-      "session_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 " +
-      "\001(\t\"E\n\024DoctorSessionRequest\022\022\n\nsession_i" +
-      "d\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"\210\001\n\025D" +
-      "octorSessionResponse\022)\n!provider_continu" +
-      "ation_was_present\030\001 \001(\010\022#\n\033provider_cont" +
-      "inuation_reset\030\002 \001(\010\022\037\n\027incomplete_tool_" +
-      "batches\030\003 \001(\r\"\345\001\n\030SubmitSessionTurnReque" +
+      "roto\032\027proto/harness/llm.proto\"\231\001\n\031ReadTo" +
+      "olResultPartRequest\022\022\n\nsession_id\030\001 \001(\t\022" +
+      "\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\013\n\003ref\030\004 \001(\t\022" +
+      "1\n\nbyte_range\030\005 \001(\0132\030.talon.harness.Byte" +
+      "RangeH\000\210\001\001B\r\n\013_byte_range\"G\n\032ReadToolRes" +
+      "ultPartResponse\022)\n\006output\030\001 \001(\0132\031.talon." +
+      "harness.ToolOutput\"\234\001\n\024CreateSessionRequ" +
+      "est\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022:\n\006labels" +
+      "\030\003 \003(\0132*.talon.v1.CreateSessionRequest.L" +
+      "abelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r" +
+      "\n\005value\030\002 \001(\t:\0028\001\"k\n\021GetSessionRequest\022\022" +
+      "\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030" +
+      "\003 \001(\t\022\025\n\rmessage_limit\030\004 \001(\005J\004\010\005\020\006R\nstep" +
+      "_limit\"\224\001\n\032ListSessionMessagesRequest\022\022\n" +
+      "\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003" +
+      " \001(\t\022\021\n\tpage_size\030\004 \001(\005\022\036\n\021before_messag" +
+      "e_id\030\005 \001(\tH\000\210\001\001B\024\n\022_before_message_id\"[\n" +
+      "\037ListSessionMessagesResponseItem\022+\n\007mess" +
+      "age\030\001 \001(\0132\032.talon.data.SessionMessageJ\004\010" +
+      "\002\020\003R\005steps\"\333\001\n\033ListSessionMessagesRespon" +
+      "se\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n" +
+      "\005state\030\003 \001(\t\0228\n\005items\030\004 \003(\0132).talon.v1.L" +
+      "istSessionMessagesResponseItem\022\020\n\010has_mo" +
+      "re\030\005 \001(\010\022#\n\026next_before_message_id\030\006 \001(\t" +
+      "H\000\210\001\001B\031\n\027_next_before_message_id\"`\n List" +
+      "QueuedSessionMessagesRequest\022\022\n\nsession_" +
+      "id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\r\n\005q" +
+      "ueue\030\004 \001(\t\"U\n\024QueuedSessionMessage\022\020\n\010en" +
+      "try_id\030\001 \001(\t\022+\n\007message\030\002 \001(\0132\032.talon.da" +
+      "ta.SessionMessage\"\206\001\n!ListQueuedSessionM" +
+      "essagesResponse\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005a" +
+      "gent\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022/\n\007entries\030\004 \003" +
+      "(\0132\036.talon.v1.QueuedSessionMessage\"0\n\023Li" +
+      "stSessionsRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002" +
+      " \001(\t\"\237\001\n\017SessionListItem\022\022\n\nsession_id\030\001" +
+      " \001(\t\022\022\n\nupdated_at\030\002 \001(\003\0225\n\006labels\030\003 \003(\013" +
+      "2%.talon.v1.SessionListItem.LabelsEntry\032" +
+      "-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
+      "(\t:\0028\001\"X\n\024ListSessionsResponse\022\023\n\013sessio" +
+      "n_ids\030\001 \003(\t\022+\n\010sessions\030\002 \003(\0132\031.talon.v1" +
+      ".SessionListItem\"\256\002\n\017SessionResponse\022\022\n\n" +
+      "session_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005state" +
+      "\030\003 \001(\t\022,\n\010messages\030\004 \003(\0132\032.talon.data.Se" +
+      "ssionMessage\0225\n\006labels\030\006 \003(\0132%.talon.v1." +
+      "SessionResponse.LabelsEntry\0225\n\016context_t" +
+      "okens\030\007 \001(\0132\030.talon.data.TokenCounterH\000\210" +
+      "\001\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
+      "\002 \001(\t:\0028\001B\021\n\017_context_tokensJ\004\010\005\020\006R\005step" +
+      "s\"E\n\024DeleteSessionRequest\022\022\n\nsession_id\030" +
+      "\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"(\n\025Dele" +
+      "teSessionResponse\022\017\n\007success\030\001 \001(\010\"D\n\023Cl" +
+      "earSessionRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n" +
+      "\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"\'\n\024ClearSession" +
+      "Response\022\017\n\007success\030\001 \001(\010\"F\n\025CompactSess" +
+      "ionRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030" +
+      "\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"E\n\024DoctorSessionReques" +
+      "t\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
+      "ns\030\003 \001(\t\"\210\001\n\025DoctorSessionResponse\022)\n!pr" +
+      "ovider_continuation_was_present\030\001 \001(\010\022#\n" +
+      "\033provider_continuation_reset\030\002 \001(\010\022\037\n\027in" +
+      "complete_tool_batches\030\003 \001(\r\"\345\001\n\030SubmitSe" +
+      "ssionTurnRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005" +
+      "agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022+\n\007message\030\004 \001(\013" +
+      "2\032.talon.data.SessionMessage\022>\n\006labels\030\005" +
+      " \003(\0132..talon.v1.SubmitSessionTurnRequest" +
+      ".LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t" +
+      "\022\r\n\005value\030\002 \001(\t:\0028\001\"\275\001\n\022SendMessageReque" +
       "st\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n" +
-      "\002ns\030\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.data." +
-      "SessionMessage\022>\n\006labels\030\005 \003(\0132..talon.v" +
-      "1.SubmitSessionTurnRequest.LabelsEntry\032-" +
-      "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001\"\275\001\n\022SendMessageRequest\022\022\n\nsession_" +
-      "id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\017\n\007m" +
-      "essage\030\004 \001(\t\0228\n\006labels\030\005 \003(\0132(.talon.v1." +
-      "SendMessageRequest.LabelsEntry\032-\n\013Labels" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"8\n" +
-      "\023SendMessageResponse\022\r\n\005reply\030\001 \001(\t\022\022\n\ns" +
-      "ession_id\030\004 \001(\t\"y\n\033AppendSessionMessageR" +
-      "equest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(" +
-      "\t\022\n\n\002ns\030\003 \001(\t\022+\n\007message\030\004 \001(\0132\032.talon.d" +
-      "ata.SessionMessage\"_\n\034AppendSessionMessa" +
-      "geResponse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007messag" +
-      "e\030\002 \001(\0132\032.talon.data.SessionMessage\"\201\002\n\033" +
-      "UpdateSessionMessageRequest\022\022\n\nsession_i" +
-      "d\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nme" +
-      "ssage_id\030\004 \001(\t\022-\n\005parts\030\005 \003(\0132\036.talon.da" +
-      "ta.SessionMessagePart\022A\n\006labels\030\006 \003(\01321." +
-      "talon.v1.UpdateSessionMessageRequest.Lab" +
-      "elsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005" +
-      "value\030\002 \001(\t:\0028\001\"_\n\034UpdateSessionMessageR" +
-      "esponse\022\022\n\nsession_id\030\001 \001(\t\022+\n\007message\030\002" +
-      " \001(\0132\032.talon.data.SessionMessage\"\233\001\n\036Ans" +
-      "werSessionPermissionRequest\022\022\n\nsession_i" +
-      "d\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\022\n\nre" +
-      "quest_id\030\004 \001(\t\022\017\n\007outcome\030\005 \001(\t\022\021\n\toptio" +
-      "n_id\030\006 \001(\t\022\022\n\ndecided_by\030\007 \001(\t\"m\n\037Answer" +
-      "SessionPermissionResponse\022\022\n\nsession_id\030" +
-      "\001 \001(\t\022\022\n\nrequest_id\030\002 \001(\t\022\017\n\007outcome\030\003 \001" +
-      "(\t\022\021\n\toption_id\030\004 \001(\t\"M\n\034StopSessionGene" +
-      "rationRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005age" +
-      "nt\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"0\n\035StopSessionGener" +
-      "ationResponse\022\017\n\007success\030\001 \001(\010\"J\n\031Stream" +
-      "SessionPartsRequest\022\022\n\nsession_id\030\001 \001(\t\022" +
-      "\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSess" +
-      "ionPartsBatchRequest\022\025\n\rsession_names\030\001 " +
-      "\003(\t2\321\013\n\016SessionService\022C\n\006Create\022\036.talon" +
-      ".v1.CreateSessionRequest\032\031.talon.v1.Sess" +
-      "ionResponse\022=\n\003Get\022\033.talon.v1.GetSession" +
-      "Request\032\031.talon.v1.SessionResponse\022E\n\004Li" +
-      "st\022\035.talon.v1.ListSessionsRequest\032\036.talo" +
-      "n.v1.ListSessionsResponse\022[\n\014ListMessage" +
-      "s\022$.talon.v1.ListSessionMessagesRequest\032" +
-      "%.talon.v1.ListSessionMessagesResponse\022m" +
-      "\n\022ListQueuedMessages\022*.talon.v1.ListQueu" +
-      "edSessionMessagesRequest\032+.talon.v1.List" +
-      "QueuedSessionMessagesResponse\022I\n\006Delete\022" +
-      "\036.talon.v1.DeleteSessionRequest\032\037.talon." +
-      "v1.DeleteSessionResponse\022F\n\005Clear\022\035.talo" +
-      "n.v1.ClearSessionRequest\032\036.talon.v1.Clea" +
-      "rSessionResponse\022S\n\007Compact\022\037.talon.v1.C" +
-      "ompactSessionRequest\032%.talon.events.Sess" +
-      "ionMessagePartEvent0\001\022I\n\006Doctor\022\036.talon." +
-      "v1.DoctorSessionRequest\032\037.talon.v1.Docto" +
-      "rSessionResponse\022J\n\013SendMessage\022\034.talon." +
-      "v1.SendMessageRequest\032\035.talon.v1.SendMes" +
-      "sageResponse\022^\n\rAppendMessage\022%.talon.v1" +
-      ".AppendSessionMessageRequest\032&.talon.v1." +
-      "AppendSessionMessageResponse\022^\n\rUpdateMe" +
-      "ssage\022%.talon.v1.UpdateSessionMessageReq" +
-      "uest\032&.talon.v1.UpdateSessionMessageResp" +
-      "onse\022g\n\020AnswerPermission\022(.talon.v1.Answ" +
-      "erSessionPermissionRequest\032).talon.v1.An" +
-      "swerSessionPermissionResponse\022a\n\016StopGen" +
-      "eration\022&.talon.v1.StopSessionGeneration" +
-      "Request\032\'.talon.v1.StopSessionGeneration" +
-      "Response\022[\n\013StreamParts\022#.talon.v1.Strea" +
-      "mSessionPartsRequest\032%.talon.events.Sess" +
-      "ionMessagePartEvent0\001\022e\n\020StreamPartsBatc" +
-      "h\022(.talon.v1.StreamSessionPartsBatchRequ" +
-      "est\032%.talon.events.SessionMessagePartEve" +
-      "nt0\001\022Y\n\nSubmitTurn\022\".talon.v1.SubmitSess" +
-      "ionTurnRequest\032%.talon.events.SessionMes" +
-      "sagePartEvent0\001b\006proto3"
+      "\002ns\030\003 \001(\t\022\017\n\007message\030\004 \001(\t\0228\n\006labels\030\005 \003" +
+      "(\0132(.talon.v1.SendMessageRequest.LabelsE" +
+      "ntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
+      "e\030\002 \001(\t:\0028\001\"8\n\023SendMessageResponse\022\r\n\005re" +
+      "ply\030\001 \001(\t\022\022\n\nsession_id\030\004 \001(\t\"y\n\033AppendS" +
+      "essionMessageRequest\022\022\n\nsession_id\030\001 \001(\t" +
+      "\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022+\n\007message\030\004" +
+      " \001(\0132\032.talon.data.SessionMessage\"_\n\034Appe" +
+      "ndSessionMessageResponse\022\022\n\nsession_id\030\001" +
+      " \001(\t\022+\n\007message\030\002 \001(\0132\032.talon.data.Sessi" +
+      "onMessage\"\201\002\n\033UpdateSessionMessageReques" +
+      "t\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
+      "ns\030\003 \001(\t\022\022\n\nmessage_id\030\004 \001(\t\022-\n\005parts\030\005 " +
+      "\003(\0132\036.talon.data.SessionMessagePart\022A\n\006l" +
+      "abels\030\006 \003(\01321.talon.v1.UpdateSessionMess" +
+      "ageRequest.LabelsEntry\032-\n\013LabelsEntry\022\013\n" +
+      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\034UpdateS" +
+      "essionMessageResponse\022\022\n\nsession_id\030\001 \001(" +
+      "\t\022+\n\007message\030\002 \001(\0132\032.talon.data.SessionM" +
+      "essage\"\233\001\n\036AnswerSessionPermissionReques" +
+      "t\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
+      "ns\030\003 \001(\t\022\022\n\nrequest_id\030\004 \001(\t\022\017\n\007outcome\030" +
+      "\005 \001(\t\022\021\n\toption_id\030\006 \001(\t\022\022\n\ndecided_by\030\007" +
+      " \001(\t\"m\n\037AnswerSessionPermissionResponse\022" +
+      "\022\n\nsession_id\030\001 \001(\t\022\022\n\nrequest_id\030\002 \001(\t\022" +
+      "\017\n\007outcome\030\003 \001(\t\022\021\n\toption_id\030\004 \001(\t\"M\n\034S" +
+      "topSessionGenerationRequest\022\022\n\nsession_i" +
+      "d\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"0\n\035St" +
+      "opSessionGenerationResponse\022\017\n\007success\030\001" +
+      " \001(\010\"J\n\031StreamSessionPartsRequest\022\022\n\nses" +
+      "sion_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t" +
+      "\"7\n\036StreamSessionPartsBatchRequest\022\025\n\rse" +
+      "ssion_names\030\001 \003(\t2\262\014\n\016SessionService\022C\n\006" +
+      "Create\022\036.talon.v1.CreateSessionRequest\032\031" +
+      ".talon.v1.SessionResponse\022=\n\003Get\022\033.talon" +
+      ".v1.GetSessionRequest\032\031.talon.v1.Session" +
+      "Response\022E\n\004List\022\035.talon.v1.ListSessions" +
+      "Request\032\036.talon.v1.ListSessionsResponse\022" +
+      "[\n\014ListMessages\022$.talon.v1.ListSessionMe" +
+      "ssagesRequest\032%.talon.v1.ListSessionMess" +
+      "agesResponse\022_\n\022ReadToolResultPart\022#.tal" +
+      "on.v1.ReadToolResultPartRequest\032$.talon." +
+      "v1.ReadToolResultPartResponse\022m\n\022ListQue" +
+      "uedMessages\022*.talon.v1.ListQueuedSession" +
+      "MessagesRequest\032+.talon.v1.ListQueuedSes" +
+      "sionMessagesResponse\022I\n\006Delete\022\036.talon.v" +
+      "1.DeleteSessionRequest\032\037.talon.v1.Delete" +
+      "SessionResponse\022F\n\005Clear\022\035.talon.v1.Clea" +
+      "rSessionRequest\032\036.talon.v1.ClearSessionR" +
+      "esponse\022S\n\007Compact\022\037.talon.v1.CompactSes" +
+      "sionRequest\032%.talon.events.SessionMessag" +
+      "ePartEvent0\001\022I\n\006Doctor\022\036.talon.v1.Doctor" +
+      "SessionRequest\032\037.talon.v1.DoctorSessionR" +
+      "esponse\022J\n\013SendMessage\022\034.talon.v1.SendMe" +
+      "ssageRequest\032\035.talon.v1.SendMessageRespo" +
+      "nse\022^\n\rAppendMessage\022%.talon.v1.AppendSe" +
+      "ssionMessageRequest\032&.talon.v1.AppendSes" +
+      "sionMessageResponse\022^\n\rUpdateMessage\022%.t" +
+      "alon.v1.UpdateSessionMessageRequest\032&.ta" +
+      "lon.v1.UpdateSessionMessageResponse\022g\n\020A" +
+      "nswerPermission\022(.talon.v1.AnswerSession" +
+      "PermissionRequest\032).talon.v1.AnswerSessi" +
+      "onPermissionResponse\022a\n\016StopGeneration\022&" +
+      ".talon.v1.StopSessionGenerationRequest\032\'" +
+      ".talon.v1.StopSessionGenerationResponse\022" +
+      "[\n\013StreamParts\022#.talon.v1.StreamSessionP" +
+      "artsRequest\032%.talon.events.SessionMessag" +
+      "ePartEvent0\001\022e\n\020StreamPartsBatch\022(.talon" +
+      ".v1.StreamSessionPartsBatchRequest\032%.tal" +
+      "on.events.SessionMessagePartEvent0\001\022Y\n\nS" +
+      "ubmitTurn\022\".talon.v1.SubmitSessionTurnRe" +
+      "quest\032%.talon.events.SessionMessagePartE" +
+      "vent0\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           talon.data.Data.getDescriptor(),
           talon.events.Events.getDescriptor(),
+          talon.harness.Llm.getDescriptor(),
         });
-    internal_static_talon_v1_CreateSessionRequest_descriptor =
+    internal_static_talon_v1_ReadToolResultPartRequest_descriptor =
       getDescriptor().getMessageType(0);
+    internal_static_talon_v1_ReadToolResultPartRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_ReadToolResultPartRequest_descriptor,
+        new java.lang.String[] { "SessionId", "Agent", "Ns", "Ref", "ByteRange", });
+    internal_static_talon_v1_ReadToolResultPartResponse_descriptor =
+      getDescriptor().getMessageType(1);
+    internal_static_talon_v1_ReadToolResultPartResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_v1_ReadToolResultPartResponse_descriptor,
+        new java.lang.String[] { "Output", });
+    internal_static_talon_v1_CreateSessionRequest_descriptor =
+      getDescriptor().getMessageType(2);
     internal_static_talon_v1_CreateSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_CreateSessionRequest_descriptor,
@@ -29546,55 +31356,55 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_CreateSessionRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_GetSessionRequest_descriptor =
-      getDescriptor().getMessageType(1);
+      getDescriptor().getMessageType(3);
     internal_static_talon_v1_GetSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_GetSessionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "MessageLimit", });
     internal_static_talon_v1_ListSessionMessagesRequest_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(4);
     internal_static_talon_v1_ListSessionMessagesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListSessionMessagesRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "PageSize", "BeforeMessageId", });
     internal_static_talon_v1_ListSessionMessagesResponseItem_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(5);
     internal_static_talon_v1_ListSessionMessagesResponseItem_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListSessionMessagesResponseItem_descriptor,
         new java.lang.String[] { "Message", });
     internal_static_talon_v1_ListSessionMessagesResponse_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(6);
     internal_static_talon_v1_ListSessionMessagesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListSessionMessagesResponse_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "State", "Items", "HasMore", "NextBeforeMessageId", });
     internal_static_talon_v1_ListQueuedSessionMessagesRequest_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(7);
     internal_static_talon_v1_ListQueuedSessionMessagesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListQueuedSessionMessagesRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "Queue", });
     internal_static_talon_v1_QueuedSessionMessage_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(8);
     internal_static_talon_v1_QueuedSessionMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_QueuedSessionMessage_descriptor,
         new java.lang.String[] { "EntryId", "Message", });
     internal_static_talon_v1_ListQueuedSessionMessagesResponse_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(9);
     internal_static_talon_v1_ListQueuedSessionMessagesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListQueuedSessionMessagesResponse_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Queue", "Entries", });
     internal_static_talon_v1_ListSessionsRequest_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(10);
     internal_static_talon_v1_ListSessionsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListSessionsRequest_descriptor,
         new java.lang.String[] { "Agent", "Ns", });
     internal_static_talon_v1_SessionListItem_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(11);
     internal_static_talon_v1_SessionListItem_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SessionListItem_descriptor,
@@ -29606,13 +31416,13 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_SessionListItem_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_ListSessionsResponse_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(12);
     internal_static_talon_v1_ListSessionsResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ListSessionsResponse_descriptor,
         new java.lang.String[] { "SessionIds", "Sessions", });
     internal_static_talon_v1_SessionResponse_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(13);
     internal_static_talon_v1_SessionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SessionResponse_descriptor,
@@ -29624,49 +31434,49 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_SessionResponse_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_DeleteSessionRequest_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(14);
     internal_static_talon_v1_DeleteSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_DeleteSessionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_v1_DeleteSessionResponse_descriptor =
-      getDescriptor().getMessageType(13);
+      getDescriptor().getMessageType(15);
     internal_static_talon_v1_DeleteSessionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_DeleteSessionResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_v1_ClearSessionRequest_descriptor =
-      getDescriptor().getMessageType(14);
+      getDescriptor().getMessageType(16);
     internal_static_talon_v1_ClearSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ClearSessionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_v1_ClearSessionResponse_descriptor =
-      getDescriptor().getMessageType(15);
+      getDescriptor().getMessageType(17);
     internal_static_talon_v1_ClearSessionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_ClearSessionResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_v1_CompactSessionRequest_descriptor =
-      getDescriptor().getMessageType(16);
+      getDescriptor().getMessageType(18);
     internal_static_talon_v1_CompactSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_CompactSessionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_v1_DoctorSessionRequest_descriptor =
-      getDescriptor().getMessageType(17);
+      getDescriptor().getMessageType(19);
     internal_static_talon_v1_DoctorSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_DoctorSessionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_v1_DoctorSessionResponse_descriptor =
-      getDescriptor().getMessageType(18);
+      getDescriptor().getMessageType(20);
     internal_static_talon_v1_DoctorSessionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_DoctorSessionResponse_descriptor,
         new java.lang.String[] { "ProviderContinuationWasPresent", "ProviderContinuationReset", "IncompleteToolBatches", });
     internal_static_talon_v1_SubmitSessionTurnRequest_descriptor =
-      getDescriptor().getMessageType(19);
+      getDescriptor().getMessageType(21);
     internal_static_talon_v1_SubmitSessionTurnRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SubmitSessionTurnRequest_descriptor,
@@ -29678,7 +31488,7 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_SubmitSessionTurnRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_SendMessageRequest_descriptor =
-      getDescriptor().getMessageType(20);
+      getDescriptor().getMessageType(22);
     internal_static_talon_v1_SendMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SendMessageRequest_descriptor,
@@ -29690,25 +31500,25 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_SendMessageRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_SendMessageResponse_descriptor =
-      getDescriptor().getMessageType(21);
+      getDescriptor().getMessageType(23);
     internal_static_talon_v1_SendMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_SendMessageResponse_descriptor,
         new java.lang.String[] { "Reply", "SessionId", });
     internal_static_talon_v1_AppendSessionMessageRequest_descriptor =
-      getDescriptor().getMessageType(22);
+      getDescriptor().getMessageType(24);
     internal_static_talon_v1_AppendSessionMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_AppendSessionMessageRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "Message", });
     internal_static_talon_v1_AppendSessionMessageResponse_descriptor =
-      getDescriptor().getMessageType(23);
+      getDescriptor().getMessageType(25);
     internal_static_talon_v1_AppendSessionMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_AppendSessionMessageResponse_descriptor,
         new java.lang.String[] { "SessionId", "Message", });
     internal_static_talon_v1_UpdateSessionMessageRequest_descriptor =
-      getDescriptor().getMessageType(24);
+      getDescriptor().getMessageType(26);
     internal_static_talon_v1_UpdateSessionMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_UpdateSessionMessageRequest_descriptor,
@@ -29720,43 +31530,43 @@ java.lang.String defaultValue) {
         internal_static_talon_v1_UpdateSessionMessageRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_v1_UpdateSessionMessageResponse_descriptor =
-      getDescriptor().getMessageType(25);
+      getDescriptor().getMessageType(27);
     internal_static_talon_v1_UpdateSessionMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_UpdateSessionMessageResponse_descriptor,
         new java.lang.String[] { "SessionId", "Message", });
     internal_static_talon_v1_AnswerSessionPermissionRequest_descriptor =
-      getDescriptor().getMessageType(26);
+      getDescriptor().getMessageType(28);
     internal_static_talon_v1_AnswerSessionPermissionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_AnswerSessionPermissionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "RequestId", "Outcome", "OptionId", "DecidedBy", });
     internal_static_talon_v1_AnswerSessionPermissionResponse_descriptor =
-      getDescriptor().getMessageType(27);
+      getDescriptor().getMessageType(29);
     internal_static_talon_v1_AnswerSessionPermissionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_AnswerSessionPermissionResponse_descriptor,
         new java.lang.String[] { "SessionId", "RequestId", "Outcome", "OptionId", });
     internal_static_talon_v1_StopSessionGenerationRequest_descriptor =
-      getDescriptor().getMessageType(28);
+      getDescriptor().getMessageType(30);
     internal_static_talon_v1_StopSessionGenerationRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StopSessionGenerationRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_v1_StopSessionGenerationResponse_descriptor =
-      getDescriptor().getMessageType(29);
+      getDescriptor().getMessageType(31);
     internal_static_talon_v1_StopSessionGenerationResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StopSessionGenerationResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_v1_StreamSessionPartsRequest_descriptor =
-      getDescriptor().getMessageType(30);
+      getDescriptor().getMessageType(32);
     internal_static_talon_v1_StreamSessionPartsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StreamSessionPartsRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_v1_StreamSessionPartsBatchRequest_descriptor =
-      getDescriptor().getMessageType(31);
+      getDescriptor().getMessageType(33);
     internal_static_talon_v1_StreamSessionPartsBatchRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_v1_StreamSessionPartsBatchRequest_descriptor,
@@ -29764,6 +31574,7 @@ java.lang.String defaultValue) {
     descriptor.resolveAllFeaturesImmutable();
     talon.data.Data.getDescriptor();
     talon.events.Events.getDescriptor();
+    talon.harness.Llm.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

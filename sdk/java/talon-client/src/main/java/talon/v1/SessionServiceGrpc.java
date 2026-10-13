@@ -136,6 +136,37 @@ public final class SessionServiceGrpc {
     return getListMessagesMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.ReadToolResultPartRequest,
+      talon.v1.Sessions.ReadToolResultPartResponse> getReadToolResultPartMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ReadToolResultPart",
+      requestType = talon.v1.Sessions.ReadToolResultPartRequest.class,
+      responseType = talon.v1.Sessions.ReadToolResultPartResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.v1.Sessions.ReadToolResultPartRequest,
+      talon.v1.Sessions.ReadToolResultPartResponse> getReadToolResultPartMethod() {
+    io.grpc.MethodDescriptor<talon.v1.Sessions.ReadToolResultPartRequest, talon.v1.Sessions.ReadToolResultPartResponse> getReadToolResultPartMethod;
+    if ((getReadToolResultPartMethod = SessionServiceGrpc.getReadToolResultPartMethod) == null) {
+      synchronized (SessionServiceGrpc.class) {
+        if ((getReadToolResultPartMethod = SessionServiceGrpc.getReadToolResultPartMethod) == null) {
+          SessionServiceGrpc.getReadToolResultPartMethod = getReadToolResultPartMethod =
+              io.grpc.MethodDescriptor.<talon.v1.Sessions.ReadToolResultPartRequest, talon.v1.Sessions.ReadToolResultPartResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ReadToolResultPart"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.ReadToolResultPartRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.v1.Sessions.ReadToolResultPartResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new SessionServiceMethodDescriptorSupplier("ReadToolResultPart"))
+              .build();
+        }
+      }
+    }
+    return getReadToolResultPartMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.v1.Sessions.ListQueuedSessionMessagesRequest,
       talon.v1.Sessions.ListQueuedSessionMessagesResponse> getListQueuedMessagesMethod;
 
@@ -632,6 +663,13 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    default void readToolResultPart(talon.v1.Sessions.ReadToolResultPartRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ReadToolResultPartResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getReadToolResultPartMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void listQueuedMessages(talon.v1.Sessions.ListQueuedSessionMessagesRequest request,
         io.grpc.stub.StreamObserver<talon.v1.Sessions.ListQueuedSessionMessagesResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListQueuedMessagesMethod(), responseObserver);
@@ -779,6 +817,14 @@ public final class SessionServiceGrpc {
         io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionMessagesResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getListMessagesMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void readToolResultPart(talon.v1.Sessions.ReadToolResultPartRequest request,
+        io.grpc.stub.StreamObserver<talon.v1.Sessions.ReadToolResultPartResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getReadToolResultPartMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -932,6 +978,13 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public talon.v1.Sessions.ReadToolResultPartResponse readToolResultPart(talon.v1.Sessions.ReadToolResultPartRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getReadToolResultPartMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
     public talon.v1.Sessions.ListQueuedSessionMessagesResponse listQueuedMessages(talon.v1.Sessions.ListQueuedSessionMessagesRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getListQueuedMessagesMethod(), getCallOptions(), request);
@@ -1072,6 +1125,13 @@ public final class SessionServiceGrpc {
     public talon.v1.Sessions.ListSessionMessagesResponse listMessages(talon.v1.Sessions.ListSessionMessagesRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getListMessagesMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.v1.Sessions.ReadToolResultPartResponse readToolResultPart(talon.v1.Sessions.ReadToolResultPartRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getReadToolResultPartMethod(), getCallOptions(), request);
     }
 
     /**
@@ -1220,6 +1280,14 @@ public final class SessionServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.ReadToolResultPartResponse> readToolResultPart(
+        talon.v1.Sessions.ReadToolResultPartRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getReadToolResultPartMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<talon.v1.Sessions.ListQueuedSessionMessagesResponse> listQueuedMessages(
         talon.v1.Sessions.ListQueuedSessionMessagesRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -1295,19 +1363,20 @@ public final class SessionServiceGrpc {
   private static final int METHODID_GET = 1;
   private static final int METHODID_LIST = 2;
   private static final int METHODID_LIST_MESSAGES = 3;
-  private static final int METHODID_LIST_QUEUED_MESSAGES = 4;
-  private static final int METHODID_DELETE = 5;
-  private static final int METHODID_CLEAR = 6;
-  private static final int METHODID_COMPACT = 7;
-  private static final int METHODID_DOCTOR = 8;
-  private static final int METHODID_SEND_MESSAGE = 9;
-  private static final int METHODID_APPEND_MESSAGE = 10;
-  private static final int METHODID_UPDATE_MESSAGE = 11;
-  private static final int METHODID_ANSWER_PERMISSION = 12;
-  private static final int METHODID_STOP_GENERATION = 13;
-  private static final int METHODID_STREAM_PARTS = 14;
-  private static final int METHODID_STREAM_PARTS_BATCH = 15;
-  private static final int METHODID_SUBMIT_TURN = 16;
+  private static final int METHODID_READ_TOOL_RESULT_PART = 4;
+  private static final int METHODID_LIST_QUEUED_MESSAGES = 5;
+  private static final int METHODID_DELETE = 6;
+  private static final int METHODID_CLEAR = 7;
+  private static final int METHODID_COMPACT = 8;
+  private static final int METHODID_DOCTOR = 9;
+  private static final int METHODID_SEND_MESSAGE = 10;
+  private static final int METHODID_APPEND_MESSAGE = 11;
+  private static final int METHODID_UPDATE_MESSAGE = 12;
+  private static final int METHODID_ANSWER_PERMISSION = 13;
+  private static final int METHODID_STOP_GENERATION = 14;
+  private static final int METHODID_STREAM_PARTS = 15;
+  private static final int METHODID_STREAM_PARTS_BATCH = 16;
+  private static final int METHODID_SUBMIT_TURN = 17;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1341,6 +1410,10 @@ public final class SessionServiceGrpc {
         case METHODID_LIST_MESSAGES:
           serviceImpl.listMessages((talon.v1.Sessions.ListSessionMessagesRequest) request,
               (io.grpc.stub.StreamObserver<talon.v1.Sessions.ListSessionMessagesResponse>) responseObserver);
+          break;
+        case METHODID_READ_TOOL_RESULT_PART:
+          serviceImpl.readToolResultPart((talon.v1.Sessions.ReadToolResultPartRequest) request,
+              (io.grpc.stub.StreamObserver<talon.v1.Sessions.ReadToolResultPartResponse>) responseObserver);
           break;
         case METHODID_LIST_QUEUED_MESSAGES:
           serviceImpl.listQueuedMessages((talon.v1.Sessions.ListQueuedSessionMessagesRequest) request,
@@ -1440,6 +1513,13 @@ public final class SessionServiceGrpc {
               talon.v1.Sessions.ListSessionMessagesRequest,
               talon.v1.Sessions.ListSessionMessagesResponse>(
                 service, METHODID_LIST_MESSAGES)))
+        .addMethod(
+          getReadToolResultPartMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.v1.Sessions.ReadToolResultPartRequest,
+              talon.v1.Sessions.ReadToolResultPartResponse>(
+                service, METHODID_READ_TOOL_RESULT_PART)))
         .addMethod(
           getListQueuedMessagesMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -1583,6 +1663,7 @@ public final class SessionServiceGrpc {
               .addMethod(getGetMethod())
               .addMethod(getListMethod())
               .addMethod(getListMessagesMethod())
+              .addMethod(getReadToolResultPartMethod())
               .addMethod(getListQueuedMessagesMethod())
               .addMethod(getDeleteMethod())
               .addMethod(getClearMethod())

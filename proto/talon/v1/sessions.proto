@@ -4,12 +4,14 @@ package talon.v1;
 
 import "proto/data/data.proto";
 import "proto/events.proto";
+import "proto/harness/llm.proto";
 
 service SessionService {
   rpc Create(CreateSessionRequest) returns (SessionResponse);
   rpc Get(GetSessionRequest) returns (SessionResponse);
   rpc List(ListSessionsRequest) returns (ListSessionsResponse);
   rpc ListMessages(ListSessionMessagesRequest) returns (ListSessionMessagesResponse);
+  rpc ReadToolResultPart(ReadToolResultPartRequest) returns (ReadToolResultPartResponse);
   rpc ListQueuedMessages(ListQueuedSessionMessagesRequest) returns (ListQueuedSessionMessagesResponse);
   rpc Delete(DeleteSessionRequest) returns (DeleteSessionResponse);
   rpc Clear(ClearSessionRequest) returns (ClearSessionResponse);
@@ -23,6 +25,19 @@ service SessionService {
   rpc StreamParts(StreamSessionPartsRequest) returns (stream talon.events.SessionMessagePartEvent);
   rpc StreamPartsBatch(StreamSessionPartsBatchRequest) returns (stream talon.events.SessionMessagePartEvent);
   rpc SubmitTurn(SubmitSessionTurnRequest) returns (stream talon.events.SessionMessagePartEvent);
+}
+
+message ReadToolResultPartRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  // Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+  string ref = 4;
+  optional talon.harness.ByteRange byte_range = 5;
+}
+
+message ReadToolResultPartResponse {
+  talon.harness.ToolOutput output = 1;
 }
 
 message CreateSessionRequest {

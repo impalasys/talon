@@ -77,13 +77,14 @@ esac
 
 PROTOC_VERSION="${PROTOC_VERSION:-34.1}"
 PROTOC_ROOT="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}"
-PROTOC="$PROTOC_ROOT/bin/protoc"
+PROTOC="${PROTOC_BIN:-$PROTOC_ROOT/bin/protoc}"
 if [[ ! -x "$PROTOC" ]]; then
   mkdir -p "$PROTOC_ROOT"
   PROTOC_ZIP="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
   curl -fL -o "$PROTOC_ZIP" \
     "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
   unzip -q -o "$PROTOC_ZIP" -d "$PROTOC_ROOT"
+  PROTOC="$PROTOC_ROOT/bin/protoc"
 fi
 
 GO_MODULE="github.com/impalasys/talon/sdk/go/talon-client"
@@ -179,7 +180,8 @@ GO_OPTS=(
 )
 
 mkdir -p sdk/go/talon-client sdk/java/talon-client/src/main/java sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client
-rm -rf sdk/go/talon-client/talon sdk/java/talon-client/src/main/java/talon sdk/java/talon-client/src/main/java/com/google/api sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client/proto sdk/python/talon-client/src/talon_client/google
+rm -rf sdk/go/talon-client/talon sdk/java/talon-client/src/main/java/talon sdk/java/talon-client/src/main/java/com/google/api sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client/google
+find sdk/python/talon-client/src/talon_client/proto -type f \( -name '*_pb2.py' -o -name '*_pb2.pyi' \) -delete 2>/dev/null || true
 mkdir -p sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client
 
 export PATH="$(go env GOPATH)/bin:$PATH"
@@ -261,6 +263,27 @@ PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tool
   --pyi_out=sdk/python/talon-client/src/talon_client \
   --grpc_python_out=sdk/python/talon-client/src/talon_client \
   "${PROTO_SRCS[@]}"
+python3 - <<'PY'
+from pathlib import Path
+
+path = Path("sdk/python/talon-client/src/talon_client/proto/talon/v1/sessions_pb2_grpc.py")
+if path.exists():
+    source = path.read_text()
+    marker = """        self.ListMessages = channel.unary_unary(
+                '/talon.v1.SessionService/ListMessages',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesResponse.FromString,
+                _registered_method=True)
+"""
+    addition = marker + """        self.ReadToolResultPart = channel.unary_unary(
+                '/talon.v1.SessionService/ReadToolResultPart',
+                request_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartRequest.SerializeToString,
+                response_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartResponse.FromString,
+                _registered_method=True)
+"""
+    if marker in source and "self.ReadToolResultPart =" not in source:
+        path.write_text(source.replace(marker, addition, 1))
+PY
 
 find sdk/python/talon-client/src/talon_client -type d -exec sh -c 'touch "$0/__init__.py"' {} \;
 python3 - <<'PY'

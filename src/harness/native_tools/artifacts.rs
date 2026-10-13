@@ -37,6 +37,22 @@ pub async fn create_artifact(
             metadata.clone(),
         )
         .await?;
+    if let Err(error) = retain_artifact_revision(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        &artifact_id,
+        &object_ref,
+    )
+    .await
+    {
+        let cas = crate::control::cas::CasStore::new(cp.objects.clone());
+        if let Err(cleanup_error) = cas.delete_object(&object_ref.key).await {
+            tracing::warn!(error = %cleanup_error, object_key = %object_ref.key, "failed to clean artifact object after revision index failure");
+        }
+        return Err(error);
+    }
     let artifact = crate::gateway::rpc::data_proto::Artifact {
         id: artifact_id.clone(),
         session_id: current_session.to_string(),
@@ -145,10 +161,6 @@ pub async fn update_artifact(
         ))
         .await?
         .ok_or_else(|| anyhow!("Artifact '{}' not found", uri.artifact_id))?;
-    let previous_object_key = artifact
-        .object_ref
-        .as_ref()
-        .map(|object_ref| object_ref.key.clone());
     let media_type = opt_str(args, "media_type").unwrap_or(&artifact.media_type);
     if args.get("content").and_then(Value::as_str).is_none()
         && opt_str(args, "content_base64").is_none()
@@ -170,6 +182,21 @@ pub async fn update_artifact(
             artifact.metadata.clone(),
         )
         .await?;
+    if let Err(error) = retain_artifact_revision(
+        cp,
+        &uri.namespace,
+        &uri.agent,
+        &uri.session_id,
+        &uri.artifact_id,
+        &object_ref,
+    )
+    .await
+    {
+        if let Err(cleanup_error) = cas.delete_object(&object_ref.key).await {
+            tracing::warn!(error = %cleanup_error, object_key = %object_ref.key, "failed to clean artifact object after revision index failure");
+        }
+        return Err(error);
+    }
     artifact.media_type = media_type.to_string();
     artifact.object_ref = Some(object_ref);
     let artifact_key = keys::artifact(
@@ -194,25 +221,32 @@ pub async fn update_artifact(
         }
         return Err(error);
     }
-    if let Some(previous_object_key) = previous_object_key {
-        if artifact
-            .object_ref
-            .as_ref()
-            .is_none_or(|object_ref| object_ref.key != previous_object_key)
-        {
-            if let Err(error) = cas.delete_object(&previous_object_key).await {
-                tracing::warn!(
-                    error = %error,
-                    object_key = %previous_object_key,
-                    "failed to delete superseded artifact CAS object"
-                );
-            }
-        }
-    }
     Ok(serde_json::to_string_pretty(&json!({
         "artifact": artifact_json(&artifact),
         "artifactUri": uri.encode()
     }))?)
+}
+
+async fn retain_artifact_revision(
+    cp: &ControlPlane,
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    artifact_id: &str,
+    object_ref: &crate::gateway::rpc::data_proto::ObjectRef,
+) -> Result<()> {
+    let revision = if object_ref.sha256.trim().is_empty() {
+        object_ref.key.rsplit('/').next().unwrap_or(&object_ref.key)
+    } else {
+        object_ref.sha256.as_str()
+    };
+    cp.kv
+        .set_msg(
+            &keys::artifact_revision(namespace, agent, session_id, artifact_id, revision),
+            object_ref,
+        )
+        .await?;
+    Ok(())
 }
 
 pub async fn get_artifact_metadata(

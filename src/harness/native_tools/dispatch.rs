@@ -133,6 +133,85 @@ pub async fn execute_tool_for_session_output(
             .map(ToolOutput::text)
             .map(Some)
         }
+        READ_TOOL_RESULT_TOOL => {
+            require_capability(spec, "sessions", "read:messages")?;
+            let reference = req_str(args, "ref")?;
+            let byte_range = args
+                .get("byte_range")
+                .map(|range| -> Result<crate::harness::llm::ByteRange> {
+                    let range = range
+                        .as_object()
+                        .ok_or_else(|| anyhow!("byte_range must be an object"))?;
+                    Ok(crate::harness::llm::ByteRange {
+                        start: range.get("start").and_then(Value::as_u64).ok_or_else(|| {
+                            anyhow!("byte_range.start must be a non-negative integer")
+                        })?,
+                        end: range.get("end").and_then(Value::as_u64).ok_or_else(|| {
+                            anyhow!("byte_range.end must be a non-negative integer")
+                        })?,
+                    })
+                })
+                .transpose()?;
+            crate::control::tool_result_handles::read_tool_result_handle(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                reference,
+                byte_range,
+            )
+            .await
+            .map(Some)
+        }
+        READ_RESOURCE_TOOL => {
+            let reference = req_str(args, "ref")?;
+            if reference.starts_with("tr://") {
+                require_capability(spec, "sessions", "read:messages")?;
+                require_global_capability(config, "sessions", "read:messages")?;
+            } else if reference.starts_with("file://") {
+                require_file_read(spec)?;
+                require_global_capability(config, "files", "read")?;
+            } else if !reference.starts_with("artifact://") {
+                anyhow::bail!("read ref must use file://, artifact://, or tr://");
+            }
+            crate::harness::native_tools::resources::read(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await
+            .map(Some)
+        }
+        WRITE_RESOURCE_TOOL => {
+            let target = args.get("ref").and_then(Value::as_str);
+            let artifact_write = match target {
+                Some(reference) if reference.starts_with("artifact://") => true,
+                Some(reference) if reference.starts_with("file://") => false,
+                Some(_) => anyhow::bail!("write ref must use file:// or artifact://"),
+                None => match args.get("kind").and_then(Value::as_str) {
+                    Some("artifact") => true,
+                    Some("file") => false,
+                    _ => anyhow::bail!("write requires kind=file|artifact when ref is omitted"),
+                },
+            };
+            if !artifact_write {
+                let action = if target.is_some() { "update" } else { "create" };
+                require_capability(spec, "files", action)?;
+                require_global_capability(config, "files", action)?;
+            }
+            crate::harness::native_tools::resources::write(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await
+            .map(ToolOutput::text)
+            .map(Some)
+        }
         LIST_FILES_TOOL => {
             require_file_read(spec)?;
             crate::harness::native_tools::files::list_files_tool(cp, current_namespace, args)
@@ -525,7 +604,7 @@ fn require_global_capability(config: &Config, capability: &str, action: &str) ->
 
 fn global_capability_for_tool(name: &str) -> Option<(&'static str, &'static str)> {
     match name {
-        READ_SESSION_MESSAGES_TOOL => Some(("sessions", "read:messages")),
+        READ_SESSION_MESSAGES_TOOL | READ_TOOL_RESULT_TOOL => Some(("sessions", "read:messages")),
         LIST_FILES_TOOL | READ_FILE_TOOL | GET_FILE_METADATA_TOOL => Some(("files", "read")),
         CREATE_FILE_TOOL => Some(("files", "create")),
         UPDATE_FILE_TOOL => Some(("files", "update")),

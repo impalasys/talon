@@ -33,6 +33,7 @@ Capture every supported fact that the next agent would need, including:
 - exact literals, invariants, preferences, and facts the user asked to preserve;
 - decisions and their rationale;
 - completed work, files, artifacts, tool results, external facts, current state, blockers, and next actions.
+- any `tr://` tool-result handles exactly as written, along with what each result contains and when the next agent should read it; these handles remain usable after compaction.
 
 Return only one XML element in this exact form:
 <summary>

@@ -23,6 +23,127 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ReadToolResultPartRequest struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	SessionId string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Agent     string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	Ns        string                 `protobuf:"bytes,3,opt,name=ns,proto3" json:"ns,omitempty"`
+	// Session-local tr:// catalog or part handle. CAS object keys are not accepted.
+	Ref           string          `protobuf:"bytes,4,opt,name=ref,proto3" json:"ref,omitempty"`
+	ByteRange     *data.ByteRange `protobuf:"bytes,5,opt,name=byte_range,json=byteRange,proto3,oneof" json:"byte_range,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadToolResultPartRequest) Reset() {
+	*x = ReadToolResultPartRequest{}
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadToolResultPartRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadToolResultPartRequest) ProtoMessage() {}
+
+func (x *ReadToolResultPartRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadToolResultPartRequest.ProtoReflect.Descriptor instead.
+func (*ReadToolResultPartRequest) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ReadToolResultPartRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *ReadToolResultPartRequest) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *ReadToolResultPartRequest) GetNs() string {
+	if x != nil {
+		return x.Ns
+	}
+	return ""
+}
+
+func (x *ReadToolResultPartRequest) GetRef() string {
+	if x != nil {
+		return x.Ref
+	}
+	return ""
+}
+
+func (x *ReadToolResultPartRequest) GetByteRange() *data.ByteRange {
+	if x != nil {
+		return x.ByteRange
+	}
+	return nil
+}
+
+type ReadToolResultPartResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Output        *data.ToolOutput       `protobuf:"bytes,1,opt,name=output,proto3" json:"output,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadToolResultPartResponse) Reset() {
+	*x = ReadToolResultPartResponse{}
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadToolResultPartResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadToolResultPartResponse) ProtoMessage() {}
+
+func (x *ReadToolResultPartResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadToolResultPartResponse.ProtoReflect.Descriptor instead.
+func (*ReadToolResultPartResponse) Descriptor() ([]byte, []int) {
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ReadToolResultPartResponse) GetOutput() *data.ToolOutput {
+	if x != nil {
+		return x.Output
+	}
+	return nil
+}
+
 type CreateSessionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Agent         string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
@@ -34,7 +155,7 @@ type CreateSessionRequest struct {
 
 func (x *CreateSessionRequest) Reset() {
 	*x = CreateSessionRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[0]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +167,7 @@ func (x *CreateSessionRequest) String() string {
 func (*CreateSessionRequest) ProtoMessage() {}
 
 func (x *CreateSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[0]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,7 +180,7 @@ func (x *CreateSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSessionRequest.ProtoReflect.Descriptor instead.
 func (*CreateSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{0}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CreateSessionRequest) GetAgent() string {
@@ -95,7 +216,7 @@ type GetSessionRequest struct {
 
 func (x *GetSessionRequest) Reset() {
 	*x = GetSessionRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[1]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -107,7 +228,7 @@ func (x *GetSessionRequest) String() string {
 func (*GetSessionRequest) ProtoMessage() {}
 
 func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[1]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -120,7 +241,7 @@ func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSessionRequest.ProtoReflect.Descriptor instead.
 func (*GetSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{1}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetSessionRequest) GetSessionId() string {
@@ -164,7 +285,7 @@ type ListSessionMessagesRequest struct {
 
 func (x *ListSessionMessagesRequest) Reset() {
 	*x = ListSessionMessagesRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[2]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -176,7 +297,7 @@ func (x *ListSessionMessagesRequest) String() string {
 func (*ListSessionMessagesRequest) ProtoMessage() {}
 
 func (x *ListSessionMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[2]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -189,7 +310,7 @@ func (x *ListSessionMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{2}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListSessionMessagesRequest) GetSessionId() string {
@@ -236,7 +357,7 @@ type ListSessionMessagesResponseItem struct {
 
 func (x *ListSessionMessagesResponseItem) Reset() {
 	*x = ListSessionMessagesResponseItem{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[3]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -248,7 +369,7 @@ func (x *ListSessionMessagesResponseItem) String() string {
 func (*ListSessionMessagesResponseItem) ProtoMessage() {}
 
 func (x *ListSessionMessagesResponseItem) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[3]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -261,7 +382,7 @@ func (x *ListSessionMessagesResponseItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionMessagesResponseItem.ProtoReflect.Descriptor instead.
 func (*ListSessionMessagesResponseItem) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{3}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListSessionMessagesResponseItem) GetMessage() *data.SessionMessage {
@@ -285,7 +406,7 @@ type ListSessionMessagesResponse struct {
 
 func (x *ListSessionMessagesResponse) Reset() {
 	*x = ListSessionMessagesResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +418,7 @@ func (x *ListSessionMessagesResponse) String() string {
 func (*ListSessionMessagesResponse) ProtoMessage() {}
 
 func (x *ListSessionMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[4]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +431,7 @@ func (x *ListSessionMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{4}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListSessionMessagesResponse) GetSessionId() string {
@@ -369,7 +490,7 @@ type ListQueuedSessionMessagesRequest struct {
 
 func (x *ListQueuedSessionMessagesRequest) Reset() {
 	*x = ListQueuedSessionMessagesRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -381,7 +502,7 @@ func (x *ListQueuedSessionMessagesRequest) String() string {
 func (*ListQueuedSessionMessagesRequest) ProtoMessage() {}
 
 func (x *ListQueuedSessionMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[5]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -394,7 +515,7 @@ func (x *ListQueuedSessionMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListQueuedSessionMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListQueuedSessionMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{5}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListQueuedSessionMessagesRequest) GetSessionId() string {
@@ -435,7 +556,7 @@ type QueuedSessionMessage struct {
 
 func (x *QueuedSessionMessage) Reset() {
 	*x = QueuedSessionMessage{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[6]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -447,7 +568,7 @@ func (x *QueuedSessionMessage) String() string {
 func (*QueuedSessionMessage) ProtoMessage() {}
 
 func (x *QueuedSessionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[6]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -460,7 +581,7 @@ func (x *QueuedSessionMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueuedSessionMessage.ProtoReflect.Descriptor instead.
 func (*QueuedSessionMessage) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{6}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *QueuedSessionMessage) GetEntryId() string {
@@ -489,7 +610,7 @@ type ListQueuedSessionMessagesResponse struct {
 
 func (x *ListQueuedSessionMessagesResponse) Reset() {
 	*x = ListQueuedSessionMessagesResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[7]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -501,7 +622,7 @@ func (x *ListQueuedSessionMessagesResponse) String() string {
 func (*ListQueuedSessionMessagesResponse) ProtoMessage() {}
 
 func (x *ListQueuedSessionMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[7]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -514,7 +635,7 @@ func (x *ListQueuedSessionMessagesResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListQueuedSessionMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListQueuedSessionMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{7}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListQueuedSessionMessagesResponse) GetSessionId() string {
@@ -555,7 +676,7 @@ type ListSessionsRequest struct {
 
 func (x *ListSessionsRequest) Reset() {
 	*x = ListSessionsRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[8]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -567,7 +688,7 @@ func (x *ListSessionsRequest) String() string {
 func (*ListSessionsRequest) ProtoMessage() {}
 
 func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[8]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -580,7 +701,7 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{8}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListSessionsRequest) GetAgent() string {
@@ -608,7 +729,7 @@ type SessionListItem struct {
 
 func (x *SessionListItem) Reset() {
 	*x = SessionListItem{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[9]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +741,7 @@ func (x *SessionListItem) String() string {
 func (*SessionListItem) ProtoMessage() {}
 
 func (x *SessionListItem) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[9]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -633,7 +754,7 @@ func (x *SessionListItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionListItem.ProtoReflect.Descriptor instead.
 func (*SessionListItem) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{9}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SessionListItem) GetSessionId() string {
@@ -667,7 +788,7 @@ type ListSessionsResponse struct {
 
 func (x *ListSessionsResponse) Reset() {
 	*x = ListSessionsResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[10]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -679,7 +800,7 @@ func (x *ListSessionsResponse) String() string {
 func (*ListSessionsResponse) ProtoMessage() {}
 
 func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[10]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -692,7 +813,7 @@ func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{10}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListSessionsResponse) GetSessionIds() []string {
@@ -723,7 +844,7 @@ type SessionResponse struct {
 
 func (x *SessionResponse) Reset() {
 	*x = SessionResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[11]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -735,7 +856,7 @@ func (x *SessionResponse) String() string {
 func (*SessionResponse) ProtoMessage() {}
 
 func (x *SessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[11]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -748,7 +869,7 @@ func (x *SessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionResponse.ProtoReflect.Descriptor instead.
 func (*SessionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{11}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SessionResponse) GetSessionId() string {
@@ -804,7 +925,7 @@ type DeleteSessionRequest struct {
 
 func (x *DeleteSessionRequest) Reset() {
 	*x = DeleteSessionRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[12]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -816,7 +937,7 @@ func (x *DeleteSessionRequest) String() string {
 func (*DeleteSessionRequest) ProtoMessage() {}
 
 func (x *DeleteSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[12]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -829,7 +950,7 @@ func (x *DeleteSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSessionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{12}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DeleteSessionRequest) GetSessionId() string {
@@ -862,7 +983,7 @@ type DeleteSessionResponse struct {
 
 func (x *DeleteSessionResponse) Reset() {
 	*x = DeleteSessionResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[13]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -874,7 +995,7 @@ func (x *DeleteSessionResponse) String() string {
 func (*DeleteSessionResponse) ProtoMessage() {}
 
 func (x *DeleteSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[13]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -887,7 +1008,7 @@ func (x *DeleteSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSessionResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSessionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{13}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DeleteSessionResponse) GetSuccess() bool {
@@ -908,7 +1029,7 @@ type ClearSessionRequest struct {
 
 func (x *ClearSessionRequest) Reset() {
 	*x = ClearSessionRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[14]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -920,7 +1041,7 @@ func (x *ClearSessionRequest) String() string {
 func (*ClearSessionRequest) ProtoMessage() {}
 
 func (x *ClearSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[14]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -933,7 +1054,7 @@ func (x *ClearSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearSessionRequest.ProtoReflect.Descriptor instead.
 func (*ClearSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{14}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ClearSessionRequest) GetSessionId() string {
@@ -966,7 +1087,7 @@ type ClearSessionResponse struct {
 
 func (x *ClearSessionResponse) Reset() {
 	*x = ClearSessionResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[15]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +1099,7 @@ func (x *ClearSessionResponse) String() string {
 func (*ClearSessionResponse) ProtoMessage() {}
 
 func (x *ClearSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[15]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +1112,7 @@ func (x *ClearSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearSessionResponse.ProtoReflect.Descriptor instead.
 func (*ClearSessionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{15}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ClearSessionResponse) GetSuccess() bool {
@@ -1012,7 +1133,7 @@ type CompactSessionRequest struct {
 
 func (x *CompactSessionRequest) Reset() {
 	*x = CompactSessionRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[16]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1024,7 +1145,7 @@ func (x *CompactSessionRequest) String() string {
 func (*CompactSessionRequest) ProtoMessage() {}
 
 func (x *CompactSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[16]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1037,7 +1158,7 @@ func (x *CompactSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompactSessionRequest.ProtoReflect.Descriptor instead.
 func (*CompactSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{16}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CompactSessionRequest) GetSessionId() string {
@@ -1072,7 +1193,7 @@ type DoctorSessionRequest struct {
 
 func (x *DoctorSessionRequest) Reset() {
 	*x = DoctorSessionRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[17]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1084,7 +1205,7 @@ func (x *DoctorSessionRequest) String() string {
 func (*DoctorSessionRequest) ProtoMessage() {}
 
 func (x *DoctorSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[17]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1097,7 +1218,7 @@ func (x *DoctorSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DoctorSessionRequest.ProtoReflect.Descriptor instead.
 func (*DoctorSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{17}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DoctorSessionRequest) GetSessionId() string {
@@ -1132,7 +1253,7 @@ type DoctorSessionResponse struct {
 
 func (x *DoctorSessionResponse) Reset() {
 	*x = DoctorSessionResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[18]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1144,7 +1265,7 @@ func (x *DoctorSessionResponse) String() string {
 func (*DoctorSessionResponse) ProtoMessage() {}
 
 func (x *DoctorSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[18]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1157,7 +1278,7 @@ func (x *DoctorSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DoctorSessionResponse.ProtoReflect.Descriptor instead.
 func (*DoctorSessionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{18}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DoctorSessionResponse) GetProviderContinuationWasPresent() bool {
@@ -1194,7 +1315,7 @@ type SubmitSessionTurnRequest struct {
 
 func (x *SubmitSessionTurnRequest) Reset() {
 	*x = SubmitSessionTurnRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[19]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1206,7 +1327,7 @@ func (x *SubmitSessionTurnRequest) String() string {
 func (*SubmitSessionTurnRequest) ProtoMessage() {}
 
 func (x *SubmitSessionTurnRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[19]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1219,7 +1340,7 @@ func (x *SubmitSessionTurnRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitSessionTurnRequest.ProtoReflect.Descriptor instead.
 func (*SubmitSessionTurnRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{19}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *SubmitSessionTurnRequest) GetSessionId() string {
@@ -1270,7 +1391,7 @@ type SendMessageRequest struct {
 
 func (x *SendMessageRequest) Reset() {
 	*x = SendMessageRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[20]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1282,7 +1403,7 @@ func (x *SendMessageRequest) String() string {
 func (*SendMessageRequest) ProtoMessage() {}
 
 func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[20]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1295,7 +1416,7 @@ func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMessageRequest.ProtoReflect.Descriptor instead.
 func (*SendMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{20}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SendMessageRequest) GetSessionId() string {
@@ -1343,7 +1464,7 @@ type SendMessageResponse struct {
 
 func (x *SendMessageResponse) Reset() {
 	*x = SendMessageResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[21]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1355,7 +1476,7 @@ func (x *SendMessageResponse) String() string {
 func (*SendMessageResponse) ProtoMessage() {}
 
 func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[21]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1368,7 +1489,7 @@ func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMessageResponse.ProtoReflect.Descriptor instead.
 func (*SendMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{21}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *SendMessageResponse) GetReply() string {
@@ -1397,7 +1518,7 @@ type AppendSessionMessageRequest struct {
 
 func (x *AppendSessionMessageRequest) Reset() {
 	*x = AppendSessionMessageRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[22]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +1530,7 @@ func (x *AppendSessionMessageRequest) String() string {
 func (*AppendSessionMessageRequest) ProtoMessage() {}
 
 func (x *AppendSessionMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[22]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +1543,7 @@ func (x *AppendSessionMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppendSessionMessageRequest.ProtoReflect.Descriptor instead.
 func (*AppendSessionMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{22}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *AppendSessionMessageRequest) GetSessionId() string {
@@ -1463,7 +1584,7 @@ type AppendSessionMessageResponse struct {
 
 func (x *AppendSessionMessageResponse) Reset() {
 	*x = AppendSessionMessageResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[23]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1475,7 +1596,7 @@ func (x *AppendSessionMessageResponse) String() string {
 func (*AppendSessionMessageResponse) ProtoMessage() {}
 
 func (x *AppendSessionMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[23]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1488,7 +1609,7 @@ func (x *AppendSessionMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppendSessionMessageResponse.ProtoReflect.Descriptor instead.
 func (*AppendSessionMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{23}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AppendSessionMessageResponse) GetSessionId() string {
@@ -1519,7 +1640,7 @@ type UpdateSessionMessageRequest struct {
 
 func (x *UpdateSessionMessageRequest) Reset() {
 	*x = UpdateSessionMessageRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[24]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1531,7 +1652,7 @@ func (x *UpdateSessionMessageRequest) String() string {
 func (*UpdateSessionMessageRequest) ProtoMessage() {}
 
 func (x *UpdateSessionMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[24]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1544,7 +1665,7 @@ func (x *UpdateSessionMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSessionMessageRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSessionMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{24}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateSessionMessageRequest) GetSessionId() string {
@@ -1599,7 +1720,7 @@ type UpdateSessionMessageResponse struct {
 
 func (x *UpdateSessionMessageResponse) Reset() {
 	*x = UpdateSessionMessageResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[25]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1611,7 +1732,7 @@ func (x *UpdateSessionMessageResponse) String() string {
 func (*UpdateSessionMessageResponse) ProtoMessage() {}
 
 func (x *UpdateSessionMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[25]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1624,7 +1745,7 @@ func (x *UpdateSessionMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSessionMessageResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSessionMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{25}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateSessionMessageResponse) GetSessionId() string {
@@ -1656,7 +1777,7 @@ type AnswerSessionPermissionRequest struct {
 
 func (x *AnswerSessionPermissionRequest) Reset() {
 	*x = AnswerSessionPermissionRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[26]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1668,7 +1789,7 @@ func (x *AnswerSessionPermissionRequest) String() string {
 func (*AnswerSessionPermissionRequest) ProtoMessage() {}
 
 func (x *AnswerSessionPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[26]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1681,7 +1802,7 @@ func (x *AnswerSessionPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnswerSessionPermissionRequest.ProtoReflect.Descriptor instead.
 func (*AnswerSessionPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{26}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *AnswerSessionPermissionRequest) GetSessionId() string {
@@ -1745,7 +1866,7 @@ type AnswerSessionPermissionResponse struct {
 
 func (x *AnswerSessionPermissionResponse) Reset() {
 	*x = AnswerSessionPermissionResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[27]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1757,7 +1878,7 @@ func (x *AnswerSessionPermissionResponse) String() string {
 func (*AnswerSessionPermissionResponse) ProtoMessage() {}
 
 func (x *AnswerSessionPermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[27]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1770,7 +1891,7 @@ func (x *AnswerSessionPermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnswerSessionPermissionResponse.ProtoReflect.Descriptor instead.
 func (*AnswerSessionPermissionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{27}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *AnswerSessionPermissionResponse) GetSessionId() string {
@@ -1812,7 +1933,7 @@ type StopSessionGenerationRequest struct {
 
 func (x *StopSessionGenerationRequest) Reset() {
 	*x = StopSessionGenerationRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[28]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1824,7 +1945,7 @@ func (x *StopSessionGenerationRequest) String() string {
 func (*StopSessionGenerationRequest) ProtoMessage() {}
 
 func (x *StopSessionGenerationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[28]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1837,7 +1958,7 @@ func (x *StopSessionGenerationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSessionGenerationRequest.ProtoReflect.Descriptor instead.
 func (*StopSessionGenerationRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{28}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *StopSessionGenerationRequest) GetSessionId() string {
@@ -1870,7 +1991,7 @@ type StopSessionGenerationResponse struct {
 
 func (x *StopSessionGenerationResponse) Reset() {
 	*x = StopSessionGenerationResponse{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[29]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1882,7 +2003,7 @@ func (x *StopSessionGenerationResponse) String() string {
 func (*StopSessionGenerationResponse) ProtoMessage() {}
 
 func (x *StopSessionGenerationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[29]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1895,7 +2016,7 @@ func (x *StopSessionGenerationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSessionGenerationResponse.ProtoReflect.Descriptor instead.
 func (*StopSessionGenerationResponse) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{29}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *StopSessionGenerationResponse) GetSuccess() bool {
@@ -1916,7 +2037,7 @@ type StreamSessionPartsRequest struct {
 
 func (x *StreamSessionPartsRequest) Reset() {
 	*x = StreamSessionPartsRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[30]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1928,7 +2049,7 @@ func (x *StreamSessionPartsRequest) String() string {
 func (*StreamSessionPartsRequest) ProtoMessage() {}
 
 func (x *StreamSessionPartsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[30]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1941,7 +2062,7 @@ func (x *StreamSessionPartsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSessionPartsRequest.ProtoReflect.Descriptor instead.
 func (*StreamSessionPartsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{30}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *StreamSessionPartsRequest) GetSessionId() string {
@@ -1974,7 +2095,7 @@ type StreamSessionPartsBatchRequest struct {
 
 func (x *StreamSessionPartsBatchRequest) Reset() {
 	*x = StreamSessionPartsBatchRequest{}
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[31]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1986,7 +2107,7 @@ func (x *StreamSessionPartsBatchRequest) String() string {
 func (*StreamSessionPartsBatchRequest) ProtoMessage() {}
 
 func (x *StreamSessionPartsBatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_talon_v1_sessions_proto_msgTypes[31]
+	mi := &file_proto_talon_v1_sessions_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1999,7 +2120,7 @@ func (x *StreamSessionPartsBatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSessionPartsBatchRequest.ProtoReflect.Descriptor instead.
 func (*StreamSessionPartsBatchRequest) Descriptor() ([]byte, []int) {
-	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{31}
+	return file_proto_talon_v1_sessions_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *StreamSessionPartsBatchRequest) GetSessionNames() []string {
@@ -2013,7 +2134,18 @@ var File_proto_talon_v1_sessions_proto protoreflect.FileDescriptor
 
 const file_proto_talon_v1_sessions_proto_rawDesc = "" +
 	"\n" +
-	"\x1dproto/talon/v1/sessions.proto\x12\btalon.v1\x1a\x15proto/data/data.proto\x1a\x12proto/events.proto\"\xbb\x01\n" +
+	"\x1dproto/talon/v1/sessions.proto\x12\btalon.v1\x1a\x15proto/data/data.proto\x1a\x12proto/events.proto\x1a\x17proto/harness/llm.proto\"\xbf\x01\n" +
+	"\x19ReadToolResultPartRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
+	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x0e\n" +
+	"\x02ns\x18\x03 \x01(\tR\x02ns\x12\x10\n" +
+	"\x03ref\x18\x04 \x01(\tR\x03ref\x12<\n" +
+	"\n" +
+	"byte_range\x18\x05 \x01(\v2\x18.talon.harness.ByteRangeH\x00R\tbyteRange\x88\x01\x01B\r\n" +
+	"\v_byte_range\"O\n" +
+	"\x1aReadToolResultPartResponse\x121\n" +
+	"\x06output\x18\x01 \x01(\v2\x19.talon.harness.ToolOutputR\x06output\"\xbb\x01\n" +
 	"\x14CreateSessionRequest\x12\x14\n" +
 	"\x05agent\x18\x01 \x01(\tR\x05agent\x12\x0e\n" +
 	"\x02ns\x18\x02 \x01(\tR\x02ns\x12B\n" +
@@ -2199,12 +2331,13 @@ const file_proto_talon_v1_sessions_proto_rawDesc = "" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x0e\n" +
 	"\x02ns\x18\x03 \x01(\tR\x02ns\"E\n" +
 	"\x1eStreamSessionPartsBatchRequest\x12#\n" +
-	"\rsession_names\x18\x01 \x03(\tR\fsessionNames2\xd1\v\n" +
+	"\rsession_names\x18\x01 \x03(\tR\fsessionNames2\xb2\f\n" +
 	"\x0eSessionService\x12C\n" +
 	"\x06Create\x12\x1e.talon.v1.CreateSessionRequest\x1a\x19.talon.v1.SessionResponse\x12=\n" +
 	"\x03Get\x12\x1b.talon.v1.GetSessionRequest\x1a\x19.talon.v1.SessionResponse\x12E\n" +
 	"\x04List\x12\x1d.talon.v1.ListSessionsRequest\x1a\x1e.talon.v1.ListSessionsResponse\x12[\n" +
-	"\fListMessages\x12$.talon.v1.ListSessionMessagesRequest\x1a%.talon.v1.ListSessionMessagesResponse\x12m\n" +
+	"\fListMessages\x12$.talon.v1.ListSessionMessagesRequest\x1a%.talon.v1.ListSessionMessagesResponse\x12_\n" +
+	"\x12ReadToolResultPart\x12#.talon.v1.ReadToolResultPartRequest\x1a$.talon.v1.ReadToolResultPartResponse\x12m\n" +
 	"\x12ListQueuedMessages\x12*.talon.v1.ListQueuedSessionMessagesRequest\x1a+.talon.v1.ListQueuedSessionMessagesResponse\x12I\n" +
 	"\x06Delete\x12\x1e.talon.v1.DeleteSessionRequest\x1a\x1f.talon.v1.DeleteSessionResponse\x12F\n" +
 	"\x05Clear\x12\x1d.talon.v1.ClearSessionRequest\x1a\x1e.talon.v1.ClearSessionResponse\x12S\n" +
@@ -2232,109 +2365,117 @@ func file_proto_talon_v1_sessions_proto_rawDescGZIP() []byte {
 	return file_proto_talon_v1_sessions_proto_rawDescData
 }
 
-var file_proto_talon_v1_sessions_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_proto_talon_v1_sessions_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_proto_talon_v1_sessions_proto_goTypes = []any{
-	(*CreateSessionRequest)(nil),              // 0: talon.v1.CreateSessionRequest
-	(*GetSessionRequest)(nil),                 // 1: talon.v1.GetSessionRequest
-	(*ListSessionMessagesRequest)(nil),        // 2: talon.v1.ListSessionMessagesRequest
-	(*ListSessionMessagesResponseItem)(nil),   // 3: talon.v1.ListSessionMessagesResponseItem
-	(*ListSessionMessagesResponse)(nil),       // 4: talon.v1.ListSessionMessagesResponse
-	(*ListQueuedSessionMessagesRequest)(nil),  // 5: talon.v1.ListQueuedSessionMessagesRequest
-	(*QueuedSessionMessage)(nil),              // 6: talon.v1.QueuedSessionMessage
-	(*ListQueuedSessionMessagesResponse)(nil), // 7: talon.v1.ListQueuedSessionMessagesResponse
-	(*ListSessionsRequest)(nil),               // 8: talon.v1.ListSessionsRequest
-	(*SessionListItem)(nil),                   // 9: talon.v1.SessionListItem
-	(*ListSessionsResponse)(nil),              // 10: talon.v1.ListSessionsResponse
-	(*SessionResponse)(nil),                   // 11: talon.v1.SessionResponse
-	(*DeleteSessionRequest)(nil),              // 12: talon.v1.DeleteSessionRequest
-	(*DeleteSessionResponse)(nil),             // 13: talon.v1.DeleteSessionResponse
-	(*ClearSessionRequest)(nil),               // 14: talon.v1.ClearSessionRequest
-	(*ClearSessionResponse)(nil),              // 15: talon.v1.ClearSessionResponse
-	(*CompactSessionRequest)(nil),             // 16: talon.v1.CompactSessionRequest
-	(*DoctorSessionRequest)(nil),              // 17: talon.v1.DoctorSessionRequest
-	(*DoctorSessionResponse)(nil),             // 18: talon.v1.DoctorSessionResponse
-	(*SubmitSessionTurnRequest)(nil),          // 19: talon.v1.SubmitSessionTurnRequest
-	(*SendMessageRequest)(nil),                // 20: talon.v1.SendMessageRequest
-	(*SendMessageResponse)(nil),               // 21: talon.v1.SendMessageResponse
-	(*AppendSessionMessageRequest)(nil),       // 22: talon.v1.AppendSessionMessageRequest
-	(*AppendSessionMessageResponse)(nil),      // 23: talon.v1.AppendSessionMessageResponse
-	(*UpdateSessionMessageRequest)(nil),       // 24: talon.v1.UpdateSessionMessageRequest
-	(*UpdateSessionMessageResponse)(nil),      // 25: talon.v1.UpdateSessionMessageResponse
-	(*AnswerSessionPermissionRequest)(nil),    // 26: talon.v1.AnswerSessionPermissionRequest
-	(*AnswerSessionPermissionResponse)(nil),   // 27: talon.v1.AnswerSessionPermissionResponse
-	(*StopSessionGenerationRequest)(nil),      // 28: talon.v1.StopSessionGenerationRequest
-	(*StopSessionGenerationResponse)(nil),     // 29: talon.v1.StopSessionGenerationResponse
-	(*StreamSessionPartsRequest)(nil),         // 30: talon.v1.StreamSessionPartsRequest
-	(*StreamSessionPartsBatchRequest)(nil),    // 31: talon.v1.StreamSessionPartsBatchRequest
-	nil,                                       // 32: talon.v1.CreateSessionRequest.LabelsEntry
-	nil,                                       // 33: talon.v1.SessionListItem.LabelsEntry
-	nil,                                       // 34: talon.v1.SessionResponse.LabelsEntry
-	nil,                                       // 35: talon.v1.SubmitSessionTurnRequest.LabelsEntry
-	nil,                                       // 36: talon.v1.SendMessageRequest.LabelsEntry
-	nil,                                       // 37: talon.v1.UpdateSessionMessageRequest.LabelsEntry
-	(*data.SessionMessage)(nil),               // 38: talon.data.SessionMessage
-	(*data.TokenCounter)(nil),                 // 39: talon.data.TokenCounter
-	(*data.SessionMessagePart)(nil),           // 40: talon.data.SessionMessagePart
-	(*events.SessionMessagePartEvent)(nil),    // 41: talon.events.SessionMessagePartEvent
+	(*ReadToolResultPartRequest)(nil),         // 0: talon.v1.ReadToolResultPartRequest
+	(*ReadToolResultPartResponse)(nil),        // 1: talon.v1.ReadToolResultPartResponse
+	(*CreateSessionRequest)(nil),              // 2: talon.v1.CreateSessionRequest
+	(*GetSessionRequest)(nil),                 // 3: talon.v1.GetSessionRequest
+	(*ListSessionMessagesRequest)(nil),        // 4: talon.v1.ListSessionMessagesRequest
+	(*ListSessionMessagesResponseItem)(nil),   // 5: talon.v1.ListSessionMessagesResponseItem
+	(*ListSessionMessagesResponse)(nil),       // 6: talon.v1.ListSessionMessagesResponse
+	(*ListQueuedSessionMessagesRequest)(nil),  // 7: talon.v1.ListQueuedSessionMessagesRequest
+	(*QueuedSessionMessage)(nil),              // 8: talon.v1.QueuedSessionMessage
+	(*ListQueuedSessionMessagesResponse)(nil), // 9: talon.v1.ListQueuedSessionMessagesResponse
+	(*ListSessionsRequest)(nil),               // 10: talon.v1.ListSessionsRequest
+	(*SessionListItem)(nil),                   // 11: talon.v1.SessionListItem
+	(*ListSessionsResponse)(nil),              // 12: talon.v1.ListSessionsResponse
+	(*SessionResponse)(nil),                   // 13: talon.v1.SessionResponse
+	(*DeleteSessionRequest)(nil),              // 14: talon.v1.DeleteSessionRequest
+	(*DeleteSessionResponse)(nil),             // 15: talon.v1.DeleteSessionResponse
+	(*ClearSessionRequest)(nil),               // 16: talon.v1.ClearSessionRequest
+	(*ClearSessionResponse)(nil),              // 17: talon.v1.ClearSessionResponse
+	(*CompactSessionRequest)(nil),             // 18: talon.v1.CompactSessionRequest
+	(*DoctorSessionRequest)(nil),              // 19: talon.v1.DoctorSessionRequest
+	(*DoctorSessionResponse)(nil),             // 20: talon.v1.DoctorSessionResponse
+	(*SubmitSessionTurnRequest)(nil),          // 21: talon.v1.SubmitSessionTurnRequest
+	(*SendMessageRequest)(nil),                // 22: talon.v1.SendMessageRequest
+	(*SendMessageResponse)(nil),               // 23: talon.v1.SendMessageResponse
+	(*AppendSessionMessageRequest)(nil),       // 24: talon.v1.AppendSessionMessageRequest
+	(*AppendSessionMessageResponse)(nil),      // 25: talon.v1.AppendSessionMessageResponse
+	(*UpdateSessionMessageRequest)(nil),       // 26: talon.v1.UpdateSessionMessageRequest
+	(*UpdateSessionMessageResponse)(nil),      // 27: talon.v1.UpdateSessionMessageResponse
+	(*AnswerSessionPermissionRequest)(nil),    // 28: talon.v1.AnswerSessionPermissionRequest
+	(*AnswerSessionPermissionResponse)(nil),   // 29: talon.v1.AnswerSessionPermissionResponse
+	(*StopSessionGenerationRequest)(nil),      // 30: talon.v1.StopSessionGenerationRequest
+	(*StopSessionGenerationResponse)(nil),     // 31: talon.v1.StopSessionGenerationResponse
+	(*StreamSessionPartsRequest)(nil),         // 32: talon.v1.StreamSessionPartsRequest
+	(*StreamSessionPartsBatchRequest)(nil),    // 33: talon.v1.StreamSessionPartsBatchRequest
+	nil,                                       // 34: talon.v1.CreateSessionRequest.LabelsEntry
+	nil,                                       // 35: talon.v1.SessionListItem.LabelsEntry
+	nil,                                       // 36: talon.v1.SessionResponse.LabelsEntry
+	nil,                                       // 37: talon.v1.SubmitSessionTurnRequest.LabelsEntry
+	nil,                                       // 38: talon.v1.SendMessageRequest.LabelsEntry
+	nil,                                       // 39: talon.v1.UpdateSessionMessageRequest.LabelsEntry
+	(*data.ByteRange)(nil),                    // 40: talon.harness.ByteRange
+	(*data.ToolOutput)(nil),                   // 41: talon.harness.ToolOutput
+	(*data.SessionMessage)(nil),               // 42: talon.data.SessionMessage
+	(*data.TokenCounter)(nil),                 // 43: talon.data.TokenCounter
+	(*data.SessionMessagePart)(nil),           // 44: talon.data.SessionMessagePart
+	(*events.SessionMessagePartEvent)(nil),    // 45: talon.events.SessionMessagePartEvent
 }
 var file_proto_talon_v1_sessions_proto_depIdxs = []int32{
-	32, // 0: talon.v1.CreateSessionRequest.labels:type_name -> talon.v1.CreateSessionRequest.LabelsEntry
-	38, // 1: talon.v1.ListSessionMessagesResponseItem.message:type_name -> talon.data.SessionMessage
-	3,  // 2: talon.v1.ListSessionMessagesResponse.items:type_name -> talon.v1.ListSessionMessagesResponseItem
-	38, // 3: talon.v1.QueuedSessionMessage.message:type_name -> talon.data.SessionMessage
-	6,  // 4: talon.v1.ListQueuedSessionMessagesResponse.entries:type_name -> talon.v1.QueuedSessionMessage
-	33, // 5: talon.v1.SessionListItem.labels:type_name -> talon.v1.SessionListItem.LabelsEntry
-	9,  // 6: talon.v1.ListSessionsResponse.sessions:type_name -> talon.v1.SessionListItem
-	38, // 7: talon.v1.SessionResponse.messages:type_name -> talon.data.SessionMessage
-	34, // 8: talon.v1.SessionResponse.labels:type_name -> talon.v1.SessionResponse.LabelsEntry
-	39, // 9: talon.v1.SessionResponse.context_tokens:type_name -> talon.data.TokenCounter
-	38, // 10: talon.v1.SubmitSessionTurnRequest.message:type_name -> talon.data.SessionMessage
-	35, // 11: talon.v1.SubmitSessionTurnRequest.labels:type_name -> talon.v1.SubmitSessionTurnRequest.LabelsEntry
-	36, // 12: talon.v1.SendMessageRequest.labels:type_name -> talon.v1.SendMessageRequest.LabelsEntry
-	38, // 13: talon.v1.AppendSessionMessageRequest.message:type_name -> talon.data.SessionMessage
-	38, // 14: talon.v1.AppendSessionMessageResponse.message:type_name -> talon.data.SessionMessage
-	40, // 15: talon.v1.UpdateSessionMessageRequest.parts:type_name -> talon.data.SessionMessagePart
-	37, // 16: talon.v1.UpdateSessionMessageRequest.labels:type_name -> talon.v1.UpdateSessionMessageRequest.LabelsEntry
-	38, // 17: talon.v1.UpdateSessionMessageResponse.message:type_name -> talon.data.SessionMessage
-	0,  // 18: talon.v1.SessionService.Create:input_type -> talon.v1.CreateSessionRequest
-	1,  // 19: talon.v1.SessionService.Get:input_type -> talon.v1.GetSessionRequest
-	8,  // 20: talon.v1.SessionService.List:input_type -> talon.v1.ListSessionsRequest
-	2,  // 21: talon.v1.SessionService.ListMessages:input_type -> talon.v1.ListSessionMessagesRequest
-	5,  // 22: talon.v1.SessionService.ListQueuedMessages:input_type -> talon.v1.ListQueuedSessionMessagesRequest
-	12, // 23: talon.v1.SessionService.Delete:input_type -> talon.v1.DeleteSessionRequest
-	14, // 24: talon.v1.SessionService.Clear:input_type -> talon.v1.ClearSessionRequest
-	16, // 25: talon.v1.SessionService.Compact:input_type -> talon.v1.CompactSessionRequest
-	17, // 26: talon.v1.SessionService.Doctor:input_type -> talon.v1.DoctorSessionRequest
-	20, // 27: talon.v1.SessionService.SendMessage:input_type -> talon.v1.SendMessageRequest
-	22, // 28: talon.v1.SessionService.AppendMessage:input_type -> talon.v1.AppendSessionMessageRequest
-	24, // 29: talon.v1.SessionService.UpdateMessage:input_type -> talon.v1.UpdateSessionMessageRequest
-	26, // 30: talon.v1.SessionService.AnswerPermission:input_type -> talon.v1.AnswerSessionPermissionRequest
-	28, // 31: talon.v1.SessionService.StopGeneration:input_type -> talon.v1.StopSessionGenerationRequest
-	30, // 32: talon.v1.SessionService.StreamParts:input_type -> talon.v1.StreamSessionPartsRequest
-	31, // 33: talon.v1.SessionService.StreamPartsBatch:input_type -> talon.v1.StreamSessionPartsBatchRequest
-	19, // 34: talon.v1.SessionService.SubmitTurn:input_type -> talon.v1.SubmitSessionTurnRequest
-	11, // 35: talon.v1.SessionService.Create:output_type -> talon.v1.SessionResponse
-	11, // 36: talon.v1.SessionService.Get:output_type -> talon.v1.SessionResponse
-	10, // 37: talon.v1.SessionService.List:output_type -> talon.v1.ListSessionsResponse
-	4,  // 38: talon.v1.SessionService.ListMessages:output_type -> talon.v1.ListSessionMessagesResponse
-	7,  // 39: talon.v1.SessionService.ListQueuedMessages:output_type -> talon.v1.ListQueuedSessionMessagesResponse
-	13, // 40: talon.v1.SessionService.Delete:output_type -> talon.v1.DeleteSessionResponse
-	15, // 41: talon.v1.SessionService.Clear:output_type -> talon.v1.ClearSessionResponse
-	41, // 42: talon.v1.SessionService.Compact:output_type -> talon.events.SessionMessagePartEvent
-	18, // 43: talon.v1.SessionService.Doctor:output_type -> talon.v1.DoctorSessionResponse
-	21, // 44: talon.v1.SessionService.SendMessage:output_type -> talon.v1.SendMessageResponse
-	23, // 45: talon.v1.SessionService.AppendMessage:output_type -> talon.v1.AppendSessionMessageResponse
-	25, // 46: talon.v1.SessionService.UpdateMessage:output_type -> talon.v1.UpdateSessionMessageResponse
-	27, // 47: talon.v1.SessionService.AnswerPermission:output_type -> talon.v1.AnswerSessionPermissionResponse
-	29, // 48: talon.v1.SessionService.StopGeneration:output_type -> talon.v1.StopSessionGenerationResponse
-	41, // 49: talon.v1.SessionService.StreamParts:output_type -> talon.events.SessionMessagePartEvent
-	41, // 50: talon.v1.SessionService.StreamPartsBatch:output_type -> talon.events.SessionMessagePartEvent
-	41, // 51: talon.v1.SessionService.SubmitTurn:output_type -> talon.events.SessionMessagePartEvent
-	35, // [35:52] is the sub-list for method output_type
-	18, // [18:35] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	40, // 0: talon.v1.ReadToolResultPartRequest.byte_range:type_name -> talon.harness.ByteRange
+	41, // 1: talon.v1.ReadToolResultPartResponse.output:type_name -> talon.harness.ToolOutput
+	34, // 2: talon.v1.CreateSessionRequest.labels:type_name -> talon.v1.CreateSessionRequest.LabelsEntry
+	42, // 3: talon.v1.ListSessionMessagesResponseItem.message:type_name -> talon.data.SessionMessage
+	5,  // 4: talon.v1.ListSessionMessagesResponse.items:type_name -> talon.v1.ListSessionMessagesResponseItem
+	42, // 5: talon.v1.QueuedSessionMessage.message:type_name -> talon.data.SessionMessage
+	8,  // 6: talon.v1.ListQueuedSessionMessagesResponse.entries:type_name -> talon.v1.QueuedSessionMessage
+	35, // 7: talon.v1.SessionListItem.labels:type_name -> talon.v1.SessionListItem.LabelsEntry
+	11, // 8: talon.v1.ListSessionsResponse.sessions:type_name -> talon.v1.SessionListItem
+	42, // 9: talon.v1.SessionResponse.messages:type_name -> talon.data.SessionMessage
+	36, // 10: talon.v1.SessionResponse.labels:type_name -> talon.v1.SessionResponse.LabelsEntry
+	43, // 11: talon.v1.SessionResponse.context_tokens:type_name -> talon.data.TokenCounter
+	42, // 12: talon.v1.SubmitSessionTurnRequest.message:type_name -> talon.data.SessionMessage
+	37, // 13: talon.v1.SubmitSessionTurnRequest.labels:type_name -> talon.v1.SubmitSessionTurnRequest.LabelsEntry
+	38, // 14: talon.v1.SendMessageRequest.labels:type_name -> talon.v1.SendMessageRequest.LabelsEntry
+	42, // 15: talon.v1.AppendSessionMessageRequest.message:type_name -> talon.data.SessionMessage
+	42, // 16: talon.v1.AppendSessionMessageResponse.message:type_name -> talon.data.SessionMessage
+	44, // 17: talon.v1.UpdateSessionMessageRequest.parts:type_name -> talon.data.SessionMessagePart
+	39, // 18: talon.v1.UpdateSessionMessageRequest.labels:type_name -> talon.v1.UpdateSessionMessageRequest.LabelsEntry
+	42, // 19: talon.v1.UpdateSessionMessageResponse.message:type_name -> talon.data.SessionMessage
+	2,  // 20: talon.v1.SessionService.Create:input_type -> talon.v1.CreateSessionRequest
+	3,  // 21: talon.v1.SessionService.Get:input_type -> talon.v1.GetSessionRequest
+	10, // 22: talon.v1.SessionService.List:input_type -> talon.v1.ListSessionsRequest
+	4,  // 23: talon.v1.SessionService.ListMessages:input_type -> talon.v1.ListSessionMessagesRequest
+	0,  // 24: talon.v1.SessionService.ReadToolResultPart:input_type -> talon.v1.ReadToolResultPartRequest
+	7,  // 25: talon.v1.SessionService.ListQueuedMessages:input_type -> talon.v1.ListQueuedSessionMessagesRequest
+	14, // 26: talon.v1.SessionService.Delete:input_type -> talon.v1.DeleteSessionRequest
+	16, // 27: talon.v1.SessionService.Clear:input_type -> talon.v1.ClearSessionRequest
+	18, // 28: talon.v1.SessionService.Compact:input_type -> talon.v1.CompactSessionRequest
+	19, // 29: talon.v1.SessionService.Doctor:input_type -> talon.v1.DoctorSessionRequest
+	22, // 30: talon.v1.SessionService.SendMessage:input_type -> talon.v1.SendMessageRequest
+	24, // 31: talon.v1.SessionService.AppendMessage:input_type -> talon.v1.AppendSessionMessageRequest
+	26, // 32: talon.v1.SessionService.UpdateMessage:input_type -> talon.v1.UpdateSessionMessageRequest
+	28, // 33: talon.v1.SessionService.AnswerPermission:input_type -> talon.v1.AnswerSessionPermissionRequest
+	30, // 34: talon.v1.SessionService.StopGeneration:input_type -> talon.v1.StopSessionGenerationRequest
+	32, // 35: talon.v1.SessionService.StreamParts:input_type -> talon.v1.StreamSessionPartsRequest
+	33, // 36: talon.v1.SessionService.StreamPartsBatch:input_type -> talon.v1.StreamSessionPartsBatchRequest
+	21, // 37: talon.v1.SessionService.SubmitTurn:input_type -> talon.v1.SubmitSessionTurnRequest
+	13, // 38: talon.v1.SessionService.Create:output_type -> talon.v1.SessionResponse
+	13, // 39: talon.v1.SessionService.Get:output_type -> talon.v1.SessionResponse
+	12, // 40: talon.v1.SessionService.List:output_type -> talon.v1.ListSessionsResponse
+	6,  // 41: talon.v1.SessionService.ListMessages:output_type -> talon.v1.ListSessionMessagesResponse
+	1,  // 42: talon.v1.SessionService.ReadToolResultPart:output_type -> talon.v1.ReadToolResultPartResponse
+	9,  // 43: talon.v1.SessionService.ListQueuedMessages:output_type -> talon.v1.ListQueuedSessionMessagesResponse
+	15, // 44: talon.v1.SessionService.Delete:output_type -> talon.v1.DeleteSessionResponse
+	17, // 45: talon.v1.SessionService.Clear:output_type -> talon.v1.ClearSessionResponse
+	45, // 46: talon.v1.SessionService.Compact:output_type -> talon.events.SessionMessagePartEvent
+	20, // 47: talon.v1.SessionService.Doctor:output_type -> talon.v1.DoctorSessionResponse
+	23, // 48: talon.v1.SessionService.SendMessage:output_type -> talon.v1.SendMessageResponse
+	25, // 49: talon.v1.SessionService.AppendMessage:output_type -> talon.v1.AppendSessionMessageResponse
+	27, // 50: talon.v1.SessionService.UpdateMessage:output_type -> talon.v1.UpdateSessionMessageResponse
+	29, // 51: talon.v1.SessionService.AnswerPermission:output_type -> talon.v1.AnswerSessionPermissionResponse
+	31, // 52: talon.v1.SessionService.StopGeneration:output_type -> talon.v1.StopSessionGenerationResponse
+	45, // 53: talon.v1.SessionService.StreamParts:output_type -> talon.events.SessionMessagePartEvent
+	45, // 54: talon.v1.SessionService.StreamPartsBatch:output_type -> talon.events.SessionMessagePartEvent
+	45, // 55: talon.v1.SessionService.SubmitTurn:output_type -> talon.events.SessionMessagePartEvent
+	38, // [38:56] is the sub-list for method output_type
+	20, // [20:38] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_proto_talon_v1_sessions_proto_init() }
@@ -2342,16 +2483,17 @@ func file_proto_talon_v1_sessions_proto_init() {
 	if File_proto_talon_v1_sessions_proto != nil {
 		return
 	}
-	file_proto_talon_v1_sessions_proto_msgTypes[2].OneofWrappers = []any{}
+	file_proto_talon_v1_sessions_proto_msgTypes[0].OneofWrappers = []any{}
 	file_proto_talon_v1_sessions_proto_msgTypes[4].OneofWrappers = []any{}
-	file_proto_talon_v1_sessions_proto_msgTypes[11].OneofWrappers = []any{}
+	file_proto_talon_v1_sessions_proto_msgTypes[6].OneofWrappers = []any{}
+	file_proto_talon_v1_sessions_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_talon_v1_sessions_proto_rawDesc), len(file_proto_talon_v1_sessions_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

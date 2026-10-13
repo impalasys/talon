@@ -1,23 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { decompress as decompressZstd } from "fzstd";
 import type { CopilotMessage } from "../../lib/chatTimeline";
 import { parsePayloadJson } from "../protocol";
-import {
-  objectRefContentEncoding,
-  objectRefFromPart,
-  objectRefFromValue,
-  objectRefKey,
-} from "../objectRefs";
+import { objectRefFromValue, objectRefKey } from "../objectRefs";
 import type { TalonChatObjectRef } from "../types";
 
-export type ToolResultHydrationState = "loading" | { objectKey: string };
-
-type CasClient = {
-  getObject(request: { key: string }): Promise<any>;
+type SessionClient = {
+  readToolResultPart?: (request: {
+    sessionId: string;
+    agent: string;
+    ns: string;
+    ref: string;
+  }) => Promise<any>;
 };
+
+type SessionTarget = { sessionId: string; agent: string; ns: string } | null;
+export type ToolResultHydrationState = "loading" | { objectKey: string };
 
 type ToolResultPartMatch = {
   part: any;
+  partIndex: number;
   key: string;
   object: TalonChatObjectRef;
 };
@@ -40,89 +41,69 @@ function cacheKey(messageId: string, toolCallId: string, objectKey: string): str
   return `${messageId}\u0000${toolCallId}\u0000${objectKey}`;
 }
 
-function findObjectPart(parts: unknown, toolCallId: string): ToolResultPartMatch | null {
+function findObjectPart(parts: unknown, toolCallId: string, wantedPartIndex?: number): ToolResultPartMatch | null {
   if (!Array.isArray(parts)) return null;
   for (const part of parts) {
     if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
     if (toolCallId && toolCallIdFromPart(part) !== toolCallId) continue;
-    const object = objectRefFromPart(part);
-    const key = objectRefKey(object);
-    if (object && key) return { part, key, object };
+    const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
+    const output = (payload.tool_output ?? payload.toolOutput) as Record<string, unknown> | undefined;
+    const contentParts = output?.content_parts ?? output?.contentParts;
+    if (!Array.isArray(contentParts)) continue;
+    for (let partIndex = 0; partIndex < contentParts.length; partIndex += 1) {
+      if (wantedPartIndex !== undefined && wantedPartIndex !== partIndex) continue;
+      const contentPart = contentParts[partIndex];
+      const object = objectRefFromValue(contentPart);
+      const key = objectRefKey(object);
+      if (object && key) return { part, partIndex, key, object };
+    }
   }
   return null;
 }
 
 function findHydratableObjectPart(parts: unknown, toolCallId: string): ToolResultPartMatch | null {
   const match = findObjectPart(parts, toolCallId);
-  return match && !(typeof match.part.content === "string" && match.part.content.length > 0)
-    ? match
-    : null;
+  const content = match?.part.content;
+  if (!match || (typeof content === "string" && content.length > 0)) return null;
+  const mediaType = (match.object as any).mediaType ?? (match.object as any).media_type ?? "";
+  const normalizedType = typeof mediaType === "string" ? mediaType.split(";")[0]!.trim().toLowerCase() : "";
+  const isText = normalizedType.startsWith("text/")
+    || ["application/json", "application/yaml", "application/x-yaml", "application/toml", "application/xml", "application/javascript", "application/x-javascript"].includes(normalizedType)
+    || normalizedType.endsWith("+json")
+    || normalizedType.endsWith("+xml");
+  return isText ? match : null;
 }
 
-function replaceObjectInOutput(part: unknown, fallback: unknown, objectKey: string, hydratedOutput: string): unknown {
-  const payload = parsePayloadJson((part as any)?.payloadJson ?? (part as any)?.payload_json);
-  const toolOutput = payload.tool_output ?? payload.toolOutput;
-  const contentParts = toolOutput && typeof toolOutput === "object"
-    ? (toolOutput as Record<string, unknown>).content_parts ?? (toolOutput as Record<string, unknown>).contentParts
-    : undefined;
-  if (!Array.isArray(contentParts)) return hydratedOutput;
-
-  let replaced = false;
-  const output = contentParts.map((contentPart) => {
-    if (!contentPart || typeof contentPart !== "object") return "";
-    const value = contentPart as { type?: unknown; text?: unknown };
-    if (value.type === "text" && typeof value.text === "string") return value.text;
-    if (objectRefFromValue(contentPart)?.key === objectKey) {
-      replaced = true;
-      return hydratedOutput;
-    }
-    return "";
-  }).join("");
-  return replaced ? output : fallback;
-}
-
-async function decompress(data: Uint8Array, encoding: string): Promise<Uint8Array> {
-  if (typeof DecompressionStream === "undefined") {
-    throw new Error(`${encoding} CAS object requires DecompressionStream support`);
+function findToolOutputParts(parts: unknown, toolCallId: string): { part: any; values: any[] } | null {
+  if (!Array.isArray(parts)) return null;
+  for (const part of parts) {
+    if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
+    if (toolCallId && toolCallIdFromPart(part) !== toolCallId) continue;
+    const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
+    const output = (payload.tool_output ?? payload.toolOutput) as Record<string, unknown> | undefined;
+    const values = output?.content_parts ?? output?.contentParts;
+    if (Array.isArray(values)) return { part, values };
   }
-  const buffer = new ArrayBuffer(data.byteLength);
-  new Uint8Array(buffer).set(data);
-  const stream = new Blob([buffer]).stream().pipeThrough(new DecompressionStream(encoding as any));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  return null;
 }
 
-async function decodeObject(response: any, fallbackObject: TalonChatObjectRef): Promise<Uint8Array> {
-  const signedUrl = typeof response?.signedUrl === "string"
-    ? response.signedUrl
-    : typeof response?.signed_url === "string" ? response.signed_url : "";
-  const bytes = signedUrl
-    ? await (async () => {
-      const fetched = await fetch(signedUrl);
-      if (!fetched.ok) throw new Error(`Failed to fetch CAS object: HTTP ${fetched.status}`);
-      return new Uint8Array(await fetched.arrayBuffer());
-    })()
-    : response.data ?? new Uint8Array();
-  const encoding = response?.contentEncoding
-    ?? response?.content_encoding
-    ?? response?.metadata?.content_encoding
-    ?? response?.metadata?.contentEncoding
-    ?? objectRefContentEncoding(fallbackObject);
-  if (typeof encoding !== "string") return bytes;
-  if (encoding.toLowerCase() === "gzip") return decompress(bytes, "gzip");
-  if (encoding.toLowerCase() === "zstd") {
-    if (typeof DecompressionStream !== "undefined") {
-      try {
-        return await decompress(bytes, "zstd");
-      } catch (error) {
-        if (!(error instanceof TypeError)) throw error;
-      }
-    }
-    return decompressZstd(bytes);
+function textFromOutput(value: any): string | null {
+  const output = value?.output ?? value;
+  const contentParts = output?.contentParts ?? output?.content_parts;
+  if (Array.isArray(contentParts)) {
+    const text = contentParts
+      .filter((part: any) =>
+        (part?.type === "text" && typeof part.text === "string")
+        || (part?.content?.case === "text" && typeof part.content.value === "string"),
+      )
+      .map((part: any) => part.type === "text" ? part.text : part.content.value)
+      .join("");
+    return text || null;
   }
-  return bytes;
+  return typeof output?.summary === "string" ? output.summary : null;
 }
 
-export function useToolResultHydration(cas: CasClient | undefined, sessionKey: string | null) {
+export function useToolResultHydration(sessions: SessionClient | undefined, target: SessionTarget, sessionKey: string | null) {
   const [state, setState] = useState<Record<string, ToolResultHydrationState>>({});
   const [outputs, setOutputs] = useState<Record<string, string>>({});
   const inFlight = useRef(new Set<string>());
@@ -140,28 +121,38 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
   }, [invalidate, sessionKey]);
 
   const resultFor = useCallback((message: CopilotMessage, toolCallId: string, fallback: unknown): unknown => {
-    const partMatch = findObjectPart(message.parts, toolCallId);
-    const object = partMatch?.object ?? objectRefFromValue(fallback);
-    const key = objectRefKey(object);
-    if (!key) return fallback;
-    const keyForOutput = cacheKey(message.id, toolCallId, key);
-    return Object.prototype.hasOwnProperty.call(outputs, keyForOutput)
-      ? replaceObjectInOutput(partMatch?.part, fallback, key, outputs[keyForOutput]!)
-      : fallback;
+    const result = findToolOutputParts(message.parts, toolCallId);
+    if (!result) return fallback;
+    const parts = result.values.map((value, partIndex) => {
+      if (value?.type === "text" && typeof value.text === "string") return { kind: "text", text: value.text };
+      const object = objectRefFromValue(value);
+      const key = objectRefKey(object);
+      if (!object || !key) return { kind: "attachment", label: "Attachment" };
+      const keyForOutput = cacheKey(message.id, toolCallId, key);
+      if (Object.prototype.hasOwnProperty.call(outputs, keyForOutput)) {
+        return { kind: "text", text: outputs[keyForOutput] };
+      }
+      const mediaType = object.mediaType ?? object.media_type ?? "";
+      const normalizedType = mediaType.split(";")[0]!.trim().toLowerCase();
+      const readable = normalizedType.startsWith("text/") || normalizedType === "application/json" || normalizedType.endsWith("+json") || normalizedType.endsWith("+xml");
+      return readable
+        ? { kind: "external-text", partIndex, objectKey: key }
+        : { kind: "attachment", label: object.filename || mediaType || "Attachment" };
+    });
+    return { kind: "tool-output-parts", parts };
   }, [outputs]);
 
   const hydrate = useCallback(async (
     message: CopilotMessage,
     toolCallId: string,
     toolRowKey: string,
-    fallback: unknown,
+    _fallback: unknown,
+    partIndex?: number,
   ) => {
-    const partMatch = findHydratableObjectPart(message.parts, toolCallId);
-    const fallbackObject = partMatch ? undefined : objectRefFromValue(fallback);
-    const match = partMatch ?? (fallbackObject
-      ? { part: undefined, key: fallbackObject.key, object: fallbackObject }
-      : null);
-    if (!match || !cas?.getObject) return;
+    const match = partIndex === undefined
+      ? findHydratableObjectPart(message.parts, toolCallId)
+      : findObjectPart(message.parts, toolCallId, partIndex);
+    if (!match || !target || !sessions?.readToolResultPart) return;
 
     const outputKey = cacheKey(message.id, toolCallId, match.key);
     if (Object.prototype.hasOwnProperty.call(outputs, outputKey) || inFlight.current.has(toolRowKey)) return;
@@ -169,8 +160,15 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
     const currentGeneration = generation.current;
     setState((current) => ({ ...current, [toolRowKey]: "loading" }));
     try {
-      const response = await cas.getObject({ key: match.key });
-      const output = new TextDecoder().decode(await decodeObject(response, match.object));
+      const ref = `tr://${encodeURIComponent(toolCallId)}/parts/${match.partIndex}`;
+      const response = await sessions.readToolResultPart({
+        sessionId: target.sessionId,
+        agent: target.agent,
+        ns: target.ns,
+        ref,
+      });
+      const output = textFromOutput(response);
+      if (output === null) throw new Error("Session service did not return text for this result part");
       if (generation.current !== currentGeneration) return;
       setOutputs((current) => ({ ...current, [outputKey]: output }));
       setState((current) => {
@@ -181,12 +179,12 @@ export function useToolResultHydration(cas: CasClient | undefined, sessionKey: s
       });
     } catch (error) {
       if (generation.current !== currentGeneration) return;
-      console.warn("Could not hydrate CAS tool-result object", match.key, error);
+      console.warn("Could not hydrate transcript tool-result part", match.key, error);
       setState((current) => ({ ...current, [toolRowKey]: { objectKey: match.key } }));
     } finally {
       inFlight.current.delete(toolRowKey);
     }
-  }, [cas, outputs]);
+  }, [outputs, sessions, target]);
 
   return { state, resultFor, hydrate, invalidate };
 }

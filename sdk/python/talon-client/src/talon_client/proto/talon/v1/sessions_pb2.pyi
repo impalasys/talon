@@ -1,5 +1,6 @@
 from talon_client.proto.data import data_pb2 as _data_pb2
 from talon_client.proto import events_pb2 as _events_pb2
+from talon_client.proto.harness import llm_pb2 as _llm_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -7,6 +8,26 @@ from collections.abc import Iterable as _Iterable, Mapping as _Mapping
 from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
+
+class ReadToolResultPartRequest(_message.Message):
+    __slots__ = ("session_id", "agent", "ns", "ref", "byte_range")
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    NS_FIELD_NUMBER: _ClassVar[int]
+    REF_FIELD_NUMBER: _ClassVar[int]
+    BYTE_RANGE_FIELD_NUMBER: _ClassVar[int]
+    session_id: str
+    agent: str
+    ns: str
+    ref: str
+    byte_range: _llm_pb2.ByteRange
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., ns: _Optional[str] = ..., ref: _Optional[str] = ..., byte_range: _Optional[_Union[_llm_pb2.ByteRange, _Mapping]] = ...) -> None: ...
+
+class ReadToolResultPartResponse(_message.Message):
+    __slots__ = ("output",)
+    OUTPUT_FIELD_NUMBER: _ClassVar[int]
+    output: _llm_pb2.ToolOutput
+    def __init__(self, output: _Optional[_Union[_llm_pb2.ToolOutput, _Mapping]] = ...) -> None: ...
 
 class CreateSessionRequest(_message.Message):
     __slots__ = ("agent", "ns", "labels")

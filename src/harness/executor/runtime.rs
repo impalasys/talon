@@ -262,8 +262,13 @@ pub trait ExecutionSink: Send + Sync {
     /// The tool returned a result.
     async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput);
     /// A tool result has been durably recorded.
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
-        Ok(())
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
+        Ok(result.clone())
     }
     /// Claim and return interactive inputs that should be incorporated before
     /// the next LLM request in the active execution.
@@ -294,8 +299,13 @@ impl ExecutionSink for NullSink {
         Ok(())
     }
     async fn on_tool_result(&self, _: &str, _: &str, _: &ToolOutput) {}
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
-        Ok(())
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
+        Ok(result.clone())
     }
     async fn on_request_permission(&self, _: &str, _: &str, _: &Value) {}
     async fn on_permission_result(&self, _: &str, _: &Value) {}
@@ -372,8 +382,13 @@ impl ExecutionSink for CaptureSink {
             output: tool_output::display_text(result),
         });
     }
-    async fn on_tool_result_recorded(&self, _: &str, _: &str, _: &ToolOutput) -> Result<()> {
-        Ok(())
+    async fn on_tool_result_recorded(
+        &self,
+        _: &str,
+        _: &str,
+        result: &ToolOutput,
+    ) -> Result<ToolOutput> {
+        Ok(result.clone())
     }
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
         self.events
@@ -1334,7 +1349,8 @@ impl AgentExecutor {
                     let result = executed.result;
                     let result_text = result.summary();
                     telemetry::record_tool_result(&tool_span, &result_text);
-                    sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
+                    let stored_result = sink
+                        .on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
                     crate::control::usage::charge_namespace_usage(
                         self.control_plane.kv.as_ref(),
@@ -1347,7 +1363,12 @@ impl AgentExecutor {
                     )
                     .await?;
                     sink.on_tool_result(&tool.id, &tool.name, &result).await;
-                    context.push(tool_output_loop_message(&tool.id, &result));
+                    let context_result =
+                        crate::control::tool_result_handles::tool_result_context_output(
+                            &tool.id,
+                            &stored_result,
+                        )?;
+                    context.push(tool_output_loop_message(&tool.id, &context_result));
                     if stop_after_result {
                         stop_after_tool_result = Some(result_text);
                         break;

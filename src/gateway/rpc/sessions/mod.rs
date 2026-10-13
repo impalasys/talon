@@ -402,6 +402,61 @@ async fn collect_session_tool_result_object_keys(
         }
     }
 
+    let revisions = keys::artifact_revision_prefix(ns, agent, session_id, "");
+    for (revision_key, bytes) in kv.list_entries(&revisions, None).await? {
+        let Ok(object) = data_proto::ObjectRef::decode(bytes.as_slice()) else {
+            tracing::warn!(key = %revision_key, "failed to decode artifact revision during session cleanup");
+            continue;
+        };
+        let artifact_id = object
+            .metadata
+            .get("artifact_id")
+            .map(String::as_str)
+            .unwrap_or_default();
+        let expected_prefix = crate::control::cas::artifact_object_key(ns, artifact_id, "");
+        let metadata_matches = object
+            .metadata
+            .get("namespace")
+            .is_some_and(|value| value == ns)
+            && object
+                .metadata
+                .get(METADATA_AGENT)
+                .is_some_and(|value| value == agent)
+            && object
+                .metadata
+                .get("session_id")
+                .is_some_and(|value| value == session_id)
+            && !artifact_id.is_empty();
+        if metadata_matches && object.key.starts_with(&expected_prefix) {
+            keys_to_delete.insert(object.key);
+        }
+    }
+
+    // Older artifacts may predate the revision index; still reclaim their live pointer.
+    for artifact_key in kv
+        .list_keys(&keys::artifact_prefix(ns, agent, session_id), None)
+        .await?
+    {
+        let Some(artifact) = kv.get_msg::<data_proto::Artifact>(&artifact_key).await? else {
+            continue;
+        };
+        let expected_prefix = crate::control::cas::artifact_object_key(ns, &artifact_key.name, "");
+        if let Some(object) = artifact.object_ref.as_ref() {
+            if object.key.starts_with(&expected_prefix)
+                && object
+                    .metadata
+                    .get(METADATA_AGENT)
+                    .is_some_and(|value| value == agent)
+                && object
+                    .metadata
+                    .get("session_id")
+                    .is_some_and(|value| value == session_id)
+            {
+                keys_to_delete.insert(object.key.clone());
+            }
+        }
+    }
+
     Ok(keys_to_delete.into_iter().collect())
 }
 
@@ -1125,6 +1180,49 @@ impl GrpcGatewayHandler {
             items,
             has_more,
             next_before_message_id,
+        }))
+    }
+
+    pub async fn handle_read_tool_result_part(
+        &self,
+        req: tonic::Request<proto::ReadToolResultPartRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ReadToolResultPartResponse>, tonic::Status>
+    {
+        crate::require_auth!(
+            read,
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+        let control_plane = crate::control::ControlPlane::new(
+            self.gateway.kv.clone(),
+            self.gateway.pubsub.clone(),
+            self.gateway.scheduler.clone(),
+            self.gateway.objects.clone(),
+            self.gateway.documents.clone(),
+        );
+        let output = crate::control::tool_result_handles::read_tool_result_handle(
+            &control_plane,
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            &req.r#ref,
+            req.byte_range,
+        )
+        .await
+        .map_err(|error| {
+            let message = error.to_string();
+            if message.contains("was not found") || message.contains("does not exist") {
+                tonic::Status::not_found(message)
+            } else {
+                tonic::Status::invalid_argument(message)
+            }
+        })?;
+        Ok(tonic::Response::new(proto::ReadToolResultPartResponse {
+            output: Some(output),
         }))
     }
 
