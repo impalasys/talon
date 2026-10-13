@@ -168,9 +168,11 @@ pub async fn execute_tool_for_session_output(
             if reference.starts_with("tr://") {
                 require_capability(spec, "sessions", "read:messages")?;
                 require_global_capability(config, "sessions", "read:messages")?;
-            } else {
+            } else if reference.starts_with("file://") {
                 require_file_read(spec)?;
                 require_global_capability(config, "files", "read")?;
+            } else if !reference.starts_with("artifact://") {
+                anyhow::bail!("read ref must use file://, artifact://, or tr://");
             }
             crate::harness::native_tools::resources::read(
                 cp,
@@ -183,13 +185,22 @@ pub async fn execute_tool_for_session_output(
             .map(Some)
         }
         WRITE_RESOURCE_TOOL => {
-            let action = if args.get("ref").and_then(Value::as_str).is_some() {
-                "update"
-            } else {
-                "create"
+            let target = args.get("ref").and_then(Value::as_str);
+            let artifact_write = match target {
+                Some(reference) if reference.starts_with("artifact://") => true,
+                Some(reference) if reference.starts_with("file://") => false,
+                Some(_) => anyhow::bail!("write ref must use file:// or artifact://"),
+                None => match args.get("kind").and_then(Value::as_str) {
+                    Some("artifact") => true,
+                    Some("file") => false,
+                    _ => anyhow::bail!("write requires kind=file|artifact when ref is omitted"),
+                },
             };
-            require_capability(spec, "files", action)?;
-            require_global_capability(config, "files", action)?;
+            if !artifact_write {
+                let action = if target.is_some() { "update" } else { "create" };
+                require_capability(spec, "files", action)?;
+                require_global_capability(config, "files", action)?;
+            }
             crate::harness::native_tools::resources::write(
                 cp,
                 current_namespace,

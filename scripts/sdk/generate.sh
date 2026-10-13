@@ -79,17 +79,12 @@ PROTOC_VERSION="${PROTOC_VERSION:-34.1}"
 PROTOC_ROOT="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}"
 PROTOC="${PROTOC_BIN:-$PROTOC_ROOT/bin/protoc}"
 if [[ ! -x "$PROTOC" ]]; then
-  if command -v protoc >/dev/null 2>&1; then
-    PROTOC="$(command -v protoc)"
-    echo "Pinned protoc ${PROTOC_VERSION} unavailable; using system protoc at $PROTOC" >&2
-  else
-    mkdir -p "$PROTOC_ROOT"
-    PROTOC_ZIP="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
-    curl -fL -o "$PROTOC_ZIP" \
-      "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
-    unzip -q -o "$PROTOC_ZIP" -d "$PROTOC_ROOT"
-    PROTOC="$PROTOC_ROOT/bin/protoc"
-  fi
+  mkdir -p "$PROTOC_ROOT"
+  PROTOC_ZIP="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
+  curl -fL -o "$PROTOC_ZIP" \
+    "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
+  unzip -q -o "$PROTOC_ZIP" -d "$PROTOC_ROOT"
+  PROTOC="$PROTOC_ROOT/bin/protoc"
 fi
 
 GO_MODULE="github.com/impalasys/talon/sdk/go/talon-client"
@@ -261,20 +256,14 @@ PY
 
 PYTHON_CODEGEN="${PYTHON_CODEGEN:-python3}"
 PY_TOOLS="$ROOT/.tools/python-codegen"
-if "$PYTHON_CODEGEN" -c 'import grpc_tools' >/dev/null 2>&1; then
-  PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tools.protoc -I. -Ithird_party/googleapis \
-    --experimental_allow_proto3_optional \
-    --python_out=sdk/python/talon-client/src/talon_client \
-    --pyi_out=sdk/python/talon-client/src/talon_client \
-    --grpc_python_out=sdk/python/talon-client/src/talon_client \
-    "${PROTO_SRCS[@]}"
-else
-  "$PROTOC" -I. -Ithird_party/googleapis \
-    --experimental_allow_proto3_optional \
-    --python_out=sdk/python/talon-client/src/talon_client \
-    --pyi_out=sdk/python/talon-client/src/talon_client \
-    "${PROTO_SRCS[@]}"
-  python3 - <<'PY'
+"$PYTHON_CODEGEN" -m pip install --quiet --upgrade --target "$PY_TOOLS" grpcio-tools==1.76.0
+PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tools.protoc -I. -Ithird_party/googleapis \
+  --experimental_allow_proto3_optional \
+  --python_out=sdk/python/talon-client/src/talon_client \
+  --pyi_out=sdk/python/talon-client/src/talon_client \
+  --grpc_python_out=sdk/python/talon-client/src/talon_client \
+  "${PROTO_SRCS[@]}"
+python3 - <<'PY'
 from pathlib import Path
 
 path = Path("sdk/python/talon-client/src/talon_client/proto/talon/v1/sessions_pb2_grpc.py")
@@ -295,7 +284,6 @@ if path.exists():
     if marker in source and "self.ReadToolResultPart =" not in source:
         path.write_text(source.replace(marker, addition, 1))
 PY
-fi
 
 find sdk/python/talon-client/src/talon_client -type d -exec sh -c 'touch "$0/__init__.py"' {} \;
 python3 - <<'PY'

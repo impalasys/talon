@@ -1310,7 +1310,7 @@ mod tests {
         assert!(read_registry.get_tool(GET_FILE_METADATA_TOOL).is_some());
         assert!(read_registry.get_tool(CREATE_FILE_TOOL).is_none());
         assert!(read_registry.get_tool(UPDATE_FILE_TOOL).is_none());
-        assert!(read_registry.get_tool(WRITE_RESOURCE_TOOL).is_none());
+        assert!(read_registry.get_tool(WRITE_RESOURCE_TOOL).is_some());
         assert!(read_registry.get_tool(DELETE_FILE_TOOL).is_none());
 
         let mut write_registry = ToolRegistry::new();
@@ -1829,11 +1829,12 @@ mod tests {
             .as_str()
             .unwrap();
         assert_ne!(updated_object_key, object_key);
-        assert!(crate::control::cas::CasStore::new(cp.objects.clone())
+        let retained_revision = crate::control::cas::CasStore::new(cp.objects.clone())
             .get_object_decoded(object_key)
             .await
             .unwrap()
-            .is_none());
+            .expect("artifact updates retain prior immutable revisions for session history");
+        assert_eq!(retained_revision.bytes, b"draft body");
 
         let read_updated_output = execute_tool_for_session(
             &cp,

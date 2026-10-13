@@ -168,6 +168,13 @@ impl crate::TalonClient {
         crate::v1::ListSessionMessagesResponse,
     );
     delegate_dynamic_unary_rpc!(
+        read_session_tool_result_part,
+        sessions,
+        read_tool_result_part,
+        crate::v1::ReadToolResultPartRequest,
+        crate::v1::ReadToolResultPartResponse,
+    );
+    delegate_dynamic_unary_rpc!(
         list_session_queued_messages,
         sessions,
         list_queued_messages,

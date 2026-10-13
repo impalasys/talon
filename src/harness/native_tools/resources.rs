@@ -5,11 +5,11 @@ use super::*;
 use crate::harness::llm::{chat_content_part, ByteRange, ToolOutputByteRange};
 use anyhow::{anyhow, bail, Result};
 
-pub fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
-    let can_read = has_capability_action(spec, "files", "read")
-        || has_capability_action(spec, "sessions", "read:messages");
-    if can_read {
-        registry.register_builtin(
+pub fn register(registry: &mut ToolRegistry, _spec: &manifests::AgentSpec) {
+    // Artifact reads and writes are session scoped and were available through
+    // the legacy artifact tools without file capabilities. Dispatch applies
+    // the resource-specific authorization after inspecting the URI/kind.
+    registry.register_builtin(
             READ_RESOURCE_TOOL,
             "Read a file, artifact, or prior tool-result part by its URI. Text reads default to an 8192-byte page; use byte_range to select a UTF-8 byte interval.",
             json!({
@@ -28,12 +28,8 @@ pub fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
                 },
                 "required": ["ref"]
             }),
-        );
-    }
-    if has_capability_action(spec, "files", "create")
-        || has_capability_action(spec, "files", "update")
-    {
-        registry.register_builtin(
+    );
+    registry.register_builtin(
             WRITE_RESOURCE_TOOL,
             "Create or update a file or session artifact. Set kind for creation, or ref to update an existing resource.",
             json!({
@@ -51,8 +47,7 @@ pub fn register(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
                 },
                 "required": ["content"]
             }),
-        );
-    }
+    );
 }
 
 pub async fn read(

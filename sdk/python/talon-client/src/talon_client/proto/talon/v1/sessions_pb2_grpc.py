@@ -154,6 +154,12 @@ class SessionServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ReadToolResultPart(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def ListQueuedMessages(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -254,6 +260,11 @@ def add_SessionServiceServicer_to_server(servicer, server):
                     servicer.ListMessages,
                     request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesRequest.FromString,
                     response_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesResponse.SerializeToString,
+            ),
+            'ReadToolResultPart': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReadToolResultPart,
+                    request_deserializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartRequest.FromString,
+                    response_serializer=proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartResponse.SerializeToString,
             ),
             'ListQueuedMessages': grpc.unary_unary_rpc_method_handler(
                     servicer.ListQueuedMessages,
@@ -429,6 +440,33 @@ class SessionService(object):
             '/talon.v1.SessionService/ListMessages',
             proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesRequest.SerializeToString,
             proto_dot_talon_dot_v1_dot_sessions__pb2.ListSessionMessagesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReadToolResultPart(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.v1.SessionService/ReadToolResultPart',
+            proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartRequest.SerializeToString,
+            proto_dot_talon_dot_v1_dot_sessions__pb2.ReadToolResultPartResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -16,11 +16,11 @@ DELEGATE_TASK_TRIGGER = "delegate onboarding task"
 DELEGATE_TASK_CALL_ID = "call_delegate_task_1"
 DELEGATE_TASK_NAME = "delegate_task"
 CREATE_ARTIFACT_CALL_ID = "call_create_artifact_1"
-CREATE_ARTIFACT_NAME = "create_artifact"
+WRITE_RESOURCE_NAME = "write"
 UPDATE_TASK_CALL_ID = "call_update_task_1"
 UPDATE_TASK_NAME = "update_task"
 READ_ARTIFACT_CALL_ID = "call_read_artifact_1"
-READ_ARTIFACT_NAME = "read_artifact"
+READ_RESOURCE_NAME = "read"
 SCENARIO_DIR = Path(__file__).resolve().parent / "fixtures" / "mock_llm_scenarios"
 BLOCKING_TOOL_TRIGGER = "blocking lookup docs.example.com"
 BLOCKING_TOOL_CALL_ID = "call_blocking_lookup_1"
@@ -240,7 +240,7 @@ def should_emit_delegated_artifact_call(messages, tools):
         if isinstance(tool, dict)
     }
     return (
-        CREATE_ARTIFACT_NAME in tool_names
+        WRITE_RESOURCE_NAME in tool_names
         and "you have been assigned a talon task" in last_message_text(messages).lower()
     )
 
@@ -278,7 +278,7 @@ def should_emit_read_artifact_call(messages, tools):
     }
     text = last_message_text(messages).lower()
     return (
-        READ_ARTIFACT_NAME in tool_names
+        READ_RESOURCE_NAME in tool_names
         and ("read this" in text or "read artifact" in text)
         and artifact_uri_from_text(text)
     )
@@ -404,12 +404,28 @@ def artifact_arguments_for_task(text):
     }
 
 
-def build_create_artifact_call_response(model, messages):
+def is_inline_artifact_writer(messages):
+    return "inline artifact writer" in all_message_text(messages).lower()
+
+
+def inline_artifact_response():
+    return (
+        '<artifact title="Onboarding checklist artifact" '
+        'media_type="text/markdown">'
+        "# Onboarding checklist\n\n- Confirm kickoff owner\n- Prepare success plan"
+        "</artifact>"
+    )
+
+
+def build_write_resource_call_response(model, messages):
     return tool_call_response_payload(
         model,
         tool_call_id=CREATE_ARTIFACT_CALL_ID,
-        tool_name=CREATE_ARTIFACT_NAME,
-        arguments=artifact_arguments_for_task(last_message_text(messages)),
+        tool_name=WRITE_RESOURCE_NAME,
+        arguments={
+            "kind": "artifact",
+            **artifact_arguments_for_task(last_message_text(messages)),
+        },
     )
 
 
@@ -429,12 +445,12 @@ def build_update_task_output_call_response(model, messages):
     )
 
 
-def build_read_artifact_call_response(model, artifact_uri):
+def build_read_resource_call_response(model, artifact_uri):
     return tool_call_response_payload(
         model,
         tool_call_id=READ_ARTIFACT_CALL_ID,
-        tool_name=READ_ARTIFACT_NAME,
-        arguments={"artifact_uri": artifact_uri},
+        tool_name=READ_RESOURCE_NAME,
+        arguments={"ref": artifact_uri},
     )
 
 
@@ -631,7 +647,7 @@ async def chat_completions(request: Request):
     elif should_emit_delegate_task_call(messages, tools):
         reply = None
     elif should_emit_delegated_artifact_call(messages, tools):
-        reply = None
+        reply = inline_artifact_response() if is_inline_artifact_writer(messages) else None
     elif should_emit_update_task_output_call(messages, tools):
         reply = None
     elif should_emit_read_artifact_call(messages, tools):
@@ -692,11 +708,18 @@ async def chat_completions(request: Request):
                 return
 
             if should_emit_delegated_artifact_call(messages, tools):
+                if is_inline_artifact_writer(messages):
+                    async for chunk in stream_text_response(model, inline_artifact_response()):
+                        yield chunk
+                    return
                 async for chunk in stream_tool_call_response(
                     model,
                     tool_call_id=CREATE_ARTIFACT_CALL_ID,
-                    tool_name=CREATE_ARTIFACT_NAME,
-                    arguments=artifact_arguments_for_task(last_message_text(messages)),
+                    tool_name=WRITE_RESOURCE_NAME,
+                    arguments={
+                        "kind": "artifact",
+                        **artifact_arguments_for_task(last_message_text(messages)),
+                    },
                 ):
                     yield chunk
                 return
@@ -722,10 +745,8 @@ async def chat_completions(request: Request):
                 async for chunk in stream_tool_call_response(
                     model,
                     tool_call_id=READ_ARTIFACT_CALL_ID,
-                    tool_name=READ_ARTIFACT_NAME,
-                    arguments={
-                        "artifact_uri": artifact_uri_from_text(last_text),
-                    },
+                    tool_name=READ_RESOURCE_NAME,
+                    arguments={"ref": artifact_uri_from_text(last_text)},
                 ):
                     yield chunk
                 return
@@ -779,14 +800,15 @@ async def chat_completions(request: Request):
         return JSONResponse(content=build_delegate_task_call_response(model, messages))
 
     if should_emit_delegated_artifact_call(messages, tools):
-        return JSONResponse(content=build_create_artifact_call_response(model, messages))
+        if not is_inline_artifact_writer(messages):
+            return JSONResponse(content=build_write_resource_call_response(model, messages))
 
     if should_emit_update_task_output_call(messages, tools):
         return JSONResponse(content=build_update_task_output_call_response(model, messages))
 
     if should_emit_read_artifact_call(messages, tools):
         return JSONResponse(
-            content=build_read_artifact_call_response(
+            content=build_read_resource_call_response(
                 model,
                 artifact_uri_from_text(last_text),
             )

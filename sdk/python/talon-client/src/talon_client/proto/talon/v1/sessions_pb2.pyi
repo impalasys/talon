@@ -1,6 +1,6 @@
-from proto.data import data_pb2 as _data_pb2
-from proto import events_pb2 as _events_pb2
-from proto.harness import llm_pb2 as _llm_pb2
+from talon_client.proto.data import data_pb2 as _data_pb2
+from talon_client.proto import events_pb2 as _events_pb2
+from talon_client.proto.harness import llm_pb2 as _llm_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -92,7 +92,7 @@ class ListSessionMessagesResponse(_message.Message):
     items: _containers.RepeatedCompositeFieldContainer[ListSessionMessagesResponseItem]
     has_more: bool
     next_before_message_id: str
-    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., state: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ListSessionMessagesResponseItem, _Mapping]]] = ..., has_more: _Optional[bool] = ..., next_before_message_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, session_id: _Optional[str] = ..., agent: _Optional[str] = ..., state: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ListSessionMessagesResponseItem, _Mapping]]] = ..., has_more: bool = ..., next_before_message_id: _Optional[str] = ...) -> None: ...
 
 class ListQueuedSessionMessagesRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns", "queue")
@@ -196,7 +196,7 @@ class DeleteSessionResponse(_message.Message):
     __slots__ = ("success",)
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     success: bool
-    def __init__(self, success: _Optional[bool] = ...) -> None: ...
+    def __init__(self, success: bool = ...) -> None: ...
 
 class ClearSessionRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns")
@@ -212,7 +212,7 @@ class ClearSessionResponse(_message.Message):
     __slots__ = ("success",)
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     success: bool
-    def __init__(self, success: _Optional[bool] = ...) -> None: ...
+    def __init__(self, success: bool = ...) -> None: ...
 
 class CompactSessionRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns")
@@ -242,7 +242,7 @@ class DoctorSessionResponse(_message.Message):
     provider_continuation_was_present: bool
     provider_continuation_reset: bool
     incomplete_tool_batches: int
-    def __init__(self, provider_continuation_was_present: _Optional[bool] = ..., provider_continuation_reset: _Optional[bool] = ..., incomplete_tool_batches: _Optional[int] = ...) -> None: ...
+    def __init__(self, provider_continuation_was_present: bool = ..., provider_continuation_reset: bool = ..., incomplete_tool_batches: _Optional[int] = ...) -> None: ...
 
 class SubmitSessionTurnRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns", "message", "labels")
@@ -389,7 +389,7 @@ class StopSessionGenerationResponse(_message.Message):
     __slots__ = ("success",)
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     success: bool
-    def __init__(self, success: _Optional[bool] = ...) -> None: ...
+    def __init__(self, success: bool = ...) -> None: ...
 
 class StreamSessionPartsRequest(_message.Message):
     __slots__ = ("session_id", "agent", "ns")

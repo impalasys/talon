@@ -47,7 +47,7 @@ function findObjectPart(parts: unknown, toolCallId: string, wantedPartIndex?: nu
     if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
     if (toolCallId && toolCallIdFromPart(part) !== toolCallId) continue;
     const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
-    const output = payload.tool_output ?? payload.toolOutput;
+    const output = (payload.tool_output ?? payload.toolOutput) as Record<string, unknown> | undefined;
     const contentParts = output?.content_parts ?? output?.contentParts;
     if (!Array.isArray(contentParts)) continue;
     for (let partIndex = 0; partIndex < contentParts.length; partIndex += 1) {
@@ -80,7 +80,7 @@ function findToolOutputParts(parts: unknown, toolCallId: string): { part: any; v
     if (!part || typeof part !== "object" || !isToolResultPart(part)) continue;
     if (toolCallId && toolCallIdFromPart(part) !== toolCallId) continue;
     const payload = parsePayloadJson(part?.payloadJson ?? part?.payload_json);
-    const output = payload.tool_output ?? payload.toolOutput;
+    const output = (payload.tool_output ?? payload.toolOutput) as Record<string, unknown> | undefined;
     const values = output?.content_parts ?? output?.contentParts;
     if (Array.isArray(values)) return { part, values };
   }
