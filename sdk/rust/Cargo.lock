@@ -1352,6 +1352,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "talon-connector-imessage"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "talon-connector",
+ "tokio",
+]
+
+[[package]]
 name = "talon-rust-sdk-codegen"
 version = "0.1.0"
 dependencies = [
