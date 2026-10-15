@@ -1,3 +1,6 @@
+from talon_client.proto.harness import llm_pb2
+
+
 from talon_client import (
     TalonClient,
     auth_pb2_grpc,
@@ -35,3 +38,24 @@ def test_talon_client_exposes_service_stubs() -> None:
     assert isinstance(client.workflows, workflows_pb2_grpc.WorkflowServiceStub)
     assert isinstance(client.knowledge, knowledge_pb2_grpc.KnowledgeServiceStub)
     assert isinstance(client.auth, auth_pb2_grpc.AuthServiceStub)
+
+
+def test_chat_content_part_byte_range_round_trips() -> None:
+    part = llm_pb2.ChatContentPart(
+        text="héllo wörld",
+        byte_range=llm_pb2.ByteRange(start=0, end=5),
+    )
+    decoded = llm_pb2.ChatContentPart.FromString(part.SerializeToString())
+    assert decoded == part
+    assert decoded.byte_range.end == 5
+
+
+def test_tool_output_deprecated_byte_range_receipt_round_trips() -> None:
+    output = llm_pb2.ToolOutput(
+        content_parts=[llm_pb2.ChatContentPart(text="abc")],
+        summary="s",
+        byte_range=llm_pb2.ToolOutputByteRange(start=0, end=3, next_byte=3),
+    )
+    decoded = llm_pb2.ToolOutput.FromString(output.SerializeToString())
+    assert decoded == output
+    assert decoded.byte_range.next_byte == 3
