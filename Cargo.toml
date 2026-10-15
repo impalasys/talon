@@ -90,7 +90,8 @@ azure_core = { version = "0.33", default-features = false, features = ["reqwest"
 azure_identity = { version = "0.33", default-features = false }
 azure_security_keyvault_secrets = { version = "0.12", default-features = false }
 uuid = { version = "1.23.0", features = ["v7"] }
-sqlx = { version = "0.8.6", features = ["postgres", "sqlite", "runtime-tokio"] }
+# Enable PostgreSQL TLS with the same crypto provider as the runtime.
+sqlx = { version = "0.8.6", features = ["postgres", "sqlite", "runtime-tokio", "tls-rustls-aws-lc-rs"] }
 google-cloud-pubsub = { version = "0.25.0", default-features = false, features = ["auth", "rustls-tls"] }
 google-cloud-googleapis = { version = "0.13.0", features = ["pubsub"] }
 clap = { version = "4.6.0", features = ["derive"] }

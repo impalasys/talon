@@ -746,6 +746,49 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn postgres_required_tls_sends_client_hello() {
+        use sqlx::{Connection, PgConnection};
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        use tokio::net::TcpListener;
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!(
+            "postgres://talon:password@{}/talon?sslmode=require",
+            listener.local_addr().unwrap()
+        );
+
+        // Accept PostgreSQL's SSL upgrade, then observe the TLS ClientHello.
+        // This catches missing SQLx TLS features without a database or certificate.
+        let server = async {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut request = [0; 8];
+            stream
+                .read_exact(&mut request)
+                .await
+                .expect("client should send PostgreSQL SSLRequest");
+            assert_eq!(request, [0, 0, 0, 8, 4, 210, 22, 47]);
+            stream.write_all(b"S").await.unwrap();
+
+            let mut hello = [0; 6];
+            stream
+                .read_exact(&mut hello)
+                .await
+                .expect("client should start the TLS handshake");
+            assert_eq!(hello[0], 22, "expected a TLS handshake record");
+            assert_eq!(hello[1], 3, "expected the TLS record version");
+            assert_eq!(hello[5], 1, "expected a TLS ClientHello");
+        };
+
+        tokio::time::timeout(Duration::from_secs(5), async {
+            let (_, connection) = tokio::join!(server, PgConnection::connect(&url));
+            // The mock server closes before completing the TLS handshake.
+            assert!(connection.is_err());
+        })
+        .await
+        .expect("PostgreSQL TLS negotiation should finish promptly");
+    }
+
     async fn init_test_store(database_url: &str) -> PostgresKvStore {
         let mut last_error = None;
         for _ in 0..20 {

@@ -163,6 +163,20 @@ The control plane config defines:
 
 The examples below use the proto-native `control_plane` form.
 
+### PostgreSQL TLS
+
+The PostgreSQL backends support TLS through SQLx's rustls backend. Include
+`sslmode=require` in each control and document database URL to require
+an encrypted connection:
+
+```text
+postgresql://user:password@db.example.com/talon?sslmode=require
+```
+
+`sslmode=require` encrypts transport without verifying the server's identity.
+Use `sslmode=verify-full&sslrootcert=/path/to/ca.pem` to verify the server's
+certificate and hostname against your database CA.
+
 ### Local socket broker
 
 For a single-host deployment, the control-plane message broker can use a local Unix socket:
