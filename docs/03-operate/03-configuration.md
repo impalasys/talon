@@ -166,7 +166,7 @@ The examples below use the proto-native `control_plane` form.
 ### PostgreSQL TLS
 
 The PostgreSQL backends support TLS through SQLx's rustls backend. Include
-`sslmode=require` in each control, data, and document database URL to require
+`sslmode=require` in each control and document database URL to require
 an encrypted connection:
 
 ```text
