@@ -10,11 +10,11 @@ use super::{
 };
 use crate::gateway::rpc::proto;
 use anyhow::Result;
-use sqlx::{postgres::PgPoolOptions, PgPool, Postgres, QueryBuilder, Row};
+use sqlx::{PgPool, Postgres, QueryBuilder, Row};
 use std::collections::HashMap;
 
 pub struct PostgresDocumentStore {
-    pool: PgPool,
+    pool: crate::control::postgres::PostgresPool,
 }
 
 impl PostgresDocumentStore {
@@ -24,11 +24,27 @@ impl PostgresDocumentStore {
             .and_then(|value| value.parse::<u32>().ok())
             .filter(|value| *value > 0)
             .unwrap_or(10);
-        let pool = PgPoolOptions::new()
-            .max_connections(max_connections)
-            .connect(url)
-            .await?;
-        init_schema(&pool).await?;
+        let pool = crate::control::postgres::PostgresPool::password(url, max_connections).await?;
+        init_schema(&pool.pool().await?).await?;
+        Ok(Self { pool })
+    }
+
+    pub async fn new_with_credentials(
+        url: &str,
+        provider: std::sync::Arc<dyn crate::control::postgres::CredentialProvider>,
+    ) -> Result<Self> {
+        let max_connections = std::env::var("TALON_POSTGRES_MAX_CONNECTIONS")
+            .ok()
+            .and_then(|value| value.parse::<u32>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(10);
+        let pool = crate::control::postgres::PostgresPool::with_credentials(
+            url,
+            max_connections,
+            provider,
+        )
+        .await?;
+        init_schema(&pool.pool().await?).await?;
         Ok(Self { pool })
     }
 }
@@ -36,7 +52,8 @@ impl PostgresDocumentStore {
 #[async_trait::async_trait]
 impl DocumentStore for PostgresDocumentStore {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()> {
-        let mut tx = self.pool.begin().await?;
+        let pool = self.pool.pool().await?;
+        let mut tx = pool.begin().await?;
         for document in documents {
             let document_ref = document.r#ref.as_ref().expect("document ref is required");
             let source = document_ref
@@ -139,7 +156,8 @@ impl DocumentStore for PostgresDocumentStore {
             QueryBuilder::<Postgres>::new("DELETE FROM talon_documents WHERE namespace = ");
         builder.push_bind(&scope.namespace);
         push_delete_filters(&mut builder, scope);
-        let result = builder.build().execute(&self.pool).await?;
+        let pool = self.pool.pool().await?;
+        let result = builder.build().execute(&pool).await?;
         Ok(result.rows_affected())
     }
 
@@ -185,7 +203,8 @@ impl DocumentStore for PostgresDocumentStore {
         builder.push_bind((limit + 1) as i64);
         builder.push(" OFFSET ");
         builder.push_bind(offset as i64);
-        let rows = builder.build().fetch_all(&self.pool).await?;
+        let pool = self.pool.pool().await?;
+        let rows = builder.build().fetch_all(&pool).await?;
         let mut results = rows
             .into_iter()
             .map(|row| {
@@ -215,7 +234,7 @@ impl DocumentStore for PostgresDocumentStore {
         ))
         .bind(namespace)
         .bind(id)
-        .fetch_optional(&self.pool)
+        .fetch_optional(&self.pool.pool().await?)
         .await?;
         row.map(|row| document_from_row(&row)).transpose()
     }

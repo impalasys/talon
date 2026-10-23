@@ -98,6 +98,23 @@ pub struct DatabaseConfigWrapper {
     pub data_dir: Option<String>,
     pub driver: Option<String>,
     pub url: Option<SerdeSecret>,
+    #[serde(default)]
+    pub auth_mode: Option<DatabaseAuthModeConfig>,
+}
+
+#[derive(Debug, Deserialize, Clone, Copy, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum DatabaseAuthModeConfig {
+    #[default]
+    Password,
+    GcpIam,
+}
+
+fn database_auth_mode(mode: Option<DatabaseAuthModeConfig>) -> proto::DatabaseAuthMode {
+    match mode.unwrap_or_default() {
+        DatabaseAuthModeConfig::Password => proto::DatabaseAuthMode::Password,
+        DatabaseAuthModeConfig::GcpIam => proto::DatabaseAuthMode::GcpIam,
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -362,6 +379,7 @@ impl From<SerdeConfig> for Config {
                 data_dir: db.data_dir.unwrap_or_default(),
                 driver: db.driver.unwrap_or_default(),
                 url: db.url.map(Into::into),
+                auth_mode: database_auth_mode(db.auth_mode) as i32,
             }),
             server: s.server.map(|srv| proto::ServerConfig {
                 host: srv.host,
@@ -374,6 +392,7 @@ impl From<SerdeConfig> for Config {
                     data_dir: cp.database.data_dir.unwrap_or_default(),
                     driver: cp.database.driver.unwrap_or_default(),
                     url: cp.database.url.map(Into::into),
+                    auth_mode: database_auth_mode(cp.database.auth_mode) as i32,
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
                     driver: cp.message_broker.driver,
@@ -384,6 +403,7 @@ impl From<SerdeConfig> for Config {
                     data_dir: db.data_dir.unwrap_or_default(),
                     driver: db.driver.unwrap_or_default(),
                     url: db.url.map(Into::into),
+                    auth_mode: database_auth_mode(db.auth_mode) as i32,
                 }),
             }),
             controllers: s

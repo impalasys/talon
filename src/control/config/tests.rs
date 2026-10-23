@@ -146,6 +146,30 @@ server:
     }
 
     #[test]
+    fn postgres_auth_mode_parses_iam_and_defaults_to_password() {
+        let dir = tempdir().unwrap();
+        let iam_path = dir.path().join("iam.yaml");
+        std::fs::write(
+            &iam_path,
+            "control_plane:\n  database:\n    driver: postgres\n    auth_mode: gcp_iam\n    url: postgres://talon@db.example/talon\n  message_broker:\n    driver: local_socket\n",
+        )
+        .unwrap();
+        let iam = Config::from_file(&iam_path).unwrap();
+        let db = iam.control_plane.unwrap().database.unwrap();
+        assert_eq!(db.auth_mode, proto::DatabaseAuthMode::GcpIam as i32);
+
+        let password_path = dir.path().join("password.yaml");
+        std::fs::write(
+            &password_path,
+            "control_plane:\n  database:\n    driver: postgres\n    url: postgres://talon:secret@db.example/talon\n  message_broker:\n    driver: local_socket\n",
+        )
+        .unwrap();
+        let password = Config::from_file(&password_path).unwrap();
+        let db = password.control_plane.unwrap().database.unwrap();
+        assert_eq!(db.auth_mode, proto::DatabaseAuthMode::Password as i32);
+    }
+
+    #[test]
     fn test_config_from_yaml_parses_oidc_trust_grants() {
         let file = NamedTempFile::new().expect("Failed to create temp file");
         let path = file.path().with_extension("yaml");
@@ -488,6 +512,7 @@ trust:
             data_dir: "dir".to_string(),
             driver: "".to_string(),
             url: None,
+            auth_mode: 0,
         });
         config.server = Some(proto::ServerConfig {
             host: "h".to_string(),
@@ -1216,6 +1241,7 @@ control_plane:
                 url: Some(crate::control::config::SerdeSecret::Plain(
                     "postgres://db".to_string(),
                 )),
+                auth_mode: None,
             }),
             server: Some(crate::control::config::ServerConfigWrapper {
                 host: "0.0.0.0".to_string(),
@@ -1233,6 +1259,7 @@ control_plane:
                             key: "db-url".to_string(),
                         },
                     )),
+                    auth_mode: None,
                 },
                 message_broker: crate::control::config::MessageBrokerConfigWrapper {
                     driver: "pubsub".to_string(),

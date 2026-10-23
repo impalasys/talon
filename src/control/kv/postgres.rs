@@ -6,8 +6,8 @@ use crate::control::{
     KeyValueStore, ListOptions, Order,
 };
 use anyhow::{bail, Result};
-use sqlx::{pool::PoolConnection, postgres::PgPoolOptions, PgConnection, PgPool, Postgres, Row};
-use std::time::Instant;
+use sqlx::{pool::PoolConnection, PgConnection, PgPool, Postgres, Row};
+use std::{sync::Arc, time::Instant};
 use tracing::{field, Instrument, Span};
 
 use super::shared::{quoted_identifier, validate_identifier};
@@ -257,7 +257,7 @@ async fn migrate_legacy_table(conn: &mut PgConnection, table: &str) -> Result<()
 }
 
 pub struct PostgresKvStore {
-    pool: PgPool,
+    pool: crate::control::postgres::PostgresPool,
     table: String,
     settings: PostgresPoolSettings,
 }
@@ -282,12 +282,35 @@ impl PostgresKvStore {
     pub async fn new(url: &str, table: &str) -> Result<Self> {
         validate_identifier(table)?;
         let settings = PostgresPoolSettings::from_env();
-        let pool = PgPoolOptions::new()
-            .max_connections(settings.max_connections)
-            .connect(url)
-            .await?;
+        let pool =
+            crate::control::postgres::PostgresPool::password(url, settings.max_connections).await?;
+        Self::from_pool(pool, table, settings).await
+    }
 
-        let mut conn = pool.acquire().await?;
+    pub async fn new_with_credentials(
+        url: &str,
+        table: &str,
+        provider: Arc<dyn crate::control::postgres::CredentialProvider>,
+    ) -> Result<Self> {
+        validate_identifier(table)?;
+        let settings = PostgresPoolSettings::from_env();
+        let pool = crate::control::postgres::PostgresPool::with_credentials(
+            url,
+            settings.max_connections,
+            provider,
+        )
+        .await?;
+        Self::from_pool(pool, table, settings).await
+    }
+
+    async fn from_pool(
+        pool: crate::control::postgres::PostgresPool,
+        table: &str,
+        settings: PostgresPoolSettings,
+    ) -> Result<Self> {
+        let pg_pool = pool.pool().await?;
+
+        let mut conn = pg_pool.acquire().await?;
         let lock_key = format!("talon_kv_store:{table}:schema");
         sqlx::query("SELECT pg_advisory_lock(hashtext($1))")
             .bind(&lock_key)
@@ -379,7 +402,8 @@ impl KeyValueStore for PostgresKvStore {
         );
         let span_for_body = span.clone();
         async move {
-            let mut conn = acquire_connection(&self.pool, self.settings, &span_for_body).await?;
+            let pg_pool = self.pool.pool().await?;
+            let mut conn = acquire_connection(&pg_pool, self.settings, &span_for_body).await?;
             let query_span = tracing::debug_span!(
                 parent: &span_for_body,
                 "PostgresKvStore.query",
@@ -433,7 +457,8 @@ impl KeyValueStore for PostgresKvStore {
         );
         let span_for_body = span.clone();
         async move {
-            let mut conn = acquire_connection(&self.pool, self.settings, &span_for_body).await?;
+            let pg_pool = self.pool.pool().await?;
+            let mut conn = acquire_connection(&pg_pool, self.settings, &span_for_body).await?;
             let query_span = tracing::debug_span!(
                 parent: &span_for_body,
                 "PostgresKvStore.query",
@@ -500,7 +525,8 @@ impl KeyValueStore for PostgresKvStore {
                 .bind(&key.name)
                 .bind(value)
         };
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let pg_pool = self.pool.pool().await?;
+        let mut conn = acquire_connection(&pg_pool, self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -537,7 +563,8 @@ impl KeyValueStore for PostgresKvStore {
             query_elapsed_us = field::Empty,
             rows_affected = field::Empty,
         );
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let pg_pool = self.pool.pool().await?;
+        let mut conn = acquire_connection(&pg_pool, self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -597,7 +624,8 @@ impl KeyValueStore for PostgresKvStore {
         if let Some(limit) = options.limit {
             query = query.bind(limit as i64);
         }
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let pg_pool = self.pool.pool().await?;
+        let mut conn = acquire_connection(&pg_pool, self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -658,7 +686,8 @@ impl KeyValueStore for PostgresKvStore {
         if let Some(limit) = options.limit {
             query = query.bind(limit as i64);
         }
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let pg_pool = self.pool.pool().await?;
+        let mut conn = acquire_connection(&pg_pool, self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
