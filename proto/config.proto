@@ -133,6 +133,12 @@ message DatabaseConfig {
   string data_dir = 1;
   string driver = 2;
   Secret url = 3;
+  DatabaseAuthMode auth_mode = 4;
+}
+
+enum DatabaseAuthMode {
+  DATABASE_AUTH_MODE_PASSWORD = 0;
+  DATABASE_AUTH_MODE_GCP_IAM = 1;
 }
 
 message MessageBrokerConfig {

@@ -29,6 +29,8 @@ server:
 storage:
   control:
     driver: postgres
+    # auth_mode defaults to password. For Cloud SQL IAM database auth, set
+    # auth_mode: gcp_iam and use a URL without a password.
     url:
       source: env
       key: TALON_CONTROL_DATABASE_URL

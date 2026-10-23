@@ -1869,6 +1869,7 @@ mod tests {
                 data_dir: String::new(),
                 driver: "sqlite".to_string(),
                 url: None,
+                auth_mode: 0,
             }),
             message_broker: Some(talon::control::config::proto::MessageBrokerConfig {
                 driver: "local_socket".to_string(),
@@ -1921,6 +1922,7 @@ mod tests {
                 data_dir: String::new(),
                 driver: "dynamodb".to_string(),
                 url: None,
+                auth_mode: 0,
             }),
             message_broker: Some(talon::control::config::proto::MessageBrokerConfig {
                 driver: "sqs".to_string(),

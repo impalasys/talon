@@ -177,6 +177,28 @@ postgresql://user:password@db.example.com/talon?sslmode=require
 Use `sslmode=verify-full&sslrootcert=/path/to/ca.pem` to verify the server's
 certificate and hostname against your database CA.
 
+PostgreSQL password authentication remains the default. For Cloud SQL IAM
+database authentication, set `auth_mode: gcp_iam` and omit the password from the
+URL. The username in the URL must be the IAM database user. The Cloud Run/GCE
+runtime service account needs Cloud SQL Client and a matching IAM database user.
+Talon obtains access tokens and their expiry from the metadata server, replacing
+the pool at least five minutes before expiry and no later than every 45 minutes.
+SQLx 0.8.6 has no pre-authentication connection callback, so pool rotation
+renews the static password before the one-hour token lifetime while allowing
+checked-out connections to finish.
+
+```yaml
+storage:
+  control:
+    driver: postgres
+    auth_mode: gcp_iam
+    url: postgres://talon-runtime@10.0.0.5:5432/talon?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
+  documents:
+    driver: postgres
+    auth_mode: gcp_iam
+    url: postgres://talon-runtime@10.0.0.5:5432/talon_documents?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
+```
+
 ### Local socket broker
 
 For a single-host deployment, the control-plane message broker can use a local Unix socket:
