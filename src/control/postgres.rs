@@ -14,6 +14,15 @@ use tokio::sync::RwLock;
 
 const IAM_POOL_ROTATION: Duration = Duration::from_secs(45 * 60);
 const TOKEN_EXPIRY_MARGIN: Duration = Duration::from_secs(5 * 60);
+const ROTATION_RETRY_INITIAL: Duration = Duration::from_secs(5);
+const ROTATION_RETRY_MAX: Duration = Duration::from_secs(2 * 60);
+
+fn next_rotation_retry(current: Duration) -> Duration {
+    current
+        .saturating_mul(2)
+        .max(ROTATION_RETRY_INITIAL)
+        .min(ROTATION_RETRY_MAX)
+}
 
 pub mod gcp;
 
@@ -64,7 +73,7 @@ impl PostgresPool {
         max_connections: u32,
         provider: Arc<dyn CredentialProvider>,
     ) -> Result<Self> {
-        Self::with_credentials_and_rotation(url, max_connections, provider, None).await
+        Self::with_credentials_and_rotation(url, max_connections, provider, None, None).await
     }
 
     async fn with_credentials_and_rotation(
@@ -72,6 +81,7 @@ impl PostgresPool {
         max_connections: u32,
         provider: Arc<dyn CredentialProvider>,
         rotation_override: Option<Duration>,
+        retry_override: Option<Duration>,
     ) -> Result<Self> {
         let credential = provider
             .credential()
@@ -91,6 +101,7 @@ impl PostgresPool {
         let state = result.0.clone();
         let url = url.to_string();
         tokio::spawn(async move {
+            let mut retry_after = ROTATION_RETRY_INITIAL;
             loop {
                 tokio::time::sleep(rotation_override.unwrap_or(refresh_after)).await;
                 let credential = match provider.credential().await {
@@ -98,6 +109,8 @@ impl PostgresPool {
                     Err(_) => {
                         state.write().await.rotation_error =
                             Some("failed to refresh PostgreSQL IAM credentials".to_string());
+                        refresh_after = retry_override.unwrap_or(retry_after);
+                        retry_after = next_rotation_retry(retry_after);
                         continue;
                     }
                 };
@@ -114,6 +127,8 @@ impl PostgresPool {
                     Err(_) => {
                         state.write().await.rotation_error =
                             Some("failed to establish PostgreSQL IAM pool".to_string());
+                        refresh_after = retry_override.unwrap_or(retry_after);
+                        retry_after = next_rotation_retry(retry_after);
                         continue;
                     }
                 };
@@ -121,7 +136,8 @@ impl PostgresPool {
                 current.pool = replacement;
                 current.rotation_error = None;
                 drop(current);
-                refresh_after = next_refresh_after;
+                refresh_after = rotation_override.unwrap_or(next_refresh_after);
+                retry_after = ROTATION_RETRY_INITIAL;
             }
         });
         Ok(result)
@@ -165,6 +181,22 @@ mod tests {
         }
     }
 
+    struct FailOnceProvider(AtomicUsize);
+
+    #[async_trait]
+    impl CredentialProvider for FailOnceProvider {
+        async fn credential(&self) -> Result<DatabaseCredential> {
+            let n = self.0.fetch_add(1, Ordering::SeqCst);
+            if n == 1 {
+                return Err(anyhow!("transient credential source failure"));
+            }
+            Ok(DatabaseCredential {
+                value: format!("fake-token-{n}"),
+                valid_for: Duration::from_secs(60 * 60),
+            })
+        }
+    }
+
     #[tokio::test]
     async fn credential_provider_is_queried_for_each_pool_generation() {
         let provider = FakeProvider(AtomicUsize::new(0));
@@ -179,6 +211,11 @@ mod tests {
             .rotation_delay(),
             IAM_POOL_ROTATION
         );
+        let mut retry = ROTATION_RETRY_INITIAL;
+        for expected in [10, 20, 40, 80, 120, 120] {
+            retry = next_rotation_retry(retry);
+            assert_eq!(retry, Duration::from_secs(expected));
+        }
     }
 
     #[tokio::test]
@@ -260,7 +297,8 @@ mod tests {
         let pool = PostgresPool::with_credentials_and_rotation(
             &format!("postgres://iam-user@{address}/talon?sslmode=disable"),
             1,
-            Arc::new(FakeProvider(AtomicUsize::new(0))),
+            Arc::new(FailOnceProvider(AtomicUsize::new(0))),
+            Some(Duration::from_millis(100)),
             Some(Duration::from_millis(100)),
         )
         .await
@@ -269,12 +307,34 @@ mod tests {
             .await
             .unwrap()
             .unwrap();
+        assert_eq!(first, "fake-token-0");
+        tokio::time::timeout(Duration::from_secs(2), async {
+            loop {
+                if pool.pool().await.is_err() {
+                    break;
+                }
+                tokio::time::sleep(Duration::from_millis(5)).await;
+            }
+        })
+        .await
+        .expect("pool access should report the failed refresh");
+        let failed_at = tokio::time::Instant::now();
         let second = tokio::time::timeout(Duration::from_secs(2), tokens_rx.recv())
             .await
             .unwrap()
             .unwrap();
-        assert_eq!(first, "fake-token-0");
-        assert_eq!(second, "fake-token-1");
+        assert_eq!(second, "fake-token-2");
+        assert!(failed_at.elapsed() >= Duration::from_millis(80));
+        tokio::time::timeout(Duration::from_secs(2), async {
+            loop {
+                if pool.pool().await.is_ok() {
+                    break;
+                }
+                tokio::time::sleep(Duration::from_millis(5)).await;
+            }
+        })
+        .await
+        .expect("pool should recover on the short retry interval");
         drop(pool);
         server.abort();
     }
