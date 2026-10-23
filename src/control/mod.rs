@@ -730,7 +730,9 @@ fn postgres_credential_provider(
     config: &crate::control::config::proto::DatabaseConfig,
 ) -> anyhow::Result<Option<Arc<dyn postgres::CredentialProvider>>> {
     use crate::control::config::proto::DatabaseAuthMode;
-    match DatabaseAuthMode::try_from(config.auth_mode).unwrap_or(DatabaseAuthMode::Password) {
+    let auth_mode = DatabaseAuthMode::try_from(config.auth_mode)
+        .map_err(|_| anyhow::anyhow!("invalid PostgreSQL auth mode value: {}", config.auth_mode))?;
+    match auth_mode {
         DatabaseAuthMode::Password => Ok(None),
         DatabaseAuthMode::GcpIam => Ok(Some(Arc::new(
             postgres::gcp::GcpMetadataCredentialProvider::new()?,
@@ -898,8 +900,8 @@ mod tests {
     use super::rocksdb_database_path;
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
-        ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
-        ListOptions, ProtoKeyValueStoreExt,
+        ensure_builtin_namespaces, message_broker_config, postgres_credential_provider,
+        sqlite_database_url, KeyValueStore, ListOptions, ProtoKeyValueStoreExt,
     };
     use crate::control::config::proto;
     use crate::control::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
@@ -909,6 +911,18 @@ mod tests {
     use crate::test_support::MockKvStore;
     use std::collections::HashMap;
     use tempfile::tempdir;
+
+    #[test]
+    fn postgres_auth_mode_rejects_unknown_proto_values() {
+        let config = proto::DatabaseConfig {
+            auth_mode: i32::MAX,
+            ..Default::default()
+        };
+        let error = postgres_credential_provider(&config)
+            .err()
+            .expect("unknown protobuf auth values must be rejected");
+        assert!(error.to_string().contains("invalid PostgreSQL auth mode"));
+    }
     struct EnvGuard {
         key: &'static str,
         value: Option<String>,

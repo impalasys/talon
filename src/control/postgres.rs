@@ -6,9 +6,10 @@
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use sqlx::{
-    postgres::{PgConnectOptions, PgPoolOptions},
+    postgres::{PgConnectOptions, PgPoolOptions, PgSslMode},
     PgPool,
 };
+use std::fmt;
 use std::{str::FromStr, sync::Arc, time::Duration};
 use tokio::sync::RwLock;
 
@@ -73,7 +74,7 @@ impl PostgresPool {
         max_connections: u32,
         provider: Arc<dyn CredentialProvider>,
     ) -> Result<Self> {
-        Self::with_credentials_and_rotation(url, max_connections, provider, None, None).await
+        Self::with_credentials_and_rotation(url, max_connections, provider, None, None, true).await
     }
 
     async fn with_credentials_and_rotation(
@@ -82,16 +83,18 @@ impl PostgresPool {
         provider: Arc<dyn CredentialProvider>,
         rotation_override: Option<Duration>,
         retry_override: Option<Duration>,
+        // False only for the in-module plaintext mock server test.
+        require_tls: bool,
     ) -> Result<Self> {
         let credential = provider
             .credential()
             .await
             .map_err(|_| anyhow!("failed to obtain PostgreSQL IAM credentials"))?;
         let mut refresh_after = credential.rotation_delay();
-        let options = iam_options(url, credential.value)?;
+        let options = iam_options_with_tls(url, credential.value, require_tls)?;
         let pool = PgPoolOptions::new()
             .max_connections(max_connections)
-            .connect_with(options)
+            .connect_with(options.into_inner())
             .await
             .map_err(|_| anyhow!("failed to connect to PostgreSQL using IAM credentials"))?;
         let result = Self(Arc::new(RwLock::new(PoolState {
@@ -118,8 +121,9 @@ impl PostgresPool {
                 let replacement = match PgPoolOptions::new()
                     .max_connections(max_connections)
                     .connect_with(
-                        iam_options(&url, credential.value)
-                            .expect("pool URL was validated at startup"),
+                        iam_options_with_tls(&url, credential.value, require_tls)
+                            .expect("pool URL was validated at startup")
+                            .into_inner(),
                     )
                     .await
                 {
@@ -152,15 +156,45 @@ impl PostgresPool {
     }
 }
 
-fn iam_options(url: &str, token: String) -> Result<PgConnectOptions> {
+struct RedactedIamConnectOptions(PgConnectOptions);
+
+impl RedactedIamConnectOptions {
+    fn into_inner(self) -> PgConnectOptions {
+        self.0
+    }
+}
+
+impl fmt::Debug for RedactedIamConnectOptions {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("IamConnectOptions([REDACTED])")
+    }
+}
+
+fn iam_options(url: &str, token: String) -> Result<RedactedIamConnectOptions> {
+    iam_options_with_tls(url, token, true)
+}
+
+fn iam_options_with_tls(
+    url: &str,
+    token: String,
+    require_tls: bool,
+) -> Result<RedactedIamConnectOptions> {
     // Never retain or report a URL password in IAM mode.
     let mut parsed =
         url::Url::parse(url).context("invalid PostgreSQL URL for IAM authentication")?;
     let _ = parsed.set_password(None);
     let mut options = PgConnectOptions::from_str(parsed.as_str())
         .map_err(|_| anyhow!("invalid PostgreSQL connection options for IAM authentication"))?;
+    if require_tls
+        && matches!(
+            options.get_ssl_mode(),
+            PgSslMode::Disable | PgSslMode::Allow | PgSslMode::Prefer
+        )
+    {
+        options = options.ssl_mode(PgSslMode::Require);
+    }
     options = options.password(&token);
-    Ok(options)
+    Ok(RedactedIamConnectOptions(options))
 }
 
 #[cfg(test)]
@@ -300,6 +334,7 @@ mod tests {
             Arc::new(FailOnceProvider(AtomicUsize::new(0))),
             Some(Duration::from_millis(100)),
             Some(Duration::from_millis(100)),
+            false,
         )
         .await
         .unwrap();
@@ -373,5 +408,25 @@ mod tests {
         .unwrap();
         let rendered = format!("{options:?}");
         assert!(!rendered.contains("ignored"));
+        assert!(!rendered.contains("fresh-token"));
+    }
+
+    #[test]
+    fn iam_options_require_tls_and_preserve_verification_modes() {
+        for url in [
+            "postgres://iam-user@db.example/talon?sslmode=disable",
+            "postgres://iam-user@db.example/talon?sslmode=prefer",
+            "postgres://iam-user@db.example/talon",
+        ] {
+            let options = iam_options(url, "token".to_string()).unwrap();
+            assert!(matches!(options.0.get_ssl_mode(), PgSslMode::Require));
+        }
+
+        let verified = iam_options(
+            "postgres://iam-user@db.example/talon?sslmode=verify-full",
+            "token".to_string(),
+        )
+        .unwrap();
+        assert!(matches!(verified.0.get_ssl_mode(), PgSslMode::VerifyFull));
     }
 }
