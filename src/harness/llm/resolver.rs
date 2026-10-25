@@ -131,13 +131,27 @@ async fn resolve_llm_with_credentials(
 
     match &provider_cfg.config {
         Some(proto::llm_provider_config::Config::Openai(openai)) => {
-            let api_key = resolve_provider_api_key(
-                provider_name,
-                openai.api_key.as_ref(),
-                credentials,
-                "OpenAI provider config is missing api_key",
-            )
-            .await?;
+            // WIF is an explicit process-wide opt-in. If enabled, do not
+            // resolve a static (or tenant) API key as a fallback.
+            let (api_key, llm_credentials): (
+                String,
+                Arc<dyn crate::harness::llm::credentials::LlmCredentialProvider>,
+            ) = match crate::harness::llm::credentials::configured_openai_wif()? {
+                Some(credentials) => (String::new(), credentials),
+                None => {
+                    let api_key = resolve_provider_api_key(
+                        provider_name,
+                        openai.api_key.as_ref(),
+                        credentials,
+                        "OpenAI provider config is missing api_key",
+                    )
+                    .await?;
+                    (
+                        api_key.clone(),
+                        Arc::new(crate::harness::llm::credentials::StaticApiKey::new(api_key)),
+                    )
+                }
+            };
 
             let base_url = std::env::var("OPENAI_BASE_URL")
                 .unwrap_or_else(|_| "https://api.openai.com/v1".to_string());
@@ -159,13 +173,14 @@ async fn resolve_llm_with_credentials(
 
             Ok(ResolvedLlm {
                 provider: Arc::new(
-                    crate::harness::llm::openai::OpenAiCompatibleProvider::with_provider_key(
+                    crate::harness::llm::openai::OpenAiCompatibleProvider::with_credentials(
                         api_key,
                         base_url,
                         model.clone(),
                         cas,
                         api,
                         provider_name,
+                        llm_credentials,
                     ),
                 ),
                 provider_key: provider_name.to_string(),
@@ -472,6 +487,45 @@ mod tests {
 
     fn test_object_store() -> Arc<dyn crate::control::object_store::ObjectStore + Send + Sync> {
         Arc::new(InMemoryObjectStore::default())
+    }
+
+    #[test]
+    fn resolve_openai_wif_does_not_require_a_static_api_key() {
+        let _lock = crate::test_support::env_lock();
+        let _enabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
+        let _provider_id =
+            crate::test_support::EnvVarGuard::set("OPENAI_IDENTITY_PROVIDER_ID", "test-idp");
+        let _service_account_id = crate::test_support::EnvVarGuard::set(
+            "OPENAI_SERVICE_ACCOUNT_ID",
+            "test-service-account",
+        );
+        let _audience = crate::test_support::EnvVarGuard::set(
+            "OPENAI_WIF_AUDIENCE",
+            "https://api.openai.com/v1",
+        );
+        tokio::runtime::Runtime::new().unwrap().block_on(async {
+            let config = config_with_provider(
+                "openai",
+                ProviderConfig {
+                    config: Some(proto::llm_provider_config::Config::Openai(
+                        proto::OpenAiConfig {
+                            model: "config-model".to_string(),
+                            api_key: None,
+                            org_id: String::new(),
+                            api: "responses".to_string(),
+                        },
+                    )),
+                },
+            );
+            let resolved = resolve_llm(
+                &manifests::AgentSpec::default(),
+                &config,
+                test_object_store(),
+            )
+            .await
+            .unwrap();
+            assert_eq!(resolved.provider_key, "openai");
+        });
     }
 
     #[test]

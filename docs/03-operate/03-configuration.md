@@ -75,6 +75,46 @@ providers:
 The accepted values are `responses` and `chat_completions`. Generic
 OpenAI-compatible providers continue to use Chat Completions.
 
+### OpenAI Workload Identity Federation
+
+Static API keys remain the default. To opt the native `openai` provider into
+Google Cloud Workload Identity Federation, set these environment variables on
+the Talon worker:
+
+```text
+TALON_OPENAI_WIF_ENABLED=true
+OPENAI_IDENTITY_PROVIDER_ID=<OpenAI Workload Identity Provider ID>
+OPENAI_SERVICE_ACCOUNT_ID=<OpenAI service account ID>
+OPENAI_WIF_AUDIENCE=https://api.openai.com/v1
+```
+
+When enabled, Talon requests a Google ID token from the attached workload's
+metadata server and exchanges it at `https://auth.openai.com/oauth/token`.
+The configured OpenAI IDs and audience must match the dashboard setup. If any
+required value is missing, Google metadata is unavailable, or exchange fails,
+the LLM request fails; Talon does not fall back to a static or tenant API key.
+When `TALON_OPENAI_WIF_ENABLED` is unset or `false`, Talon uses the existing
+configured API key path. WIF applies to the native `type: openai` provider.
+
+Before enabling it, an OpenAI organization administrator must:
+
+1. In **Organization Settings → Security → Workload Identity Provider**, create
+   a provider with issuer `https://accounts.google.com` and the same audience
+   configured in `OPENAI_WIF_AUDIENCE`. Use Google OIDC discovery rather than
+   uploaded JWKS for Google metadata identity tokens.
+2. Add a service account mapping matching the workload's stable Google `sub`
+   claim (optionally also its email), and select the target OpenAI project and
+   OpenAI service account. Record the provider ID and service account ID for
+   the environment above.
+3. Explicitly select the mapping permission `api.model.request` (and only any
+   additional permissions the workload needs). OpenAI mappings with no
+   permission selection can inherit the mapped service account's project and
+   organization roles; Talon rejects an exchange response that omits the
+   explicit `api.model.request` scope.
+
+The workload must run where the Google metadata server can issue an ID token
+for the configured audience. No service-account key file is needed.
+
 ## Model catalog
 
 The optional `models` map records model metadata. This repository's
