@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 pub mod anthropic;
+pub mod credentials;
 pub mod failover;
 pub mod mock;
 pub mod openai;
