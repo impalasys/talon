@@ -157,16 +157,76 @@ class ControllerConfig(_message.Message):
     def __init__(self, enabled: bool = ..., workers: _Optional[int] = ...) -> None: ...
 
 class LlmProviderConfig(_message.Message):
-    __slots__ = ("openai", "anthropic", "google", "openai_compatible")
+    __slots__ = ("openai", "anthropic", "google", "openai_compatible", "auth")
     OPENAI_FIELD_NUMBER: _ClassVar[int]
     ANTHROPIC_FIELD_NUMBER: _ClassVar[int]
     GOOGLE_FIELD_NUMBER: _ClassVar[int]
     OPENAI_COMPATIBLE_FIELD_NUMBER: _ClassVar[int]
+    AUTH_FIELD_NUMBER: _ClassVar[int]
     openai: OpenAiConfig
     anthropic: AnthropicConfig
     google: GoogleConfig
     openai_compatible: GenericConfig
-    def __init__(self, openai: _Optional[_Union[OpenAiConfig, _Mapping]] = ..., anthropic: _Optional[_Union[AnthropicConfig, _Mapping]] = ..., google: _Optional[_Union[GoogleConfig, _Mapping]] = ..., openai_compatible: _Optional[_Union[GenericConfig, _Mapping]] = ...) -> None: ...
+    auth: LlmAuthConfig
+    def __init__(self, openai: _Optional[_Union[OpenAiConfig, _Mapping]] = ..., anthropic: _Optional[_Union[AnthropicConfig, _Mapping]] = ..., google: _Optional[_Union[GoogleConfig, _Mapping]] = ..., openai_compatible: _Optional[_Union[GenericConfig, _Mapping]] = ..., auth: _Optional[_Union[LlmAuthConfig, _Mapping]] = ...) -> None: ...
+
+class LlmAuthConfig(_message.Message):
+    __slots__ = ("api_key", "workload_identity")
+    API_KEY_FIELD_NUMBER: _ClassVar[int]
+    WORKLOAD_IDENTITY_FIELD_NUMBER: _ClassVar[int]
+    api_key: ApiKeyAuth
+    workload_identity: WorkloadIdentityAuth
+    def __init__(self, api_key: _Optional[_Union[ApiKeyAuth, _Mapping]] = ..., workload_identity: _Optional[_Union[WorkloadIdentityAuth, _Mapping]] = ...) -> None: ...
+
+class ApiKeyAuth(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class WorkloadIdentityAuth(_message.Message):
+    __slots__ = ("source", "openai")
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    OPENAI_FIELD_NUMBER: _ClassVar[int]
+    source: WorkloadIdentitySource
+    openai: OpenAiFederationConfig
+    def __init__(self, source: _Optional[_Union[WorkloadIdentitySource, _Mapping]] = ..., openai: _Optional[_Union[OpenAiFederationConfig, _Mapping]] = ...) -> None: ...
+
+class WorkloadIdentitySource(_message.Message):
+    __slots__ = ("google_metadata", "aws_sts", "token_file")
+    GOOGLE_METADATA_FIELD_NUMBER: _ClassVar[int]
+    AWS_STS_FIELD_NUMBER: _ClassVar[int]
+    TOKEN_FILE_FIELD_NUMBER: _ClassVar[int]
+    google_metadata: GoogleMetadataIdentitySource
+    aws_sts: AwsStsIdentitySource
+    token_file: TokenFileIdentitySource
+    def __init__(self, google_metadata: _Optional[_Union[GoogleMetadataIdentitySource, _Mapping]] = ..., aws_sts: _Optional[_Union[AwsStsIdentitySource, _Mapping]] = ..., token_file: _Optional[_Union[TokenFileIdentitySource, _Mapping]] = ...) -> None: ...
+
+class GoogleMetadataIdentitySource(_message.Message):
+    __slots__ = ("audience",)
+    AUDIENCE_FIELD_NUMBER: _ClassVar[int]
+    audience: str
+    def __init__(self, audience: _Optional[str] = ...) -> None: ...
+
+class AwsStsIdentitySource(_message.Message):
+    __slots__ = ("audience", "region")
+    AUDIENCE_FIELD_NUMBER: _ClassVar[int]
+    REGION_FIELD_NUMBER: _ClassVar[int]
+    audience: str
+    region: str
+    def __init__(self, audience: _Optional[str] = ..., region: _Optional[str] = ...) -> None: ...
+
+class TokenFileIdentitySource(_message.Message):
+    __slots__ = ("path",)
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    path: str
+    def __init__(self, path: _Optional[str] = ...) -> None: ...
+
+class OpenAiFederationConfig(_message.Message):
+    __slots__ = ("identity_provider_id", "service_account_id")
+    IDENTITY_PROVIDER_ID_FIELD_NUMBER: _ClassVar[int]
+    SERVICE_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    identity_provider_id: str
+    service_account_id: str
+    def __init__(self, identity_provider_id: _Optional[str] = ..., service_account_id: _Optional[str] = ...) -> None: ...
 
 class OpenAiConfig(_message.Message):
     __slots__ = ("model", "api_key", "org_id", "api")

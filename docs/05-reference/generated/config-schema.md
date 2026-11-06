@@ -88,6 +88,59 @@ Static metadata for a model configured in the model catalog. Costs are in USD pe
 | `anthropic` | `AnthropicConfig` | oneof (config) |
 | `google` | `GoogleConfig` | oneof (config) |
 | `openai_compatible` | `GenericConfig` | oneof (config) |
+| `auth` | `LlmAuthConfig` | Omitted authentication retains the provider's existing API-key behavior. |
+
+## `LlmAuthConfig`
+
+Authentication is selected per LLM provider, independently of the host cloud.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `api_key` | `ApiKeyAuth` | oneof (mode) |
+| `workload_identity` | `WorkloadIdentityAuth` | oneof (mode) |
+
+## `WorkloadIdentityAuth`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `source` | `WorkloadIdentitySource` | - |
+| `openai` | `OpenAiFederationConfig` | Destination-specific mapping; required for the native OpenAI provider. |
+
+## `WorkloadIdentitySource`
+
+Sources supply an OIDC subject token; destination adapters exchange it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `google_metadata` | `GoogleMetadataIdentitySource` | oneof (config) |
+| `aws_sts` | `AwsStsIdentitySource` | oneof (config) |
+| `token_file` | `TokenFileIdentitySource` | oneof (config) |
+
+## `GoogleMetadataIdentitySource`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `audience` | `string` | - |
+
+## `AwsStsIdentitySource`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `audience` | `string` | - |
+| `region` | `string` | Explicit regional STS endpoint; the global endpoint is unsupported. |
+
+## `TokenFileIdentitySource`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `path` | `string` | Reread on every exchange to pick up projected token rotation. |
+
+## `OpenAiFederationConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `identity_provider_id` | `string` | - |
+| `service_account_id` | `string` | - |
 
 ## `OpenAiConfig`
 

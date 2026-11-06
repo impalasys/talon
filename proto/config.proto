@@ -84,6 +84,54 @@ message LlmProviderConfig {
     GoogleConfig google = 3;
     GenericConfig openai_compatible = 4;
   }
+  // Omitted authentication retains the provider's existing API-key behavior.
+  LlmAuthConfig auth = 5;
+}
+
+// Authentication is selected per LLM provider, independently of the host cloud.
+message LlmAuthConfig {
+  oneof mode {
+    ApiKeyAuth api_key = 1;
+    WorkloadIdentityAuth workload_identity = 2;
+  }
+}
+
+// Uses the provider's existing api_key field or tenant-scoped API key.
+message ApiKeyAuth {}
+
+message WorkloadIdentityAuth {
+  WorkloadIdentitySource source = 1;
+  // Destination-specific mapping; required for the native OpenAI provider.
+  OpenAiFederationConfig openai = 2;
+}
+
+// Sources supply an OIDC subject token; destination adapters exchange it.
+message WorkloadIdentitySource {
+  oneof config {
+    GoogleMetadataIdentitySource google_metadata = 1;
+    AwsStsIdentitySource aws_sts = 2;
+    TokenFileIdentitySource token_file = 3;
+  }
+}
+
+message GoogleMetadataIdentitySource {
+  string audience = 1;
+}
+
+message AwsStsIdentitySource {
+  string audience = 1;
+  // Explicit regional STS endpoint; the global endpoint is unsupported.
+  string region = 2;
+}
+
+message TokenFileIdentitySource {
+  // Reread on every exchange to pick up projected token rotation.
+  string path = 1;
+}
+
+message OpenAiFederationConfig {
+  string identity_provider_id = 1;
+  string service_account_id = 2;
 }
 
 message OpenAiConfig {

@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::env;
 use std::path::{Component, Path, PathBuf};
 
+pub mod llm_auth;
 pub mod secrets;
 
 // The generated code's location depends on the build system (Cargo vs. Bazel)
@@ -58,6 +59,7 @@ pub enum SerdeProviderConfig {
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
+        auth: Option<llm_auth::SerdeLlmAuth>,
         #[serde(default)]
         api: Option<String>,
     },
@@ -65,11 +67,13 @@ pub enum SerdeProviderConfig {
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
+        auth: Option<llm_auth::SerdeLlmAuth>,
     },
     Google {
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
+        auth: Option<llm_auth::SerdeLlmAuth>,
     },
     OpenaiCompatible {
         #[serde(alias = "baseUrl")]
@@ -77,6 +81,7 @@ pub enum SerdeProviderConfig {
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
+        auth: Option<llm_auth::SerdeLlmAuth>,
     },
 }
 
@@ -289,7 +294,9 @@ impl From<SerdeConfig> for Config {
                         model,
                         api_key,
                         api,
+                        auth,
                     } => ProviderConfig {
+                        auth: auth.map(Into::into),
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
                                 model,
@@ -299,7 +306,12 @@ impl From<SerdeConfig> for Config {
                             },
                         )),
                     },
-                    SerdeProviderConfig::Anthropic { model, api_key } => ProviderConfig {
+                    SerdeProviderConfig::Anthropic {
+                        model,
+                        api_key,
+                        auth,
+                    } => ProviderConfig {
+                        auth: auth.map(Into::into),
                         config: Some(proto::llm_provider_config::Config::Anthropic(
                             proto::AnthropicConfig {
                                 model,
@@ -307,7 +319,12 @@ impl From<SerdeConfig> for Config {
                             },
                         )),
                     },
-                    SerdeProviderConfig::Google { model, api_key } => ProviderConfig {
+                    SerdeProviderConfig::Google {
+                        model,
+                        api_key,
+                        auth,
+                    } => ProviderConfig {
+                        auth: auth.map(Into::into),
                         config: Some(proto::llm_provider_config::Config::Google(
                             proto::GoogleConfig {
                                 model,
@@ -319,7 +336,9 @@ impl From<SerdeConfig> for Config {
                         base_url,
                         model,
                         api_key,
+                        auth,
                     } => ProviderConfig {
+                        auth: auth.map(Into::into),
                         config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
                             proto::GenericConfig {
                                 name: "".to_string(),
@@ -840,7 +859,9 @@ impl ConfigExt for Config {
         })?;
         validate_trust_config(&serde_config)?;
         validate_provider_config(&serde_config)?;
-        Ok(serde_config.into())
+        let config: Config = serde_config.into();
+        llm_auth::validate_config(&config)?;
+        Ok(config)
     }
 
     fn load_default() -> Result<Config> {
@@ -879,7 +900,9 @@ impl ConfigExt for Config {
                     })?;
                 validate_trust_config(&serde_config)?;
                 validate_provider_config(&serde_config)?;
-                return Ok(serde_config.into());
+                let config: Config = serde_config.into();
+                llm_auth::validate_config(&config)?;
+                return Ok(config);
             }
         }
 
@@ -909,7 +932,10 @@ impl ConfigExt for Config {
     }
 
     fn decode_binary(data: &[u8]) -> Result<Config> {
-        Config::decode(data).map_err(|e| anyhow!("Failed to decode binary config: {}", e))
+        let config =
+            Config::decode(data).map_err(|e| anyhow!("Failed to decode binary config: {}", e))?;
+        llm_auth::validate_config(&config)?;
+        Ok(config)
     }
 }
 
@@ -1075,6 +1101,19 @@ fn resolve_config_relative_paths_value(path: &Path, value: &mut Value) {
         return;
     };
 
+    if let Some(providers) = object.get_mut("providers").and_then(Value::as_object_mut) {
+        for provider in providers.values_mut().filter_map(Value::as_object_mut) {
+            let is_token_file = provider
+                .get("auth")
+                .and_then(|auth| auth.get("source"))
+                .and_then(|source| source.get("type"))
+                .and_then(Value::as_str)
+                == Some("token_file");
+            if is_token_file {
+                resolve_raw_path_at(path, provider, &["auth", "source", "path"]);
+            }
+        }
+    }
     resolve_raw_path_at(path, object, &["workspace_dir"]);
     resolve_raw_path_at(path, object, &["database", "data_dir"]);
     resolve_raw_path_at(path, object, &["control_plane", "database", "data_dir"]);

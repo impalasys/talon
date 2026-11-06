@@ -129,14 +129,17 @@ async fn resolve_llm_with_credentials(
         .get(provider_name)
         .ok_or_else(|| anyhow!("LLM provider '{}' not found in config", provider_name))?;
 
+    let workload_identity =
+        crate::harness::llm::credentials::configured_workload_identity(provider_cfg)?;
+
     match &provider_cfg.config {
         Some(proto::llm_provider_config::Config::Openai(openai)) => {
-            // WIF is an explicit process-wide opt-in. If enabled, do not
-            // resolve a static (or tenant) API key as a fallback.
+            // Workload identity is selected per provider. Never resolve a static
+            // or tenant API key as a fallback when it is selected.
             let (api_key, llm_credentials): (
                 String,
                 Arc<dyn crate::harness::llm::credentials::LlmCredentialProvider>,
-            ) = match crate::harness::llm::credentials::configured_openai_wif()? {
+            ) = match workload_identity {
                 Some(credentials) => (String::new(), credentials),
                 None => {
                     let api_key = resolve_provider_api_key(
@@ -413,6 +416,7 @@ mod tests {
 
     fn openai_compatible_provider(base_url: String, api_key: Option<Secret>) -> ProviderConfig {
         ProviderConfig {
+            auth: None,
             config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
                 proto::GenericConfig {
                     name: String::new(),
@@ -490,23 +494,94 @@ mod tests {
     }
 
     #[test]
+    fn environment_variables_do_not_select_openai_authentication() {
+        let _lock = crate::test_support::env_lock();
+        let _old_switch = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
+        let _old_mapping = crate::test_support::EnvVarGuard::remove("OPENAI_IDENTITY_PROVIDER_ID");
+        tokio::runtime::Runtime::new().unwrap().block_on(async {
+            for auth in [
+                None,
+                Some(proto::LlmAuthConfig {
+                    mode: Some(proto::llm_auth_config::Mode::ApiKey(proto::ApiKeyAuth {})),
+                }),
+            ] {
+                let mut config = config_with_provider(
+                    "openai",
+                    ProviderConfig {
+                        auth,
+                        config: Some(proto::llm_provider_config::Config::Openai(
+                            proto::OpenAiConfig {
+                                model: "model".into(),
+                                api_key: Some(Secret {
+                                    source: Some(proto::secret::Source::Plain(
+                                        "existing-key".into(),
+                                    )),
+                                }),
+                                ..Default::default()
+                            },
+                        )),
+                    },
+                );
+                resolve_llm(
+                    &manifests::AgentSpec::default(),
+                    &config,
+                    test_object_store(),
+                )
+                .await
+                .unwrap();
+                let Some(proto::llm_provider_config::Config::Openai(openai)) =
+                    config.providers.get_mut("openai").unwrap().config.as_mut()
+                else {
+                    panic!("expected OpenAI")
+                };
+                openai.api_key = None;
+                let error = resolve_llm(
+                    &manifests::AgentSpec::default(),
+                    &config,
+                    test_object_store(),
+                )
+                .await
+                .err()
+                .unwrap();
+                assert!(error.to_string().contains("missing api_key"));
+            }
+        });
+    }
+
+    #[test]
     fn resolve_openai_wif_does_not_require_a_static_api_key() {
         let _lock = crate::test_support::env_lock();
-        let _enabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
-        let _provider_id =
-            crate::test_support::EnvVarGuard::set("OPENAI_IDENTITY_PROVIDER_ID", "test-idp");
-        let _service_account_id = crate::test_support::EnvVarGuard::set(
-            "OPENAI_SERVICE_ACCOUNT_ID",
-            "test-service-account",
-        );
-        let _audience = crate::test_support::EnvVarGuard::set(
-            "OPENAI_WIF_AUDIENCE",
-            "https://api.openai.com/v1",
-        );
+        let _base_url =
+            crate::test_support::EnvVarGuard::set("OPENAI_BASE_URL", "http://127.0.0.1:1");
+        let dir = tempfile::tempdir().unwrap();
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let config = config_with_provider(
                 "openai",
                 ProviderConfig {
+                    auth: Some(proto::LlmAuthConfig {
+                        mode: Some(proto::llm_auth_config::Mode::WorkloadIdentity(
+                            proto::WorkloadIdentityAuth {
+                                source: Some(proto::WorkloadIdentitySource {
+                                    config: Some(
+                                        proto::workload_identity_source::Config::TokenFile(
+                                            proto::TokenFileIdentitySource {
+                                                path: dir
+                                                    .path()
+                                                    .join("missing-token")
+                                                    .to_str()
+                                                    .unwrap()
+                                                    .into(),
+                                            },
+                                        ),
+                                    ),
+                                }),
+                                openai: Some(proto::OpenAiFederationConfig {
+                                    identity_provider_id: "idp".into(),
+                                    service_account_id: "account".into(),
+                                }),
+                            },
+                        )),
+                    }),
                     config: Some(proto::llm_provider_config::Config::Openai(
                         proto::OpenAiConfig {
                             model: "config-model".to_string(),
@@ -525,6 +600,23 @@ mod tests {
             .await
             .unwrap();
             assert_eq!(resolved.provider_key, "openai");
+
+            let cp = ControlPlane::builder(
+                Arc::new(crate::test_support::MockKvStore::default()),
+                Arc::new(crate::test_support::RecordingPubSub::default()),
+            )
+            .build();
+            put_llm_provider_secret(&cp, "Tenant:acme", "openai", "tenant-fallback-key").await;
+            let tenant = resolve_llm_for_namespace(
+                &manifests::AgentSpec::default(),
+                &config,
+                &cp,
+                "Tenant:acme:Workspace:main",
+            )
+            .await
+            .unwrap();
+            let error = tenant.provider.completion("ping").await.unwrap_err();
+            assert!(format!("{error:#}").contains("Failed to read workload identity token file"));
         });
     }
 
@@ -556,7 +648,13 @@ mod tests {
     #[tokio::test]
     async fn resolve_llm_errors_when_provider_config_is_unrecognized() {
         let config = Config {
-            providers: HashMap::from([("primary".to_string(), ProviderConfig { config: None })]),
+            providers: HashMap::from([(
+                "primary".to_string(),
+                ProviderConfig {
+                    config: None,
+                    auth: None,
+                },
+            )]),
             default_provider: "primary".to_string(),
             ..Config::default()
         };
@@ -674,6 +772,7 @@ mod tests {
         let config = config_with_provider(
             "openai",
             ProviderConfig {
+                auth: None,
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
                         model: "config-model".to_string(),
@@ -765,6 +864,7 @@ mod tests {
         let config = config_with_provider(
             "openai",
             ProviderConfig {
+                auth: None,
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
                         model: "config-model".to_string(),
@@ -802,6 +902,7 @@ mod tests {
         let config = config_with_provider(
             "openai",
             ProviderConfig {
+                auth: None,
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
                         model: "config-model".to_string(),

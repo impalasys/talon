@@ -4,10 +4,13 @@
 //! Bearer-token providers for LLM API clients.
 //!
 //! The shared client boundary deliberately knows only how to obtain a token;
-//! cloud identity details belong in provider implementations such as `OpenAiWif`.
+//! identity sources acquire subject tokens; destination adapters exchange them.
 
+use super::identity::{identity_source, WorkloadIdentitySource};
+use crate::control::config::{llm_auth::validate_provider_auth, proto};
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
+use prost::Message;
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -36,19 +39,12 @@ impl LlmCredentialProvider for StaticApiKey {
     }
 }
 
-/// OpenAI WIF credential provider for Google Cloud metadata-server ID tokens.
-///
-/// Operators must first create an OpenAI Workload Identity Provider trusting
-/// `https://accounts.google.com`, then map this workload's stable `sub` claim
-/// to an OpenAI project service account. The mapping must explicitly grant the
-/// API permissions this workload needs (for model calls, `api.model.request`);
-/// an empty permissions list inherits the mapped service account's roles.
-/// See https://developers.openai.com/api/docs/guides/workload-identity-federation/google-cloud.
+/// Exchanges an OIDC workload identity for OpenAI credentials, independently
+/// of the cloud or mechanism that supplies the subject token.
 pub struct OpenAiWif {
     identity_provider_id: String,
     service_account_id: String,
-    audience: String,
-    metadata_endpoint: String,
+    source: Arc<dyn WorkloadIdentitySource>,
     exchange_endpoint: String,
     refresh_buffer_seconds: u64,
     http: reqwest::Client,
@@ -71,47 +67,30 @@ struct ExchangeResponse {
 
 impl OpenAiWif {
     pub fn new(
-        identity_provider_id: String,
-        service_account_id: String,
-        audience: String,
+        mapping: &proto::OpenAiFederationConfig,
+        source: Arc<dyn WorkloadIdentitySource>,
     ) -> Result<Self> {
-        Self::with_endpoints(
-            identity_provider_id,
-            service_account_id,
-            audience,
-            "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity".to_string(),
-            "https://auth.openai.com/oauth/token".to_string(),
+        Self::with_source(
+            mapping,
+            source,
+            "https://auth.openai.com/oauth/token".into(),
         )
     }
 
-    fn with_endpoints(
-        identity_provider_id: String,
-        service_account_id: String,
-        audience: String,
-        metadata_endpoint: String,
+    fn with_source(
+        mapping: &proto::OpenAiFederationConfig,
+        source: Arc<dyn WorkloadIdentitySource>,
         exchange_endpoint: String,
     ) -> Result<Self> {
-        for (name, value) in [
-            ("OPENAI_IDENTITY_PROVIDER_ID", &identity_provider_id),
-            ("OPENAI_SERVICE_ACCOUNT_ID", &service_account_id),
-            ("OPENAI_WIF_AUDIENCE", &audience),
-        ] {
-            if value.trim().is_empty() {
-                return Err(anyhow!(
-                    "{name} must not be empty when OpenAI WIF is enabled"
-                ));
-            }
-        }
         let http = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(10))
             .redirect(reqwest::redirect::Policy::none())
             .build()
             .context("Failed to initialize OpenAI WIF HTTP client")?;
         Ok(Self {
-            identity_provider_id,
-            service_account_id,
-            audience,
-            metadata_endpoint,
+            identity_provider_id: mapping.identity_provider_id.clone(),
+            service_account_id: mapping.service_account_id.clone(),
+            source,
             exchange_endpoint,
             refresh_buffer_seconds: 120,
             http,
@@ -119,30 +98,35 @@ impl OpenAiWif {
         })
     }
 
+    #[cfg(test)]
+    fn with_endpoints(
+        identity_provider_id: String,
+        service_account_id: String,
+        audience: String,
+        metadata_endpoint: String,
+        exchange_endpoint: String,
+    ) -> Result<Self> {
+        let source = super::identity::GoogleMetadata::new(audience, metadata_endpoint)?;
+        Self::with_source(
+            &proto::OpenAiFederationConfig {
+                identity_provider_id,
+                service_account_id,
+            },
+            Arc::new(source),
+            exchange_endpoint,
+        )
+    }
+
     async fn refresh(&self) -> Result<CachedToken> {
-        let mut metadata_url = reqwest::Url::parse(&self.metadata_endpoint)
-            .context("Invalid Google metadata token endpoint")?;
-        metadata_url
-            .query_pairs_mut()
-            .append_pair("audience", &self.audience)
-            .append_pair("format", "full");
-        let identity_response = self
-            .http
-            .get(metadata_url)
-            .header("Metadata-Flavor", "Google")
-            .send()
-            .await
-            .context("Failed to request Google metadata identity token")?
-            .error_for_status()
-            .context("Google metadata identity token request was rejected")?;
-        let subject_token = identity_response
-            .text()
-            .await
-            .context("Failed to read Google metadata identity token")?;
-        let subject_token = subject_token.trim();
-        if subject_token.is_empty() {
+        let subject_token = tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            self.source.subject_token(),
+        )
+        .await
+        .context("Workload identity token acquisition timed out")??;
+        if subject_token.trim().is_empty() {
             return Err(anyhow!(
-                "Google metadata server returned an empty identity token"
+                "Workload identity source returned an empty identity token"
             ));
         }
 
@@ -151,14 +135,14 @@ impl OpenAiWif {
             .post(&self.exchange_endpoint)
             .json(&serde_json::json!({
                 "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-                "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+                "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
                 "subject_token": subject_token,
                 "identity_provider_id": self.identity_provider_id,
                 "service_account_id": self.service_account_id,
             }))
             .send()
             .await
-            .context("Failed to exchange Google identity token with OpenAI")?
+            .context("Failed to exchange workload identity token with OpenAI")?
             .error_for_status()
             .context("OpenAI workload identity token exchange was rejected")?;
         let token: ExchangeResponse = response
@@ -222,60 +206,45 @@ fn unix_time_seconds() -> u64 {
         .as_secs()
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
-struct OpenAiWifConfig {
-    identity_provider_id: String,
-    service_account_id: String,
-    audience: String,
-}
-
-/// Retain each provider and its token cache even between runtime lifetimes.
-fn shared_openai_wif(config: OpenAiWifConfig) -> Result<Arc<OpenAiWif>> {
-    static PROVIDERS: OnceLock<StdMutex<HashMap<OpenAiWifConfig, Arc<OpenAiWif>>>> =
-        OnceLock::new();
+/// Retain credentials across runtime builds, keyed by source and target mapping.
+fn shared_openai_wif(config: &proto::WorkloadIdentityAuth) -> Result<Arc<OpenAiWif>> {
+    static PROVIDERS: OnceLock<StdMutex<HashMap<Vec<u8>, Arc<OpenAiWif>>>> = OnceLock::new();
+    // These messages contain no maps: protobuf encoding is a stable full-config key.
+    let key = config.encode_to_vec();
     let mut providers = PROVIDERS
         .get_or_init(StdMutex::default)
         .lock()
         .map_err(|_| anyhow!("OpenAI WIF provider cache lock poisoned"))?;
-    if let Some(provider) = providers.get(&config) {
+    if let Some(provider) = providers.get(&key) {
         return Ok(provider.clone());
     }
-    // Construct under the lock so concurrent runtime builds share one provider.
-    // Failed builds leave no cache entry and can be retried on the next call.
-    let provider = Arc::new(OpenAiWif::new(
-        config.identity_provider_id.clone(),
-        config.service_account_id.clone(),
-        config.audience.clone(),
-    )?);
-    providers.insert(config, provider.clone());
+    let mapping = config
+        .openai
+        .as_ref()
+        .context("workload_identity requires an openai mapping")?;
+    let source = identity_source(
+        config
+            .source
+            .as_ref()
+            .context("workload_identity requires an identity source")?,
+    )?;
+    // Build under the lock; only successful builds are retained.
+    let provider = Arc::new(OpenAiWif::new(mapping, source)?);
+    providers.insert(key, provider.clone());
     Ok(provider)
 }
 
-/// Read the current opt-in and mapping settings, reusing a provider per mapping.
-pub fn configured_openai_wif() -> Result<Option<Arc<dyn LlmCredentialProvider>>> {
-    let enabled = match std::env::var("TALON_OPENAI_WIF_ENABLED") {
-        Ok(value) if value.eq_ignore_ascii_case("true") => true,
-        Ok(value) if value.eq_ignore_ascii_case("false") => false,
-        Ok(_) => {
-            return Err(anyhow!(
-                "TALON_OPENAI_WIF_ENABLED must be 'true' or 'false'"
-            ))
+/// Resolve explicitly configured workload identity. Omitted auth retains API keys.
+pub fn configured_workload_identity(
+    provider: &proto::LlmProviderConfig,
+) -> Result<Option<Arc<dyn LlmCredentialProvider>>> {
+    validate_provider_auth(provider)?;
+    match provider.auth.as_ref().and_then(|auth| auth.mode.as_ref()) {
+        Some(proto::llm_auth_config::Mode::WorkloadIdentity(config)) => {
+            Ok(Some(shared_openai_wif(config)?))
         }
-        Err(std::env::VarError::NotPresent) => false,
-        Err(error) => return Err(error.into()),
-    };
-    if !enabled {
-        return Ok(None);
+        _ => Ok(None),
     }
-    let required = |name: &'static str| -> Result<String> {
-        std::env::var(name)
-            .map_err(|_| anyhow!("{name} is required when TALON_OPENAI_WIF_ENABLED=true"))
-    };
-    Ok(Some(shared_openai_wif(OpenAiWifConfig {
-        identity_provider_id: required("OPENAI_IDENTITY_PROVIDER_ID")?,
-        service_account_id: required("OPENAI_SERVICE_ACCOUNT_ID")?,
-        audience: required("OPENAI_WIF_AUDIENCE")?,
-    })?))
 }
 
 #[cfg(test)]
@@ -298,6 +267,9 @@ mod tests {
             assert!(request.starts_with(&format!("GET {expected_path}?")));
             assert!(request.contains("audience=https%3A%2F%2Fapi.openai.com%2Fv1"));
             assert!(request.contains("format=full"));
+            assert!(request
+                .to_ascii_lowercase()
+                .contains("metadata-flavor: google"));
             let content_length = response.len();
             stream.write_all(format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {content_length}\r\nConnection: close\r\n\r\n{response}"
@@ -312,50 +284,50 @@ mod tests {
         assert_eq!(provider.bearer_token().await.unwrap(), "  key-bytes\n");
     }
 
-    #[test]
-    fn wif_disabled_path_returns_no_override() {
-        let _lock = crate::test_support::env_lock();
-        let _enabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "false");
-        assert!(configured_openai_wif().unwrap().is_none());
+    fn configured_provider() -> proto::LlmProviderConfig {
+        proto::LlmProviderConfig {
+            config: Some(proto::llm_provider_config::Config::Openai(
+                proto::OpenAiConfig::default(),
+            )),
+            auth: Some(proto::LlmAuthConfig {
+                mode: Some(proto::llm_auth_config::Mode::WorkloadIdentity(
+                    proto::WorkloadIdentityAuth {
+                        source: Some(proto::WorkloadIdentitySource {
+                            config: Some(proto::workload_identity_source::Config::GoogleMetadata(
+                                proto::GoogleMetadataIdentitySource {
+                                    audience: "audience".into(),
+                                },
+                            )),
+                        }),
+                        openai: Some(proto::OpenAiFederationConfig {
+                            identity_provider_id: "runtime-cache-test-idp".into(),
+                            service_account_id: "service-account".into(),
+                        }),
+                    },
+                )),
+            }),
+        }
     }
 
-    #[test]
-    fn enabled_wif_requires_all_openai_mapping_settings() {
-        let _lock = crate::test_support::env_lock();
-        let _enabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
-        let _provider_id = crate::test_support::EnvVarGuard::remove("OPENAI_IDENTITY_PROVIDER_ID");
-        let _service_account_id =
-            crate::test_support::EnvVarGuard::remove("OPENAI_SERVICE_ACCOUNT_ID");
-        let _audience = crate::test_support::EnvVarGuard::remove("OPENAI_WIF_AUDIENCE");
-        let error = match configured_openai_wif() {
-            Ok(_) => panic!("expected required WIF configuration error"),
-            Err(error) => error,
+    fn wif(config: &mut proto::LlmProviderConfig) -> &mut proto::WorkloadIdentityAuth {
+        let Some(proto::llm_auth_config::Mode::WorkloadIdentity(wif)) =
+            config.auth.as_mut().unwrap().mode.as_mut()
+        else {
+            panic!("expected WIF")
         };
-        assert!(error
-            .to_string()
-            .contains("OPENAI_IDENTITY_PROVIDER_ID is required"));
+        wif
     }
 
     #[test]
     fn configured_wif_shares_cached_token_across_runtime_lifetimes() {
-        let _lock = crate::test_support::env_lock();
-        let _enabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
-        let _provider_id = crate::test_support::EnvVarGuard::set(
-            "OPENAI_IDENTITY_PROVIDER_ID",
-            "runtime-cache-test-idp",
-        );
-        let _service_account_id =
-            crate::test_support::EnvVarGuard::set("OPENAI_SERVICE_ACCOUNT_ID", "service-account");
-        let _audience = crate::test_support::EnvVarGuard::set("OPENAI_WIF_AUDIENCE", "audience");
-
-        // Concurrent first resolutions must all receive the same provider.
+        let mut config = configured_provider();
         let barrier = std::sync::Barrier::new(8);
         let providers = std::thread::scope(|scope| {
             let handles: Vec<_> = (0..8)
                 .map(|_| {
                     scope.spawn(|| {
                         barrier.wait();
-                        configured_openai_wif().unwrap().unwrap()
+                        configured_workload_identity(&config).unwrap().unwrap()
                     })
                 })
                 .collect();
@@ -367,13 +339,7 @@ mod tests {
         for provider in &providers {
             assert!(Arc::ptr_eq(&providers[0], provider));
         }
-
-        let provider = shared_openai_wif(OpenAiWifConfig {
-            identity_provider_id: "runtime-cache-test-idp".into(),
-            service_account_id: "service-account".into(),
-            audience: "audience".into(),
-        })
-        .unwrap();
+        let provider = shared_openai_wif(wif(&mut config)).unwrap();
         *provider.cached.blocking_lock() = Some(CachedToken {
             value: "cached-across-runtimes".into(),
             refresh_at: unix_time_seconds() + 3600,
@@ -381,10 +347,8 @@ mod tests {
         let weak = Arc::downgrade(&providers[0]);
         drop(provider);
         drop(providers);
-
-        // No runtime owns a provider now; the process cache must retain it.
         assert!(weak.upgrade().is_some());
-        let next = configured_openai_wif().unwrap().unwrap();
+        let next = configured_workload_identity(&config).unwrap().unwrap();
         assert!(Arc::ptr_eq(&weak.upgrade().unwrap(), &next));
         let runtime = tokio::runtime::Runtime::new().unwrap();
         assert_eq!(
@@ -394,57 +358,152 @@ mod tests {
     }
 
     #[test]
-    fn configured_wif_cache_respects_mapping_changes_and_configuration_errors() {
-        let _lock = crate::test_support::env_lock();
-        let _enabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
-        let _provider_id = crate::test_support::EnvVarGuard::set(
-            "OPENAI_IDENTITY_PROVIDER_ID",
-            "mapping-cache-test-idp",
-        );
-        let _service_account_id =
-            crate::test_support::EnvVarGuard::set("OPENAI_SERVICE_ACCOUNT_ID", "service-account");
-        let _audience = crate::test_support::EnvVarGuard::set("OPENAI_WIF_AUDIENCE", "audience");
-        let original = configured_openai_wif().unwrap().unwrap();
-
-        for name in [
-            "OPENAI_IDENTITY_PROVIDER_ID",
-            "OPENAI_SERVICE_ACCOUNT_ID",
-            "OPENAI_WIF_AUDIENCE",
-        ] {
-            {
-                let _changed = crate::test_support::EnvVarGuard::set(name, "changed");
-                let changed = configured_openai_wif().unwrap().unwrap();
-                assert!(!Arc::ptr_eq(&original, &changed), "{name}");
-                assert!(Arc::ptr_eq(
-                    &changed,
-                    &configured_openai_wif().unwrap().unwrap()
-                ));
-            }
-            {
-                let _missing = crate::test_support::EnvVarGuard::remove(name);
-                let error = configured_openai_wif().err().unwrap().to_string();
-                assert_eq!(
-                    error,
-                    format!("{name} is required when TALON_OPENAI_WIF_ENABLED=true")
-                );
-            }
-            {
-                let _empty = crate::test_support::EnvVarGuard::set(name, " ");
-                for _ in 0..2 {
-                    let error = configured_openai_wif().err().unwrap().to_string();
-                    assert_eq!(
-                        error,
-                        format!("{name} must not be empty when OpenAI WIF is enabled")
-                    );
+    fn configured_wif_cache_is_scoped_to_source_and_destination() {
+        let original_config = configured_provider();
+        let original = configured_workload_identity(&original_config)
+            .unwrap()
+            .unwrap();
+        let mut resolved = vec![original.clone()];
+        for field in 0..8 {
+            let mut changed = original_config.clone();
+            let auth = wif(&mut changed);
+            match field {
+                0 => auth.openai.as_mut().unwrap().identity_provider_id = "other-idp".into(),
+                1 => auth.openai.as_mut().unwrap().service_account_id = "other-account".into(),
+                2 => {
+                    auth.source.as_mut().unwrap().config =
+                        Some(proto::workload_identity_source::Config::GoogleMetadata(
+                            proto::GoogleMetadataIdentitySource {
+                                audience: "other-audience".into(),
+                            },
+                        ))
+                }
+                3 => {
+                    auth.source.as_mut().unwrap().config =
+                        Some(proto::workload_identity_source::Config::TokenFile(
+                            proto::TokenFileIdentitySource {
+                                path: "/var/run/token-a".into(),
+                            },
+                        ))
+                }
+                4 => {
+                    auth.source.as_mut().unwrap().config =
+                        Some(proto::workload_identity_source::Config::TokenFile(
+                            proto::TokenFileIdentitySource {
+                                path: "/var/run/token-b".into(),
+                            },
+                        ))
+                }
+                _ => {
+                    auth.source.as_mut().unwrap().config =
+                        Some(proto::workload_identity_source::Config::AwsSts(
+                            proto::AwsStsIdentitySource {
+                                audience: if field == 7 {
+                                    "other-audience"
+                                } else {
+                                    "audience"
+                                }
+                                .into(),
+                                region: if field == 6 { "us-east-1" } else { "us-west-2" }.into(),
+                            },
+                        ))
                 }
             }
+            let new = configured_workload_identity(&changed).unwrap().unwrap();
+            for previous in &resolved {
+                assert!(!Arc::ptr_eq(previous, &new));
+            }
             assert!(Arc::ptr_eq(
-                &original,
-                &configured_openai_wif().unwrap().unwrap()
+                &new,
+                &configured_workload_identity(&changed).unwrap().unwrap()
             ));
+            resolved.push(new);
         }
-        let _disabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "false");
-        assert!(configured_openai_wif().unwrap().is_none());
+        let mut invalid = original_config.clone();
+        wif(&mut invalid)
+            .openai
+            .as_mut()
+            .unwrap()
+            .identity_provider_id
+            .clear();
+        for _ in 0..2 {
+            assert!(configured_workload_identity(&invalid).is_err());
+        }
+        assert!(Arc::ptr_eq(
+            &original,
+            &configured_workload_identity(&original_config)
+                .unwrap()
+                .unwrap()
+        ));
+        let mut no_auth = original_config;
+        no_auth.auth = None;
+        assert!(configured_workload_identity(&no_auth).unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn token_file_rotation_is_used_at_refresh_and_failures_do_not_reuse_stale_tokens() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("projected-token");
+        tokio::fs::write(&path, "subject-one\n").await.unwrap();
+        let source = identity_source(&proto::WorkloadIdentitySource {
+            config: Some(proto::workload_identity_source::Config::TokenFile(
+                proto::TokenFileIdentitySource {
+                    path: path.to_str().unwrap().into(),
+                },
+            )),
+        })
+        .unwrap();
+        let subjects = Arc::new(Mutex::new(Vec::new()));
+        let received = subjects.clone();
+        let app = axum::Router::new().route(
+            "/token",
+            axum::routing::post(move |axum::Json(body): axum::Json<Value>| {
+                let received = received.clone();
+                async move {
+                    assert_eq!(body["identity_provider_id"], "file-idp");
+                    assert_eq!(body["service_account_id"], "file-account");
+                    assert_eq!(
+                        body["subject_token_type"],
+                        "urn:ietf:params:oauth:token-type:jwt"
+                    );
+                    received
+                        .lock()
+                        .await
+                        .push(body["subject_token"].as_str().unwrap().to_owned());
+                    axum::Json(serde_json::json!({
+                        "access_token": "exchanged-token", "token_type": "Bearer",
+                        "expires_in": 3600, "scope": "api.model.request",
+                    }))
+                }
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        let provider = OpenAiWif::with_source(
+            &proto::OpenAiFederationConfig {
+                identity_provider_id: "file-idp".into(),
+                service_account_id: "file-account".into(),
+            },
+            source,
+            format!("http://{address}/token"),
+        )
+        .unwrap();
+        assert_eq!(provider.bearer_token().await.unwrap(), "exchanged-token");
+        assert_eq!(provider.bearer_token().await.unwrap(), "exchanged-token");
+        tokio::fs::write(&path, "subject-two\n").await.unwrap();
+        provider.cached.lock().await.as_mut().unwrap().refresh_at = 0;
+        assert_eq!(provider.bearer_token().await.unwrap(), "exchanged-token");
+        tokio::fs::write(&path, "\n").await.unwrap();
+        provider.cached.lock().await.as_mut().unwrap().refresh_at = 0;
+        assert!(provider
+            .bearer_token()
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("empty identity token"));
+        assert_eq!(*subjects.lock().await, ["subject-one", "subject-two"]);
+        server.abort();
     }
 
     #[tokio::test]
@@ -465,7 +524,7 @@ mod tests {
             assert_eq!(body["subject_token"], "oidc-subject-token");
             assert_eq!(
                 body["subject_token_type"],
-                "urn:ietf:params:oauth:token-type:id_token"
+                "urn:ietf:params:oauth:token-type:jwt"
             );
             exchanges_in_server.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
             let response = r#"{"access_token":"openai-short-token","token_type":"Bearer","expires_in":3600,"scope":"api.model.request"}"#;

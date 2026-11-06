@@ -4,6 +4,7 @@
 pub mod anthropic;
 pub mod credentials;
 pub mod failover;
+pub mod identity;
 pub mod mock;
 pub mod openai;
 pub mod provider;

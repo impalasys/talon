@@ -493,6 +493,7 @@ mod tests {
             providers: HashMap::from([(
                 "novita".to_string(),
                 ProviderConfig {
+                    auth: None,
                     config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
                         proto::GenericConfig {
                             name: "novita".to_string(),
