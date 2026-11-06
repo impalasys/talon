@@ -10,7 +10,8 @@ use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use serde::Deserialize;
 use std::{
-    sync::Arc,
+    collections::HashMap,
+    sync::{Arc, Mutex as StdMutex, OnceLock},
     time::{SystemTime, UNIX_EPOCH},
 };
 use tokio::sync::Mutex;
@@ -221,6 +222,36 @@ fn unix_time_seconds() -> u64 {
         .as_secs()
 }
 
+#[derive(Clone, PartialEq, Eq, Hash)]
+struct OpenAiWifConfig {
+    identity_provider_id: String,
+    service_account_id: String,
+    audience: String,
+}
+
+/// Retain each provider and its token cache even between runtime lifetimes.
+fn shared_openai_wif(config: OpenAiWifConfig) -> Result<Arc<OpenAiWif>> {
+    static PROVIDERS: OnceLock<StdMutex<HashMap<OpenAiWifConfig, Arc<OpenAiWif>>>> =
+        OnceLock::new();
+    let mut providers = PROVIDERS
+        .get_or_init(StdMutex::default)
+        .lock()
+        .map_err(|_| anyhow!("OpenAI WIF provider cache lock poisoned"))?;
+    if let Some(provider) = providers.get(&config) {
+        return Ok(provider.clone());
+    }
+    // Construct under the lock so concurrent runtime builds share one provider.
+    // Failed builds leave no cache entry and can be retried on the next call.
+    let provider = Arc::new(OpenAiWif::new(
+        config.identity_provider_id.clone(),
+        config.service_account_id.clone(),
+        config.audience.clone(),
+    )?);
+    providers.insert(config, provider.clone());
+    Ok(provider)
+}
+
+/// Read the current opt-in and mapping settings, reusing a provider per mapping.
 pub fn configured_openai_wif() -> Result<Option<Arc<dyn LlmCredentialProvider>>> {
     let enabled = match std::env::var("TALON_OPENAI_WIF_ENABLED") {
         Ok(value) if value.eq_ignore_ascii_case("true") => true,
@@ -240,11 +271,11 @@ pub fn configured_openai_wif() -> Result<Option<Arc<dyn LlmCredentialProvider>>>
         std::env::var(name)
             .map_err(|_| anyhow!("{name} is required when TALON_OPENAI_WIF_ENABLED=true"))
     };
-    Ok(Some(Arc::new(OpenAiWif::new(
-        required("OPENAI_IDENTITY_PROVIDER_ID")?,
-        required("OPENAI_SERVICE_ACCOUNT_ID")?,
-        required("OPENAI_WIF_AUDIENCE")?,
-    )?)))
+    Ok(Some(shared_openai_wif(OpenAiWifConfig {
+        identity_provider_id: required("OPENAI_IDENTITY_PROVIDER_ID")?,
+        service_account_id: required("OPENAI_SERVICE_ACCOUNT_ID")?,
+        audience: required("OPENAI_WIF_AUDIENCE")?,
+    })?))
 }
 
 #[cfg(test)]
@@ -303,6 +334,117 @@ mod tests {
         assert!(error
             .to_string()
             .contains("OPENAI_IDENTITY_PROVIDER_ID is required"));
+    }
+
+    #[test]
+    fn configured_wif_shares_cached_token_across_runtime_lifetimes() {
+        let _lock = crate::test_support::env_lock();
+        let _enabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
+        let _provider_id = crate::test_support::EnvVarGuard::set(
+            "OPENAI_IDENTITY_PROVIDER_ID",
+            "runtime-cache-test-idp",
+        );
+        let _service_account_id =
+            crate::test_support::EnvVarGuard::set("OPENAI_SERVICE_ACCOUNT_ID", "service-account");
+        let _audience = crate::test_support::EnvVarGuard::set("OPENAI_WIF_AUDIENCE", "audience");
+
+        // Concurrent first resolutions must all receive the same provider.
+        let barrier = std::sync::Barrier::new(8);
+        let providers = std::thread::scope(|scope| {
+            let handles: Vec<_> = (0..8)
+                .map(|_| {
+                    scope.spawn(|| {
+                        barrier.wait();
+                        configured_openai_wif().unwrap().unwrap()
+                    })
+                })
+                .collect();
+            handles
+                .into_iter()
+                .map(|handle| handle.join().unwrap())
+                .collect::<Vec<_>>()
+        });
+        for provider in &providers {
+            assert!(Arc::ptr_eq(&providers[0], provider));
+        }
+
+        let provider = shared_openai_wif(OpenAiWifConfig {
+            identity_provider_id: "runtime-cache-test-idp".into(),
+            service_account_id: "service-account".into(),
+            audience: "audience".into(),
+        })
+        .unwrap();
+        *provider.cached.blocking_lock() = Some(CachedToken {
+            value: "cached-across-runtimes".into(),
+            refresh_at: unix_time_seconds() + 3600,
+        });
+        let weak = Arc::downgrade(&providers[0]);
+        drop(provider);
+        drop(providers);
+
+        // No runtime owns a provider now; the process cache must retain it.
+        assert!(weak.upgrade().is_some());
+        let next = configured_openai_wif().unwrap().unwrap();
+        assert!(Arc::ptr_eq(&weak.upgrade().unwrap(), &next));
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        assert_eq!(
+            runtime.block_on(next.bearer_token()).unwrap(),
+            "cached-across-runtimes"
+        );
+    }
+
+    #[test]
+    fn configured_wif_cache_respects_mapping_changes_and_configuration_errors() {
+        let _lock = crate::test_support::env_lock();
+        let _enabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
+        let _provider_id = crate::test_support::EnvVarGuard::set(
+            "OPENAI_IDENTITY_PROVIDER_ID",
+            "mapping-cache-test-idp",
+        );
+        let _service_account_id =
+            crate::test_support::EnvVarGuard::set("OPENAI_SERVICE_ACCOUNT_ID", "service-account");
+        let _audience = crate::test_support::EnvVarGuard::set("OPENAI_WIF_AUDIENCE", "audience");
+        let original = configured_openai_wif().unwrap().unwrap();
+
+        for name in [
+            "OPENAI_IDENTITY_PROVIDER_ID",
+            "OPENAI_SERVICE_ACCOUNT_ID",
+            "OPENAI_WIF_AUDIENCE",
+        ] {
+            {
+                let _changed = crate::test_support::EnvVarGuard::set(name, "changed");
+                let changed = configured_openai_wif().unwrap().unwrap();
+                assert!(!Arc::ptr_eq(&original, &changed), "{name}");
+                assert!(Arc::ptr_eq(
+                    &changed,
+                    &configured_openai_wif().unwrap().unwrap()
+                ));
+            }
+            {
+                let _missing = crate::test_support::EnvVarGuard::remove(name);
+                let error = configured_openai_wif().err().unwrap().to_string();
+                assert_eq!(
+                    error,
+                    format!("{name} is required when TALON_OPENAI_WIF_ENABLED=true")
+                );
+            }
+            {
+                let _empty = crate::test_support::EnvVarGuard::set(name, " ");
+                for _ in 0..2 {
+                    let error = configured_openai_wif().err().unwrap().to_string();
+                    assert_eq!(
+                        error,
+                        format!("{name} must not be empty when OpenAI WIF is enabled")
+                    );
+                }
+            }
+            assert!(Arc::ptr_eq(
+                &original,
+                &configured_openai_wif().unwrap().unwrap()
+            ));
+        }
+        let _disabled = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "false");
+        assert!(configured_openai_wif().unwrap().is_none());
     }
 
     #[tokio::test]
