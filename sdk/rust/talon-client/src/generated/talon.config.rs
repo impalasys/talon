@@ -180,6 +180,53 @@ pub mod llm_provider_config {
         OpenaiCompatible(super::GenericConfig),
     }
 }
+/// OpenAI-specific destination mapping, independent of the identity source.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenAiWorkloadIdentityConfig {
+    #[prost(message, optional, tag = "1")]
+    pub source: ::core::option::Option<WorkloadIdentitySource>,
+    #[prost(string, tag = "2")]
+    pub identity_provider_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub service_account_id: ::prost::alloc::string::String,
+}
+/// Sources supply an OIDC subject token; destination adapters exchange it.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkloadIdentitySource {
+    #[prost(oneof = "workload_identity_source::Config", tags = "1, 2, 3")]
+    pub config: ::core::option::Option<workload_identity_source::Config>,
+}
+/// Nested message and enum types in `WorkloadIdentitySource`.
+pub mod workload_identity_source {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Config {
+        #[prost(message, tag = "1")]
+        GoogleMetadata(super::GoogleMetadataIdentitySource),
+        #[prost(message, tag = "2")]
+        AwsSts(super::AwsStsIdentitySource),
+        #[prost(message, tag = "3")]
+        TokenFile(super::TokenFileIdentitySource),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoogleMetadataIdentitySource {
+    #[prost(string, tag = "1")]
+    pub audience: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AwsStsIdentitySource {
+    #[prost(string, tag = "1")]
+    pub audience: ::prost::alloc::string::String,
+    /// Explicit regional STS endpoint; the global endpoint is unsupported.
+    #[prost(string, tag = "2")]
+    pub region: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TokenFileIdentitySource {
+    /// Reread on every exchange to pick up projected token rotation.
+    #[prost(string, tag = "1")]
+    pub path: ::prost::alloc::string::String,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenAiConfig {
     #[prost(string, tag = "1")]
@@ -190,6 +237,9 @@ pub struct OpenAiConfig {
     pub org_id: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
     pub api: ::prost::alloc::string::String,
+    /// Omitted workload identity retains existing static or tenant API-key behavior.
+    #[prost(message, optional, tag = "5")]
+    pub workload_identity: ::core::option::Option<OpenAiWorkloadIdentityConfig>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AnthropicConfig {

@@ -10795,6 +10795,3771 @@ talon.config.Config.CapabilityGate defaultValue) {
 
   }
 
+  public interface OpenAiWorkloadIdentityConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.OpenAiWorkloadIdentityConfig)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+     * @return Whether the source field is set.
+     */
+    boolean hasSource();
+    /**
+     * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+     * @return The source.
+     */
+    talon.config.Config.WorkloadIdentitySource getSource();
+    /**
+     * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+     */
+    talon.config.Config.WorkloadIdentitySourceOrBuilder getSourceOrBuilder();
+
+    /**
+     * <code>string identity_provider_id = 2;</code>
+     * @return The identityProviderId.
+     */
+    java.lang.String getIdentityProviderId();
+    /**
+     * <code>string identity_provider_id = 2;</code>
+     * @return The bytes for identityProviderId.
+     */
+    com.google.protobuf.ByteString
+        getIdentityProviderIdBytes();
+
+    /**
+     * <code>string service_account_id = 3;</code>
+     * @return The serviceAccountId.
+     */
+    java.lang.String getServiceAccountId();
+    /**
+     * <code>string service_account_id = 3;</code>
+     * @return The bytes for serviceAccountId.
+     */
+    com.google.protobuf.ByteString
+        getServiceAccountIdBytes();
+  }
+  /**
+   * <pre>
+   * OpenAI-specific destination mapping, independent of the identity source.
+   * </pre>
+   *
+   * Protobuf type {@code talon.config.OpenAiWorkloadIdentityConfig}
+   */
+  public static final class OpenAiWorkloadIdentityConfig extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.OpenAiWorkloadIdentityConfig)
+      OpenAiWorkloadIdentityConfigOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "OpenAiWorkloadIdentityConfig");
+    }
+    // Use OpenAiWorkloadIdentityConfig.newBuilder() to construct.
+    private OpenAiWorkloadIdentityConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private OpenAiWorkloadIdentityConfig() {
+      identityProviderId_ = "";
+      serviceAccountId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_OpenAiWorkloadIdentityConfig_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_OpenAiWorkloadIdentityConfig_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_OpenAiWorkloadIdentityConfig_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.OpenAiWorkloadIdentityConfig.class, talon.config.Config.OpenAiWorkloadIdentityConfig.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int SOURCE_FIELD_NUMBER = 1;
+    private talon.config.Config.WorkloadIdentitySource source_;
+    /**
+     * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+     * @return Whether the source field is set.
+     */
+    @java.lang.Override
+    public boolean hasSource() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+     * @return The source.
+     */
+    @java.lang.Override
+    public talon.config.Config.WorkloadIdentitySource getSource() {
+      return source_ == null ? talon.config.Config.WorkloadIdentitySource.getDefaultInstance() : source_;
+    }
+    /**
+     * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.WorkloadIdentitySourceOrBuilder getSourceOrBuilder() {
+      return source_ == null ? talon.config.Config.WorkloadIdentitySource.getDefaultInstance() : source_;
+    }
+
+    public static final int IDENTITY_PROVIDER_ID_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object identityProviderId_ = "";
+    /**
+     * <code>string identity_provider_id = 2;</code>
+     * @return The identityProviderId.
+     */
+    @java.lang.Override
+    public java.lang.String getIdentityProviderId() {
+      java.lang.Object ref = identityProviderId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        identityProviderId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string identity_provider_id = 2;</code>
+     * @return The bytes for identityProviderId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdentityProviderIdBytes() {
+      java.lang.Object ref = identityProviderId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        identityProviderId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SERVICE_ACCOUNT_ID_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object serviceAccountId_ = "";
+    /**
+     * <code>string service_account_id = 3;</code>
+     * @return The serviceAccountId.
+     */
+    @java.lang.Override
+    public java.lang.String getServiceAccountId() {
+      java.lang.Object ref = serviceAccountId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        serviceAccountId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string service_account_id = 3;</code>
+     * @return The bytes for serviceAccountId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getServiceAccountIdBytes() {
+      java.lang.Object ref = serviceAccountId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        serviceAccountId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getSource());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(identityProviderId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, identityProviderId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(serviceAccountId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, serviceAccountId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getSource());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(identityProviderId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, identityProviderId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(serviceAccountId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, serviceAccountId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.OpenAiWorkloadIdentityConfig)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.OpenAiWorkloadIdentityConfig other = (talon.config.Config.OpenAiWorkloadIdentityConfig) obj;
+
+      if (hasSource() != other.hasSource()) return false;
+      if (hasSource()) {
+        if (!getSource()
+            .equals(other.getSource())) return false;
+      }
+      if (!getIdentityProviderId()
+          .equals(other.getIdentityProviderId())) return false;
+      if (!getServiceAccountId()
+          .equals(other.getServiceAccountId())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSource()) {
+        hash = (37 * hash) + SOURCE_FIELD_NUMBER;
+        hash = (53 * hash) + getSource().hashCode();
+      }
+      hash = (37 * hash) + IDENTITY_PROVIDER_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getIdentityProviderId().hashCode();
+      hash = (37 * hash) + SERVICE_ACCOUNT_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getServiceAccountId().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.OpenAiWorkloadIdentityConfig prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * OpenAI-specific destination mapping, independent of the identity source.
+     * </pre>
+     *
+     * Protobuf type {@code talon.config.OpenAiWorkloadIdentityConfig}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.OpenAiWorkloadIdentityConfig)
+        talon.config.Config.OpenAiWorkloadIdentityConfigOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_OpenAiWorkloadIdentityConfig_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_OpenAiWorkloadIdentityConfig_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.OpenAiWorkloadIdentityConfig.class, talon.config.Config.OpenAiWorkloadIdentityConfig.Builder.class);
+      }
+
+      // Construct using talon.config.Config.OpenAiWorkloadIdentityConfig.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetSourceFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        source_ = null;
+        if (sourceBuilder_ != null) {
+          sourceBuilder_.dispose();
+          sourceBuilder_ = null;
+        }
+        identityProviderId_ = "";
+        serviceAccountId_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_OpenAiWorkloadIdentityConfig_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.OpenAiWorkloadIdentityConfig getDefaultInstanceForType() {
+        return talon.config.Config.OpenAiWorkloadIdentityConfig.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.OpenAiWorkloadIdentityConfig build() {
+        talon.config.Config.OpenAiWorkloadIdentityConfig result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.OpenAiWorkloadIdentityConfig buildPartial() {
+        talon.config.Config.OpenAiWorkloadIdentityConfig result = new talon.config.Config.OpenAiWorkloadIdentityConfig(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.OpenAiWorkloadIdentityConfig result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.source_ = sourceBuilder_ == null
+              ? source_
+              : sourceBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.identityProviderId_ = identityProviderId_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.serviceAccountId_ = serviceAccountId_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.OpenAiWorkloadIdentityConfig) {
+          return mergeFrom((talon.config.Config.OpenAiWorkloadIdentityConfig)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.OpenAiWorkloadIdentityConfig other) {
+        if (other == talon.config.Config.OpenAiWorkloadIdentityConfig.getDefaultInstance()) return this;
+        if (other.hasSource()) {
+          mergeSource(other.getSource());
+        }
+        if (!other.getIdentityProviderId().isEmpty()) {
+          identityProviderId_ = other.identityProviderId_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getServiceAccountId().isEmpty()) {
+          serviceAccountId_ = other.serviceAccountId_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetSourceFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                identityProviderId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                serviceAccountId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.config.Config.WorkloadIdentitySource source_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.WorkloadIdentitySource, talon.config.Config.WorkloadIdentitySource.Builder, talon.config.Config.WorkloadIdentitySourceOrBuilder> sourceBuilder_;
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       * @return Whether the source field is set.
+       */
+      public boolean hasSource() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       * @return The source.
+       */
+      public talon.config.Config.WorkloadIdentitySource getSource() {
+        if (sourceBuilder_ == null) {
+          return source_ == null ? talon.config.Config.WorkloadIdentitySource.getDefaultInstance() : source_;
+        } else {
+          return sourceBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       */
+      public Builder setSource(talon.config.Config.WorkloadIdentitySource value) {
+        if (sourceBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          source_ = value;
+        } else {
+          sourceBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       */
+      public Builder setSource(
+          talon.config.Config.WorkloadIdentitySource.Builder builderForValue) {
+        if (sourceBuilder_ == null) {
+          source_ = builderForValue.build();
+        } else {
+          sourceBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       */
+      public Builder mergeSource(talon.config.Config.WorkloadIdentitySource value) {
+        if (sourceBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            source_ != null &&
+            source_ != talon.config.Config.WorkloadIdentitySource.getDefaultInstance()) {
+            getSourceBuilder().mergeFrom(value);
+          } else {
+            source_ = value;
+          }
+        } else {
+          sourceBuilder_.mergeFrom(value);
+        }
+        if (source_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       */
+      public Builder clearSource() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        source_ = null;
+        if (sourceBuilder_ != null) {
+          sourceBuilder_.dispose();
+          sourceBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       */
+      public talon.config.Config.WorkloadIdentitySource.Builder getSourceBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetSourceFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       */
+      public talon.config.Config.WorkloadIdentitySourceOrBuilder getSourceOrBuilder() {
+        if (sourceBuilder_ != null) {
+          return sourceBuilder_.getMessageOrBuilder();
+        } else {
+          return source_ == null ?
+              talon.config.Config.WorkloadIdentitySource.getDefaultInstance() : source_;
+        }
+      }
+      /**
+       * <code>.talon.config.WorkloadIdentitySource source = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.WorkloadIdentitySource, talon.config.Config.WorkloadIdentitySource.Builder, talon.config.Config.WorkloadIdentitySourceOrBuilder>
+          internalGetSourceFieldBuilder() {
+        if (sourceBuilder_ == null) {
+          sourceBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.WorkloadIdentitySource, talon.config.Config.WorkloadIdentitySource.Builder, talon.config.Config.WorkloadIdentitySourceOrBuilder>(
+                  getSource(),
+                  getParentForChildren(),
+                  isClean());
+          source_ = null;
+        }
+        return sourceBuilder_;
+      }
+
+      private java.lang.Object identityProviderId_ = "";
+      /**
+       * <code>string identity_provider_id = 2;</code>
+       * @return The identityProviderId.
+       */
+      public java.lang.String getIdentityProviderId() {
+        java.lang.Object ref = identityProviderId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          identityProviderId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string identity_provider_id = 2;</code>
+       * @return The bytes for identityProviderId.
+       */
+      public com.google.protobuf.ByteString
+          getIdentityProviderIdBytes() {
+        java.lang.Object ref = identityProviderId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          identityProviderId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string identity_provider_id = 2;</code>
+       * @param value The identityProviderId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdentityProviderId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        identityProviderId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string identity_provider_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearIdentityProviderId() {
+        identityProviderId_ = getDefaultInstance().getIdentityProviderId();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string identity_provider_id = 2;</code>
+       * @param value The bytes for identityProviderId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdentityProviderIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        identityProviderId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object serviceAccountId_ = "";
+      /**
+       * <code>string service_account_id = 3;</code>
+       * @return The serviceAccountId.
+       */
+      public java.lang.String getServiceAccountId() {
+        java.lang.Object ref = serviceAccountId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          serviceAccountId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string service_account_id = 3;</code>
+       * @return The bytes for serviceAccountId.
+       */
+      public com.google.protobuf.ByteString
+          getServiceAccountIdBytes() {
+        java.lang.Object ref = serviceAccountId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          serviceAccountId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string service_account_id = 3;</code>
+       * @param value The serviceAccountId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setServiceAccountId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        serviceAccountId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string service_account_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearServiceAccountId() {
+        serviceAccountId_ = getDefaultInstance().getServiceAccountId();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string service_account_id = 3;</code>
+       * @param value The bytes for serviceAccountId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setServiceAccountIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        serviceAccountId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.OpenAiWorkloadIdentityConfig)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.OpenAiWorkloadIdentityConfig)
+    private static final talon.config.Config.OpenAiWorkloadIdentityConfig DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.OpenAiWorkloadIdentityConfig();
+    }
+
+    public static talon.config.Config.OpenAiWorkloadIdentityConfig getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<OpenAiWorkloadIdentityConfig>
+        PARSER = new com.google.protobuf.AbstractParser<OpenAiWorkloadIdentityConfig>() {
+      @java.lang.Override
+      public OpenAiWorkloadIdentityConfig parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<OpenAiWorkloadIdentityConfig> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<OpenAiWorkloadIdentityConfig> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.OpenAiWorkloadIdentityConfig getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface WorkloadIdentitySourceOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.WorkloadIdentitySource)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+     * @return Whether the googleMetadata field is set.
+     */
+    boolean hasGoogleMetadata();
+    /**
+     * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+     * @return The googleMetadata.
+     */
+    talon.config.Config.GoogleMetadataIdentitySource getGoogleMetadata();
+    /**
+     * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+     */
+    talon.config.Config.GoogleMetadataIdentitySourceOrBuilder getGoogleMetadataOrBuilder();
+
+    /**
+     * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+     * @return Whether the awsSts field is set.
+     */
+    boolean hasAwsSts();
+    /**
+     * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+     * @return The awsSts.
+     */
+    talon.config.Config.AwsStsIdentitySource getAwsSts();
+    /**
+     * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+     */
+    talon.config.Config.AwsStsIdentitySourceOrBuilder getAwsStsOrBuilder();
+
+    /**
+     * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+     * @return Whether the tokenFile field is set.
+     */
+    boolean hasTokenFile();
+    /**
+     * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+     * @return The tokenFile.
+     */
+    talon.config.Config.TokenFileIdentitySource getTokenFile();
+    /**
+     * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+     */
+    talon.config.Config.TokenFileIdentitySourceOrBuilder getTokenFileOrBuilder();
+
+    talon.config.Config.WorkloadIdentitySource.ConfigCase getConfigCase();
+  }
+  /**
+   * <pre>
+   * Sources supply an OIDC subject token; destination adapters exchange it.
+   * </pre>
+   *
+   * Protobuf type {@code talon.config.WorkloadIdentitySource}
+   */
+  public static final class WorkloadIdentitySource extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.WorkloadIdentitySource)
+      WorkloadIdentitySourceOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkloadIdentitySource");
+    }
+    // Use WorkloadIdentitySource.newBuilder() to construct.
+    private WorkloadIdentitySource(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkloadIdentitySource() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_WorkloadIdentitySource_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_WorkloadIdentitySource_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_WorkloadIdentitySource_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.WorkloadIdentitySource.class, talon.config.Config.WorkloadIdentitySource.Builder.class);
+    }
+
+    private int configCase_ = 0;
+    @SuppressWarnings("serial")
+    private java.lang.Object config_;
+    public enum ConfigCase
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
+      GOOGLE_METADATA(1),
+      AWS_STS(2),
+      TOKEN_FILE(3),
+      CONFIG_NOT_SET(0);
+      private final int value;
+      private ConfigCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static ConfigCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static ConfigCase forNumber(int value) {
+        switch (value) {
+          case 1: return GOOGLE_METADATA;
+          case 2: return AWS_STS;
+          case 3: return TOKEN_FILE;
+          case 0: return CONFIG_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public ConfigCase
+    getConfigCase() {
+      return ConfigCase.forNumber(
+          configCase_);
+    }
+
+    public static final int GOOGLE_METADATA_FIELD_NUMBER = 1;
+    /**
+     * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+     * @return Whether the googleMetadata field is set.
+     */
+    @java.lang.Override
+    public boolean hasGoogleMetadata() {
+      return configCase_ == 1;
+    }
+    /**
+     * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+     * @return The googleMetadata.
+     */
+    @java.lang.Override
+    public talon.config.Config.GoogleMetadataIdentitySource getGoogleMetadata() {
+      if (configCase_ == 1) {
+         return (talon.config.Config.GoogleMetadataIdentitySource) config_;
+      }
+      return talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.GoogleMetadataIdentitySourceOrBuilder getGoogleMetadataOrBuilder() {
+      if (configCase_ == 1) {
+         return (talon.config.Config.GoogleMetadataIdentitySource) config_;
+      }
+      return talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance();
+    }
+
+    public static final int AWS_STS_FIELD_NUMBER = 2;
+    /**
+     * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+     * @return Whether the awsSts field is set.
+     */
+    @java.lang.Override
+    public boolean hasAwsSts() {
+      return configCase_ == 2;
+    }
+    /**
+     * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+     * @return The awsSts.
+     */
+    @java.lang.Override
+    public talon.config.Config.AwsStsIdentitySource getAwsSts() {
+      if (configCase_ == 2) {
+         return (talon.config.Config.AwsStsIdentitySource) config_;
+      }
+      return talon.config.Config.AwsStsIdentitySource.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.AwsStsIdentitySourceOrBuilder getAwsStsOrBuilder() {
+      if (configCase_ == 2) {
+         return (talon.config.Config.AwsStsIdentitySource) config_;
+      }
+      return talon.config.Config.AwsStsIdentitySource.getDefaultInstance();
+    }
+
+    public static final int TOKEN_FILE_FIELD_NUMBER = 3;
+    /**
+     * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+     * @return Whether the tokenFile field is set.
+     */
+    @java.lang.Override
+    public boolean hasTokenFile() {
+      return configCase_ == 3;
+    }
+    /**
+     * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+     * @return The tokenFile.
+     */
+    @java.lang.Override
+    public talon.config.Config.TokenFileIdentitySource getTokenFile() {
+      if (configCase_ == 3) {
+         return (talon.config.Config.TokenFileIdentitySource) config_;
+      }
+      return talon.config.Config.TokenFileIdentitySource.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.TokenFileIdentitySourceOrBuilder getTokenFileOrBuilder() {
+      if (configCase_ == 3) {
+         return (talon.config.Config.TokenFileIdentitySource) config_;
+      }
+      return talon.config.Config.TokenFileIdentitySource.getDefaultInstance();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (configCase_ == 1) {
+        output.writeMessage(1, (talon.config.Config.GoogleMetadataIdentitySource) config_);
+      }
+      if (configCase_ == 2) {
+        output.writeMessage(2, (talon.config.Config.AwsStsIdentitySource) config_);
+      }
+      if (configCase_ == 3) {
+        output.writeMessage(3, (talon.config.Config.TokenFileIdentitySource) config_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (configCase_ == 1) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, (talon.config.Config.GoogleMetadataIdentitySource) config_);
+      }
+      if (configCase_ == 2) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, (talon.config.Config.AwsStsIdentitySource) config_);
+      }
+      if (configCase_ == 3) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, (talon.config.Config.TokenFileIdentitySource) config_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.WorkloadIdentitySource)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.WorkloadIdentitySource other = (talon.config.Config.WorkloadIdentitySource) obj;
+
+      if (!getConfigCase().equals(other.getConfigCase())) return false;
+      switch (configCase_) {
+        case 1:
+          if (!getGoogleMetadata()
+              .equals(other.getGoogleMetadata())) return false;
+          break;
+        case 2:
+          if (!getAwsSts()
+              .equals(other.getAwsSts())) return false;
+          break;
+        case 3:
+          if (!getTokenFile()
+              .equals(other.getTokenFile())) return false;
+          break;
+        case 0:
+        default:
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      switch (configCase_) {
+        case 1:
+          hash = (37 * hash) + GOOGLE_METADATA_FIELD_NUMBER;
+          hash = (53 * hash) + getGoogleMetadata().hashCode();
+          break;
+        case 2:
+          hash = (37 * hash) + AWS_STS_FIELD_NUMBER;
+          hash = (53 * hash) + getAwsSts().hashCode();
+          break;
+        case 3:
+          hash = (37 * hash) + TOKEN_FILE_FIELD_NUMBER;
+          hash = (53 * hash) + getTokenFile().hashCode();
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.WorkloadIdentitySource parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.WorkloadIdentitySource parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.WorkloadIdentitySource parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.WorkloadIdentitySource prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * Sources supply an OIDC subject token; destination adapters exchange it.
+     * </pre>
+     *
+     * Protobuf type {@code talon.config.WorkloadIdentitySource}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.WorkloadIdentitySource)
+        talon.config.Config.WorkloadIdentitySourceOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_WorkloadIdentitySource_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_WorkloadIdentitySource_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.WorkloadIdentitySource.class, talon.config.Config.WorkloadIdentitySource.Builder.class);
+      }
+
+      // Construct using talon.config.Config.WorkloadIdentitySource.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        if (googleMetadataBuilder_ != null) {
+          googleMetadataBuilder_.clear();
+        }
+        if (awsStsBuilder_ != null) {
+          awsStsBuilder_.clear();
+        }
+        if (tokenFileBuilder_ != null) {
+          tokenFileBuilder_.clear();
+        }
+        configCase_ = 0;
+        config_ = null;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_WorkloadIdentitySource_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.WorkloadIdentitySource getDefaultInstanceForType() {
+        return talon.config.Config.WorkloadIdentitySource.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.WorkloadIdentitySource build() {
+        talon.config.Config.WorkloadIdentitySource result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.WorkloadIdentitySource buildPartial() {
+        talon.config.Config.WorkloadIdentitySource result = new talon.config.Config.WorkloadIdentitySource(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        buildPartialOneofs(result);
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.WorkloadIdentitySource result) {
+        int from_bitField0_ = bitField0_;
+      }
+
+      private void buildPartialOneofs(talon.config.Config.WorkloadIdentitySource result) {
+        result.configCase_ = configCase_;
+        result.config_ = this.config_;
+        if (configCase_ == 1 &&
+            googleMetadataBuilder_ != null) {
+          result.config_ = googleMetadataBuilder_.build();
+        }
+        if (configCase_ == 2 &&
+            awsStsBuilder_ != null) {
+          result.config_ = awsStsBuilder_.build();
+        }
+        if (configCase_ == 3 &&
+            tokenFileBuilder_ != null) {
+          result.config_ = tokenFileBuilder_.build();
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.WorkloadIdentitySource) {
+          return mergeFrom((talon.config.Config.WorkloadIdentitySource)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.WorkloadIdentitySource other) {
+        if (other == talon.config.Config.WorkloadIdentitySource.getDefaultInstance()) return this;
+        switch (other.getConfigCase()) {
+          case GOOGLE_METADATA: {
+            mergeGoogleMetadata(other.getGoogleMetadata());
+            break;
+          }
+          case AWS_STS: {
+            mergeAwsSts(other.getAwsSts());
+            break;
+          }
+          case TOKEN_FILE: {
+            mergeTokenFile(other.getTokenFile());
+            break;
+          }
+          case CONFIG_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetGoogleMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                configCase_ = 1;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetAwsStsFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                configCase_ = 2;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetTokenFileFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                configCase_ = 3;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int configCase_ = 0;
+      private java.lang.Object config_;
+      public ConfigCase
+          getConfigCase() {
+        return ConfigCase.forNumber(
+            configCase_);
+      }
+
+      public Builder clearConfig() {
+        configCase_ = 0;
+        config_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int bitField0_;
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.GoogleMetadataIdentitySource, talon.config.Config.GoogleMetadataIdentitySource.Builder, talon.config.Config.GoogleMetadataIdentitySourceOrBuilder> googleMetadataBuilder_;
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       * @return Whether the googleMetadata field is set.
+       */
+      @java.lang.Override
+      public boolean hasGoogleMetadata() {
+        return configCase_ == 1;
+      }
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       * @return The googleMetadata.
+       */
+      @java.lang.Override
+      public talon.config.Config.GoogleMetadataIdentitySource getGoogleMetadata() {
+        if (googleMetadataBuilder_ == null) {
+          if (configCase_ == 1) {
+            return (talon.config.Config.GoogleMetadataIdentitySource) config_;
+          }
+          return talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance();
+        } else {
+          if (configCase_ == 1) {
+            return googleMetadataBuilder_.getMessage();
+          }
+          return talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       */
+      public Builder setGoogleMetadata(talon.config.Config.GoogleMetadataIdentitySource value) {
+        if (googleMetadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          config_ = value;
+          onChanged();
+        } else {
+          googleMetadataBuilder_.setMessage(value);
+        }
+        configCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       */
+      public Builder setGoogleMetadata(
+          talon.config.Config.GoogleMetadataIdentitySource.Builder builderForValue) {
+        if (googleMetadataBuilder_ == null) {
+          config_ = builderForValue.build();
+          onChanged();
+        } else {
+          googleMetadataBuilder_.setMessage(builderForValue.build());
+        }
+        configCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       */
+      public Builder mergeGoogleMetadata(talon.config.Config.GoogleMetadataIdentitySource value) {
+        if (googleMetadataBuilder_ == null) {
+          if (configCase_ == 1 &&
+              config_ != talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance()) {
+            config_ = talon.config.Config.GoogleMetadataIdentitySource.newBuilder((talon.config.Config.GoogleMetadataIdentitySource) config_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            config_ = value;
+          }
+          onChanged();
+        } else {
+          if (configCase_ == 1) {
+            googleMetadataBuilder_.mergeFrom(value);
+          } else {
+            googleMetadataBuilder_.setMessage(value);
+          }
+        }
+        configCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       */
+      public Builder clearGoogleMetadata() {
+        if (googleMetadataBuilder_ == null) {
+          if (configCase_ == 1) {
+            configCase_ = 0;
+            config_ = null;
+            onChanged();
+          }
+        } else {
+          if (configCase_ == 1) {
+            configCase_ = 0;
+            config_ = null;
+          }
+          googleMetadataBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       */
+      public talon.config.Config.GoogleMetadataIdentitySource.Builder getGoogleMetadataBuilder() {
+        return internalGetGoogleMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       */
+      @java.lang.Override
+      public talon.config.Config.GoogleMetadataIdentitySourceOrBuilder getGoogleMetadataOrBuilder() {
+        if ((configCase_ == 1) && (googleMetadataBuilder_ != null)) {
+          return googleMetadataBuilder_.getMessageOrBuilder();
+        } else {
+          if (configCase_ == 1) {
+            return (talon.config.Config.GoogleMetadataIdentitySource) config_;
+          }
+          return talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.GoogleMetadataIdentitySource google_metadata = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.GoogleMetadataIdentitySource, talon.config.Config.GoogleMetadataIdentitySource.Builder, talon.config.Config.GoogleMetadataIdentitySourceOrBuilder>
+          internalGetGoogleMetadataFieldBuilder() {
+        if (googleMetadataBuilder_ == null) {
+          if (!(configCase_ == 1)) {
+            config_ = talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance();
+          }
+          googleMetadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.GoogleMetadataIdentitySource, talon.config.Config.GoogleMetadataIdentitySource.Builder, talon.config.Config.GoogleMetadataIdentitySourceOrBuilder>(
+                  (talon.config.Config.GoogleMetadataIdentitySource) config_,
+                  getParentForChildren(),
+                  isClean());
+          config_ = null;
+        }
+        configCase_ = 1;
+        onChanged();
+        return googleMetadataBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.AwsStsIdentitySource, talon.config.Config.AwsStsIdentitySource.Builder, talon.config.Config.AwsStsIdentitySourceOrBuilder> awsStsBuilder_;
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       * @return Whether the awsSts field is set.
+       */
+      @java.lang.Override
+      public boolean hasAwsSts() {
+        return configCase_ == 2;
+      }
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       * @return The awsSts.
+       */
+      @java.lang.Override
+      public talon.config.Config.AwsStsIdentitySource getAwsSts() {
+        if (awsStsBuilder_ == null) {
+          if (configCase_ == 2) {
+            return (talon.config.Config.AwsStsIdentitySource) config_;
+          }
+          return talon.config.Config.AwsStsIdentitySource.getDefaultInstance();
+        } else {
+          if (configCase_ == 2) {
+            return awsStsBuilder_.getMessage();
+          }
+          return talon.config.Config.AwsStsIdentitySource.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       */
+      public Builder setAwsSts(talon.config.Config.AwsStsIdentitySource value) {
+        if (awsStsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          config_ = value;
+          onChanged();
+        } else {
+          awsStsBuilder_.setMessage(value);
+        }
+        configCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       */
+      public Builder setAwsSts(
+          talon.config.Config.AwsStsIdentitySource.Builder builderForValue) {
+        if (awsStsBuilder_ == null) {
+          config_ = builderForValue.build();
+          onChanged();
+        } else {
+          awsStsBuilder_.setMessage(builderForValue.build());
+        }
+        configCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       */
+      public Builder mergeAwsSts(talon.config.Config.AwsStsIdentitySource value) {
+        if (awsStsBuilder_ == null) {
+          if (configCase_ == 2 &&
+              config_ != talon.config.Config.AwsStsIdentitySource.getDefaultInstance()) {
+            config_ = talon.config.Config.AwsStsIdentitySource.newBuilder((talon.config.Config.AwsStsIdentitySource) config_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            config_ = value;
+          }
+          onChanged();
+        } else {
+          if (configCase_ == 2) {
+            awsStsBuilder_.mergeFrom(value);
+          } else {
+            awsStsBuilder_.setMessage(value);
+          }
+        }
+        configCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       */
+      public Builder clearAwsSts() {
+        if (awsStsBuilder_ == null) {
+          if (configCase_ == 2) {
+            configCase_ = 0;
+            config_ = null;
+            onChanged();
+          }
+        } else {
+          if (configCase_ == 2) {
+            configCase_ = 0;
+            config_ = null;
+          }
+          awsStsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       */
+      public talon.config.Config.AwsStsIdentitySource.Builder getAwsStsBuilder() {
+        return internalGetAwsStsFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       */
+      @java.lang.Override
+      public talon.config.Config.AwsStsIdentitySourceOrBuilder getAwsStsOrBuilder() {
+        if ((configCase_ == 2) && (awsStsBuilder_ != null)) {
+          return awsStsBuilder_.getMessageOrBuilder();
+        } else {
+          if (configCase_ == 2) {
+            return (talon.config.Config.AwsStsIdentitySource) config_;
+          }
+          return talon.config.Config.AwsStsIdentitySource.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.AwsStsIdentitySource aws_sts = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.AwsStsIdentitySource, talon.config.Config.AwsStsIdentitySource.Builder, talon.config.Config.AwsStsIdentitySourceOrBuilder>
+          internalGetAwsStsFieldBuilder() {
+        if (awsStsBuilder_ == null) {
+          if (!(configCase_ == 2)) {
+            config_ = talon.config.Config.AwsStsIdentitySource.getDefaultInstance();
+          }
+          awsStsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.AwsStsIdentitySource, talon.config.Config.AwsStsIdentitySource.Builder, talon.config.Config.AwsStsIdentitySourceOrBuilder>(
+                  (talon.config.Config.AwsStsIdentitySource) config_,
+                  getParentForChildren(),
+                  isClean());
+          config_ = null;
+        }
+        configCase_ = 2;
+        onChanged();
+        return awsStsBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.TokenFileIdentitySource, talon.config.Config.TokenFileIdentitySource.Builder, talon.config.Config.TokenFileIdentitySourceOrBuilder> tokenFileBuilder_;
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       * @return Whether the tokenFile field is set.
+       */
+      @java.lang.Override
+      public boolean hasTokenFile() {
+        return configCase_ == 3;
+      }
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       * @return The tokenFile.
+       */
+      @java.lang.Override
+      public talon.config.Config.TokenFileIdentitySource getTokenFile() {
+        if (tokenFileBuilder_ == null) {
+          if (configCase_ == 3) {
+            return (talon.config.Config.TokenFileIdentitySource) config_;
+          }
+          return talon.config.Config.TokenFileIdentitySource.getDefaultInstance();
+        } else {
+          if (configCase_ == 3) {
+            return tokenFileBuilder_.getMessage();
+          }
+          return talon.config.Config.TokenFileIdentitySource.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       */
+      public Builder setTokenFile(talon.config.Config.TokenFileIdentitySource value) {
+        if (tokenFileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          config_ = value;
+          onChanged();
+        } else {
+          tokenFileBuilder_.setMessage(value);
+        }
+        configCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       */
+      public Builder setTokenFile(
+          talon.config.Config.TokenFileIdentitySource.Builder builderForValue) {
+        if (tokenFileBuilder_ == null) {
+          config_ = builderForValue.build();
+          onChanged();
+        } else {
+          tokenFileBuilder_.setMessage(builderForValue.build());
+        }
+        configCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       */
+      public Builder mergeTokenFile(talon.config.Config.TokenFileIdentitySource value) {
+        if (tokenFileBuilder_ == null) {
+          if (configCase_ == 3 &&
+              config_ != talon.config.Config.TokenFileIdentitySource.getDefaultInstance()) {
+            config_ = talon.config.Config.TokenFileIdentitySource.newBuilder((talon.config.Config.TokenFileIdentitySource) config_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            config_ = value;
+          }
+          onChanged();
+        } else {
+          if (configCase_ == 3) {
+            tokenFileBuilder_.mergeFrom(value);
+          } else {
+            tokenFileBuilder_.setMessage(value);
+          }
+        }
+        configCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       */
+      public Builder clearTokenFile() {
+        if (tokenFileBuilder_ == null) {
+          if (configCase_ == 3) {
+            configCase_ = 0;
+            config_ = null;
+            onChanged();
+          }
+        } else {
+          if (configCase_ == 3) {
+            configCase_ = 0;
+            config_ = null;
+          }
+          tokenFileBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       */
+      public talon.config.Config.TokenFileIdentitySource.Builder getTokenFileBuilder() {
+        return internalGetTokenFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       */
+      @java.lang.Override
+      public talon.config.Config.TokenFileIdentitySourceOrBuilder getTokenFileOrBuilder() {
+        if ((configCase_ == 3) && (tokenFileBuilder_ != null)) {
+          return tokenFileBuilder_.getMessageOrBuilder();
+        } else {
+          if (configCase_ == 3) {
+            return (talon.config.Config.TokenFileIdentitySource) config_;
+          }
+          return talon.config.Config.TokenFileIdentitySource.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.TokenFileIdentitySource token_file = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.TokenFileIdentitySource, talon.config.Config.TokenFileIdentitySource.Builder, talon.config.Config.TokenFileIdentitySourceOrBuilder>
+          internalGetTokenFileFieldBuilder() {
+        if (tokenFileBuilder_ == null) {
+          if (!(configCase_ == 3)) {
+            config_ = talon.config.Config.TokenFileIdentitySource.getDefaultInstance();
+          }
+          tokenFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.TokenFileIdentitySource, talon.config.Config.TokenFileIdentitySource.Builder, talon.config.Config.TokenFileIdentitySourceOrBuilder>(
+                  (talon.config.Config.TokenFileIdentitySource) config_,
+                  getParentForChildren(),
+                  isClean());
+          config_ = null;
+        }
+        configCase_ = 3;
+        onChanged();
+        return tokenFileBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.WorkloadIdentitySource)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.WorkloadIdentitySource)
+    private static final talon.config.Config.WorkloadIdentitySource DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.WorkloadIdentitySource();
+    }
+
+    public static talon.config.Config.WorkloadIdentitySource getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkloadIdentitySource>
+        PARSER = new com.google.protobuf.AbstractParser<WorkloadIdentitySource>() {
+      @java.lang.Override
+      public WorkloadIdentitySource parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkloadIdentitySource> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkloadIdentitySource> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.WorkloadIdentitySource getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GoogleMetadataIdentitySourceOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.GoogleMetadataIdentitySource)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string audience = 1;</code>
+     * @return The audience.
+     */
+    java.lang.String getAudience();
+    /**
+     * <code>string audience = 1;</code>
+     * @return The bytes for audience.
+     */
+    com.google.protobuf.ByteString
+        getAudienceBytes();
+  }
+  /**
+   * Protobuf type {@code talon.config.GoogleMetadataIdentitySource}
+   */
+  public static final class GoogleMetadataIdentitySource extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.GoogleMetadataIdentitySource)
+      GoogleMetadataIdentitySourceOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "GoogleMetadataIdentitySource");
+    }
+    // Use GoogleMetadataIdentitySource.newBuilder() to construct.
+    private GoogleMetadataIdentitySource(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private GoogleMetadataIdentitySource() {
+      audience_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_GoogleMetadataIdentitySource_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_GoogleMetadataIdentitySource_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_GoogleMetadataIdentitySource_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.GoogleMetadataIdentitySource.class, talon.config.Config.GoogleMetadataIdentitySource.Builder.class);
+    }
+
+    public static final int AUDIENCE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object audience_ = "";
+    /**
+     * <code>string audience = 1;</code>
+     * @return The audience.
+     */
+    @java.lang.Override
+    public java.lang.String getAudience() {
+      java.lang.Object ref = audience_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        audience_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string audience = 1;</code>
+     * @return The bytes for audience.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAudienceBytes() {
+      java.lang.Object ref = audience_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        audience_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(audience_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, audience_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(audience_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, audience_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.GoogleMetadataIdentitySource)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.GoogleMetadataIdentitySource other = (talon.config.Config.GoogleMetadataIdentitySource) obj;
+
+      if (!getAudience()
+          .equals(other.getAudience())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + AUDIENCE_FIELD_NUMBER;
+      hash = (53 * hash) + getAudience().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.GoogleMetadataIdentitySource parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.GoogleMetadataIdentitySource parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.GoogleMetadataIdentitySource parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.GoogleMetadataIdentitySource prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.config.GoogleMetadataIdentitySource}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.GoogleMetadataIdentitySource)
+        talon.config.Config.GoogleMetadataIdentitySourceOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_GoogleMetadataIdentitySource_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_GoogleMetadataIdentitySource_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.GoogleMetadataIdentitySource.class, talon.config.Config.GoogleMetadataIdentitySource.Builder.class);
+      }
+
+      // Construct using talon.config.Config.GoogleMetadataIdentitySource.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        audience_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_GoogleMetadataIdentitySource_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.GoogleMetadataIdentitySource getDefaultInstanceForType() {
+        return talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.GoogleMetadataIdentitySource build() {
+        talon.config.Config.GoogleMetadataIdentitySource result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.GoogleMetadataIdentitySource buildPartial() {
+        talon.config.Config.GoogleMetadataIdentitySource result = new talon.config.Config.GoogleMetadataIdentitySource(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.GoogleMetadataIdentitySource result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.audience_ = audience_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.GoogleMetadataIdentitySource) {
+          return mergeFrom((talon.config.Config.GoogleMetadataIdentitySource)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.GoogleMetadataIdentitySource other) {
+        if (other == talon.config.Config.GoogleMetadataIdentitySource.getDefaultInstance()) return this;
+        if (!other.getAudience().isEmpty()) {
+          audience_ = other.audience_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                audience_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object audience_ = "";
+      /**
+       * <code>string audience = 1;</code>
+       * @return The audience.
+       */
+      public java.lang.String getAudience() {
+        java.lang.Object ref = audience_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          audience_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string audience = 1;</code>
+       * @return The bytes for audience.
+       */
+      public com.google.protobuf.ByteString
+          getAudienceBytes() {
+        java.lang.Object ref = audience_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          audience_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string audience = 1;</code>
+       * @param value The audience to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAudience(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        audience_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string audience = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAudience() {
+        audience_ = getDefaultInstance().getAudience();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string audience = 1;</code>
+       * @param value The bytes for audience to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAudienceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        audience_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.GoogleMetadataIdentitySource)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.GoogleMetadataIdentitySource)
+    private static final talon.config.Config.GoogleMetadataIdentitySource DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.GoogleMetadataIdentitySource();
+    }
+
+    public static talon.config.Config.GoogleMetadataIdentitySource getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<GoogleMetadataIdentitySource>
+        PARSER = new com.google.protobuf.AbstractParser<GoogleMetadataIdentitySource>() {
+      @java.lang.Override
+      public GoogleMetadataIdentitySource parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<GoogleMetadataIdentitySource> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GoogleMetadataIdentitySource> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.GoogleMetadataIdentitySource getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface AwsStsIdentitySourceOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.AwsStsIdentitySource)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string audience = 1;</code>
+     * @return The audience.
+     */
+    java.lang.String getAudience();
+    /**
+     * <code>string audience = 1;</code>
+     * @return The bytes for audience.
+     */
+    com.google.protobuf.ByteString
+        getAudienceBytes();
+
+    /**
+     * <pre>
+     * Explicit regional STS endpoint; the global endpoint is unsupported.
+     * </pre>
+     *
+     * <code>string region = 2;</code>
+     * @return The region.
+     */
+    java.lang.String getRegion();
+    /**
+     * <pre>
+     * Explicit regional STS endpoint; the global endpoint is unsupported.
+     * </pre>
+     *
+     * <code>string region = 2;</code>
+     * @return The bytes for region.
+     */
+    com.google.protobuf.ByteString
+        getRegionBytes();
+  }
+  /**
+   * Protobuf type {@code talon.config.AwsStsIdentitySource}
+   */
+  public static final class AwsStsIdentitySource extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.AwsStsIdentitySource)
+      AwsStsIdentitySourceOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "AwsStsIdentitySource");
+    }
+    // Use AwsStsIdentitySource.newBuilder() to construct.
+    private AwsStsIdentitySource(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private AwsStsIdentitySource() {
+      audience_ = "";
+      region_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_AwsStsIdentitySource_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_AwsStsIdentitySource_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_AwsStsIdentitySource_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.AwsStsIdentitySource.class, talon.config.Config.AwsStsIdentitySource.Builder.class);
+    }
+
+    public static final int AUDIENCE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object audience_ = "";
+    /**
+     * <code>string audience = 1;</code>
+     * @return The audience.
+     */
+    @java.lang.Override
+    public java.lang.String getAudience() {
+      java.lang.Object ref = audience_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        audience_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string audience = 1;</code>
+     * @return The bytes for audience.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAudienceBytes() {
+      java.lang.Object ref = audience_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        audience_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REGION_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object region_ = "";
+    /**
+     * <pre>
+     * Explicit regional STS endpoint; the global endpoint is unsupported.
+     * </pre>
+     *
+     * <code>string region = 2;</code>
+     * @return The region.
+     */
+    @java.lang.Override
+    public java.lang.String getRegion() {
+      java.lang.Object ref = region_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        region_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Explicit regional STS endpoint; the global endpoint is unsupported.
+     * </pre>
+     *
+     * <code>string region = 2;</code>
+     * @return The bytes for region.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRegionBytes() {
+      java.lang.Object ref = region_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        region_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(audience_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, audience_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(region_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, region_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(audience_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, audience_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(region_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, region_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.AwsStsIdentitySource)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.AwsStsIdentitySource other = (talon.config.Config.AwsStsIdentitySource) obj;
+
+      if (!getAudience()
+          .equals(other.getAudience())) return false;
+      if (!getRegion()
+          .equals(other.getRegion())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + AUDIENCE_FIELD_NUMBER;
+      hash = (53 * hash) + getAudience().hashCode();
+      hash = (37 * hash) + REGION_FIELD_NUMBER;
+      hash = (53 * hash) + getRegion().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.AwsStsIdentitySource parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.AwsStsIdentitySource parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.AwsStsIdentitySource parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.AwsStsIdentitySource prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.config.AwsStsIdentitySource}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.AwsStsIdentitySource)
+        talon.config.Config.AwsStsIdentitySourceOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_AwsStsIdentitySource_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_AwsStsIdentitySource_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.AwsStsIdentitySource.class, talon.config.Config.AwsStsIdentitySource.Builder.class);
+      }
+
+      // Construct using talon.config.Config.AwsStsIdentitySource.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        audience_ = "";
+        region_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_AwsStsIdentitySource_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.AwsStsIdentitySource getDefaultInstanceForType() {
+        return talon.config.Config.AwsStsIdentitySource.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.AwsStsIdentitySource build() {
+        talon.config.Config.AwsStsIdentitySource result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.AwsStsIdentitySource buildPartial() {
+        talon.config.Config.AwsStsIdentitySource result = new talon.config.Config.AwsStsIdentitySource(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.AwsStsIdentitySource result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.audience_ = audience_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.region_ = region_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.AwsStsIdentitySource) {
+          return mergeFrom((talon.config.Config.AwsStsIdentitySource)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.AwsStsIdentitySource other) {
+        if (other == talon.config.Config.AwsStsIdentitySource.getDefaultInstance()) return this;
+        if (!other.getAudience().isEmpty()) {
+          audience_ = other.audience_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getRegion().isEmpty()) {
+          region_ = other.region_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                audience_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                region_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object audience_ = "";
+      /**
+       * <code>string audience = 1;</code>
+       * @return The audience.
+       */
+      public java.lang.String getAudience() {
+        java.lang.Object ref = audience_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          audience_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string audience = 1;</code>
+       * @return The bytes for audience.
+       */
+      public com.google.protobuf.ByteString
+          getAudienceBytes() {
+        java.lang.Object ref = audience_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          audience_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string audience = 1;</code>
+       * @param value The audience to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAudience(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        audience_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string audience = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAudience() {
+        audience_ = getDefaultInstance().getAudience();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string audience = 1;</code>
+       * @param value The bytes for audience to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAudienceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        audience_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object region_ = "";
+      /**
+       * <pre>
+       * Explicit regional STS endpoint; the global endpoint is unsupported.
+       * </pre>
+       *
+       * <code>string region = 2;</code>
+       * @return The region.
+       */
+      public java.lang.String getRegion() {
+        java.lang.Object ref = region_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          region_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Explicit regional STS endpoint; the global endpoint is unsupported.
+       * </pre>
+       *
+       * <code>string region = 2;</code>
+       * @return The bytes for region.
+       */
+      public com.google.protobuf.ByteString
+          getRegionBytes() {
+        java.lang.Object ref = region_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          region_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Explicit regional STS endpoint; the global endpoint is unsupported.
+       * </pre>
+       *
+       * <code>string region = 2;</code>
+       * @param value The region to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRegion(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        region_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Explicit regional STS endpoint; the global endpoint is unsupported.
+       * </pre>
+       *
+       * <code>string region = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRegion() {
+        region_ = getDefaultInstance().getRegion();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Explicit regional STS endpoint; the global endpoint is unsupported.
+       * </pre>
+       *
+       * <code>string region = 2;</code>
+       * @param value The bytes for region to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRegionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        region_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.AwsStsIdentitySource)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.AwsStsIdentitySource)
+    private static final talon.config.Config.AwsStsIdentitySource DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.AwsStsIdentitySource();
+    }
+
+    public static talon.config.Config.AwsStsIdentitySource getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<AwsStsIdentitySource>
+        PARSER = new com.google.protobuf.AbstractParser<AwsStsIdentitySource>() {
+      @java.lang.Override
+      public AwsStsIdentitySource parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<AwsStsIdentitySource> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AwsStsIdentitySource> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.AwsStsIdentitySource getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface TokenFileIdentitySourceOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.TokenFileIdentitySource)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * Reread on every exchange to pick up projected token rotation.
+     * </pre>
+     *
+     * <code>string path = 1;</code>
+     * @return The path.
+     */
+    java.lang.String getPath();
+    /**
+     * <pre>
+     * Reread on every exchange to pick up projected token rotation.
+     * </pre>
+     *
+     * <code>string path = 1;</code>
+     * @return The bytes for path.
+     */
+    com.google.protobuf.ByteString
+        getPathBytes();
+  }
+  /**
+   * Protobuf type {@code talon.config.TokenFileIdentitySource}
+   */
+  public static final class TokenFileIdentitySource extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.TokenFileIdentitySource)
+      TokenFileIdentitySourceOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "TokenFileIdentitySource");
+    }
+    // Use TokenFileIdentitySource.newBuilder() to construct.
+    private TokenFileIdentitySource(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private TokenFileIdentitySource() {
+      path_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_TokenFileIdentitySource_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_TokenFileIdentitySource_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_TokenFileIdentitySource_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.TokenFileIdentitySource.class, talon.config.Config.TokenFileIdentitySource.Builder.class);
+    }
+
+    public static final int PATH_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object path_ = "";
+    /**
+     * <pre>
+     * Reread on every exchange to pick up projected token rotation.
+     * </pre>
+     *
+     * <code>string path = 1;</code>
+     * @return The path.
+     */
+    @java.lang.Override
+    public java.lang.String getPath() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        path_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * Reread on every exchange to pick up projected token rotation.
+     * </pre>
+     *
+     * <code>string path = 1;</code>
+     * @return The bytes for path.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPathBytes() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        path_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, path_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, path_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.TokenFileIdentitySource)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.TokenFileIdentitySource other = (talon.config.Config.TokenFileIdentitySource) obj;
+
+      if (!getPath()
+          .equals(other.getPath())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PATH_FIELD_NUMBER;
+      hash = (53 * hash) + getPath().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.TokenFileIdentitySource parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.TokenFileIdentitySource parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.TokenFileIdentitySource parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.TokenFileIdentitySource prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.config.TokenFileIdentitySource}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.TokenFileIdentitySource)
+        talon.config.Config.TokenFileIdentitySourceOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_TokenFileIdentitySource_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_TokenFileIdentitySource_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.TokenFileIdentitySource.class, talon.config.Config.TokenFileIdentitySource.Builder.class);
+      }
+
+      // Construct using talon.config.Config.TokenFileIdentitySource.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        path_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_TokenFileIdentitySource_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.TokenFileIdentitySource getDefaultInstanceForType() {
+        return talon.config.Config.TokenFileIdentitySource.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.TokenFileIdentitySource build() {
+        talon.config.Config.TokenFileIdentitySource result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.TokenFileIdentitySource buildPartial() {
+        talon.config.Config.TokenFileIdentitySource result = new talon.config.Config.TokenFileIdentitySource(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.TokenFileIdentitySource result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.path_ = path_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.TokenFileIdentitySource) {
+          return mergeFrom((talon.config.Config.TokenFileIdentitySource)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.TokenFileIdentitySource other) {
+        if (other == talon.config.Config.TokenFileIdentitySource.getDefaultInstance()) return this;
+        if (!other.getPath().isEmpty()) {
+          path_ = other.path_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                path_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object path_ = "";
+      /**
+       * <pre>
+       * Reread on every exchange to pick up projected token rotation.
+       * </pre>
+       *
+       * <code>string path = 1;</code>
+       * @return The path.
+       */
+      public java.lang.String getPath() {
+        java.lang.Object ref = path_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          path_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Reread on every exchange to pick up projected token rotation.
+       * </pre>
+       *
+       * <code>string path = 1;</code>
+       * @return The bytes for path.
+       */
+      public com.google.protobuf.ByteString
+          getPathBytes() {
+        java.lang.Object ref = path_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          path_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * Reread on every exchange to pick up projected token rotation.
+       * </pre>
+       *
+       * <code>string path = 1;</code>
+       * @param value The path to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPath(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        path_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Reread on every exchange to pick up projected token rotation.
+       * </pre>
+       *
+       * <code>string path = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPath() {
+        path_ = getDefaultInstance().getPath();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Reread on every exchange to pick up projected token rotation.
+       * </pre>
+       *
+       * <code>string path = 1;</code>
+       * @param value The bytes for path to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        path_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.TokenFileIdentitySource)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.TokenFileIdentitySource)
+    private static final talon.config.Config.TokenFileIdentitySource DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.TokenFileIdentitySource();
+    }
+
+    public static talon.config.Config.TokenFileIdentitySource getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<TokenFileIdentitySource>
+        PARSER = new com.google.protobuf.AbstractParser<TokenFileIdentitySource>() {
+      @java.lang.Override
+      public TokenFileIdentitySource parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<TokenFileIdentitySource> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<TokenFileIdentitySource> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.TokenFileIdentitySource getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface OpenAiConfigOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.config.OpenAiConfig)
       com.google.protobuf.MessageOrBuilder {
@@ -10849,6 +14614,33 @@ talon.config.Config.CapabilityGate defaultValue) {
      */
     com.google.protobuf.ByteString
         getApiBytes();
+
+    /**
+     * <pre>
+     * Omitted workload identity retains existing static or tenant API-key behavior.
+     * </pre>
+     *
+     * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+     * @return Whether the workloadIdentity field is set.
+     */
+    boolean hasWorkloadIdentity();
+    /**
+     * <pre>
+     * Omitted workload identity retains existing static or tenant API-key behavior.
+     * </pre>
+     *
+     * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+     * @return The workloadIdentity.
+     */
+    talon.config.Config.OpenAiWorkloadIdentityConfig getWorkloadIdentity();
+    /**
+     * <pre>
+     * Omitted workload identity retains existing static or tenant API-key behavior.
+     * </pre>
+     *
+     * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+     */
+    talon.config.Config.OpenAiWorkloadIdentityConfigOrBuilder getWorkloadIdentityOrBuilder();
   }
   /**
    * Protobuf type {@code talon.config.OpenAiConfig}
@@ -11039,6 +14831,44 @@ talon.config.Config.CapabilityGate defaultValue) {
       }
     }
 
+    public static final int WORKLOAD_IDENTITY_FIELD_NUMBER = 5;
+    private talon.config.Config.OpenAiWorkloadIdentityConfig workloadIdentity_;
+    /**
+     * <pre>
+     * Omitted workload identity retains existing static or tenant API-key behavior.
+     * </pre>
+     *
+     * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+     * @return Whether the workloadIdentity field is set.
+     */
+    @java.lang.Override
+    public boolean hasWorkloadIdentity() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <pre>
+     * Omitted workload identity retains existing static or tenant API-key behavior.
+     * </pre>
+     *
+     * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+     * @return The workloadIdentity.
+     */
+    @java.lang.Override
+    public talon.config.Config.OpenAiWorkloadIdentityConfig getWorkloadIdentity() {
+      return workloadIdentity_ == null ? talon.config.Config.OpenAiWorkloadIdentityConfig.getDefaultInstance() : workloadIdentity_;
+    }
+    /**
+     * <pre>
+     * Omitted workload identity retains existing static or tenant API-key behavior.
+     * </pre>
+     *
+     * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.OpenAiWorkloadIdentityConfigOrBuilder getWorkloadIdentityOrBuilder() {
+      return workloadIdentity_ == null ? talon.config.Config.OpenAiWorkloadIdentityConfig.getDefaultInstance() : workloadIdentity_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -11065,6 +14895,9 @@ talon.config.Config.CapabilityGate defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(api_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 4, api_);
       }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(5, getWorkloadIdentity());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -11086,6 +14919,10 @@ talon.config.Config.CapabilityGate defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(api_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(4, api_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getWorkloadIdentity());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -11113,6 +14950,11 @@ talon.config.Config.CapabilityGate defaultValue) {
           .equals(other.getOrgId())) return false;
       if (!getApi()
           .equals(other.getApi())) return false;
+      if (hasWorkloadIdentity() != other.hasWorkloadIdentity()) return false;
+      if (hasWorkloadIdentity()) {
+        if (!getWorkloadIdentity()
+            .equals(other.getWorkloadIdentity())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -11134,6 +14976,10 @@ talon.config.Config.CapabilityGate defaultValue) {
       hash = (53 * hash) + getOrgId().hashCode();
       hash = (37 * hash) + API_FIELD_NUMBER;
       hash = (53 * hash) + getApi().hashCode();
+      if (hasWorkloadIdentity()) {
+        hash = (37 * hash) + WORKLOAD_IDENTITY_FIELD_NUMBER;
+        hash = (53 * hash) + getWorkloadIdentity().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -11265,6 +15111,7 @@ talon.config.Config.CapabilityGate defaultValue) {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
           internalGetApiKeyFieldBuilder();
+          internalGetWorkloadIdentityFieldBuilder();
         }
       }
       @java.lang.Override
@@ -11279,6 +15126,11 @@ talon.config.Config.CapabilityGate defaultValue) {
         }
         orgId_ = "";
         api_ = "";
+        workloadIdentity_ = null;
+        if (workloadIdentityBuilder_ != null) {
+          workloadIdentityBuilder_.dispose();
+          workloadIdentityBuilder_ = null;
+        }
         return this;
       }
 
@@ -11328,6 +15180,12 @@ talon.config.Config.CapabilityGate defaultValue) {
         if (((from_bitField0_ & 0x00000008) != 0)) {
           result.api_ = api_;
         }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.workloadIdentity_ = workloadIdentityBuilder_ == null
+              ? workloadIdentity_
+              : workloadIdentityBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -11360,6 +15218,9 @@ talon.config.Config.CapabilityGate defaultValue) {
           api_ = other.api_;
           bitField0_ |= 0x00000008;
           onChanged();
+        }
+        if (other.hasWorkloadIdentity()) {
+          mergeWorkloadIdentity(other.getWorkloadIdentity());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -11409,6 +15270,13 @@ talon.config.Config.CapabilityGate defaultValue) {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 42: {
+                input.readMessage(
+                    internalGetWorkloadIdentityFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -11761,6 +15629,163 @@ talon.config.Config.CapabilityGate defaultValue) {
         bitField0_ |= 0x00000008;
         onChanged();
         return this;
+      }
+
+      private talon.config.Config.OpenAiWorkloadIdentityConfig workloadIdentity_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.OpenAiWorkloadIdentityConfig, talon.config.Config.OpenAiWorkloadIdentityConfig.Builder, talon.config.Config.OpenAiWorkloadIdentityConfigOrBuilder> workloadIdentityBuilder_;
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       * @return Whether the workloadIdentity field is set.
+       */
+      public boolean hasWorkloadIdentity() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       * @return The workloadIdentity.
+       */
+      public talon.config.Config.OpenAiWorkloadIdentityConfig getWorkloadIdentity() {
+        if (workloadIdentityBuilder_ == null) {
+          return workloadIdentity_ == null ? talon.config.Config.OpenAiWorkloadIdentityConfig.getDefaultInstance() : workloadIdentity_;
+        } else {
+          return workloadIdentityBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       */
+      public Builder setWorkloadIdentity(talon.config.Config.OpenAiWorkloadIdentityConfig value) {
+        if (workloadIdentityBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          workloadIdentity_ = value;
+        } else {
+          workloadIdentityBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       */
+      public Builder setWorkloadIdentity(
+          talon.config.Config.OpenAiWorkloadIdentityConfig.Builder builderForValue) {
+        if (workloadIdentityBuilder_ == null) {
+          workloadIdentity_ = builderForValue.build();
+        } else {
+          workloadIdentityBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       */
+      public Builder mergeWorkloadIdentity(talon.config.Config.OpenAiWorkloadIdentityConfig value) {
+        if (workloadIdentityBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+            workloadIdentity_ != null &&
+            workloadIdentity_ != talon.config.Config.OpenAiWorkloadIdentityConfig.getDefaultInstance()) {
+            getWorkloadIdentityBuilder().mergeFrom(value);
+          } else {
+            workloadIdentity_ = value;
+          }
+        } else {
+          workloadIdentityBuilder_.mergeFrom(value);
+        }
+        if (workloadIdentity_ != null) {
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       */
+      public Builder clearWorkloadIdentity() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        workloadIdentity_ = null;
+        if (workloadIdentityBuilder_ != null) {
+          workloadIdentityBuilder_.dispose();
+          workloadIdentityBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       */
+      public talon.config.Config.OpenAiWorkloadIdentityConfig.Builder getWorkloadIdentityBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return internalGetWorkloadIdentityFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       */
+      public talon.config.Config.OpenAiWorkloadIdentityConfigOrBuilder getWorkloadIdentityOrBuilder() {
+        if (workloadIdentityBuilder_ != null) {
+          return workloadIdentityBuilder_.getMessageOrBuilder();
+        } else {
+          return workloadIdentity_ == null ?
+              talon.config.Config.OpenAiWorkloadIdentityConfig.getDefaultInstance() : workloadIdentity_;
+        }
+      }
+      /**
+       * <pre>
+       * Omitted workload identity retains existing static or tenant API-key behavior.
+       * </pre>
+       *
+       * <code>.talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.OpenAiWorkloadIdentityConfig, talon.config.Config.OpenAiWorkloadIdentityConfig.Builder, talon.config.Config.OpenAiWorkloadIdentityConfigOrBuilder>
+          internalGetWorkloadIdentityFieldBuilder() {
+        if (workloadIdentityBuilder_ == null) {
+          workloadIdentityBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.OpenAiWorkloadIdentityConfig, talon.config.Config.OpenAiWorkloadIdentityConfig.Builder, talon.config.Config.OpenAiWorkloadIdentityConfigOrBuilder>(
+                  getWorkloadIdentity(),
+                  getParentForChildren(),
+                  isClean());
+          workloadIdentity_ = null;
+        }
+        return workloadIdentityBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.config.OpenAiConfig)
@@ -27814,6 +31839,31 @@ talon.config.Config.CapabilityGate defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_LlmProviderConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_OpenAiWorkloadIdentityConfig_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_OpenAiWorkloadIdentityConfig_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_WorkloadIdentitySource_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_WorkloadIdentitySource_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_GoogleMetadataIdentitySource_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_GoogleMetadataIdentitySource_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_AwsStsIdentitySource_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_AwsStsIdentitySource_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_TokenFileIdentitySource_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_TokenFileIdentitySource_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_OpenAiConfig_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -27985,63 +32035,78 @@ talon.config.Config.CapabilityGate defaultValue) {
       "figH\000\022,\n\006google\030\003 \001(\0132\032.talon.config.Goo" +
       "gleConfigH\000\0228\n\021openai_compatible\030\004 \001(\0132\033" +
       ".talon.config.GenericConfigH\000B\010\n\006config\"" +
-      "a\n\014OpenAiConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_ke" +
-      "y\030\002 \001(\0132\024.talon.config.Secret\022\016\n\006org_id\030" +
-      "\003 \001(\t\022\013\n\003api\030\004 \001(\t\"G\n\017AnthropicConfig\022\r\n" +
-      "\005model\030\001 \001(\t\022%\n\007api_key\030\002 \001(\0132\024.talon.co" +
-      "nfig.Secret\"D\n\014GoogleConfig\022\r\n\005model\030\001 \001" +
+      "\216\001\n\034OpenAiWorkloadIdentityConfig\0224\n\006sour" +
+      "ce\030\001 \001(\0132$.talon.config.WorkloadIdentity" +
+      "Source\022\034\n\024identity_provider_id\030\002 \001(\t\022\032\n\022" +
+      "service_account_id\030\003 \001(\t\"\335\001\n\026WorkloadIde" +
+      "ntitySource\022E\n\017google_metadata\030\001 \001(\0132*.t" +
+      "alon.config.GoogleMetadataIdentitySource" +
+      "H\000\0225\n\007aws_sts\030\002 \001(\0132\".talon.config.AwsSt" +
+      "sIdentitySourceH\000\022;\n\ntoken_file\030\003 \001(\0132%." +
+      "talon.config.TokenFileIdentitySourceH\000B\010" +
+      "\n\006config\"0\n\034GoogleMetadataIdentitySource" +
+      "\022\020\n\010audience\030\001 \001(\t\"8\n\024AwsStsIdentitySour" +
+      "ce\022\020\n\010audience\030\001 \001(\t\022\016\n\006region\030\002 \001(\t\"\'\n\027" +
+      "TokenFileIdentitySource\022\014\n\004path\030\001 \001(\t\"\250\001" +
+      "\n\014OpenAiConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_key" +
+      "\030\002 \001(\0132\024.talon.config.Secret\022\016\n\006org_id\030\003" +
+      " \001(\t\022\013\n\003api\030\004 \001(\t\022E\n\021workload_identity\030\005" +
+      " \001(\0132*.talon.config.OpenAiWorkloadIdenti" +
+      "tyConfig\"G\n\017AnthropicConfig\022\r\n\005model\030\001 \001" +
       "(\t\022%\n\007api_key\030\002 \001(\0132\024.talon.config.Secre" +
-      "t\"e\n\rGenericConfig\022\014\n\004name\030\001 \001(\t\022\020\n\010base" +
-      "_url\030\002 \001(\t\022\r\n\005model\030\003 \001(\t\022%\n\007api_key\030\004 \001" +
-      "(\0132\024.talon.config.Secret\"K\n\006Secret\022\017\n\005pl" +
-      "ain\030\001 \001(\tH\000\022&\n\003ref\030\002 \001(\0132\027.talon.config." +
-      "SecretRefH\000B\010\n\006source\"\206\001\n\tSecretRef\022.\n\006s" +
-      "ource\030\001 \001(\0162\036.talon.config.SecretRef.Sou" +
-      "rce\022\013\n\003key\030\002 \001(\t\"<\n\006Source\022\007\n\003ENV\020\000\022\007\n\003G" +
-      "CP\020\001\022\014\n\010KEYCHAIN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE\020\004\"U" +
-      "\n\016DatabaseConfig\022\020\n\010data_dir\030\001 \001(\t\022\016\n\006dr" +
-      "iver\030\002 \001(\t\022!\n\003url\030\003 \001(\0132\024.talon.config.S" +
-      "ecret\"%\n\023MessageBrokerConfig\022\016\n\006driver\030\001" +
-      " \001(\t\"&\n\026LocalObjectStoreConfig\022\014\n\004path\030\001" +
-      " \001(\t\"L\n\024GcsObjectStoreConfig\022\016\n\006bucket\030\001" +
-      " \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014api_base_url\030\003 \001" +
-      "(\t\"u\n\023S3ObjectStoreConfig\022\016\n\006bucket\030\001 \001(" +
-      "\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006region\030\003 \001(\t\022\024\n\014end" +
-      "point_url\030\004 \001(\t\022\030\n\020force_path_style\030\005 \001(" +
-      "\010\"\271\001\n\021ObjectStoreConfig\0225\n\005local\030\001 \001(\0132$" +
-      ".talon.config.LocalObjectStoreConfigH\000\0221" +
-      "\n\003gcs\030\002 \001(\0132\".talon.config.GcsObjectStor" +
-      "eConfigH\000\022/\n\002s3\030\003 \001(\0132!.talon.config.S3O" +
-      "bjectStoreConfigH\000B\t\n\007backend\"\217\001\n\033Schedu" +
-      "lerCallbackAuthConfig\022-\n\rshared_secret\030\001" +
-      " \001(\0132\024.talon.config.SecretH\000\0229\n\013google_o" +
-      "idc\030\002 \001(\0132\".talon.config.GoogleOidcAuthC" +
-      "onfigH\000B\006\n\004auth\"G\n\024GoogleOidcAuthConfig\022" +
-      "\020\n\010audience\030\001 \001(\t\022\035\n\025service_account_ema" +
-      "il\030\002 \001(\t\"\246\001\n\031CloudTasksSchedulerConfig\022\022" +
-      "\n\nproject_id\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005" +
-      "queue\030\003 \001(\t\022\022\n\ntarget_url\030\004 \001(\t\022@\n\rcallb" +
-      "ack_auth\030\005 \001(\0132).talon.config.SchedulerC" +
-      "allbackAuthConfig\"\212\002\n\035AwsEventBridgeSche" +
-      "dulerConfig\022\022\n\ngroup_name\030\001 \001(\t\022\021\n\tqueue" +
-      "_url\030\002 \001(\t\022\032\n\022execution_role_arn\030\003 \001(\t\022\034" +
-      "\n\024schedule_name_prefix\030\004 \001(\t\022\017\n\007dlq_arn\030" +
-      "\005 \001(\t\022!\n\031maximum_event_age_seconds\030\006 \001(\r" +
-      "\022#\n\026maximum_retry_attempts\030\007 \001(\rH\000\210\001\001\022\024\n" +
-      "\014endpoint_url\030\010 \001(\tB\031\n\027_maximum_retry_at" +
-      "tempts\"\256\001\n\017SchedulerConfig\022>\n\013cloud_task" +
-      "s\030\001 \001(\0132\'.talon.config.CloudTasksSchedul" +
-      "erConfigH\000\022P\n\031aws_eventbridge_scheduler\030" +
-      "\002 \001(\0132+.talon.config.AwsEventBridgeSched" +
-      "ulerConfigH\000B\t\n\007backend\"\231\002\n\022ControlPlane" +
-      "Config\022.\n\010database\030\001 \001(\0132\034.talon.config." +
-      "DatabaseConfig\0229\n\016message_broker\030\002 \001(\0132!" +
-      ".talon.config.MessageBrokerConfig\0220\n\tsch" +
-      "eduler\030\003 \001(\0132\035.talon.config.SchedulerCon" +
-      "fig\0225\n\014object_store\030\004 \001(\0132\037.talon.config" +
-      ".ObjectStoreConfig\022/\n\tdocuments\030\005 \001(\0132\034." +
-      "talon.config.DatabaseConfig\"*\n\014ServerCon" +
-      "fig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
+      "t\"D\n\014GoogleConfig\022\r\n\005model\030\001 \001(\t\022%\n\007api_" +
+      "key\030\002 \001(\0132\024.talon.config.Secret\"e\n\rGener" +
+      "icConfig\022\014\n\004name\030\001 \001(\t\022\020\n\010base_url\030\002 \001(\t" +
+      "\022\r\n\005model\030\003 \001(\t\022%\n\007api_key\030\004 \001(\0132\024.talon" +
+      ".config.Secret\"K\n\006Secret\022\017\n\005plain\030\001 \001(\tH" +
+      "\000\022&\n\003ref\030\002 \001(\0132\027.talon.config.SecretRefH" +
+      "\000B\010\n\006source\"\206\001\n\tSecretRef\022.\n\006source\030\001 \001(" +
+      "\0162\036.talon.config.SecretRef.Source\022\013\n\003key" +
+      "\030\002 \001(\t\"<\n\006Source\022\007\n\003ENV\020\000\022\007\n\003GCP\020\001\022\014\n\010KE" +
+      "YCHAIN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE\020\004\"U\n\016Database" +
+      "Config\022\020\n\010data_dir\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t" +
+      "\022!\n\003url\030\003 \001(\0132\024.talon.config.Secret\"%\n\023M" +
+      "essageBrokerConfig\022\016\n\006driver\030\001 \001(\t\"&\n\026Lo" +
+      "calObjectStoreConfig\022\014\n\004path\030\001 \001(\t\"L\n\024Gc" +
+      "sObjectStoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006pr" +
+      "efix\030\002 \001(\t\022\024\n\014api_base_url\030\003 \001(\t\"u\n\023S3Ob" +
+      "jectStoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefi" +
+      "x\030\002 \001(\t\022\016\n\006region\030\003 \001(\t\022\024\n\014endpoint_url\030" +
+      "\004 \001(\t\022\030\n\020force_path_style\030\005 \001(\010\"\271\001\n\021Obje" +
+      "ctStoreConfig\0225\n\005local\030\001 \001(\0132$.talon.con" +
+      "fig.LocalObjectStoreConfigH\000\0221\n\003gcs\030\002 \001(" +
+      "\0132\".talon.config.GcsObjectStoreConfigH\000\022" +
+      "/\n\002s3\030\003 \001(\0132!.talon.config.S3ObjectStore" +
+      "ConfigH\000B\t\n\007backend\"\217\001\n\033SchedulerCallbac" +
+      "kAuthConfig\022-\n\rshared_secret\030\001 \001(\0132\024.tal" +
+      "on.config.SecretH\000\0229\n\013google_oidc\030\002 \001(\0132" +
+      "\".talon.config.GoogleOidcAuthConfigH\000B\006\n" +
+      "\004auth\"G\n\024GoogleOidcAuthConfig\022\020\n\010audienc" +
+      "e\030\001 \001(\t\022\035\n\025service_account_email\030\002 \001(\t\"\246" +
+      "\001\n\031CloudTasksSchedulerConfig\022\022\n\nproject_" +
+      "id\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(" +
+      "\t\022\022\n\ntarget_url\030\004 \001(\t\022@\n\rcallback_auth\030\005" +
+      " \001(\0132).talon.config.SchedulerCallbackAut" +
+      "hConfig\"\212\002\n\035AwsEventBridgeSchedulerConfi" +
+      "g\022\022\n\ngroup_name\030\001 \001(\t\022\021\n\tqueue_url\030\002 \001(\t" +
+      "\022\032\n\022execution_role_arn\030\003 \001(\t\022\034\n\024schedule" +
+      "_name_prefix\030\004 \001(\t\022\017\n\007dlq_arn\030\005 \001(\t\022!\n\031m" +
+      "aximum_event_age_seconds\030\006 \001(\r\022#\n\026maximu" +
+      "m_retry_attempts\030\007 \001(\rH\000\210\001\001\022\024\n\014endpoint_" +
+      "url\030\010 \001(\tB\031\n\027_maximum_retry_attempts\"\256\001\n" +
+      "\017SchedulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'." +
+      "talon.config.CloudTasksSchedulerConfigH\000" +
+      "\022P\n\031aws_eventbridge_scheduler\030\002 \001(\0132+.ta" +
+      "lon.config.AwsEventBridgeSchedulerConfig" +
+      "H\000B\t\n\007backend\"\231\002\n\022ControlPlaneConfig\022.\n\010" +
+      "database\030\001 \001(\0132\034.talon.config.DatabaseCo" +
+      "nfig\0229\n\016message_broker\030\002 \001(\0132!.talon.con" +
+      "fig.MessageBrokerConfig\0220\n\tscheduler\030\003 \001" +
+      "(\0132\035.talon.config.SchedulerConfig\0225\n\014obj" +
+      "ect_store\030\004 \001(\0132\037.talon.config.ObjectSto" +
+      "reConfig\022/\n\tdocuments\030\005 \001(\0132\034.talon.conf" +
+      "ig.DatabaseConfig\"*\n\014ServerConfig\022\014\n\004hos" +
+      "t\030\001 \001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -28125,116 +32190,146 @@ talon.config.Config.CapabilityGate defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_LlmProviderConfig_descriptor,
         new java.lang.String[] { "Openai", "Anthropic", "Google", "OpenaiCompatible", "Config", });
-    internal_static_talon_config_OpenAiConfig_descriptor =
+    internal_static_talon_config_OpenAiWorkloadIdentityConfig_descriptor =
       getDescriptor().getMessageType(8);
+    internal_static_talon_config_OpenAiWorkloadIdentityConfig_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_OpenAiWorkloadIdentityConfig_descriptor,
+        new java.lang.String[] { "Source", "IdentityProviderId", "ServiceAccountId", });
+    internal_static_talon_config_WorkloadIdentitySource_descriptor =
+      getDescriptor().getMessageType(9);
+    internal_static_talon_config_WorkloadIdentitySource_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_WorkloadIdentitySource_descriptor,
+        new java.lang.String[] { "GoogleMetadata", "AwsSts", "TokenFile", "Config", });
+    internal_static_talon_config_GoogleMetadataIdentitySource_descriptor =
+      getDescriptor().getMessageType(10);
+    internal_static_talon_config_GoogleMetadataIdentitySource_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_GoogleMetadataIdentitySource_descriptor,
+        new java.lang.String[] { "Audience", });
+    internal_static_talon_config_AwsStsIdentitySource_descriptor =
+      getDescriptor().getMessageType(11);
+    internal_static_talon_config_AwsStsIdentitySource_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_AwsStsIdentitySource_descriptor,
+        new java.lang.String[] { "Audience", "Region", });
+    internal_static_talon_config_TokenFileIdentitySource_descriptor =
+      getDescriptor().getMessageType(12);
+    internal_static_talon_config_TokenFileIdentitySource_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_TokenFileIdentitySource_descriptor,
+        new java.lang.String[] { "Path", });
+    internal_static_talon_config_OpenAiConfig_descriptor =
+      getDescriptor().getMessageType(13);
     internal_static_talon_config_OpenAiConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_OpenAiConfig_descriptor,
-        new java.lang.String[] { "Model", "ApiKey", "OrgId", "Api", });
+        new java.lang.String[] { "Model", "ApiKey", "OrgId", "Api", "WorkloadIdentity", });
     internal_static_talon_config_AnthropicConfig_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(14);
     internal_static_talon_config_AnthropicConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_AnthropicConfig_descriptor,
         new java.lang.String[] { "Model", "ApiKey", });
     internal_static_talon_config_GoogleConfig_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(15);
     internal_static_talon_config_GoogleConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GoogleConfig_descriptor,
         new java.lang.String[] { "Model", "ApiKey", });
     internal_static_talon_config_GenericConfig_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(16);
     internal_static_talon_config_GenericConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GenericConfig_descriptor,
         new java.lang.String[] { "Name", "BaseUrl", "Model", "ApiKey", });
     internal_static_talon_config_Secret_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(17);
     internal_static_talon_config_Secret_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_Secret_descriptor,
         new java.lang.String[] { "Plain", "Ref", "Source", });
     internal_static_talon_config_SecretRef_descriptor =
-      getDescriptor().getMessageType(13);
+      getDescriptor().getMessageType(18);
     internal_static_talon_config_SecretRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SecretRef_descriptor,
         new java.lang.String[] { "Source", "Key", });
     internal_static_talon_config_DatabaseConfig_descriptor =
-      getDescriptor().getMessageType(14);
+      getDescriptor().getMessageType(19);
     internal_static_talon_config_DatabaseConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_DatabaseConfig_descriptor,
         new java.lang.String[] { "DataDir", "Driver", "Url", });
     internal_static_talon_config_MessageBrokerConfig_descriptor =
-      getDescriptor().getMessageType(15);
+      getDescriptor().getMessageType(20);
     internal_static_talon_config_MessageBrokerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_MessageBrokerConfig_descriptor,
         new java.lang.String[] { "Driver", });
     internal_static_talon_config_LocalObjectStoreConfig_descriptor =
-      getDescriptor().getMessageType(16);
+      getDescriptor().getMessageType(21);
     internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_LocalObjectStoreConfig_descriptor,
         new java.lang.String[] { "Path", });
     internal_static_talon_config_GcsObjectStoreConfig_descriptor =
-      getDescriptor().getMessageType(17);
+      getDescriptor().getMessageType(22);
     internal_static_talon_config_GcsObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GcsObjectStoreConfig_descriptor,
         new java.lang.String[] { "Bucket", "Prefix", "ApiBaseUrl", });
     internal_static_talon_config_S3ObjectStoreConfig_descriptor =
-      getDescriptor().getMessageType(18);
+      getDescriptor().getMessageType(23);
     internal_static_talon_config_S3ObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_S3ObjectStoreConfig_descriptor,
         new java.lang.String[] { "Bucket", "Prefix", "Region", "EndpointUrl", "ForcePathStyle", });
     internal_static_talon_config_ObjectStoreConfig_descriptor =
-      getDescriptor().getMessageType(19);
+      getDescriptor().getMessageType(24);
     internal_static_talon_config_ObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ObjectStoreConfig_descriptor,
         new java.lang.String[] { "Local", "Gcs", "S3", "Backend", });
     internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor =
-      getDescriptor().getMessageType(20);
+      getDescriptor().getMessageType(25);
     internal_static_talon_config_SchedulerCallbackAuthConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor,
         new java.lang.String[] { "SharedSecret", "GoogleOidc", "Auth", });
     internal_static_talon_config_GoogleOidcAuthConfig_descriptor =
-      getDescriptor().getMessageType(21);
+      getDescriptor().getMessageType(26);
     internal_static_talon_config_GoogleOidcAuthConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GoogleOidcAuthConfig_descriptor,
         new java.lang.String[] { "Audience", "ServiceAccountEmail", });
     internal_static_talon_config_CloudTasksSchedulerConfig_descriptor =
-      getDescriptor().getMessageType(22);
+      getDescriptor().getMessageType(27);
     internal_static_talon_config_CloudTasksSchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_CloudTasksSchedulerConfig_descriptor,
         new java.lang.String[] { "ProjectId", "Location", "Queue", "TargetUrl", "CallbackAuth", });
     internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor =
-      getDescriptor().getMessageType(23);
+      getDescriptor().getMessageType(28);
     internal_static_talon_config_AwsEventBridgeSchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_AwsEventBridgeSchedulerConfig_descriptor,
         new java.lang.String[] { "GroupName", "QueueUrl", "ExecutionRoleArn", "ScheduleNamePrefix", "DlqArn", "MaximumEventAgeSeconds", "MaximumRetryAttempts", "EndpointUrl", });
     internal_static_talon_config_SchedulerConfig_descriptor =
-      getDescriptor().getMessageType(24);
+      getDescriptor().getMessageType(29);
     internal_static_talon_config_SchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SchedulerConfig_descriptor,
         new java.lang.String[] { "CloudTasks", "AwsEventbridgeScheduler", "Backend", });
     internal_static_talon_config_ControlPlaneConfig_descriptor =
-      getDescriptor().getMessageType(25);
+      getDescriptor().getMessageType(30);
     internal_static_talon_config_ControlPlaneConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ControlPlaneConfig_descriptor,
         new java.lang.String[] { "Database", "MessageBroker", "Scheduler", "ObjectStore", "Documents", });
     internal_static_talon_config_ServerConfig_descriptor =
-      getDescriptor().getMessageType(26);
+      getDescriptor().getMessageType(31);
     internal_static_talon_config_ServerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ServerConfig_descriptor,

@@ -474,6 +474,7 @@ trust:
             crate::control::config::ProviderConfig {
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
+                        workload_identity: None,
                         model: "m1".to_string(),
                         api_key: Some(Secret {
                             source: Some(proto::secret::Source::Plain("key".to_string())),

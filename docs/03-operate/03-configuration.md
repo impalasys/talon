@@ -75,6 +75,89 @@ providers:
 The accepted values are `responses` and `chat_completions`. Generic
 OpenAI-compatible providers continue to use Chat Completions.
 
+### OpenAI workload identity
+
+Set `workload_identity` directly on a native OpenAI provider. Omitting it retains
+existing static or tenant API-key resolution. `workload_identity` and `api_key`
+cannot both be configured. Other provider types do not have this field.
+
+```yaml
+providers:
+  openai:
+    type: openai
+    model: gpt-5.6-luna
+    workload_identity:
+      identity_provider_id: ${OPENAI_IDENTITY_PROVIDER_ID}
+      service_account_id: ${OPENAI_SERVICE_ACCOUNT_ID}
+      source:
+        google_metadata:
+          audience: https://api.openai.com/v1
+```
+
+The YAML block deserializes directly into the generated
+`OpenAiWorkloadIdentityConfig` protobuf message. The field names and nesting
+match the proto schema; there are no separate authentication mode or mapping
+wrappers. `source` selects exactly one of the following fields:
+
+| Source field | Required fields | Runtime behavior |
+| --- | --- | --- |
+| `google_metadata` | `audience` | Requests a Google-signed identity token from the attached workload's metadata server. |
+| `aws_sts` | `audience`, `region` | Uses the AWS SDK credential chain to call regional STS `GetWebIdentityToken`, requesting a 300-second JWT signed with ES384. |
+| `token_file` | `path` | Reads an OIDC JWT from a file on each exchange, picking up projected-token rotation. Relative paths resolve from the declaring config file. |
+
+To use AWS, replace only the source block:
+
+```yaml
+source:
+  aws_sts:
+    region: us-west-2
+    audience: https://api.openai.com/v1
+```
+
+Enable AWS outbound identity federation on the AWS account and grant the
+workload `sts:GetWebIdentityToken` for the intended audience. A regional STS
+endpoint is required. AWS credentials authenticate the STS request; the
+resulting JWT is the subject token sent to OpenAI.
+
+For projected Kubernetes tokens, including EKS and GKE, use:
+
+```yaml
+source:
+  token_file:
+    path: /var/run/secrets/openai/token
+```
+
+Project a token with the audience trusted by OpenAI into that file. Talon opens
+the path again whenever credentials need refreshing, including after Kubernetes
+rotates the projected file. Configuration validation does not read token files
+or contact cloud services; acquisition happens on the worker making the request.
+
+An OpenAI organization administrator must create a Workload Identity Provider
+trusting the source token's issuer and audience, then create a service-account
+mapping matching the workload's stable subject and intended OpenAI project and
+service account. Explicitly grant `api.model.request` and other required
+permissions. Talon rejects exchange responses lacking that scope, including
+unrestricted mappings with no explicit permission list. See OpenAI's
+[Google Cloud setup](https://developers.openai.com/api/docs/guides/workload-identity-federation/google-cloud),
+[AWS setup](https://developers.openai.com/api/docs/guides/workload-identity-federation/aws),
+and [token exchange reference](https://developers.openai.com/api/reference/workload-identity-federation).
+
+Talon exchanges the source token at `https://auth.openai.com/oauth/token`.
+Providers with identical workload identity configuration share a process
+credential cache across session messages. Tokens refresh 120 seconds before
+expiry, capped at half their lifetime; concurrent calls share one refresh.
+Different sources, audiences, regions, file paths, or mappings use separate
+caches. The identity sources remain reusable independently of OpenAI's exchange.
+
+Missing or empty settings, multiple sources, and conflicting API keys fail
+validation. Acquisition or exchange failures fail the model request without
+falling back to a static or tenant API key. The configured worker identity and
+OpenAI mapping determine access; tenant API-key Secrets are not used in this mode.
+
+Environment variables supply values only through explicit `${NAME}` references.
+They do not select authentication. The former `TALON_OPENAI_WIF_ENABLED` switch
+and automatic WIF environment lookups are removed.
+
 ## Model catalog
 
 The optional `models` map records model metadata. This repository's

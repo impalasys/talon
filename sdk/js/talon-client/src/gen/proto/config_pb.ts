@@ -559,6 +559,237 @@ export class LlmProviderConfig extends Message<LlmProviderConfig> {
 }
 
 /**
+ * OpenAI-specific destination mapping, independent of the identity source.
+ *
+ * @generated from message talon.config.OpenAiWorkloadIdentityConfig
+ */
+export class OpenAiWorkloadIdentityConfig extends Message<OpenAiWorkloadIdentityConfig> {
+  /**
+   * @generated from field: talon.config.WorkloadIdentitySource source = 1;
+   */
+  source?: WorkloadIdentitySource;
+
+  /**
+   * @generated from field: string identity_provider_id = 2;
+   */
+  identityProviderId = "";
+
+  /**
+   * @generated from field: string service_account_id = 3;
+   */
+  serviceAccountId = "";
+
+  constructor(data?: PartialMessage<OpenAiWorkloadIdentityConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.OpenAiWorkloadIdentityConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "source", kind: "message", T: WorkloadIdentitySource },
+    { no: 2, name: "identity_provider_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "service_account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OpenAiWorkloadIdentityConfig {
+    return new OpenAiWorkloadIdentityConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): OpenAiWorkloadIdentityConfig {
+    return new OpenAiWorkloadIdentityConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): OpenAiWorkloadIdentityConfig {
+    return new OpenAiWorkloadIdentityConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: OpenAiWorkloadIdentityConfig | PlainMessage<OpenAiWorkloadIdentityConfig> | undefined, b: OpenAiWorkloadIdentityConfig | PlainMessage<OpenAiWorkloadIdentityConfig> | undefined): boolean {
+    return proto3.util.equals(OpenAiWorkloadIdentityConfig, a, b);
+  }
+}
+
+/**
+ * Sources supply an OIDC subject token; destination adapters exchange it.
+ *
+ * @generated from message talon.config.WorkloadIdentitySource
+ */
+export class WorkloadIdentitySource extends Message<WorkloadIdentitySource> {
+  /**
+   * @generated from oneof talon.config.WorkloadIdentitySource.config
+   */
+  config: {
+    /**
+     * @generated from field: talon.config.GoogleMetadataIdentitySource google_metadata = 1;
+     */
+    value: GoogleMetadataIdentitySource;
+    case: "googleMetadata";
+  } | {
+    /**
+     * @generated from field: talon.config.AwsStsIdentitySource aws_sts = 2;
+     */
+    value: AwsStsIdentitySource;
+    case: "awsSts";
+  } | {
+    /**
+     * @generated from field: talon.config.TokenFileIdentitySource token_file = 3;
+     */
+    value: TokenFileIdentitySource;
+    case: "tokenFile";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<WorkloadIdentitySource>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.WorkloadIdentitySource";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "google_metadata", kind: "message", T: GoogleMetadataIdentitySource, oneof: "config" },
+    { no: 2, name: "aws_sts", kind: "message", T: AwsStsIdentitySource, oneof: "config" },
+    { no: 3, name: "token_file", kind: "message", T: TokenFileIdentitySource, oneof: "config" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkloadIdentitySource {
+    return new WorkloadIdentitySource().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkloadIdentitySource {
+    return new WorkloadIdentitySource().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkloadIdentitySource {
+    return new WorkloadIdentitySource().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkloadIdentitySource | PlainMessage<WorkloadIdentitySource> | undefined, b: WorkloadIdentitySource | PlainMessage<WorkloadIdentitySource> | undefined): boolean {
+    return proto3.util.equals(WorkloadIdentitySource, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.GoogleMetadataIdentitySource
+ */
+export class GoogleMetadataIdentitySource extends Message<GoogleMetadataIdentitySource> {
+  /**
+   * @generated from field: string audience = 1;
+   */
+  audience = "";
+
+  constructor(data?: PartialMessage<GoogleMetadataIdentitySource>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.GoogleMetadataIdentitySource";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "audience", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GoogleMetadataIdentitySource {
+    return new GoogleMetadataIdentitySource().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GoogleMetadataIdentitySource {
+    return new GoogleMetadataIdentitySource().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GoogleMetadataIdentitySource {
+    return new GoogleMetadataIdentitySource().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GoogleMetadataIdentitySource | PlainMessage<GoogleMetadataIdentitySource> | undefined, b: GoogleMetadataIdentitySource | PlainMessage<GoogleMetadataIdentitySource> | undefined): boolean {
+    return proto3.util.equals(GoogleMetadataIdentitySource, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.AwsStsIdentitySource
+ */
+export class AwsStsIdentitySource extends Message<AwsStsIdentitySource> {
+  /**
+   * @generated from field: string audience = 1;
+   */
+  audience = "";
+
+  /**
+   * Explicit regional STS endpoint; the global endpoint is unsupported.
+   *
+   * @generated from field: string region = 2;
+   */
+  region = "";
+
+  constructor(data?: PartialMessage<AwsStsIdentitySource>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.AwsStsIdentitySource";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "audience", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "region", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsStsIdentitySource {
+    return new AwsStsIdentitySource().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AwsStsIdentitySource {
+    return new AwsStsIdentitySource().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AwsStsIdentitySource {
+    return new AwsStsIdentitySource().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AwsStsIdentitySource | PlainMessage<AwsStsIdentitySource> | undefined, b: AwsStsIdentitySource | PlainMessage<AwsStsIdentitySource> | undefined): boolean {
+    return proto3.util.equals(AwsStsIdentitySource, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.TokenFileIdentitySource
+ */
+export class TokenFileIdentitySource extends Message<TokenFileIdentitySource> {
+  /**
+   * Reread on every exchange to pick up projected token rotation.
+   *
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  constructor(data?: PartialMessage<TokenFileIdentitySource>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.TokenFileIdentitySource";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TokenFileIdentitySource {
+    return new TokenFileIdentitySource().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TokenFileIdentitySource {
+    return new TokenFileIdentitySource().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TokenFileIdentitySource {
+    return new TokenFileIdentitySource().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TokenFileIdentitySource | PlainMessage<TokenFileIdentitySource> | undefined, b: TokenFileIdentitySource | PlainMessage<TokenFileIdentitySource> | undefined): boolean {
+    return proto3.util.equals(TokenFileIdentitySource, a, b);
+  }
+}
+
+/**
  * @generated from message talon.config.OpenAiConfig
  */
 export class OpenAiConfig extends Message<OpenAiConfig> {
@@ -582,6 +813,13 @@ export class OpenAiConfig extends Message<OpenAiConfig> {
    */
   api = "";
 
+  /**
+   * Omitted workload identity retains existing static or tenant API-key behavior.
+   *
+   * @generated from field: talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;
+   */
+  workloadIdentity?: OpenAiWorkloadIdentityConfig;
+
   constructor(data?: PartialMessage<OpenAiConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -594,6 +832,7 @@ export class OpenAiConfig extends Message<OpenAiConfig> {
     { no: 2, name: "api_key", kind: "message", T: Secret },
     { no: 3, name: "org_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "api", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "workload_identity", kind: "message", T: OpenAiWorkloadIdentityConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OpenAiConfig {
