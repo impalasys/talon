@@ -21,6 +21,52 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type DatabaseAuthMode int32
+
+const (
+	DatabaseAuthMode_DATABASE_AUTH_MODE_PASSWORD DatabaseAuthMode = 0
+	DatabaseAuthMode_DATABASE_AUTH_MODE_GCP_IAM  DatabaseAuthMode = 1
+)
+
+// Enum value maps for DatabaseAuthMode.
+var (
+	DatabaseAuthMode_name = map[int32]string{
+		0: "DATABASE_AUTH_MODE_PASSWORD",
+		1: "DATABASE_AUTH_MODE_GCP_IAM",
+	}
+	DatabaseAuthMode_value = map[string]int32{
+		"DATABASE_AUTH_MODE_PASSWORD": 0,
+		"DATABASE_AUTH_MODE_GCP_IAM":  1,
+	}
+)
+
+func (x DatabaseAuthMode) Enum() *DatabaseAuthMode {
+	p := new(DatabaseAuthMode)
+	*p = x
+	return p
+}
+
+func (x DatabaseAuthMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DatabaseAuthMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_config_proto_enumTypes[0].Descriptor()
+}
+
+func (DatabaseAuthMode) Type() protoreflect.EnumType {
+	return &file_proto_config_proto_enumTypes[0]
+}
+
+func (x DatabaseAuthMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DatabaseAuthMode.Descriptor instead.
+func (DatabaseAuthMode) EnumDescriptor() ([]byte, []int) {
+	return file_proto_config_proto_rawDescGZIP(), []int{0}
+}
+
 type OidcTrustGrant_Kind int32
 
 const (
@@ -54,11 +100,11 @@ func (x OidcTrustGrant_Kind) String() string {
 }
 
 func (OidcTrustGrant_Kind) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_config_proto_enumTypes[0].Descriptor()
+	return file_proto_config_proto_enumTypes[1].Descriptor()
 }
 
 func (OidcTrustGrant_Kind) Type() protoreflect.EnumType {
-	return &file_proto_config_proto_enumTypes[0]
+	return &file_proto_config_proto_enumTypes[1]
 }
 
 func (x OidcTrustGrant_Kind) Number() protoreflect.EnumNumber {
@@ -109,11 +155,11 @@ func (x SecretRef_Source) String() string {
 }
 
 func (SecretRef_Source) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_config_proto_enumTypes[1].Descriptor()
+	return file_proto_config_proto_enumTypes[2].Descriptor()
 }
 
 func (SecretRef_Source) Type() protoreflect.EnumType {
-	return &file_proto_config_proto_enumTypes[1]
+	return &file_proto_config_proto_enumTypes[2]
 }
 
 func (x SecretRef_Source) Number() protoreflect.EnumNumber {
@@ -1191,6 +1237,7 @@ type DatabaseConfig struct {
 	DataDir       string                 `protobuf:"bytes,1,opt,name=data_dir,json=dataDir,proto3" json:"data_dir,omitempty"`
 	Driver        string                 `protobuf:"bytes,2,opt,name=driver,proto3" json:"driver,omitempty"`
 	Url           *Secret                `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	AuthMode      DatabaseAuthMode       `protobuf:"varint,4,opt,name=auth_mode,json=authMode,proto3,enum=talon.config.DatabaseAuthMode" json:"auth_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1244,6 +1291,13 @@ func (x *DatabaseConfig) GetUrl() *Secret {
 		return x.Url
 	}
 	return nil
+}
+
+func (x *DatabaseConfig) GetAuthMode() DatabaseAuthMode {
+	if x != nil {
+		return x.AuthMode
+	}
+	return DatabaseAuthMode_DATABASE_AUTH_MODE_PASSWORD
 }
 
 type MessageBrokerConfig struct {
@@ -2207,11 +2261,12 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x03GCP\x10\x01\x12\f\n" +
 	"\bKEYCHAIN\x10\x02\x12\a\n" +
 	"\x03AWS\x10\x03\x12\t\n" +
-	"\x05AZURE\x10\x04\"k\n" +
+	"\x05AZURE\x10\x04\"\xa8\x01\n" +
 	"\x0eDatabaseConfig\x12\x19\n" +
 	"\bdata_dir\x18\x01 \x01(\tR\adataDir\x12\x16\n" +
 	"\x06driver\x18\x02 \x01(\tR\x06driver\x12&\n" +
-	"\x03url\x18\x03 \x01(\v2\x14.talon.config.SecretR\x03url\"-\n" +
+	"\x03url\x18\x03 \x01(\v2\x14.talon.config.SecretR\x03url\x12;\n" +
+	"\tauth_mode\x18\x04 \x01(\x0e2\x1e.talon.config.DatabaseAuthModeR\bauthMode\"-\n" +
 	"\x13MessageBrokerConfig\x12\x16\n" +
 	"\x06driver\x18\x01 \x01(\tR\x06driver\",\n" +
 	"\x16LocalObjectStoreConfig\x12\x12\n" +
@@ -2272,7 +2327,10 @@ const file_proto_config_proto_rawDesc = "" +
 	"\tdocuments\x18\x05 \x01(\v2\x1c.talon.config.DatabaseConfigR\tdocuments\"6\n" +
 	"\fServerConfig\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
-	"\x04port\x18\x02 \x01(\rR\x04portb\x06proto3"
+	"\x04port\x18\x02 \x01(\rR\x04port*S\n" +
+	"\x10DatabaseAuthMode\x12\x1f\n" +
+	"\x1bDATABASE_AUTH_MODE_PASSWORD\x10\x00\x12\x1e\n" +
+	"\x1aDATABASE_AUTH_MODE_GCP_IAM\x10\x01b\x06proto3"
 
 var (
 	file_proto_config_proto_rawDescOnce sync.Once
@@ -2286,90 +2344,92 @@ func file_proto_config_proto_rawDescGZIP() []byte {
 	return file_proto_config_proto_rawDescData
 }
 
-var file_proto_config_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_proto_config_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_proto_config_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_proto_config_proto_goTypes = []any{
-	(OidcTrustGrant_Kind)(0),              // 0: talon.config.OidcTrustGrant.Kind
-	(SecretRef_Source)(0),                 // 1: talon.config.SecretRef.Source
-	(*TalonConfig)(nil),                   // 2: talon.config.TalonConfig
-	(*CapabilityGate)(nil),                // 3: talon.config.CapabilityGate
-	(*ModelConfig)(nil),                   // 4: talon.config.ModelConfig
-	(*TrustConfig)(nil),                   // 5: talon.config.TrustConfig
-	(*OidcTrustEntry)(nil),                // 6: talon.config.OidcTrustEntry
-	(*OidcTrustGrant)(nil),                // 7: talon.config.OidcTrustGrant
-	(*ControllerConfig)(nil),              // 8: talon.config.ControllerConfig
-	(*LlmProviderConfig)(nil),             // 9: talon.config.LlmProviderConfig
-	(*OpenAiConfig)(nil),                  // 10: talon.config.OpenAiConfig
-	(*AnthropicConfig)(nil),               // 11: talon.config.AnthropicConfig
-	(*GoogleConfig)(nil),                  // 12: talon.config.GoogleConfig
-	(*GenericConfig)(nil),                 // 13: talon.config.GenericConfig
-	(*Secret)(nil),                        // 14: talon.config.Secret
-	(*SecretRef)(nil),                     // 15: talon.config.SecretRef
-	(*DatabaseConfig)(nil),                // 16: talon.config.DatabaseConfig
-	(*MessageBrokerConfig)(nil),           // 17: talon.config.MessageBrokerConfig
-	(*LocalObjectStoreConfig)(nil),        // 18: talon.config.LocalObjectStoreConfig
-	(*GcsObjectStoreConfig)(nil),          // 19: talon.config.GcsObjectStoreConfig
-	(*S3ObjectStoreConfig)(nil),           // 20: talon.config.S3ObjectStoreConfig
-	(*ObjectStoreConfig)(nil),             // 21: talon.config.ObjectStoreConfig
-	(*SchedulerCallbackAuthConfig)(nil),   // 22: talon.config.SchedulerCallbackAuthConfig
-	(*GoogleOidcAuthConfig)(nil),          // 23: talon.config.GoogleOidcAuthConfig
-	(*CloudTasksSchedulerConfig)(nil),     // 24: talon.config.CloudTasksSchedulerConfig
-	(*AwsEventBridgeSchedulerConfig)(nil), // 25: talon.config.AwsEventBridgeSchedulerConfig
-	(*SchedulerConfig)(nil),               // 26: talon.config.SchedulerConfig
-	(*ControlPlaneConfig)(nil),            // 27: talon.config.ControlPlaneConfig
-	(*ServerConfig)(nil),                  // 28: talon.config.ServerConfig
-	nil,                                   // 29: talon.config.TalonConfig.ProvidersEntry
-	nil,                                   // 30: talon.config.TalonConfig.ControllersEntry
-	nil,                                   // 31: talon.config.TalonConfig.ModelsEntry
-	nil,                                   // 32: talon.config.TalonConfig.CapabilitiesEntry
-	nil,                                   // 33: talon.config.CapabilityGate.ActionsEntry
+	(DatabaseAuthMode)(0),                 // 0: talon.config.DatabaseAuthMode
+	(OidcTrustGrant_Kind)(0),              // 1: talon.config.OidcTrustGrant.Kind
+	(SecretRef_Source)(0),                 // 2: talon.config.SecretRef.Source
+	(*TalonConfig)(nil),                   // 3: talon.config.TalonConfig
+	(*CapabilityGate)(nil),                // 4: talon.config.CapabilityGate
+	(*ModelConfig)(nil),                   // 5: talon.config.ModelConfig
+	(*TrustConfig)(nil),                   // 6: talon.config.TrustConfig
+	(*OidcTrustEntry)(nil),                // 7: talon.config.OidcTrustEntry
+	(*OidcTrustGrant)(nil),                // 8: talon.config.OidcTrustGrant
+	(*ControllerConfig)(nil),              // 9: talon.config.ControllerConfig
+	(*LlmProviderConfig)(nil),             // 10: talon.config.LlmProviderConfig
+	(*OpenAiConfig)(nil),                  // 11: talon.config.OpenAiConfig
+	(*AnthropicConfig)(nil),               // 12: talon.config.AnthropicConfig
+	(*GoogleConfig)(nil),                  // 13: talon.config.GoogleConfig
+	(*GenericConfig)(nil),                 // 14: talon.config.GenericConfig
+	(*Secret)(nil),                        // 15: talon.config.Secret
+	(*SecretRef)(nil),                     // 16: talon.config.SecretRef
+	(*DatabaseConfig)(nil),                // 17: talon.config.DatabaseConfig
+	(*MessageBrokerConfig)(nil),           // 18: talon.config.MessageBrokerConfig
+	(*LocalObjectStoreConfig)(nil),        // 19: talon.config.LocalObjectStoreConfig
+	(*GcsObjectStoreConfig)(nil),          // 20: talon.config.GcsObjectStoreConfig
+	(*S3ObjectStoreConfig)(nil),           // 21: talon.config.S3ObjectStoreConfig
+	(*ObjectStoreConfig)(nil),             // 22: talon.config.ObjectStoreConfig
+	(*SchedulerCallbackAuthConfig)(nil),   // 23: talon.config.SchedulerCallbackAuthConfig
+	(*GoogleOidcAuthConfig)(nil),          // 24: talon.config.GoogleOidcAuthConfig
+	(*CloudTasksSchedulerConfig)(nil),     // 25: talon.config.CloudTasksSchedulerConfig
+	(*AwsEventBridgeSchedulerConfig)(nil), // 26: talon.config.AwsEventBridgeSchedulerConfig
+	(*SchedulerConfig)(nil),               // 27: talon.config.SchedulerConfig
+	(*ControlPlaneConfig)(nil),            // 28: talon.config.ControlPlaneConfig
+	(*ServerConfig)(nil),                  // 29: talon.config.ServerConfig
+	nil,                                   // 30: talon.config.TalonConfig.ProvidersEntry
+	nil,                                   // 31: talon.config.TalonConfig.ControllersEntry
+	nil,                                   // 32: talon.config.TalonConfig.ModelsEntry
+	nil,                                   // 33: talon.config.TalonConfig.CapabilitiesEntry
+	nil,                                   // 34: talon.config.CapabilityGate.ActionsEntry
 }
 var file_proto_config_proto_depIdxs = []int32{
-	29, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
-	16, // 1: talon.config.TalonConfig.database:type_name -> talon.config.DatabaseConfig
-	28, // 2: talon.config.TalonConfig.server:type_name -> talon.config.ServerConfig
-	27, // 3: talon.config.TalonConfig.control_plane:type_name -> talon.config.ControlPlaneConfig
-	30, // 4: talon.config.TalonConfig.controllers:type_name -> talon.config.TalonConfig.ControllersEntry
-	5,  // 5: talon.config.TalonConfig.trust:type_name -> talon.config.TrustConfig
-	31, // 6: talon.config.TalonConfig.models:type_name -> talon.config.TalonConfig.ModelsEntry
-	32, // 7: talon.config.TalonConfig.capabilities:type_name -> talon.config.TalonConfig.CapabilitiesEntry
-	33, // 8: talon.config.CapabilityGate.actions:type_name -> talon.config.CapabilityGate.ActionsEntry
-	6,  // 9: talon.config.TrustConfig.oidc:type_name -> talon.config.OidcTrustEntry
-	7,  // 10: talon.config.OidcTrustEntry.grants:type_name -> talon.config.OidcTrustGrant
-	0,  // 11: talon.config.OidcTrustGrant.kind:type_name -> talon.config.OidcTrustGrant.Kind
-	10, // 12: talon.config.LlmProviderConfig.openai:type_name -> talon.config.OpenAiConfig
-	11, // 13: talon.config.LlmProviderConfig.anthropic:type_name -> talon.config.AnthropicConfig
-	12, // 14: talon.config.LlmProviderConfig.google:type_name -> talon.config.GoogleConfig
-	13, // 15: talon.config.LlmProviderConfig.openai_compatible:type_name -> talon.config.GenericConfig
-	14, // 16: talon.config.OpenAiConfig.api_key:type_name -> talon.config.Secret
-	14, // 17: talon.config.AnthropicConfig.api_key:type_name -> talon.config.Secret
-	14, // 18: talon.config.GoogleConfig.api_key:type_name -> talon.config.Secret
-	14, // 19: talon.config.GenericConfig.api_key:type_name -> talon.config.Secret
-	15, // 20: talon.config.Secret.ref:type_name -> talon.config.SecretRef
-	1,  // 21: talon.config.SecretRef.source:type_name -> talon.config.SecretRef.Source
-	14, // 22: talon.config.DatabaseConfig.url:type_name -> talon.config.Secret
-	18, // 23: talon.config.ObjectStoreConfig.local:type_name -> talon.config.LocalObjectStoreConfig
-	19, // 24: talon.config.ObjectStoreConfig.gcs:type_name -> talon.config.GcsObjectStoreConfig
-	20, // 25: talon.config.ObjectStoreConfig.s3:type_name -> talon.config.S3ObjectStoreConfig
-	14, // 26: talon.config.SchedulerCallbackAuthConfig.shared_secret:type_name -> talon.config.Secret
-	23, // 27: talon.config.SchedulerCallbackAuthConfig.google_oidc:type_name -> talon.config.GoogleOidcAuthConfig
-	22, // 28: talon.config.CloudTasksSchedulerConfig.callback_auth:type_name -> talon.config.SchedulerCallbackAuthConfig
-	24, // 29: talon.config.SchedulerConfig.cloud_tasks:type_name -> talon.config.CloudTasksSchedulerConfig
-	25, // 30: talon.config.SchedulerConfig.aws_eventbridge_scheduler:type_name -> talon.config.AwsEventBridgeSchedulerConfig
-	16, // 31: talon.config.ControlPlaneConfig.database:type_name -> talon.config.DatabaseConfig
-	17, // 32: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
-	26, // 33: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
-	21, // 34: talon.config.ControlPlaneConfig.object_store:type_name -> talon.config.ObjectStoreConfig
-	16, // 35: talon.config.ControlPlaneConfig.documents:type_name -> talon.config.DatabaseConfig
-	9,  // 36: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
-	8,  // 37: talon.config.TalonConfig.ControllersEntry.value:type_name -> talon.config.ControllerConfig
-	4,  // 38: talon.config.TalonConfig.ModelsEntry.value:type_name -> talon.config.ModelConfig
-	3,  // 39: talon.config.TalonConfig.CapabilitiesEntry.value:type_name -> talon.config.CapabilityGate
-	40, // [40:40] is the sub-list for method output_type
-	40, // [40:40] is the sub-list for method input_type
-	40, // [40:40] is the sub-list for extension type_name
-	40, // [40:40] is the sub-list for extension extendee
-	0,  // [0:40] is the sub-list for field type_name
+	30, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
+	17, // 1: talon.config.TalonConfig.database:type_name -> talon.config.DatabaseConfig
+	29, // 2: talon.config.TalonConfig.server:type_name -> talon.config.ServerConfig
+	28, // 3: talon.config.TalonConfig.control_plane:type_name -> talon.config.ControlPlaneConfig
+	31, // 4: talon.config.TalonConfig.controllers:type_name -> talon.config.TalonConfig.ControllersEntry
+	6,  // 5: talon.config.TalonConfig.trust:type_name -> talon.config.TrustConfig
+	32, // 6: talon.config.TalonConfig.models:type_name -> talon.config.TalonConfig.ModelsEntry
+	33, // 7: talon.config.TalonConfig.capabilities:type_name -> talon.config.TalonConfig.CapabilitiesEntry
+	34, // 8: talon.config.CapabilityGate.actions:type_name -> talon.config.CapabilityGate.ActionsEntry
+	7,  // 9: talon.config.TrustConfig.oidc:type_name -> talon.config.OidcTrustEntry
+	8,  // 10: talon.config.OidcTrustEntry.grants:type_name -> talon.config.OidcTrustGrant
+	1,  // 11: talon.config.OidcTrustGrant.kind:type_name -> talon.config.OidcTrustGrant.Kind
+	11, // 12: talon.config.LlmProviderConfig.openai:type_name -> talon.config.OpenAiConfig
+	12, // 13: talon.config.LlmProviderConfig.anthropic:type_name -> talon.config.AnthropicConfig
+	13, // 14: talon.config.LlmProviderConfig.google:type_name -> talon.config.GoogleConfig
+	14, // 15: talon.config.LlmProviderConfig.openai_compatible:type_name -> talon.config.GenericConfig
+	15, // 16: talon.config.OpenAiConfig.api_key:type_name -> talon.config.Secret
+	15, // 17: talon.config.AnthropicConfig.api_key:type_name -> talon.config.Secret
+	15, // 18: talon.config.GoogleConfig.api_key:type_name -> talon.config.Secret
+	15, // 19: talon.config.GenericConfig.api_key:type_name -> talon.config.Secret
+	16, // 20: talon.config.Secret.ref:type_name -> talon.config.SecretRef
+	2,  // 21: talon.config.SecretRef.source:type_name -> talon.config.SecretRef.Source
+	15, // 22: talon.config.DatabaseConfig.url:type_name -> talon.config.Secret
+	0,  // 23: talon.config.DatabaseConfig.auth_mode:type_name -> talon.config.DatabaseAuthMode
+	19, // 24: talon.config.ObjectStoreConfig.local:type_name -> talon.config.LocalObjectStoreConfig
+	20, // 25: talon.config.ObjectStoreConfig.gcs:type_name -> talon.config.GcsObjectStoreConfig
+	21, // 26: talon.config.ObjectStoreConfig.s3:type_name -> talon.config.S3ObjectStoreConfig
+	15, // 27: talon.config.SchedulerCallbackAuthConfig.shared_secret:type_name -> talon.config.Secret
+	24, // 28: talon.config.SchedulerCallbackAuthConfig.google_oidc:type_name -> talon.config.GoogleOidcAuthConfig
+	23, // 29: talon.config.CloudTasksSchedulerConfig.callback_auth:type_name -> talon.config.SchedulerCallbackAuthConfig
+	25, // 30: talon.config.SchedulerConfig.cloud_tasks:type_name -> talon.config.CloudTasksSchedulerConfig
+	26, // 31: talon.config.SchedulerConfig.aws_eventbridge_scheduler:type_name -> talon.config.AwsEventBridgeSchedulerConfig
+	17, // 32: talon.config.ControlPlaneConfig.database:type_name -> talon.config.DatabaseConfig
+	18, // 33: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
+	27, // 34: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
+	22, // 35: talon.config.ControlPlaneConfig.object_store:type_name -> talon.config.ObjectStoreConfig
+	17, // 36: talon.config.ControlPlaneConfig.documents:type_name -> talon.config.DatabaseConfig
+	10, // 37: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
+	9,  // 38: talon.config.TalonConfig.ControllersEntry.value:type_name -> talon.config.ControllerConfig
+	5,  // 39: talon.config.TalonConfig.ModelsEntry.value:type_name -> talon.config.ModelConfig
+	4,  // 40: talon.config.TalonConfig.CapabilitiesEntry.value:type_name -> talon.config.CapabilityGate
+	41, // [41:41] is the sub-list for method output_type
+	41, // [41:41] is the sub-list for method input_type
+	41, // [41:41] is the sub-list for extension type_name
+	41, // [41:41] is the sub-list for extension extendee
+	0,  // [0:41] is the sub-list for field type_name
 }
 
 func init() { file_proto_config_proto_init() }
@@ -2407,7 +2467,7 @@ func file_proto_config_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_config_proto_rawDesc), len(file_proto_config_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   0,
