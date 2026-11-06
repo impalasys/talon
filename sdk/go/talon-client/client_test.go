@@ -12,6 +12,7 @@ import (
 	"time"
 
 	talonclient "github.com/impalasys/talon/sdk/go/talon-client"
+	"github.com/impalasys/talon/sdk/go/talon-client/talon/data"
 	"github.com/impalasys/talon/sdk/go/talon-client/talon/events"
 	talonv1 "github.com/impalasys/talon/sdk/go/talon-client/talon/v1"
 	"google.golang.org/grpc"
@@ -483,4 +484,45 @@ func grpcWebTrailerFrame(items ...any) []byte {
 	binary.BigEndian.PutUint32(frame[1:5], uint32(len(payload)))
 	copy(frame[5:], payload)
 	return frame
+}
+
+func TestByteRangeWireContractRoundTrips(t *testing.T) {
+	part := &data.ChatContentPart{
+		Content:   &data.ChatContentPart_Text{Text: "héllo wörld"},
+		ByteRange: &data.ByteRange{Start: 0, End: 5},
+	}
+	wire, err := proto.Marshal(part)
+	if err != nil {
+		t.Fatalf("marshal ChatContentPart: %v", err)
+	}
+	decoded := &data.ChatContentPart{}
+	if err := proto.Unmarshal(wire, decoded); err != nil {
+		t.Fatalf("unmarshal ChatContentPart: %v", err)
+	}
+	if !proto.Equal(decoded, part) {
+		t.Fatalf("ChatContentPart round trip mismatch: got %+v want %+v", decoded, part)
+	}
+	if decoded.GetByteRange().GetEnd() != 5 {
+		t.Fatalf("unexpected byte range end: %d", decoded.GetByteRange().GetEnd())
+	}
+
+	output := &data.ToolOutput{
+		ContentParts: []*data.ChatContentPart{{Content: &data.ChatContentPart_Text{Text: "abc"}}},
+		Summary:      "s",
+		ByteRange:    &data.ToolOutputByteRange{Start: 0, End: 3, NextByte: proto.Uint64(3)},
+	}
+	wire, err = proto.Marshal(output)
+	if err != nil {
+		t.Fatalf("marshal ToolOutput: %v", err)
+	}
+	decodedOutput := &data.ToolOutput{}
+	if err := proto.Unmarshal(wire, decodedOutput); err != nil {
+		t.Fatalf("unmarshal ToolOutput: %v", err)
+	}
+	if !proto.Equal(decodedOutput, output) {
+		t.Fatalf("ToolOutput round trip mismatch: got %+v want %+v", decodedOutput, output)
+	}
+	if decodedOutput.GetByteRange().GetNextByte() != 3 {
+		t.Fatalf("unexpected receipt next_byte: %d", decodedOutput.GetByteRange().GetNextByte())
+	}
 }
